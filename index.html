@@ -10107,6 +10107,95 @@ try {
 </script>
 <!--MOBILE-POLISH-END-->
 
+<!--UI-POLISH-START-->
+<style>
+  /* ── about-who: was monospace ALL-CAPS (debug-log feel) → serif italic lede ── */
+  .about-dash .about-who {
+    font-family: 'Georgia', 'Iowan Old Style', ui-serif, serif !important;
+    font-size: 15px !important;
+    font-style: italic !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    color: var(--ink) !important;
+    line-height: 1.65;
+    border-bottom: 1px solid rgba(155,107,255,0.20);
+    padding-bottom: 14px;
+    margin-bottom: 16px !important;
+  }
+  /* ── about-body: more air between paragraphs ── */
+  .about-dash .about-body {
+    padding: 22px 26px 24px;
+    font-size: 14.5px;
+    line-height: 1.75;
+  }
+  .about-dash .about-body p { margin: 0 0 14px; }
+  /* ── about box: slightly wider, cleaner border ── */
+  .about-dash {
+    max-width: 820px;
+    margin: 20px 0 12px;
+    border: 1px solid rgba(155,107,255,0.22);
+    border-left: 3px solid var(--orchid);
+    border-radius: 10px;
+    background: linear-gradient(160deg, rgba(223,149,255,0.06), rgba(33,246,188,0.03));
+  }
+  /* ── about-limits: subtle dark inset ── */
+  .about-dash .about-limits {
+    font-size: 13.5px;
+    color: rgba(163,148,201,0.82);
+    background: rgba(0,0,0,0.16);
+    border-left: 2px solid rgba(155,107,255,0.35);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    line-height: 1.68;
+  }
+  /* ── about collab + ps: muted, slightly smaller ── */
+  .about-dash .about-collab,
+  .about-dash .about-ps {
+    font-size: 13px;
+    color: var(--mute);
+    line-height: 1.6;
+  }
+  /* ── plot containers: JetBrains Mono for axis text (already loaded) ── */
+  .js-plotly-plot text {
+    font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace !important;
+  }
+  /* ── plot titles: slightly larger, letter-spaced ── */
+  .js-plotly-plot .g-gtitle text,
+  .js-plotly-plot .gtitle {
+    font-size: 14px !important;
+    letter-spacing: 0.8px;
+  }
+  /* ── plot containers: very subtle ambient glow ── */
+  .js-plotly-plot {
+    filter: drop-shadow(0 0 18px rgba(33,246,188,0.05))
+            drop-shadow(0 2px 8px rgba(0,0,0,0.35));
+  }
+  /* ── panel headings: don't clip — truncate with ellipsis instead ── */
+  .panel-title, .sect-title, [class*="panel-title"], .fig-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  /* ── hero-cue: restore position:absolute (overridden by .hero-stage>*{position:relative}) ── */
+  .hero-cue {
+    position: absolute !important;
+    bottom: 24px !important;
+    left: 50% !important;
+    z-index: 3 !important;
+  }
+  /* ── mobile about box ── */
+  @media (max-width: 768px) {
+    .about-dash {
+      margin: 14px 12px 10px;
+      border-radius: 0 8px 8px 0;
+    }
+    .about-dash .about-body { padding: 16px 16px 18px; }
+    .about-dash .about-who { font-size: 14px !important; }
+    .about-dash .about-limits { font-size: 13px; }
+  }
+</style>
+<!--UI-POLISH-END-->
 
 <!--AUDIO-MINIMAL-UI-START-->
 <style>
