@@ -10184,6 +10184,11 @@ try {
     left: 50% !important;
     z-index: 3 !important;
   }
+  /* ── hero-stats dots: hide on narrow mobile so they can't orphan at wrap ── */
+  @media (max-width: 600px) {
+    .hero-stats .dot { display: none !important; }
+    .hero-stats { gap: 14px !important; }
+  }
   /* ── mobile about box ── */
   @media (max-width: 768px) {
     .about-dash {
