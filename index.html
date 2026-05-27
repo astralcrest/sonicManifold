@@ -1961,6 +1961,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 <!--SCROLLY-START-->
+<style>
+  /* scrolly SVG charts: allow rotated labels to overflow SVG boundary */
+  .scrolly-chart svg { overflow: visible; }
+  /* rotate x-axis text labels so truncated names read clearly */
+  .scrolly-chart text[y="107"],
+  .scrolly-chart text[y="77"] {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transform: rotate(-38deg);
+    font-size: 8px !important;
+    text-anchor: end !important;
+  }
+</style>
 <style>.scrolly-opener{max-width:760px;margin:0 auto;padding:72px 28px 28px;color:var(--ink);font-family:'Georgia','Iowan Old Style',serif;font-size:clamp(15px,1.7vw,18px);line-height:1.7}.scrolly-opener p{margin:0 0 18px}.scrolly-opener .anchor-q{display:block;margin:28px 0;padding:8px 0 8px 18px;border-left:2px solid var(--mint);font-style:italic;font-size:clamp(17px,2.1vw,22px);color:var(--mint);line-height:1.5}.scrolly-opener .scroll-cue{display:block;margin-top:26px;color:var(--mute);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase}.scrolly{position:relative;margin:0 0 32px;border-top:1px solid rgba(155,107,255,0.20);border-bottom:1px solid rgba(155,107,255,0.20);background:radial-gradient(ellipse at top,rgba(33,246,188,0.08),transparent 60%),radial-gradient(ellipse at bottom,rgba(155,107,255,0.10),transparent 60%)}@media (min-width:900px){.scrolly{scroll-snap-type:y proximity}}.scrolly-step{min-height:86vh;display:flex;align-items:center;justify-content:center;padding:64px 24px;scroll-snap-align:center;opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s ease}.scrolly-step.in{opacity:1;transform:translateY(0)}.scrolly-inner{text-align:center;max-width:760px;width:100%}.scrolly-num{font-size:clamp(96px,18vw,200px);line-height:0.95;font-family:'JetBrains Mono','SF Mono',monospace;font-weight:700;letter-spacing:-2px;margin:0;background:linear-gradient(135deg,var(--accent),var(--ice),var(--orchid));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 40px rgba(33,246,188,0.10)}.scrolly-unit{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:4px;margin-top:8px;opacity:0.85}.scrolly-copy{color:var(--ink);font-family:'Georgia','Iowan Old Style',serif;font-style:italic;font-size:clamp(15px,2.2vw,21px);line-height:1.55;max-width:620px;margin:22px auto 26px}.scrolly-copy em,.scrolly-copy i{color:var(--accent);font-style:italic}.scrolly-chart{margin:0 auto;max-width:380px;opacity:0;transform:scale(0.92);transition:opacity .9s ease .15s,transform .9s ease .15s}.scrolly-step.in .scrolly-chart{opacity:1;transform:scale(1)}@media (max-width:900px){.scrolly-step{min-height:70vh;padding:48px 18px}.scrolly-num{font-size:clamp(64px,22vw,140px)}}</style>
 <div class="scrolly-opener">
   <p>high-bandwidth single-subject longitudinal study. seven years, 97k plays, Top 4% of Spotify listeners worldwide. when I commit, I commit hard.</p>
