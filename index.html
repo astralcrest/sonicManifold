@@ -2043,8 +2043,8 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="y60-wrap">
   <button class="y60-cta" id="y60-play" type="button" aria-label="play your year in 60 seconds">
     <span class="y60-triangle">&#9654;</span>
-    <span>play your year in 60s</span>
-    <span class="y60-time">~60s &middot; ESC to stop</span>
+    <span>GUIDED TOUR · 60s</span>
+    <span class="y60-time">scroll through the manifold &middot; ESC to exit</span>
   </button>
 </div>
 <div class="y60-overlay" id="y60-overlay" role="status" aria-live="polite">
@@ -9794,6 +9794,29 @@ try {
       max-width: 100vw;
       overflow-x: hidden;
     }
+    /* hero stats: inline-flex doesn't constrain — force it to fit */
+    .hero-stats {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      width: min(90vw, 380px);
+      max-width: 90vw;
+      justify-content: center;
+      gap: 10px !important;
+      font-size: 10px !important;
+      letter-spacing: 1.2px !important;
+    }
+    .hero-stage h1 {
+      font-size: clamp(28px, 8vw, 48px) !important;
+      letter-spacing: 1px !important;
+      max-width: 90vw;
+    }
+    .hero-tagline {
+      font-size: clamp(14px, 4vw, 18px) !important;
+      max-width: 85vw;
+    }
+    .about-dash, .about-body { max-width: 100%; overflow-wrap: break-word; word-break: break-word; }
+    .rev-grid { padding: 0 12px 24px !important; gap: 10px !important; grid-template-columns: 1fr !important; }
+    .section-tldr, .sect-tldr-card { margin: 0 12px !important; max-width: calc(100vw - 24px); overflow-wrap: break-word; }
     /* box-sizing: border-box across the board so padding doesn't blow out
        widths. Excludes plotly internals where we can't safely override. */
     *:not(.js-plotly-plot *):not(.plotly *),
