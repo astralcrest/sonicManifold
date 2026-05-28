@@ -10202,11 +10202,12 @@ try {
 </style>
 <!--UI-POLISH-END-->
 
+
 <!--AUDIO-MINIMAL-UI-START-->
 <style>
   /* ── hide all audio UI chips — audio runs silently in background ── */
+  /* #seamless-chip intentionally NOT hidden: restores scroll-score activation on desktop */
   #carnatic-chip,
-  #seamless-chip,
   #generative-chip,
   #ambient-toggle,
   .share-card-btn,
@@ -10319,6 +10320,247 @@ try {
 })();
 </script>
 <!--AUDIO-MINIMAL-UI-END-->
+
+<!--PLOTLY-MOBILE-FIX-START-->
+<style>
+  /* On mobile: panels and chart wrappers scroll horizontally as fallback */
+  @media (max-width: 600px) {
+    .panel.full, .panel.half {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+    .panel .plotly-graph-div {
+      min-width: 0;
+    }
+  }
+</style>
+<script>
+(function () {
+  'use strict';
+  if (window.innerWidth > 600) return;
+
+  /* Mobile Plotly fix for dense heatmaps with wide y-axis labels.
+     Strategy:
+       - For charts with long y-axis text labels (artist names, date strings)
+         that autoexpand the left margin to 150-220px on a 390px viewport,
+         we force-relayout with autosize:false and explicit pixel width so
+         the chart renders at a usable size.
+       - Parent .panel gets overflow-x:auto (via CSS above) so user can scroll.
+       - For cohort/date y-axes (short labels like "2022-03"): compact margin l=72.
+       - For gateway/artist y-axes (long labels): compact margin l=90, small tick font.
+  */
+
+  var applied = new Set();
+
+  function getMaxLabelLen(yArr) {
+    if (!yArr || !yArr.length) return 0;
+    return Math.max.apply(null, yArr.map(function(v) { return String(v).length; }));
+  }
+
+  function relayoutChart(gdiv) {
+    var id = gdiv.id;
+    if (!id || applied.has(id)) return;
+    if (!gdiv._fullData || !gdiv._fullLayout) return;
+
+    var isHeatmap = gdiv._fullData.some(function(tr) { return tr.type === 'heatmap'; });
+    if (!isHeatmap) return;
+
+    var d = gdiv._fullData[0];
+    var ylen = d && d.y ? d.y.length : 0;
+    if (ylen < 5) return;
+
+    applied.add(id);
+
+    var maxLabelLen = getMaxLabelLen(d && d.y);
+    // Long artist names (>8 chars avg) need more room or we hide them
+    var isLongLabels = maxLabelLen > 8;
+    var lMargin = isLongLabels ? 80 : 68;
+    var tickSize = isLongLabels ? 6 : 7;
+
+    setTimeout(function () {
+      try {
+        /* autosize:false + explicit width forces Plotly to respect our margin */
+        var w = Math.max(340, window.innerWidth - 24);
+        Plotly.relayout(id, {
+          autosize: false,
+          width: w,
+          'margin.l': lMargin,
+          'margin.r': 10,
+          'margin.b': 50,
+          'margin.t': 36,
+          'yaxis.tickfont.size': tickSize,
+          'xaxis.tickfont.size': tickSize,
+          'yaxis.automargin': false,
+          'xaxis.automargin': false,
+        });
+      } catch(e) { /* Plotly not ready */ }
+    }, 200);
+  }
+
+  function scanAll() {
+    document.querySelectorAll('.plotly-graph-div').forEach(function(gd) {
+      relayoutChart(gd);
+    });
+  }
+
+  /* Initial scan after page load */
+  if (document.readyState === 'complete') {
+    setTimeout(scanAll, 300);
+  } else {
+    window.addEventListener('load', function() { setTimeout(scanAll, 300); });
+  }
+
+  /* Watch for lazy-loaded charts entering the DOM */
+  var mo = new MutationObserver(function(muts) {
+    muts.forEach(function(m) {
+      m.addedNodes.forEach(function(node) {
+        if (node.nodeType !== 1) return;
+        var divs = node.classList && node.classList.contains('plotly-graph-div')
+          ? [node]
+          : (node.querySelectorAll ? Array.from(node.querySelectorAll('.plotly-graph-div')) : []);
+        divs.forEach(function(gd) { setTimeout(function() { relayoutChart(gd); }, 250); });
+      });
+    });
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+
+  /* Re-scan after scroll (lazy-load fires on scroll) */
+  var st;
+  window.addEventListener('scroll', function() {
+    clearTimeout(st);
+    st = setTimeout(scanAll, 500);
+  }, { passive: true });
+
+  console.log('[plotly-mobile-fix] armed — autosize:false relayout on heatmaps');
+})();
+</script>
+<!--PLOTLY-MOBILE-FIX-END-->
+
+<!--UI-POLISH-V2-START-->
+<style>
+  /* ══ MOBILE POLISH V2 — 390px first-time reader pass ══ */
+
+  @media (max-width: 600px) {
+
+    /* ── fig-title: allow wrap (not ellipsis) on mobile so titles aren't cut ── */
+    .fig-title, .panel-title, .sect-title {
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: unset !important;
+      font-size: clamp(11px, 3vw, 13px) !important;
+      line-height: 1.35 !important;
+      padding-bottom: 4px;
+    }
+
+    /* ── caption pillars: tighten padding, keep readable ── */
+    .fig-caption {
+      font-size: 13px !important;
+      line-height: 1.6 !important;
+      padding: 14px 14px 16px !important;
+    }
+    .pl-math, .pl-intuition, .pl-yourdata, .pl-takeaway {
+      display: inline-block;
+      margin-bottom: 2px;
+    }
+
+    /* ── section overview cards: single column, full-width ── */
+    .overview-grid, [class*="overview-grid"] {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* ── ML LAB metric cards: 2-col grid (not 3 or 4) ── */
+    .lab-grid, [class*="lab-grid"] {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 8px !important;
+    }
+    .lab-card, [class*="lab-card"] {
+      padding: 10px 10px 12px !important;
+    }
+    .lab-card .val, .lab-card [class*="val"] {
+      font-size: 20px !important;
+    }
+
+    /* ── insight/rev-card: full-width, no side padding bleed ── */
+    .rev-card, [class*="rev-card"] {
+      margin: 0 0 12px !important;
+      padding: 14px 14px 14px !important;
+    }
+    .rev-embed iframe {
+      height: 80px !important;
+    }
+
+    /* ── health section legibility ── */
+    .health-grid, [class*="health-grid"] {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* ── table overflow: horizontal scroll on dense tables ── */
+    .panel table, table.stat-table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+      font-size: 11px;
+    }
+
+    /* ── DIURNAL heatmap: overflow-x scroll container ── */
+    .panel.full, .panel.half {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── tap targets: min 44px height for all interactive elements ── */
+    .fig-title button,
+    .panel-expand, [class*="expand-btn"],
+    .zoom-badge, [class*="zoom-badge"] {
+      min-height: 44px !important;
+      min-width: 44px !important;
+    }
+
+    /* ── scrolly section: tighten padding ── */
+    .scrolly-step {
+      padding: 36px 14px !important;
+    }
+    .scrolly-copy {
+      font-size: clamp(14px, 4.2vw, 17px) !important;
+    }
+
+    /* ── hero cta chip: remove bottom that could overlap content ── */
+    .hero-cta { display: none; }
+
+    /* ── Plotly chart: overflow-x scroll so wide heatmaps don't clip ── */
+    .js-plotly-plot {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── section headers: slightly smaller on mobile ── */
+    .section-header h2, .sect-h2 {
+      font-size: clamp(20px, 6vw, 28px) !important;
+    }
+
+    /* ── code inline: allow wrap ── */
+    code { word-break: break-word; }
+
+    /* ── about section mobile ── */
+    .about-dash {
+      margin: 10px 8px 8px !important;
+    }
+    .about-dash .about-body {
+      padding: 12px 12px 14px !important;
+      font-size: 13.5px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    /* ── stat/hero numbers: clamp tighter ── */
+    .hero-stat-num { font-size: clamp(28px, 8vw, 40px) !important; }
+
+    /* ── lab card values: smaller still on very narrow ── */
+    .lab-card .val { font-size: 18px !important; }
+  }
+</style>
+<!--UI-POLISH-V2-END-->
 
 </body>
 </html>
