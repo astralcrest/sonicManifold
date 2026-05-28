@@ -2434,7 +2434,7 @@ document.addEventListener('DOMContentLoaded', function () {
   <h2 style="font-size:28px">◢◤  LISTENER EMBEDDING — your personal artist space</h2>
   <div class="sub">
     <span class="term-tip" data-tip="Skip-gram embedding: each artist becomes a 64-dimensional vector trained to predict its session co-occurrence neighbours (window=10, neg-sampling)." tabindex="0">Word2Vec</span> <span class="term-tip" data-tip="Word2Vec variant: predict context words from a target word. Here: predict session-neighbour artists from a target artist." tabindex="0">skip-gram</span> on <b>4,761</b> sessions ·
-    1,986 artists in vocab · 64-d → <span class="term-tip" data-tip="Uniform Manifold Approximation: nonlinear dim-reduction. Preserves local k-NN neighbourhoods; global distances are visual scaffolding only, not metric truth." tabindex="0">UMAP</span> 2-d ·
+    1,986 artists in vocab · 64-d → <span class="term-tip" data-tip="Uniform Manifold Approximation: nonlinear dim-reduction. Preserves local k-NN neighbourhoods; global distances are visual scaffolding only, not metric truth." tabindex="0">UMAP</span> 3-d ·
     mean ε <b>2.2%</b> · mean session diversity <b>0.307</b>
   </div>
 </header>
@@ -10436,6 +10436,61 @@ try {
 })();
 </script>
 <!--PLOTLY-MOBILE-FIX-END-->
+
+<!--MISC-FIX-2026-05-START-->
+<script>
+(function() {
+  /* Hero cue → open details#tldr on click */
+  document.addEventListener('DOMContentLoaded', function() {
+    var cue = document.querySelector('a.hero-cue[href="#tldr"]');
+    var det = document.getElementById('tldr');
+    if (cue && det) {
+      cue.addEventListener('click', function() { det.open = true; });
+    }
+  });
+
+  /* Stacked area chart legend → horizontal below plot */
+  function fixStackedAreaLegend(gd) {
+    try {
+      var data = gd._fullData || [];
+      var isStacked = data.some(function(tr) { return tr.stackgroup; });
+      if (!isStacked) return;
+      if (gd._stackLegendFixed) return;
+      gd._stackLegendFixed = true;
+      Plotly.relayout(gd.id, {
+        'legend.orientation': 'h',
+        'legend.x': 0,
+        'legend.y': -0.18,
+        'legend.xanchor': 'left',
+        'legend.yanchor': 'top',
+        'legend.font.size': 9,
+        'margin.b': 100
+      });
+    } catch(e) {}
+  }
+
+  function scanStacked() {
+    document.querySelectorAll('.plotly-graph-div').forEach(function(gd) {
+      if (gd._fullData) fixStackedAreaLegend(gd);
+    });
+  }
+
+  if (document.readyState === 'complete') { setTimeout(scanStacked, 800); }
+  else { window.addEventListener('load', function() { setTimeout(scanStacked, 800); }); }
+  window.addEventListener('scroll', function() { setTimeout(scanStacked, 600); }, { passive: true });
+  new MutationObserver(function(muts) {
+    muts.forEach(function(m) {
+      m.addedNodes.forEach(function(n) {
+        if (n.nodeType !== 1) return;
+        var divs = n.classList && n.classList.contains('plotly-graph-div') ? [n]
+          : (n.querySelectorAll ? Array.from(n.querySelectorAll('.plotly-graph-div')) : []);
+        divs.forEach(function(gd) { setTimeout(function() { fixStackedAreaLegend(gd); }, 400); });
+      });
+    });
+  }).observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+<!--MISC-FIX-2026-05-END-->
 
 <!--AUDIT-FIX-2026-05-START-->
 <script>
