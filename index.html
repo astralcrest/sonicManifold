@@ -1891,6 +1891,7 @@ document.addEventListener('DOMContentLoaded', function () {
       keep going<span class="arrow">↓</span><span class="arrow2">↓</span>
     </a>
   </div>
+<div class="pace-pick" role="group" aria-label="choose reading pace"><span class="pace-q">how deep do you want to go?</span><div class="pace-seg"><button type="button" class="pace-opt" data-mode="story">&#9683; the 3-min story</button><button type="button" class="pace-opt is-active" data-mode="full">&#9879; the full lab</button></div><span class="pace-sub">story = the spine, no math. lab = all 100 analyses.</span></div>
   <!--ABOUT-START-->
   <details class="about-dash" id="tldr" open>
     <summary>about this dashboard ↓</summary>
@@ -10897,6 +10898,41 @@ try {
 })();
 </script>
 <!--POLISH-V5-2026-05-END-->
+
+<!--POLISH-V6-2026-05-START-->
+<style>
+  .pace-pick{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px auto 40px;padding:0 16px;text-align:center}
+  .pace-q{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--mute)}
+  .pace-sub{font-family:'JetBrains Mono','SF Mono',monospace;font-size:10px;letter-spacing:0.6px;color:rgba(163,148,201,0.7)}
+  .pace-seg{display:inline-flex;background:rgba(155,107,255,0.08);border:1px solid rgba(155,107,255,0.30);border-radius:999px;padding:4px;gap:4px;backdrop-filter:blur(8px)}
+  .pace-opt{appearance:none;border:0;cursor:pointer;font-family:'JetBrains Mono','SF Mono',monospace;font-size:12px;letter-spacing:1px;padding:9px 18px;border-radius:999px;color:var(--mute);background:transparent;transition:color .2s ease,background .2s ease,box-shadow .2s ease;white-space:nowrap}
+  .pace-opt:hover{color:var(--ink)}
+  .pace-opt.is-active{color:#0a0118;background:linear-gradient(96deg,var(--mint),var(--ice));box-shadow:0 0 18px -4px var(--mint);font-weight:700}
+  @media (max-width:600px){.pace-opt{padding:8px 12px;font-size:11px}.pace-pick{margin-bottom:28px}}
+</style>
+<script>
+(function(){
+  'use strict';
+  var seg=document.querySelector('.pace-pick'); if(!seg) return;
+  var opts=seg.querySelectorAll('.pace-opt');
+  var nav=document.getElementById('story-toggle');
+  function reflect(story){ opts.forEach(function(o){ o.classList.toggle('is-active',(o.getAttribute('data-mode')==='story')===story); }); }
+  function setMode(story){
+    document.body.classList.toggle('story-only', story);
+    try{localStorage.setItem('sonicmanifold-story-only', story?'1':'0');}catch(e){}
+    if(nav){ nav.setAttribute('aria-pressed', story?'true':'false'); nav.textContent = story?'FULL VIEW':'STORY ONLY'; }
+    reflect(story);
+  }
+  opts.forEach(function(o){ o.addEventListener('click', function(){
+    var story = o.getAttribute('data-mode')==='story';
+    setMode(story);
+    try{ var t=document.getElementById('tldr'); if(t) t.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
+  }); });
+  if(nav) nav.addEventListener('click', function(){ setTimeout(function(){ reflect(document.body.classList.contains('story-only')); },0); });
+  reflect(document.body.classList.contains('story-only'));
+})();
+</script>
+<!--POLISH-V6-2026-05-END-->
 
 </body>
 </html>
