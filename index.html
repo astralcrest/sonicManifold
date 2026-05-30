@@ -530,6 +530,83 @@ document.addEventListener('keydown', function(e) {
 })();
 </script>
 <!--POLISH-CSS-END-->
+<!--APPLE-DS-CSS-START-->
+<style>
+  /* ============================================================
+     APPLE-DS — design-system layer (tokens, materials, motion).
+     Layered last; refines without rewriting the bespoke sections.
+     Keeps the dark/neon palette + fonts. Reversible (marker block).
+     ============================================================ */
+  :root{
+    --sp-1:8px;  --sp-2:14px; --sp-3:22px;
+    --sp-4:36px; --sp-5:56px; --sp-6:88px;
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+    --ease-out:cubic-bezier(.22,.61,.36,1);
+    --ease-soft:cubic-bezier(.4,0,.2,1);
+    --dur-1:.18s; --dur-2:.42s; --dur-3:.72s;
+    --hair:rgba(155,107,255,.20);
+    --hair-2:rgba(155,107,255,.36);
+    --elev-1:0 10px 30px -18px rgba(0,0,0,.72);
+    --elev-2:0 22px 60px -22px rgba(0,0,0,.80), 0 0 0 1px var(--hair-2);
+  }
+  /* unified panel material: hairline + soft elevation + calm hover */
+  .panel{
+    border-radius:var(--r-md);
+    border:1px solid var(--hair);
+    box-shadow:var(--elev-1);
+    transition:border-color var(--dur-2) var(--ease-out),
+               box-shadow var(--dur-2) var(--ease-out);
+  }
+  .panel:hover{ border-color:var(--hair-2); box-shadow:var(--elev-2); }
+  .panel:not(.table-panel){ padding:16px 14px; }
+  .grid{ gap:20px; }
+  /* stat cards: same material + gentle lift on hover */
+  .card{
+    border-radius:var(--r-md);
+    border:1px solid var(--hair);
+    box-shadow:var(--elev-1);
+    transition:transform var(--dur-2) var(--ease-out),
+               border-color var(--dur-2) var(--ease-out),
+               box-shadow var(--dur-2) var(--ease-out);
+  }
+  .card:hover{ transform:translateY(-3px); border-color:var(--hair-2); box-shadow:var(--elev-2); }
+  /* scroll reveal (JS adds .reveal, then .is-in on intersection) */
+  .reveal{ opacity:0; transform:translateY(20px);
+           transition:opacity var(--dur-3) var(--ease-out),
+                      transform var(--dur-3) var(--ease-out); }
+  .reveal.is-in{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion:reduce){
+    .reveal{ opacity:1 !important; transform:none !important; }
+  }
+  /* unified Plotly chrome: in-panel charts fuse into the frosted panel;
+     all chart text on the same mono. Scoped so full-bleed charts keep bg. */
+  .panel .js-plotly-plot rect.bg,
+  .panel .js-plotly-plot .main-svg{ fill:rgba(0,0,0,0) !important; background:transparent !important; }
+  .js-plotly-plot text{ font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace !important; }
+  .js-plotly-plot .modebar,
+  .js-plotly-plot .modebar-group{ background:transparent !important; box-shadow:none !important; }
+</style>
+<!--APPLE-DS-CSS-END-->
+<!--HERO-DS-CSS-START-->
+<style>
+  /* hero title: relax the cramped 16ch column so it wraps cleanly (desktop only;
+     mobile already wraps fine and a wide nowrap would overflow at this font size) */
+  @media (min-width:601px){
+    .hero-stage h1{ max-width:min(21ch,90vw) !important; line-height:1.08; }
+  }
+</style>
+<!--HERO-DS-CSS-END-->
+<!--MARQUEE-DS-CSS-START-->
+<style>
+  /* unify bespoke callout cards to the DS radius (were 8px; panels/cards are 14px) */
+  .surprising-hero-box, .novel-callout-box{ border-radius:var(--r-md) !important; }
+  /* a touch more lift on the lead callouts to match the elevated panels */
+  .surprising-hero-box{ box-shadow:var(--elev-1); }
+</style>
+<!--MARQUEE-DS-CSS-END-->
+
+
+
 </head>
 <body>
 
@@ -6766,8 +6843,128 @@ try {
 <!--LISTENING-ROOM-END-->
 
 
+
+
 <!--AMBIENT-START-->
-<style>#ambient-toggle{position:fixed;left:16px;bottom:max(16px,env(safe-area-inset-bottom,16px));z-index:9996;display:inline-flex;align-items:center;gap:8px;background:rgba(21,8,45,0.62);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border:1px solid rgba(155,107,255,0.45);border-radius:999px;padding:8px 14px 8px 12px;font-family:'JetBrains Mono','SF Mono',monospace;font-size:10.5px;letter-spacing:1.4px;color:#a394c9;cursor:pointer;user-select:none;box-shadow:0 8px 24px rgba(155,107,255,0.18),inset 0 1px 0 rgba(255,255,255,0.04);transition:color .2s ease,border-color .2s ease,box-shadow .2s ease}#ambient-toggle:hover{color:#f0eaff;border-color:rgba(155,107,255,0.75)}#ambient-toggle.on{color:#21f6bc;border-color:rgba(33,246,188,0.7);box-shadow:0 8px 24px rgba(33,246,188,0.30),inset 0 1px 0 rgba(255,255,255,0.06);animation:ambPulse 3.4s ease-in-out infinite}@keyframes ambPulse{0%,100%{box-shadow:0 8px 24px rgba(33,246,188,0.30),inset 0 1px 0 rgba(255,255,255,0.06)}50%{box-shadow:0 8px 32px rgba(33,246,188,0.55),inset 0 1px 0 rgba(255,255,255,0.06)}}#ambient-toggle .amb-glyph{display:inline-block;width:10px;height:10px;border-radius:50%;background:#a394c9;transition:background .2s ease,box-shadow .2s ease}#ambient-toggle.on .amb-glyph{background:#21f6bc;box-shadow:0 0 8px rgba(33,246,188,0.85)}@media (max-width:768px){#ambient-toggle{left:max(12px,env(safe-area-inset-left,12px));right:auto;bottom:max(16px,env(safe-area-inset-bottom,16px));font-size:9.5px;padding:6px 10px 6px 9px;letter-spacing:1px}#ambient-host{opacity:0.71}}#ambient-prompt{position:fixed;left:16px;bottom:max(128px,calc(112px+env(safe-area-inset-bottom,16px)));z-index:9997;display:none;flex-direction:column;gap:10px;background:rgba(21,8,45,0.94);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border:1px solid #df95ff;border-radius:12px;padding:12px 14px;font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:0.4px;color:#f0eaff;box-shadow:0 12px 36px rgba(223,149,255,0.35);max-width:280px;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}#ambient-prompt.show{display:flex;opacity:1;transform:translateY(0)}#ambient-prompt .amb-q{color:#f0eaff;line-height:1.4}#ambient-prompt .amb-q b{color:#df95ff}#ambient-prompt .amb-btns{display:flex;gap:8px}#ambient-prompt button{flex:1;cursor:pointer;padding:6px 10px;border-radius:8px;font-family:inherit;font-size:10.5px;letter-spacing:1.2px;background:transparent;color:#a394c9;border:1px solid rgba(255,255,255,0.18);transition:color .15s ease,border-color .15s ease,background .15s ease}#ambient-prompt button.yes{color:#21f6bc;border-color:rgba(33,246,188,0.6)}#ambient-prompt button.yes:hover{background:rgba(33,246,188,0.15)}#ambient-prompt button.no:hover{color:#f0eaff;background:rgba(255,255,255,0.06)}@media (max-width:768px){#ambient-prompt{display:none !important}}#ambient-host{position:fixed;left:16px;bottom:max(60px,calc(60px+env(safe-area-inset-bottom,0)));width:280px;height:80px;z-index:9985;border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.4);display:none}#ambient-host:not(:empty){display:block}#ambient-host iframe{width:280px;height:80px;border:0;display:block}@media (max-width:768px){#ambient-host{left:8px;bottom:max(56px,calc(56px+env(safe-area-inset-bottom,0)));width:calc(100vw - 16px);max-width:320px}#ambient-host iframe{width:100%}}</style>
+<style>
+  /* ── floating toggle pill (bottom-left, desktop) ──────────────────── */
+  /* BL-STACK slot 1 — 16px from bottom */
+  #ambient-toggle {
+    position: fixed; left: 16px; bottom: max(16px, env(safe-area-inset-bottom, 16px)); z-index: 9996;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(21, 8, 45, 0.62);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid rgba(155, 107, 255, 0.45);
+    border-radius: 999px;
+    padding: 8px 14px 8px 12px;
+    font-family: 'JetBrains Mono','SF Mono',monospace;
+    font-size: 10.5px; letter-spacing: 1.4px; color: #a394c9;
+    cursor: pointer; user-select: none;
+    box-shadow: 0 8px 24px rgba(155, 107, 255, 0.18),
+                inset 0 1px 0 rgba(255,255,255,0.04);
+    transition: color .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  #ambient-toggle:hover {
+    color: #f0eaff; border-color: rgba(155, 107, 255, 0.75);
+  }
+  #ambient-toggle.on {
+    color: #21f6bc; border-color: rgba(33, 246, 188, 0.7);
+    box-shadow: 0 8px 24px rgba(33, 246, 188, 0.30),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+    animation: ambPulse 3.4s ease-in-out infinite;
+  }
+  @keyframes ambPulse {
+    0%, 100% { box-shadow: 0 8px 24px rgba(33, 246, 188, 0.30),
+                            inset 0 1px 0 rgba(255,255,255,0.06); }
+    50%      { box-shadow: 0 8px 32px rgba(33, 246, 188, 0.55),
+                            inset 0 1px 0 rgba(255,255,255,0.06); }
+  }
+  #ambient-toggle .amb-glyph {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    background: #a394c9;
+    transition: background .2s ease, box-shadow .2s ease;
+  }
+  #ambient-toggle.on .amb-glyph {
+    background: #21f6bc;
+    box-shadow: 0 0 8px rgba(33, 246, 188, 0.85);
+  }
+  /* mobile: compact ambient toggle stays on the LEFT (BL-STACK slot 1).
+     cyber-top and chip-rail-toggle both live on the right; keeping ambient
+     on the left avoids overlap without a complex z-index dance. */
+  @media (max-width: 768px) {
+    #ambient-toggle {
+      left: max(12px, env(safe-area-inset-left, 12px));
+      right: auto;
+      bottom: max(16px, env(safe-area-inset-bottom, 16px));
+      font-size: 9.5px; padding: 6px 10px 6px 9px;
+      letter-spacing: 1px;
+    }
+    /* -3 dB duck on phone speakers: opacity 0.71 on the iframe host
+       (cross-origin can't set volume; opacity doesn't affect audio but the
+       next-best signal we can send to the host div is a visual dim that
+       communicates "this is a background bed, not foreground audio").
+       Actual perceived volume is controlled by the user's system volume. */
+    #ambient-host { opacity: 0.71; }
+  }
+
+  /* ── ambient prompt toast ─────────────────────────────────────────── */
+  /* floats above seamless-chip (BL slot 2 = 72px), so starts at slot-3 height */
+  #ambient-prompt {
+    position: fixed; left: 16px; bottom: max(128px, calc(112px + env(safe-area-inset-bottom, 16px))); z-index: 9997;
+    display: none; flex-direction: column; gap: 10px;
+    background: rgba(21, 8, 45, 0.94);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid #df95ff;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono','SF Mono',monospace;
+    font-size: 11px; letter-spacing: 0.4px; color: #f0eaff;
+    box-shadow: 0 12px 36px rgba(223, 149, 255, 0.35);
+    max-width: 280px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  #ambient-prompt.show { display: flex; opacity: 1; transform: translateY(0); }
+  #ambient-prompt .amb-q { color: #f0eaff; line-height: 1.4; }
+  #ambient-prompt .amb-q b { color: #df95ff; }
+  #ambient-prompt .amb-btns { display: flex; gap: 8px; }
+  #ambient-prompt button {
+    flex: 1; cursor: pointer; padding: 6px 10px;
+    border-radius: 8px; font-family: inherit; font-size: 10.5px;
+    letter-spacing: 1.2px; background: transparent;
+    color: #a394c9; border: 1px solid rgba(255,255,255,0.18);
+    transition: color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  #ambient-prompt button.yes { color: #21f6bc; border-color: rgba(33, 246, 188, 0.6); }
+  #ambient-prompt button.yes:hover { background: rgba(33, 246, 188, 0.15); }
+  #ambient-prompt button.no:hover { color: #f0eaff; background: rgba(255,255,255,0.06); }
+  @media (max-width: 768px) {
+    #ambient-prompt { display: none !important; }
+  }
+
+  /* ── visible iframe host (Spotify embed pauses if off-screen or opacity:0;
+        keep on-screen tucked bottom-left above the ambient-toggle chip) ── */
+  #ambient-host {
+    position: fixed;
+    left: 16px;
+    bottom: max(60px, calc(60px + env(safe-area-inset-bottom, 0)));
+    width: 280px; height: 80px;
+    z-index: 9985;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    /* hidden until iframe injected so empty box doesn't show */
+    display: none;
+  }
+  #ambient-host:not(:empty) { display: block; }
+  #ambient-host iframe { width: 280px; height: 80px; border: 0; display: block; }
+  @media (max-width: 768px) {
+    #ambient-host { left: 8px; bottom: max(56px, calc(56px + env(safe-area-inset-bottom,0))); width: calc(100vw - 16px); max-width: 320px; }
+    #ambient-host iframe { width: 100%; }
+  }
+</style>
 
 <button id="ambient-toggle" type="button" aria-label="ambient music"
         title="ambient music: click to toggle">
@@ -6777,8 +6974,8 @@ try {
   <div class="amb-q"><b>play ambient music</b> while you explore?<br>
     (spotify tracks if available, generative synth fallback)</div>
   <div class="amb-btns">
-    <button class="yes" id="ambient-yes" aria-label="Yes, start ambient music">yes</button>
-    <button class="no"  id="ambient-no" aria-label="No, skip ambient music">no</button>
+    <button class="yes" id="ambient-yes">yes</button>
+    <button class="no"  id="ambient-no">no</button>
   </div>
 </div>
 <div id="ambient-host" aria-hidden="true" style="position:fixed!important;left:16px!important;bottom:60px!important;top:auto!important;width:280px!important;height:80px!important;z-index:9985!important;border-radius:8px;overflow:hidden;"></div>
@@ -6904,34 +7101,22 @@ try {
     } catch(e){}
   });
 
-  function buildIframe(tid) {
-    if (_spotifyTimer) { clearTimeout(_spotifyTimer); _spotifyTimer = null; }
-    stopToneFallback();
-    host.innerHTML = '';
-    var ifr = document.createElement('iframe');
-    ifr.src = 'https://open.spotify.com/embed/track/' +
-              encodeURIComponent(tid) + '?theme=0&autoplay=1';
-    ifr.setAttribute('allow', 'autoplay; encrypted-media');
-    ifr.setAttribute('loading', 'eager');
-    ifr.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
-    host.appendChild(ifr);
-    // If Spotify hasn't confirmed playback within 3.5s, fall back to Tone.js
-    _spotifyTimer = setTimeout(function() {
-      _spotifyTimer = null;
-      if (on && !_toneOn) {
-        console.log('[ambient] Spotify silent → falling back to Tone.js');
-        startToneFallback();
-      }
-    }, 3500);
-  }
+  // Spotify-embed ambient path REMOVED (2026-05-29) — audio unified on the
+  // SoundCloud Widget API (soundcloud_player.py). This module now exists only
+  // to (a) provide the Tone.js generative bed as the SC player's always-works
+  // fallback and (b) coordinate the SC bed so it yields to the h1-loop /
+  // listening-room tours. No Spotify iframe is ever built; no prompt is shown.
+  function buildIframe() { /* no-op: Spotify ambient dropped */ }
+  function playCurrent() { /* no-op: the SoundCloud bed owns background audio */ }
 
-  function playCurrent() {
-    var t = tracks[idx % tracks.length];
-    if (!t) return;
-    buildIframe(t.tid);
-    on = true;
-    setLabel('ambient: ' + (t.artist || 'on').toLowerCase(), 'on');
-    console.log('[ambient] playing', t.artist, t.tid);
+  // pause / resume the SoundCloud bed (respecting the global mute pill)
+  function scBedPause() {
+    try { if (window.__scPlayer && window.__scPlayer.setMuted) window.__scPlayer.setMuted(true); } catch(e){}
+  }
+  function scBedResume() {
+    var gm = false; try { gm = localStorage.getItem('sonicManifoldMuted') === '1'; } catch(e){}
+    if (gm) return;  // user muted everything — don't override their choice
+    try { if (window.__scPlayer && window.__scPlayer.setMuted) window.__scPlayer.setMuted(false); } catch(e){}
   }
 
   function stopAmbient(remember) {
@@ -6955,42 +7140,40 @@ try {
       var open = el.classList && (el.classList.contains('open') ||
                                    el.classList.contains('active') ||
                                    el.classList.contains('show'));
-      if (open && on) {
-        host.innerHTML = '';
+      if (open && !pausedByOverlay) {
         pausedByOverlay = true;
-        setLabel('ambient: paused', 'off');
-        console.log('[ambient] paused for overlay', elId);
+        stopToneFallback();   // kill the generative bed if it was the fallback
+        scBedPause();         // duck the SoundCloud bed under the tour
+        console.log('[ambient] SC bed ducked for overlay', elId);
       } else if (!open && pausedByOverlay) {
         pausedByOverlay = false;
-        playCurrent();
-        console.log('[ambient] resumed after overlay', elId);
+        scBedResume();
+        console.log('[ambient] SC bed resumed after overlay', elId);
       }
     });
     mo.observe(el, { attributes: true, attributeFilter: ['class'] });
   }
 
-  // also pause on the listening-room button click directly, since the
-  // overlay class change might race the iframe start.
+  // also duck immediately on the tour buttons, since the overlay class flip
+  // can race the tour's own audio start.
   ['lr-btn', 'h1loop-btn'].forEach(function(id){
     var b = document.getElementById(id);
     if (!b) return;
     b.addEventListener('click', function(){
-      if (on) {
-        host.innerHTML = '';
-        pausedByOverlay = true;
-        setLabel('ambient: paused', 'off');
-      }
+      pausedByOverlay = true;
+      stopToneFallback();
+      scBedPause();
     }, { passive: true });
   });
 
-  // resume on h1-loop / lr-overlay close buttons
+  // resume the bed on the tours' close buttons
   ['lr-exit', 'h1loop-exit'].forEach(function(id){
     var b = document.getElementById(id);
     if (!b) return;
     b.addEventListener('click', function(){
       if (pausedByOverlay) {
         pausedByOverlay = false;
-        setTimeout(playCurrent, 350);
+        setTimeout(scBedResume, 350);
       }
     }, { passive: true });
   });
@@ -7013,390 +7196,27 @@ try {
     }
   });
 
-  // ── first-gesture flow: show the one-time prompt or auto-resume ─────
-  function onFirstGesture() {
-    window.removeEventListener('click', onFirstGesture, true);
-    window.removeEventListener('keydown', onFirstGesture, true);
-    window.removeEventListener('touchstart', onFirstGesture, true);
-    var pref = null;
-    try { pref = localStorage.getItem(prefKey); } catch(e){}
-    if (pref === 'on') {
-      // user said yes last time → start immediately on this gesture
-      playCurrent();
-      return;
-    }
-    if (pref === 'off') return;  // user said no last time → respect it
-    if (promptShown) return;     // already asked this session, no answer
-    // first-ever load: show the toast prompt
-    setTimeout(function(){
-      prompt.classList.add('show');
-      promptShown = true;
-      try { localStorage.setItem('sonicAmbientPrompted', '1'); } catch(e){}
-      // auto-hide if no answer in 14s (don't nag)
-      setTimeout(function(){
-        if (prompt.classList.contains('show')) prompt.classList.remove('show');
-      }, 14000);
-    }, 700);
-  }
-  // capture so we beat other handlers that might call e.stopPropagation()
-  window.addEventListener('click',      onFirstGesture, { capture: true, once: false });
-  window.addEventListener('keydown',    onFirstGesture, { capture: true, once: false });
-  window.addEventListener('touchstart', onFirstGesture, { capture: true, once: false, passive: true });
+  // No first-gesture prompt / auto-play anymore — the single arm gesture is
+  // FIRST-TAP, which starts the SoundCloud bed. (Listeners + prompt removed.)
 
-  // prompt actions
-  if (yesBt) yesBt.addEventListener('click', function(e){
-    e.stopPropagation();
-    prompt.classList.remove('show');
-    try { localStorage.setItem(prefKey, 'on'); } catch(e){}
-    playCurrent();
-  });
-  if (noBt) noBt.addEventListener('click', function(e){
-    e.stopPropagation();
-    prompt.classList.remove('show');
-    try { localStorage.setItem(prefKey, 'off'); } catch(e){}
-  });
-
-  // expose tiny API
+  // Public API — ambient is now purely the SC player's generative fallback +
+  // a thin SC-bed coordination shim. isOn() reports the generative bed state.
   window.__ambientPlayer = {
-    start: playCurrent, stop: function(){ stopAmbient(true); },
-    isOn: function(){ return on; },
-    startGenerative: startToneFallback,
-    pauseForOverlay: function(){
-      if (on) { host.innerHTML = ''; stopToneFallback(); pausedByOverlay = true; setLabel('ambient: paused', 'off'); }
-    },
-    resumeFromOverlay: function(){
-      if (pausedByOverlay) { pausedByOverlay = false; playCurrent(); }
-    }
+    start: function(){},                     // Spotify ambient dropped
+    stop: function(){ stopToneFallback(); },
+    isOn: function(){ return _toneOn; },     // is the generative fallback bed active?
+    startGenerative: startToneFallback,      // SC player calls this if SoundCloud is silent
+    pauseForOverlay: function(){ stopToneFallback(); pausedByOverlay = true; },
+    resumeFromOverlay: function(){ pausedByOverlay = false; }
   };
-  console.log('[sonic-init] AMBIENT OK');
+  console.log('[sonic-init] AMBIENT OK (SoundCloud-fallback mode)');
 })();
 } catch(err) { console.error('[sonic-init] AMBIENT FAILED:', err); }
 </script>
 <!--AMBIENT-END-->
 
 
-<!--SEAMLESS-AUDIO-START-->
-<style>
-  /* BL-STACK slot 2 — 72px from bottom, above ambient toggle (slot 1 = 16px) */
-  #seamless-chip {
-    position: fixed; left: 16px; bottom: max(72px, calc(56px + env(safe-area-inset-bottom, 16px))); z-index: 9990;
-    background: rgba(21,8,45,0.82);
-    backdrop-filter: blur(12px) saturate(140%);
-    -webkit-backdrop-filter: blur(12px) saturate(140%);
-    border: 1px solid #86cbfe; border-radius: 999px;
-    padding: 8px 14px 8px 12px;
-    font-family: 'JetBrains Mono','SF Mono',monospace;
-    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
-    color: #86cbfe;
-    cursor: pointer;
-    box-shadow: 0 8px 24px rgba(134,203,254,0.30);
-    transition: transform .15s ease, box-shadow .15s ease, color .15s ease;
-    user-select: none;
-    display: flex; align-items: center; gap: 8px;
-  }
-  #seamless-chip:hover { transform: translateY(-2px); color: #f0eaff;
-    box-shadow: 0 12px 32px rgba(134,203,254,0.45); }
-  #seamless-chip.on { color: #21f6bc; border-color: #21f6bc;
-    box-shadow: 0 8px 24px rgba(33,246,188,0.40); }
-  #seamless-chip .ss-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #a394c9; box-shadow: 0 0 6px #a394c9;
-    transition: all .25s ease;
-  }
-  #seamless-chip.on .ss-dot {
-    background: #21f6bc; box-shadow: 0 0 10px #21f6bc;
-    animation: ss-pulse 2s ease-in-out infinite;
-  }
-  @keyframes ss-pulse { 50% { transform: scale(1.25); opacity: 0.7; } }
-  #seamless-chip .ss-now {
-    color: #fffa6a; max-width: 180px; overflow: hidden;
-    text-overflow: ellipsis; white-space: nowrap;
-    text-transform: none; letter-spacing: 0.3px;
-    font-size: 10px; opacity: 0; transition: opacity .3s ease;
-  }
-  #seamless-chip.on .ss-now { opacity: 0.9; }
-  #seamless-chip .ss-x {
-    background: transparent; border: 0;
-    color: #ff6e9c; font-size: 14px; cursor: pointer;
-    padding: 0 2px; margin-left: 2px; display: none;
-  }
-  #seamless-chip.on .ss-x { display: inline; }
-  #seamless-chip .ss-x:hover { color: #f0eaff; }
 
-  /* dual iframe hosts — kept ON-SCREEN (Spotify embeds pause if off-screen
-     or opacity:0). Stack vertically bottom-left above ambient-host.
-     We drop the iframe from the DOM after fade-out to silence cleanly. */
-  .seamless-host {
-    position: fixed; left: 16px;
-    width: 300px; height: 80px;
-    border-radius: 8px; overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    z-index: 9984;
-    /* hidden via empty container so 80px slot doesn't reserve space when no iframe */
-    display: none;
-  }
-  .seamless-host:not(:empty) { display: block; }
-  #seamless-host-a { bottom: max(150px, calc(150px + env(safe-area-inset-bottom, 0))); }
-  #seamless-host-b { bottom: max(240px, calc(240px + env(safe-area-inset-bottom, 0))); }
-  .seamless-host iframe {
-    width: 300px; height: 80px; border: 0; display: block;
-    opacity: 0; transition: opacity 2s ease-in-out;
-  }
-  .seamless-host.live iframe { opacity: 1; }
-  @media (max-width: 768px) {
-    .seamless-host { left: 8px; width: calc(100vw - 16px); max-width: 320px; }
-    .seamless-host iframe { width: 100%; }
-  }
-
-  /* mobile — hide chip and iframes entirely (no orphaned audio without controls) */
-  @media (max-width: 768px) {
-    #seamless-chip { display: none !important; }
-    .seamless-host { display: none !important; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #seamless-chip { display: none !important; }
-    .seamless-host { display: none !important; }
-  }
-</style>
-<div id="seamless-chip" role="button" aria-label="toggle ambient scroll-score">
-  <span class="ss-dot" aria-hidden="true"></span>
-  <span class="ss-label">ambient scroll-score</span>
-  <span class="ss-now" id="seamless-now"></span>
-  <button class="ss-x" id="seamless-x" aria-label="stop scroll-score" title="stop">×</button>
-</div>
-<div id="seamless-host-a" class="seamless-host"></div>
-<div id="seamless-host-b" class="seamless-host"></div>
-<script id="seamless-plan" type="application/json">[{"idx":0,"h1":"◢◤  sonic manifold — a listening life, decoded","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data"},{"idx":1,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"data-jiggle"},{"idx":2,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data"},{"idx":3,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"hint-jiggle"},{"idx":4,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data"},{"idx":5,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"data-jiggle"},{"idx":6,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data"},{"idx":7,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"data-jiggle"},{"idx":8,"h1":"","family":"hip-hop · r&b","tid":"7EiZI6JVHllARrX9PUvAdX","artist":"Future","track":"","source":"data"},{"idx":9,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data-jiggle"},{"idx":10,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"data-jiggle"},{"idx":11,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data"},{"idx":12,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"data-jiggle"},{"idx":13,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data"},{"idx":14,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"hint-jiggle"},{"idx":15,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"hint"},{"idx":16,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"hint-jiggle"},{"idx":17,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data"},{"idx":18,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"hint-jiggle"},{"idx":19,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data"},{"idx":20,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"hint-jiggle"},{"idx":21,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"hint"},{"idx":22,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"hint-jiggle"},{"idx":23,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"hint"},{"idx":24,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"hint-jiggle"},{"idx":25,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data"},{"idx":26,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"data-jiggle"},{"idx":27,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"hint"},{"idx":28,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"hint-jiggle"},{"idx":29,"h1":"","family":"electronic","tid":"1bfjuEyAU3dzuNxtOFXOSN","artist":"Phaeleh","track":"","source":"data-jiggle"},{"idx":30,"h1":"","family":"hip-hop · r&b","tid":"4F7A0DXBrmUAkp32uenhZt","artist":"The Weeknd","track":"Party Monster","source":"data-jiggle"},{"idx":31,"h1":"","family":"electronic","tid":"","artist":"Phaeleh","track":"Dreaming","source":"data"},{"idx":32,"h1":"","family":"hip-hop/r&b","tid":"","artist":"Future","track":"Low Life","source":"data"},{"idx":33,"h1":"","family":"world/desi","tid":"","artist":"Ya Levis","track":"Chocolat","source":"data"},{"idx":34,"h1":"","family":"electronic","tid":"","artist":"Phaeleh","track":"Oceans","source":"data"},{"idx":35,"h1":"","family":"hip-hop/r&b","tid":"","artist":"Chris Brown","track":"Under The Influence","source":"data"},{"idx":36,"h1":"","family":"world/desi","tid":"","artist":"Mickey Singh","track":"4 AM","source":"data"},{"idx":37,"h1":"","family":"electronic","tid":"","artist":"Gesaffelstein","track":"Lost in the Fire","source":"data"},{"idx":38,"h1":"","family":"hip-hop/r&b","tid":"","artist":"Doja Cat","track":"You Right","source":"data"},{"idx":39,"h1":"","family":"world/desi","tid":"","artist":"Mickey Singh","track":"Wings","source":"data"},{"idx":40,"h1":"","family":"electronic","tid":"","artist":"Phaeleh","track":"Walk Away","source":"data"},{"idx":41,"h1":"","family":"hip-hop/r&b","tid":"","artist":"Rema","track":"Are You There","source":"data"},{"idx":42,"h1":"","family":"world/desi","tid":"","artist":"Navaan Sandhu","track":"Jatt Breed","source":"data"},{"idx":43,"h1":"","family":"electronic","tid":"","artist":"Third Hour","track":"L.A. Parties","source":"data"},{"idx":44,"h1":"","family":"ambient/lofi","tid":"","artist":"Zero 7","track":"Swimmers","source":"data"},{"idx":45,"h1":"","family":"electronic","tid":"","artist":"Phaeleh","track":"One Chance","source":"data"},{"idx":46,"h1":"","family":"ambient/lofi","tid":"","artist":"Rhye","track":"Sinful","source":"data"},{"idx":47,"h1":"","family":"electronic","tid":"","artist":"Third Hour","track":"Koka","source":"data"},{"idx":48,"h1":"","family":"electronic","tid":"","artist":"Phaeleh","track":"Sunshine","source":"data"}]</script>
-<script>
-try {
-(function() {
-  if (window.__seamlessAudio) return; window.__seamlessAudio = true;
-
-  var plan = []; try { plan = JSON.parse(document.getElementById('seamless-plan').textContent); } catch(e) {}
-  if (!Array.isArray(plan) || plan.length < 2) return;
-
-  var chip   = document.getElementById('seamless-chip');
-  if (chip && chip.parentNode !== document.body) document.body.appendChild(chip);
-  var now    = document.getElementById('seamless-now');
-  var xBtn   = document.getElementById('seamless-x');
-  var hostA  = document.getElementById('seamless-host-a');
-  var hostB  = document.getElementById('seamless-host-b');
-  if (!chip) return;
-  // Move iframe hosts to <body> directly (out of <main>) so position:fixed
-  // works against the viewport. Otherwise Spotify embeds end up off-screen
-  // (at scroll-coord ~92000px) and silently pause.
-  if (hostA && hostA.parentNode !== document.body) document.body.appendChild(hostA);
-  if (hostB && hostB.parentNode !== document.body) document.body.appendChild(hostB);
-
-  // Prefers-reduced-motion → never auto-start. We still show the chip
-  // (mobile/reduced-motion hide via CSS above on small screens; desktop
-  // reduced-motion users see the chip but we won't auto-init audio).
-  var reduceMotion = window.matchMedia &&
-                     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  var headers = Array.prototype.slice.call(document.querySelectorAll('main > header, body > header'));
-  if (headers.length < 2) { return; }
-
-  // pair each header (in document order) with the corresponding plan entry by
-  // index; if the count mismatches, we clip to the smaller.
-  var n = Math.min(plan.length, headers.length);
-  var pairs = [];
-  for (var i = 0; i < n; i++) {
-    pairs.push({ el: headers[i], theme: plan[i] });
-  }
-
-  // state
-  var enabled = (localStorage.getItem('seamlessAudio') === '1') && !reduceMotion;
-  var currentTid = null;
-  var activeHost = 'a';
-  var pendingTid = null;
-  var swapDebounce = null;
-  // velocity tracking for fast-scroll protection
-  var _lastScrollY = 0; var _lastScrollT = 0;
-
-  function makeIframe(tid) {
-    var f = document.createElement('iframe');
-    f.src = 'https://open.spotify.com/embed/track/' + encodeURIComponent(tid) + '?theme=0&autoplay=1';
-    f.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
-    f.setAttribute('loading', 'eager');
-    f.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
-    return f;
-  }
-
-  function crossfadeTo(theme) {
-    if (!theme || !theme.tid) return;
-    if (theme.tid === currentTid) return;
-    if (window.__ambientPlayer && window.__ambientPlayer.isOn && window.__ambientPlayer.isOn()) return;
-    // SC player open → don't fight it; currentTid not updated so IO resumes when SC closes
-    if (document.body.classList.contains('sc-open')) return;
-    currentTid = theme.tid;
-    var prevHost = activeHost === 'a' ? hostA : hostB;
-    var nextHost = activeHost === 'a' ? hostB : hostA;
-    // load next track
-    nextHost.innerHTML = '';
-    nextHost.appendChild(makeIframe(theme.tid));
-    nextHost.classList.remove('live');
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() { nextHost.classList.add('live'); });
-    });
-    // fade out previous + drop iframe after the fade completes (2s match
-    // the CSS transition duration). Dropping it is the *only* way to
-    // actually silence a cross-origin Spotify embed.
-    prevHost.classList.remove('live');
-    setTimeout(function() {
-      if (prevHost !== (activeHost === 'a' ? hostB : hostA)) {
-        prevHost.innerHTML = '';
-      }
-    }, 2200);
-    activeHost = activeHost === 'a' ? 'b' : 'a';
-    // update chip label
-    if (theme.artist) {
-      now.textContent = '♪ ' + theme.artist;
-    } else {
-      now.textContent = '♪ ' + (theme.family || '');
-    }
-  }
-
-  function stopAll() {
-    hostA.classList.remove('live');
-    hostB.classList.remove('live');
-    setTimeout(function() {
-      hostA.innerHTML = ''; hostB.innerHTML = '';
-    }, 2200);
-    currentTid = null;
-    now.textContent = '';
-  }
-
-  // IntersectionObserver: pick the section most in view, crossfade to its theme.
-  // Velocity-aware debounce: fast scrolling extends the wait so iframes don't
-  // thrash. Skips entirely on mobile (no chip = no controls = no orphan audio)
-  // and when SC player is open.
-  var visibility = new Map();
-  var io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      visibility.set(e.target, e.intersectionRatio);
-    });
-    if (!enabled) return;
-    if (window.innerWidth <= 768) return;  // mobile: IO fires but we never crossfade
-    if (document.body.classList.contains('sc-open')) return;
-
-    // velocity-aware debounce: measure scroll speed, wait longer when fast
-    var nowT = Date.now();
-    var dy = Math.abs(window.scrollY - _lastScrollY);
-    var dt = Math.max(1, nowT - _lastScrollT);
-    _lastScrollY = window.scrollY; _lastScrollT = nowT;
-    var speed = dy / dt;  // px/ms
-    var delay = speed > 1.5 ? 900 : 500;  // fast scroll → longer settle time
-
-    if (swapDebounce) clearTimeout(swapDebounce);
-    swapDebounce = setTimeout(function() {
-      // double-check SC not opened during the wait
-      if (document.body.classList.contains('sc-open')) return;
-
-      // find pair with max intersection ratio
-      var best = null, bestR = 0.0;
-      pairs.forEach(function(p) {
-        var r = visibility.get(p.el) || 0;
-        if (r > bestR) { bestR = r; best = p; }
-      });
-      if (!best) return;
-      // positional fallback: section whose top is just above current scroll
-      var scrollY = window.scrollY + 120;
-      for (var i = 0; i < pairs.length; i++) {
-        var top = pairs[i].el.offsetTop;
-        var nextTop = (i+1 < pairs.length) ? pairs[i+1].el.offsetTop : Infinity;
-        if (top <= scrollY && scrollY < nextTop) { best = pairs[i]; break; }
-      }
-      crossfadeTo(best.theme);
-    }, delay);
-  }, { threshold: [0, 0.15, 0.3, 0.5, 0.75, 1.0] });
-
-  pairs.forEach(function(p) { io.observe(p.el); });
-
-  function enable() {
-    enabled = true;
-    localStorage.setItem('seamlessAudio', '1');
-    chip.classList.add('on');
-    // mark gesture for the shared hover-audio module
-    try { if (window.__sonicAudio && window.__sonicAudio.markGesture) window.__sonicAudio.markGesture(); } catch(e) {}
-    // pick the section currently dominant and start
-    var scrollY = window.scrollY + 120;
-    var pick = pairs[0];
-    for (var i = 0; i < pairs.length; i++) {
-      var top = pairs[i].el.offsetTop;
-      var nextTop = (i+1 < pairs.length) ? pairs[i+1].el.offsetTop : Infinity;
-      if (top <= scrollY && scrollY < nextTop) { pick = pairs[i]; break; }
-    }
-    crossfadeTo(pick.theme);
-  }
-  function disable() {
-    enabled = false;
-    localStorage.setItem('seamlessAudio', '0');
-    chip.classList.remove('on');
-    stopAll();
-  }
-
-  chip.addEventListener('click', function(ev) {
-    if (ev.target && ev.target.id === 'seamless-x') return;  // handled below
-    if (enabled) disable(); else enable();
-  });
-  xBtn.addEventListener('click', function(ev) {
-    ev.stopPropagation();
-    disable();
-  });
-
-  // If the user had it ON last visit, auto-resume on the *first* user
-  // gesture anywhere on the page (autoplay policy compliance — MDN).
-  if (enabled && !reduceMotion) {
-    chip.classList.add('on');
-    var armed = false;
-    function armResume() {
-      if (armed) return; armed = true;
-      var pick = pairs[0];
-      var scrollY = window.scrollY + 120;
-      for (var i = 0; i < pairs.length; i++) {
-        var top = pairs[i].el.offsetTop;
-        var nextTop = (i+1 < pairs.length) ? pairs[i+1].el.offsetTop : Infinity;
-        if (top <= scrollY && scrollY < nextTop) { pick = pairs[i]; break; }
-      }
-      crossfadeTo(pick.theme);
-    }
-    ['click','keydown','touchstart'].forEach(function(ev) {
-      window.addEventListener(ev, armResume, { once: true, passive: true });
-    });
-  }
-  // ── mute-coordination API for click-to-play (audio_hover_inject) ──────
-  // When a chart point is clicked, the click-track module calls these to
-  // temporarily pause the scroll-score and restore it when done.
-  var _pausedForClick = false;
-  window.__seamlessDisableForClick = function() {
-    if (!enabled) return;
-    _pausedForClick = true;
-    stopAll();
-    chip.classList.remove('on');
-  };
-  window.__seamlessRestoreAfterClick = function() {
-    if (!_pausedForClick) return;
-    _pausedForClick = false;
-    if (enabled) {
-      chip.classList.add('on');
-      // re-pick current section theme and resume
-      var scrollY = window.scrollY + 120;
-      var pick = pairs[0];
-      for (var i = 0; i < pairs.length; i++) {
-        var top = pairs[i].el.offsetTop;
-        var nextTop = (i+1 < pairs.length) ? pairs[i+1].el.offsetTop : Infinity;
-        if (top <= scrollY && scrollY < nextTop) { pick = pairs[i]; break; }
-      }
-      currentTid = null;  // force crossfade even if same track
-      crossfadeTo(pick.theme);
-    }
-  };
-  console.log('[sonic-init] SEAMLESS-AUDIO OK');
-})();
-} catch(err) { console.error('[sonic-init] SEAMLESS-AUDIO FAILED:', err); }
-</script>
-<!--SEAMLESS-AUDIO-END-->
 
 <!--SCROLL-SCORE-START-->
 <style>
@@ -9635,207 +9455,6 @@ try {
 </script>
 <!--CHIP-RAIL-END-->
 
-<!--SC-PLAYER-START-->
-<style>
-  /* SC player runs completely in background — iframe hidden off-screen */
-  #sc-bg-wrap {
-    position: fixed; top: -300%; left: -300%;
-    width: 300px; height: 166px;
-    pointer-events: none; visibility: hidden;
-    z-index: -1;
-  }
-  /* micro track-change whisper — 2s, barely-there, bottom of sonic chip */
-  #sc-track-toast {
-    position: fixed;
-    top: calc(var(--nav-h, 56px) + 50px);
-    right: 14px;
-    z-index: 9993;
-    background: rgba(21,8,45,0.55);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(134,203,254,0.18);
-    border-radius: 6px;
-    padding: 4px 9px;
-    font-family: 'JetBrains Mono','SF Mono',monospace;
-    font-size: 9px; letter-spacing: 0.6px;
-    color: rgba(163,148,201,0.70);
-    max-width: 180px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    opacity: 0; pointer-events: none;
-    transition: opacity .5s ease;
-  }
-  #sc-track-toast.show {
-    opacity: 0.65;
-  }
-  #sc-track-toast .sct-glyph { color: rgba(134,203,254,0.55); margin-right: 4px; }
-  @media (max-width: 768px) { #sc-track-toast { display: none; } }
-  @media (prefers-reduced-motion: reduce) { #sc-track-toast { transition: none; } }
-</style>
-
-<script id="sc-queue-data" type="application/json">[{"url": "https://soundcloud.com/phaeleh/outside-the-lines-feat-shaunna", "t": "Outside the Lines", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/one-chance-feat-devin-renee", "t": "One Chance", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/walk-away", "t": "Walk Away", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/fear-of-silence", "t": "Fear of Silence", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/mantra", "t": "Mantra", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/tempest", "t": "Tempest", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/dark-sky-pt-1", "t": "Dark Sky Pt. 1", "a": "Phaeleh"}, {"url": "https://soundcloud.com/bonobo/kiara", "t": "Kiara", "a": "Bonobo"}, {"url": "https://soundcloud.com/bonobo/cirrus", "t": "Cirrus", "a": "Bonobo"}, {"url": "https://soundcloud.com/zero7/in-the-waiting-line", "t": "In the Waiting Line", "a": "Zero 7"}, {"url": "https://soundcloud.com/zero7/this-world", "t": "This World", "a": "Zero 7"}, {"url": "https://soundcloud.com/odesza/iplayyoulisten", "t": "IPlayYouListen", "a": "ODESZA"}, {"url": "https://soundcloud.com/odesza/odesza-how-did-i-get-here", "t": "How Did I Get Here", "a": "ODESZA"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-often", "t": "Often", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/drive", "t": "Drive", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-king-of-the-fall", "t": "King of the Fall", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-coming-down", "t": "Coming Down", "a": "The Weeknd"}, {"url": "https://soundcloud.com/shy-ink/shy-ink-kish-slow-it-down", "t": "Slow it Down", "a": "shy ink & Kish"}, {"url": "https://soundcloud.com/lucidbeatz16/dance-with-me", "t": "dance with me", "a": "lucidbeatz"}, {"url": "https://soundcloud.com/sizzlebird/bring-to-life", "t": "Bring to Life", "a": "SizzleBird"}]</script>
-
-<!-- hidden off-screen iframe — audio plays but nothing is visible -->
-<div id="sc-bg-wrap">
-  <iframe id="sc-iframe" scrolling="no" frameborder="no" allow="autoplay"
-          src="about:blank"></iframe>
-</div>
-<div id="sc-track-toast" role="status" aria-live="polite"></div>
-
-<script>
-(function () {
-  'use strict';
-
-  var queue = [];
-  try { queue = JSON.parse(document.getElementById('sc-queue-data').textContent); } catch (e) {}
-  if (!queue.length) return;
-
-  // Fisher-Yates shuffle for variety each session
-  for (var i = queue.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var tmp = queue[i]; queue[i] = queue[j]; queue[j] = tmp;
-  }
-
-  var idx      = 0;
-  var widget   = null;
-  var _ambientWasOn = false;
-  var _started = false;
-
-  var iframeEl  = document.getElementById('sc-iframe');
-  var toastEl   = document.getElementById('sc-track-toast');
-
-  function showToast(q) {
-    if (!toastEl) return;
-    toastEl.innerHTML = '<span class="sct-glyph">&#9834;</span>' +
-      q.t + ' <span style="opacity:.55">— ' + q.a + '</span>';
-    toastEl.classList.add('show');
-    setTimeout(function () { toastEl.classList.remove('show'); }, 2000);
-  }
-
-  // ── audio bus: pause competing systems ────────────────────────────
-  function muteOthers() {
-    if (window.__ambientPlayer && window.__ambientPlayer.isOn()) {
-      _ambientWasOn = true;
-      window.__ambientPlayer.pauseForOverlay();
-    }
-    // silence hover-audio chip while sc player is active
-    if (window.__sonicAudio && typeof window.__sonicAudio.mute === 'function') {
-      window.__sonicAudio.mute();
-    }
-    // also stop Tone.js generative if running
-    if (window.__ambientPlayer && typeof window.__ambientPlayer.startGenerative === 'function') {
-      // generative only runs if _toneOn; stop it by pausing the ambient player
-    }
-    document.dispatchEvent(new CustomEvent('sonic:external-play', { bubbles: false }));
-  }
-
-  function unmuteOthers() {
-    if (_ambientWasOn) {
-      _ambientWasOn = false;
-      if (window.__ambientPlayer) window.__ambientPlayer.resumeFromOverlay();
-    }
-    if (window.__sonicAudio && typeof window.__sonicAudio.unmute === 'function') {
-      window.__sonicAudio.unmute();
-    }
-  }
-
-  // ── SoundCloud Widget API ─────────────────────────────────────────
-  function loadSCApi(cb) {
-    if (window.SC) { cb(); return; }
-    var s = document.createElement('script');
-    s.src = 'https://w.soundcloud.com/player/api.js';
-    s.onload = cb;
-    s.onerror = function () { console.warn('[sc-player] SC API failed to load'); };
-    document.head.appendChild(s);
-  }
-
-  function embedUrl(trackUrl) {
-    return 'https://w.soundcloud.com/player/?url=' +
-      encodeURIComponent(trackUrl) +
-      '&color=%2321f6bc&auto_play=true' +
-      '&hide_related=true&show_comments=false' +
-      '&show_user=false&show_reposts=false&show_teaser=false';
-  }
-
-  function loadTrack(i) {
-    var q = queue[i % queue.length];
-    showToast(q);
-    if (widget) {
-      widget.load(q.url, {
-        auto_play: true,
-        buying: false, liking: false, download: false,
-        sharing: false, show_artwork: true,
-        show_comments: false, show_playcount: false, show_user: false,
-        callback: function () { widget.play(); }
-      });
-    } else {
-      iframeEl.src = embedUrl(q.url);
-      loadSCApi(function () {
-        widget = SC.Widget(iframeEl);
-        bindWidget();
-      });
-    }
-  }
-
-  function bindWidget() {
-    widget.bind(SC.Widget.Events.PLAY, function () {
-      document.body.classList.add('sc-playing');
-      muteOthers();
-    });
-    widget.bind(SC.Widget.Events.PAUSE, function () {
-      document.body.classList.remove('sc-playing');
-    });
-    widget.bind(SC.Widget.Events.FINISH, function () {
-      document.body.classList.remove('sc-playing');
-      idx = (idx + 1) % queue.length;
-      loadTrack(idx);
-    });
-    widget.bind(SC.Widget.Events.ERROR, function () {
-      console.warn('[sc-player] error on', queue[idx].url, '— skipping');
-      idx = (idx + 1) % queue.length;
-      setTimeout(function () { loadTrack(idx); }, 500);
-    });
-  }
-
-  function openPlayer() {
-    if (_started) return;
-    _started = true;
-    document.body.classList.add('sc-open');
-    loadTrack(idx);
-  }
-
-  function closePlayer() {
-    document.body.classList.remove('sc-open', 'sc-playing');
-    if (widget) widget.pause();
-    if (iframeEl) iframeEl.src = 'about:blank';
-    widget = null; _started = false;
-    unmuteOthers();
-  }
-
-  // Auto-start on first user gesture (first-tap arms all audio)
-  document.addEventListener('sonic:first-tap', function () {
-    setTimeout(openPlayer, 800);
-  });
-
-  // n/p keyboard shortcuts for background queue
-  document.addEventListener('keydown', function (e) {
-    if (!_started) return;
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === 'n') { idx = (idx + 1) % queue.length; loadTrack(idx); }
-    if (e.key === 'p') { idx = (idx - 1 + queue.length) % queue.length; loadTrack(idx); }
-  });
-
-  // if ambient fires while SC is playing, mute it
-  document.addEventListener('sonic:external-play', function () {
-    // only suppress if we dispatched it ourselves — guard by checking sc-playing
-  });
-
-  window.__scPlayer = { open: openPlayer, close: closePlayer, next: function() { idx=(idx+1)%queue.length; loadTrack(idx); } };
-  console.log('[sonic-init] SC-PLAYER armed ·', queue.length, 'tracks');
-})();
-</script>
-<!--SC-PLAYER-END-->
-
-
 <!--MOBILE-POLISH-START-->
 <style>
   /* ── 0. prevent body from exceeding viewport width on phones ───── */
@@ -10239,124 +9858,6 @@ try {
 </style>
 <!--UI-POLISH-END-->
 
-
-<!--AUDIO-MINIMAL-UI-START-->
-<style>
-  /* ── hide all audio UI chips — audio runs silently in background ── */
-  /* #seamless-chip intentionally NOT hidden: restores scroll-score activation on desktop */
-  #carnatic-chip,
-  #generative-chip,
-  #ambient-toggle,
-  .share-card-btn,
-  #lr-btn,
-  #chip-rail-toggle,
-  #chip-rail-scrim,
-  #first-tap-overlay,
-  #sonic-cta,
-  #sonic-mobile-mini,
-  #sonic-toast,
-  #generative-tip,
-  #sc-track-toast,
-  #touch-synth-chip { display: none !important; }
-
-  /* sonic chip: invisible when idle, slides in ONLY when playing */
-  #sonic-audio-chip:not(.playing):not(.pinned) {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transform: translateY(-6px) !important;
-    transition: opacity .35s ease, transform .35s ease !important;
-  }
-  #sonic-audio-chip.playing,
-  #sonic-audio-chip.pinned {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    transform: translateY(0) !important;
-  }
-
-  /* ── single ghost mute pill — bottom-LEFT (avoids cyber-top at BR) ─ */
-  #global-mute-pill {
-    position: fixed;
-    left: 16px; right: auto;
-    bottom: max(16px, env(safe-area-inset-bottom, 16px));
-    z-index: 9998;
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(21, 8, 45, 0.45);
-    border: 1px solid rgba(155, 107, 255, 0.22);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    cursor: pointer;
-    font-size: 13px;
-    color: rgba(163, 148, 201, 0.55);
-    transition: opacity .2s ease, border-color .2s ease, color .2s ease;
-    opacity: 0.45;
-  }
-  #global-mute-pill:hover {
-    opacity: 1;
-    border-color: rgba(33, 246, 188, 0.50);
-    color: #21f6bc;
-  }
-  #global-mute-pill.muted {
-    color: rgba(255, 110, 156, 0.65);
-    border-color: rgba(255, 110, 156, 0.30);
-  }
-  @media (max-width: 768px) {
-    #global-mute-pill { width: 36px; height: 36px; font-size: 15px; opacity: 0.6; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #sonic-audio-chip:not(.playing):not(.pinned) { transition: none !important; }
-  }
-</style>
-
-<button id="global-mute-pill" type="button"
-        aria-label="mute / unmute all audio"
-        title="mute all audio">🔊</button>
-
-<script>
-(function () {
-  'use strict';
-  var pill = document.getElementById('global-mute-pill');
-  if (!pill) return;
-
-  // sync muted state across all audio systems
-  var MUTED_KEY = 'sonicManifoldMuted';
-  var muted = localStorage.getItem(MUTED_KEY) === '1';
-
-  function applyMute(m) {
-    muted = !!m;
-    localStorage.setItem(MUTED_KEY, m ? '1' : '0');
-    pill.textContent = m ? '🔇' : '🔊';
-    pill.classList.toggle('muted', m);
-    pill.setAttribute('aria-label', m ? 'unmute all audio' : 'mute all audio');
-
-    // propagate to all audio systems
-    try { if (window.__sonicAudio) window.__sonicAudio.setMuted(m); } catch(e) {}
-    try {
-      if (window.__scPlayer) {
-        if (m) window.__scPlayer.close();
-      }
-    } catch(e) {}
-    try {
-      if (window.__ambientPlayer) {
-        if (m) window.__ambientPlayer.pauseForOverlay();
-        else window.__ambientPlayer.resumeFromOverlay();
-      }
-    } catch(e) {}
-  }
-
-  applyMute(muted);
-  pill.addEventListener('click', function () { applyMute(!muted); });
-
-  // re-apply after first-tap arms audio (SC player may have started)
-  document.addEventListener('sonic:first-tap', function () {
-    if (muted) applyMute(true);
-  });
-
-  console.log('[sonic-init] MINIMAL-UI active — all chips hidden, mute pill armed');
-})();
-</script>
-<!--AUDIO-MINIMAL-UI-END-->
 
 <!--PLOTLY-MOBILE-FIX-START-->
 <style>
@@ -10961,6 +10462,504 @@ try {
 })();
 </script>
 <!--POLISH-V6-2026-05-END-->
+
+<!--APPLE-DS-JS-START-->
+<script>
+(function(){
+  'use strict';
+  if(window.__appleDS) return; window.__appleDS=true;
+  var RM = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var SEL='header.theme-divider,.prov-lead,.surprising-hero,.novel-callout,'+
+          '.card,.fig-caption,.sect-tldr-card,details.about-dash';
+  function vis(el){ var r=el.getBoundingClientRect(); return r.top < (innerHeight*1.05) && r.bottom > 0; }
+  function markIn(el){ el.classList.add('is-in'); }
+  var io=null;
+  if(('IntersectionObserver' in window) && !RM){
+    io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ markIn(e.target); io.unobserve(e.target); } });
+    },{ rootMargin:'0px 0px -8% 0px', threshold:0.05 });
+  }
+  function prep(){
+    document.querySelectorAll(SEL).forEach(function(el){
+      if(el.dataset.dsReveal) return; el.dataset.dsReveal='1';
+      if(RM || !io) return;                       // no JS motion: leave fully visible
+      if(vis(el)){ el.classList.add('reveal','is-in'); return; }  // already on-screen: no hide
+      el.classList.add('reveal'); io.observe(el);
+    });
+  }
+  function sweep(){ document.querySelectorAll('.reveal:not(.is-in)').forEach(function(el){ if(vis(el)) markIn(el); }); }
+  // pace toggle (story <-> full lab) can un-hide content above the fold: re-prep + sweep
+  document.addEventListener('click',function(e){
+    var t=e.target; if(!t||!t.closest) return;
+    if(t.closest('.pace-opt')||t.closest('#story-toggle')||t.closest('.story-toggle')){
+      setTimeout(function(){ prep(); sweep(); },70);
+    }
+  },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',prep); else prep();
+  setTimeout(prep,800); setTimeout(prep,2500);    // catch late-mounted captions
+})();
+</script>
+<!--APPLE-DS-JS-END-->
+
+<!--SC-PLAYER-START-->
+<style>
+  /* SC player runs completely in background — both decks hidden off-screen */
+  #sc-bg-wrap {
+    position: fixed; top: -300%; left: -300%;
+    width: 300px; height: 332px;
+    pointer-events: none; visibility: hidden;
+    z-index: -1;
+  }
+  /* micro track-change whisper — barely-there, desktop only, hidden by minimal-ui */
+  #sc-track-toast {
+    position: fixed;
+    top: calc(var(--nav-h, 56px) + 50px);
+    right: 14px;
+    z-index: 9993;
+    background: rgba(21,8,45,0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(134,203,254,0.18);
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-family: 'JetBrains Mono','SF Mono',monospace;
+    font-size: 9px; letter-spacing: 0.6px;
+    color: rgba(163,148,201,0.70);
+    max-width: 180px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    opacity: 0; pointer-events: none;
+    transition: opacity .5s ease;
+  }
+  #sc-track-toast.show { opacity: 0.65; }
+  #sc-track-toast .sct-glyph { color: rgba(134,203,254,0.55); margin-right: 4px; }
+  @media (max-width: 768px) { #sc-track-toast { display: none; } }
+  @media (prefers-reduced-motion: reduce) { #sc-track-toast { transition: none; } }
+</style>
+
+<script id="sc-queue-data" type="application/json">[{"url": "https://soundcloud.com/phaeleh/outside-the-lines-feat-shaunna", "t": "Outside the Lines", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/one-chance-feat-devin-renee", "t": "One Chance", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/walk-away", "t": "Walk Away", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/fear-of-silence", "t": "Fear of Silence", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/mantra", "t": "Mantra", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/tempest", "t": "Tempest", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/dark-sky-pt-1", "t": "Dark Sky Pt. 1", "a": "Phaeleh"}, {"url": "https://soundcloud.com/bonobo/kiara", "t": "Kiara", "a": "Bonobo"}, {"url": "https://soundcloud.com/bonobo/cirrus", "t": "Cirrus", "a": "Bonobo"}, {"url": "https://soundcloud.com/zero7/in-the-waiting-line", "t": "In the Waiting Line", "a": "Zero 7"}, {"url": "https://soundcloud.com/zero7/this-world", "t": "This World", "a": "Zero 7"}, {"url": "https://soundcloud.com/odesza/iplayyoulisten", "t": "IPlayYouListen", "a": "ODESZA"}, {"url": "https://soundcloud.com/odesza/odesza-how-did-i-get-here", "t": "How Did I Get Here", "a": "ODESZA"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-often", "t": "Often", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/drive", "t": "Drive", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-king-of-the-fall", "t": "King of the Fall", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-coming-down", "t": "Coming Down", "a": "The Weeknd"}, {"url": "https://soundcloud.com/shy-ink/shy-ink-kish-slow-it-down", "t": "Slow it Down", "a": "shy ink & Kish"}, {"url": "https://soundcloud.com/lucidbeatz16/dance-with-me", "t": "dance with me", "a": "lucidbeatz"}, {"url": "https://soundcloud.com/sizzlebird/bring-to-life", "t": "Bring to Life", "a": "SizzleBird"}]</script>
+
+<!-- two hidden off-screen decks — audio crossfades but nothing is visible -->
+<div id="sc-bg-wrap">
+  <iframe id="sc-iframe"   scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
+  <iframe id="sc-iframe-b" scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
+</div>
+<div id="sc-track-toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var data = [];
+  try { data = JSON.parse(document.getElementById('sc-queue-data').textContent); } catch (e) {}
+  if (!data.length) return;
+
+  // Fisher-Yates shuffle for variety each session
+  var queue = data.slice();
+  for (var i = queue.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = queue[i]; queue[i] = queue[j]; queue[j] = tmp;
+  }
+
+  // ── tunables ────────────────────────────────────────────────────────
+  var CROSSFADE_MS = 5500;   // overlap window between consecutive tracks
+  var STEP_MS      = 120;    // volume-ramp granularity
+  var BED_VOL      = 78;     // ceiling volume of the background bed (0-100)
+  var FALLBACK_MS  = 7000;   // if SoundCloud never plays → Tone.js generative
+
+  // ── state ─────────────────────────────────────────────────────────────
+  var started   = false;
+  var muted      = false;
+  var crossing   = false;          // a crossfade is in flight
+  var firstPlay  = false;          // SoundCloud confirmed audible at least once
+  var toneOn     = false;          // Tone.js fallback engaged
+  var fallbackTimer = null;
+  var active     = 'a';            // foreground deck
+  var nextLoad   = 0;              // queue index to preload onto the standby deck
+  var deckIdx    = { a: -1, b: -1 };  // queue index currently on each deck
+  var dur        = { a: 0,  b: 0 };   // track duration (ms) per deck
+  var ramps      = { a: null, b: null };
+  var widgets    = { a: null, b: null };
+
+  var iframes = { a: document.getElementById('sc-iframe'),
+                  b: document.getElementById('sc-iframe-b') };
+  var toastEl = document.getElementById('sc-track-toast');
+  if (!iframes.a || !iframes.b) return;
+
+  function otherDeck(d) { return d === 'a' ? 'b' : 'a'; }
+
+  function showToast(q) {
+    if (!toastEl || !q) return;
+    toastEl.innerHTML = '<span class="sct-glyph">&#9834;</span>' +
+      q.t + ' <span style="opacity:.55">— ' + q.a + '</span>';
+    toastEl.classList.add('show');
+    setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+  }
+
+  // ── audio bus: keep generative + hover audio out of the way ───────────
+  function muteOthers() {
+    try { if (toneOn && window.__ambientPlayer && window.__ambientPlayer.stop) { window.__ambientPlayer.stop(); toneOn = false; } } catch (e) {}
+    try { if (window.__ambientPlayer && window.__ambientPlayer.isOn && window.__ambientPlayer.isOn()) window.__ambientPlayer.pauseForOverlay(); } catch (e) {}
+    try { if (window.__sonicAudio && window.__sonicAudio.mute) window.__sonicAudio.mute(); } catch (e) {}
+  }
+  function unmuteOthers() {
+    try { if (window.__sonicAudio && window.__sonicAudio.unmute) window.__sonicAudio.unmute(); } catch (e) {}
+  }
+
+  // ── SoundCloud Widget API ─────────────────────────────────────────────
+  function loadSCApi(cb) {
+    if (window.SC && window.SC.Widget) { cb(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://w.soundcloud.com/player/api.js';
+    s.onload = cb;
+    s.onerror = function () { console.warn('[sc-player] SC API failed to load → Tone fallback'); engageFallback(); };
+    document.head.appendChild(s);
+  }
+  function embedUrl(trackUrl, autoplay) {
+    return 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(trackUrl) +
+      '&color=%2321f6bc&auto_play=' + (autoplay ? 'true' : 'false') +
+      '&hide_related=true&show_comments=false&show_user=false' +
+      '&show_reposts=false&show_teaser=false&visual=false';
+  }
+
+  // ── volume control ────────────────────────────────────────────────────
+  function setVol(deck, v) {
+    var w = widgets[deck]; if (!w) return;
+    if (ramps[deck]) { clearInterval(ramps[deck]); ramps[deck] = null; }
+    w.__vol = v;
+    try { w.setVolume(muted ? 0 : v); } catch (e) {}
+  }
+  function ramp(deck, to, durMs, cb) {
+    var w = widgets[deck];
+    if (!w) { if (cb) cb(); return; }
+    if (ramps[deck]) { clearInterval(ramps[deck]); ramps[deck] = null; }
+    var steps = Math.max(1, Math.round(durMs / STEP_MS));
+    var from = (typeof w.__vol === 'number') ? w.__vol : 0;
+    var n = 0;
+    ramps[deck] = setInterval(function () {
+      n++;
+      var v = Math.round(from + (to - from) * (n / steps));
+      w.__vol = v;
+      try { w.setVolume(muted ? 0 : v); } catch (e) {}
+      if (n >= steps) { clearInterval(ramps[deck]); ramps[deck] = null; if (cb) cb(); }
+    }, STEP_MS);
+  }
+
+  // ── bind one deck's widget events ─────────────────────────────────────
+  function bindDeck(deck) {
+    var w = widgets[deck];
+    w.bind(SC.Widget.Events.READY, function () {
+      // initial volume + autoplay handled here only for the first creation;
+      // subsequent track changes go through loadDeck()'s callback.
+      if (deck === active) { setVol(deck, BED_VOL); try { w.play(); } catch (e) {} }
+      else { setVol(deck, 0); }
+    });
+    w.bind(SC.Widget.Events.PLAY, function () {
+      if (deck !== active) return;   // the standby deck pre-rolls silently
+      firstPlay = true;
+      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
+      document.body.classList.add('sc-open', 'sc-playing');
+      muteOthers();
+      w.getDuration(function (d) { dur[deck] = d || 0; });
+    });
+    w.bind(SC.Widget.Events.PAUSE, function () {
+      if (deck === active && !crossing && !muted) document.body.classList.remove('sc-playing');
+    });
+    w.bind(SC.Widget.Events.PLAY_PROGRESS, function (e) {
+      if (deck !== active || crossing || muted) return;
+      var d = dur[deck];
+      if (!d && e && e.relativePosition > 0.01 && e.currentPosition) {
+        d = dur[deck] = e.currentPosition / e.relativePosition;  // derive if missing
+      }
+      // only crossfade tracks comfortably longer than the fade window
+      if (d && d > CROSSFADE_MS * 1.4 && e && e.currentPosition >= d - CROSSFADE_MS) {
+        startCrossfade();
+      }
+    });
+    w.bind(SC.Widget.Events.FINISH, function () {
+      if (deck === active && !crossing) goNext();   // backstop: no overlap left
+    });
+    w.bind(SC.Widget.Events.ERROR, function () {
+      console.warn('[sc-player] deck', deck, 'error — skipping');
+      if (deck === active && !crossing) goNext();
+    });
+  }
+
+  // ── load a queue track onto a deck ────────────────────────────────────
+  function loadDeck(deck, qi, autoplay) {
+    var q = queue[qi];
+    deckIdx[deck] = qi;
+    dur[deck] = 0;
+    var w = widgets[deck];
+    if (w) {
+      w.load(q.url, {
+        auto_play: !!autoplay,
+        show_artwork: false, show_comments: false, show_playcount: false,
+        show_user: false, buying: false, liking: false, sharing: false, download: false,
+        callback: function () {
+          setVol(deck, autoplay ? BED_VOL : 0);
+          if (autoplay) { try { w.play(); } catch (e) {} }
+        }
+      });
+    } else {
+      iframes[deck].src = embedUrl(q.url, autoplay);
+    }
+    if (autoplay && deck === active) showToast(q);
+  }
+
+  // ── crossfade foreground → standby ────────────────────────────────────
+  function startCrossfade() {
+    if (crossing) return;
+    var sb = otherDeck(active);
+    if (!widgets[sb] || deckIdx[sb] < 0) { goNext(); return; }  // standby not ready
+    crossing = true;
+    showToast(queue[deckIdx[sb]]);
+    setVol(sb, 0);
+    try { widgets[sb].seekTo(0); } catch (e) {}
+    try { widgets[sb].play(); } catch (e) {}
+    ramp(sb, BED_VOL, CROSSFADE_MS);
+    // capture the fading deck — `active` may flip in finishSwap before this
+    // ramp's completion fires, so we must pause the deck we actually faded.
+    var fadeOut = active;
+    ramp(fadeOut, 0, CROSSFADE_MS, function () { try { widgets[fadeOut].pause(); } catch (e) {} });
+    setTimeout(function () { finishSwap(sb); }, CROSSFADE_MS + 80);
+  }
+
+  // ── hard advance with no overlap (FINISH / ERROR / manual skip) ───────
+  function goNext() {
+    var sb = otherDeck(active);
+    document.body.classList.remove('sc-playing');
+    if (widgets[sb] && deckIdx[sb] >= 0) {
+      try { widgets[sb].seekTo(0); } catch (e) {}
+      finishSwap(sb);
+    } else {
+      var qi = nextLoad % queue.length;
+      loadDeck(active, qi, true);
+      nextLoad = (qi + 1) % queue.length;
+    }
+  }
+
+  // ── finalize a swap: standby becomes foreground, preload the next track ─
+  function finishSwap(newActive) {
+    var oldActive = otherDeck(newActive);
+    active = newActive;
+    crossing = false;
+    setVol(active, BED_VOL);
+    try { widgets[active].play(); } catch (e) {}
+    widgets[active].getDuration(function (d) { dur[active] = d || 0; });
+    document.body.classList.add('sc-open', 'sc-playing');
+    // make sure the old deck is actually stopped (in case its fade-out ramp
+    // callback raced this swap), then preload the upcoming track onto it.
+    try { if (widgets[oldActive]) widgets[oldActive].pause(); } catch (e) {}
+    var qi = nextLoad % queue.length;
+    loadDeck(oldActive, qi, false);
+    nextLoad = (qi + 1) % queue.length;
+  }
+
+  // ── open: arm both decks SYNCHRONOUSLY inside the first-tap gesture ────
+  function openPlayer() {
+    if (started) return;
+    started = true;
+    active = 'a';
+    document.body.classList.add('sc-open');
+    // deck A = current track, autoplay TRUE — src set in-gesture so iOS allows it
+    iframes.a.src = embedUrl(queue[0].url, true);
+    deckIdx.a = 0;
+    // deck B = next track, preloaded silent (crossfade later needs no gesture)
+    var b0 = 1 % queue.length;
+    iframes.b.src = embedUrl(queue[b0].url, false);
+    deckIdx.b = b0;
+    nextLoad = (b0 + 1) % queue.length;
+    showToast(queue[0]);
+    loadSCApi(function () {
+      try {
+        widgets.a = SC.Widget(iframes.a); bindDeck('a');
+        widgets.b = SC.Widget(iframes.b); bindDeck('b');
+      } catch (e) { console.warn('[sc-player] widget init failed', e); engageFallback(); }
+    });
+    // safety net: if nothing audible, fall back to the generative bed
+    fallbackTimer = setTimeout(function () { if (!firstPlay) engageFallback(); }, FALLBACK_MS);
+  }
+
+  function engageFallback() {
+    if (firstPlay || toneOn) return;
+    toneOn = true;
+    console.log('[sc-player] SoundCloud silent → Tone.js generative bed');
+    try { if (window.__ambientPlayer && window.__ambientPlayer.startGenerative) window.__ambientPlayer.startGenerative(); } catch (e) {}
+  }
+
+  function closePlayer() {
+    document.body.classList.remove('sc-open', 'sc-playing');
+    ['a', 'b'].forEach(function (d) {
+      if (ramps[d]) { clearInterval(ramps[d]); ramps[d] = null; }
+      try { if (widgets[d]) widgets[d].pause(); } catch (e) {}
+    });
+    unmuteOthers();
+  }
+
+  // ── single mute control surface (driven by the global mute pill) ──────
+  function setMuted(m) {
+    muted = !!m;
+    if (muted) {
+      ['a', 'b'].forEach(function (d) {
+        if (ramps[d]) { clearInterval(ramps[d]); ramps[d] = null; }
+        try { if (widgets[d]) widgets[d].setVolume(0); } catch (e) {}
+      });
+      try { if (widgets[active]) widgets[active].pause(); } catch (e) {}
+      try { if (toneOn && window.__ambientPlayer && window.__ambientPlayer.stop) { window.__ambientPlayer.stop(); toneOn = false; } } catch (e) {}
+      document.body.classList.remove('sc-playing');
+    } else if (started) {
+      if (widgets[active]) { widgets[active].__vol = BED_VOL; try { widgets[active].setVolume(BED_VOL); widgets[active].play(); } catch (e) {} }
+      document.body.classList.add('sc-playing');
+    }
+  }
+
+  // ── arm on the one-time first-tap gesture (SYNCHRONOUS — iOS autoplay) ─
+  document.addEventListener('sonic:first-tap', function () { openPlayer(); });
+
+  // n / p manual skip (hard cut — background bed, predictability over polish)
+  document.addEventListener('keydown', function (e) {
+    if (!started) return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'n') {
+      var ni = (deckIdx[active] + 1) % queue.length;
+      loadDeck(active, ni, true); nextLoad = (ni + 1) % queue.length;
+    } else if (e.key === 'p') {
+      var pi = (deckIdx[active] - 1 + queue.length) % queue.length;
+      loadDeck(active, pi, true); nextLoad = (pi + 1) % queue.length;
+    }
+  });
+
+  window.__scPlayer = {
+    open: openPlayer, close: closePlayer,
+    next: function () { goNext(); },
+    setMuted: setMuted,
+    isOn: function () { return started && !muted; }
+  };
+  console.log('[sonic-init] SC-PLAYER armed · 2-deck crossfade ·', queue.length, 'tracks');
+})();
+</script>
+<!--SC-PLAYER-END-->
+
+
+<!--AUDIO-MINIMAL-UI-START-->
+<style>
+  /* ── hide all audio UI chips — audio runs silently in background ── */
+  /* audio unified on the SoundCloud bed; the Spotify scroll-score chip is
+     dropped, but hide it defensively in case a stale block lingers. */
+  #carnatic-chip,
+  #seamless-chip,
+  #ambient-prompt,
+  #generative-chip,
+  #ambient-toggle,
+  .share-card-btn,
+  #lr-btn,
+  #chip-rail-toggle,
+  #chip-rail-scrim,
+  #first-tap-overlay,
+  #sonic-cta,
+  #sonic-mobile-mini,
+  #sonic-toast,
+  #generative-tip,
+  #sc-track-toast,
+  #touch-synth-chip { display: none !important; }
+
+  /* sonic chip: invisible when idle, slides in ONLY when playing */
+  #sonic-audio-chip:not(.playing):not(.pinned) {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(-6px) !important;
+    transition: opacity .35s ease, transform .35s ease !important;
+  }
+  #sonic-audio-chip.playing,
+  #sonic-audio-chip.pinned {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+  }
+
+  /* ── single ghost mute pill — bottom-LEFT (avoids cyber-top at BR) ─ */
+  #global-mute-pill {
+    position: fixed;
+    left: 16px; right: auto;
+    bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    z-index: 9998;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(21, 8, 45, 0.45);
+    border: 1px solid rgba(155, 107, 255, 0.22);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    font-size: 13px;
+    color: rgba(163, 148, 201, 0.55);
+    transition: opacity .2s ease, border-color .2s ease, color .2s ease;
+    opacity: 0.45;
+  }
+  #global-mute-pill:hover {
+    opacity: 1;
+    border-color: rgba(33, 246, 188, 0.50);
+    color: #21f6bc;
+  }
+  #global-mute-pill.muted {
+    color: rgba(255, 110, 156, 0.65);
+    border-color: rgba(255, 110, 156, 0.30);
+  }
+  @media (max-width: 768px) {
+    #global-mute-pill { width: 36px; height: 36px; font-size: 15px; opacity: 0.6; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #sonic-audio-chip:not(.playing):not(.pinned) { transition: none !important; }
+  }
+</style>
+
+<button id="global-mute-pill" type="button"
+        aria-label="mute / unmute all audio"
+        title="mute all audio">🔊</button>
+
+<script>
+(function () {
+  'use strict';
+  var pill = document.getElementById('global-mute-pill');
+  if (!pill) return;
+
+  // sync muted state across all audio systems
+  var MUTED_KEY = 'sonicManifoldMuted';
+  var muted = localStorage.getItem(MUTED_KEY) === '1';
+
+  function applyMute(m) {
+    muted = !!m;
+    localStorage.setItem(MUTED_KEY, m ? '1' : '0');
+    pill.textContent = m ? '🔇' : '🔊';
+    pill.classList.toggle('muted', m);
+    pill.setAttribute('aria-label', m ? 'unmute all audio' : 'mute all audio');
+
+    // propagate to all audio systems
+    try { if (window.__sonicAudio) window.__sonicAudio.setMuted(m); } catch(e) {}
+    // SoundCloud bed: mute pauses + zeroes both decks; unmute resumes the
+    // foreground deck (do NOT close — close would lose the seamless queue state)
+    try { if (window.__scPlayer && window.__scPlayer.setMuted) window.__scPlayer.setMuted(m); } catch(e) {}
+    // generative fallback bed: stop on mute (it restarts via the SC player if needed)
+    try {
+      if (window.__ambientPlayer) {
+        if (m) window.__ambientPlayer.pauseForOverlay();
+        else window.__ambientPlayer.resumeFromOverlay();
+      }
+    } catch(e) {}
+  }
+
+  applyMute(muted);
+  pill.addEventListener('click', function () { applyMute(!muted); });
+
+  // re-apply after first-tap arms audio (SC player may have started)
+  document.addEventListener('sonic:first-tap', function () {
+    if (muted) applyMute(true);
+  });
+
+  console.log('[sonic-init] MINIMAL-UI active — all chips hidden, mute pill armed');
+})();
+</script>
+<!--AUDIO-MINIMAL-UI-END-->
 
 </body>
 </html>
