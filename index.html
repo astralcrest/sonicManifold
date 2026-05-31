@@ -10622,6 +10622,7 @@ try {
 <!--AUDIO-MINIMAL-UI-END-->
 
 
+
 <!--SC-PLAYER-START-->
 <style>
   /* both decks hidden off-screen — audio crossfades, nothing visible */
@@ -10740,9 +10741,13 @@ try {
     if (!nowEl) return;
     if (nowLabel) nowLabel.textContent = text;
     nowEl.classList.toggle('sc-now-ambient', !!ambient);
+    nowEl.title = ambient
+      ? 'A generated ambient piece is playing because your ad-blocker is blocking SoundCloud. Allow soundcloud.com (and sndcdn.com) and reload to hear the actual tracks.'
+      : '';
     nowEl.classList.add('show');
     if (nowHideTimer) clearTimeout(nowHideTimer);
-    nowHideTimer = setTimeout(function () { nowEl.classList.remove('show'); }, 6000);
+    // ambient/blocked state lingers a bit longer so the explanation is seen
+    nowHideTimer = setTimeout(function () { nowEl.classList.remove('show'); }, ambient ? 9000 : 6000);
   }
   function setNowTrack(qi) {
     var q = queue[qi]; if (!q) return;
@@ -10750,10 +10755,84 @@ try {
   }
 
   // ── audio bus: keep generative + hover audio out of the way ───────────
-  function stopTone() {
-    try { if (window.__ambientPlayer && window.__ambientPlayer.stop) window.__ambientPlayer.stop(); } catch (e) {}
-    toneOn = false;
+  // ── dependency-free generative ambient bed (UNBLOCKABLE: zero network) ──
+  // A small Web Audio piece in D Dorian (matches the chillstep/ambient palette
+  // + the Carnatic Karaharapriya default; never Mayamalavagowla). This is what
+  // plays when SoundCloud is blocked by an ad-blocker — guaranteed music with
+  // no external request that anything can block.
+  var bedCtx = null, bedMaster = null, bedStep = null, bedLfo = null;
+  var BED_CHORDS = [               // D Dorian (D E F G A B C) voicings, Hz
+    [146.83, 174.61, 220.00, 261.63, 329.63],  // Dm9   (D F A C E)
+    [196.00, 246.94, 293.66, 392.00],           // G     (G B D G) — the bright Dorian IV
+    [220.00, 261.63, 329.63, 392.00],           // Am7   (A C E G)
+    [261.63, 329.63, 392.00, 493.88]            // Cmaj7 (C E G B)
+  ];
+  function startBed() {
+    if (bedCtx) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      bedCtx = new AC();
+      if (bedCtx.resume) { try { bedCtx.resume(); } catch (e) {} }
+      bedMaster = bedCtx.createGain(); bedMaster.gain.value = 0.0001;
+      bedMaster.connect(bedCtx.destination);
+      var filt = bedCtx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 1100; filt.Q.value = 0.5;
+      filt.connect(bedMaster);
+      var delay = bedCtx.createDelay(2.0); delay.delayTime.value = 0.5;
+      var fb = bedCtx.createGain(); fb.gain.value = 0.33;
+      delay.connect(fb); fb.connect(delay); delay.connect(bedMaster); filt.connect(delay);
+      bedLfo = bedCtx.createOscillator(); bedLfo.frequency.value = 0.04;   // slow filter sweep
+      var lg = bedCtx.createGain(); lg.gain.value = 450;
+      bedLfo.connect(lg); lg.connect(filt.frequency); bedLfo.start();
+      var t0 = bedCtx.currentTime;
+      bedMaster.gain.setValueAtTime(0.0001, t0);
+      bedMaster.gain.exponentialRampToValueAtTime(0.14, t0 + 6);            // gentle fade-in
+      var ci = 0;
+      function playChord() {
+        if (!bedCtx) return;
+        var notes = BED_CHORDS[ci % BED_CHORDS.length]; ci++;
+        var t = bedCtx.currentTime;
+        notes.forEach(function (f, i) {
+          var o = bedCtx.createOscillator(); o.type = (i % 2 ? 'triangle' : 'sine'); o.frequency.value = f;
+          var g = bedCtx.createGain(); g.gain.value = 0.0001;
+          o.connect(g); g.connect(filt);
+          var vol = 0.16 / notes.length;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(vol, t + 3.5);                // attack
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 11);              // long release
+          o.start(t); o.stop(t + 12);
+        });
+        if (ci % 2 === 0) {                                                 // occasional soft bell
+          var bell = bedCtx.createOscillator(); bell.type = 'sine';
+          bell.frequency.value = notes[notes.length - 1] * 2;
+          var bg = bedCtx.createGain(); bg.gain.value = 0.0001;
+          bell.connect(bg); bg.connect(delay);
+          bg.gain.setValueAtTime(0.0001, t + 1);
+          bg.gain.exponentialRampToValueAtTime(0.05, t + 1.4);
+          bg.gain.exponentialRampToValueAtTime(0.0001, t + 5);
+          bell.start(t + 1); bell.stop(t + 6);
+        }
+      }
+      playChord();
+      bedStep = setInterval(playChord, 9000);
+    } catch (e) { console.warn('[sc-player] inline bed failed', e); bedCtx = null; }
   }
+  function stopBedAudio() {
+    if (bedStep) { clearInterval(bedStep); bedStep = null; }
+    if (!bedCtx) return;
+    try {
+      var ctx = bedCtx, t = ctx.currentTime;
+      if (bedMaster) {
+        bedMaster.gain.cancelScheduledValues(t);
+        bedMaster.gain.setValueAtTime(Math.max(0.0001, bedMaster.gain.value), t);
+        bedMaster.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+      }
+      bedCtx = null; bedMaster = null;
+      setTimeout(function () { try { ctx.close(); } catch (e) {} }, 1800);
+    } catch (e) { try { bedCtx.close(); } catch (e2) {} bedCtx = null; bedMaster = null; }
+  }
+  function stopTone() { stopBedAudio(); toneOn = false; }
+
   function muteOthers() {
     if (toneOn) stopTone();
     try { if (window.__sonicAudio && window.__sonicAudio.mute) window.__sonicAudio.mute(); } catch (e) {}
@@ -10945,9 +11024,9 @@ try {
   function engageFallback() {
     if (firstAudible || toneOn) return;
     toneOn = true; lastAudibleTs = nowTs();
-    console.log('[sc-player] SoundCloud not audible → ambient bed (likely an ad-blocker)');
-    setNow('ambient bed \u00b7 SoundCloud blocked?', true);
-    try { if (window.__ambientPlayer && window.__ambientPlayer.startGenerative) window.__ambientPlayer.startGenerative(); } catch (e) {}
+    console.log('[sc-player] SoundCloud not audible → inline generative bed (likely an ad-blocker)');
+    setNow('generative ambient \u00b7 allow soundcloud.com for the tracks', true);
+    startBed();
   }
 
   // ── watchdog: never get stranded in silence ───────────────────────────
@@ -10957,8 +11036,8 @@ try {
       if (!started || muted) return;
       if (nowTs() - lastAudibleTs > SILENCE_LIMIT) {
         if (!toneOn) {                        // SoundCloud went quiet → ensure a bed
-          toneOn = true; setNow('ambient bed', true);
-          try { if (window.__ambientPlayer && window.__ambientPlayer.startGenerative) window.__ambientPlayer.startGenerative(); } catch (e) {}
+          toneOn = true; setNow('generative ambient', true);
+          startBed();
         }
         lastAudibleTs = nowTs();              // bed assumed audible; reset the clock
       }
