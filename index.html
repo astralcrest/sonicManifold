@@ -10501,346 +10501,6 @@ try {
 </script>
 <!--APPLE-DS-JS-END-->
 
-<!--SC-PLAYER-START-->
-<style>
-  /* SC player runs completely in background — both decks hidden off-screen */
-  #sc-bg-wrap {
-    position: fixed; top: -300%; left: -300%;
-    width: 300px; height: 332px;
-    pointer-events: none; visibility: hidden;
-    z-index: -1;
-  }
-  /* micro track-change whisper — barely-there, desktop only, hidden by minimal-ui */
-  #sc-track-toast {
-    position: fixed;
-    top: calc(var(--nav-h, 56px) + 50px);
-    right: 14px;
-    z-index: 9993;
-    background: rgba(21,8,45,0.55);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(134,203,254,0.18);
-    border-radius: 6px;
-    padding: 4px 9px;
-    font-family: 'JetBrains Mono','SF Mono',monospace;
-    font-size: 9px; letter-spacing: 0.6px;
-    color: rgba(163,148,201,0.70);
-    max-width: 180px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    opacity: 0; pointer-events: none;
-    transition: opacity .5s ease;
-  }
-  #sc-track-toast.show { opacity: 0.65; }
-  #sc-track-toast .sct-glyph { color: rgba(134,203,254,0.55); margin-right: 4px; }
-  @media (max-width: 768px) { #sc-track-toast { display: none; } }
-  @media (prefers-reduced-motion: reduce) { #sc-track-toast { transition: none; } }
-</style>
-
-<script id="sc-queue-data" type="application/json">[{"url": "https://soundcloud.com/phaeleh/outside-the-lines-feat-shaunna", "t": "Outside the Lines", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/one-chance-feat-devin-renee", "t": "One Chance", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/walk-away", "t": "Walk Away", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/fear-of-silence", "t": "Fear of Silence", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/mantra", "t": "Mantra", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/tempest", "t": "Tempest", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/dark-sky-pt-1", "t": "Dark Sky Pt. 1", "a": "Phaeleh"}, {"url": "https://soundcloud.com/bonobo/kiara", "t": "Kiara", "a": "Bonobo"}, {"url": "https://soundcloud.com/bonobo/cirrus", "t": "Cirrus", "a": "Bonobo"}, {"url": "https://soundcloud.com/zero7/in-the-waiting-line", "t": "In the Waiting Line", "a": "Zero 7"}, {"url": "https://soundcloud.com/zero7/this-world", "t": "This World", "a": "Zero 7"}, {"url": "https://soundcloud.com/odesza/iplayyoulisten", "t": "IPlayYouListen", "a": "ODESZA"}, {"url": "https://soundcloud.com/odesza/odesza-how-did-i-get-here", "t": "How Did I Get Here", "a": "ODESZA"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-often", "t": "Often", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/drive", "t": "Drive", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-king-of-the-fall", "t": "King of the Fall", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-coming-down", "t": "Coming Down", "a": "The Weeknd"}, {"url": "https://soundcloud.com/shy-ink/shy-ink-kish-slow-it-down", "t": "Slow it Down", "a": "shy ink & Kish"}, {"url": "https://soundcloud.com/lucidbeatz16/dance-with-me", "t": "dance with me", "a": "lucidbeatz"}, {"url": "https://soundcloud.com/sizzlebird/bring-to-life", "t": "Bring to Life", "a": "SizzleBird"}]</script>
-
-<!-- two hidden off-screen decks — audio crossfades but nothing is visible -->
-<div id="sc-bg-wrap">
-  <iframe id="sc-iframe"   scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
-  <iframe id="sc-iframe-b" scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
-</div>
-<div id="sc-track-toast" role="status" aria-live="polite"></div>
-
-<script>
-(function () {
-  'use strict';
-
-  var data = [];
-  try { data = JSON.parse(document.getElementById('sc-queue-data').textContent); } catch (e) {}
-  if (!data.length) return;
-
-  // Fisher-Yates shuffle for variety each session
-  var queue = data.slice();
-  for (var i = queue.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var tmp = queue[i]; queue[i] = queue[j]; queue[j] = tmp;
-  }
-
-  // ── tunables ────────────────────────────────────────────────────────
-  var CROSSFADE_MS = 5500;   // overlap window between consecutive tracks
-  var STEP_MS      = 120;    // volume-ramp granularity
-  var BED_VOL      = 78;     // ceiling volume of the background bed (0-100)
-  var FALLBACK_MS  = 7000;   // if SoundCloud never plays → Tone.js generative
-
-  // ── state ─────────────────────────────────────────────────────────────
-  var started   = false;
-  var muted      = false;
-  var crossing   = false;          // a crossfade is in flight
-  var firstPlay  = false;          // SoundCloud confirmed audible at least once
-  var toneOn     = false;          // Tone.js fallback engaged
-  var fallbackTimer = null;
-  var active     = 'a';            // foreground deck
-  var nextLoad   = 0;              // queue index to preload onto the standby deck
-  var deckIdx    = { a: -1, b: -1 };  // queue index currently on each deck
-  var dur        = { a: 0,  b: 0 };   // track duration (ms) per deck
-  var ramps      = { a: null, b: null };
-  var widgets    = { a: null, b: null };
-
-  var iframes = { a: document.getElementById('sc-iframe'),
-                  b: document.getElementById('sc-iframe-b') };
-  var toastEl = document.getElementById('sc-track-toast');
-  if (!iframes.a || !iframes.b) return;
-
-  function otherDeck(d) { return d === 'a' ? 'b' : 'a'; }
-
-  function showToast(q) {
-    if (!toastEl || !q) return;
-    toastEl.innerHTML = '<span class="sct-glyph">&#9834;</span>' +
-      q.t + ' <span style="opacity:.55">— ' + q.a + '</span>';
-    toastEl.classList.add('show');
-    setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
-  }
-
-  // ── audio bus: keep generative + hover audio out of the way ───────────
-  function muteOthers() {
-    try { if (toneOn && window.__ambientPlayer && window.__ambientPlayer.stop) { window.__ambientPlayer.stop(); toneOn = false; } } catch (e) {}
-    try { if (window.__ambientPlayer && window.__ambientPlayer.isOn && window.__ambientPlayer.isOn()) window.__ambientPlayer.pauseForOverlay(); } catch (e) {}
-    try { if (window.__sonicAudio && window.__sonicAudio.mute) window.__sonicAudio.mute(); } catch (e) {}
-  }
-  function unmuteOthers() {
-    try { if (window.__sonicAudio && window.__sonicAudio.unmute) window.__sonicAudio.unmute(); } catch (e) {}
-  }
-
-  // ── SoundCloud Widget API ─────────────────────────────────────────────
-  function loadSCApi(cb) {
-    if (window.SC && window.SC.Widget) { cb(); return; }
-    var s = document.createElement('script');
-    s.src = 'https://w.soundcloud.com/player/api.js';
-    s.onload = cb;
-    s.onerror = function () { console.warn('[sc-player] SC API failed to load → Tone fallback'); engageFallback(); };
-    document.head.appendChild(s);
-  }
-  function embedUrl(trackUrl, autoplay) {
-    return 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(trackUrl) +
-      '&color=%2321f6bc&auto_play=' + (autoplay ? 'true' : 'false') +
-      '&hide_related=true&show_comments=false&show_user=false' +
-      '&show_reposts=false&show_teaser=false&visual=false';
-  }
-
-  // ── volume control ────────────────────────────────────────────────────
-  function setVol(deck, v) {
-    var w = widgets[deck]; if (!w) return;
-    if (ramps[deck]) { clearInterval(ramps[deck]); ramps[deck] = null; }
-    w.__vol = v;
-    try { w.setVolume(muted ? 0 : v); } catch (e) {}
-  }
-  function ramp(deck, to, durMs, cb) {
-    var w = widgets[deck];
-    if (!w) { if (cb) cb(); return; }
-    if (ramps[deck]) { clearInterval(ramps[deck]); ramps[deck] = null; }
-    var steps = Math.max(1, Math.round(durMs / STEP_MS));
-    var from = (typeof w.__vol === 'number') ? w.__vol : 0;
-    var n = 0;
-    ramps[deck] = setInterval(function () {
-      n++;
-      var v = Math.round(from + (to - from) * (n / steps));
-      w.__vol = v;
-      try { w.setVolume(muted ? 0 : v); } catch (e) {}
-      if (n >= steps) { clearInterval(ramps[deck]); ramps[deck] = null; if (cb) cb(); }
-    }, STEP_MS);
-  }
-
-  // ── bind one deck's widget events ─────────────────────────────────────
-  function bindDeck(deck) {
-    var w = widgets[deck];
-    w.bind(SC.Widget.Events.READY, function () {
-      // initial volume + autoplay handled here only for the first creation;
-      // subsequent track changes go through loadDeck()'s callback.
-      if (deck === active) { setVol(deck, BED_VOL); try { w.play(); } catch (e) {} }
-      else { setVol(deck, 0); }
-    });
-    w.bind(SC.Widget.Events.PLAY, function () {
-      if (deck !== active) return;   // the standby deck pre-rolls silently
-      firstPlay = true;
-      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
-      document.body.classList.add('sc-open', 'sc-playing');
-      muteOthers();
-      w.getDuration(function (d) { dur[deck] = d || 0; });
-    });
-    w.bind(SC.Widget.Events.PAUSE, function () {
-      if (deck === active && !crossing && !muted) document.body.classList.remove('sc-playing');
-    });
-    w.bind(SC.Widget.Events.PLAY_PROGRESS, function (e) {
-      if (deck !== active || crossing || muted) return;
-      var d = dur[deck];
-      if (!d && e && e.relativePosition > 0.01 && e.currentPosition) {
-        d = dur[deck] = e.currentPosition / e.relativePosition;  // derive if missing
-      }
-      // only crossfade tracks comfortably longer than the fade window
-      if (d && d > CROSSFADE_MS * 1.4 && e && e.currentPosition >= d - CROSSFADE_MS) {
-        startCrossfade();
-      }
-    });
-    w.bind(SC.Widget.Events.FINISH, function () {
-      if (deck === active && !crossing) goNext();   // backstop: no overlap left
-    });
-    w.bind(SC.Widget.Events.ERROR, function () {
-      console.warn('[sc-player] deck', deck, 'error — skipping');
-      if (deck === active && !crossing) goNext();
-    });
-  }
-
-  // ── load a queue track onto a deck ────────────────────────────────────
-  function loadDeck(deck, qi, autoplay) {
-    var q = queue[qi];
-    deckIdx[deck] = qi;
-    dur[deck] = 0;
-    var w = widgets[deck];
-    if (w) {
-      w.load(q.url, {
-        auto_play: !!autoplay,
-        show_artwork: false, show_comments: false, show_playcount: false,
-        show_user: false, buying: false, liking: false, sharing: false, download: false,
-        callback: function () {
-          setVol(deck, autoplay ? BED_VOL : 0);
-          if (autoplay) { try { w.play(); } catch (e) {} }
-        }
-      });
-    } else {
-      iframes[deck].src = embedUrl(q.url, autoplay);
-    }
-    if (autoplay && deck === active) showToast(q);
-  }
-
-  // ── crossfade foreground → standby ────────────────────────────────────
-  function startCrossfade() {
-    if (crossing) return;
-    var sb = otherDeck(active);
-    if (!widgets[sb] || deckIdx[sb] < 0) { goNext(); return; }  // standby not ready
-    crossing = true;
-    showToast(queue[deckIdx[sb]]);
-    setVol(sb, 0);
-    try { widgets[sb].seekTo(0); } catch (e) {}
-    try { widgets[sb].play(); } catch (e) {}
-    ramp(sb, BED_VOL, CROSSFADE_MS);
-    // capture the fading deck — `active` may flip in finishSwap before this
-    // ramp's completion fires, so we must pause the deck we actually faded.
-    var fadeOut = active;
-    ramp(fadeOut, 0, CROSSFADE_MS, function () { try { widgets[fadeOut].pause(); } catch (e) {} });
-    setTimeout(function () { finishSwap(sb); }, CROSSFADE_MS + 80);
-  }
-
-  // ── hard advance with no overlap (FINISH / ERROR / manual skip) ───────
-  function goNext() {
-    var sb = otherDeck(active);
-    document.body.classList.remove('sc-playing');
-    if (widgets[sb] && deckIdx[sb] >= 0) {
-      try { widgets[sb].seekTo(0); } catch (e) {}
-      finishSwap(sb);
-    } else {
-      var qi = nextLoad % queue.length;
-      loadDeck(active, qi, true);
-      nextLoad = (qi + 1) % queue.length;
-    }
-  }
-
-  // ── finalize a swap: standby becomes foreground, preload the next track ─
-  function finishSwap(newActive) {
-    var oldActive = otherDeck(newActive);
-    active = newActive;
-    crossing = false;
-    setVol(active, BED_VOL);
-    try { widgets[active].play(); } catch (e) {}
-    widgets[active].getDuration(function (d) { dur[active] = d || 0; });
-    document.body.classList.add('sc-open', 'sc-playing');
-    // make sure the old deck is actually stopped (in case its fade-out ramp
-    // callback raced this swap), then preload the upcoming track onto it.
-    try { if (widgets[oldActive]) widgets[oldActive].pause(); } catch (e) {}
-    var qi = nextLoad % queue.length;
-    loadDeck(oldActive, qi, false);
-    nextLoad = (qi + 1) % queue.length;
-  }
-
-  // ── open: arm both decks SYNCHRONOUSLY inside the first-tap gesture ────
-  function openPlayer() {
-    if (started) return;
-    started = true;
-    active = 'a';
-    document.body.classList.add('sc-open');
-    // deck A = current track, autoplay TRUE — src set in-gesture so iOS allows it
-    iframes.a.src = embedUrl(queue[0].url, true);
-    deckIdx.a = 0;
-    // deck B = next track, preloaded silent (crossfade later needs no gesture)
-    var b0 = 1 % queue.length;
-    iframes.b.src = embedUrl(queue[b0].url, false);
-    deckIdx.b = b0;
-    nextLoad = (b0 + 1) % queue.length;
-    showToast(queue[0]);
-    loadSCApi(function () {
-      try {
-        widgets.a = SC.Widget(iframes.a); bindDeck('a');
-        widgets.b = SC.Widget(iframes.b); bindDeck('b');
-      } catch (e) { console.warn('[sc-player] widget init failed', e); engageFallback(); }
-    });
-    // safety net: if nothing audible, fall back to the generative bed
-    fallbackTimer = setTimeout(function () { if (!firstPlay) engageFallback(); }, FALLBACK_MS);
-  }
-
-  function engageFallback() {
-    if (firstPlay || toneOn) return;
-    toneOn = true;
-    console.log('[sc-player] SoundCloud silent → Tone.js generative bed');
-    try { if (window.__ambientPlayer && window.__ambientPlayer.startGenerative) window.__ambientPlayer.startGenerative(); } catch (e) {}
-  }
-
-  function closePlayer() {
-    document.body.classList.remove('sc-open', 'sc-playing');
-    ['a', 'b'].forEach(function (d) {
-      if (ramps[d]) { clearInterval(ramps[d]); ramps[d] = null; }
-      try { if (widgets[d]) widgets[d].pause(); } catch (e) {}
-    });
-    unmuteOthers();
-  }
-
-  // ── single mute control surface (driven by the global mute pill) ──────
-  function setMuted(m) {
-    muted = !!m;
-    if (muted) {
-      ['a', 'b'].forEach(function (d) {
-        if (ramps[d]) { clearInterval(ramps[d]); ramps[d] = null; }
-        try { if (widgets[d]) widgets[d].setVolume(0); } catch (e) {}
-      });
-      try { if (widgets[active]) widgets[active].pause(); } catch (e) {}
-      try { if (toneOn && window.__ambientPlayer && window.__ambientPlayer.stop) { window.__ambientPlayer.stop(); toneOn = false; } } catch (e) {}
-      document.body.classList.remove('sc-playing');
-    } else if (started) {
-      if (widgets[active]) { widgets[active].__vol = BED_VOL; try { widgets[active].setVolume(BED_VOL); widgets[active].play(); } catch (e) {} }
-      document.body.classList.add('sc-playing');
-    }
-  }
-
-  // ── arm on the one-time first-tap gesture (SYNCHRONOUS — iOS autoplay) ─
-  document.addEventListener('sonic:first-tap', function () { openPlayer(); });
-
-  // n / p manual skip (hard cut — background bed, predictability over polish)
-  document.addEventListener('keydown', function (e) {
-    if (!started) return;
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-    if (e.key === 'n') {
-      var ni = (deckIdx[active] + 1) % queue.length;
-      loadDeck(active, ni, true); nextLoad = (ni + 1) % queue.length;
-    } else if (e.key === 'p') {
-      var pi = (deckIdx[active] - 1 + queue.length) % queue.length;
-      loadDeck(active, pi, true); nextLoad = (pi + 1) % queue.length;
-    }
-  });
-
-  window.__scPlayer = {
-    open: openPlayer, close: closePlayer,
-    next: function () { goNext(); },
-    setMuted: setMuted,
-    isOn: function () { return started && !muted; }
-  };
-  console.log('[sonic-init] SC-PLAYER armed · 2-deck crossfade ·', queue.length, 'tracks');
-})();
-</script>
-<!--SC-PLAYER-END-->
-
-
 <!--AUDIO-MINIMAL-UI-START-->
 <style>
   /* ── hide all audio UI chips — audio runs silently in background ── */
@@ -10960,6 +10620,409 @@ try {
 })();
 </script>
 <!--AUDIO-MINIMAL-UI-END-->
+
+
+<!--SC-PLAYER-START-->
+<style>
+  /* both decks hidden off-screen — audio crossfades, nothing visible */
+  #sc-bg-wrap {
+    position: fixed; top: -300%; left: -300%;
+    width: 300px; height: 332px;
+    pointer-events: none; visibility: hidden;
+    z-index: -1;
+  }
+  /* now-playing readout — small, subtle, frosted; the only visible audio UI
+     besides the global mute pill. Bottom-center; fades in on change. */
+  #sc-now {
+    position: fixed;
+    left: 50%; transform: translateX(-50%) translateY(6px);
+    bottom: max(14px, calc(10px + env(safe-area-inset-bottom, 0)));
+    z-index: 9993;
+    display: inline-flex; align-items: center; gap: 8px;
+    max-width: min(82vw, 360px);
+    padding: 6px 10px 6px 12px;
+    background: rgba(21,8,45,0.55);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    border: 1px solid rgba(134,203,254,0.20);
+    border-radius: 999px;
+    font-family: 'JetBrains Mono','SF Mono',monospace;
+    font-size: 10.5px; letter-spacing: 0.4px;
+    color: rgba(240,234,255,0.88);
+    opacity: 0; pointer-events: none;
+    transition: opacity .5s ease, transform .5s ease;
+    white-space: nowrap;
+  }
+  #sc-now.show { opacity: 0.92; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  #sc-now:hover { opacity: 1; }
+  #sc-now-glyph { color: #21f6bc; flex-shrink: 0; }
+  #sc-now-label { overflow: hidden; text-overflow: ellipsis; }
+  #sc-now.sc-now-ambient { color: rgba(163,148,201,0.88); border-color: rgba(155,107,255,0.22); }
+  #sc-now.sc-now-ambient #sc-now-glyph { color: #9b6bff; }
+  #sc-now-skip {
+    flex-shrink: 0; margin-left: 2px;
+    background: transparent; border: none; cursor: pointer;
+    color: rgba(134,203,254,0.6); font-size: 11px; line-height: 1; padding: 2px 4px;
+    transition: color .15s ease;
+  }
+  #sc-now-skip:hover { color: #21f6bc; }
+  #sc-now.sc-now-ambient #sc-now-skip { display: none; }
+  @media (prefers-reduced-motion: reduce) { #sc-now { transition: opacity .2s ease; } }
+</style>
+
+<script id="sc-queue-data" type="application/json">[{"url": "https://soundcloud.com/phaeleh/outside-the-lines-feat-shaunna", "t": "Outside the Lines", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/one-chance-feat-devin-renee", "t": "One Chance", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/walk-away", "t": "Walk Away", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/fear-of-silence", "t": "Fear of Silence", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/mantra", "t": "Mantra", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/tempest", "t": "Tempest", "a": "Phaeleh"}, {"url": "https://soundcloud.com/phaeleh/dark-sky-pt-1", "t": "Dark Sky Pt. 1", "a": "Phaeleh"}, {"url": "https://soundcloud.com/bonobo/kiara", "t": "Kiara", "a": "Bonobo"}, {"url": "https://soundcloud.com/bonobo/cirrus", "t": "Cirrus", "a": "Bonobo"}, {"url": "https://soundcloud.com/zero7/in-the-waiting-line", "t": "In the Waiting Line", "a": "Zero 7"}, {"url": "https://soundcloud.com/zero7/this-world", "t": "This World", "a": "Zero 7"}, {"url": "https://soundcloud.com/odesza/iplayyoulisten", "t": "IPlayYouListen", "a": "ODESZA"}, {"url": "https://soundcloud.com/odesza/odesza-how-did-i-get-here", "t": "How Did I Get Here", "a": "ODESZA"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-often", "t": "Often", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/drive", "t": "Drive", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-king-of-the-fall", "t": "King of the Fall", "a": "The Weeknd"}, {"url": "https://soundcloud.com/theweeknd/the-weeknd-coming-down", "t": "Coming Down", "a": "The Weeknd"}, {"url": "https://soundcloud.com/shy-ink/shy-ink-kish-slow-it-down", "t": "Slow it Down", "a": "shy ink & Kish"}, {"url": "https://soundcloud.com/lucidbeatz16/dance-with-me", "t": "dance with me", "a": "lucidbeatz"}, {"url": "https://soundcloud.com/sizzlebird/bring-to-life", "t": "Bring to Life", "a": "SizzleBird"}]</script>
+
+<!-- two hidden off-screen decks — audio crossfades but nothing is visible -->
+<div id="sc-bg-wrap">
+  <iframe id="sc-iframe"   scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
+  <iframe id="sc-iframe-b" scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
+</div>
+<div id="sc-now" role="status" aria-live="polite">
+  <span id="sc-now-glyph">&#9834;</span>
+  <span id="sc-now-label"></span>
+  <button id="sc-now-skip" type="button" aria-label="skip track" title="next track">&#9197;</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var data = [];
+  try { data = JSON.parse(document.getElementById('sc-queue-data').textContent); } catch (e) {}
+  if (!data.length) return;
+
+  // Fisher-Yates shuffle for variety each session
+  var queue = data.slice();
+  for (var i = queue.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = queue[i]; queue[i] = queue[j]; queue[j] = tmp;
+  }
+
+  // ── tunables ────────────────────────────────────────────────────────
+  var CROSSFADE_MS  = 5500;   // overlap window between consecutive tracks
+  var STEP_MS       = 120;    // volume-ramp granularity
+  var BED_VOL       = 78;     // ceiling volume of the background bed (0-100)
+  var FALLBACK_MS   = 9000;   // no AUDIBLE SoundCloud by now → Tone.js bed
+  var CONFIRM_MS    = 1500;   // position must pass this to count as "really playing"
+  var WATCHDOG_MS   = 5000;   // how often the silence watchdog checks
+  var SILENCE_LIMIT = 15000;  // quiet this long while unmuted → ensure a bed
+
+  // ── state ─────────────────────────────────────────────────────────────
+  var started      = false;
+  var muted        = false;
+  var crossing     = false;          // a crossfade is in flight
+  var firstAudible = false;          // SoundCloud position has actually advanced
+  var toneOn       = false;          // Tone.js fallback engaged
+  var fallbackTimer = null;
+  var watchdog     = null;
+  var lastAudibleTs = 0;             // last time real audio was confirmed advancing
+  var active     = 'a';              // foreground deck
+  var nextLoad   = 0;                // queue index to preload onto the standby deck
+  var deckIdx    = { a: -1, b: -1 }; // queue index currently on each deck
+  var dur        = { a: 0,  b: 0 };  // track duration (ms) per deck
+  var lastPos    = { a: -1, b: -1 }; // last reported position (ms) per deck
+  var ramps      = { a: null, b: null };
+  var widgets    = { a: null, b: null };
+
+  var iframes = { a: document.getElementById('sc-iframe'),
+                  b: document.getElementById('sc-iframe-b') };
+  var nowEl   = document.getElementById('sc-now');
+  var nowLabel = document.getElementById('sc-now-label');
+  var nowSkip = document.getElementById('sc-now-skip');
+  if (!iframes.a || !iframes.b) return;
+
+  function otherDeck(d) { return d === 'a' ? 'b' : 'a'; }
+  function nowTs() { return Date.now(); }
+
+  // ── now-playing readout ───────────────────────────────────────────────
+  var nowHideTimer = null;
+  function setNow(text, ambient) {
+    if (!nowEl) return;
+    if (nowLabel) nowLabel.textContent = text;
+    nowEl.classList.toggle('sc-now-ambient', !!ambient);
+    nowEl.classList.add('show');
+    if (nowHideTimer) clearTimeout(nowHideTimer);
+    nowHideTimer = setTimeout(function () { nowEl.classList.remove('show'); }, 6000);
+  }
+  function setNowTrack(qi) {
+    var q = queue[qi]; if (!q) return;
+    setNow(q.a + ' \u2014 ' + q.t, false);
+  }
+
+  // ── audio bus: keep generative + hover audio out of the way ───────────
+  function stopTone() {
+    try { if (window.__ambientPlayer && window.__ambientPlayer.stop) window.__ambientPlayer.stop(); } catch (e) {}
+    toneOn = false;
+  }
+  function muteOthers() {
+    if (toneOn) stopTone();
+    try { if (window.__sonicAudio && window.__sonicAudio.mute) window.__sonicAudio.mute(); } catch (e) {}
+  }
+  function unmuteOthers() {
+    try { if (window.__sonicAudio && window.__sonicAudio.unmute) window.__sonicAudio.unmute(); } catch (e) {}
+  }
+
+  // ── SoundCloud Widget API ─────────────────────────────────────────────
+  function loadSCApi(cb) {
+    if (window.SC && window.SC.Widget) { cb(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://w.soundcloud.com/player/api.js';
+    s.onload = cb;
+    s.onerror = function () { console.warn('[sc-player] SC API blocked/failed → ambient bed'); engageFallback(); };
+    document.head.appendChild(s);
+  }
+  function embedUrl(trackUrl, autoplay) {
+    return 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(trackUrl) +
+      '&color=%2321f6bc&auto_play=' + (autoplay ? 'true' : 'false') +
+      '&hide_related=true&show_comments=false&show_user=false' +
+      '&show_reposts=false&show_teaser=false&visual=false';
+  }
+
+  // ── volume control ────────────────────────────────────────────────────
+  function setVol(deck, v) {
+    var w = widgets[deck]; if (!w) return;
+    if (ramps[deck]) { clearInterval(ramps[deck]); ramps[deck] = null; }
+    w.__vol = v;
+    try { w.setVolume(muted ? 0 : v); } catch (e) {}
+  }
+  function ramp(deck, to, durMs, cb) {
+    var w = widgets[deck];
+    if (!w) { if (cb) cb(); return; }
+    if (ramps[deck]) { clearInterval(ramps[deck]); ramps[deck] = null; }
+    var steps = Math.max(1, Math.round(durMs / STEP_MS));
+    var from = (typeof w.__vol === 'number') ? w.__vol : 0;
+    var n = 0;
+    ramps[deck] = setInterval(function () {
+      n++;
+      var v = Math.round(from + (to - from) * (n / steps));
+      w.__vol = v;
+      try { w.setVolume(muted ? 0 : v); } catch (e) {}
+      if (n >= steps) { clearInterval(ramps[deck]); ramps[deck] = null; if (cb) cb(); }
+    }, STEP_MS);
+  }
+
+  // ── the ONLY signal we trust as "audio is really coming out": the active
+  //    deck's playback position is advancing past CONFIRM_MS. A blocked /
+  //    silent SoundCloud fires PLAY but never advances, so it can't strand us.
+  function confirmPlaying(deck) {
+    lastAudibleTs = nowTs();
+    if (toneOn) stopTone();                 // SoundCloud caught up → drop the bed
+    if (!firstAudible) {
+      firstAudible = true;
+      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
+      muteOthers();
+    }
+    document.body.classList.add('sc-open', 'sc-playing');
+    setNowTrack(deckIdx[deck]);
+  }
+
+  // ── bind one deck's widget events ─────────────────────────────────────
+  function bindDeck(deck) {
+    var w = widgets[deck];
+    w.bind(SC.Widget.Events.READY, function () {
+      if (deck === active) { setVol(deck, BED_VOL); try { w.play(); } catch (e) {} }
+      else { setVol(deck, 0); }
+    });
+    w.bind(SC.Widget.Events.PLAY, function () {
+      if (deck === active) document.body.classList.add('sc-open');  // cosmetic only
+      w.getDuration(function (d) { dur[deck] = d || 0; });
+    });
+    w.bind(SC.Widget.Events.PAUSE, function () {
+      if (deck === active && !crossing && !muted) document.body.classList.remove('sc-playing');
+    });
+    w.bind(SC.Widget.Events.PLAY_PROGRESS, function (e) {
+      var pos = (e && e.currentPosition) || 0;
+      if (pos > lastPos[deck]) {                 // genuinely advancing
+        lastPos[deck] = pos;
+        if (deck === active || crossing) lastAudibleTs = nowTs();
+      }
+      if (deck !== active || crossing || muted) return;
+      if (pos > CONFIRM_MS) confirmPlaying(deck);   // the "really playing" gate
+      var d = dur[deck];
+      if (!d && e && e.relativePosition > 0.01 && pos) d = dur[deck] = pos / e.relativePosition;
+      if (d && d > CROSSFADE_MS * 1.4 && pos >= d - CROSSFADE_MS) startCrossfade();
+    });
+    w.bind(SC.Widget.Events.FINISH, function () {
+      if (deck === active && !crossing) goNext();
+    });
+    w.bind(SC.Widget.Events.ERROR, function () {
+      console.warn('[sc-player] deck', deck, 'error — skipping');
+      if (deck === active && !crossing) goNext();
+    });
+  }
+
+  // ── load a queue track onto a deck ────────────────────────────────────
+  function loadDeck(deck, qi, autoplay) {
+    var q = queue[qi];
+    deckIdx[deck] = qi;
+    dur[deck] = 0; lastPos[deck] = -1;
+    var w = widgets[deck];
+    if (w) {
+      w.load(q.url, {
+        auto_play: !!autoplay,
+        show_artwork: false, show_comments: false, show_playcount: false,
+        show_user: false, buying: false, liking: false, sharing: false, download: false,
+        callback: function () {
+          setVol(deck, autoplay ? BED_VOL : 0);
+          if (autoplay) { try { w.play(); } catch (e) {} }
+        }
+      });
+    } else {
+      iframes[deck].src = embedUrl(q.url, autoplay);
+    }
+  }
+
+  // ── crossfade foreground → standby ────────────────────────────────────
+  function startCrossfade() {
+    if (crossing) return;
+    var sb = otherDeck(active);
+    if (!widgets[sb] || deckIdx[sb] < 0) { goNext(); return; }
+    crossing = true;
+    setVol(sb, 0);
+    try { widgets[sb].seekTo(0); } catch (e) {}
+    try { widgets[sb].play(); } catch (e) {}
+    ramp(sb, BED_VOL, CROSSFADE_MS);
+    var fadeOut = active;   // `active` flips in finishSwap before this ramp ends
+    ramp(fadeOut, 0, CROSSFADE_MS, function () { try { widgets[fadeOut].pause(); } catch (e) {} });
+    setTimeout(function () { finishSwap(sb); }, CROSSFADE_MS + 80);
+  }
+
+  // ── hard advance, no overlap (FINISH / ERROR / manual skip) ───────────
+  function goNext() {
+    var sb = otherDeck(active);
+    document.body.classList.remove('sc-playing');
+    if (widgets[sb] && deckIdx[sb] >= 0) {
+      try { widgets[sb].seekTo(0); } catch (e) {}
+      finishSwap(sb);
+    } else {
+      var qi = nextLoad % queue.length;
+      loadDeck(active, qi, true);
+      nextLoad = (qi + 1) % queue.length;
+    }
+  }
+
+  // ── finalize a swap: standby becomes foreground, preload the next track ─
+  function finishSwap(newActive) {
+    var oldActive = otherDeck(newActive);
+    active = newActive;
+    crossing = false;
+    setVol(active, BED_VOL);
+    try { widgets[active].play(); } catch (e) {}
+    widgets[active].getDuration(function (d) { dur[active] = d || 0; });
+    document.body.classList.add('sc-open', 'sc-playing');
+    if (!toneOn) setNowTrack(deckIdx[active]);
+    try { if (widgets[oldActive]) widgets[oldActive].pause(); } catch (e) {}
+    var qi = nextLoad % queue.length;
+    loadDeck(oldActive, qi, false);
+    nextLoad = (qi + 1) % queue.length;
+  }
+
+  // ── open: arm both decks SYNCHRONOUSLY inside the first-tap gesture ────
+  function openPlayer() {
+    if (started) return;
+    started = true;
+    active = 'a';
+    lastAudibleTs = nowTs();
+    document.body.classList.add('sc-open');
+    iframes.a.src = embedUrl(queue[0].url, true);    // deck A autoplays (in-gesture)
+    deckIdx.a = 0;
+    var b0 = 1 % queue.length;
+    iframes.b.src = embedUrl(queue[b0].url, false);  // deck B preloaded silent
+    deckIdx.b = b0;
+    nextLoad = (b0 + 1) % queue.length;
+    setNowTrack(0);
+    loadSCApi(function () {
+      try {
+        widgets.a = SC.Widget(iframes.a); bindDeck('a');
+        widgets.b = SC.Widget(iframes.b); bindDeck('b');
+      } catch (e) { console.warn('[sc-player] widget init failed', e); engageFallback(); }
+    });
+    fallbackTimer = setTimeout(function () { if (!firstAudible) engageFallback(); }, FALLBACK_MS);
+    startWatchdog();
+  }
+
+  // ── Tone.js generative bed (graceful degradation for blocked SoundCloud) ─
+  function engageFallback() {
+    if (firstAudible || toneOn) return;
+    toneOn = true; lastAudibleTs = nowTs();
+    console.log('[sc-player] SoundCloud not audible → ambient bed (likely an ad-blocker)');
+    setNow('ambient bed \u00b7 SoundCloud blocked?', true);
+    try { if (window.__ambientPlayer && window.__ambientPlayer.startGenerative) window.__ambientPlayer.startGenerative(); } catch (e) {}
+  }
+
+  // ── watchdog: never get stranded in silence ───────────────────────────
+  function startWatchdog() {
+    if (watchdog) return;
+    watchdog = setInterval(function () {
+      if (!started || muted) return;
+      if (nowTs() - lastAudibleTs > SILENCE_LIMIT) {
+        if (!toneOn) {                        // SoundCloud went quiet → ensure a bed
+          toneOn = true; setNow('ambient bed', true);
+          try { if (window.__ambientPlayer && window.__ambientPlayer.startGenerative) window.__ambientPlayer.startGenerative(); } catch (e) {}
+        }
+        lastAudibleTs = nowTs();              // bed assumed audible; reset the clock
+      }
+    }, WATCHDOG_MS);
+  }
+
+  function closePlayer() {
+    document.body.classList.remove('sc-open', 'sc-playing');
+    if (watchdog) { clearInterval(watchdog); watchdog = null; }
+    ['a', 'b'].forEach(function (d) {
+      if (ramps[d]) { clearInterval(ramps[d]); ramps[d] = null; }
+      try { if (widgets[d]) widgets[d].pause(); } catch (e) {}
+    });
+    if (toneOn) stopTone();
+    unmuteOthers();
+  }
+
+  // ── single mute control surface (driven by the global mute pill) ──────
+  function setMuted(m) {
+    muted = !!m;
+    if (muted) {
+      ['a', 'b'].forEach(function (d) {
+        if (ramps[d]) { clearInterval(ramps[d]); ramps[d] = null; }
+        try { if (widgets[d]) widgets[d].setVolume(0); } catch (e) {}
+      });
+      try { if (widgets[active]) widgets[active].pause(); } catch (e) {}
+      if (toneOn) stopTone();
+      document.body.classList.remove('sc-playing');
+    } else if (started) {
+      lastAudibleTs = nowTs();
+      if (widgets[active]) { widgets[active].__vol = BED_VOL; try { widgets[active].setVolume(BED_VOL); widgets[active].play(); } catch (e) {} }
+      document.body.classList.add('sc-playing');
+    }
+  }
+
+  // ── arm on the one-time first-tap gesture (SYNCHRONOUS — iOS autoplay) ─
+  document.addEventListener('sonic:first-tap', function () { openPlayer(); });
+
+  // skip button + n/p keys (manual skip — hard cut)
+  function manualSkip(dir) {
+    if (!started || toneOn) return;          // nothing to skip in ambient mode
+    var base = deckIdx[active];
+    var ni = (base + (dir < 0 ? -1 : 1) + queue.length) % queue.length;
+    loadDeck(active, ni, true); nextLoad = (ni + 1) % queue.length;
+    setNowTrack(ni);
+  }
+  if (nowSkip) nowSkip.addEventListener('click', function () { manualSkip(1); });
+  document.addEventListener('keydown', function (e) {
+    if (!started) return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'n') manualSkip(1);
+    else if (e.key === 'p') manualSkip(-1);
+  });
+
+  window.__scPlayer = {
+    open: openPlayer, close: closePlayer,
+    next: function () { manualSkip(1); },
+    setMuted: setMuted,
+    isOn: function () { return started && !muted && (firstAudible || toneOn); }
+  };
+  console.log('[sonic-init] SC-PLAYER armed · 2-deck crossfade · readout · watchdog ·', queue.length, 'tracks');
+})();
+</script>
+<!--SC-PLAYER-END-->
 
 </body>
 </html>
