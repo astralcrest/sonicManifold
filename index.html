@@ -583,8 +583,14 @@ document.addEventListener('keydown', function(e) {
   @media (max-width:480px){ .cyber-nav a.active,.cyber-nav .active{ max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } }
   /* very narrow: keep hero stat row on one line */
   @media (max-width:400px){ .hero-stats{ flex-wrap:nowrap; font-size:10px !important; overflow-x:auto; } }
+  /* coexist with the audio session's #sc-enable "tap to play" prompt: it is top:6px
+     (bottom:auto) and lands ON the nav band (0-56). Push it clear, below the nav.
+     (Flagged to audio session in COORDINATION — ideally fixed in their injector.) */
+  #sc-enable{ top:calc(var(--nav-h,56px) + 12px) !important; bottom:auto !important; z-index:9990 !important; }
+  @media (max-width:480px){ #sc-enable{ max-width:88vw !important; } }
 </style>
 <!--APPLE-FIX-CSS-END-->
+
 <!--APPLE-BOLD-CSS-START-->
 <style>
   /* ===== APPLE-BOLD — cinematic keynote drama (palette + fonts kept) ===== */
