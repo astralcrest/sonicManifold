@@ -530,6 +530,81 @@ document.addEventListener('keydown', function(e) {
 })();
 </script>
 <!--POLISH-CSS-END-->
+<!--APPLE-DS-CSS-START-->
+<style>
+  /* ============================================================
+     APPLE-DS — design-system layer (tokens, materials, motion).
+     Layered last; refines without rewriting the bespoke sections.
+     Keeps the dark/neon palette + fonts. Reversible (marker block).
+     ============================================================ */
+  :root{
+    --sp-1:8px;  --sp-2:14px; --sp-3:22px;
+    --sp-4:36px; --sp-5:56px; --sp-6:88px;
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+    --ease-out:cubic-bezier(.22,.61,.36,1);
+    --ease-soft:cubic-bezier(.4,0,.2,1);
+    --dur-1:.18s; --dur-2:.42s; --dur-3:.72s;
+    --hair:rgba(155,107,255,.20);
+    --hair-2:rgba(155,107,255,.36);
+    --elev-1:0 10px 30px -18px rgba(0,0,0,.72);
+    --elev-2:0 22px 60px -22px rgba(0,0,0,.80), 0 0 0 1px var(--hair-2);
+  }
+  /* unified panel material: hairline + soft elevation + calm hover */
+  .panel{
+    border-radius:var(--r-md);
+    border:1px solid var(--hair);
+    box-shadow:var(--elev-1);
+    transition:border-color var(--dur-2) var(--ease-out),
+               box-shadow var(--dur-2) var(--ease-out);
+  }
+  .panel:hover{ border-color:var(--hair-2); box-shadow:var(--elev-2); }
+  .panel:not(.table-panel){ padding:16px 14px; }
+  .grid{ gap:20px; }
+  /* stat cards: same material + gentle lift on hover */
+  .card{
+    border-radius:var(--r-md);
+    border:1px solid var(--hair);
+    box-shadow:var(--elev-1);
+    transition:transform var(--dur-2) var(--ease-out),
+               border-color var(--dur-2) var(--ease-out),
+               box-shadow var(--dur-2) var(--ease-out);
+  }
+  .card:hover{ transform:translateY(-3px); border-color:var(--hair-2); box-shadow:var(--elev-2); }
+  /* scroll reveal (JS adds .reveal, then .is-in on intersection) */
+  .reveal{ opacity:0; transform:translateY(20px);
+           transition:opacity var(--dur-3) var(--ease-out),
+                      transform var(--dur-3) var(--ease-out); }
+  .reveal.is-in{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion:reduce){
+    .reveal{ opacity:1 !important; transform:none !important; }
+  }
+  /* unified Plotly chrome: in-panel charts fuse into the frosted panel;
+     all chart text on the same mono. Scoped so full-bleed charts keep bg. */
+  .panel .js-plotly-plot rect.bg,
+  .panel .js-plotly-plot .main-svg{ fill:rgba(0,0,0,0) !important; background:transparent !important; }
+  .js-plotly-plot text{ font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace !important; }
+  .js-plotly-plot .modebar,
+  .js-plotly-plot .modebar-group{ background:transparent !important; box-shadow:none !important; }
+</style>
+<!--APPLE-DS-CSS-END-->
+<!--HERO-DS-CSS-START-->
+<style>
+  /* hero title: relax the cramped 16ch column so it wraps cleanly (desktop only;
+     mobile already wraps fine and a wide nowrap would overflow at this font size) */
+  @media (min-width:601px){
+    .hero-stage h1{ max-width:min(21ch,90vw) !important; line-height:1.08; }
+  }
+</style>
+<!--HERO-DS-CSS-END-->
+<!--MARQUEE-DS-CSS-START-->
+<style>
+  /* unify bespoke callout cards to the DS radius (were 8px; panels/cards are 14px) */
+  .surprising-hero-box, .novel-callout-box{ border-radius:var(--r-md) !important; }
+  /* a touch more lift on the lead callouts to match the elevated panels */
+  .surprising-hero-box{ box-shadow:var(--elev-1); }
+</style>
+<!--MARQUEE-DS-CSS-END-->
+
 <!--APPLE-FIX-CSS-START-->
 <style>
   /* ===== APPLE-FIX — layout/render integrity (additive, last-wins) ===== */
@@ -628,80 +703,6 @@ document.addEventListener('keydown', function(e) {
 
 
 
-<!--APPLE-DS-CSS-START-->
-<style>
-  /* ============================================================
-     APPLE-DS — design-system layer (tokens, materials, motion).
-     Layered last; refines without rewriting the bespoke sections.
-     Keeps the dark/neon palette + fonts. Reversible (marker block).
-     ============================================================ */
-  :root{
-    --sp-1:8px;  --sp-2:14px; --sp-3:22px;
-    --sp-4:36px; --sp-5:56px; --sp-6:88px;
-    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
-    --ease-out:cubic-bezier(.22,.61,.36,1);
-    --ease-soft:cubic-bezier(.4,0,.2,1);
-    --dur-1:.18s; --dur-2:.42s; --dur-3:.72s;
-    --hair:rgba(155,107,255,.20);
-    --hair-2:rgba(155,107,255,.36);
-    --elev-1:0 10px 30px -18px rgba(0,0,0,.72);
-    --elev-2:0 22px 60px -22px rgba(0,0,0,.80), 0 0 0 1px var(--hair-2);
-  }
-  /* unified panel material: hairline + soft elevation + calm hover */
-  .panel{
-    border-radius:var(--r-md);
-    border:1px solid var(--hair);
-    box-shadow:var(--elev-1);
-    transition:border-color var(--dur-2) var(--ease-out),
-               box-shadow var(--dur-2) var(--ease-out);
-  }
-  .panel:hover{ border-color:var(--hair-2); box-shadow:var(--elev-2); }
-  .panel:not(.table-panel){ padding:16px 14px; }
-  .grid{ gap:20px; }
-  /* stat cards: same material + gentle lift on hover */
-  .card{
-    border-radius:var(--r-md);
-    border:1px solid var(--hair);
-    box-shadow:var(--elev-1);
-    transition:transform var(--dur-2) var(--ease-out),
-               border-color var(--dur-2) var(--ease-out),
-               box-shadow var(--dur-2) var(--ease-out);
-  }
-  .card:hover{ transform:translateY(-3px); border-color:var(--hair-2); box-shadow:var(--elev-2); }
-  /* scroll reveal (JS adds .reveal, then .is-in on intersection) */
-  .reveal{ opacity:0; transform:translateY(20px);
-           transition:opacity var(--dur-3) var(--ease-out),
-                      transform var(--dur-3) var(--ease-out); }
-  .reveal.is-in{ opacity:1; transform:none; }
-  @media (prefers-reduced-motion:reduce){
-    .reveal{ opacity:1 !important; transform:none !important; }
-  }
-  /* unified Plotly chrome: in-panel charts fuse into the frosted panel;
-     all chart text on the same mono. Scoped so full-bleed charts keep bg. */
-  .panel .js-plotly-plot rect.bg,
-  .panel .js-plotly-plot .main-svg{ fill:rgba(0,0,0,0) !important; background:transparent !important; }
-  .js-plotly-plot text{ font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace !important; }
-  .js-plotly-plot .modebar,
-  .js-plotly-plot .modebar-group{ background:transparent !important; box-shadow:none !important; }
-</style>
-<!--APPLE-DS-CSS-END-->
-<!--HERO-DS-CSS-START-->
-<style>
-  /* hero title: relax the cramped 16ch column so it wraps cleanly (desktop only;
-     mobile already wraps fine and a wide nowrap would overflow at this font size) */
-  @media (min-width:601px){
-    .hero-stage h1{ max-width:min(21ch,90vw) !important; line-height:1.08; }
-  }
-</style>
-<!--HERO-DS-CSS-END-->
-<!--MARQUEE-DS-CSS-START-->
-<style>
-  /* unify bespoke callout cards to the DS radius (were 8px; panels/cards are 14px) */
-  .surprising-hero-box, .novel-callout-box{ border-radius:var(--r-md) !important; }
-  /* a touch more lift on the lead callouts to match the elevated panels */
-  .surprising-hero-box{ box-shadow:var(--elev-1); }
-</style>
-<!--MARQUEE-DS-CSS-END-->
 
 
 
@@ -10561,43 +10562,6 @@ try {
 </script>
 <!--POLISH-V6-2026-05-END-->
 
-<!--APPLE-DS-JS-START-->
-<script>
-(function(){
-  'use strict';
-  if(window.__appleDS) return; window.__appleDS=true;
-  var RM = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var SEL='header.theme-divider,.prov-lead,.surprising-hero,.novel-callout,'+
-          '.card,.fig-caption,.sect-tldr-card,details.about-dash';
-  function vis(el){ var r=el.getBoundingClientRect(); return r.top < (innerHeight*1.05) && r.bottom > 0; }
-  function markIn(el){ el.classList.add('is-in'); }
-  var io=null;
-  if(('IntersectionObserver' in window) && !RM){
-    io=new IntersectionObserver(function(es){
-      es.forEach(function(e){ if(e.isIntersecting){ markIn(e.target); io.unobserve(e.target); } });
-    },{ rootMargin:'0px 0px -8% 0px', threshold:0.05 });
-  }
-  function prep(){
-    document.querySelectorAll(SEL).forEach(function(el){
-      if(el.dataset.dsReveal) return; el.dataset.dsReveal='1';
-      if(RM || !io) return;                       // no JS motion: leave fully visible
-      if(vis(el)){ el.classList.add('reveal','is-in'); return; }  // already on-screen: no hide
-      el.classList.add('reveal'); io.observe(el);
-    });
-  }
-  function sweep(){ document.querySelectorAll('.reveal:not(.is-in)').forEach(function(el){ if(vis(el)) markIn(el); }); }
-  // pace toggle (story <-> full lab) can un-hide content above the fold: re-prep + sweep
-  document.addEventListener('click',function(e){
-    var t=e.target; if(!t||!t.closest) return;
-    if(t.closest('.pace-opt')||t.closest('#story-toggle')||t.closest('.story-toggle')){
-      setTimeout(function(){ prep(); sweep(); },70);
-    }
-  },true);
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',prep); else prep();
-  setTimeout(prep,800); setTimeout(prep,2500);    // catch late-mounted captions
-})();
-</script>
-<!--APPLE-DS-JS-END-->
 
 <!--APPLE-BOLD-JS-START-->
 <script>
@@ -11661,5 +11625,42 @@ try {
 </script>
 <!--SECTION-MOOD-END-->
 
+<!--APPLE-DS-JS-START-->
+<script>
+(function(){
+  'use strict';
+  if(window.__appleDS) return; window.__appleDS=true;
+  var RM = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var SEL='header.theme-divider,.prov-lead,.surprising-hero,.novel-callout,'+
+          '.card,.fig-caption,.sect-tldr-card,details.about-dash';
+  function vis(el){ var r=el.getBoundingClientRect(); return r.top < (innerHeight*1.05) && r.bottom > 0; }
+  function markIn(el){ el.classList.add('is-in'); }
+  var io=null;
+  if(('IntersectionObserver' in window) && !RM){
+    io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ markIn(e.target); io.unobserve(e.target); } });
+    },{ rootMargin:'0px 0px -8% 0px', threshold:0.05 });
+  }
+  function prep(){
+    document.querySelectorAll(SEL).forEach(function(el){
+      if(el.dataset.dsReveal) return; el.dataset.dsReveal='1';
+      if(RM || !io) return;                       // no JS motion: leave fully visible
+      if(vis(el)){ el.classList.add('reveal','is-in'); return; }  // already on-screen: no hide
+      el.classList.add('reveal'); io.observe(el);
+    });
+  }
+  function sweep(){ document.querySelectorAll('.reveal:not(.is-in)').forEach(function(el){ if(vis(el)) markIn(el); }); }
+  // pace toggle (story <-> full lab) can un-hide content above the fold: re-prep + sweep
+  document.addEventListener('click',function(e){
+    var t=e.target; if(!t||!t.closest) return;
+    if(t.closest('.pace-opt')||t.closest('#story-toggle')||t.closest('.story-toggle')){
+      setTimeout(function(){ prep(); sweep(); },70);
+    }
+  },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',prep); else prep();
+  setTimeout(prep,800); setTimeout(prep,2500);    // catch late-mounted captions
+})();
+</script>
+<!--APPLE-DS-JS-END-->
 </body>
 </html>
