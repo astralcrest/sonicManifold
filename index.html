@@ -567,8 +567,83 @@ document.addEventListener('keydown', function(e) {
   /* equal-height stat cards in a row */
   .cards{ align-items:stretch; }
   .cards > .card{ height:100%; }
+  /* ===== FINAL QA SWEEP fixes ===== */
+  /* sub-headers were neon-yellow (--sun); unify to mint to match Act dividers */
+  h2[style*="font-size:28px"], h2[style*="font-size:24px"]{ color:var(--mint) !important; text-shadow:0 0 14px rgba(33,246,188,0.22) !important; }
+  /* Act III PELT taste-eras strip was ~30px tall (margins ate a 420px box) */
+  #fig-39{ min-height:280px !important; }
+  #fig-39 .plotly-graph-div,#fig-39 .js-plotly-plot{ min-height:260px !important; height:260px !important; }
+  /* methods index table lives outside .panel -> wasn't getting the mobile scroll */
+  @media (max-width:760px){ .methods-index-section table{ display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; white-space:nowrap; } }
+  /* desktop: keep plotly modebar clear of the fixed audio chip (top-right) */
+  @media (min-width:769px){ .js-plotly-plot .modebar{ margin-top:36px !important; } }
+  /* mobile: the audio chip expands and overlaps the nav -> clamp it to its icon */
+  @media (max-width:768px){ #sonic-audio-chip{ max-width:46px !important; overflow:hidden !important; } }
+  /* mobile: active nav chip showed full label, dominating the rail */
+  @media (max-width:480px){ .cyber-nav a.active,.cyber-nav .active{ max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } }
+  /* very narrow: keep hero stat row on one line */
+  @media (max-width:400px){ .hero-stats{ flex-wrap:nowrap; font-size:10px !important; overflow-x:auto; } }
 </style>
 <!--APPLE-FIX-CSS-END-->
+<!--APPLE-BOLD-CSS-START-->
+<style>
+  /* ===== APPLE-BOLD — cinematic keynote drama (palette + fonts kept) ===== */
+  /* Hero: soft bloom behind the detonation number */
+  .hero-detonate{ position:relative; }
+  .hero-detonate::before{
+    content:""; position:absolute; left:50%; top:38%;
+    width:min(820px,150%); height:min(620px,180%); transform:translate(-50%,-50%);
+    background:
+      radial-gradient(ellipse 58% 52% at 50% 50%, rgba(100,232,206,.30), transparent 68%),
+      radial-gradient(ellipse 64% 56% at 62% 42%, rgba(155,107,255,.20), transparent 70%);
+    filter:blur(58px); z-index:-1; pointer-events:none; opacity:.95;
+  }
+  /* Hero title: animated gradient shimmer + larger/tighter (desktop) */
+  @media (min-width:601px){
+    .hero-stage h1{
+      font-size:clamp(52px,6.8vw,104px) !important;
+      letter-spacing:-1px; line-height:1.04;
+      background-size:220% 100%;
+      animation:heroShimmer 13s ease-in-out infinite;
+    }
+    header.theme-divider{ margin-top:120px; padding-top:40px; }
+    header.theme-divider h1.act-deck{ font-size:clamp(30px,4.3vw,52px) !important; line-height:1.18 !important; }
+  }
+  @media (max-width:600px){ header.theme-divider{ margin-top:72px; } }
+  @keyframes heroShimmer{ 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+  /* Reveal: subtle scale so sections settle in with more presence */
+  .reveal{ transform:translateY(26px) scale(.986); }
+  .reveal.is-in{ transform:none; }
+  /* Giant ghosted roman numeral behind each Act divider (signature editorial move) */
+  header.theme-divider{ overflow:hidden; }
+  header.theme-divider > *:not(.act-ghost){ position:relative; z-index:1; }
+  .act-ghost{
+    position:absolute; right:1.5%; top:50%; transform:translateY(-50%);
+    font-family:'JetBrains Mono','SF Mono',monospace; font-weight:800;
+    font-size:clamp(120px,18vw,260px); line-height:.8;
+    color:rgba(155,107,255,.055); letter-spacing:-8px;
+    pointer-events:none; z-index:0; user-select:none;
+  }
+  @media (max-width:600px){ .act-ghost{ font-size:108px; color:rgba(155,107,255,.06); right:2%; } }
+  /* Panels: faint top glass sheen for depth */
+  .panel{ position:relative; }
+  .panel::after{
+    content:""; position:absolute; left:0; right:0; top:0; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+    opacity:.55; pointer-events:none;
+  }
+  @media (prefers-reduced-motion:reduce){
+    .hero-stage h1{ animation:none !important; }
+    .reveal{ transform:none !important; }
+  }
+  /* (8) KEEP GOING cue was near-invisible */
+  .hero-cue{ opacity:.88 !important; text-shadow:0 0 12px rgba(33,246,188,.6); }
+  /* (10) about/TL;DR opener -> pull-quote relief */
+  .about-who{ border-left:2px solid var(--orchid); padding-left:14px; color:var(--ice); }
+</style>
+<!--APPLE-BOLD-CSS-END-->
+
+
 
 
 <!--APPLE-DS-CSS-START-->
@@ -646,59 +721,6 @@ document.addEventListener('keydown', function(e) {
 </style>
 <!--MARQUEE-DS-CSS-END-->
 
-<!--APPLE-BOLD-CSS-START-->
-<style>
-  /* ===== APPLE-BOLD — cinematic keynote drama (palette + fonts kept) ===== */
-  /* Hero: soft bloom behind the detonation number */
-  .hero-detonate{ position:relative; }
-  .hero-detonate::before{
-    content:""; position:absolute; left:50%; top:38%;
-    width:min(820px,150%); height:min(620px,180%); transform:translate(-50%,-50%);
-    background:
-      radial-gradient(ellipse 58% 52% at 50% 50%, rgba(100,232,206,.30), transparent 68%),
-      radial-gradient(ellipse 64% 56% at 62% 42%, rgba(155,107,255,.20), transparent 70%);
-    filter:blur(58px); z-index:-1; pointer-events:none; opacity:.95;
-  }
-  /* Hero title: animated gradient shimmer + larger/tighter (desktop) */
-  @media (min-width:601px){
-    .hero-stage h1{
-      font-size:clamp(52px,6.8vw,104px) !important;
-      letter-spacing:-1px; line-height:1.04;
-      background-size:220% 100%;
-      animation:heroShimmer 13s ease-in-out infinite;
-    }
-    header.theme-divider{ margin-top:120px; padding-top:40px; }
-    header.theme-divider h1.act-deck{ font-size:clamp(30px,4.3vw,52px) !important; line-height:1.18 !important; }
-  }
-  @media (max-width:600px){ header.theme-divider{ margin-top:72px; } }
-  @keyframes heroShimmer{ 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-  /* Reveal: subtle scale so sections settle in with more presence */
-  .reveal{ transform:translateY(26px) scale(.986); }
-  .reveal.is-in{ transform:none; }
-  /* Giant ghosted roman numeral behind each Act divider (signature editorial move) */
-  header.theme-divider{ overflow:hidden; }
-  header.theme-divider > *:not(.act-ghost){ position:relative; z-index:1; }
-  .act-ghost{
-    position:absolute; right:1.5%; top:50%; transform:translateY(-50%);
-    font-family:'JetBrains Mono','SF Mono',monospace; font-weight:800;
-    font-size:clamp(96px,20vw,300px); line-height:.8;
-    color:rgba(155,107,255,.07); letter-spacing:-6px;
-    pointer-events:none; z-index:0; user-select:none;
-  }
-  @media (max-width:600px){ .act-ghost{ font-size:108px; color:rgba(155,107,255,.06); right:2%; } }
-  /* Panels: faint top glass sheen for depth */
-  .panel{ position:relative; }
-  .panel::after{
-    content:""; position:absolute; left:0; right:0; top:0; height:1px;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
-    opacity:.55; pointer-events:none;
-  }
-  @media (prefers-reduced-motion:reduce){
-    .hero-stage h1{ animation:none !important; }
-    .reveal{ transform:none !important; }
-  }
-</style>
-<!--APPLE-BOLD-CSS-END-->
 
 
 
