@@ -530,6 +530,48 @@ document.addEventListener('keydown', function(e) {
 })();
 </script>
 <!--POLISH-CSS-END-->
+<!--APPLE-FIX-CSS-START-->
+<style>
+  /* ===== APPLE-FIX — layout/render integrity (additive, last-wins) ===== */
+  /* charts never collapse to a zero box (kills blank-on-lazy-render) + never overflow */
+  .panel .js-plotly-plot,.panel .plotly-graph-div{ min-height:220px; }
+  .js-plotly-plot,.plotly-graph-div,.main-svg{ max-width:100% !important; }
+  /* mobile: tables scroll instead of clipping; columns don't crush */
+  @media (max-width:760px){
+    .panel table,.table-panel table{
+      display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;
+      white-space:nowrap;
+    }
+    .panel table::-webkit-scrollbar{ height:6px; }
+    .panel table::-webkit-scrollbar-thumb{ background:rgba(155,107,255,.4); border-radius:3px; }
+    /* nav becomes a horizontal scroller so no act/control ever clips */
+    .cyber-nav{ overflow-x:auto; overflow-y:hidden; flex-wrap:nowrap !important;
+                justify-content:flex-start !important; -webkit-overflow-scrolling:touch; }
+    .cyber-nav::-webkit-scrollbar{ display:none; }
+    .cyber-nav > *{ flex:0 0 auto; }
+    /* footer never clips its first character */
+    footer,body>footer{ padding-left:16px !important; padding-right:16px !important; }
+  }
+  /* glossary entries stop splitting mid-item across columns */
+  .glossary-panel .entry{ -webkit-column-break-inside:avoid; break-inside:avoid; }
+  /* readability: lift the smallest text (chart ticks were 8px, tables 11px) */
+  div.js-plotly-plot .xtick text, div.js-plotly-plot .ytick text{ font-size:10.5px !important; }
+  .panel table, .table-panel table{ font-size:12.5px !important; }
+  .panel table th, .table-panel table th{ font-size:11px !important; }
+  /* center left-aligned charts/figures inside panels */
+  .panel .js-plotly-plot,.panel figure svg,.prov-fig svg,.rev-spark,.panel > svg,.panel canvas{ display:block; margin-left:auto; margin-right:auto; }
+  /* hero stat chips: legible (were ~11px dark-on-dark) */
+  .hero-stats{ font-size:13px !important; }
+  .hero-stats span:not(.dot){ color:rgba(244,238,255,.85) !important; }
+  .hero-stats b{ color:var(--mint) !important; }
+  /* equal-height stat cards in a row */
+  .cards{ align-items:stretch; }
+  .cards > .card{ height:100%; }
+  /* coexist with audio session's fixed banner: drop it below the nav so the top bar isn't overlapped */
+  #sc-enable{ top:calc(var(--nav-h,56px) + 12px) !important; }
+</style>
+<!--APPLE-FIX-CSS-END-->
+
 <!--APPLE-DS-CSS-START-->
 <style>
   /* ============================================================
@@ -605,45 +647,6 @@ document.addEventListener('keydown', function(e) {
 </style>
 <!--MARQUEE-DS-CSS-END-->
 
-<!--APPLE-FIX-CSS-START-->
-<style>
-  /* ===== APPLE-FIX — layout/render integrity (additive, last-wins) ===== */
-  /* charts never collapse to a zero box (kills blank-on-lazy-render) + never overflow */
-  .panel .js-plotly-plot,.panel .plotly-graph-div{ min-height:220px; }
-  .js-plotly-plot,.plotly-graph-div,.main-svg{ max-width:100% !important; }
-  /* mobile: tables scroll instead of clipping; columns don't crush */
-  @media (max-width:760px){
-    .panel table,.table-panel table{
-      display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;
-      white-space:nowrap;
-    }
-    .panel table::-webkit-scrollbar{ height:6px; }
-    .panel table::-webkit-scrollbar-thumb{ background:rgba(155,107,255,.4); border-radius:3px; }
-    /* nav becomes a horizontal scroller so no act/control ever clips */
-    .cyber-nav{ overflow-x:auto; overflow-y:hidden; flex-wrap:nowrap !important;
-                justify-content:flex-start !important; -webkit-overflow-scrolling:touch; }
-    .cyber-nav::-webkit-scrollbar{ display:none; }
-    .cyber-nav > *{ flex:0 0 auto; }
-    /* footer never clips its first character */
-    footer,body>footer{ padding-left:16px !important; padding-right:16px !important; }
-  }
-  /* glossary entries stop splitting mid-item across columns */
-  .glossary-panel .entry{ -webkit-column-break-inside:avoid; break-inside:avoid; }
-  /* readability: lift the smallest text (chart ticks were 8px, tables 11px) */
-  div.js-plotly-plot .xtick text, div.js-plotly-plot .ytick text{ font-size:10.5px !important; }
-  .panel table, .table-panel table{ font-size:12.5px !important; }
-  .panel table th, .table-panel table th{ font-size:11px !important; }
-  /* center left-aligned charts/figures inside panels */
-  .panel .js-plotly-plot,.panel figure svg,.prov-fig svg,.rev-spark,.panel > svg,.panel canvas{ display:block; margin-left:auto; margin-right:auto; }
-  /* hero stat chips: legible (were ~11px dark-on-dark) */
-  .hero-stats{ font-size:13px !important; }
-  .hero-stats span:not(.dot){ color:rgba(244,238,255,.85) !important; }
-  .hero-stats b{ color:var(--mint) !important; }
-  /* equal-height stat cards in a row */
-  .cards{ align-items:stretch; }
-  .cards > .card{ height:100%; }
-</style>
-<!--APPLE-FIX-CSS-END-->
 <!--APPLE-BOLD-CSS-START-->
 <style>
   /* ===== APPLE-BOLD — cinematic keynote drama (palette + fonts kept) ===== */
