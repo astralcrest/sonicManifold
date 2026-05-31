@@ -10938,6 +10938,192 @@ try {
 <!--SONIFY-H1-END-->
 
 
+<!--SECTION-MOOD-START-->
+<script>
+(function () {
+  'use strict';
+  function moodFor(el) {
+    var h = (el.id || '') + '|' + ((el.querySelector && (el.querySelector('h1,h2,h3') || {}).textContent) || '');
+    var n = 0; for (var i = 0; i < h.length; i++) n = (n * 31 + h.charCodeAt(i)) >>> 0;
+    return n % 3;
+  }
+  var secs = Array.prototype.slice.call(document.querySelectorAll('main > header, body > header, main > section[id], [data-act]'));
+  if (!secs.length) secs = Array.prototype.slice.call(document.querySelectorAll('header'));
+  if (!secs.length) return;
+  var vis = new Map();
+  try {
+    var io = new IntersectionObserver(function (ents) {
+      ents.forEach(function (e) { vis.set(e.target, e.intersectionRatio); });
+      var best = null, br = -1; vis.forEach(function (r, el) { if (r > br) { br = r; best = el; } });
+      if (best) window.__bedMood = moodFor(best);
+    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+    secs.forEach(function (s) { io.observe(s); });
+  } catch (e) {}
+  console.log('[sonic-init] SECTION-MOOD armed ·', secs.length, 'sections');
+})();
+</script>
+<!--SECTION-MOOD-END-->
+
+<!--APPLE-DS-JS-START-->
+<script>
+(function(){
+  'use strict';
+  if(window.__appleDS) return; window.__appleDS=true;
+  var RM = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var SEL='header.theme-divider,.prov-lead,.surprising-hero,.novel-callout,'+
+          '.card,.fig-caption,.sect-tldr-card,details.about-dash';
+  function vis(el){ var r=el.getBoundingClientRect(); return r.top < (innerHeight*1.05) && r.bottom > 0; }
+  function markIn(el){ el.classList.add('is-in'); }
+  var io=null;
+  if(('IntersectionObserver' in window) && !RM){
+    io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ markIn(e.target); io.unobserve(e.target); } });
+    },{ rootMargin:'0px 0px -8% 0px', threshold:0.05 });
+  }
+  function prep(){
+    document.querySelectorAll(SEL).forEach(function(el){
+      if(el.dataset.dsReveal) return; el.dataset.dsReveal='1';
+      if(RM || !io) return;                       // no JS motion: leave fully visible
+      if(vis(el)){ el.classList.add('reveal','is-in'); return; }  // already on-screen: no hide
+      el.classList.add('reveal'); io.observe(el);
+    });
+  }
+  function sweep(){ document.querySelectorAll('.reveal:not(.is-in)').forEach(function(el){ if(vis(el)) markIn(el); }); }
+  // pace toggle (story <-> full lab) can un-hide content above the fold: re-prep + sweep
+  document.addEventListener('click',function(e){
+    var t=e.target; if(!t||!t.closest) return;
+    if(t.closest('.pace-opt')||t.closest('#story-toggle')||t.closest('.story-toggle')){
+      setTimeout(function(){ prep(); sweep(); },70);
+    }
+  },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',prep); else prep();
+  setTimeout(prep,800); setTimeout(prep,2500);    // catch late-mounted captions
+})();
+</script>
+<!--APPLE-DS-JS-END-->
+
+<!--AUDIO-MINIMAL-UI-START-->
+<style>
+  /* ── hide all audio UI chips — audio runs silently in background ── */
+  /* audio unified on the SoundCloud bed; the Spotify scroll-score chip is
+     dropped, but hide it defensively in case a stale block lingers. */
+  #carnatic-chip,
+  #seamless-chip,
+  #ambient-prompt,
+  #generative-chip,
+  #ambient-toggle,
+  .share-card-btn,
+  #lr-btn,
+  #chip-rail-toggle,
+  #chip-rail-scrim,
+  #sonic-cta,
+  #sonic-mobile-mini,
+  #sonic-toast,
+  #generative-tip,
+  #sc-track-toast,
+  #touch-synth-chip { display: none !important; }
+
+  /* sonic chip: invisible when idle, slides in ONLY when playing */
+  #sonic-audio-chip:not(.playing):not(.pinned) {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(-6px) !important;
+    transition: opacity .35s ease, transform .35s ease !important;
+  }
+  #sonic-audio-chip.playing,
+  #sonic-audio-chip.pinned {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+  }
+
+  /* ── single ghost mute pill — bottom-LEFT (avoids cyber-top at BR) ─ */
+  #global-mute-pill {
+    position: fixed;
+    left: 16px; right: auto;
+    bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    z-index: 9998;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(21, 8, 45, 0.45);
+    border: 1px solid rgba(155, 107, 255, 0.22);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    font-size: 13px;
+    color: rgba(163, 148, 201, 0.55);
+    transition: opacity .2s ease, border-color .2s ease, color .2s ease;
+    opacity: 0.45;
+  }
+  #global-mute-pill:hover {
+    opacity: 1;
+    border-color: rgba(33, 246, 188, 0.50);
+    color: #21f6bc;
+  }
+  #global-mute-pill.muted {
+    color: rgba(255, 110, 156, 0.65);
+    border-color: rgba(255, 110, 156, 0.30);
+  }
+  @media (max-width: 768px) {
+    #global-mute-pill { width: 36px; height: 36px; font-size: 15px; opacity: 0.6; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #sonic-audio-chip:not(.playing):not(.pinned) { transition: none !important; }
+  }
+</style>
+
+<button id="global-mute-pill" type="button"
+        aria-label="mute / unmute all audio"
+        title="mute all audio">🔊</button>
+
+<script>
+(function () {
+  'use strict';
+  var pill = document.getElementById('global-mute-pill');
+  if (!pill) return;
+
+  // sync muted state across all audio systems
+  var MUTED_KEY = 'sonicManifoldMuted';
+  var muted = localStorage.getItem(MUTED_KEY) === '1';
+
+  function applyMute(m) {
+    muted = !!m;
+    localStorage.setItem(MUTED_KEY, m ? '1' : '0');
+    pill.textContent = m ? '🔇' : '🔊';
+    pill.classList.toggle('muted', m);
+    pill.setAttribute('aria-label', m ? 'unmute all audio' : 'mute all audio');
+
+    // propagate to all audio systems
+    try { if (window.__sonicAudio) window.__sonicAudio.setMuted(m); } catch(e) {}
+    // SoundCloud bed: mute pauses + zeroes both decks; unmute resumes the
+    // foreground deck (do NOT close — close would lose the seamless queue state)
+    try { if (window.__scPlayer && window.__scPlayer.setMuted) window.__scPlayer.setMuted(m); } catch(e) {}
+    // self-hosted (unblockable) bed, when active
+    try { if (window.__selfHostedBed && window.__selfHostedBed.setMuted) window.__selfHostedBed.setMuted(m); } catch(e) {}
+    // generative fallback bed: stop on mute (it restarts via the SC player if needed)
+    try {
+      if (window.__ambientPlayer) {
+        if (m) window.__ambientPlayer.pauseForOverlay();
+        else window.__ambientPlayer.resumeFromOverlay();
+      }
+    } catch(e) {}
+  }
+
+  applyMute(muted);
+  pill.addEventListener('click', function () { applyMute(!muted); });
+
+  // re-apply after first-tap arms audio (SC player may have started)
+  document.addEventListener('sonic:first-tap', function () {
+    if (muted) applyMute(true);
+  });
+
+  console.log('[sonic-init] MINIMAL-UI active — all chips hidden, mute pill armed');
+})();
+</script>
+<!--AUDIO-MINIMAL-UI-END-->
+
+
 <!--SC-PLAYER-START-->
 <style>
   /* both decks hidden off-screen — audio crossfades, nothing visible */
@@ -11002,7 +11188,8 @@ try {
     transition: opacity .4s ease, transform .4s ease;
   }
   #sc-enable.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-  #sc-enable .sce-txt { flex: 1; }
+  #sc-enable .sce-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  #sc-enable .sce-steps { font-size: 10.5px; color: rgba(163,148,201,0.92); line-height: 1.4; }
   #sc-enable .sce-txt b { color: #21f6bc; font-weight: 600; }
   #sc-enable button { flex-shrink: 0; font-family: inherit; cursor: pointer; border-radius: 8px; }
   #sc-enable .sce-reload { background: rgba(33,246,188,0.16); color: #21f6bc; border: 1px solid #21f6bc; padding: 6px 12px; font-size: 10.5px; letter-spacing: 1px; }
@@ -11025,7 +11212,10 @@ try {
   <button id="sc-now-skip" type="button" aria-label="skip track" title="next track">&#9197;</button>
 </div>
 <div id="sc-enable" role="dialog" aria-live="polite">
-  <span class="sce-txt"><b>&#9834; this page has a soundtrack.</b> your ad-blocker is muting it &mdash; pause it for this page and reload to hear the real tracks.</span>
+  <div class="sce-body">
+    <span class="sce-txt"><b>&#9834; this page has a soundtrack</b> &mdash; your ad-blocker is muting it.</span>
+    <span class="sce-steps" id="sce-steps">Pause your ad-blocker for this page, then reload.</span>
+  </div>
   <button class="sce-reload" type="button">reload</button>
   <button class="sce-x" type="button" aria-label="dismiss">&times;</button>
 </div>
@@ -11104,6 +11294,17 @@ try {
   function showEnableBanner() {
     if (!enableEl || window.__preferSelfHosted) return;
     try { if (sessionStorage.getItem('scEnableSeen')) return; sessionStorage.setItem('scEnableSeen', '1'); } catch (e) {}
+    // tailor the steps to the blocker we can detect (Brave is detectable; others get generic)
+    var stepsEl = document.getElementById('sce-steps');
+    var generic = 'Click your ad-blocker icon (top-right) \u2192 pause / allow it for this page \u2192 Reload.';
+    if (stepsEl) {
+      stepsEl.textContent = generic;
+      try {
+        if (navigator.brave && navigator.brave.isBrave) {
+          navigator.brave.isBrave().then(function (b) { stepsEl.textContent = b ? 'Click the Brave shield icon \u2192 turn Shields DOWN for this site \u2192 Reload.' : generic; }).catch(function () {});
+        }
+      } catch (e) {}
+    }
     enableEl.classList.add('show');
   }
   if (enableEl) {
@@ -11498,192 +11699,6 @@ try {
 })();
 </script>
 <!--SC-PLAYER-END-->
-
-
-<!--SECTION-MOOD-START-->
-<script>
-(function () {
-  'use strict';
-  function moodFor(el) {
-    var h = (el.id || '') + '|' + ((el.querySelector && (el.querySelector('h1,h2,h3') || {}).textContent) || '');
-    var n = 0; for (var i = 0; i < h.length; i++) n = (n * 31 + h.charCodeAt(i)) >>> 0;
-    return n % 3;
-  }
-  var secs = Array.prototype.slice.call(document.querySelectorAll('main > header, body > header, main > section[id], [data-act]'));
-  if (!secs.length) secs = Array.prototype.slice.call(document.querySelectorAll('header'));
-  if (!secs.length) return;
-  var vis = new Map();
-  try {
-    var io = new IntersectionObserver(function (ents) {
-      ents.forEach(function (e) { vis.set(e.target, e.intersectionRatio); });
-      var best = null, br = -1; vis.forEach(function (r, el) { if (r > br) { br = r; best = el; } });
-      if (best) window.__bedMood = moodFor(best);
-    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
-    secs.forEach(function (s) { io.observe(s); });
-  } catch (e) {}
-  console.log('[sonic-init] SECTION-MOOD armed ·', secs.length, 'sections');
-})();
-</script>
-<!--SECTION-MOOD-END-->
-
-<!--APPLE-DS-JS-START-->
-<script>
-(function(){
-  'use strict';
-  if(window.__appleDS) return; window.__appleDS=true;
-  var RM = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var SEL='header.theme-divider,.prov-lead,.surprising-hero,.novel-callout,'+
-          '.card,.fig-caption,.sect-tldr-card,details.about-dash';
-  function vis(el){ var r=el.getBoundingClientRect(); return r.top < (innerHeight*1.05) && r.bottom > 0; }
-  function markIn(el){ el.classList.add('is-in'); }
-  var io=null;
-  if(('IntersectionObserver' in window) && !RM){
-    io=new IntersectionObserver(function(es){
-      es.forEach(function(e){ if(e.isIntersecting){ markIn(e.target); io.unobserve(e.target); } });
-    },{ rootMargin:'0px 0px -8% 0px', threshold:0.05 });
-  }
-  function prep(){
-    document.querySelectorAll(SEL).forEach(function(el){
-      if(el.dataset.dsReveal) return; el.dataset.dsReveal='1';
-      if(RM || !io) return;                       // no JS motion: leave fully visible
-      if(vis(el)){ el.classList.add('reveal','is-in'); return; }  // already on-screen: no hide
-      el.classList.add('reveal'); io.observe(el);
-    });
-  }
-  function sweep(){ document.querySelectorAll('.reveal:not(.is-in)').forEach(function(el){ if(vis(el)) markIn(el); }); }
-  // pace toggle (story <-> full lab) can un-hide content above the fold: re-prep + sweep
-  document.addEventListener('click',function(e){
-    var t=e.target; if(!t||!t.closest) return;
-    if(t.closest('.pace-opt')||t.closest('#story-toggle')||t.closest('.story-toggle')){
-      setTimeout(function(){ prep(); sweep(); },70);
-    }
-  },true);
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',prep); else prep();
-  setTimeout(prep,800); setTimeout(prep,2500);    // catch late-mounted captions
-})();
-</script>
-<!--APPLE-DS-JS-END-->
-
-<!--AUDIO-MINIMAL-UI-START-->
-<style>
-  /* ── hide all audio UI chips — audio runs silently in background ── */
-  /* audio unified on the SoundCloud bed; the Spotify scroll-score chip is
-     dropped, but hide it defensively in case a stale block lingers. */
-  #carnatic-chip,
-  #seamless-chip,
-  #ambient-prompt,
-  #generative-chip,
-  #ambient-toggle,
-  .share-card-btn,
-  #lr-btn,
-  #chip-rail-toggle,
-  #chip-rail-scrim,
-  #sonic-cta,
-  #sonic-mobile-mini,
-  #sonic-toast,
-  #generative-tip,
-  #sc-track-toast,
-  #touch-synth-chip { display: none !important; }
-
-  /* sonic chip: invisible when idle, slides in ONLY when playing */
-  #sonic-audio-chip:not(.playing):not(.pinned) {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transform: translateY(-6px) !important;
-    transition: opacity .35s ease, transform .35s ease !important;
-  }
-  #sonic-audio-chip.playing,
-  #sonic-audio-chip.pinned {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    transform: translateY(0) !important;
-  }
-
-  /* ── single ghost mute pill — bottom-LEFT (avoids cyber-top at BR) ─ */
-  #global-mute-pill {
-    position: fixed;
-    left: 16px; right: auto;
-    bottom: max(16px, env(safe-area-inset-bottom, 16px));
-    z-index: 9998;
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(21, 8, 45, 0.45);
-    border: 1px solid rgba(155, 107, 255, 0.22);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    cursor: pointer;
-    font-size: 13px;
-    color: rgba(163, 148, 201, 0.55);
-    transition: opacity .2s ease, border-color .2s ease, color .2s ease;
-    opacity: 0.45;
-  }
-  #global-mute-pill:hover {
-    opacity: 1;
-    border-color: rgba(33, 246, 188, 0.50);
-    color: #21f6bc;
-  }
-  #global-mute-pill.muted {
-    color: rgba(255, 110, 156, 0.65);
-    border-color: rgba(255, 110, 156, 0.30);
-  }
-  @media (max-width: 768px) {
-    #global-mute-pill { width: 36px; height: 36px; font-size: 15px; opacity: 0.6; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #sonic-audio-chip:not(.playing):not(.pinned) { transition: none !important; }
-  }
-</style>
-
-<button id="global-mute-pill" type="button"
-        aria-label="mute / unmute all audio"
-        title="mute all audio">🔊</button>
-
-<script>
-(function () {
-  'use strict';
-  var pill = document.getElementById('global-mute-pill');
-  if (!pill) return;
-
-  // sync muted state across all audio systems
-  var MUTED_KEY = 'sonicManifoldMuted';
-  var muted = localStorage.getItem(MUTED_KEY) === '1';
-
-  function applyMute(m) {
-    muted = !!m;
-    localStorage.setItem(MUTED_KEY, m ? '1' : '0');
-    pill.textContent = m ? '🔇' : '🔊';
-    pill.classList.toggle('muted', m);
-    pill.setAttribute('aria-label', m ? 'unmute all audio' : 'mute all audio');
-
-    // propagate to all audio systems
-    try { if (window.__sonicAudio) window.__sonicAudio.setMuted(m); } catch(e) {}
-    // SoundCloud bed: mute pauses + zeroes both decks; unmute resumes the
-    // foreground deck (do NOT close — close would lose the seamless queue state)
-    try { if (window.__scPlayer && window.__scPlayer.setMuted) window.__scPlayer.setMuted(m); } catch(e) {}
-    // self-hosted (unblockable) bed, when active
-    try { if (window.__selfHostedBed && window.__selfHostedBed.setMuted) window.__selfHostedBed.setMuted(m); } catch(e) {}
-    // generative fallback bed: stop on mute (it restarts via the SC player if needed)
-    try {
-      if (window.__ambientPlayer) {
-        if (m) window.__ambientPlayer.pauseForOverlay();
-        else window.__ambientPlayer.resumeFromOverlay();
-      }
-    } catch(e) {}
-  }
-
-  applyMute(muted);
-  pill.addEventListener('click', function () { applyMute(!muted); });
-
-  // re-apply after first-tap arms audio (SC player may have started)
-  document.addEventListener('sonic:first-tap', function () {
-    if (muted) applyMute(true);
-  });
-
-  console.log('[sonic-init] MINIMAL-UI active — all chips hidden, mute pill armed');
-})();
-</script>
-<!--AUDIO-MINIMAL-UI-END-->
 
 </body>
 </html>
