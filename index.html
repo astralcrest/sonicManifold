@@ -11590,5 +11590,41 @@ try {
 </script>
 <!--SONIFY-END-->
 
+
+<!--SONIFY-H1-START-->
+<script>
+(function () {
+  'use strict';
+  var data = [];
+  try { data = JSON.parse(document.getElementById('h1loop-data').textContent); } catch (e) {}
+  if (!Array.isArray(data) || data.length < 2) return;
+
+  var DEGS = [0, 2, 3, 5, 7, 9, 10, 12];      // D Dorian degrees (+ octave)
+  function nameDegree(name) { var h = 0, s = name || ''; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return DEGS[h % DEGS.length]; }
+  function phrase() { return data.map(function (d) { return { freq: 146.83 * Math.pow(2, nameDegree(d.artist) / 12) }; }); }  // each artist → a D-Dorian note
+
+  var running = false, loopTimer = null;
+  function play() {
+    if (running || !window.__sonify || !window.__sonify.motif) return;
+    running = true;
+    var notes = phrase(), LOOPS = 3, span = notes.length * 0.42, i = 0;
+    (function once() {
+      if (!running) return;
+      window.__sonify.motif(notes, { step: 0.42, vol: 0.12, dur: 0.7, type: 'sine', pan: 0 });
+      i++; if (i < LOOPS) loopTimer = setTimeout(once, span * 1000); else running = false;
+    })();
+  }
+  function stop() { running = false; if (loopTimer) { clearTimeout(loopTimer); loopTimer = null; } }
+
+  var btn = document.getElementById('h1loop-btn');
+  if (btn) btn.addEventListener('click', function () { setTimeout(play, 200); }, { passive: true });
+  ['h1loop-exit', 'h1l-stop'].forEach(function (id) { var b = document.getElementById(id); if (b) b.addEventListener('click', stop, { passive: true }); });
+
+  window.__sonifyH1 = { play: play, stop: stop };
+  console.log('[sonic-init] SONIFY-H1 (topological loop as audio) armed ·', data.length, 'nodes');
+})();
+</script>
+<!--SONIFY-H1-END-->
+
 </body>
 </html>
