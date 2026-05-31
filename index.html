@@ -558,21 +558,29 @@ document.addEventListener('keydown', function(e) {
   div.js-plotly-plot .xtick text, div.js-plotly-plot .ytick text{ font-size:10.5px !important; }
   .panel table, .table-panel table{ font-size:12.5px !important; }
   .panel table th, .table-panel table th{ font-size:11px !important; }
+  /* center left-aligned charts/figures inside panels */
+  .panel .js-plotly-plot,.panel figure svg,.prov-fig svg,.rev-spark,.panel > svg,.panel canvas{ display:block; margin-left:auto; margin-right:auto; }
+  /* hero stat chips: legible (were ~11px dark-on-dark) */
+  .hero-stats{ font-size:13px !important; }
+  .hero-stats span:not(.dot){ color:rgba(244,238,255,.85) !important; }
+  .hero-stats b{ color:var(--mint) !important; }
+  /* equal-height stat cards in a row */
+  .cards{ align-items:stretch; }
+  .cards > .card{ height:100%; }
 </style>
 <!--APPLE-FIX-CSS-END-->
-
-
 <!--APPLE-BOLD-CSS-START-->
 <style>
   /* ===== APPLE-BOLD — cinematic keynote drama (palette + fonts kept) ===== */
   /* Hero: soft bloom behind the detonation number */
   .hero-detonate{ position:relative; }
   .hero-detonate::before{
-    content:""; position:absolute; left:50%; top:50%;
-    width:118%; height:150%; transform:translate(-50%,-50%);
-    background:radial-gradient(ellipse at center,
-      rgba(33,246,188,.20), rgba(155,107,255,.12) 42%, transparent 70%);
-    filter:blur(48px); z-index:-1; pointer-events:none;
+    content:""; position:absolute; left:50%; top:38%;
+    width:min(820px,150%); height:min(620px,180%); transform:translate(-50%,-50%);
+    background:
+      radial-gradient(ellipse 58% 52% at 50% 50%, rgba(100,232,206,.30), transparent 68%),
+      radial-gradient(ellipse 64% 56% at 62% 42%, rgba(155,107,255,.20), transparent 70%);
+    filter:blur(58px); z-index:-1; pointer-events:none; opacity:.95;
   }
   /* Hero title: animated gradient shimmer + larger/tighter (desktop) */
   @media (min-width:601px){
@@ -614,6 +622,10 @@ document.addEventListener('keydown', function(e) {
   }
 </style>
 <!--APPLE-BOLD-CSS-END-->
+
+
+
+
 
 
 <!--APPLE-DS-CSS-START-->
@@ -10587,46 +10599,6 @@ try {
 </script>
 <!--APPLE-DS-JS-END-->
 
-<!--APPLE-FIX-JS-START-->
-<script>
-(function(){
-  'use strict';
-  if(window.__appleFix) return; window.__appleFix=true;
-  function P(){ return window.Plotly; }
-  function narrow(){ return window.innerWidth < 760; }
-  var relaid = new WeakSet();
-  function fix(gd){
-    if(!gd || !gd._fullLayout || !P()) return;
-    var fl=gd._fullLayout;
-    try{
-      if(narrow()){
-        if(!relaid.has(gd)){
-          var u={};
-          if(fl.margin && fl.margin.l>110){ u['margin.l']=92; u['yaxis.automargin']=false; }
-          if(fl.margin && fl.margin.r>90){ u['margin.r']=24; }
-          if(fl.margin && fl.margin.t>70){ u['margin.t']=46; }
-          if(Object.keys(u).length){ P().relayout(gd,u); relaid.add(gd); }
-        }
-      } else if(relaid.has(gd)){
-        P().relayout(gd, {'yaxis.automargin':true}); relaid.delete(gd);  // restore on widen
-      }
-    }catch(e){}
-    try{ P().Plots.resize(gd); }catch(e){}
-  }
-  function sweep(){ var n=document.querySelectorAll('.js-plotly-plot'); for(var i=0;i<n.length;i++) fix(n[i]); }
-  var last=0,pend=0;
-  function throttled(){
-    var now=Date.now();
-    if(now-last>450){ last=now; sweep(); }
-    else { clearTimeout(pend); pend=setTimeout(function(){ last=Date.now(); sweep(); },450); }
-  }
-  window.addEventListener('resize', function(){ relaid=new WeakSet(); throttled(); }, {passive:true});
-  window.addEventListener('scroll', throttled, {passive:true});  // catch lazy-rendered charts on scroll
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', sweep); else sweep();
-  [400,900,1600,2600,4200,6500,9000].forEach(function(t){ setTimeout(sweep,t); });
-})();
-</script>
-<!--APPLE-FIX-JS-END-->
 <!--APPLE-BOLD-JS-START-->
 <script>
 (function(){
@@ -11545,5 +11517,53 @@ try {
 </script>
 <!--SONIFY-END-->
 
+<!--APPLE-FIX-JS-START-->
+<script>
+(function(){
+  'use strict';
+  if(window.__appleFix) return; window.__appleFix=true;
+  function P(){ return window.Plotly; }
+  function narrow(){ return window.innerWidth < 760; }
+  var relaid = new WeakSet();
+  function fix(gd){
+    if(!gd || !gd._fullLayout || !P()) return;
+    var fl=gd._fullLayout;
+    try{
+      if(narrow()){
+        if(!relaid.has(gd)){
+          var u={};
+          if(fl.margin && fl.margin.l>110){ u['margin.l']=92; u['yaxis.automargin']=false; }
+          if(fl.margin && fl.margin.r>90){ u['margin.r']=24; }
+          if(fl.margin && fl.margin.t>70){ u['margin.t']=46; }
+          if(Object.keys(u).length){ P().relayout(gd,u); relaid.add(gd); }
+        }
+      } else if(relaid.has(gd)){
+        P().relayout(gd, {'yaxis.automargin':true}); relaid.delete(gd);  // restore on widen
+      }
+    }catch(e){}
+    try{ P().Plots.resize(gd); }catch(e){}
+  }
+  function sweep(){ var n=document.querySelectorAll('.js-plotly-plot'); for(var i=0;i<n.length;i++) fix(n[i]); }
+  var last=0,pend=0;
+  function throttled(){
+    var now=Date.now();
+    if(now-last>450){ last=now; sweep(); }
+    else { clearTimeout(pend); pend=setTimeout(function(){ last=Date.now(); sweep(); },450); }
+  }
+  window.addEventListener('resize', function(){ relaid=new WeakSet(); throttled(); }, {passive:true});
+  window.addEventListener('scroll', throttled, {passive:true});  // catch lazy-rendered charts on scroll
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', sweep); else sweep();
+  [400,900,1600,2600,4200,6500,9000].forEach(function(t){ setTimeout(sweep,t); });
+  // nav-jump / hashchange can land on not-yet-rendered (black) charts: nudge scroll to
+  // re-fire the lazy-render IntersectionObserver, then resize.
+  function navKick(){
+    setTimeout(function(){ try{window.scrollBy(0,2);window.scrollBy(0,-2);}catch(e){} sweep(); },110);
+    setTimeout(sweep,450); setTimeout(sweep,1100);
+  }
+  window.addEventListener('hashchange', navKick);
+  document.addEventListener('click', function(e){ var t=e.target; if(t&&t.closest&&t.closest('a[href^="#"]')) navKick(); }, true);
+})();
+</script>
+<!--APPLE-FIX-JS-END-->
 </body>
 </html>
