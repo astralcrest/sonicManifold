@@ -556,6 +556,59 @@ document.addEventListener('keydown', function(e) {
   .glossary-panel .entry{ -webkit-column-break-inside:avoid; break-inside:avoid; }
 </style>
 <!--APPLE-FIX-CSS-END-->
+<!--APPLE-BOLD-CSS-START-->
+<style>
+  /* ===== APPLE-BOLD — cinematic keynote drama (palette + fonts kept) ===== */
+  /* Hero: soft bloom behind the detonation number */
+  .hero-detonate{ position:relative; }
+  .hero-detonate::before{
+    content:""; position:absolute; left:50%; top:50%;
+    width:118%; height:150%; transform:translate(-50%,-50%);
+    background:radial-gradient(ellipse at center,
+      rgba(33,246,188,.20), rgba(155,107,255,.12) 42%, transparent 70%);
+    filter:blur(48px); z-index:-1; pointer-events:none;
+  }
+  /* Hero title: animated gradient shimmer + larger/tighter (desktop) */
+  @media (min-width:601px){
+    .hero-stage h1{
+      font-size:clamp(52px,6.8vw,104px) !important;
+      letter-spacing:-1px; line-height:1.04;
+      background-size:220% 100%;
+      animation:heroShimmer 13s ease-in-out infinite;
+    }
+    header.theme-divider{ margin-top:120px; padding-top:40px; }
+    header.theme-divider h1.act-deck{ font-size:clamp(30px,4.3vw,52px) !important; line-height:1.18 !important; }
+  }
+  @media (max-width:600px){ header.theme-divider{ margin-top:72px; } }
+  @keyframes heroShimmer{ 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+  /* Reveal: subtle scale so sections settle in with more presence */
+  .reveal{ transform:translateY(26px) scale(.986); }
+  .reveal.is-in{ transform:none; }
+  /* Giant ghosted roman numeral behind each Act divider (signature editorial move) */
+  header.theme-divider{ overflow:hidden; }
+  header.theme-divider > *:not(.act-ghost){ position:relative; z-index:1; }
+  .act-ghost{
+    position:absolute; right:1.5%; top:50%; transform:translateY(-50%);
+    font-family:'JetBrains Mono','SF Mono',monospace; font-weight:800;
+    font-size:clamp(96px,20vw,300px); line-height:.8;
+    color:rgba(155,107,255,.07); letter-spacing:-6px;
+    pointer-events:none; z-index:0; user-select:none;
+  }
+  @media (max-width:600px){ .act-ghost{ font-size:108px; color:rgba(155,107,255,.06); right:2%; } }
+  /* Panels: faint top glass sheen for depth */
+  .panel{ position:relative; }
+  .panel::after{
+    content:""; position:absolute; left:0; right:0; top:0; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+    opacity:.55; pointer-events:none;
+  }
+  @media (prefers-reduced-motion:reduce){
+    .hero-stage h1{ animation:none !important; }
+    .reveal{ transform:none !important; }
+  }
+</style>
+<!--APPLE-BOLD-CSS-END-->
+
 
 <!--APPLE-DS-CSS-START-->
 <style>
@@ -11170,5 +11223,27 @@ try {
 })();
 </script>
 <!--APPLE-FIX-JS-END-->
+<!--APPLE-BOLD-JS-START-->
+<script>
+(function(){
+  'use strict';
+  if(window.__appleBold) return; window.__appleBold=true;
+  var ROMAN={'1':'I','2':'II','3':'III','4':'IV','5':'V','6':'VI','7':'VII','8':'VIII'};
+  function addGhosts(){
+    document.querySelectorAll('header.theme-divider').forEach(function(h){
+      if(h.querySelector(':scope > .act-ghost')) return;
+      var m=(h.id||'').match(/act-(\d+)/);
+      var num = m ? (ROMAN[m[1]]||m[1]) : '';
+      if(!num) return;
+      var g=document.createElement('span');
+      g.className='act-ghost'; g.setAttribute('aria-hidden','true'); g.textContent=num;
+      h.insertBefore(g, h.firstChild);
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addGhosts); else addGhosts();
+  setTimeout(addGhosts,500); setTimeout(addGhosts,1800);
+})();
+</script>
+<!--APPLE-BOLD-JS-END-->
 </body>
 </html>
