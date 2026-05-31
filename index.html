@@ -10703,6 +10703,69 @@ try {
 
 
 
+<!--APPLE-FIX-JS-START-->
+<script>
+(function(){
+  'use strict';
+  if(window.__appleFix) return; window.__appleFix=true;
+  function P(){ return window.Plotly; }
+  function narrow(){ return window.innerWidth < 760; }
+  var relaid = new WeakSet();
+  function fix(gd){
+    if(!gd || !gd._fullLayout || !P()) return;
+    var fl=gd._fullLayout;
+    try{
+      if(narrow()){
+        if(!relaid.has(gd)){
+          var u={};
+          if(fl.margin && fl.margin.l>110){ u['margin.l']=92; u['yaxis.automargin']=false; }
+          if(fl.margin && fl.margin.r>90){ u['margin.r']=24; }
+          if(fl.margin && fl.margin.t>70){ u['margin.t']=46; }
+          if(Object.keys(u).length){ P().relayout(gd,u); relaid.add(gd); }
+        }
+      } else if(relaid.has(gd)){
+        P().relayout(gd, {'yaxis.automargin':true}); relaid.delete(gd);  // restore on widen
+      }
+    }catch(e){}
+    try{ P().Plots.resize(gd); }catch(e){}
+  }
+  function sweep(){ var n=document.querySelectorAll('.js-plotly-plot'); for(var i=0;i<n.length;i++) fix(n[i]); }
+  var last=0,pend=0;
+  function throttled(){
+    var now=Date.now();
+    if(now-last>450){ last=now; sweep(); }
+    else { clearTimeout(pend); pend=setTimeout(function(){ last=Date.now(); sweep(); },450); }
+  }
+  window.addEventListener('resize', function(){ relaid=new WeakSet(); throttled(); }, {passive:true});
+  window.addEventListener('scroll', throttled, {passive:true});  // catch lazy-rendered charts on scroll
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', sweep); else sweep();
+  [400,900,1600,2600,4200,6500,9000].forEach(function(t){ setTimeout(sweep,t); });
+})();
+</script>
+<!--APPLE-FIX-JS-END-->
+<!--APPLE-BOLD-JS-START-->
+<script>
+(function(){
+  'use strict';
+  if(window.__appleBold) return; window.__appleBold=true;
+  var ROMAN={'1':'I','2':'II','3':'III','4':'IV','5':'V','6':'VI','7':'VII','8':'VIII'};
+  function addGhosts(){
+    document.querySelectorAll('header.theme-divider').forEach(function(h){
+      if(h.querySelector(':scope > .act-ghost')) return;
+      var m=(h.id||'').match(/act-(\d+)/);
+      var num = m ? (ROMAN[m[1]]||m[1]) : '';
+      if(!num) return;
+      var g=document.createElement('span');
+      g.className='act-ghost'; g.setAttribute('aria-hidden','true'); g.textContent=num;
+      h.insertBefore(g, h.firstChild);
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addGhosts); else addGhosts();
+  setTimeout(addGhosts,500); setTimeout(addGhosts,1800);
+})();
+</script>
+<!--APPLE-BOLD-JS-END-->
+
 <!--SC-PLAYER-START-->
 <style>
   /* both decks hidden off-screen — audio crossfades, nothing visible */
@@ -10847,6 +10910,7 @@ try {
     [220.00, 261.63, 329.63, 392.00],           // Am7   (A C E G)
     [261.63, 329.63, 392.00, 493.88]            // Cmaj7 (C E G B)
   ];
+  var BED_SCALE = [146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63]; // D Dorian: D E F G A B C
   function startBed() {
     if (bedCtx) return;
     try {
@@ -10854,47 +10918,61 @@ try {
       if (!AC) return;
       bedCtx = new AC();
       if (bedCtx.resume) { try { bedCtx.resume(); } catch (e) {} }
+      var t0 = bedCtx.currentTime;
       bedMaster = bedCtx.createGain(); bedMaster.gain.value = 0.0001;
       bedMaster.connect(bedCtx.destination);
-      var filt = bedCtx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 1100; filt.Q.value = 0.5;
-      filt.connect(bedMaster);
-      var delay = bedCtx.createDelay(2.0); delay.delayTime.value = 0.5;
-      var fb = bedCtx.createGain(); fb.gain.value = 0.33;
-      delay.connect(fb); fb.connect(delay); delay.connect(bedMaster); filt.connect(delay);
-      bedLfo = bedCtx.createOscillator(); bedLfo.frequency.value = 0.04;   // slow filter sweep
-      var lg = bedCtx.createGain(); lg.gain.value = 450;
-      bedLfo.connect(lg); lg.connect(filt.frequency); bedLfo.start();
-      var t0 = bedCtx.currentTime;
       bedMaster.gain.setValueAtTime(0.0001, t0);
-      bedMaster.gain.exponentialRampToValueAtTime(0.14, t0 + 6);            // gentle fade-in
+      bedMaster.gain.exponentialRampToValueAtTime(0.16, t0 + 7);            // slow swell-in
+
+      // real convolution reverb (synth impulse: exponentially-decaying noise) → spacious tail
+      var rev = bedCtx.createConvolver();
+      try {
+        var sr = bedCtx.sampleRate, len = Math.floor(sr * 4.5), ir = bedCtx.createBuffer(2, len, sr);
+        for (var ch = 0; ch < 2; ch++) { var dch = ir.getChannelData(ch); for (var k = 0; k < len; k++) dch[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / len, 3.0); }
+        rev.buffer = ir;
+      } catch (e) {}
+      var revGain = bedCtx.createGain(); revGain.gain.value = 0.6; rev.connect(revGain); revGain.connect(bedMaster);
+
+      // gentle lowpass with a very slow sweep
+      var filt = bedCtx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 1000; filt.Q.value = 0.4;
+      filt.connect(bedMaster); filt.connect(rev);
+      bedLfo = bedCtx.createOscillator(); bedLfo.frequency.value = 0.035;
+      var lg = bedCtx.createGain(); lg.gain.value = 420;
+      bedLfo.connect(lg); lg.connect(filt.frequency); bedLfo.start();
+
+      // one warm voice = two slightly-detuned oscillators, panned, soft ADSR
+      function voice(freq, pan, vol, at, attack, hold, release, type) {
+        var o1 = bedCtx.createOscillator(), o2 = bedCtx.createOscillator();
+        o1.type = o2.type = type || 'sine'; o1.frequency.value = o2.frequency.value = freq;
+        if (o2.detune) o2.detune.value = 6;
+        var g = bedCtx.createGain(); g.gain.value = 0.0001;
+        o1.connect(g); o2.connect(g);
+        if (bedCtx.createStereoPanner) { var p = bedCtx.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(filt); }
+        else { g.connect(filt); }
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(vol, at + attack);
+        g.gain.setValueAtTime(vol, at + attack + hold);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + attack + hold + release);
+        o1.start(at); o2.start(at); o1.stop(at + attack + hold + release + 0.3); o2.stop(at + attack + hold + release + 0.3);
+      }
+
       var ci = 0;
       function playChord() {
         if (!bedCtx) return;
         var notes = BED_CHORDS[ci % BED_CHORDS.length]; ci++;
         var t = bedCtx.currentTime;
-        notes.forEach(function (f, i) {
-          var o = bedCtx.createOscillator(); o.type = (i % 2 ? 'triangle' : 'sine'); o.frequency.value = f;
-          var g = bedCtx.createGain(); g.gain.value = 0.0001;
-          o.connect(g); g.connect(filt);
-          var vol = 0.16 / notes.length;
-          g.gain.setValueAtTime(0.0001, t);
-          g.gain.exponentialRampToValueAtTime(vol, t + 3.5);                // attack
-          g.gain.exponentialRampToValueAtTime(0.0001, t + 11);              // long release
-          o.start(t); o.stop(t + 12);
+        voice(notes[0] / 2, 0, 0.10, t, 4, 4, 6, 'sine');                  // sub-bass root, octave down
+        notes.forEach(function (f, i) {                                     // pad voices, spread across stereo
+          var pan = notes.length > 1 ? ((i / (notes.length - 1)) * 2 - 1) * 0.5 : 0;
+          voice(f, pan, 0.05, t, 4, 3, 6, i % 2 ? 'triangle' : 'sine');
         });
-        if (ci % 2 === 0) {                                                 // occasional soft bell
-          var bell = bedCtx.createOscillator(); bell.type = 'sine';
-          bell.frequency.value = notes[notes.length - 1] * 2;
-          var bg = bedCtx.createGain(); bg.gain.value = 0.0001;
-          bell.connect(bg); bg.connect(delay);
-          bg.gain.setValueAtTime(0.0001, t + 1);
-          bg.gain.exponentialRampToValueAtTime(0.05, t + 1.4);
-          bg.gain.exponentialRampToValueAtTime(0.0001, t + 5);
-          bell.start(t + 1); bell.stop(t + 6);
+        if (ci % 2 === 0) {                                                 // sparse high motif (a scale tone, two octaves up)
+          var m = BED_SCALE[Math.floor(Math.random() * BED_SCALE.length)] * 2;
+          voice(m, (Math.random() * 2 - 1) * 0.6, 0.055, t + 2, 0.7, 0.4, 4, 'sine');
         }
       }
       playChord();
-      bedStep = setInterval(playChord, 9000);
+      bedStep = setInterval(playChord, 11000);                             // spacious, slow evolution
     } catch (e) { console.warn('[sc-player] inline bed failed', e); bedCtx = null; }
   }
   function stopBedAudio() {
@@ -11106,6 +11184,15 @@ try {
     toneOn = true; lastAudibleTs = nowTs();
     console.log('[sc-player] SoundCloud not audible → inline generative bed (likely an ad-blocker)');
     setNow('generative ambient \u00b7 allow soundcloud.com for the tracks', true);
+    // one-time-per-session: linger the hint longer so a blocked visitor notices it
+    try {
+      if (!sessionStorage.getItem('scHintShown')) {
+        sessionStorage.setItem('scHintShown', '1');
+        if (nowHideTimer) clearTimeout(nowHideTimer);
+        if (nowEl) nowEl.classList.add('show');
+        nowHideTimer = setTimeout(function () { if (nowEl) nowEl.classList.remove('show'); }, 16000);
+      }
+    } catch (e) {}
     startBed();
   }
 
@@ -11183,67 +11270,5 @@ try {
 </script>
 <!--SC-PLAYER-END-->
 
-<!--APPLE-FIX-JS-START-->
-<script>
-(function(){
-  'use strict';
-  if(window.__appleFix) return; window.__appleFix=true;
-  function P(){ return window.Plotly; }
-  function narrow(){ return window.innerWidth < 760; }
-  var relaid = new WeakSet();
-  function fix(gd){
-    if(!gd || !gd._fullLayout || !P()) return;
-    var fl=gd._fullLayout;
-    try{
-      if(narrow()){
-        if(!relaid.has(gd)){
-          var u={};
-          if(fl.margin && fl.margin.l>110){ u['margin.l']=92; u['yaxis.automargin']=false; }
-          if(fl.margin && fl.margin.r>90){ u['margin.r']=24; }
-          if(fl.margin && fl.margin.t>70){ u['margin.t']=46; }
-          if(Object.keys(u).length){ P().relayout(gd,u); relaid.add(gd); }
-        }
-      } else if(relaid.has(gd)){
-        P().relayout(gd, {'yaxis.automargin':true}); relaid.delete(gd);  // restore on widen
-      }
-    }catch(e){}
-    try{ P().Plots.resize(gd); }catch(e){}
-  }
-  function sweep(){ var n=document.querySelectorAll('.js-plotly-plot'); for(var i=0;i<n.length;i++) fix(n[i]); }
-  var last=0,pend=0;
-  function throttled(){
-    var now=Date.now();
-    if(now-last>450){ last=now; sweep(); }
-    else { clearTimeout(pend); pend=setTimeout(function(){ last=Date.now(); sweep(); },450); }
-  }
-  window.addEventListener('resize', function(){ relaid=new WeakSet(); throttled(); }, {passive:true});
-  window.addEventListener('scroll', throttled, {passive:true});  // catch lazy-rendered charts on scroll
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', sweep); else sweep();
-  [400,900,1600,2600,4200,6500,9000].forEach(function(t){ setTimeout(sweep,t); });
-})();
-</script>
-<!--APPLE-FIX-JS-END-->
-<!--APPLE-BOLD-JS-START-->
-<script>
-(function(){
-  'use strict';
-  if(window.__appleBold) return; window.__appleBold=true;
-  var ROMAN={'1':'I','2':'II','3':'III','4':'IV','5':'V','6':'VI','7':'VII','8':'VIII'};
-  function addGhosts(){
-    document.querySelectorAll('header.theme-divider').forEach(function(h){
-      if(h.querySelector(':scope > .act-ghost')) return;
-      var m=(h.id||'').match(/act-(\d+)/);
-      var num = m ? (ROMAN[m[1]]||m[1]) : '';
-      if(!num) return;
-      var g=document.createElement('span');
-      g.className='act-ghost'; g.setAttribute('aria-hidden','true'); g.textContent=num;
-      h.insertBefore(g, h.firstChild);
-    });
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addGhosts); else addGhosts();
-  setTimeout(addGhosts,500); setTimeout(addGhosts,1800);
-})();
-</script>
-<!--APPLE-BOLD-JS-END-->
 </body>
 </html>
