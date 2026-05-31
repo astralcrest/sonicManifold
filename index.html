@@ -11532,7 +11532,7 @@ try {
       if(narrow()){
         if(!relaid.has(gd)){
           var u={};
-          if(fl.margin && fl.margin.l>110){ u['margin.l']=92; u['yaxis.automargin']=false; }
+          if(fl.margin && fl.margin.l>110){ u['margin.l']=116; u['yaxis.automargin']=false; }
           if(fl.margin && fl.margin.r>90){ u['margin.r']=24; }
           if(fl.margin && fl.margin.t>70){ u['margin.t']=46; }
           if(Object.keys(u).length){ P().relayout(gd,u); relaid.add(gd); }
@@ -11562,6 +11562,13 @@ try {
   }
   window.addEventListener('hashchange', navKick);
   document.addEventListener('click', function(e){ var t=e.target; if(t&&t.closest&&t.closest('a[href^="#"]')) navKick(); }, true);
+  // SAFETY: scroll-reveal must never leave content invisible if its IntersectionObserver
+  // missed (fast mobile scroll / nav jump) -> this was causing black-void dividers.
+  function revealSafe(){ var n=document.querySelectorAll('.reveal:not(.is-in)');
+    for(var i=0;i<n.length;i++){ var r=n[i].getBoundingClientRect(); if(r.top < innerHeight*1.25) n[i].classList.add('is-in'); } }
+  window.addEventListener('scroll', revealSafe, {passive:true});
+  window.addEventListener('hashchange', revealSafe);
+  setTimeout(function(){ document.querySelectorAll('.reveal:not(.is-in)').forEach(function(el){ el.classList.add('is-in'); }); }, 5000);
 })();
 </script>
 <!--APPLE-FIX-JS-END-->
