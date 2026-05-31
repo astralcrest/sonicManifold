@@ -10581,128 +10581,6 @@ try {
 </script>
 <!--APPLE-DS-JS-END-->
 
-<!--AUDIO-MINIMAL-UI-START-->
-<style>
-  /* ── hide all audio UI chips — audio runs silently in background ── */
-  /* audio unified on the SoundCloud bed; the Spotify scroll-score chip is
-     dropped, but hide it defensively in case a stale block lingers. */
-  #carnatic-chip,
-  #seamless-chip,
-  #ambient-prompt,
-  #generative-chip,
-  #ambient-toggle,
-  .share-card-btn,
-  #lr-btn,
-  #chip-rail-toggle,
-  #chip-rail-scrim,
-  #first-tap-overlay,
-  #sonic-cta,
-  #sonic-mobile-mini,
-  #sonic-toast,
-  #generative-tip,
-  #sc-track-toast,
-  #touch-synth-chip { display: none !important; }
-
-  /* sonic chip: invisible when idle, slides in ONLY when playing */
-  #sonic-audio-chip:not(.playing):not(.pinned) {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transform: translateY(-6px) !important;
-    transition: opacity .35s ease, transform .35s ease !important;
-  }
-  #sonic-audio-chip.playing,
-  #sonic-audio-chip.pinned {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    transform: translateY(0) !important;
-  }
-
-  /* ── single ghost mute pill — bottom-LEFT (avoids cyber-top at BR) ─ */
-  #global-mute-pill {
-    position: fixed;
-    left: 16px; right: auto;
-    bottom: max(16px, env(safe-area-inset-bottom, 16px));
-    z-index: 9998;
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(21, 8, 45, 0.45);
-    border: 1px solid rgba(155, 107, 255, 0.22);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    cursor: pointer;
-    font-size: 13px;
-    color: rgba(163, 148, 201, 0.55);
-    transition: opacity .2s ease, border-color .2s ease, color .2s ease;
-    opacity: 0.45;
-  }
-  #global-mute-pill:hover {
-    opacity: 1;
-    border-color: rgba(33, 246, 188, 0.50);
-    color: #21f6bc;
-  }
-  #global-mute-pill.muted {
-    color: rgba(255, 110, 156, 0.65);
-    border-color: rgba(255, 110, 156, 0.30);
-  }
-  @media (max-width: 768px) {
-    #global-mute-pill { width: 36px; height: 36px; font-size: 15px; opacity: 0.6; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #sonic-audio-chip:not(.playing):not(.pinned) { transition: none !important; }
-  }
-</style>
-
-<button id="global-mute-pill" type="button"
-        aria-label="mute / unmute all audio"
-        title="mute all audio">🔊</button>
-
-<script>
-(function () {
-  'use strict';
-  var pill = document.getElementById('global-mute-pill');
-  if (!pill) return;
-
-  // sync muted state across all audio systems
-  var MUTED_KEY = 'sonicManifoldMuted';
-  var muted = localStorage.getItem(MUTED_KEY) === '1';
-
-  function applyMute(m) {
-    muted = !!m;
-    localStorage.setItem(MUTED_KEY, m ? '1' : '0');
-    pill.textContent = m ? '🔇' : '🔊';
-    pill.classList.toggle('muted', m);
-    pill.setAttribute('aria-label', m ? 'unmute all audio' : 'mute all audio');
-
-    // propagate to all audio systems
-    try { if (window.__sonicAudio) window.__sonicAudio.setMuted(m); } catch(e) {}
-    // SoundCloud bed: mute pauses + zeroes both decks; unmute resumes the
-    // foreground deck (do NOT close — close would lose the seamless queue state)
-    try { if (window.__scPlayer && window.__scPlayer.setMuted) window.__scPlayer.setMuted(m); } catch(e) {}
-    // generative fallback bed: stop on mute (it restarts via the SC player if needed)
-    try {
-      if (window.__ambientPlayer) {
-        if (m) window.__ambientPlayer.pauseForOverlay();
-        else window.__ambientPlayer.resumeFromOverlay();
-      }
-    } catch(e) {}
-  }
-
-  applyMute(muted);
-  pill.addEventListener('click', function () { applyMute(!muted); });
-
-  // re-apply after first-tap arms audio (SC player may have started)
-  document.addEventListener('sonic:first-tap', function () {
-    if (muted) applyMute(true);
-  });
-
-  console.log('[sonic-init] MINIMAL-UI active — all chips hidden, mute pill armed');
-})();
-</script>
-<!--AUDIO-MINIMAL-UI-END-->
-
-
-
 <!--APPLE-FIX-JS-START-->
 <script>
 (function(){
@@ -10765,6 +10643,112 @@ try {
 })();
 </script>
 <!--APPLE-BOLD-JS-END-->
+
+<!--SELFHOSTED-AUDIO-START-->
+<style>
+  /* hidden native-audio decks; reuses the SC player's #sc-now readout */
+  #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
+</style>
+<script id="sh-tracks" type="application/json">[]</script>
+<div id="sh-bg" aria-hidden="true">
+  <audio id="sh-a" preload="auto"></audio>
+  <audio id="sh-b" preload="auto"></audio>
+</div>
+<script>
+(function () {
+  'use strict';
+  var tracks = [];
+  try { tracks = JSON.parse(document.getElementById('sh-tracks').textContent); } catch (e) {}
+  if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
+  window.__preferSelfHosted = true;                          // SoundCloud player stands down
+
+  // Fisher-Yates shuffle
+  for (var i = tracks.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = tracks[i]; tracks[i] = tracks[j]; tracks[j] = t; }
+
+  var FADE_MS = 5000, STEP = 120, VOL = 0.85;
+  var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
+  if (!els.a || !els.b) return;
+  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false;
+  var ramps = { a: null, b: null };
+  var nowEl = document.getElementById('sc-now'), nowLabel = document.getElementById('sc-now-label'), nowSkip = document.getElementById('sc-now-skip');
+  function other(d) { return d === 'a' ? 'b' : 'a'; }
+
+  function setNow(qi) {
+    if (!nowEl) return;
+    nowEl.classList.remove('sc-now-ambient'); nowEl.title = '';
+    if (nowLabel) nowLabel.textContent = tracks[qi].a + ' \u2014 ' + tracks[qi].t;
+    nowEl.classList.add('show');
+    clearTimeout(nowEl.__shT); nowEl.__shT = setTimeout(function () { nowEl.classList.remove('show'); }, 6000);
+  }
+  function load(d, qi, autoplay) {
+    idx[d] = qi; var el = els[d];
+    el.src = tracks[qi].src; el.load();
+    if (autoplay) { el.volume = 0; el.play().catch(function () {}); }
+  }
+  function ramp(d, to, cb) {
+    if (ramps[d]) clearInterval(ramps[d]);
+    var el = els[d], from = el.volume || 0, steps = Math.max(1, Math.round(FADE_MS / STEP)), n = 0;
+    ramps[d] = setInterval(function () {
+      n++; var v = from + (to - from) * (n / steps);
+      try { el.volume = muted ? 0 : Math.max(0, Math.min(1, v)); } catch (e) {}
+      if (n >= steps) { clearInterval(ramps[d]); ramps[d] = null; if (cb) cb(); }
+    }, STEP);
+  }
+  function bind(d) {
+    var el = els[d];
+    el.addEventListener('timeupdate', function () {
+      if (d !== active || crossing || muted) return;
+      if (el.duration && isFinite(el.duration) && el.currentTime >= el.duration - FADE_MS / 1000) startCrossfade();
+    });
+    el.addEventListener('ended', function () { if (d === active && !crossing) goNext(); });
+    el.addEventListener('playing', function () { if (d === active) { document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[d]); } });
+    el.addEventListener('error', function () { if (d === active && !crossing) goNext(); });
+  }
+  function startCrossfade() {
+    if (crossing) return;
+    var sb = other(active); crossing = true;
+    try { els[sb].currentTime = 0; } catch (e) {}
+    els[sb].volume = 0; els[sb].play().catch(function () {});
+    ramp(sb, VOL);
+    var fo = active;
+    ramp(fo, 0, function () { try { els[fo].pause(); } catch (e) {} });
+    setNow(idx[sb]);
+    setTimeout(function () { finishSwap(sb); }, FADE_MS + 80);
+  }
+  function goNext() { finishSwap(other(active)); }
+  function finishSwap(na) {
+    var oa = other(na); active = na; crossing = false;
+    try { els[na].volume = muted ? 0 : VOL; if (els[na].paused) els[na].play().catch(function () {}); } catch (e) {}
+    document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[na]);
+    var ni = (idx[na] + 1) % tracks.length; load(oa, ni, false);
+  }
+  function open() {
+    if (started) return; started = true;
+    document.body.classList.add('sc-open');
+    load('a', 0, true); ramp('a', VOL);
+    load('b', 1 % tracks.length, false);
+  }
+  function setMuted(m) {
+    muted = !!m;
+    if (m) { ['a', 'b'].forEach(function (d) { try { els[d].volume = 0; } catch (e) {} }); try { els[active].pause(); } catch (e) {} document.body.classList.remove('sc-playing'); }
+    else if (started) { try { els[active].volume = VOL; els[active].play().catch(function () {}); } catch (e) {} document.body.classList.add('sc-playing'); }
+  }
+  function skip() { if (!started) return; var ni = (idx[active] + 1) % tracks.length; load(active, ni, true); ramp(active, VOL); }
+
+  bind('a'); bind('b');
+  document.addEventListener('sonic:first-tap', open);
+  if (nowSkip) nowSkip.addEventListener('click', skip);
+  document.addEventListener('keydown', function (e) {
+    if (!started) return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'n') skip();
+  });
+  window.__selfHostedBed = { open: open, setMuted: setMuted, next: skip, isOn: function () { return started && !muted; } };
+  console.log('[sonic-init] SELF-HOSTED bed armed ·', tracks.length, 'tracks (unblockable, same-origin)');
+})();
+</script>
+<!--SELFHOSTED-AUDIO-END-->
+
 
 <!--SC-PLAYER-START-->
 <style>
@@ -11157,6 +11141,7 @@ try {
   // ── open: arm both decks SYNCHRONOUSLY inside the first-tap gesture ────
   function openPlayer() {
     if (started) return;
+    if (window.__preferSelfHosted) return;   // self-hosted (unblockable) bed owns playback
     started = true;
     active = 'a';
     lastAudibleTs = nowTs();
@@ -11269,6 +11254,129 @@ try {
 })();
 </script>
 <!--SC-PLAYER-END-->
+
+
+<!--AUDIO-MINIMAL-UI-START-->
+<style>
+  /* ── hide all audio UI chips — audio runs silently in background ── */
+  /* audio unified on the SoundCloud bed; the Spotify scroll-score chip is
+     dropped, but hide it defensively in case a stale block lingers. */
+  #carnatic-chip,
+  #seamless-chip,
+  #ambient-prompt,
+  #generative-chip,
+  #ambient-toggle,
+  .share-card-btn,
+  #lr-btn,
+  #chip-rail-toggle,
+  #chip-rail-scrim,
+  #first-tap-overlay,
+  #sonic-cta,
+  #sonic-mobile-mini,
+  #sonic-toast,
+  #generative-tip,
+  #sc-track-toast,
+  #touch-synth-chip { display: none !important; }
+
+  /* sonic chip: invisible when idle, slides in ONLY when playing */
+  #sonic-audio-chip:not(.playing):not(.pinned) {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(-6px) !important;
+    transition: opacity .35s ease, transform .35s ease !important;
+  }
+  #sonic-audio-chip.playing,
+  #sonic-audio-chip.pinned {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+  }
+
+  /* ── single ghost mute pill — bottom-LEFT (avoids cyber-top at BR) ─ */
+  #global-mute-pill {
+    position: fixed;
+    left: 16px; right: auto;
+    bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    z-index: 9998;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(21, 8, 45, 0.45);
+    border: 1px solid rgba(155, 107, 255, 0.22);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    font-size: 13px;
+    color: rgba(163, 148, 201, 0.55);
+    transition: opacity .2s ease, border-color .2s ease, color .2s ease;
+    opacity: 0.45;
+  }
+  #global-mute-pill:hover {
+    opacity: 1;
+    border-color: rgba(33, 246, 188, 0.50);
+    color: #21f6bc;
+  }
+  #global-mute-pill.muted {
+    color: rgba(255, 110, 156, 0.65);
+    border-color: rgba(255, 110, 156, 0.30);
+  }
+  @media (max-width: 768px) {
+    #global-mute-pill { width: 36px; height: 36px; font-size: 15px; opacity: 0.6; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #sonic-audio-chip:not(.playing):not(.pinned) { transition: none !important; }
+  }
+</style>
+
+<button id="global-mute-pill" type="button"
+        aria-label="mute / unmute all audio"
+        title="mute all audio">🔊</button>
+
+<script>
+(function () {
+  'use strict';
+  var pill = document.getElementById('global-mute-pill');
+  if (!pill) return;
+
+  // sync muted state across all audio systems
+  var MUTED_KEY = 'sonicManifoldMuted';
+  var muted = localStorage.getItem(MUTED_KEY) === '1';
+
+  function applyMute(m) {
+    muted = !!m;
+    localStorage.setItem(MUTED_KEY, m ? '1' : '0');
+    pill.textContent = m ? '🔇' : '🔊';
+    pill.classList.toggle('muted', m);
+    pill.setAttribute('aria-label', m ? 'unmute all audio' : 'mute all audio');
+
+    // propagate to all audio systems
+    try { if (window.__sonicAudio) window.__sonicAudio.setMuted(m); } catch(e) {}
+    // SoundCloud bed: mute pauses + zeroes both decks; unmute resumes the
+    // foreground deck (do NOT close — close would lose the seamless queue state)
+    try { if (window.__scPlayer && window.__scPlayer.setMuted) window.__scPlayer.setMuted(m); } catch(e) {}
+    // self-hosted (unblockable) bed, when active
+    try { if (window.__selfHostedBed && window.__selfHostedBed.setMuted) window.__selfHostedBed.setMuted(m); } catch(e) {}
+    // generative fallback bed: stop on mute (it restarts via the SC player if needed)
+    try {
+      if (window.__ambientPlayer) {
+        if (m) window.__ambientPlayer.pauseForOverlay();
+        else window.__ambientPlayer.resumeFromOverlay();
+      }
+    } catch(e) {}
+  }
+
+  applyMute(muted);
+  pill.addEventListener('click', function () { applyMute(!muted); });
+
+  // re-apply after first-tap arms audio (SC player may have started)
+  document.addEventListener('sonic:first-tap', function () {
+    if (muted) applyMute(true);
+  });
+
+  console.log('[sonic-init] MINIMAL-UI active — all chips hidden, mute pill armed');
+})();
+</script>
+<!--AUDIO-MINIMAL-UI-END-->
 
 </body>
 </html>
