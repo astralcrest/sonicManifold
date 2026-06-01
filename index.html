@@ -4233,7 +4233,7 @@ document.addEventListener('DOMContentLoaded', function () {
       and the only way the rest of the dashboard&rsquo;s numbers earn your
       trust is if the ones that don&rsquo;t hold up still get printed.
     </p>
-    <p class="hp-killed-meta"><i>this is the move &mdash; show the test that beats the finding, then keep the test on the page.</i></p>
+    <p class="hp-killed-meta"><i>the honest move: run the test that could kill your finding, and if it does, leave that test on the page.</i></p>
   </div>
 
   <!-- ── Additional honest nulls: A1 + A5 ─────────────────────────────── -->
@@ -4258,7 +4258,7 @@ document.addEventListener('DOMContentLoaded', function () {
       typical next-day listening patterns &mdash; but the signal does not clear
       the multiple-comparison bar. Directional but null at current sample.
     </p>
-    <p class="hp-null-meta"><i>nulls go on the dashboard. burying them is how you become marketing.</i></p>
+    <p class="hp-null-meta"><i>results that come back null stay on the dashboard too. hiding them is how analysis turns into marketing.</i></p>
   </div>
 
   <!-- ── Honest limits ─────────────────────────────────────────────────── -->
@@ -13081,5 +13081,214 @@ html body .term-tip{ cursor:help; }
 </script>
 <!--APPLE-POLISH3-CSS-END-->
 <!--APPLE-POLISH3-JS-END-->
+<!--APPLE-TAKEAWAYS-START-->
+<style id="apple-tk-css">
+  .tk-line{display:block;margin-top:6px;font:500 12.5px/1.5 "JetBrains Mono",ui-monospace,monospace;color:#cde7df}
+  .tk-line .pl-takeaway{color:#21f6bc;font-weight:700;letter-spacing:.02em}
+  .tk-term{border-bottom:1px dotted #21f6bc;cursor:help}
+  .tk-legend{display:block;margin-top:6px;font:500 11.5px/1.6 "JetBrains Mono",ui-monospace,monospace;color:#9fb0aa}
+  .tk-legend b{color:#cde7df;font-weight:700}
+</style>
+<script id="apple-tk-js">(function(){
+  if(window.__appleTk) return; window.__appleTk = true;
+
+  /* ----------------------------------------------------------------------
+     (a) PER-FIGURE TAKEAWAYS
+     panelId -> one-line plain-language "what it MEANS" (<=140 chars).
+     Only injected when the panel has NO existing "Takeaway:" line.
+     Covers fig-N panels AND the hp-/exo- physiology figures in Act VI.
+     NOTE: no retracted claims (no "my picks less predictable", no
+     time-trend "rise", no folk/country, no music-DRIVES-HR causation).
+  ---------------------------------------------------------------------- */
+  var TK = {
+    // ── Act I — the volume / the shape of a listening life
+    "fig-10":"Most plays run to the end; the spike at full length is how often a track finished before I moved on.",
+    "fig-12":"My top-3 artists per year. Phaeleh anchors almost every year — the constant under all the churn.",
+    "fig-19":"The bigger the bow below the diagonal, the more my hours pile onto a few artists rather than spreading evenly.",
+    "fig-20":"Plays-vs-rank falls on a near-straight log-log line: a handful of artists carry most plays, a long tail carries the rest.",
+    "fig-25":"Effective artists (how many I really spread across) sits far below the raw unique count — I concentrate more than the list suggests.",
+    "fig-26":"Bars are how far each year's taste moved from the year before, in bits. Bigger bar = a bigger year-over-year shift.",
+    "fig-30":"How far each play sits from the vibe of the previous five. Tall right tail = the swerves, the out-of-nowhere picks.",
+    "fig-36":"My 20 least-expected plays — tracks that least fit the listening around them. The 'what was I thinking' list.",
+    "fig-37":"Each cell is how different two months were from each other. Bright blocks = stretches where my taste held a distinct shape.",
+    "fig-38":"Plain-text key to the era timeline above: each row is one detected chapter, its span, its dominant family, and a signature track.",
+    "fig-42":"Monthly anomaly score over time: how unusual that month's listening was versus my own baseline. Spikes mark the odd stretches.",
+    "fig-43":"The 15 single plays the model flagged as most out-of-pattern, scored on their own features rather than what came before.",
+    "fig-45":"Pairs where hearing the first artist makes the second far more likely next — my strongest 'if A then soon B' habits.",
+    "fig-48":"What hour of day my listening lands, one ridge per year. Shows whether the daily rhythm held or shifted over time.",
+    "fig-49":"Session length per year, one ridge each. The pile near zero is quick taps; the long tail is the deep-listen sessions.",
+    "fig-50":"Per-play atypicality per year. A wider right-hand spread means that year held more genuinely off-pattern picks.",
+    "fig-51":"Gap-between-plays per year, log-scaled. Left hump = back-to-back listening; right hump = the long quiet stretches.",
+    "fig-57":"My top 5 sub-genres each year. Electronic and r&b trade the lead; the supporting cast is where the year-to-year drift shows.",
+    "fig-60":"Sub-genre tags grouped by how often they co-occur — these clusters are the natural neighbourhoods of my taste.",
+    "fig-63":"Sub-genre pairs that flow strongly one way but not back: A leads into B far more than B leads into A.",
+    "fig-65":"The plays where the sub-genre was rarest to follow whatever I'd just played — the sharpest genre hand-brake turns.",
+    // ── Network / structure
+    "fig-69":"One row per year of my listening network. Year to year the shape barely moves — the structure of my taste is stable.",
+    "fig-70":"Artists whose importance swings most across years. High swing = they spiked then faded (or the reverse), not steady staples.",
+    "fig-74":"My strongest bridge edges: pairs that link otherwise-separate genre worlds. These are where I personally cross the gaps.",
+    "fig-76":"Every anchor artist sorted into a life-arc shape — steady, rising, fading, or a one-year comet.",
+    // ── Drift / transport
+    "fig-81":"How far my yearly taste distribution moved each transition. Bigger number = a bigger reshuffle from one year to the next.",
+    "fig-83":"Where 2025's listening 'mass' actually went in 2026: most stayed put; the off-diagonal flows are the genuine new directions.",
+    // ── CCM (process / causal-direction) figures
+    "fig-15":"Top causal-direction arrows between genres: which genre's swings help predict another's. Direction only — a hint, not proof.",
+    // ── Act VI — THE BODY (music x physiology). Association language only.
+    "health-cross":"Two time-series that share a person — listening and physiology. I ran the obvious cross-analysis, then the audit that broke it.",
+    "hp-ccm":"A test for whether listening and physiology move together over time. It can suggest coupling, but cannot prove one drives the other.",
+    "hp-hr-genre":"On matched activity, my heart rate sat ~13 bpm higher during EDM/techno stretches than chillstep. An association, not proof music moved it.",
+    "hp-joint-model":"A model that sees both music and physiology barely beats one that sees either alone — little shared signal once you hold out fresh data.",
+    "hp-workout-genre":"During workouts, genre and intensity track together — but harder workouts already raise heart rate, so this can't separate music from effort.",
+    "hp-vol-hrv":"Headphone volume and HRV across the day show no real link (p=0.44). A clean null — kept on the page rather than buried.",
+    "exo-shock":"Whether my own data sees the real-life events I lived through. Five events, four honest findings — two of them nulls.",
+    "exo-shape-inversion":"Two kinds of life stress hit the same year and bent my listening in opposite shapes: one widened it, the other pulled it back to the familiar.",
+    "exo-6week":"Across one stacked-event stretch in late 2025 both physiology and listening shifted (CIs exclude zero), but the events are too tangled to attribute."
+  };
+
+  /* ----------------------------------------------------------------------
+     (a2) TABLE-HEADER LEGEND for the NETWORK STATS table (fig-69):
+          header reads "YR N/E DENS C Q APL σ H" with no key.
+  ---------------------------------------------------------------------- */
+  var LEGEND = {
+    "fig-69":"<b>YR</b> year · <b>N/E</b> nodes (artists) / edges (links) · "
+            +"<b>DENS</b> share of possible links present · <b>C</b> clustering "
+            +"(how often my neighbours are each other's neighbours) · <b>Q</b> "
+            +"modularity (how cleanly it splits into communities) · <b>APL</b> "
+            +"average hops between any two artists · <b>σ</b> small-worldness "
+            +"(tight clusters + short hops) · <b>H</b> entropy (how spread-out "
+            +"the importance is)."
+  };
+
+  /* ----------------------------------------------------------------------
+     (b) JARGON DEFINITIONS — plain one-liners.
+         The scan wraps the FIRST UNWRAPPED occurrence of each term inside
+         figure captions/notes with
+            <span class="term-tip tk-term" data-tip="...">term</span>
+         so the page's existing body-level tooltip (matches .term-tip[data-tip])
+         explains it on hover. Terms already wrapped on the page are skipped.
+  ---------------------------------------------------------------------- */
+  var DEFS = {
+    "odds ratio":"How much a factor multiplies the odds of an outcome. OR 2 = twice as likely; OR 1 = no effect; below 1 = less likely.",
+    "OR":"Odds ratio: how much a factor multiplies the odds of an outcome. 2 = twice as likely, 1 = no effect.",
+    "spectral entropy":"How spread-out a signal's frequencies are. High = busy/noisy across many frequencies; low = energy in just a few.",
+    "small-worldness":"A network with tight local clusters but still short paths between any two points. The 'six degrees' property.",
+    "clustering":"How often two of your neighbours are also each other's neighbours — the local cliquey-ness of a network.",
+    "APL":"Average path length: the typical number of hops to get from any node to any other across the whole network.",
+    "density":"Share of all possible links that actually exist. 1 = everyone connected to everyone; 0 = no links.",
+    "κ":"Ollivier-Ricci curvature of an edge. Strongly negative = a bridge linking otherwise-separate parts of the network.",
+    "RR":"Recurrence rate: how often the system revisits a past state — the overall density of repeats in a recurrence plot.",
+    "DET":"Determinism: the share of recurrences that fall on diagonal lines — how predictable/structured the dynamics are.",
+    "LAM":"Laminarity: the share of recurrences in vertical lines — how often the system gets 'stuck' in a state before moving on.",
+    "L_max":"The longest diagonal line in a recurrence plot — longer means more stable, repeatable dynamics over time.",
+    "W₁":"Wasserstein-1 distance: the least 'work' to morph one distribution into another. Bigger = the two are further apart.",
+    "KL":"KL divergence: how many extra bits you'd need to describe one distribution using a model built for another. 0 = identical.",
+    "JS":"Jensen-Shannon distance: a symmetric, bounded measure of how different two distributions are. 0 = identical, higher = more different.",
+    "H₁":"First homology: the count of loops/holes in the shape of the data — features that persist as you zoom out are the real ones.",
+    "cosine":"Cosine distance: how different two vectors point, ignoring length. 0 = same direction, 1 = unrelated, 2 = opposite.",
+    "spread-out":"" // placeholder, never used
+  };
+  delete DEFS["spread-out"];
+
+  /* ---- helpers ---- */
+  function findCaptionTarget(panel){
+    // prefer the native .fig-caption block; else hp-/exo- prose container
+    return panel.querySelector('.fig-caption')
+        || panel.querySelector('.hp-method, .exo-note, .panel-note')
+        || panel; // fall back to the panel itself
+  }
+
+  // True only if THIS panel's own caption host already has a Takeaway line.
+  // Scoped so a nested child panel's takeaway (e.g. exo-* nested in exo-shock)
+  // never blocks the parent from getting its own.
+  function hostHasTakeaway(panel){
+    var host = findCaptionTarget(panel);
+    if(host.querySelector('.tk-line')) return true;
+    // walk host's direct/shallow text, excluding any nested panel children
+    var clone = host.cloneNode(true);
+    Array.prototype.slice.call(
+      clone.querySelectorAll('[id^="fig-"],[id^="hp-"],[id^="exo-"],#health-cross')
+    ).forEach(function(n){ if(n!==clone) n.remove(); });
+    return /takeaway\s*:/i.test(clone.textContent);
+  }
+
+  function injectTakeaways(){
+    Object.keys(TK).forEach(function(id){
+      var p = document.getElementById(id);
+      if(!p) return;
+      if(hostHasTakeaway(p)) return;        // never double up (own caption only)
+      var span = document.createElement('span');
+      span.className = 'tk-line';
+      span.innerHTML = '<b class="pl-takeaway">Takeaway:</b> ' + TK[id];
+      var host = findCaptionTarget(p);
+      host.appendChild(span);
+    });
+    Object.keys(LEGEND).forEach(function(id){
+      var p = document.getElementById(id);
+      if(!p || p.querySelector('.tk-legend')) return;
+      var leg = document.createElement('span');
+      leg.className = 'tk-legend';
+      leg.innerHTML = 'Columns: ' + LEGEND[id];
+      findCaptionTarget(p).appendChild(leg);
+    });
+  }
+
+  /* ---- jargon wrapping: first unwrapped occurrence inside captions only ---- */
+  function wrapTerms(){
+    var alreadyWrapped = {};
+    Array.prototype.slice.call(document.querySelectorAll('.term-tip'))
+      .forEach(function(e){ alreadyWrapped[e.textContent.trim().toLowerCase()] = true; });
+
+    var caps = document.querySelectorAll(
+      '.fig-caption, .hp-fig, .hp-sub, .exo-finding, .exo-shock-panel, .health-panel, .panel-note, figcaption'
+    );
+    var done = {}; // term -> wrapped once already this pass
+
+    Object.keys(DEFS).forEach(function(term){
+      if(alreadyWrapped[term.toLowerCase()]) return; // page already explains it
+      for(var c=0;c<caps.length && !done[term];c++){
+        wrapInNode(caps[c], term, DEFS[term], done);
+      }
+    });
+  }
+
+  function wrapInNode(root, term, tip, done){
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var node;
+    while((node = walker.nextNode())){
+      if(done[term]) return;
+      // skip text already inside a tooltip span or inside script/style
+      var pn = node.parentNode;
+      if(!pn) continue;
+      if(pn.closest && pn.closest('.term-tip')) continue;
+      if(/SCRIPT|STYLE/.test(pn.nodeName)) continue;
+      var idx = node.nodeValue.indexOf(term);
+      if(idx < 0) continue;
+      // word-boundary guard for alphabetic terms (avoid matching inside words)
+      if(/^[A-Za-z]/.test(term)){
+        var before = idx>0 ? node.nodeValue[idx-1] : ' ';
+        var after  = node.nodeValue[idx+term.length] || ' ';
+        if(/[A-Za-z]/.test(before) || /[A-Za-z]/.test(after)) continue;
+      }
+      var span = document.createElement('span');
+      span.className = 'term-tip tk-term';
+      span.setAttribute('data-tip', tip);
+      span.setAttribute('tabindex','0');
+      span.textContent = term;
+      var rest = node.splitText(idx);
+      rest.nodeValue = rest.nodeValue.slice(term.length);
+      pn.insertBefore(span, rest);
+      done[term] = true;
+      return;
+    }
+  }
+
+  function run(){ injectTakeaways(); wrapTerms(); }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(run, 400); });
+  } else {
+    setTimeout(run, 400);
+  }
+})();</script>
+<!--APPLE-TAKEAWAYS-END-->
 </body>
 </html>
