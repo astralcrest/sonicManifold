@@ -648,6 +648,60 @@ document.addEventListener('keydown', function(e) {
   .about-who{ border-left:2px solid var(--orchid); padding-left:14px; color:var(--ice); }
 </style>
 <!--APPLE-BOLD-CSS-END-->
+<!--APPLE-SPINE-CSS-START-->
+<style id="apple-spine-css">
+/* ---- sonicManifold spine v4 ---- the "story" mode = one hero per act + folded
+   labs. Reuses body.story-only (existing pace control + nav toggle) and REDEFINES
+   it from the old skeleton (no charts) into the spine. The base story-only rules
+   use display:none/block !important, so these overrides carry an html prefix to
+   win on specificity. Grid visibility uses JS-applied classes (no :has dep). */
+
+/* heroes + the act-intro tl;dr stay visible (override base "hide all panels") */
+html body.story-only .spine-keep{ display:block !important; grid-column:1 / -1 !important; }
+html body.story-only .spine-keep.panel.half{ max-width:none !important; }
+html body.story-only .spine-keep .js-plotly-plot,
+html body.story-only .spine-keep .plotly-graph-div,
+html body.story-only .spine-keep svg,
+html body.story-only .spine-keep table{ display:block !important; }
+/* the grid that holds a hero must show (base hides all grids) */
+html body.story-only .grid.spine-herogrid{ display:grid !important; }
+/* fold everything else in the act (incl. sub-headers / sub-tl;drs the base shows) */
+html body.story-only .spine-fold:not(.spine-open){ display:none !important; }
+/* reserve hero height so a not-yet-lazy-rendered chart leaves no void */
+html body.story-only .spine-keep{ min-height:300px; }
+
+/* revealed lab: show the atoms + their charts despite the base skeleton hide */
+html body.story-only .spine-fold.spine-open{ display:block !important; }
+html body.story-only .grid.spine-opengrid{ display:grid !important; }
+html body.story-only .spine-open .js-plotly-plot,
+html body.story-only .spine-open .plotly-graph-div,
+html body.story-only .spine-open svg,
+html body.story-only .spine-open table,
+html body.story-only .spine-open.panel,
+html body.story-only .spine-open.table-panel{ display:revert !important; }
+.spine-fold.spine-open{ animation:spineReveal .35s ease both; }
+@keyframes spineReveal{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+/* the per-act "open the lab" control — only meaningful in story mode */
+.act-lab-btn{ display:none; }
+html body.story-only .act-lab-btn{
+  display:flex;align-items:center;gap:.6rem;width:100%;max-width:var(--maxw,960px);
+  margin:1.05rem auto .2rem;padding:.8rem 1.15rem;cursor:pointer;text-align:left;
+  background:rgba(255,255,255,.05);-webkit-backdrop-filter:blur(12px) saturate(1.3);backdrop-filter:blur(12px) saturate(1.3);
+  border:1px solid var(--hair,rgba(255,255,255,.12));
+  border-radius:14px;color:var(--ink-2,rgba(255,255,255,.74));
+  font:500 .95rem/1.2 var(--sans,system-ui,-apple-system,sans-serif);letter-spacing:-.01em;
+  transition:background .2s ease,border-color .2s ease,color .2s ease;
+}
+html body.story-only .act-lab-btn:hover{ background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:var(--ink-1,rgba(255,255,255,.96)); }
+.act-lab-btn .lab-caret{ display:inline-block;transition:transform .25s ease;font-size:.82em;opacity:.7; }
+.act-lab-btn[aria-expanded="true"] .lab-caret{ transform:rotate(90deg); }
+.act-lab-btn .lab-count{ margin-left:auto;font-size:.78rem;opacity:.55;letter-spacing:.01em;font-variant-numeric:tabular-nums; }
+@media (max-width:480px){
+  html body.story-only .act-lab-btn{ padding:.8rem 1rem;font-size:.9rem;border-radius:12px; }
+}
+</style>
+<!--APPLE-SPINE-CSS-END-->
 
 
 
@@ -11742,5 +11796,295 @@ try {
 </script>
 <!--SELFHOSTED-AUDIO-END-->
 
+<!--APPLE-SPINE-JS-START-->
+<script id="apple-spine-js">
+(function(){
+  'use strict';
+  if (window.__appleSpine) return;
+  window.__appleSpine = true;
+
+  // Story mode keeps ~170 chart panels display:none. Plotly's resize throws an
+  // async "Resize must be passed a displayed plot div element" when the base
+  // resize-all loop (and rotations) hit those hidden divs. Fix at the source:
+  // wrap Plotly.Plots.resize to no-op on a hidden div (benefits every caller —
+  // base resize-all, modal, automargin, our renderSoon). Belt-and-suspenders:
+  // also swallow that one known-benign message if any slips through.
+  function patchPlotlyResize(){
+    try{
+      var P=window.Plotly;
+      if (!P || !P.Plots || !P.Plots.resize || P.Plots.resize.__spineWrapped) return true;
+      var orig=P.Plots.resize;
+      P.Plots.resize=function(gd){
+        try{ var el=(typeof gd==='string')?document.getElementById(gd):gd; if (el && el.offsetParent===null) return Promise.resolve(); }catch(e){}
+        return orig.apply(this, arguments);
+      };
+      P.Plots.resize.__spineWrapped=true;
+      return true;
+    }catch(e){ return false; }
+  }
+  if (!patchPlotlyResize()){ var _pt=setInterval(function(){ if (patchPlotlyResize()) clearInterval(_pt); }, 200); setTimeout(function(){ clearInterval(_pt); }, 12000); }
+  window.addEventListener('error', function(e){
+    if (e && e.message && /Resize must be passed a displayed plot div/.test(e.message)){
+      e.preventDefault(); e.stopImmediatePropagation(); return true;
+    }
+  }, true);
+
+  // sonicManifold spine v4 — the "story" mode = one hero chart per act + the rest
+  // folded behind an "open the lab" toggle. It REUSES the existing story system
+  // (body.story-only, driven by the .pace-pick control + nav #story-toggle), and
+  // redefines it (via APPLE-SPINE-CSS) from the old skeleton into the spine.
+  // No DOM moves: atoms are tagged + shown/hidden by class, so lazy Plotly figs
+  // keep their original wiring.
+
+  var STORE_KEY='sonicmanifold-story-only';
+  var MODULE_SEL = '.panel,.table-panel,.rev-grid,.rev-closer,'
+    + 'section.health-panel,section.exo-shock-panel,section.carnatic-panel,section.audio-embed-panel';
+
+  function txt(el){ return (el.textContent||'').replace(/\s+/g,' ').trim(); }
+  function isFull(el){ return /\bfull\b/.test(el.className||''); }
+  function isGenuinePlot(el){
+    if (!el.querySelector) return false;
+    if (el.querySelector('.js-plotly-plot,.lazy-placeholder')) return true;
+    if (el.matches && el.matches('[data-sidecar-id]')) return true;
+    if (el.querySelector('[data-sidecar-id]')) return true;
+    var sc = el.querySelectorAll('script');
+    for (var i=0;i<sc.length;i++){ var t=sc[i].textContent||''; if (/Plotly\.newPlot/.test(t)||/PLOTLYENV/.test(t)) return true; }
+    return false;
+  }
+
+  function collectAtoms(actHeader){
+    var atoms=[], n=actHeader.nextElementSibling;
+    while (n && !(n.matches && n.matches('header[id^="act-"]'))){
+      var tag=n.tagName;
+      if (tag==='STYLE'||tag==='SCRIPT'||tag==='LINK'){ n=n.nextElementSibling; continue; }
+      if (n.matches && n.matches('.grid')){
+        var added=false, ch=n.children;
+        for (var i=0;i<ch.length;i++){ if (ch[i].matches && ch[i].matches(MODULE_SEL)){ atoms.push(ch[i]); added=true; } }
+        if (!added) atoms.push(n);
+      } else { atoms.push(n); }
+      n=n.nextElementSibling;
+    }
+    return atoms;
+  }
+
+  function chooseHero(act, atoms){
+    function find(pred){ for (var i=0;i<atoms.length;i++){ try{ if (pred(atoms[i])) return atoms[i]; }catch(e){} } return null; }
+    if (act===1){ var a1=find(function(a){ return a.id==='fig-23'; }); if (a1) return a1; } // NOVELTY RATE
+    if (act===2){ var u=document.getElementById('umap-wrap'); if (u && atoms.indexOf(u)>=0) return u; }
+    if (act===3){ var hk=find(function(a){ return isGenuinePlot(a) && /n̂\s*=/.test(txt(a)); }); if (hk) return hk; }
+    if (act===5){ var h1=find(function(a){ return isGenuinePlot(a) && /H₁/.test(txt(a)); }); if (h1) return h1; }
+    return find(function(a){ return isGenuinePlot(a) && isFull(a); })
+        || find(isGenuinePlot)
+        || find(function(a){ return a.querySelector && a.querySelector('table,iframe'); });
+  }
+
+  function makeLabBtn(act, count){
+    var b=document.createElement('button');
+    b.type='button'; b.className='act-lab-btn'; b.setAttribute('data-act',act); b.setAttribute('aria-expanded','false');
+    b.innerHTML='<span class="lab-caret">▸</span><span class="lab-title">open the lab</span><span class="lab-count">'+count+' more</span>';
+    b.addEventListener('click', function(){ toggleAct(act, b); });
+    return b;
+  }
+  function renderSoon(){
+    // resize ONLY the displayed charts in opened labs — never a global resize
+    // event (the base resize-all loop throws on the many display:none folds).
+    [120,500,950].forEach(function(t){ setTimeout(function(){
+      if (!window.Plotly) return;
+      document.querySelectorAll('.spine-open .js-plotly-plot').forEach(function(gd){
+        // only nudge ALREADY-rendered charts; brand-new ones render via the base
+        // IntersectionObserver and would async-throw if resized mid-layout.
+        if (gd.offsetParent!==null && gd.querySelector('.main-svg')){ try{ window.Plotly.Plots.resize(gd); }catch(e){} }
+      });
+    }, t); });
+  }
+  function toggleAct(act, btn){
+    var open = btn.getAttribute('aria-expanded')==='true';
+    var mods=document.querySelectorAll('.spine-fold[data-spine-act="'+act+'"]');
+    var grids={};
+    mods.forEach(function(m){
+      m.classList.toggle('spine-open', !open);
+      var g=m.closest('.grid'); if (g) grids[g.__sid||(g.__sid=Math.random())]=g;
+    });
+    Object.keys(grids).forEach(function(k){ grids[k].classList.toggle('spine-opengrid', !open); });
+    btn.setAttribute('aria-expanded', open?'false':'true');
+    var t=btn.querySelector('.lab-title'); if (t) t.textContent = open?'open the lab':'close the lab';
+    if (!open) renderSoon();
+  }
+
+  function build(){
+    if (document.body.classList.contains('spine-on')) return; // idempotent
+    var heads=[].slice.call(document.querySelectorAll('header[id^="act-"]'));
+    if (!heads.length) return;
+    var foldedAny=false;
+
+    heads.forEach(function(h){
+      var act=parseInt((h.id.match(/\d+/)||['0'])[0],10);
+      var atoms=collectAtoms(h);
+      if (atoms.length < 4) return;
+      var plots=atoms.filter(isGenuinePlot);
+      if (plots.length < 2) return;
+      var hero=chooseHero(act, atoms);
+      if (!hero) return;
+
+      hero.classList.add('spine-keep');
+      var hg=hero.closest('.grid'); if (hg) hg.classList.add('spine-herogrid');
+      var introTldr=null;
+      for (var i=0;i<atoms.length;i++){ if (atoms[i].matches && atoms[i].matches('.section-tldr')){ introTldr=atoms[i]; break; } }
+      if (introTldr) introTldr.classList.add('spine-keep');
+
+      var foldCount=0;
+      atoms.forEach(function(a){
+        if (a===hero || a===introTldr) return;
+        if (a.tagName==='STYLE'||a.tagName==='SCRIPT') return;
+        a.classList.add('spine-fold'); a.setAttribute('data-spine-act', act); foldCount++;
+      });
+      if (foldCount < 1){ hero.classList.remove('spine-keep'); return; }
+
+      var anchor = hg || hero;
+      anchor.parentNode.insertBefore(makeLabBtn(act, foldCount), anchor.nextSibling);
+      foldedAny=true;
+    });
+
+    if (!foldedAny) return;
+    document.body.classList.add('spine-on');
+
+    // Default to the spine (story) on first visit; otherwise honour the saved pref.
+    var pref=null; try{ pref=localStorage.getItem(STORE_KEY); }catch(e){}
+    if (pref===null){
+      document.body.classList.add('story-only');
+      try{ localStorage.setItem(STORE_KEY,'1'); }catch(e){}
+      var sb=document.getElementById('story-toggle');
+      if (sb){ sb.setAttribute('aria-pressed','true'); sb.textContent='FULL VIEW'; }
+      document.querySelectorAll('.pace-opt').forEach(function(o){ o.classList.toggle('is-active', o.getAttribute('data-mode')==='story'); });
+    }
+  }
+
+  function start(){ try{ build(); }catch(e){ /* spine is non-fatal */ } }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,500); });
+  else setTimeout(start,500);
+})();
+</script>
+<!--APPLE-SPINE-JS-END-->
+<!--APPLE-AUDIO-CSS-START-->
+<style id="apple-audio-css">
+/* design session: coexist restyle of the audio UI to the frosted Apple look.
+   Overrides colour/position only — never display/flex/logic. The audio injectors
+   own these elements; flagged in COORDINATION. Targets #18 audio selectors. */
+
+/* 1. move the one-time "tap to play" soundtrack prompt OUT of the chart area
+      (it was fixed mid-lower viewport, z-99999, covering hero charts). */
+#first-tap-overlay{ top:auto !important; bottom:88px !important; }
+@media (max-width:480px){ #first-tap-overlay{ bottom:100px !important; max-width:86vw !important; } }
+
+/* 2. unify the persistent audio controls as frosted glass (Apple panels) */
+#global-mute-pill,
+#sc-now,
+#sc-enable,
+#first-tap-overlay{
+  background:rgba(18,18,22,.62) !important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.3) !important;
+  backdrop-filter:blur(18px) saturate(1.3) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  box-shadow:0 8px 30px rgba(0,0,0,.34) !important;
+}
+#global-mute-pill:hover{ border-color:rgba(255,255,255,.28) !important; }
+#sc-now:hover{ border-color:rgba(255,255,255,.24) !important; }
+/* keep the progress ring legible on the frosted pill */
+.sa-ring circle{ stroke:rgba(255,255,255,.55) !important; }
+</style>
+<script id="apple-audio-js">
+(function(){
+  if (window.__appleAudioUX) return; window.__appleAudioUX = true;
+  // The "tap for soundtrack" prompt persists until a tap and otherwise sits over
+  // content while you read. Audio arming is a document-level click listener
+  // (independent of this prompt), so dismissing the prompt on scroll keeps audio
+  // working — it just gets out of the way. Reuses the audio block's own fade class.
+  function armDismissOnScroll(){
+    var fired=false;
+    function onScroll(){
+      if (fired) return;
+      if ((window.pageYOffset||document.documentElement.scrollTop||0) < 320) return;
+      var el=document.getElementById('first-tap-overlay');
+      if (el && /fto-visible/.test(el.className) && !/fto-dismissing/.test(el.className)){
+        fired=true;
+        el.classList.add('fto-dismissing');
+        setTimeout(function(){ if(el&&el.parentNode&&/fto-dismissing/.test(el.className)) el.style.display='none'; }, 360);
+        window.removeEventListener('scroll', onScroll);
+      }
+    }
+    window.addEventListener('scroll', onScroll, {passive:true});
+  }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(armDismissOnScroll, 1500); });
+  else setTimeout(armDismissOnScroll, 1500);
+})();
+</script>
+<!--APPLE-AUDIO-CSS-END-->
+<!--APPLE-FINDINGS-START-->
+<style id="apple-findings-css">
+.field-notes{ max-width:var(--maxw,960px); margin:3.2rem auto 1rem; padding:0 1.1rem; }
+.field-notes .fn-head{
+  font:600 .8rem/1.3 var(--mono,'JetBrains Mono','SF Mono',monospace);
+  letter-spacing:.14em;text-transform:uppercase;color:var(--accent,#21f6bc);
+  display:flex;align-items:center;gap:.6rem;margin:0 0 .35rem;
+}
+.field-notes .fn-head::after{ content:"";flex:1;height:1px;background:var(--hair,rgba(255,255,255,.12)); }
+.field-notes .fn-sub{
+  font:400 .96rem/1.5 var(--sans,system-ui,-apple-system,sans-serif);
+  color:var(--ink-2,rgba(255,255,255,.66));margin:0 0 1.3rem;max-width:64ch;letter-spacing:-.01em;
+}
+.field-notes .fn-grid{ display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem; }
+.field-notes .fn-card{
+  background:rgba(255,255,255,.035);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);
+  border:1px solid var(--hair,rgba(255,255,255,.10));border-radius:16px;
+  padding:1.15rem 1.15rem 1.25rem;display:flex;flex-direction:column;gap:.5rem;
+  transition:border-color .25s ease,background .25s ease,transform .25s ease;
+}
+.field-notes .fn-card:hover{ border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.055);transform:translateY(-2px); }
+.field-notes .fn-stat{
+  font:600 1.7rem/1.05 var(--mono,'JetBrains Mono','SF Mono',monospace);
+  letter-spacing:-.02em;color:var(--ink-1,#fff);font-variant-numeric:tabular-nums;
+}
+.field-notes .fn-label{
+  font:600 .72rem/1.3 var(--sans,system-ui,-apple-system,sans-serif);
+  letter-spacing:.02em;text-transform:uppercase;color:var(--accent,#21f6bc);opacity:.92;
+}
+.field-notes .fn-body{
+  font:400 .86rem/1.5 var(--sans,system-ui,-apple-system,sans-serif);
+  color:var(--ink-2,rgba(255,255,255,.7));letter-spacing:-.005em;margin:0;
+}
+@media (max-width:900px){ .field-notes .fn-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:520px){ .field-notes .fn-grid{ grid-template-columns:1fr; } .field-notes{ margin-top:2.4rem; } }
+</style>
+<script id="apple-findings-js">
+(function(){
+  if (window.__appleFindings) return; window.__appleFindings = true;
+  var CARDS=[
+    {stat:'39% → 8%', label:'choose, then ride', body:'Tap-rate at song 1 vs song 3 of a session. I pick the opener and let autoplay carry the rest — deliberate choice peaks in the evening (~18–19h, 1.8×).'},
+    {stat:'~16%', label:'the shadow of taste', body:'of my listening is tolerated, not chosen — high-exposure artists I almost never tap. Aversion lives at the artist level, not the genre level.'},
+    {stat:'18-day', label:'replay runs hot, then cold', body:'half-life on replays: 73% are binge-then-drop. A track I can’t stop playing now, I’ll most likely have set down within three weeks.'},
+    {stat:'64% vs 11%', label:'skips travel in packs', body:'After one skip, the next is 64% likely (vs an 11% baseline). Skipping isn’t noise — it’s goal-directed searching for the right next track.'}
+  ];
+  function build(){
+    if (document.querySelector('.field-notes')) return;
+    var act1=document.getElementById('act-1');
+    if (!act1 || !act1.parentNode) return;
+    var sec=document.createElement('section');
+    sec.className='field-notes';
+    var grid='';
+    CARDS.forEach(function(c){
+      grid+='<div class="fn-card"><div class="fn-stat">'+c.stat+'</div>'
+        +'<div class="fn-label">'+c.label+'</div>'
+        +'<p class="fn-body">'+c.body+'</p></div>';
+    });
+    sec.innerHTML='<div class="fn-head">field notes</div>'
+      +'<p class="fn-sub">Four out of five plays just happen — only 19.1% involve any action from me, 11.5% a truly deliberate choice. Here is what the rest of the receipts showed about how I actually listen.</p>'
+      +'<div class="fn-grid">'+grid+'</div>';
+    act1.parentNode.insertBefore(sec, act1);
+  }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', build);
+  else build();
+})();
+</script>
+<!--APPLE-FINDINGS-END-->
 </body>
 </html>
