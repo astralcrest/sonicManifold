@@ -650,35 +650,30 @@ document.addEventListener('keydown', function(e) {
 <!--APPLE-BOLD-CSS-END-->
 <!--APPLE-SPINE-CSS-START-->
 <style id="apple-spine-css">
-/* ---- sonicManifold spine v4 ---- the "story" mode = one hero per act + folded
-   labs. Reuses body.story-only (existing pace control + nav toggle) and REDEFINES
-   it from the old skeleton (no charts) into the spine. The base story-only rules
-   use display:none/block !important, so these overrides carry an html prefix to
-   win on specificity. Grid visibility uses JS-applied classes (no :has dep). */
+/* ---- sonicManifold spine v4 ---- "story" mode = fold the heavy acts (one hero
+   each) but show everything else in full. The base `body.story-only` CSS hides
+   ALL panels/grids/tables (the old skeleton); the spine inverts that: NEUTRALISE
+   the base hide, then hide ONLY the atoms the spine folded. html-prefix beats the
+   base `!important`. */
 
-/* heroes + the act-intro tl;dr stay visible (override base "hide all panels") */
-html body.story-only .spine-keep{ display:block !important; grid-column:1 / -1 !important; }
-html body.story-only .spine-keep.panel.half{ max-width:none !important; }
-html body.story-only .spine-keep .js-plotly-plot,
-html body.story-only .spine-keep .plotly-graph-div,
-html body.story-only .spine-keep svg,
-html body.story-only .spine-keep table{ display:block !important; }
-/* the grid that holds a hero must show (base hides all grids) */
-html body.story-only .grid.spine-herogrid{ display:grid !important; }
-/* fold everything else in the act (incl. sub-headers / sub-tl;drs the base shows) */
+/* 1. neutralise the base skeleton hide — show charts/tables/grids again */
+html body.story-only .panel{ display:block !important; }
+html body.story-only .grid:not(.tldr-grid){ display:grid !important; }
+html body.story-only .table-panel{ display:block !important; }
+html body.story-only table{ display:table !important; }
+html body.story-only .plotly-graph-div{ display:block !important; }
+html body.story-only details:not(.about-dash){ display:block !important; }
+
+/* 2. fold: hide the spine's folded atoms (panels, sub-headers, tl;drs). This
+   out-specifies the re-show rules above so folded content stays hidden. */
 html body.story-only .spine-fold:not(.spine-open){ display:none !important; }
-/* reserve hero height so a not-yet-lazy-rendered chart leaves no void */
-html body.story-only .spine-keep{ min-height:300px; }
 
-/* revealed lab: show the atoms + their charts despite the base skeleton hide */
-html body.story-only .spine-fold.spine-open{ display:block !important; }
-html body.story-only .grid.spine-opengrid{ display:grid !important; }
-html body.story-only .spine-open .js-plotly-plot,
-html body.story-only .spine-open .plotly-graph-div,
-html body.story-only .spine-open svg,
-html body.story-only .spine-open table,
-html body.story-only .spine-open.panel,
-html body.story-only .spine-open.table-panel{ display:revert !important; }
+/* 3. the kept hero spans the full content column even if it was a half panel */
+html body.story-only .spine-keep{ grid-column:1 / -1 !important; min-height:300px; }
+html body.story-only .spine-keep.panel.half{ max-width:none !important; }
+
+/* 4. revealed lab atoms come back */
+html body.story-only .spine-fold.spine-open{ display:revert !important; }
 .spine-fold.spine-open{ animation:spineReveal .35s ease both; }
 @keyframes spineReveal{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
 
@@ -11859,8 +11854,12 @@ try {
       var tag=n.tagName;
       if (tag==='STYLE'||tag==='SCRIPT'||tag==='LINK'){ n=n.nextElementSibling; continue; }
       if (n.matches && n.matches('.grid')){
+        // explode a grid into atoms: its chart modules AND its sub-headings/tldrs
+        // (so a folded sub-section header never orphans above hidden content)
         var added=false, ch=n.children;
-        for (var i=0;i<ch.length;i++){ if (ch[i].matches && ch[i].matches(MODULE_SEL)){ atoms.push(ch[i]); added=true; } }
+        for (var i=0;i<ch.length;i++){
+          if (ch[i].matches && (ch[i].matches(MODULE_SEL) || ch[i].matches('h2,h3,h4,header,.sect-h,.sect-tldr,.section-tldr'))){ atoms.push(ch[i]); added=true; }
+        }
         if (!added) atoms.push(n);
       } else { atoms.push(n); }
       n=n.nextElementSibling;
@@ -11900,13 +11899,7 @@ try {
   }
   function toggleAct(act, btn){
     var open = btn.getAttribute('aria-expanded')==='true';
-    var mods=document.querySelectorAll('.spine-fold[data-spine-act="'+act+'"]');
-    var grids={};
-    mods.forEach(function(m){
-      m.classList.toggle('spine-open', !open);
-      var g=m.closest('.grid'); if (g) grids[g.__sid||(g.__sid=Math.random())]=g;
-    });
-    Object.keys(grids).forEach(function(k){ grids[k].classList.toggle('spine-opengrid', !open); });
+    document.querySelectorAll('.spine-fold[data-spine-act="'+act+'"]').forEach(function(m){ m.classList.toggle('spine-open', !open); });
     btn.setAttribute('aria-expanded', open?'false':'true');
     var t=btn.querySelector('.lab-title'); if (t) t.textContent = open?'open the lab':'close the lab';
     if (!open) renderSoon();
@@ -11928,7 +11921,6 @@ try {
       if (!hero) return;
 
       hero.classList.add('spine-keep');
-      var hg=hero.closest('.grid'); if (hg) hg.classList.add('spine-herogrid');
       var introTldr=null;
       for (var i=0;i<atoms.length;i++){ if (atoms[i].matches && atoms[i].matches('.section-tldr')){ introTldr=atoms[i]; break; } }
       if (introTldr) introTldr.classList.add('spine-keep');
@@ -11941,7 +11933,7 @@ try {
       });
       if (foldCount < 1){ hero.classList.remove('spine-keep'); return; }
 
-      var anchor = hg || hero;
+      var anchor = hero.closest('.grid') || hero;
       anchor.parentNode.insertBefore(makeLabBtn(act, foldCount), anchor.nextSibling);
       foldedAny=true;
     });
@@ -12164,5 +12156,85 @@ try {
 })();
 </script>
 <!--APPLE-SOUNDTRACK-END-->
+<!--APPLE-POLISH2-CSS-START-->
+<style id="apple-polish2-css">
+/* method-lines had a fixed height; long methodology text spilled / collided. */
+html body .method-line{ height:auto !important; max-height:none !important; -webkit-line-clamp:none !important; overflow:visible !important; }
+/* desktop legibility: small captions / sub-labels / backrefs were 10–12px */
+.fig-caption{ font-size:12.5px !important; line-height:1.55 !important; }
+.sub{ font-size:12.75px !important; }
+.back-refs{ font-size:11px !important; }
+/* centre the day-streak (scrolly) sparkline in its column */
+.scrolly-chart{ text-align:center; }
+.scrolly-chart svg{ display:block; margin:0 auto; }
+/* glossary tooltip: never eat the cursor, and don't flash on an accidental pass-over */
+.term-tip::after, .term-tip::before{ pointer-events:none !important; }
+.term-tip:hover::after, .term-tip:focus::after,
+.term-tip:hover::before, .term-tip:focus::before{ transition-delay:220ms !important; }
+</style>
+<!--APPLE-POLISH2-CSS-END-->
+<!--APPLE-POLISH2-JS-START-->
+<script id="apple-polish2-js">
+(function(){
+  if (window.__applePolish2) return; window.__applePolish2 = true;
+
+  // (a) GENRE FAMILIES treemap (#fig-52) renders blank: branchvalues:'total' but a
+  // parent value sits ~1e-4 below its children's sum (float rounding) → Plotly
+  // drops the trace. Bump any offending parent to its children's sum, then re-render.
+  function fixTreemaps(){
+    if (!window.Plotly) return;
+    document.querySelectorAll('.js-plotly-plot').forEach(function(gd){
+      if (!gd.data || !gd.data.length) return;
+      gd.data.forEach(function(tr, ti){
+        if ((tr.type!=='treemap' && tr.type!=='sunburst') || tr.branchvalues!=='total' || !tr.values) return;
+        if (tr.__spineTreemapFixed) return;
+        var ids = tr.ids || tr.labels; if (!ids) return;
+        var parents = tr.parents || [], sumKids={};
+        for (var i=0;i<ids.length;i++){ var p=parents[i]; if (p!=null && p!=='') sumKids[p]=(sumKids[p]||0)+(+tr.values[i]||0); }
+        var nv=tr.values.slice(), changed=false;
+        for (var j=0;j<ids.length;j++){
+          var ks=sumKids[ids[j]]; if (ks!=null && ks>(+nv[j]||0)){ nv[j]=ks*1.0000005; changed=true; }
+        }
+        if (changed){
+          tr.__spineTreemapFixed=true;
+          // restyle with a fresh array forces a real re-render (react diffs by ref)
+          try{ window.Plotly.restyle(gd, {values:[nv]}, [ti]); }catch(e){}
+        }
+      });
+    });
+  }
+
+  // (b) SKIP PREDICTORS (#fig-25) legend overlaps a subplot title — move it below.
+  function fixLegend25(){
+    if (!window.Plotly) return;
+    var p=document.querySelector('#fig-25 .js-plotly-plot');
+    if (p && p.layout){ try{ window.Plotly.relayout(p, {'legend.orientation':'h','legend.x':0.5,'legend.xanchor':'center','legend.y':-0.16,'legend.yanchor':'top'}); }catch(e){} }
+  }
+
+  // (c) Glossary "↩ used in:" backrefs show the same label twice (distinct figs,
+  // identical link text). Collapse to unique labels so it doesn't read as a dupe.
+  function dedupeBackrefs(){
+    document.querySelectorAll('.back-refs').forEach(function(box){
+      var seen={};
+      [].slice.call(box.querySelectorAll('a')).forEach(function(a){
+        var key=(a.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+        if (!key) return;
+        if (seen[key]){
+          var sib=a.nextSibling;
+          if (sib && sib.nodeType===3 && /^[\s,·•/|]+$/.test(sib.textContent)) sib.parentNode.removeChild(sib);
+          else { var prev=a.previousSibling; if (prev && prev.nodeType===3 && /^[\s,·•/|]+$/.test(prev.textContent)) prev.parentNode.removeChild(prev); }
+          a.parentNode.removeChild(a);
+        } else seen[key]=1;
+      });
+    });
+  }
+
+  function run(){ try{fixTreemaps();}catch(e){} try{fixLegend25();}catch(e){} try{dedupeBackrefs();}catch(e){} }
+  window.addEventListener('sonic:plotly-rendered', function(){ setTimeout(run, 80); });
+  function schedule(){ [1500,3500,6500].forEach(function(t){ setTimeout(run,t); }); }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', schedule); else schedule();
+})();
+</script>
+<!--APPLE-POLISH2-JS-END-->
 </body>
 </html>
