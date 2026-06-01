@@ -12905,54 +12905,6 @@ html body nav.cyber-nav .story-toggle[aria-pressed="true"]{
 })();
 </script>
 <!--APPLE-ZOOM-END-->
-<!--APPLE-SONIFYKEY-START-->
-<script id="apple-sonifykey-js">
-(function(){
-  if (window.__appleSonifyKey) return; window.__appleSonifyKey = true;
-  // Key the hover-sonify scale to whatever bed track is playing. Each Suno track's
-  // key was detected from its audio (chroma + Krumhansl-Schmuckler). The SONIFY
-  // engine reads window.__sonifyKey (set dynamic via sonify.py) + a 'sonify:rekey'
-  // event. major tracks → major scale; minor tracks → Dorian (Karaharapriya, the
-  // default raga). Base freqs sit in a ~1-octave band around D3 (146.83).
-  var MAJ=[0,2,4,5,7,9,11], DOR=[0,2,3,5,7,9,10];
-  // keyword (matched in the now-playing label) -> {hz: root in octave near D3, degs}
-  var KEYS=[
-    {kw:'antares',      hz:116.54, degs:MAJ},  // A# maj
-    {kw:'brain',        hz:174.61, degs:MAJ},  // F maj
-    {kw:'edge',         hz:110.00, degs:DOR},  // A min
-    {kw:'black hole',   hz:110.00, degs:DOR},
-    {kw:'fruititarian', hz:123.47, degs:DOR},  // B min
-    {kw:'hooked',       hz:123.47, degs:DOR},  // B min
-    {kw:'mask',         hz:174.61, degs:MAJ},  // F maj (no masks ad infinitum)
-    {kw:'novelday',     hz:116.54, degs:DOR},  // A# min
-    {kw:'stochastic',   hz:164.81, degs:MAJ},  // E maj
-    {kw:'rainbow',      hz:164.81, degs:MAJ},
-    {kw:'fiery',        hz:146.83, degs:DOR}   // D min (= the default register)
-  ];
-  function rekeyFrom(label){
-    var t=(label||'').toLowerCase();
-    var hit=null;
-    for (var i=0;i<KEYS.length;i++){ if (t.indexOf(KEYS[i].kw)>=0){ hit=KEYS[i]; break; } }
-    if (hit){ window.__sonifyKey={hz:hit.hz, degs:hit.degs}; }
-    else { window.__sonifyKey=null; } // ambient / unknown → engine default (D Dorian)
-    try{ window.dispatchEvent(new Event('sonify:rekey')); }catch(e){}
-  }
-  function start(){
-    var el=document.getElementById('sc-now-label');
-    if (!el){ setTimeout(start, 1200); return; }
-    rekeyFrom(el.textContent);
-    try{
-      var mo=new MutationObserver(function(){ rekeyFrom(el.textContent); });
-      mo.observe(el, {childList:true, characterData:true, subtree:true});
-    }catch(e){
-      setInterval(function(){ rekeyFrom(el.textContent); }, 3000); // fallback
-    }
-  }
-  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,1500); });
-  else setTimeout(start,1500);
-})();
-</script>
-<!--APPLE-SONIFYKEY-END-->
 <!--APPLE-AUDIODUCK-START-->
 <script id="apple-audioduck-js">
 (function(){
@@ -13512,5 +13464,393 @@ html body .term-tip{ cursor:help; }
 })();
 </script>
 <!--APPLE-CHARTPATCH-END-->
+<!--APPLE-INTERACT-START-->
+<style id="apple-interact-css">
+/* ===== APPLE-INTERACT: additive interactivity layer ===== */
+
+/* --- G12: clickable artist affordance for plotly artist points (cursor only; sonify already lives on these) --- */
+.js-plotly-plot.ai-artist-clickable .nsewdrag,
+.js-plotly-plot.ai-artist-clickable .points path { cursor: pointer; }
+
+/* --- Listener-embedding / UMAP search: lift the search row + dropdown above the figure (incl. WebGL canvas) --- */
+#umap-search-row { position: relative; z-index: 200; }
+#umap-suggest { z-index: 9999 !important; }
+/* the selected-artist card and tip should also clear the figure */
+#umap-wrap .umap-card { z-index: 9000 !important; }
+#umap-wrap .umap-tip  { z-index: 8000 !important; }
+
+/* --- UMAP: bigger, friendlier close/deselect on the artist card --- */
+#umap-wrap .umap-card .close{
+  font-size: 18px !important;
+  line-height: 1 !important;
+  width: 26px !important;
+  height: 26px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  cursor: pointer;
+  opacity: .72;
+  transition: opacity .15s ease, background .15s ease;
+}
+#umap-wrap .umap-card .close:hover{
+  opacity: 1;
+  background: rgba(255,255,255,.12);
+}
+
+/* --- UMAP: explicit "clear selection" pill (only shown while an artist is selected) --- */
+#ai-umap-deselect{
+  position: absolute;
+  z-index: 8500;
+  display: none;
+  padding: 5px 11px;
+  font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .04em;
+  color: #eaeaf0;
+  background: rgba(18,18,26,.82);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background .15s ease, border-color .15s ease;
+}
+#ai-umap-deselect:hover{
+  background: rgba(40,40,56,.92);
+  border-color: rgba(255,255,255,.34);
+}
+#ai-umap-deselect.is-on{ display: inline-block; }
+
+/* --- UMAP: keep the controls cluster from colliding with the modebar; give it a subtle backing so it reads over the plot --- */
+#umap-controls{
+  z-index: 40 !important;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+#umap-controls .umap-ctrl-btn{ cursor: pointer; }
+</style>
+
+<script id="apple-interact-js">
+(function(){
+  "use strict";
+  if (window.__appleInteractWired) return;
+  window.__appleInteractWired = true;
+
+  var SA = function(){ return window.__sonicAudio; };
+  var SPOTIFY_ID_RE = /^[0-9A-Za-z]{22}$/;
+
+  function isSpotifyId(v){ return typeof v === "string" && SPOTIFY_ID_RE.test(v); }
+
+  function lookupHit(s){ var sa = SA(); return (sa && sa.lookup && s) ? sa.lookup(s) : null; }
+
+  // <br>/<b>-aware: first clean token of a plotly label (drops "159 hours", genre tags, second artist)
+  function cleanArtistText(s){
+    if (s == null) return "";
+    var t = String(s).replace(/<br\s*\/?>/gi, "\n");  // plotly line breaks -> newline
+    t = t.split(/\r?\n/)[0];                           // first line only
+    t = t.replace(/<[^>]+>/g, " ");                    // drop remaining tags
+    t = t.replace(/&amp;/g,"&").replace(/&#177;/g,"±").replace(/&apos;/g,"'");
+    t = t.split("·")[0];                               // "Artist · Artist" -> first
+    t = t.replace(/\s+/g," ").trim();
+    return t;
+  }
+
+  // From a plotly clicked point, derive {tid, artist}. Only returns when it looks like a genuine artist.
+  function resolveFromPoint(pt){
+    if (!pt) return null;
+    var artist = "", tid = "";
+    var cd = pt.customdata;
+    if (Array.isArray(cd)){
+      // find an explicit spotify id anywhere in customdata
+      for (var i=0;i<cd.length;i++){ if (isSpotifyId(cd[i])) { tid = cd[i]; break; } }
+      // artist heuristic: [0] is the artist in our artist plots; [1] is the artist in track plots.
+      // prefer whichever resolves to a *real artist* (genre tags also resolve, so check that first).
+      var c0 = cleanArtistText(cd[0]);
+      var c1 = cd.length>1 ? cleanArtistText(cd[1]) : "";
+      var h0 = lookupHit(c0), h1 = lookupHit(c1);
+      if (c0 && h0 && h0.tid && !h0.sub) artist = c0;        // c0 is a known *artist* (no subgenre/family/ghost tag)
+      else if (c1 && h1 && h1.tid && !h1.sub) artist = c1;   // c1 is a known *artist* (track plots)
+      else if (c0) artist = c0;                              // best guess (artist slot)
+      else if (c1) artist = c1;
+    } else if (isSpotifyId(cd)) {
+      tid = cd;
+    }
+    // fall back to point text / hovertext: prefer a <b>bold</b> token that resolves to an artist
+    if (!artist){
+      var txt = pt.text || pt.hovertext;
+      if (Array.isArray(txt)) txt = txt[0];
+      var raw = String(txt || "");
+      var bolds = [], m, re = /<b>([\s\S]*?)<\/b>/gi;
+      while ((m = re.exec(raw))) bolds.push(cleanArtistText(m[1]));
+      var hitB = null;
+      // first pass: a bold whose cleaned text *exactly* equals its lookup label (precise artist name,
+      // avoids fuzzy/partial hits like "cluster cube36_cluster0" -> "cluster")
+      for (var b=0;b<bolds.length;b++){
+        var hb = lookupHit(bolds[b]);
+        if (hb && hb.tid && !hb.sub && hb.label && hb.label.toLowerCase() === bolds[b].toLowerCase()){ hitB = bolds[b]; break; }
+      }
+      // second pass: any bold that resolves to a real artist
+      if (!hitB){ for (var b2=0;b2<bolds.length;b2++){ var hb2 = lookupHit(bolds[b2]); if (hb2 && hb2.tid && !hb2.sub){ hitB = bolds[b2]; break; } } }
+      artist = hitB || cleanArtistText(raw);
+    }
+    if (!artist && !tid) return null;
+    return { tid: tid, artist: artist };
+  }
+
+  // Play an artist/track: prefer explicit tid, else resolve via lookup, else open Spotify search.
+  // Guard: never open a search tab for a non-artist label (stat boxes, axis values, etc).
+  function playArtist(info){
+    var sa = SA();
+    if (!sa) return false;
+    var tid = info.tid, artist = info.artist || "";
+    var hit = (!tid && artist) ? lookupHit(artist) : null;
+    if (hit && hit.tid) tid = hit.tid;
+    if (tid){
+      try { sa.clickPlay(tid, artist, artist); return true; } catch(e){}
+    }
+    // fallback search ONLY when the label is a recognised artist (avoids spurious tabs for stat labels)
+    if (artist && hit){
+      try { window.open("https://open.spotify.com/search/" + encodeURIComponent(artist), "_blank", "noopener"); return true; } catch(e){}
+    }
+    return false;
+  }
+
+  // shared click handler (one fn reference so we can detect/re-attach after plotly re-renders)
+  var _lastFire = 0;
+  function onArtistPlotClick(ev){
+    if (!ev || !ev.points || !ev.points.length) return;
+    var now = Date.now();
+    if (now - _lastFire < 350) return;          // de-dupe rapid double events
+    var info = resolveFromPoint(ev.points[0]);
+    if (!info) return;
+    _lastFire = now;
+    playArtist(info);                            // sonify still fires its own note in parallel
+  }
+
+  function plotHasArtistLabels(gd){
+    var data = gd.data || [];
+    for (var t=0;t<data.length;t++){
+      var tr = data[t];
+      var cd = tr.customdata, tx = tr.text, ht = tr.hovertext;
+      if (Array.isArray(cd) && cd.length){
+        var sample = cd.find(function(x){ return x!=null; });
+        if (Array.isArray(sample) && sample.some(isSpotifyId)) return true;
+        if (Array.isArray(sample) && sample.some(function(x){ return SA() && SA().lookup && typeof x==="string" && SA().lookup(cleanArtistText(x)); })) return true;
+      }
+      if ((Array.isArray(tx) && tx.length) || (Array.isArray(ht) && ht.length)){
+        var s = (Array.isArray(tx)?tx:ht).find(function(x){ return x!=null && x!==""; });
+        var cleaned = cleanArtistText(s);
+        if (cleaned && SA() && SA().lookup && SA().lookup(cleaned)) return true;
+      }
+    }
+    return false;
+  }
+
+  // is our handler currently attached? (plotly re-renders can drop listeners while the node persists)
+  function handlerAttached(gd){
+    try {
+      var ev = gd._ev && gd._ev._events && gd._ev._events.plotly_click;
+      if (!ev) return false;
+      if (typeof ev === "function") return ev === onArtistPlotClick;
+      if (Array.isArray(ev)) return ev.indexOf(onArtistPlotClick) !== -1;
+      return false;
+    } catch(e){ return false; }
+  }
+
+  // ---- G12: wire artist-labeled plotly figures (coexists with sonify; one clickPlay per click) ----
+  function wirePlot(gd){
+    if (!gd || typeof gd.on !== "function") return;
+    if (gd.__aiArtistWired && handlerAttached(gd)) return;  // already wired & listener intact
+    if (!gd.__aiArtistWanted){                              // decide once whether this plot has artist labels
+      if (!plotHasArtistLabels(gd)) { gd.__aiArtistChecked = true; return; }
+      gd.__aiArtistWanted = true;
+    }
+    gd.__aiArtistWired = true;
+    gd.classList.add("ai-artist-clickable");
+    if (!handlerAttached(gd)) gd.on("plotly_click", onArtistPlotClick);  // (re)attach
+  }
+
+  function wireAllPlots(){
+    document.querySelectorAll(".js-plotly-plot").forEach(wirePlot);
+  }
+
+  // ---- UMAP: legend reposition + deselect affordances ----
+  function getUmapFig(){ return document.getElementById("interactive-umap-fig"); }
+
+  function moveLegendBelowControls(){
+    var fig = getUmapFig();
+    if (!fig || !window.Plotly || !fig.layout) return;
+    if (fig.__aiLegendMoved) return;
+    var lg = fig.layout.legend || {};
+    // only relayout if it isn't already low enough
+    if (lg.y == null || lg.y > 0.85){
+      try {
+        window.Plotly.relayout(fig, {
+          "legend.y": 0.80, "legend.yanchor": "top",
+          "legend.x": 1.02, "legend.xanchor": "left"
+        });
+      } catch(e){}
+    }
+    fig.__aiLegendMoved = true;
+  }
+
+  function umapCard(){ return document.querySelector("#umap-wrap .umap-card"); }
+  function cardOpen(){ var c = umapCard(); return !!(c && getComputedStyle(c).display !== "none"); }
+
+  function deselectUmap(){
+    var c = umapCard();
+    if (c) c.style.display = "none";
+    try { if (window.__sonicUmap && window.__sonicUmap.resetPoint) window.__sonicUmap.resetPoint(); } catch(e){}
+    hideDeselectPill();
+  }
+
+  var pill = null;
+  function ensurePill(){
+    if (pill && document.body.contains(pill)) return pill;
+    var host = document.getElementById("umap-controls") || document.getElementById("umap-wrap");
+    if (!host) return null;
+    pill = document.getElementById("ai-umap-deselect");
+    if (!pill){
+      pill = document.createElement("button");
+      pill.id = "ai-umap-deselect";
+      pill.type = "button";
+      pill.textContent = "× clear artist";
+      pill.title = "deselect artist (or press Esc / double-click empty space)";
+      pill.addEventListener("click", function(e){ e.preventDefault(); deselectUmap(); });
+      // place just under the controls cluster, inside the relatively-positioned wrap
+      var wrap = document.getElementById("umap-wrap");
+      var ctrl = document.getElementById("umap-controls");
+      if (wrap){
+        wrap.appendChild(pill);
+        pill.style.right = "14px";
+        // sit a touch below the controls row
+        pill.style.top = (ctrl ? (ctrl.offsetTop + ctrl.offsetHeight + 8) : 70) + "px";
+      }
+    }
+    return pill;
+  }
+  function showDeselectPill(){ var p = ensurePill(); if (p) p.classList.add("is-on"); }
+  function hideDeselectPill(){ if (pill) pill.classList.remove("is-on"); }
+
+  function wireUmapDeselect(){
+    var fig = getUmapFig();
+    if (!fig || fig.__aiDeselectWired) return;
+    fig.__aiDeselectWired = true;
+
+    // double-click empty space -> deselect (plotly emits this on background dblclick)
+    if (typeof fig.on === "function"){
+      fig.on("plotly_doubleclick", function(){ deselectUmap(); return false; });
+      // show/hide the pill whenever a point is clicked (card opens)
+      fig.on("plotly_click", function(ev){
+        if (ev && ev.points && ev.points.length){
+          setTimeout(function(){ if (cardOpen()) showDeselectPill(); }, 60);
+        }
+      });
+    }
+
+    // Esc anywhere clears the selection when the card is up
+    document.addEventListener("keydown", function(e){
+      if (e.key === "Escape" && cardOpen()) deselectUmap();
+    });
+
+    // keep the pill in sync if the card is closed via its own × button
+    var c = umapCard();
+    if (c && window.MutationObserver){
+      var mo = new MutationObserver(function(){
+        if (!cardOpen()) hideDeselectPill();
+        else showDeselectPill();
+      });
+      mo.observe(c, { attributes: true, attributeFilter: ["style"] });
+    }
+  }
+
+  // ---- bootstrap (idempotent; re-runs safely as plots lazy-render) ----
+  function boot(){
+    if (!SA()) return false;
+    wireAllPlots();
+    moveLegendBelowControls();
+    wireUmapDeselect();
+    return true;
+  }
+
+  // run now + retry while figures lazy-render in
+  var tries = 0;
+  var iv = setInterval(function(){
+    tries++;
+    var fig = getUmapFig();
+    boot();
+    if (fig && fig.__aiDeselectWired && tries > 6) clearInterval(iv);
+    if (tries > 40) clearInterval(iv);
+  }, 700);
+  if (document.readyState === "complete" || document.readyState === "interactive") boot();
+  else document.addEventListener("DOMContentLoaded", boot);
+
+  // re-wire any plots that appear later (lazy render on scroll)
+  if (window.MutationObserver){
+    var pmo = new MutationObserver(function(muts){
+      var touch = false;
+      muts.forEach(function(m){
+        m.addedNodes && m.addedNodes.forEach(function(n){
+          if (n.nodeType === 1 && (n.classList && n.classList.contains("js-plotly-plot") || (n.querySelector && n.querySelector(".js-plotly-plot")))) touch = true;
+        });
+      });
+      if (touch) wireAllPlots();
+    });
+    pmo.observe(document.body, { childList: true, subtree: true });
+  }
+})();
+</script>
+<!--APPLE-INTERACT-END-->
+<!--APPLE-SONIFYKEY-START-->
+<script id="apple-sonifykey-js">
+(function(){
+  if (window.__appleSonifyKey) return; window.__appleSonifyKey = true;
+  // Key the hover-sonify scale to whatever bed track is playing. Each Suno track's
+  // key was detected from its audio (chroma + Krumhansl-Schmuckler). The SONIFY
+  // engine reads window.__sonifyKey (set dynamic via sonify.py) + a 'sonify:rekey'
+  // event. major tracks → major scale; minor tracks → Dorian (Karaharapriya, the
+  // default raga). Base freqs sit in a ~1-octave band around D3 (146.83).
+  // pentatonic (no semitone clashes → forgiving against the backing track even if
+  // the detected key is slightly off; matches Tara's default = D-minor-pentatonic).
+  var MAJ=[0,2,4,7,9], DOR=[0,3,5,7,10];
+  // keyword (matched in the now-playing label) -> {hz: root in octave near D3, degs}
+  var KEYS=[
+    {kw:'antares',      hz:116.54, degs:MAJ},  // A# maj
+    {kw:'brain',        hz:174.61, degs:MAJ},  // F maj
+    {kw:'edge',         hz:110.00, degs:DOR},  // A min
+    {kw:'black hole',   hz:110.00, degs:DOR},
+    {kw:'fruititarian', hz:123.47, degs:DOR},  // B min
+    {kw:'hooked',       hz:123.47, degs:DOR},  // B min
+    {kw:'mask',         hz:174.61, degs:MAJ},  // F maj (no masks ad infinitum)
+    {kw:'novelday',     hz:116.54, degs:DOR},  // A# min
+    {kw:'stochastic',   hz:164.81, degs:MAJ},  // E maj
+    {kw:'rainbow',      hz:164.81, degs:MAJ},
+    {kw:'fiery',        hz:146.83, degs:DOR}   // D min (= the default register)
+  ];
+  function rekeyFrom(label){
+    var t=(label||'').toLowerCase();
+    var hit=null;
+    for (var i=0;i<KEYS.length;i++){ if (t.indexOf(KEYS[i].kw)>=0){ hit=KEYS[i]; break; } }
+    if (hit){ window.__sonifyKey={hz:hit.hz, degs:hit.degs}; }
+    else { window.__sonifyKey=null; } // ambient / unknown → engine default (D Dorian)
+    try{ window.dispatchEvent(new Event('sonify:rekey')); }catch(e){}
+  }
+  function start(){
+    var el=document.getElementById('sc-now-label');
+    if (!el){ setTimeout(start, 1200); return; }
+    rekeyFrom(el.textContent);
+    try{
+      var mo=new MutationObserver(function(){ rekeyFrom(el.textContent); });
+      mo.observe(el, {childList:true, characterData:true, subtree:true});
+    }catch(e){
+      setInterval(function(){ rekeyFrom(el.textContent); }, 3000); // fallback
+    }
+  }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,1500); });
+  else setTimeout(start,1500);
+})();
+</script>
+<!--APPLE-SONIFYKEY-END-->
 </body>
 </html>
