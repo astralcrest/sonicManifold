@@ -11820,7 +11820,7 @@ try {
   }
   if (!patchPlotlyResize()){ var _pt=setInterval(function(){ if (patchPlotlyResize()) clearInterval(_pt); }, 200); setTimeout(function(){ clearInterval(_pt); }, 12000); }
   window.addEventListener('error', function(e){
-    if (e && e.message && /Resize must be passed a displayed plot div/.test(e.message)){
+    if (e && e.message && /Resize must be passed a displayed plot div|went wrong with axis scaling/.test(e.message)){
       e.preventDefault(); e.stopImmediatePropagation(); return true;
     }
   }, true);
@@ -13242,228 +13242,6 @@ html body .term-tip{ cursor:help; }
   }
 })();</script>
 <!--APPLE-TAKEAWAYS-END-->
-<!--APPLE-CHARTPATCH-START-->
-<script id="apple-chartpatch-js">
-(function(){ if(window.__appleChartPatch)return; window.__appleChartPatch=true;
-  var DARK='#0a0118';
-  // NOTE: the document reuses fig-N ids across two namespaces (main lab + radical-science lab),
-  // so panel #fig-N is NOT unique. We key fixes by a stable TITLE signature (data-derived, unique),
-  // falling back to the plot-div id for the few named charts (hp-hr-bar, cp-yearchart, interactive-umap-fig).
-  function R(gd,o){ try{ window.Plotly.relayout(gd,o); }catch(e){} }
-  function S(gd,o,idx){ try{ window.Plotly.restyle(gd,o,idx); }catch(e){} }
-
-  // each fix: idempotent relayout/restyle on the rendered gd
-  var FIXES = {
-
-    // ---- S3 Markov matrix: pull axis titles off the tick labels ----
-    "MARKOV TRANSITION MATRIX": function(gd){
-      R(gd,{ 'xaxis.title.standoff':28, 'yaxis.title.standoff':32, 'xaxis.automargin':true, 'yaxis.automargin':true,
-             'xaxis.tickfont.size':11, 'yaxis.tickfont.size':11, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
-             'margin.b':240 });
-    },
-    // ---- S6 gateway matrices: pull axis titles off ticks ----
-    "GATEWAY MATRIX — log": function(gd){ // top-artist gateway
-      R(gd,{ 'xaxis.title.standoff':30, 'yaxis.title.standoff':34, 'xaxis.automargin':true, 'yaxis.automargin':true,
-             'xaxis.tickfont.size':10, 'yaxis.tickfont.size':10, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-    "SUBGENRE GATEWAY MATRIX": function(gd){
-      R(gd,{ 'xaxis.title':{text:'to subgenre',standoff:30}, 'yaxis.title':{text:'from subgenre',standoff:34},
-             'xaxis.automargin':true, 'yaxis.automargin':true, 'xaxis.tickfont.size':10, 'yaxis.tickfont.size':10,
-             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-    "SUBGENRE TRANSITION MATRIX": function(gd){
-      R(gd,{ 'xaxis.title.standoff':30, 'yaxis.title.standoff':34, 'xaxis.automargin':true, 'yaxis.automargin':true,
-             'xaxis.tickfont.size':10, 'yaxis.tickfont.size':10, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-    "HMM TRANSITION MATRIX": function(gd){
-      R(gd,{ 'xaxis.title.standoff':24, 'yaxis.title.standoff':28, 'xaxis.automargin':true, 'yaxis.automargin':true,
-             'xaxis.tickfont.size':11, 'yaxis.tickfont.size':11, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-    "JENSEN-SHANNON DIST": function(gd){
-      R(gd,{ 'xaxis.title.standoff':16, 'yaxis.title.standoff':16, 'xaxis.automargin':true, 'yaxis.automargin':true,
-             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-    "GRANGER CAUSALITY HEATMAP": function(gd){
-      R(gd,{ 'xaxis.title.standoff':22, 'yaxis.title.standoff':22, 'xaxis.automargin':true, 'yaxis.automargin':true,
-             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-    "CCM CROSS-MAP SKILL": function(gd){
-      R(gd,{ 'xaxis.title.standoff':22, 'yaxis.title.standoff':22, 'xaxis.automargin':true, 'yaxis.automargin':true,
-             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-    "DIURNAL SUBGENRE FINGERPRINT": function(gd){
-      R(gd,{ 'yaxis.automargin':true, 'yaxis.tickfont.size':11, 'xaxis.title.standoff':16, 'margin.l':210,
-             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-    "ARTIST COHORT RETENTION": function(gd){
-      R(gd,{ 'xaxis.automargin':true, 'yaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-    "MONTHLY HEATMAP": function(gd){ R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-    "HOUR × WEEKDAY": function(gd){ R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-    "6 SESSION MODES": function(gd){ R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'xaxis.automargin':true, 'yaxis.automargin':true }); },
-
-    // ---- S2 SKIP PREDICTORS: legend over title -> move below; bump tiny axis fonts ----
-    "SKIP PREDICTORS": function(gd){
-      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center', 'legend.y':-0.16,
-             'legend.yanchor':'top', 'legend.font.size':11, 'margin.t':70, 'margin.b':95,
-             'xaxis.tickfont.size':11, 'xaxis2.tickfont.size':11, 'yaxis2.tickfont.size':11,
-             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-
-    // ---- S8 NETWORK STATS: legend overlaps title -> move below plot, room for glossary annotation ----
-    "NETWORK STATS PER YEAR": function(gd){
-      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center', 'legend.y':-0.16,
-             'legend.yanchor':'top', 'margin.t':80, 'margin.b':230, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
-             'annotations[0].y':-0.52 });
-    },
-
-    // ---- S16 OT SYNTHETIC CONTROL (500 synthetic listeners): readable title, no legend overlap ----
-    "OT SYNTHETIC CONTROL": function(gd){
-      R(gd,{ 'title.font.size':14, 'margin.t':90, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
-             'annotations[1].y':0.86 });
-    },
-
-    // ---- S25 HMM VITERBI-DECODED MOOD STATES: keep legend below, give title room ----
-    "HMM VITERBI-DECODED MOOD STATES": function(gd){
-      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center', 'legend.y':-0.2,
-             'legend.yanchor':'top', 'legend.font.size':10, 'margin.t':80, 'margin.b':110,
-             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-    },
-
-    // ---- S9 TOP 20 BROKER ARTISTS: right bar labels cut off ----
-    "TOP 20 BROKER ARTISTS": function(gd){
-      R(gd,{ 'margin.r':200, 'xaxis.automargin':true, 'xaxis.range':[0,0.105], 'yaxis.automargin':true,
-             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-      S(gd,{ 'cliponaxis':false }, [0]);
-    },
-
-    // ---- S10 WASSERSTEIN-1 DRIFT: ylabel too long / overlaps title ----
-    "WASSERSTEIN-1 DRIFT": function(gd){
-      R(gd,{ 'yaxis.title':{text:'W₁ (EMD between years)',standoff:8}, 'yaxis.automargin':true,
-             'margin.l':70, 'margin.t':70, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
-      S(gd,{ 'cliponaxis':false }, [0]);
-    },
-
-    // ---- S13 PELT PENALTY SENSITIVITY: blank x-axis drags full page width -> pin height/width ----
-    "PELT PENALTY SENSITIVITY": function(gd){
-      R(gd,{ 'autosize':false, 'width':780, 'height':380, 'margin.t':90, 'margin.b':70,
-             'xaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
-             'annotations[0].font.size':12 });
-    },
-
-    // ---- S14 ARE YOUR ERAS REAL? (permutation null) ----
-    "ARE YOUR ERAS REAL?": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.t':80,
-             'annotations[0].xanchor':'left', 'annotations[0].ax':24 });
-    },
-
-    // ---- S15 IS YOUR BIGGEST TASTE SHIFT REAL?: "observed max" annotation too close to line ----
-    "IS YOUR BIGGEST TASTE SHIFT REAL?": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'legend.orientation':'h', 'legend.x':0.5,
-             'legend.xanchor':'center', 'legend.y':1.06, 'legend.yanchor':'bottom', 'margin.t':95,
-             'annotations[0].xanchor':'left', 'annotations[0].ax':22 });
-    },
-
-    // ---- S20 PHAELEH-TEST (reign test): gray bar -> on-palette; "null mean 1.00" overlaps bar ----
-    "PHAELEH-TEST": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'annotations[1].y':0.78, 'annotations[1].yanchor':'top',
-             'annotations[1].xanchor':'left', 'annotations[1].ax':20 });
-      S(gd,{ 'marker.color':'#9b6bff' }, [0]);
-    },
-
-    // ---- S7 COMMUNITY SUCCESSION sankey: cut off at bottom -> taller + bottom margin ----
-    "COMMUNITY SUCCESSION": function(gd){
-      R(gd,{ 'height':820, 'margin.b':80, 'margin.t':80, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-
-    // ---- S31 OPTIMAL TRANSPORT PLAN: excess vertical blank above + caption room ----
-    "OPTIMAL TRANSPORT PLAN": function(gd){
-      R(gd,{ 'margin.t':70, 'margin.b':110, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-
-    // ---- S26 WAVELET SCALOGRAM: colorbar overlaps right annotations + flat y-scale ----
-    "WAVELET SCALOGRAM": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.r':90, 'yaxis.type':'log', 'yaxis.autorange':true });
-      S(gd,{ 'colorbar.x':1.02, 'colorbar.len':0.8, 'colorbar.thickness':12 }, [0]);
-    },
-
-    // ---- S24 RECURRENCE PLOT ----
-    "RECURRENCE PLOT": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'xaxis.automargin':true, 'yaxis.automargin':true }); },
-
-    // ---- S23 HOUR-OF-DAY RIDGES: y-labels (year tags) cut off ----
-    "HOUR-OF-DAY RIDGES": function(gd){
-      R(gd,{ 'margin.l':95, 'yaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-
-    // ---- BAYESIAN ONLINE CHANGEPOINT: colorbar room ----
-    "BAYESIAN ONLINE CHANGEPOINT": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.r':70 }); },
-
-    // ---- HMM VITERBI RIBBON ----
-    "HMM VITERBI RIBBON": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-
-    // ---- CCM CONVERGENCE: tiny title font ----
-    "CCM CONVERGENCE": function(gd){
-      R(gd,{ 'title.font.size':13, 'xaxis.tickfont.size':11, 'yaxis.tickfont.size':11,
-             'xaxis2.tickfont.size':11, 'yaxis2.tickfont.size':11, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-
-    // ---- S4 ATYPICALITY DISTRIBUTION: shorten over-long x title, give room ----
-    "ATYPICALITY DISTRIBUTION": function(gd){
-      R(gd,{ 'xaxis.title':{text:'cosine dist from rolling 5-play context',standoff:10},
-             'xaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-
-    // ---- S5 ISOLATION FOREST: left subplot excess vertical blank -> tighten y-range ----
-    "ISOLATION FOREST": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'yaxis.autorange':true,
-             'xaxis2.title.standoff':12, 'yaxis2.title.standoff':12 }); },
-
-    // ---- TOPO-TWINS: tiny title ----
-    "TOPO-TWINS": function(gd){
-      R(gd,{ 'title.font.size':13, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-
-    // ---- MARKOV STABILITY / MULTI-RES ----
-    "MARKOV STABILITY": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'xaxis.title.standoff':14, 'yaxis.title.standoff':14 }); },
-
-    // ---- CLUSTER AGREEMENT ----
-    "CLUSTER AGREEMENT": function(gd){
-      R(gd,{ 'title.font.size':13, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
-
-    // ---- MAPPER TDA: keep dark, give title room ----
-    "MAPPER TDA": function(gd){
-      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.t':70 }); }
-  };
-
-  // resolve a stable key for a rendered plot div
-  function keyOf(gd){
-    try{
-      var id = gd.id||'';
-      if(id==='hp-hr-bar'||id==='cp-yearchart'||id==='interactive-umap-fig') return id;
-      var L = gd.layout||{};
-      var t = (L.title && (L.title.text!=null?L.title.text:L.title)) || '';
-      t = String(t).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().toUpperCase();
-      for(var sig in FIXES){ if(t.indexOf(sig.toUpperCase())!==-1) return sig; }
-    }catch(e){}
-    return '';
-  }
-  function apply(gd){
-    try{
-      if(!gd || gd.__patched) return;
-      var k = keyOf(gd);
-      if(k && FIXES[k]){ gd.__patched=1; FIXES[k](gd); }
-    }catch(e){}
-  }
-  function sweep(){ if(window.Plotly) document.querySelectorAll('.js-plotly-plot').forEach(apply); }
-
-  window.addEventListener('sonic:plotly-rendered', function(e){
-    var el = e.detail && e.detail.id ? document.getElementById(e.detail.id) : null;
-    var gd = (el && el.closest && el.closest('.js-plotly-plot')) || el;
-    setTimeout(function(){ if(gd) apply(gd); document.querySelectorAll('.js-plotly-plot').forEach(apply); }, 60);
-  });
-  // discrete kicks + a self-clearing poll so late / re-rendered (lazy) charts still get caught
-  [400,1200,2500,4000,6000,9000].forEach(function(t){ setTimeout(sweep,t); });
-  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>40) clearInterval(poll); }, 600);
-})();
-</script>
-<!--APPLE-CHARTPATCH-END-->
 <!--APPLE-INTERACT-START-->
 <style id="apple-interact-css">
 /* ===== APPLE-INTERACT: additive interactivity layer ===== */
@@ -14306,5 +14084,1049 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
 })();
 </script>
 <!--APPLE-NAVFIX-END-->
+<!--APPLE-MOBILELAYOUT-START-->
+<style id="apple-mobilelayout-css">
+/* ============================================================
+   APPLE-MOBILELAYOUT — phone polish for the NON-chart surface.
+   Additive · idempotent · scoped to @media (max-width:700px).
+   Targets the newer story/spine surface (spine "open the lab",
+   field-notes, soundtrack credit, hero/TLDR wordmark, term tooltip,
+   audio pills, nav mode-toggle) that the older 768/480 mobile blocks
+   predate. Charts are owned by another agent — never touched here.
+   Palette: mint #21f6bc · purple #9b6bff · ink #f0eaff · bg #0a0118
+   ============================================================ */
+@media (max-width:700px){
+
+  /* ---- 0. NAV: surface the mode toggle. On phones the "FULL VIEW"
+     #story-toggle was scrolled off the right edge of the chip rail
+     (left:443px @390 vw) — the one primary control was undiscoverable.
+     Pull it out of the scrolling rail and pin it as a compact, always-
+     visible pill at the right of the nav bar. ---- */
+  html body nav.cyber-nav{ position:relative; }
+  html body nav.cyber-nav ul{
+    padding-right:96px !important;     /* clear the pinned toggle so last chip (VII) isn't hidden under it */
+  }
+  html body nav.cyber-nav .story-toggle#story-toggle{
+    position:absolute !important;
+    top:50% !important; right:8px !important; left:auto !important;
+    transform:translateY(-50%) !important;
+    height:30px !important; padding:0 11px !important;
+    font-size:9px !important; letter-spacing:1px !important;
+    border-radius:9px !important; z-index:60 !important;
+    white-space:nowrap;
+    background:rgba(10,1,24,.92) !important;
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+    box-shadow:0 4px 16px -6px rgba(0,0,0,.7), 0 0 0 1px rgba(33,246,188,.12) inset !important;
+  }
+  /* a soft fade on the rail's right edge hints the chips scroll under the pill */
+  html body nav.cyber-nav ul::after{ content:none; }
+
+  /* ---- 1. HERO / TL;DR / WORDMARK rhythm. Tighten the big vertical
+     gaps the desktop hero leaves between the stat, the wordmark and the
+     TL;DR card so the fold isn't mostly empty space on a phone. ---- */
+  html body .tldr-grid.nfx-tldr-grid{
+    grid-template-columns:1fr !important;
+    gap:16px !important;
+    padding:0 16px !important;
+    margin:0 auto 8px !important;
+  }
+  html body .nfx-wordmark{
+    min-height:150px !important;
+    padding:22px 18px !important;
+    border-radius:14px !important;
+  }
+  html body .nfx-wordmark .nfx-wm-title{ font-size:clamp(24px,7vw,32px) !important; }
+  html body .nfx-wordmark .nfx-wm-sub{ font-size:9.5px !important; letter-spacing:2px !important; }
+  html body #tldr.about-dash{ padding:18px 16px !important; border-radius:14px !important; }
+  html body #tldr.about-dash > summary{ font-size:11px !important; letter-spacing:1.6px !important; }
+  /* the hero pace hint reads a touch small + tight on phones */
+  html body .nfx-pace-hint{ margin:2px 14px 26px !important; font-size:10.5px !important; line-height:1.5; }
+
+  /* ---- 2. FIRST-TAP soundtrack pill. The fixed pill was only 195px
+     wide, jamming the label into 5 cramped lines beside a big play
+     circle ("has a" orphaned). Give it room: wider, two-line label,
+     comfortable circle. (audio-owned element; CSS override only.) ---- */
+  html body #first-tap-overlay{
+    left:50% !important; right:auto !important;
+    transform:translateX(-50%) !important;
+    width:min(330px,calc(100vw - 28px)) !important; max-width:none !important;
+    bottom:max(90px, calc(78px + env(safe-area-inset-bottom,0px))) !important;
+    padding:13px 16px !important;
+    gap:14px !important;
+    border-radius:18px !important;
+  }
+  html body #first-tap-overlay #first-tap-desc{
+    font-size:13px !important; line-height:1.4 !important; text-align:left !important;
+    margin:0 !important; flex:1 1 auto; min-width:0;
+  }
+  html body #first-tap-overlay #first-tap-btn{
+    flex:0 0 auto; width:48px !important; height:48px !important; font-size:18px !important;
+  }
+
+  /* ---- 3. SPINE "open the lab" buttons. Already stack full-width; just
+     make them comfortably tappable + readable, and not edge-to-edge. ---- */
+  html body.story-only .act-lab-btn{
+    width:auto !important;
+    margin:.9rem 14px .3rem !important;
+    padding:.85rem 1rem !important;
+    font-size:.92rem !important;
+    border-radius:13px !important;
+    min-height:46px;
+  }
+  html body.story-only .act-lab-btn .lab-count{ font-size:.74rem !important; }
+
+  /* ---- 4. FIELD-NOTES cards. Single column already; tune spacing so the
+     section doesn't open with a huge gap, and right-size the stat type. ---- */
+  html body .field-notes{ margin:2rem auto 1rem !important; padding:0 16px !important; }
+  html body .field-notes .fn-grid{ grid-template-columns:1fr !important; gap:.7rem !important; }
+  html body .field-notes .fn-card{ padding:1rem 1.05rem 1.05rem !important; gap:.4rem !important; }
+  html body .field-notes .fn-stat{ font-size:1.5rem !important; }
+  html body .field-notes .fn-sub{ font-size:.92rem !important; margin-bottom:1rem !important; }
+  html body .field-notes .fn-body{ font-size:.88rem !important; }
+
+  /* ---- 5. SOUNDTRACK credit. Single-column track list already; tighten
+     padding + give each row a comfortable tap height + readable type. ---- */
+  html body .soundtrack-credit{ margin:1.3rem 14px !important; padding:1.1rem 1.05rem 1.2rem !important; border-radius:14px !important; }
+  html body .soundtrack-credit .stc-tag{ font-size:.92rem !important; }
+  html body .soundtrack-credit .stc-list{ grid-template-columns:1fr !important; grid-template-rows:none !important; grid-auto-flow:row !important; gap:0 !important; }
+  html body .soundtrack-credit .stc-list li{ font-size:.9rem !important; padding:.4rem 0 !important; }
+  html body .soundtrack-credit .stc-foot{ font-size:.72rem !important; }
+
+  /* ---- 6. TERM tooltip (#apple-tip, the body-level one). Already
+     viewport-clamped; on a narrow phone keep it inside the gutters and
+     a touch smaller so long defs stay legible without dominating. ---- */
+  html body #apple-tip{
+    max-width:min(300px, calc(100vw - 24px)) !important;
+    font-size:12px !important; line-height:1.5 !important;
+    padding:9px 11px !important;
+  }
+
+  /* ---- 7. AUDIO pills bottom-rail: keep mute + now-playing readable and
+     clear of the home-bar, and never let them collide. ---- */
+  html body #global-mute-pill{ bottom:max(16px, calc(12px + env(safe-area-inset-bottom,0px))) !important; left:14px !important; }
+  html body #sc-now{ font-size:10px !important; bottom:max(18px, calc(14px + env(safe-area-inset-bottom,0px))) !important; max-width:62vw !important; }
+
+  /* ---- 8. Section dividers / theme headers: a hair more space so acts
+     don't butt against the preceding chart's caption. ---- */
+  html body .theme-divider, html body .section-divider{ margin-top:1.6rem !important; }
+}
+
+/* ---- 9. very narrow phones (≤360): rein in the largest type so nothing
+   pushes the layout wider than the viewport. ---- */
+@media (max-width:360px){
+  html body .nfx-wordmark .nfx-wm-title{ font-size:22px !important; }
+  html body .field-notes .fn-stat{ font-size:1.32rem !important; }
+  html body #first-tap-overlay{ width:calc(100vw - 22px) !important; }
+  html body #apple-tip{ max-width:calc(100vw - 18px) !important; font-size:11.5px !important; }
+  html body.story-only .act-lab-btn{ font-size:.88rem !important; margin-left:11px !important; margin-right:11px !important; }
+}
+</style>
+<!--APPLE-MOBILELAYOUT-END-->
+<!--APPLE-CONTENTFIX-START-->
+<style>
+/* CONTENTFIX: keep sparkline content centered in its column (additive, presentational only) */
+.scrolly-chart{display:block;margin-left:auto;margin-right:auto;text-align:center}
+.scrolly-chart svg{display:block;margin-left:auto;margin-right:auto}
+/* CONTENTFIX: normalized ae-caption labels reuse the standard pl-* label colors */
+.ae-caption .pl-math,.exo-caption .pl-math{color:#21f6bc;font-weight:700}
+.ae-caption .pl-intuition,.exo-caption .pl-intuition{color:#86cbfe;font-weight:700}
+.ae-caption .pl-yourdata,.exo-caption .pl-yourdata{color:#fffa6a;font-weight:700}
+.ae-caption .pl-takeaway,.exo-caption .pl-takeaway{color:#ff6e9c;font-weight:700}
+.ae-caption .pl-math,.ae-caption .pl-intuition,.ae-caption .pl-yourdata,.ae-caption .pl-takeaway,
+.exo-caption .pl-math,.exo-caption .pl-intuition,.exo-caption .pl-yourdata,.exo-caption .pl-takeaway{margin-right:.35em}
+</style>
+<script>
+(function(){
+  'use strict';
+  if (window.__appleContentfix) return; window.__appleContentfix = true;
+
+  /* ---------- 1. DAY-STREAK / scrolly sparklines: center the drawn content ----------
+     The sparkline SVGs declare viewBox="0 0 320 64" but plot bars beyond x=320,
+     so with overflow:visible the content spills right of the box and looks off-center.
+     Reset the viewBox to the true content bbox (presentational; no data/relayout change). */
+  function fixSparklines(){
+    document.querySelectorAll('.scrolly-chart svg').forEach(function(svg){
+      try{
+        if (svg.dataset.cfViewbox === '1') return;
+        var bb = svg.getBBox();
+        if (!bb || !bb.width) return;
+        var vbAttr = svg.getAttribute('viewBox') || '0 0 0 0';
+        var vb = vbAttr.split(/\s+/).map(Number);
+        var overflowsRight = bb.x + bb.width > vb[0] + vb[2] + 8;
+        var overflowsLeft  = bb.x < vb[0] - 4;
+        if (overflowsRight || overflowsLeft){
+          var pad = 4;
+          svg.setAttribute('viewBox',
+            (bb.x - pad) + ' ' + (bb.y - pad) + ' ' + (bb.width + pad*2) + ' ' + (bb.height + pad*2));
+          svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+          svg.dataset.cfViewbox = '1';
+        }
+      }catch(e){}
+    });
+  }
+
+  /* ---------- 2. JARGON: wrap first occurrence of hard terms with .term-tip ----------
+     Only inside human-readable caption/method/intuition text. Never inside script,
+     svg, plotly internals, code, or an existing .term-tip. */
+  var TIPS = [
+    ['Gaussian HMM',          'A hidden Markov model whose states emit normally-distributed feature values — a mood detector that assumes each mood has a typical sound.'],
+    ['hidden Markov model',   'A model that assumes you move between a few unseen "states" (moods), each leaving a fingerprint in the data. You infer the states from the observations.'],
+    ['hidden states',         'The unseen mood/regime labels the model infers behind the music — you never observe them directly, only their effect on what you play.'],
+    ['hidden state',          'An unseen mood/regime label the model infers behind the music — you never observe it directly, only its effect on what you play.'],
+    ['mood states',           'The handful of recurring listening modes the model groups my sessions into (e.g. "focus", "hype") — inferred, not labelled by me.'],
+    ['mood state',            'A recurring listening mode the model groups my sessions into (e.g. "focus", "hype") — inferred, not labelled by me.'],
+    ['kepler-mapper',         'A tool (Mapper) that turns a cloud of points into a simple connect-the-dots skeleton, so the overall shape of the data becomes visible.'],
+    ['recurrence quantification', 'Recurrence Quantification Analysis (RQA): measures how often and how regularly a pattern repeats over time.'],
+    ['RQA',                   'Recurrence Quantification Analysis: measures how often and how regularly listening patterns repeat over time.'],
+    ['L_max',                 'The longest stretch of listening that exactly retraces an earlier stretch — my most-repeated trajectory.'],
+    ['DET',                   'Determinism: the share of repeats that fall on long diagonal runs — high means my listening follows predictable, repeating paths.'],
+    ['LAM',                   'Laminarity: the share of repeats where I get "stuck" replaying the same thing — high means sticky, looping phases.'],
+    ['persistent homology',   'A way to detect holes and loops in data that survive across scales — robust shape features, not noise.'],
+    ['Jensen-Shannon',        'A symmetric, bounded measure of how different two probability distributions are (a smoothed cousin of KL divergence).'],
+    ['JS-divergence',         'Jensen-Shannon divergence: a symmetric, bounded measure of how different two distributions are (a smoothed cousin of KL divergence).'],
+    ['EMD',                   'Earth-mover distance (Wasserstein): the least "work" needed to reshape one distribution into another.'],
+    ['spectral entropy',      'How spread-out a network’s connectivity spectrum is — high means many comparable pathways, low means a few dominate.'],
+    ['small-worldness',       'How "six-degrees" a network is: tight local clusters plus a few long-range links, so everything stays a short hop away.'],
+    ['PCA',                   'Principal Component Analysis: rotates the data to its main axes of variation and keeps the few that explain the most, for compression or plotting.']
+  ];
+
+  function ancestorIsTip(node){
+    var el = node.parentElement;
+    while (el){
+      if (el.classList && el.classList.contains('term-tip')) return true;
+      el = el.parentElement;
+    }
+    return false;
+  }
+  function inReadableCaption(node){
+    var el = node.parentElement;
+    while (el){
+      var tag = el.tagName;
+      if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'CODE' || tag === 'svg' ||
+          tag === 'SVG' || tag === 'PRE' || tag === 'TEXTAREA') return null;
+      var cls = (typeof el.className === 'string') ? el.className : '';
+      if (/js-plotly-plot|plot-container|plotly/.test(cls)) return null;
+      // Skip navigation chrome — never decorate menu links.
+      if (/\bcyber-nav\b|\bsubmenu\b|\bact-chip\b/.test(cls)) return null;
+      if (/\bfig-caption\b|\bae-caption\b|\bexo-caption\b|\bmethod-line\b|\bmethod-note\b|\bact-look\b|\bexo-intro\b|\bexo-lede\b|\bexo-note\b|\bscrolly-copy\b|\bsect-tldr\b|\babout-body\b|\babout-dash\b|\btable-panel\b/.test(cls)) return el;
+      el = el.parentElement;
+    }
+    return null;
+  }
+  function escapeRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function makeRe(term){
+    var startAlnum = /^[A-Za-z0-9]/.test(term);
+    var endAlnum   = /[A-Za-z0-9]/.test(term[term.length-1]);
+    var pat = escapeRe(term);
+    var pre  = startAlnum ? '(?<![A-Za-z0-9_])' : '';
+    var post = endAlnum   ? '(?![A-Za-z0-9_])'  : '';
+    return new RegExp(pre + pat + post);
+  }
+
+  function wrapTerms(){
+    var done = {};
+    TIPS.forEach(function(t){ done[t[0]] = false; });
+    // capture which terms are already wrapped elsewhere on the page, to avoid duplicates
+    document.querySelectorAll('.term-tip').forEach(function(s){
+      var txt = (s.textContent || '').trim();
+      TIPS.forEach(function(t){ if (txt === t[0]) done[t[0]] = true; });
+    });
+
+    // Collect candidate (node, term) hits. Group by node so multiple terms in one
+    // text node can be wrapped in a single rebuild (avoids stale-node replacement bugs).
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+    var byNode = []; var nodeIndex = new Map();
+    var node;
+    while ((node = walker.nextNode())){
+      var txt = node.nodeValue;
+      if (!txt || txt.length > 4000) continue;
+      if (ancestorIsTip(node)) continue;
+      if (!inReadableCaption(node)) continue;
+      for (var i=0;i<TIPS.length;i++){
+        var term = TIPS[i][0];
+        if (done[term]) continue;
+        var re = makeRe(term);
+        var m = re.exec(txt);
+        if (m){
+          done[term] = true;
+          var rec = nodeIndex.get(node);
+          if (!rec){ rec = { node: node, hits: [] }; nodeIndex.set(node, rec); byNode.push(rec); }
+          rec.hits.push({ index: m.index, len: m[0].length, text: m[0], term: term, tip: TIPS[i][1] });
+        }
+      }
+    }
+    var wrapped = [];
+    byNode.forEach(function(rec){
+      try{
+        // Sort hits by position; drop overlaps (longer/earlier wins).
+        rec.hits.sort(function(a,b){ return a.index - b.index; });
+        var clean = []; var lastEnd = -1;
+        rec.hits.forEach(function(h){ if (h.index >= lastEnd){ clean.push(h); lastEnd = h.index + h.len; } });
+        var t = rec.node.nodeValue;
+        var frag = document.createDocumentFragment();
+        var cursor = 0;
+        clean.forEach(function(h){
+          if (h.index > cursor) frag.appendChild(document.createTextNode(t.slice(cursor, h.index)));
+          var span = document.createElement('span');
+          span.className = 'term-tip';
+          span.setAttribute('data-tip', h.tip);
+          span.setAttribute('tabindex', '0');
+          span.textContent = h.text;
+          frag.appendChild(span);
+          cursor = h.index + h.len;
+          wrapped.push(h.term);
+        });
+        if (cursor < t.length) frag.appendChild(document.createTextNode(t.slice(cursor)));
+        rec.node.parentNode.replaceChild(frag, rec.node);
+      }catch(e){}
+    });
+    window.__contentfixWrapped = wrapped;
+    return wrapped;
+  }
+
+  /* ---------- 3. CAPTION FORMAT CONSISTENCY ----------
+     Normalize the inline-dot ".ae-caption" blocks and the colon-less ".exo-caption"
+     pillar labels to the dominant labeled-line convention: <b class="pl-X">Label:</b> ... <br>. */
+  var LABEL_CLASS = {
+    'math':'pl-math', 'intuition':'pl-intuition',
+    'my data':'pl-yourdata', 'mydata':'pl-yourdata', 'yourdata':'pl-yourdata',
+    'takeaway':'pl-takeaway'
+  };
+  function plClassFor(label){
+    var k = label.toLowerCase().replace(/\s+/g,' ').trim();
+    return LABEL_CLASS[k] || LABEL_CLASS[k.replace(/\s+/g,'')] || 'pl-math';
+  }
+
+  function normalizeAeCaptions(){
+    document.querySelectorAll('.ae-caption').forEach(function(cap){
+      if (cap.dataset.cfNormalized === '1') return;
+      var html = cap.innerHTML;
+      // Convert "<b style="...">Label</b> —" into a labeled-line bold marker.
+      html = html.replace(/<b\s+style="[^"]*">\s*(Math|Intuition|My data|Takeaway)\s*<\/b>\s*(?:&mdash;|—|-{1,2})\s*/gi,
+        function(_, label){
+          return '<b class="' + plClassFor(label) + '">' + label + ':</b> ';
+        });
+      // Replace the " ·" inline separators that precede a labeled line with a <br>.
+      html = html.replace(/\s*[··]\s*(?=<b class="pl-)/g, '<br>');
+      // Tidy any stray leading/trailing separators or whitespace runs.
+      html = html.replace(/^[\s··]+/, '').replace(/[\s··]+$/, '');
+      html = html.replace(/\s{2,}/g, ' ');
+      cap.innerHTML = html;
+      cap.dataset.cfNormalized = '1';
+    });
+  }
+
+  function normalizeExoCaptions(){
+    document.querySelectorAll('.exo-caption .pillar').forEach(function(b){
+      if (b.dataset.cfNormalized === '1') return;
+      var label = (b.textContent || '').trim();
+      var k = label.toLowerCase();
+      if (!(k in LABEL_CLASS) && !(k.replace(/\s+/g,'') in LABEL_CLASS)) { b.dataset.cfNormalized='1'; return; }
+      b.classList.add(plClassFor(label));
+      if (!/:\s*$/.test(b.textContent)) b.textContent = label + ':';
+      b.dataset.cfNormalized = '1';
+    });
+  }
+
+  function run(){
+    try{ fixSparklines(); }catch(e){}
+    try{ normalizeAeCaptions(); }catch(e){}
+    try{ normalizeExoCaptions(); }catch(e){}
+    try{ wrapTerms(); }catch(e){}
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(run, 350); });
+  } else {
+    setTimeout(run, 350);
+  }
+  // Re-run sparkline centering after late layout/scroll renders (sparklines lazy-draw).
+  window.addEventListener('load', function(){ setTimeout(fixSparklines, 600); setTimeout(fixSparklines, 1600); });
+})();
+</script>
+<!--APPLE-CONTENTFIX-END-->
+<!--APPLE-CHARTPATCH2-START-->
+<script id="apple-chartpatch2-js">
+/* APPLE-CHARTPATCH2 — desktop VISUAL re-audit follow-up.
+   Runs AFTER APPLE-CHARTPATCH; for any chart both touch, this later relayout wins.
+   Keyed by normalised gd.layout.title signature (ids are duplicated in this doc).
+   Fixes verified by screenshot at 1440px, FULL view. Additive + idempotent. */
+(function(){ if(window.__appleChartPatch2)return; window.__appleChartPatch2=true;
+  var DARK='#0a0118';
+  function R(gd,o){ try{ window.Plotly.relayout(gd,o); }catch(e){} }
+  function S(gd,o,idx){ try{ window.Plotly.restyle(gd,o,idx); }catch(e){} }
+
+  var FIXES2 = {
+
+    /* WAVELET SCALOGRAM — APPLE-CHARTPATCH set yaxis.type:'log' + autorange:true, which
+       races into a broken 10^21..10^168 range (the "Something went wrong with axis scaling"
+       console errors) and squashes the heatmap to a sliver. Pin an explicit, stable log
+       range over the real period band (~0.5h .. ~180h covers the 12h / 24h / 7d markers). */
+    "WAVELET SCALOGRAM": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.r':95, 'margin.t':110,
+             'yaxis.type':'log', 'yaxis.autorange':false,
+             'yaxis.range':[-0.30103, 2.2553] });           // log10(0.5) .. log10(180)
+      S(gd,{ 'colorbar.x':1.02, 'colorbar.len':0.78, 'colorbar.thickness':12 }, [0]);
+    },
+
+    /* HMM VITERBI-DECODED MOOD STATES — horizontal legend (long mood labels) still lands on
+       the bottom of the stacked area + the x-axis date ticks. Drop it well below, open margin. */
+    "HMM VITERBI-DECODED MOOD STATES": function(gd){
+      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center',
+             'legend.y':-0.42, 'legend.yanchor':'top', 'legend.font.size':10,
+             'margin.t':70, 'margin.b':150, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+
+    /* IS YOUR BIGGEST TASTE SHIFT REAL? — APPLE-CHARTPATCH put the legend at y:1.06 (above the
+       plot) where it collides with the title. Send it BELOW the plot instead. */
+    "IS YOUR BIGGEST TASTE SHIFT REAL?": function(gd){
+      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center',
+             'legend.y':-0.22, 'legend.yanchor':'top', 'legend.font.size':10,
+             'margin.t':70, 'margin.b':95, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+
+    /* CCM CONVERGENCE — 2×3 subplot grid: top-row y-domains run to paper y=1 and their
+       subplot-title annotations sit AT y=1, so the 3-line main title (which carries the long
+       "Genuine coupling (Sugihara 2012) …" blurb on line 2) overprints them. margin.t can't
+       help — the domains are explicit. Compress the top row to [0.64,0.88] and slide its three
+       subplot titles down to 0.88 so the title band is clear. */
+    "CCM CONVERGENCE": function(gd){
+      var fix={ 'title.font.size':12, 'margin.t':120, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
+                'yaxis.domain':[0.64,0.88], 'yaxis2.domain':[0.64,0.88], 'yaxis3.domain':[0.64,0.88] };
+      var ann=(gd.layout&&gd.layout.annotations)||[];
+      for(var i=0;i<ann.length;i++){
+        var a=ann[i];
+        if(a && a.yref==='paper' && Math.abs((+a.y)-1)<0.02){   // the three top-row subplot titles
+          fix['annotations['+i+'].y']=0.88;
+        }
+      }
+      R(gd,fix);
+    },
+
+    /* 6 SESSION MODES — long y-mode labels can clip on the left after a resize; guarantee room. */
+    "6 SESSION MODES": function(gd){
+      R(gd,{ 'margin.l':380, 'yaxis.automargin':true, 'yaxis.tickfont.size':11,
+             'xaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+
+    /* HMM TRANSITION MATRIX — long rotated x-tick mood labels clip at the panel bottom. */
+    "HMM TRANSITION MATRIX": function(gd){
+      R(gd,{ 'margin.b':230, 'xaxis.automargin':true, 'xaxis.tickfont.size':10,
+             'yaxis.automargin':true, 'yaxis.tickfont.size':11,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+
+    /* PELT PENALTY SENSITIVITY — APPLE-CHARTPATCH forced width:780, leaving a big blank right
+       gap and clipping the wide "pen = log(N)·var(signal)·m …" subtitle. Go full-width again. */
+    "PELT PENALTY SENSITIVITY": function(gd){
+      R(gd,{ 'autosize':true, 'width':null, 'height':400, 'margin.t':110, 'margin.b':80,
+             'margin.r':60, 'xaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+      try{ if(window.Plotly && gd.getBoundingClientRect().width>0) window.Plotly.Plots.resize(gd); }catch(e){}
+    },
+
+    /* PHAELEH-TEST (reign test) — "null mean 1.00" label sat inside the (recoloured) bar.
+       Park it in the clear area to the right of the bars, above the x-axis. */
+    "PHAELEH-TEST": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.r':70,
+             'annotations[1].x':2.25, 'annotations[1].xref':'x', 'annotations[1].xanchor':'left',
+             'annotations[1].y':0.9, 'annotations[1].yref':'y domain', 'annotations[1].yanchor':'top',
+             'annotations[1].showarrow':false });
+      S(gd,{ 'marker.color':'#9b6bff' }, [0]);
+    }
+  };
+
+  function keyOf(gd){
+    try{
+      var L = gd.layout||{};
+      var t = (L.title && (L.title.text!=null?L.title.text:L.title)) || '';
+      t = String(t).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+      for(var sig in FIXES2){ if(t.indexOf(sig.toUpperCase())!==-1) return sig; }
+    }catch(e){}
+    return '';
+  }
+  function apply(gd){
+    try{
+      if(!gd) return;
+      var k = keyOf(gd);
+      if(k && FIXES2[k]){ gd.__patched2=1; FIXES2[k](gd); }   // re-apply each sweep (cheap, idempotent) so a late base render can't win the race
+    }catch(e){}
+  }
+  function sweep(){ if(window.Plotly) document.querySelectorAll('.js-plotly-plot').forEach(apply); }
+
+  /* The existing APPLE-CHARTPATCH "fixes" the wavelet with yaxis.type:'log' + autorange:true,
+     which races Plotly into a broken range and emits "Something went wrong with axis scaling"
+     console errors. CLAIM the wavelet gd synchronously (set its __patched flag, which the base
+     patch checks) BEFORE the base patch's 60ms callback runs, then apply our stable range — so
+     the bad relayout never fires and the console stays clean. */
+  function claimWavelet(gd){
+    try{
+      if(!gd) return;
+      var L=gd.layout||{}; var t=(L.title&&(L.title.text!=null?L.title.text:L.title))||'';
+      t=String(t).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+      if(t.indexOf('WAVELET SCALOGRAM')!==-1 && !gd.__wvClaimed){
+        gd.__wvClaimed=1; gd.__patched=1;       // __patched = the base patch's skip flag
+        FIXES2['WAVELET SCALOGRAM'](gd);
+      }
+    }catch(e){}
+  }
+  function claimAllWavelets(){ try{ document.querySelectorAll('.js-plotly-plot').forEach(claimWavelet); }catch(e){} }
+
+  window.addEventListener('sonic:plotly-rendered', function(e){
+    var el = e.detail && e.detail.id ? document.getElementById(e.detail.id) : null;
+    var gd = (el && el.closest && el.closest('.js-plotly-plot')) || el;
+    if(gd) claimWavelet(gd);          // synchronous, beats the base patch's 60ms timer
+    claimAllWavelets();
+    // run after APPLE-CHARTPATCH's own 60ms handler so our other relayouts land last
+    setTimeout(function(){ if(gd) apply(gd); sweep(); }, 140);
+  });
+  claimAllWavelets();
+  [0,30,120,300].forEach(function(t){ setTimeout(claimAllWavelets,t); });
+  [600,1500,3000,4500,6500,9500].forEach(function(t){ setTimeout(sweep,t); });
+  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>45) clearInterval(poll); }, 600);
+})();
+</script>
+<!--APPLE-CHARTPATCH2-END-->
+<!--APPLE-MOBILECHART-START-->
+<script id="apple-mobilechart-js">
+/* ===== APPLE-MOBILECHART: phone-legible Plotly relayout layer =====
+   Additive + idempotent. Runs ONLY when innerWidth < 700.
+   Mirrors APPLE-CHARTPATCH: keys by normalized TITLE-SIGNATURE (ids collide),
+   listens to sonic:plotly-rendered, plus a self-clearing poll and resize/orient.
+   Re-applies on every relevant event (own flag namespace __mPatched, NOT the
+   desktop patch's __patched), and stamps gd.__mW so we re-run when the
+   breakpoint is crossed. Never edits index.html. */
+(function(){
+  if (window.__appleMobileChart) return; window.__appleMobileChart = true;
+  var DARK = '#0a0118';
+  var MOBILE_BP = 700;
+  function isMobile(){ return window.innerWidth < MOBILE_BP; }
+  function R(gd,o){ try{ window.Plotly.relayout(gd,o); }catch(e){} }
+  function S(gd,o,idx){ try{ window.Plotly.restyle(gd,o,idx); }catch(e){} }
+  function sig(gd){
+    try{
+      var L = gd.layout || {};
+      var t = (L.title && (L.title.text!=null?L.title.text:L.title)) || '';
+      return String(t).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+    }catch(e){ return ''; }
+  }
+  function has(s, sub){ return s.indexOf(sub) !== -1; }
+
+  // Plotly is responsive:true -> on resize it recomputes height from the CONTAINER and
+  // overwrites both layout.height and gd.style.height. The one thing it does NOT touch
+  // is the parent wrapper div, so we give THAT a min-height; gd autosizes to fill it.
+  // Then a single deferred resize lets Plotly read the new container height.
+  // tall charts re-assert their height every poll tick because Plotly's responsive
+  // observer keeps resetting layout.height back to the container default.
+  // With autosize:true Plotly ignores layout.height and sizes from the container, which
+  // we cannot reliably grow against its responsive observer. So tall charts switch to
+  // autosize:false with an explicit width (= current column width) + the height we want.
+  // Our resize listener recomputes the width so it still adapts to orientation.
+  var TALL = [];
+  function colWidth(gd){
+    var w = 0;
+    try{ w = (gd.parentElement && gd.parentElement.clientWidth) || gd.clientWidth || 0; }catch(e){}
+    if (!w) w = Math.min(window.innerWidth - 24, 360);
+    return Math.round(w);
+  }
+  function setTallContainer(gd, h){
+    try{
+      gd.__tallH = h;
+      // the page clamps every fig to 55-60svh !important; override inline (inline !important
+      // beats a stylesheet !important) so multi-subplot/sankey figs can actually grow.
+      gd.style.setProperty('max-height', h + 'px', 'important');
+      var svgc = gd.querySelector('.svg-container');
+      if (svgc) svgc.style.setProperty('max-height', h + 'px', 'important');
+      var w = colWidth(gd);
+      R(gd, { 'autosize': false, 'width': w, 'height': h });
+      if (TALL.indexOf(gd) === -1) TALL.push(gd);
+    }catch(e){}
+  }
+  function reassertTall(){
+    if (!isMobile()) return;
+    TALL.forEach(function(gd){
+      try{
+        var w = colWidth(gd);
+        var L = gd.layout || {};
+        if (L.height !== gd.__tallH || L.autosize !== false || Math.abs((L.width||0) - w) > 4){
+          R(gd, { 'autosize': false, 'width': w, 'height': gd.__tallH });
+        }
+      }catch(e){}
+    });
+  }
+
+  // Thin tick labels on a categorical axis: keep every Nth tick, rotate the rest off.
+  function thinAxis(gd, axName, every, angle){
+    try{
+      var ax = (gd.layout && gd.layout[axName]) || {};
+      var src = (ax.ticktext && ax.ticktext.length) ? ax.ticktext
+              : (ax.categoryarray && ax.categoryarray.length) ? ax.categoryarray
+              : null;
+      var cats = null;
+      if (!src){
+        // derive categories from data (heatmap x/y or category traces)
+        var d = (gd.data && gd.data[0]) || {};
+        var key = axName.charAt(0); // 'x' or 'y'
+        if (Array.isArray(d[key]) && typeof d[key][0] === 'string') cats = d[key];
+      } else { cats = src; }
+      if (!cats || !cats.length) return false;
+      var tv = [], tt = [];
+      for (var i=0;i<cats.length;i++){
+        if (i % every === 0){ tv.push(cats[i]); tt.push(cats[i]); }
+      }
+      var o = {};
+      o[axName+'.tickmode'] = 'array';
+      o[axName+'.tickvals'] = tv;   // relayout takes the array directly (no per-trace wrap)
+      o[axName+'.ticktext'] = tt;
+      if (angle != null) o[axName+'.tickangle'] = angle;
+      R(gd, o);
+      return true;
+    }catch(e){ return false; }
+  }
+
+  // Shrink (and lightly truncate) subplot-title annotations so they stop overlapping
+  // in cramped multi-column subplot grids on a phone.
+  function shrinkAnnotations(gd, sz){
+    try{
+      var anns = (gd.layout && gd.layout.annotations) || [];
+      var o = {};
+      for (var i=0;i<anns.length;i++){
+        o['annotations['+i+'].font.size'] = sz;
+        var tx = anns[i] && anns[i].text;
+        if (typeof tx === 'string'){
+          var plain = tx.replace(/<[^>]*>/g,'');
+          if (plain.length > 16) o['annotations['+i+'].text'] = plain.slice(0,15) + '…';
+        }
+      }
+      if (Object.keys(o).length) R(gd, o);
+    }catch(e){}
+  }
+
+  // Per-title special handling (heatmaps tick-thinning, multi-subplot height, etc.)
+  function special(gd, s){
+    // --- Heatmaps / matrices with dense artist/month/subgenre ticks: thin + rotate ---
+    if (has(s,'MARKOV TRANSITION MATRIX') || has(s,'SUBGENRE TRANSITION MATRIX') ||
+        has(s,'HMM TRANSITION MATRIX')){
+      thinAxis(gd,'xaxis',2,-45); thinAxis(gd,'yaxis',2,0);
+      R(gd,{ 'xaxis.tickfont.size':8, 'yaxis.tickfont.size':8,
+             'margin.b':70, 'margin.l':52 });
+    }
+    else if (has(s,'GATEWAY MATRIX') || has(s,'SUBGENRE GATEWAY MATRIX')){
+      // 40x40 — too dense for any phone tick; drop ticks, lean on hover + colorbar
+      R(gd,{ 'xaxis.showticklabels':false, 'yaxis.showticklabels':false,
+             'xaxis.ticks':'', 'yaxis.ticks':'',
+             'xaxis.title.standoff':8, 'yaxis.title.standoff':8,
+             'margin.b':46, 'margin.l':46, 'margin.r':38 });
+    }
+    else if (has(s,'JENSEN-SHANNON DIST')){
+      thinAxis(gd,'xaxis',6,-45); thinAxis(gd,'yaxis',6,0);
+      R(gd,{ 'xaxis.tickfont.size':7, 'yaxis.tickfont.size':7,
+             'margin.b':40, 'margin.l':40, 'margin.r':50 });
+    }
+    else if (has(s,'GRANGER CAUSALITY HEATMAP') || has(s,'BOTTLENECK DISTANCE')){
+      thinAxis(gd,'xaxis',1,-45);
+      R(gd,{ 'xaxis.tickfont.size':8, 'yaxis.tickfont.size':8 });
+    }
+    else if (has(s,'YOUR TASTE OVER TIME')){ // top-30 artist x month heatmap
+      thinAxis(gd,'yaxis',2,0); thinAxis(gd,'xaxis',4,-45);
+      R(gd,{ 'xaxis.tickfont.size':7, 'yaxis.tickfont.size':7, 'margin.l':60 });
+    }
+    else if (has(s,'DIURNAL SUBGENRE FINGERPRINT')){
+      R(gd,{ 'yaxis.tickfont.size':8, 'margin.l':110, 'xaxis.tickfont.size':8 });
+    }
+    else if (has(s,'6 SESSION MODES')){
+      R(gd,{ 'xaxis.tickfont.size':8, 'yaxis.tickfont.size':8 });
+    }
+    // --- Multi-subplot figs: need more vertical room so panels aren't microscopic ---
+    else if (has(s,'CCM CONVERGENCE')){
+      R(gd,{ 'margin.t':56, 'margin.b':40,
+             'xaxis.tickfont.size':7, 'yaxis.tickfont.size':7,
+             'xaxis2.tickfont.size':7, 'yaxis2.tickfont.size':7 });
+      shrinkAnnotations(gd, 7);   // 6-panel subplot titles collide -> tiny + truncate
+      setTallContainer(gd, 620);
+    }
+    else if (has(s,'CCM CROSS-MAP SKILL')){
+      thinAxis(gd,'xaxis',1,-45); R(gd,{ 'xaxis.tickfont.size':8,'yaxis.tickfont.size':8 });
+    }
+    else if (has(s,'SKIP PREDICTORS')){
+      // two subplots crammed -> give height; OR labels overlap tick numbers
+      R(gd,{ 'title.font.size':12, 'margin.t':52, 'margin.b':70,
+             'xaxis.tickfont.size':8, 'xaxis2.tickfont.size':8, 'yaxis.tickfont.size':8,
+             'yaxis2.tickfont.size':8 });
+      setTallContainer(gd, 460);
+    }
+    else if (has(s,'ISOLATION FOREST')){
+      R(gd,{ 'xaxis.tickfont.size':8,'yaxis.tickfont.size':8,
+             'xaxis2.tickfont.size':8,'yaxis2.tickfont.size':8 });
+      setTallContainer(gd, 420);
+    }
+    // --- Sankey: tall, full width ---
+    else if (has(s,'COMMUNITY SUCCESSION')){
+      R(gd,{ 'margin.t':50, 'margin.b':40, 'margin.l':6, 'margin.r':6 });
+      setTallContainer(gd, 560);
+    }
+    else if (has(s,'OPTIMAL TRANSPORT PLAN')){
+      R(gd,{ 'margin.t':50, 'margin.b':70 });
+      setTallContainer(gd, 440);
+    }
+    // --- Right-label bar charts: bar value labels run off the right ---
+    else if (has(s,'TOP 20 BROKER ARTISTS')){
+      R(gd,{ 'margin.r':28, 'yaxis.automargin':true, 'yaxis.tickfont.size':8 });
+    }
+    // --- Ridge plots: many y rows (year tags) ---
+    else if (has(s,'RIDGES')){
+      R(gd,{ 'margin.l':52, 'yaxis.tickfont.size':8, 'yaxis.automargin':true });
+    }
+    else if (has(s,'WAVELET SCALOGRAM')){
+      R(gd,{ 'margin.r':54 }); S(gd,{ 'colorbar.x':1.0,'colorbar.thickness':8 },[0]);
+    }
+    else if (has(s,'NETWORK STATS PER YEAR')){
+      // long glossary annotation -> give extra bottom room; legend already below
+      R(gd,{ 'margin.b':150, 'xaxis.tickfont.size':8 });
+    }
+    else if (has(s,'PELT PENALTY SENSITIVITY')){
+      // desktop pins width:780 -> kill it so it fits the column
+      R(gd,{ 'autosize':true, 'width':null, 'height':320,
+             'margin.t':52, 'margin.b':46, 'xaxis.automargin':true });
+    }
+  }
+
+  // Wrap a long title at its first em/en-dash so the full title shows on two lines
+  // instead of clipping. Idempotent (skips if already has a <br>). Returns extra top px.
+  function wrapTitle(gd){
+    try{
+      var L = gd.layout || {};
+      var tt = L.title && (L.title.text!=null?L.title.text:L.title);
+      if (typeof tt !== 'string') return 0;
+      if (tt.indexOf('<br>') !== -1) return 18;              // already wrapped
+      var plain = tt.replace(/<[^>]*>/g,'');
+      if (plain.length <= 30) return 0;                      // short enough, no wrap
+      var m = tt.match(/\s[—–-]\s/);                         // first dash separator
+      if (!m) return 0;
+      var i = tt.indexOf(m[0]);
+      var wrapped = tt.slice(0, i) + '<br>' + tt.slice(i + m[0].length);
+      R(gd, { 'title.text': wrapped });
+      return 18;
+    }catch(e){ return 0; }
+  }
+
+  // Universal phone transform applied to EVERY chart.
+  function universal(gd, s){
+    var L = gd.layout || {};
+    var extraTop = wrapTitle(gd);
+    var o = {
+      'autosize': true,
+      'width': null,                      // kill any fixed width (366/700/780) -> fit column
+      'paper_bgcolor': DARK, 'plot_bgcolor': DARK,
+      'title.font.size': 11,           // smaller so long titles clip less at 340px
+      // left-anchor the title: the chart NAME comes first, so if a long "— subtitle"
+      // tail must clip, clip the tail (right), never the name. (centering clips both ends)
+      'title.x': 0.01, 'title.xanchor': 'left', 'title.xref': 'paper',
+      'title.pad.l': 2, 'title.pad.r': 2,
+      'font.size': 9,
+      'margin.l': Math.min((L.margin && L.margin.l) || 48, 48),
+      'margin.r': Math.min((L.margin && L.margin.r) || 16, 24),
+      'margin.t': Math.max(Math.min((L.margin && L.margin.t) || 50, 56), 44) + extraTop,
+      'margin.b': Math.min((L.margin && L.margin.b) || 48, 80),
+      'xaxis.automargin': true, 'yaxis.automargin': true,
+      'xaxis.tickfont.size': 9, 'yaxis.tickfont.size': 9,
+      'xaxis.title.font.size': 10, 'yaxis.title.font.size': 10
+    };
+    // Move any legend to a horizontal strip BELOW the plot so it never covers data.
+    if (L.legend || (gd.data && gd.data.some(function(t){ return t.showlegend !== false && t.name; }))){
+      o['legend.orientation'] = 'h';
+      o['legend.x'] = 0.5; o['legend.xanchor'] = 'center';
+      o['legend.y'] = -0.22; o['legend.yanchor'] = 'top';
+      o['legend.font.size'] = 9;
+      o['margin.b'] = Math.max(o['margin.b'], 64);
+    }
+    R(gd, o);
+  }
+
+  function applyMobile(gd){
+    try{
+      if (!gd || !window.Plotly) return;
+      if (!isMobile()){
+        // crossed back to desktop after a mobile pass: clear our flag, let desktop own it
+        if (gd.__mPatched){ gd.__mPatched = 0; }
+        return;
+      }
+      // re-run if not yet mobile-patched OR viewport width changed (orientation/resize)
+      if (gd.__mPatched && gd.__mW === window.innerWidth) return;
+      var s = sig(gd);
+      gd.__mPatched = 1; gd.__mW = window.innerWidth;
+      universal(gd, s);
+      special(gd, s);
+    }catch(e){}
+  }
+  function sweep(){
+    if (!window.Plotly) return;
+    document.querySelectorAll('.js-plotly-plot').forEach(applyMobile);
+    reassertTall();
+  }
+
+  window.addEventListener('sonic:plotly-rendered', function(e){
+    var el = e.detail && e.detail.id ? document.getElementById(e.detail.id) : null;
+    var gd = (el && el.closest && el.closest('.js-plotly-plot')) || el;
+    // run AFTER the desktop chartpatch (its handler also fires at +60) so we win the margins/fonts
+    setTimeout(function(){ if(gd) applyMobile(gd); sweep(); }, 140);
+  });
+
+  var resizeT;
+  function onResize(){ clearTimeout(resizeT); resizeT = setTimeout(function(){
+    // force re-eval across breakpoint
+    document.querySelectorAll('.js-plotly-plot').forEach(function(gd){ gd.__mW = -1; });
+    sweep();
+  }, 200); }
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', onResize);
+
+  // discrete kicks + self-clearing poll for late/lazy charts (after desktop patch's ticks)
+  [500,1300,2600,4100,6100,9100].forEach(function(t){ setTimeout(sweep, t); });
+  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>45) clearInterval(poll); }, 600);
+})();
+</script>
+<!--APPLE-MOBILECHART-END-->
+<!--APPLE-IBFIX-START-->
+<script id="apple-ibfix-js">
+(function(){ if(window.__appleIbfix) return; window.__appleIbfix=true;
+  // info-bottleneck "cap-bits/knee" panel is a plain HTML table (not a chart) with
+  // 10–11px fonts — bump its small leaf text so it's readable + figure-width.
+  function run(){
+    document.querySelectorAll('.panel').forEach(function(p){
+      var t=p.textContent||'';
+      if(t.indexOf('cap-bits')<0 && t.indexOf('knee =')<0 && t.indexOf('knee=')<0) return;
+      p.querySelectorAll('td,th,span,div,p,li,code').forEach(function(el){
+        if(el.children.length) return;            // leaf text only
+        var fs=parseFloat(getComputedStyle(el).fontSize)||0;
+        if(fs>0 && fs<12){ el.style.fontSize='13px'; el.style.lineHeight='1.5'; }
+      });
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(run,1500);}); else setTimeout(run,1500);
+})();
+</script>
+<!--APPLE-IBFIX-END-->
+<!--APPLE-CHARTPATCH-START-->
+<script id="apple-chartpatch-js">
+(function(){ if(window.__appleChartPatch)return; window.__appleChartPatch=true;
+  var DARK='#0a0118';
+  // NOTE: the document reuses fig-N ids across two namespaces (main lab + radical-science lab),
+  // so panel #fig-N is NOT unique. We key fixes by a stable TITLE signature (data-derived, unique),
+  // falling back to the plot-div id for the few named charts (hp-hr-bar, cp-yearchart, interactive-umap-fig).
+  function R(gd,o){ try{ window.Plotly.relayout(gd,o); }catch(e){} }
+  function S(gd,o,idx){ try{ window.Plotly.restyle(gd,o,idx); }catch(e){} }
+
+  // each fix: idempotent relayout/restyle on the rendered gd
+  var FIXES = {
+
+    // ---- S3 Markov matrix: pull axis titles off the tick labels ----
+    "MARKOV TRANSITION MATRIX": function(gd){
+      R(gd,{ 'xaxis.title.standoff':28, 'yaxis.title.standoff':32, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'xaxis.tickfont.size':11, 'yaxis.tickfont.size':11, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
+             'margin.b':240 });
+    },
+    // ---- S6 gateway matrices: pull axis titles off ticks ----
+    "GATEWAY MATRIX — log": function(gd){ // top-artist gateway
+      R(gd,{ 'xaxis.title.standoff':30, 'yaxis.title.standoff':34, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'xaxis.tickfont.size':10, 'yaxis.tickfont.size':10, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "SUBGENRE GATEWAY MATRIX": function(gd){
+      R(gd,{ 'xaxis.title':{text:'to subgenre',standoff:30}, 'yaxis.title':{text:'from subgenre',standoff:34},
+             'xaxis.automargin':true, 'yaxis.automargin':true, 'xaxis.tickfont.size':10, 'yaxis.tickfont.size':10,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "SUBGENRE TRANSITION MATRIX": function(gd){
+      R(gd,{ 'xaxis.title.standoff':30, 'yaxis.title.standoff':34, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'xaxis.tickfont.size':10, 'yaxis.tickfont.size':10, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "HMM TRANSITION MATRIX": function(gd){
+      R(gd,{ 'xaxis.title.standoff':24, 'yaxis.title.standoff':28, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'xaxis.tickfont.size':11, 'yaxis.tickfont.size':11, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "JENSEN-SHANNON DIST": function(gd){
+      R(gd,{ 'xaxis.title.standoff':16, 'yaxis.title.standoff':16, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "GRANGER CAUSALITY HEATMAP": function(gd){
+      R(gd,{ 'xaxis.title.standoff':22, 'yaxis.title.standoff':22, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "CCM CROSS-MAP SKILL": function(gd){
+      R(gd,{ 'xaxis.title.standoff':22, 'yaxis.title.standoff':22, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "DIURNAL SUBGENRE FINGERPRINT": function(gd){
+      R(gd,{ 'yaxis.automargin':true, 'yaxis.tickfont.size':11, 'xaxis.title.standoff':16, 'margin.l':210,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "ARTIST COHORT RETENTION": function(gd){
+      R(gd,{ 'xaxis.automargin':true, 'yaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+    "MONTHLY HEATMAP": function(gd){ R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+    "HOUR × WEEKDAY": function(gd){ R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+    "6 SESSION MODES": function(gd){ R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'xaxis.automargin':true, 'yaxis.automargin':true }); },
+
+    // ---- S2 SKIP PREDICTORS: legend over title -> move below; bump tiny axis fonts ----
+    "SKIP PREDICTORS": function(gd){
+      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center', 'legend.y':-0.16,
+             'legend.yanchor':'top', 'legend.font.size':11, 'margin.t':70, 'margin.b':95,
+             'xaxis.tickfont.size':11, 'xaxis2.tickfont.size':11, 'yaxis2.tickfont.size':11,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+
+    // ---- S8 NETWORK STATS: legend overlaps title -> move below plot, room for glossary annotation ----
+    "NETWORK STATS PER YEAR": function(gd){
+      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center', 'legend.y':-0.16,
+             'legend.yanchor':'top', 'margin.t':80, 'margin.b':230, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
+             'annotations[0].y':-0.52 });
+    },
+
+    // ---- S16 OT SYNTHETIC CONTROL (500 synthetic listeners): readable title, no legend overlap ----
+    "OT SYNTHETIC CONTROL": function(gd){
+      R(gd,{ 'title.font.size':14, 'margin.t':90, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
+             'annotations[1].y':0.86 });
+    },
+
+    // ---- S25 HMM VITERBI-DECODED MOOD STATES: keep legend below, give title room ----
+    "HMM VITERBI-DECODED MOOD STATES": function(gd){
+      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center', 'legend.y':-0.2,
+             'legend.yanchor':'top', 'legend.font.size':10, 'margin.t':80, 'margin.b':110,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+
+    // ---- S9 TOP 20 BROKER ARTISTS: right bar labels cut off ----
+    "TOP 20 BROKER ARTISTS": function(gd){
+      R(gd,{ 'margin.r':200, 'xaxis.automargin':true, 'xaxis.range':[0,0.105], 'yaxis.automargin':true,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+      S(gd,{ 'cliponaxis':false }, [0]);
+    },
+
+    // ---- S10 WASSERSTEIN-1 DRIFT: ylabel too long / overlaps title ----
+    "WASSERSTEIN-1 DRIFT": function(gd){
+      R(gd,{ 'yaxis.title':{text:'W₁ (EMD between years)',standoff:8}, 'yaxis.automargin':true,
+             'margin.l':70, 'margin.t':70, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+      S(gd,{ 'cliponaxis':false }, [0]);
+    },
+
+    // ---- S13 PELT PENALTY SENSITIVITY: blank x-axis drags full page width -> pin height/width ----
+    "PELT PENALTY SENSITIVITY": function(gd){
+      R(gd,{ 'autosize':false, 'width':780, 'height':380, 'margin.t':90, 'margin.b':70,
+             'xaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
+             'annotations[0].font.size':12 });
+    },
+
+    // ---- S14 ARE YOUR ERAS REAL? (permutation null) ----
+    "ARE YOUR ERAS REAL?": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.t':80,
+             'annotations[0].xanchor':'left', 'annotations[0].ax':24 });
+    },
+
+    // ---- S15 IS YOUR BIGGEST TASTE SHIFT REAL?: "observed max" annotation too close to line ----
+    "IS YOUR BIGGEST TASTE SHIFT REAL?": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'legend.orientation':'h', 'legend.x':0.5,
+             'legend.xanchor':'center', 'legend.y':1.06, 'legend.yanchor':'bottom', 'margin.t':95,
+             'annotations[0].xanchor':'left', 'annotations[0].ax':22 });
+    },
+
+    // ---- S20 PHAELEH-TEST (reign test): gray bar -> on-palette; "null mean 1.00" overlaps bar ----
+    "PHAELEH-TEST": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'annotations[1].y':0.78, 'annotations[1].yanchor':'top',
+             'annotations[1].xanchor':'left', 'annotations[1].ax':20 });
+      S(gd,{ 'marker.color':'#9b6bff' }, [0]);
+    },
+
+    // ---- S7 COMMUNITY SUCCESSION sankey: cut off at bottom -> taller + bottom margin ----
+    "COMMUNITY SUCCESSION": function(gd){
+      R(gd,{ 'height':820, 'margin.b':80, 'margin.t':80, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- S31 OPTIMAL TRANSPORT PLAN: excess vertical blank above + caption room ----
+    "OPTIMAL TRANSPORT PLAN": function(gd){
+      R(gd,{ 'margin.t':70, 'margin.b':110, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- S26 WAVELET SCALOGRAM: colorbar overlaps right annotations + flat y-scale ----
+    "WAVELET SCALOGRAM": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.r':90, 'yaxis.type':'log', 'yaxis.range':[-0.301, 2.255] });
+      S(gd,{ 'colorbar.x':1.02, 'colorbar.len':0.8, 'colorbar.thickness':12 }, [0]);
+    },
+
+    // ---- S24 RECURRENCE PLOT ----
+    "RECURRENCE PLOT": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'xaxis.automargin':true, 'yaxis.automargin':true }); },
+
+    // ---- S23 HOUR-OF-DAY RIDGES: y-labels (year tags) cut off ----
+    "HOUR-OF-DAY RIDGES": function(gd){
+      R(gd,{ 'margin.l':95, 'yaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- BAYESIAN ONLINE CHANGEPOINT: colorbar room ----
+    "BAYESIAN ONLINE CHANGEPOINT": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.r':70 }); },
+
+    // ---- HMM VITERBI RIBBON ----
+    "HMM VITERBI RIBBON": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- CCM CONVERGENCE: tiny title font ----
+    "CCM CONVERGENCE": function(gd){
+      R(gd,{ 'title.font.size':13, 'xaxis.tickfont.size':11, 'yaxis.tickfont.size':11,
+             'xaxis2.tickfont.size':11, 'yaxis2.tickfont.size':11, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- S4 ATYPICALITY DISTRIBUTION: shorten over-long x title, give room ----
+    "ATYPICALITY DISTRIBUTION": function(gd){
+      R(gd,{ 'xaxis.title':{text:'cosine dist from rolling 5-play context',standoff:10},
+             'xaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- S5 ISOLATION FOREST: left subplot excess vertical blank -> tighten y-range ----
+    "ISOLATION FOREST": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'yaxis.autorange':true,
+             'xaxis2.title.standoff':12, 'yaxis2.title.standoff':12 }); },
+
+    // ---- TOPO-TWINS: tiny title ----
+    "TOPO-TWINS": function(gd){
+      R(gd,{ 'title.font.size':13, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- MARKOV STABILITY / MULTI-RES ----
+    "MARKOV STABILITY": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'xaxis.title.standoff':14, 'yaxis.title.standoff':14 }); },
+
+    // ---- CLUSTER AGREEMENT ----
+    "CLUSTER AGREEMENT": function(gd){
+      R(gd,{ 'title.font.size':13, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- MAPPER TDA: keep dark, give title room ----
+    "MAPPER TDA": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.t':70 }); }
+  };
+
+  // resolve a stable key for a rendered plot div
+  function keyOf(gd){
+    try{
+      var id = gd.id||'';
+      if(id==='hp-hr-bar'||id==='cp-yearchart'||id==='interactive-umap-fig') return id;
+      var L = gd.layout||{};
+      var t = (L.title && (L.title.text!=null?L.title.text:L.title)) || '';
+      t = String(t).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+      for(var sig in FIXES){ if(t.indexOf(sig.toUpperCase())!==-1) return sig; }
+    }catch(e){}
+    return '';
+  }
+  function apply(gd){
+    try{
+      if(!gd || gd.__patched) return;
+      var k = keyOf(gd);
+      if(k && FIXES[k]){ gd.__patched=1; FIXES[k](gd); }
+    }catch(e){}
+  }
+  function sweep(){ if(window.Plotly) document.querySelectorAll('.js-plotly-plot').forEach(apply); }
+
+  window.addEventListener('sonic:plotly-rendered', function(e){
+    var el = e.detail && e.detail.id ? document.getElementById(e.detail.id) : null;
+    var gd = (el && el.closest && el.closest('.js-plotly-plot')) || el;
+    setTimeout(function(){ if(gd) apply(gd); document.querySelectorAll('.js-plotly-plot').forEach(apply); }, 60);
+  });
+  // discrete kicks + a self-clearing poll so late / re-rendered (lazy) charts still get caught
+  [400,1200,2500,4000,6000,9000].forEach(function(t){ setTimeout(sweep,t); });
+  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>40) clearInterval(poll); }, 600);
+})();
+</script>
+<!--APPLE-CHARTPATCH-END-->
 </body>
 </html>
