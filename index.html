@@ -10756,7 +10756,7 @@ try {
 
   // D Dorian (D E F G A B C) = Karaharapriya, ~3 octaves from D3
   var SCALE_HZ = [];
-  (function () { var base = 146.83, degs = [0, 2, 3, 5, 7, 9, 10]; for (var oct = 0; oct < 3; oct++) for (var i = 0; i < degs.length; i++) SCALE_HZ.push(base * Math.pow(2, (degs[i] + 12 * oct) / 12)); })();
+  function __sonScale(){ var k=window.__sonifyKey||{}, base=(k.hz||146.83), degs=(k.degs||[0,2,3,5,7,9,10]); SCALE_HZ.length=0; for (var oct = 0; oct < 3; oct++) for (var i = 0; i < degs.length; i++) SCALE_HZ.push(base * Math.pow(2, (degs[i] + 12 * oct) / 12)); } __sonScale(); try{ window.addEventListener('sonify:rekey', __sonScale); }catch(e){}
   function quant(v) { v = Math.max(0, Math.min(1, v)); return SCALE_HZ[Math.round(v * (SCALE_HZ.length - 1))]; }
   function muted() { try { return localStorage.getItem('sonicManifoldMuted') === '1'; } catch (e) { return false; } }
 
@@ -12903,5 +12903,103 @@ html body nav.cyber-nav .story-toggle[aria-pressed="true"]{
 })();
 </script>
 <!--APPLE-ZOOM-END-->
+<!--APPLE-SONIFYKEY-START-->
+<script id="apple-sonifykey-js">
+(function(){
+  if (window.__appleSonifyKey) return; window.__appleSonifyKey = true;
+  // Key the hover-sonify scale to whatever bed track is playing. Each Suno track's
+  // key was detected from its audio (chroma + Krumhansl-Schmuckler). The SONIFY
+  // engine reads window.__sonifyKey (set dynamic via sonify.py) + a 'sonify:rekey'
+  // event. major tracks → major scale; minor tracks → Dorian (Karaharapriya, the
+  // default raga). Base freqs sit in a ~1-octave band around D3 (146.83).
+  var MAJ=[0,2,4,5,7,9,11], DOR=[0,2,3,5,7,9,10];
+  // keyword (matched in the now-playing label) -> {hz: root in octave near D3, degs}
+  var KEYS=[
+    {kw:'antares',      hz:116.54, degs:MAJ},  // A# maj
+    {kw:'brain',        hz:174.61, degs:MAJ},  // F maj
+    {kw:'edge',         hz:110.00, degs:DOR},  // A min
+    {kw:'black hole',   hz:110.00, degs:DOR},
+    {kw:'fruititarian', hz:123.47, degs:DOR},  // B min
+    {kw:'hooked',       hz:123.47, degs:DOR},  // B min
+    {kw:'mask',         hz:174.61, degs:MAJ},  // F maj (no masks ad infinitum)
+    {kw:'novelday',     hz:116.54, degs:DOR},  // A# min
+    {kw:'stochastic',   hz:164.81, degs:MAJ},  // E maj
+    {kw:'rainbow',      hz:164.81, degs:MAJ},
+    {kw:'fiery',        hz:146.83, degs:DOR}   // D min (= the default register)
+  ];
+  function rekeyFrom(label){
+    var t=(label||'').toLowerCase();
+    var hit=null;
+    for (var i=0;i<KEYS.length;i++){ if (t.indexOf(KEYS[i].kw)>=0){ hit=KEYS[i]; break; } }
+    if (hit){ window.__sonifyKey={hz:hit.hz, degs:hit.degs}; }
+    else { window.__sonifyKey=null; } // ambient / unknown → engine default (D Dorian)
+    try{ window.dispatchEvent(new Event('sonify:rekey')); }catch(e){}
+  }
+  function start(){
+    var el=document.getElementById('sc-now-label');
+    if (!el){ setTimeout(start, 1200); return; }
+    rekeyFrom(el.textContent);
+    try{
+      var mo=new MutationObserver(function(){ rekeyFrom(el.textContent); });
+      mo.observe(el, {childList:true, characterData:true, subtree:true});
+    }catch(e){
+      setInterval(function(){ rekeyFrom(el.textContent); }, 3000); // fallback
+    }
+  }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,1500); });
+  else setTimeout(start,1500);
+})();
+</script>
+<!--APPLE-SONIFYKEY-END-->
+<!--APPLE-AUDIODUCK-START-->
+<script id="apple-audioduck-js">
+(function(){
+  if (window.__appleAudioDuck) return; window.__appleAudioDuck = true;
+  // Tara hit: clicking a track-mention (Phaeleh etc.) opened a Spotify embed that
+  // played OVER the Suno bed (and the bed got LOUDER, not ducked). Fix: when a
+  // track embed starts (we wrap __sonicAudio.clickPlay), duck the self-hosted bed
+  // (#sh-a/#sh-b) to a whisper and hold it there; restore when no Spotify embed is
+  // active anymore. Volume-hold (not setMuted) so the mute pill stays in sync.
+  var DUCK=0.06, decks=['sh-a','sh-b'], saved={}, holdTimer=null, watchTimer=null, gone=0;
+
+  function beds(){ return decks.map(function(id){ return document.getElementById(id); }).filter(Boolean); }
+  function spotifyActive(){
+    var ifr=document.querySelectorAll('iframe[src*="spotify"]');
+    for (var i=0;i<ifr.length;i++){ if (ifr[i].offsetParent!==null) return true; }
+    return false;
+  }
+  function duckOn(){
+    if (holdTimer) return; // already ducked
+    beds().forEach(function(a){ if (saved[a.id]==null) saved[a.id]=a.volume; });
+    holdTimer=setInterval(function(){ beds().forEach(function(a){ if (a.volume>DUCK+0.01) a.volume=DUCK; }); }, 250);
+    // restore when the embed is gone for ~3s, or after a 6-min safety cap
+    gone=0;
+    if (watchTimer) clearInterval(watchTimer);
+    var ticks=0;
+    watchTimer=setInterval(function(){
+      ticks++;
+      if (!spotifyActive()){ gone++; if (gone>=2) duckOff(); } else gone=0;
+      if (ticks>240) duckOff(); // ~6 min safety
+    }, 1500);
+  }
+  function duckOff(){
+    if (holdTimer){ clearInterval(holdTimer); holdTimer=null; }
+    if (watchTimer){ clearInterval(watchTimer); watchTimer=null; }
+    beds().forEach(function(a){ var v=saved[a.id]; if (v!=null){ try{ a.volume=v; }catch(e){} } });
+    saved={};
+  }
+
+  function wire(){
+    var A=window.__sonicAudio;
+    if (!A || typeof A.clickPlay!=='function' || A.clickPlay.__ducked){ setTimeout(wire, 800); return; }
+    var orig=A.clickPlay;
+    A.clickPlay=function(){ try{ duckOn(); }catch(e){} return orig.apply(this, arguments); };
+    A.clickPlay.__ducked=true;
+  }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(wire,1200); });
+  else setTimeout(wire,1200);
+})();
+</script>
+<!--APPLE-AUDIODUCK-END-->
 </body>
 </html>
