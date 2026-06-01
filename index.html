@@ -12236,5 +12236,672 @@ html body .method-line{ height:auto !important; max-height:none !important; -web
 })();
 </script>
 <!--APPLE-POLISH2-JS-END-->
+<!--APPLE-NAV-CSS-START-->
+<style id="apple-nav-css">
+/* ===========================================================================
+   APPLE-NAV — premium frosted top bar (CSS-only override, additive)
+   Wins over base .cyber-nav rules via html-body specificity + sparing !important.
+   Does NOT touch structure, links, #story-toggle behavior, or the scroll rail.
+   =========================================================================== */
+
+/* ---- the bar: refined Vision/macOS-grade glass ------------------------------ */
+html body nav.cyber-nav{
+  /* layered translucent ink + faint cool sheen, no harsh gradient */
+  background:
+    linear-gradient(180deg, rgba(16,8,34,.62) 0%, rgba(12,5,26,.72) 100%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(180%) contrast(105%) !important;
+  backdrop-filter: blur(26px) saturate(180%) contrast(105%) !important;
+  border-bottom: 1px solid rgba(150,130,210,.14) !important;
+  /* soft floating shadow + the faintest top inner highlight for the glass edge */
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.06),
+    0 10px 30px -14px rgba(0,0,0,.65) !important;
+  padding: 0 20px !important;
+  gap: 4px;
+}
+/* the existing rainbow ::after hairline -> tame to a single quiet light seam */
+html body nav.cyber-nav::after{
+  background: linear-gradient(90deg,
+    transparent, rgba(33,246,188,.35), rgba(134,203,254,.30),
+    rgba(155,107,255,.30), transparent) !important;
+  opacity: .35 !important;
+  height: 1px !important;
+}
+
+/* ---- brand ----------------------------------------------------------------- */
+html body nav.cyber-nav .brand{
+  letter-spacing: 1.4px !important;
+  margin-right: 14px !important;
+  filter: saturate(112%);
+}
+html body nav.cyber-nav .brand .dot{
+  box-shadow: 0 0 8px var(--mint), 0 0 16px rgba(33,246,188,.5) !important;
+}
+
+/* ---- the chip list: keep it a clean snap rail ------------------------------ */
+html body nav.cyber-nav ul{ gap: 3px !important; }
+
+/* ---- chips (act links + TL;DR): individually frosted pills ------------------ */
+html body nav.cyber-nav a{
+  position: relative;
+  height: 34px;
+  padding: 0 13px !important;
+  border-radius: 11px !important;
+  font-size: 11px !important;
+  letter-spacing: 1.3px !important;
+  font-weight: 650 !important;
+  color: color-mix(in srgb, var(--ink) 62%, transparent) !important;
+  background: rgba(255,255,255,.018) !important;
+  border: 1px solid rgba(255,255,255,.05) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  transition:
+    color .2s cubic-bezier(.4,0,.2,1),
+    background .2s cubic-bezier(.4,0,.2,1),
+    border-color .2s cubic-bezier(.4,0,.2,1),
+    box-shadow .25s cubic-bezier(.4,0,.2,1),
+    transform .2s cubic-bezier(.34,1.56,.64,1) !important;
+}
+html body nav.cyber-nav a .glyph{
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: color-mix(in srgb, var(--c) 78%, var(--ink)) !important;
+  text-shadow: 0 0 7px color-mix(in srgb, var(--c) 38%, transparent) !important;
+  transition: color .2s ease, text-shadow .2s ease, transform .25s cubic-bezier(.34,1.56,.64,1) !important;
+}
+
+/* hover: lift + glass brightens + tint toward the chip's accent ------------- */
+html body nav.cyber-nav a:hover{
+  color: var(--ink) !important;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--c) 16%, rgba(255,255,255,.05)),
+      color-mix(in srgb, var(--c) 7%,  rgba(255,255,255,.02))) !important;
+  border: 1px solid color-mix(in srgb, var(--c) 42%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.10),
+    0 6px 16px -8px color-mix(in srgb, var(--c) 60%, transparent) !important;
+  transform: translateY(-1px) !important;
+}
+html body nav.cyber-nav a:hover .glyph{
+  color: var(--c) !important;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--c) 60%, transparent) !important;
+  transform: scale(1.08) !important;
+}
+
+/* active: confident filled glass + a crisp accent underline indicator ------- */
+html body nav.cyber-nav a.active,
+html body nav.cyber-nav .active{
+  color: var(--ink) !important;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--c) 24%, rgba(255,255,255,.06)),
+      color-mix(in srgb, var(--c) 10%, rgba(255,255,255,.02))) !important;
+  border: 1px solid color-mix(in srgb, var(--c) 55%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.14),
+    0 8px 20px -10px color-mix(in srgb, var(--c) 70%, transparent) !important;
+  transform: none !important;
+}
+html body nav.cyber-nav a.active::after{
+  content:"";
+  position:absolute; left:13px; right:13px; bottom:5px; height:2px;
+  border-radius:2px;
+  background: var(--c);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--c) 80%, transparent);
+}
+html body nav.cyber-nav a.active .glyph{
+  color: var(--c) !important;
+  text-shadow: 0 0 10px var(--c), 0 0 20px color-mix(in srgb, var(--c) 55%, transparent) !important;
+}
+
+/* TL;DR keeps its mint identity but in the new frosted language ------------- */
+html body nav.cyber-nav a[data-tldr]{
+  background: rgba(33,246,188,.07) !important;
+  border: 1px solid color-mix(in srgb, var(--mint) 30%, transparent) !important;
+  color: color-mix(in srgb, var(--mint) 88%, var(--ink)) !important;
+  letter-spacing: 1.6px !important;
+}
+html body nav.cyber-nav a[data-tldr]:hover{
+  background: rgba(33,246,188,.13) !important;
+  border: 1px solid color-mix(in srgb, var(--mint) 50%, transparent) !important;
+}
+
+/* CTA chip (rose) — slightly stronger so it reads as the call-to-action ----- */
+html body nav.cyber-nav a[data-cta]{
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--rose) 22%, rgba(255,255,255,.05)),
+      color-mix(in srgb, var(--rose) 9%,  rgba(255,255,255,.02))) !important;
+  border: 1px solid color-mix(in srgb, var(--rose) 48%, transparent) !important;
+  color: var(--ink) !important;
+}
+
+/* ---- STORY ONLY / FULL VIEW toggle: refined frosted pill ------------------ */
+html body nav.cyber-nav .story-toggle{
+  height: 34px !important;
+  padding: 0 14px !important;
+  border-radius: 11px !important;
+  font-size: 10.5px !important;
+  letter-spacing: 1.5px !important;
+  font-weight: 700 !important;
+  color: color-mix(in srgb, var(--ink) 70%, transparent) !important;
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255,255,255,.06) !important;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  transition: color .2s ease, background .2s ease, border-color .2s ease, box-shadow .25s ease, transform .2s cubic-bezier(.34,1.56,.64,1) !important;
+}
+html body nav.cyber-nav .story-toggle:hover{
+  color: var(--ink) !important;
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255,255,255,.12), 0 6px 16px -10px rgba(33,246,188,.4) !important;
+  transform: translateY(-1px) !important;
+}
+html body nav.cyber-nav .story-toggle[aria-pressed="true"]{
+  color: var(--mint) !important;
+  background: rgba(33,246,188,.10) !important;
+  border: 1px solid color-mix(in srgb, var(--mint) 45%, transparent) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255,255,255,.10), 0 0 18px -8px var(--mint) !important;
+}
+
+/* =====================  MOBILE  ≤600px : roman-numeral chip rail  ========== */
+@media (max-width: 600px){
+  html body nav.cyber-nav{
+    padding: 0 10px !important;
+    gap: 2px;
+  }
+  html body nav.cyber-nav ul{ gap: 6px !important; }
+
+  /* even, tappable circular frosted glyph chips */
+  html body nav.cyber-nav a{
+    width: 38px;
+    min-width: 38px;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    justify-content: center !important;
+    background: rgba(255,255,255,.03) !important;
+    border: 1px solid rgba(255,255,255,.07) !important;
+  }
+  html body nav.cyber-nav a .glyph{ font-size: 14px !important; }
+
+  /* the label stays hidden on mobile (base does this); ensure active stays compact */
+  html body nav.cyber-nav a .label{ display: none !important; }
+
+  /* active glyph chip = filled accent ring (no stretched label) */
+  html body nav.cyber-nav a.active,
+  html body nav.cyber-nav .active{
+    width: 38px; min-width: 38px;
+    max-width: 38px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    overflow: visible !important;
+    background:
+      radial-gradient(120% 120% at 50% 0%,
+        color-mix(in srgb, var(--c) 30%, rgba(255,255,255,.06)),
+        color-mix(in srgb, var(--c) 12%, transparent)) !important;
+    border: 1px solid color-mix(in srgb, var(--c) 60%, transparent) !important;
+    box-shadow:
+      inset 0 1px 0 0 rgba(255,255,255,.16),
+      0 0 14px -4px color-mix(in srgb, var(--c) 75%, transparent) !important;
+  }
+  html body nav.cyber-nav a.active .label{ display: none !important; }
+  html body nav.cyber-nav a.active::after{ display: none !important; }
+
+  /* TL;DR target chip keeps round shape too */
+  html body nav.cyber-nav a[data-tldr]{
+    width: 38px; min-width: 38px; padding: 0 !important; border-radius: 50% !important;
+  }
+
+  /* toggle stays a compact frosted pill on the rail */
+  html body nav.cyber-nav .story-toggle{
+    height: 34px !important; padding: 0 12px !important; font-size: 10px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  html body nav.cyber-nav a,
+  html body nav.cyber-nav .story-toggle,
+  html body nav.cyber-nav a .glyph{ transition: none !important; transform: none !important; }
+}
+</style>
+<!--APPLE-NAV-CSS-END-->
+<!--APPLE-CHARTFIX-START-->
+<script id="apple-chartfix-js">
+(function () {
+  'use strict';
+  if (window.__appleChartfix) return;
+  window.__appleChartfix = true;
+
+  // ── Why this exists ───────────────────────────────────────────────────
+  // A handful of charts are hand-authored as `<div id="..."></div>` + an
+  // inline IIFE that calls Plotly.newPlot. Two ways they silently die:
+  //   1. The inline IIFE guards on `if (!window.Plotly) return;` and runs
+  //      BEFORE the Plotly CDN <script> finishes — it bails permanently.
+  //   2. The page's lazy loader monkey-patches Plotly.newPlot to defer
+  //      rendering until the enclosing `.panel` scrolls into view. A chart
+  //      that is NOT inside a `.panel` (e.g. inside `.cp-chart-wrap`) has its
+  //      args stashed in the lazy queue but nothing ever flushes it — the
+  //      sweep/observer/2s-fallback all key on `.plotly-graph-div` inside
+  //      `.panel`, which this orphan container is neither of.
+  // Net result: a visible ~280px empty void (e.g. #cp-yearchart in Act VII).
+  //
+  // This patch finds visible un-rendered chart containers and revives them:
+  //   (a) flush via the page's own lazy renderer if it has queued args, else
+  //   (b) re-execute the chart's own inline init <script> (now Plotly is up).
+  // It NEVER touches charts that are already rendered, and NEVER touches
+  // charts that are legitimately deferred (hidden inside collapsed folds /
+  // panels still pending lazy render) — those have their own machinery.
+  // Final fallback: if a visible container still can't render, collapse it
+  // so there's no dead void.
+
+  var MAX_TRIES = 25;       // ~ MAX_TRIES * INTERVAL ms of patience for the CDN
+  var INTERVAL  = 250;
+  var tries = 0;
+
+  function isRendered(el) {
+    return !!el.querySelector('.main-svg');
+  }
+
+  // A container is "live & blank" only if it is actually on-screen (laid out).
+  // Collapsed-fold charts have offsetParent === null and/or zero height — leave
+  // those to the page's lazy system.
+  function isVisibleBlank(el) {
+    if (isRendered(el)) return false;
+    if (el.offsetParent === null) return false;           // display:none ancestor
+    var r = el.getBoundingClientRect();
+    if (r.height < 8 && r.width < 8) return false;        // not laid out yet
+    return true;
+  }
+
+  // Find the inline init <script> that belongs to a container: a sibling (or
+  // sibling-of-wrapper) <script> whose text references this id AND Plotly.newPlot.
+  function findInitScript(el) {
+    var id = el.id;
+    if (!id) return null;
+    var scopes = [];
+    if (el.parentNode) scopes.push(el.parentNode);
+    if (el.parentNode && el.parentNode.parentNode) scopes.push(el.parentNode.parentNode);
+    for (var s = 0; s < scopes.length; s++) {
+      var scripts = scopes[s].querySelectorAll('script');
+      for (var i = 0; i < scripts.length; i++) {
+        var txt = scripts[i].textContent || '';
+        if (txt.indexOf('Plotly.newPlot') !== -1 &&
+            (txt.indexOf("'" + id + "'") !== -1 ||
+             txt.indexOf('"' + id + '"') !== -1 ||
+             txt.indexOf('getElementById') !== -1)) {
+          return scripts[i];
+        }
+      }
+    }
+    return null;
+  }
+
+  // Re-run an inline init script in global scope. The original IIFEs are
+  // self-guarding and self-targeting, so re-execution is safe & idempotent
+  // (Plotly.newPlot replaces any prior plot in the same div).
+  function rerunScript(scriptEl) {
+    var code = scriptEl.textContent || '';
+    if (!code.trim()) return false;
+    try {
+      // indirect eval → global scope, mirrors the original inline execution
+      (0, eval)(code);
+      return true;
+    } catch (e) {
+      try { console.warn('[chartfix] init re-run failed', e); } catch (_) {}
+      return false;
+    }
+  }
+
+  function reviveOne(el) {
+    if (!isVisibleBlank(el)) return;
+
+    // 1) If the page's lazy loader has args queued for this id, let it render.
+    try {
+      if (typeof window.__lazyRender === 'function') {
+        window.__lazyRender(el.id);
+        if (isRendered(el)) return;
+      }
+    } catch (e) { /* non-fatal */ }
+
+    // 2) Re-execute the chart's own inline init (Plotly is loaded now).
+    var sc = findInitScript(el);
+    if (sc) {
+      rerunScript(sc);
+      if (isRendered(el)) return;
+    }
+
+    // 3) Fallback: still blank & visible → collapse the void so there's no
+    //    dead ~280px gap. (Defer a beat in case an async draw is in flight.)
+    setTimeout(function () {
+      try {
+        if (!isVisibleBlank(el)) return;     // it rendered after all
+        if (el.dataset.chartfixCollapsed === '1') return;
+        el.dataset.chartfixCollapsed = '1';
+        el.style.display = 'none';
+        el.setAttribute('aria-hidden', 'true');
+      } catch (e) { /* non-fatal */ }
+    }, 900);
+  }
+
+  function scan() {
+    if (typeof window.Plotly === 'undefined') return false; // wait for CDN
+
+    // Candidate containers: any element that has an inline Plotly.newPlot init
+    // targeting it but currently shows no rendered SVG. We discover them by
+    // walking inline <script>s and resolving their target divs — this is
+    // generic (not hard-coded to one id) and catches every hand-authored chart.
+    var candidates = [];
+    var seen = {};
+
+    function consider(el) {
+      if (!el || !el.id || seen[el.id]) return;
+      seen[el.id] = true;
+      candidates.push(el);
+    }
+
+    // (a) Divs that carry Plotly's own class but never drew.
+    document.querySelectorAll('.plotly-graph-div').forEach(consider);
+
+    // (b) Resolve targets of inline newPlot init scripts (covers orphan
+    //     containers like #cp-yearchart that lack the plotly-graph-div class).
+    var scripts = document.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+      var txt = scripts[i].textContent || '';
+      if (txt.indexOf('Plotly.newPlot') === -1) continue;
+      // pull getElementById('X') / ("X") ids referenced in the script
+      var re = /getElementById\(\s*['"]([^'"]+)['"]\s*\)/g, m;
+      while ((m = re.exec(txt)) !== null) {
+        consider(document.getElementById(m[1]));
+      }
+    }
+
+    candidates.forEach(function (el) {
+      try { reviveOne(el); } catch (e) { /* non-fatal, never break the page */ }
+    });
+    return true;
+  }
+
+  function tick() {
+    var ready = false;
+    try { ready = scan(); } catch (e) { /* non-fatal */ }
+    tries++;
+    // Keep polling a little while: catches the CDN-not-yet-loaded race and any
+    // fold that opens shortly after. Cheap idempotent rescans, then stop.
+    if (tries < MAX_TRIES) setTimeout(tick, INTERVAL);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tick);
+  } else {
+    tick();
+  }
+  // One more pass after full load (images/CDN settle).
+  window.addEventListener('load', function () { setTimeout(scan, 300); });
+})();
+</script>
+<!--APPLE-CHARTFIX-END-->
+<!--APPLE-CAPTIONS-START-->
+<style id="apple-captions-css">.fig-caption.spine-injected-cap{color:var(--ink);font-size:12.5px;line-height:1.65;padding:14px 22px 16px;margin:4px 8px 8px;background:linear-gradient(180deg,rgba(33,246,188,0.025),rgba(155,107,255,0.025));border-left:2px solid var(--mint);border-top:1px solid rgba(155,107,255,0.18);border-radius:0 8px 8px 0;font-family:'Inter','IBM Plex Sans',system-ui,-apple-system,sans-serif;letter-spacing:0.1px}</style>
+<script id="apple-captions-js">
+(function(){ if(window.__appleCaptions)return; window.__appleCaptions=true;
+  var CAPS = {
+    "fig-10":"How long each play actually ran before the next one. Tall bar at full-track length, long tail of quick skips.",
+    "fig-15":"Top-10 cross-map arrows: which genre's history best reconstructs another's, ranked by skill (ρ) with the convergence check (Δρ).",
+    "fig-19":"How lopsided the hours are across artists. The further the curve bows below the diagonal, the more a few names dominate (Gini 0.84).",
+    "fig-20":"Plays vs rank on log-log axes. The near-straight line is a power law: a handful of artists, then a long tail (α 1.10).",
+    "fig-25":"Which factors nudge skip odds, as standardized coefficients. Note the model barely beats chance (AUC 0.52), so read direction, not strength.",
+    "fig-26":"Each node an artist, edges = played in the same session. Louvain splits it into 4 communities, colored by their dominant genre.",
+    "fig-30":"How far each play sits from the vibe of the previous five, by cosine distance. Most plays stay on-vibe; the right tail is the swerves.",
+    "fig-37":"Every month vs every other, colored by how different their genre mix is. Dark blocks along the diagonal are stretches that held steady.",
+    "fig-42":"Isolation-forest anomaly score: monthly mean over time, plus the per-play spread with the top-1% outlier cutoff marked.",
+    "fig-48":"One ridge per year for what hour of day the listening lands. Shows how the daily shape moved year to year (2019 is Sep-Dec only).",
+    "fig-49":"One ridge per year for session length in minutes. The mass near zero is quick sips; the right tail is the binges (2019 is Sep-Dec only).",
+    "fig-50":"One ridge per year for per-play atypicality. Wider right-side spread = more off-context picks that year (2019 is Sep-Dec only).",
+    "fig-51":"One ridge per year for the gap between plays, log-scaled. Left hump = back-to-back in a session, right hump = the wait to the next."
+  };
+  function add(){ Object.keys(CAPS).forEach(function(id){ var p=document.getElementById(id); if(!p) return; if(p.querySelector('.fig-caption')) return; var c=document.createElement('div'); c.className='fig-caption spine-injected-cap'; c.textContent=CAPS[id]; p.appendChild(c); }); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',add); else add();
+})();
+</script>
+<!--APPLE-CAPTIONS-END-->
+<!--APPLE-ZOOM-START-->
+<style id="apple-zoom-css">
+/* Shift+scroll-to-zoom hint pill. Low-key, never covers plot center. */
+.js-plotly-plot.az-zoomable { position: relative; }
+.az-hint {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 5;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font: 500 11px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  color: rgba(235, 235, 245, 0.82);
+  background: rgba(28, 28, 32, 0.55);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 220ms ease, transform 220ms ease;
+  white-space: nowrap;
+  user-select: none;
+}
+.az-hint .az-kbd {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1;
+}
+.js-plotly-plot.az-zoomable:hover .az-hint { opacity: 1; transform: translateY(0); }
+.js-plotly-plot.az-zoomable.az-zooming .az-hint { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .az-hint { transition: opacity 120ms linear; transform: none; }
+  .js-plotly-plot.az-zoomable:hover .az-hint,
+  .js-plotly-plot.az-zoomable.az-zooming .az-hint { transform: none; }
+}
+@media (hover: none) { .az-hint { display: none; } }
+</style>
+<script id="apple-zoom-js">
+(function () {
+  "use strict";
+  if (window.__appleZoomInstalled) return;
+  window.__appleZoomInstalled = true;
+
+  var ZOOM_STEP = 0.0018;     // sensitivity per wheel delta unit
+  var MIN_SPAN_FRAC = 1e-4;   // smallest allowed span relative to original (zoom-in limit)
+  var MAX_SPAN_FRAC = 1e4;    // largest allowed span relative to original (zoom-out limit)
+
+  function P() { return window.Plotly; }
+
+  function isZoomableCartesian(gd) {
+    try {
+      var fl = gd && gd._fullLayout;
+      if (!fl || !fl._subplots) return false;
+      var cart = fl._subplots.cartesian;
+      return !!(cart && cart.length);
+    } catch (e) { return false; }
+  }
+
+  // Mark a chart as zoomable + attach the hint pill (idempotent).
+  function decorate(gd) {
+    try {
+      if (!gd || gd.__azDecorated) return;
+      if (!isZoomableCartesian(gd)) return;
+      gd.__azDecorated = true;
+      gd.classList.add("az-zoomable");
+      if (!gd.querySelector(":scope > .az-hint")) {
+        var pill = document.createElement("div");
+        pill.className = "az-hint";
+        pill.setAttribute("aria-hidden", "true");
+        pill.innerHTML = '<span class="az-kbd">⇧</span><span>+ scroll to zoom</span>';
+        gd.appendChild(pill);
+      }
+    } catch (e) {}
+  }
+
+  function scanAll() {
+    try {
+      var nodes = document.querySelectorAll(".js-plotly-plot");
+      for (var i = 0; i < nodes.length; i++) decorate(nodes[i]);
+    } catch (e) {}
+  }
+
+  // Find the enclosing plotly graph div for an event target.
+  function plotFromTarget(t) {
+    if (!t || !t.closest) return null;
+    return t.closest(".js-plotly-plot");
+  }
+
+  // Record the pristine span of an axis so zoom-out/in stays bounded.
+  function baseSpan(gd, axName) {
+    gd.__azBase = gd.__azBase || {};
+    if (gd.__azBase[axName] == null) {
+      var ax = gd._fullLayout && gd._fullLayout[axName];
+      if (ax && Array.isArray(ax.range)) {
+        gd.__azBase[axName] = Math.abs(ax.range[1] - ax.range[0]) || 1;
+      }
+    }
+    return gd.__azBase[axName] || 1;
+  }
+
+  // Compute a new range for one axis, zooming toward pixel position `pix`.
+  function newRange(gd, axName, factor, pix) {
+    var ax = gd._fullLayout && gd._fullLayout[axName];
+    if (!ax || !Array.isArray(ax.range) || ax.fixedrange) return null;
+    if (typeof ax.p2l !== "function" || typeof ax.l2p !== "function") return null;
+
+    var r0 = ax.range[0], r1 = ax.range[1];
+    // Use linear pixel positions for both linear and date/log (range is in
+    // linearized coords already; p2l maps pixel -> linear value).
+    var anchor;
+    try {
+      anchor = ax.p2l(pix - (ax._offset || 0));
+    } catch (e) { return null; }
+    if (anchor == null || !isFinite(anchor)) anchor = (r0 + r1) / 2;
+
+    // Convert string range (dates) to numbers via Plotly's r2l if present.
+    var n0 = (typeof ax.r2l === "function") ? ax.r2l(r0) : +r0;
+    var n1 = (typeof ax.r2l === "function") ? ax.r2l(r1) : +r1;
+    if (!isFinite(n0) || !isFinite(n1)) return null;
+
+    var na = anchor; // already in linear coords from p2l
+
+    var lo = na + (n0 - na) * factor;
+    var hi = na + (n1 - na) * factor;
+
+    // Bound the span relative to the original span.
+    var base = baseSpan(gd, axName);
+    var span = Math.abs(hi - lo);
+    var minSpan = base * MIN_SPAN_FRAC;
+    var maxSpan = base * MAX_SPAN_FRAC;
+    if (span < minSpan || span > maxSpan) return null;
+
+    var out0 = (typeof ax.l2r === "function") ? ax.l2r(lo) : lo;
+    var out1 = (typeof ax.l2r === "function") ? ax.l2r(hi) : hi;
+    return [out0, out1];
+  }
+
+  function onWheel(e) {
+    if (!e.shiftKey) return; // non-invasive: normal wheel scrolls the page
+    var gd = plotFromTarget(e.target);
+    if (!gd) return;
+    if (!isZoomableCartesian(gd)) {
+      // pie / treemap / sunburst / 3d: nothing to zoom. Plotly itself binds a
+      // non-passive wheel handler that preventDefaults on shift+wheel, which
+      // would trap the page scroll. Since we run in capture phase first, stop
+      // Plotly's handler from seeing it WITHOUT preventing default, so the
+      // page scrolls normally over these charts.
+      try { e.stopImmediatePropagation(); } catch (x) {}
+      return;
+    }
+    var Plotly = P();
+    if (!Plotly || typeof Plotly.relayout !== "function") return;
+
+    // We are taking over this gesture.
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      decorate(gd);
+      var fl = gd._fullLayout;
+      // delta>0 (scroll down) -> zoom out; delta<0 (scroll up) -> zoom in.
+      var delta = e.deltaY;
+      if (e.deltaMode === 1) delta *= 16;      // lines -> px
+      else if (e.deltaMode === 2) delta *= 100; // pages -> px
+      var factor = Math.exp(delta * ZOOM_STEP);
+      // clamp per-event factor so a fast flick can't jump too far
+      factor = Math.max(0.5, Math.min(2.0, factor));
+
+      var rect = gd.getBoundingClientRect();
+      var px = e.clientX - rect.left;
+      var py = e.clientY - rect.top;
+
+      var update = {};
+      var cart = fl._subplots.cartesian || [];
+      // Only act on subplots whose drag area contains the cursor; if we can't
+      // tell, fall back to the primary xaxis/yaxis.
+      var touched = false;
+      for (var i = 0; i < cart.length; i++) {
+        var m = cart[i].match(/^(x\d*)(y\d*)$/);
+        if (!m) continue;
+        var xAx = m[1].replace("x", "xaxis");
+        var yAx = m[2].replace("y", "yaxis");
+
+        var rx = newRange(gd, xAx, factor, px);
+        if (rx) { update[xAx + ".range[0]"] = rx[0]; update[xAx + ".range[1]"] = rx[1]; touched = true; }
+        var ry = newRange(gd, yAx, factor, py);
+        if (ry) { update[yAx + ".range[0]"] = ry[0]; update[yAx + ".range[1]"] = ry[1]; touched = true; }
+      }
+
+      if (!touched || !Object.keys(update).length) return;
+
+      gd.classList.add("az-zooming");
+      if (gd.__azClearTimer) clearTimeout(gd.__azClearTimer);
+      gd.__azClearTimer = setTimeout(function () {
+        try { gd.classList.remove("az-zooming"); } catch (e) {}
+      }, 600);
+
+      Plotly.relayout(gd, update);
+    } catch (err) {
+      /* never let zoom break the page */
+    }
+  }
+
+  // Capture-phase, non-passive so preventDefault works only when shift is held.
+  document.addEventListener("wheel", onWheel, { capture: true, passive: false });
+
+  // Decorate existing + lazy-rendered charts.
+  function ready() {
+    scanAll();
+    try {
+      var mo = new MutationObserver(function () { scanAll(); });
+      mo.observe(document.body, { childList: true, subtree: true });
+    } catch (e) {}
+    // Plotly emits plotly_afterplot on the graph div; rescan defensively.
+    document.addEventListener("plotly_afterplot", scanAll, true);
+    // periodic safety net for the first few seconds of lazy rendering
+    var n = 0, iv = setInterval(function () { scanAll(); if (++n > 20) clearInterval(iv); }, 500);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ready, { once: true });
+  } else {
+    ready();
+  }
+})();
+</script>
+<!--APPLE-ZOOM-END-->
 </body>
 </html>
