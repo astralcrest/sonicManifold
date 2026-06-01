@@ -11624,12 +11624,13 @@ try {
 
 
 
+
 <!--SELFHOSTED-AUDIO-START-->
 <style>
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
   #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
 </style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares v2", "a": "astralcrest"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}]</script>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares v2", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}]</script>
 <div id="sh-bg" aria-hidden="true">
   <audio id="sh-a" preload="auto"></audio>
   <audio id="sh-b" preload="auto"></audio>
@@ -11642,8 +11643,20 @@ try {
   if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
   window.__preferSelfHosted = true;                          // SoundCloud player stands down
 
-  // Fisher-Yates shuffle
-  for (var i = tracks.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = tracks[i]; tracks[i] = tracks[j]; tracks[j] = t; }
+  // Fisher-Yates shuffle, re-rolled until no two same-group tracks are adjacent
+  // (circular — the queue loops, so last↔first counts). Group = `g` field, else
+  // the src (unique). Keeps versions of one song (e.g. Antares / Antares v2) apart.
+  function groupOf(t) { return t.g || t.src; }
+  function adjOK(arr) {
+    if (arr.length < 2) return true;
+    for (var i = 0; i < arr.length; i++) { if (groupOf(arr[i]) === groupOf(arr[(i + 1) % arr.length])) return false; }
+    return true;
+  }
+  var _att = 0;
+  do {
+    for (var i = tracks.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = tracks[i]; tracks[i] = tracks[j]; tracks[j] = t; }
+    _att++;
+  } while (!adjOK(tracks) && _att < 60);
 
   var FADE_MS = 5000, STEP = 120, VOL = 0.85;
   var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
