@@ -13290,5 +13290,227 @@ html body .term-tip{ cursor:help; }
   }
 })();</script>
 <!--APPLE-TAKEAWAYS-END-->
+<!--APPLE-CHARTPATCH-START-->
+<script id="apple-chartpatch-js">
+(function(){ if(window.__appleChartPatch)return; window.__appleChartPatch=true;
+  var DARK='#0a0118';
+  // NOTE: the document reuses fig-N ids across two namespaces (main lab + radical-science lab),
+  // so panel #fig-N is NOT unique. We key fixes by a stable TITLE signature (data-derived, unique),
+  // falling back to the plot-div id for the few named charts (hp-hr-bar, cp-yearchart, interactive-umap-fig).
+  function R(gd,o){ try{ window.Plotly.relayout(gd,o); }catch(e){} }
+  function S(gd,o,idx){ try{ window.Plotly.restyle(gd,o,idx); }catch(e){} }
+
+  // each fix: idempotent relayout/restyle on the rendered gd
+  var FIXES = {
+
+    // ---- S3 Markov matrix: pull axis titles off the tick labels ----
+    "MARKOV TRANSITION MATRIX": function(gd){
+      R(gd,{ 'xaxis.title.standoff':28, 'yaxis.title.standoff':32, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'xaxis.tickfont.size':11, 'yaxis.tickfont.size':11, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
+             'margin.b':240 });
+    },
+    // ---- S6 gateway matrices: pull axis titles off ticks ----
+    "GATEWAY MATRIX — log": function(gd){ // top-artist gateway
+      R(gd,{ 'xaxis.title.standoff':30, 'yaxis.title.standoff':34, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'xaxis.tickfont.size':10, 'yaxis.tickfont.size':10, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "SUBGENRE GATEWAY MATRIX": function(gd){
+      R(gd,{ 'xaxis.title':{text:'to subgenre',standoff:30}, 'yaxis.title':{text:'from subgenre',standoff:34},
+             'xaxis.automargin':true, 'yaxis.automargin':true, 'xaxis.tickfont.size':10, 'yaxis.tickfont.size':10,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "SUBGENRE TRANSITION MATRIX": function(gd){
+      R(gd,{ 'xaxis.title.standoff':30, 'yaxis.title.standoff':34, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'xaxis.tickfont.size':10, 'yaxis.tickfont.size':10, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "HMM TRANSITION MATRIX": function(gd){
+      R(gd,{ 'xaxis.title.standoff':24, 'yaxis.title.standoff':28, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'xaxis.tickfont.size':11, 'yaxis.tickfont.size':11, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "JENSEN-SHANNON DIST": function(gd){
+      R(gd,{ 'xaxis.title.standoff':16, 'yaxis.title.standoff':16, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "GRANGER CAUSALITY HEATMAP": function(gd){
+      R(gd,{ 'xaxis.title.standoff':22, 'yaxis.title.standoff':22, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "CCM CROSS-MAP SKILL": function(gd){
+      R(gd,{ 'xaxis.title.standoff':22, 'yaxis.title.standoff':22, 'xaxis.automargin':true, 'yaxis.automargin':true,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "DIURNAL SUBGENRE FINGERPRINT": function(gd){
+      R(gd,{ 'yaxis.automargin':true, 'yaxis.tickfont.size':11, 'xaxis.title.standoff':16, 'margin.l':210,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+    "ARTIST COHORT RETENTION": function(gd){
+      R(gd,{ 'xaxis.automargin':true, 'yaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+    "MONTHLY HEATMAP": function(gd){ R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+    "HOUR × WEEKDAY": function(gd){ R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+    "6 SESSION MODES": function(gd){ R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'xaxis.automargin':true, 'yaxis.automargin':true }); },
+
+    // ---- S2 SKIP PREDICTORS: legend over title -> move below; bump tiny axis fonts ----
+    "SKIP PREDICTORS": function(gd){
+      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center', 'legend.y':-0.16,
+             'legend.yanchor':'top', 'legend.font.size':11, 'margin.t':70, 'margin.b':95,
+             'xaxis.tickfont.size':11, 'xaxis2.tickfont.size':11, 'yaxis2.tickfont.size':11,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+
+    // ---- S8 NETWORK STATS: legend overlaps title -> move below plot, room for glossary annotation ----
+    "NETWORK STATS PER YEAR": function(gd){
+      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center', 'legend.y':-0.16,
+             'legend.yanchor':'top', 'margin.t':80, 'margin.b':230, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
+             'annotations[0].y':-0.52 });
+    },
+
+    // ---- S16 OT SYNTHETIC CONTROL (500 synthetic listeners): readable title, no legend overlap ----
+    "OT SYNTHETIC CONTROL": function(gd){
+      R(gd,{ 'title.font.size':14, 'margin.t':90, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
+             'annotations[1].y':0.86 });
+    },
+
+    // ---- S25 HMM VITERBI-DECODED MOOD STATES: keep legend below, give title room ----
+    "HMM VITERBI-DECODED MOOD STATES": function(gd){
+      R(gd,{ 'legend.orientation':'h', 'legend.x':0.5, 'legend.xanchor':'center', 'legend.y':-0.2,
+             'legend.yanchor':'top', 'legend.font.size':10, 'margin.t':80, 'margin.b':110,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+    },
+
+    // ---- S9 TOP 20 BROKER ARTISTS: right bar labels cut off ----
+    "TOP 20 BROKER ARTISTS": function(gd){
+      R(gd,{ 'margin.r':200, 'xaxis.automargin':true, 'xaxis.range':[0,0.105], 'yaxis.automargin':true,
+             'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+      S(gd,{ 'cliponaxis':false }, [0]);
+    },
+
+    // ---- S10 WASSERSTEIN-1 DRIFT: ylabel too long / overlaps title ----
+    "WASSERSTEIN-1 DRIFT": function(gd){
+      R(gd,{ 'yaxis.title':{text:'W₁ (EMD between years)',standoff:8}, 'yaxis.automargin':true,
+             'margin.l':70, 'margin.t':70, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK });
+      S(gd,{ 'cliponaxis':false }, [0]);
+    },
+
+    // ---- S13 PELT PENALTY SENSITIVITY: blank x-axis drags full page width -> pin height/width ----
+    "PELT PENALTY SENSITIVITY": function(gd){
+      R(gd,{ 'autosize':false, 'width':780, 'height':380, 'margin.t':90, 'margin.b':70,
+             'xaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK,
+             'annotations[0].font.size':12 });
+    },
+
+    // ---- S14 ARE YOUR ERAS REAL? (permutation null) ----
+    "ARE YOUR ERAS REAL?": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.t':80,
+             'annotations[0].xanchor':'left', 'annotations[0].ax':24 });
+    },
+
+    // ---- S15 IS YOUR BIGGEST TASTE SHIFT REAL?: "observed max" annotation too close to line ----
+    "IS YOUR BIGGEST TASTE SHIFT REAL?": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'legend.orientation':'h', 'legend.x':0.5,
+             'legend.xanchor':'center', 'legend.y':1.06, 'legend.yanchor':'bottom', 'margin.t':95,
+             'annotations[0].xanchor':'left', 'annotations[0].ax':22 });
+    },
+
+    // ---- S20 PHAELEH-TEST (reign test): gray bar -> on-palette; "null mean 1.00" overlaps bar ----
+    "PHAELEH-TEST": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'annotations[1].y':0.78, 'annotations[1].yanchor':'top',
+             'annotations[1].xanchor':'left', 'annotations[1].ax':20 });
+      S(gd,{ 'marker.color':'#9b6bff' }, [0]);
+    },
+
+    // ---- S7 COMMUNITY SUCCESSION sankey: cut off at bottom -> taller + bottom margin ----
+    "COMMUNITY SUCCESSION": function(gd){
+      R(gd,{ 'height':820, 'margin.b':80, 'margin.t':80, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- S31 OPTIMAL TRANSPORT PLAN: excess vertical blank above + caption room ----
+    "OPTIMAL TRANSPORT PLAN": function(gd){
+      R(gd,{ 'margin.t':70, 'margin.b':110, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- S26 WAVELET SCALOGRAM: colorbar overlaps right annotations + flat y-scale ----
+    "WAVELET SCALOGRAM": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.r':90, 'yaxis.type':'log', 'yaxis.autorange':true });
+      S(gd,{ 'colorbar.x':1.02, 'colorbar.len':0.8, 'colorbar.thickness':12 }, [0]);
+    },
+
+    // ---- S24 RECURRENCE PLOT ----
+    "RECURRENCE PLOT": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'xaxis.automargin':true, 'yaxis.automargin':true }); },
+
+    // ---- S23 HOUR-OF-DAY RIDGES: y-labels (year tags) cut off ----
+    "HOUR-OF-DAY RIDGES": function(gd){
+      R(gd,{ 'margin.l':95, 'yaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- BAYESIAN ONLINE CHANGEPOINT: colorbar room ----
+    "BAYESIAN ONLINE CHANGEPOINT": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.r':70 }); },
+
+    // ---- HMM VITERBI RIBBON ----
+    "HMM VITERBI RIBBON": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- CCM CONVERGENCE: tiny title font ----
+    "CCM CONVERGENCE": function(gd){
+      R(gd,{ 'title.font.size':13, 'xaxis.tickfont.size':11, 'yaxis.tickfont.size':11,
+             'xaxis2.tickfont.size':11, 'yaxis2.tickfont.size':11, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- S4 ATYPICALITY DISTRIBUTION: shorten over-long x title, give room ----
+    "ATYPICALITY DISTRIBUTION": function(gd){
+      R(gd,{ 'xaxis.title':{text:'cosine dist from rolling 5-play context',standoff:10},
+             'xaxis.automargin':true, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- S5 ISOLATION FOREST: left subplot excess vertical blank -> tighten y-range ----
+    "ISOLATION FOREST": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'yaxis.autorange':true,
+             'xaxis2.title.standoff':12, 'yaxis2.title.standoff':12 }); },
+
+    // ---- TOPO-TWINS: tiny title ----
+    "TOPO-TWINS": function(gd){
+      R(gd,{ 'title.font.size':13, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- MARKOV STABILITY / MULTI-RES ----
+    "MARKOV STABILITY": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'xaxis.title.standoff':14, 'yaxis.title.standoff':14 }); },
+
+    // ---- CLUSTER AGREEMENT ----
+    "CLUSTER AGREEMENT": function(gd){
+      R(gd,{ 'title.font.size':13, 'paper_bgcolor':DARK, 'plot_bgcolor':DARK }); },
+
+    // ---- MAPPER TDA: keep dark, give title room ----
+    "MAPPER TDA": function(gd){
+      R(gd,{ 'paper_bgcolor':DARK, 'plot_bgcolor':DARK, 'margin.t':70 }); }
+  };
+
+  // resolve a stable key for a rendered plot div
+  function keyOf(gd){
+    try{
+      var id = gd.id||'';
+      if(id==='hp-hr-bar'||id==='cp-yearchart'||id==='interactive-umap-fig') return id;
+      var L = gd.layout||{};
+      var t = (L.title && (L.title.text!=null?L.title.text:L.title)) || '';
+      t = String(t).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+      for(var sig in FIXES){ if(t.indexOf(sig.toUpperCase())!==-1) return sig; }
+    }catch(e){}
+    return '';
+  }
+  function apply(gd){
+    try{
+      if(!gd || gd.__patched) return;
+      var k = keyOf(gd);
+      if(k && FIXES[k]){ gd.__patched=1; FIXES[k](gd); }
+    }catch(e){}
+  }
+  function sweep(){ if(window.Plotly) document.querySelectorAll('.js-plotly-plot').forEach(apply); }
+
+  window.addEventListener('sonic:plotly-rendered', function(e){
+    var el = e.detail && e.detail.id ? document.getElementById(e.detail.id) : null;
+    var gd = (el && el.closest && el.closest('.js-plotly-plot')) || el;
+    setTimeout(function(){ if(gd) apply(gd); document.querySelectorAll('.js-plotly-plot').forEach(apply); }, 60);
+  });
+  // discrete kicks + a self-clearing poll so late / re-rendered (lazy) charts still get caught
+  [400,1200,2500,4000,6000,9000].forEach(function(t){ setTimeout(sweep,t); });
+  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>40) clearInterval(poll); }, 600);
+})();
+</script>
+<!--APPLE-CHARTPATCH-END-->
 </body>
 </html>
