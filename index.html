@@ -12158,6 +12158,8 @@ try {
 <!--APPLE-SOUNDTRACK-END-->
 <!--APPLE-POLISH2-CSS-START-->
 <style id="apple-polish2-css">
+/* body copy a smudge bigger for readability (was clamp 13–15px → 14–16px) */
+html body{ font-size:clamp(14px, 3.7vw, 16px) !important; }
 /* method-lines had a fixed height; long methodology text spilled / collided. */
 html body .method-line{ height:auto !important; max-height:none !important; -webkit-line-clamp:none !important; overflow:visible !important; }
 /* desktop legibility: small captions / sub-labels / backrefs were 10–12px */
