@@ -15948,178 +15948,6 @@ html body #umap-wrap .modebar{ top:6px !important; right:6px !important; }
 })();
 </script>
 <!--APPLE-SONIFYKEY-END-->
-<!--APPLE-SPINE-JS-START-->
-<script id="apple-spine-js">
-(function(){
-  'use strict';
-  if (window.__appleSpine) return;
-  window.__appleSpine = true;
-
-  // Story mode keeps ~170 chart panels display:none. Plotly's resize throws an
-  // async "Resize must be passed a displayed plot div element" when the base
-  // resize-all loop (and rotations) hit those hidden divs. Fix at the source:
-  // wrap Plotly.Plots.resize to no-op on a hidden div (benefits every caller —
-  // base resize-all, modal, automargin, our renderSoon). Belt-and-suspenders:
-  // also swallow that one known-benign message if any slips through.
-  function patchPlotlyResize(){
-    try{
-      var P=window.Plotly;
-      if (!P || !P.Plots || !P.Plots.resize || P.Plots.resize.__spineWrapped) return true;
-      var orig=P.Plots.resize;
-      P.Plots.resize=function(gd){
-        try{ var el=(typeof gd==='string')?document.getElementById(gd):gd; if (el && el.offsetParent===null) return Promise.resolve(); }catch(e){}
-        return orig.apply(this, arguments);
-      };
-      P.Plots.resize.__spineWrapped=true;
-      return true;
-    }catch(e){ return false; }
-  }
-  if (!patchPlotlyResize()){ var _pt=setInterval(function(){ if (patchPlotlyResize()) clearInterval(_pt); }, 200); setTimeout(function(){ clearInterval(_pt); }, 12000); }
-  window.addEventListener('error', function(e){
-    if (e && e.message && /Resize must be passed a displayed plot div|went wrong with axis scaling/.test(e.message)){
-      e.preventDefault(); e.stopImmediatePropagation(); return true;
-    }
-  }, true);
-
-  // sonicManifold spine v4 — the "story" mode = one hero chart per act + the rest
-  // folded behind an "open the lab" toggle. It REUSES the existing story system
-  // (body.story-only, driven by the .pace-pick control + nav #story-toggle), and
-  // redefines it (via APPLE-SPINE-CSS) from the old skeleton into the spine.
-  // No DOM moves: atoms are tagged + shown/hidden by class, so lazy Plotly figs
-  // keep their original wiring.
-
-  var STORE_KEY='sonicmanifold-story-only';
-  var MODULE_SEL = '.panel,.table-panel,.rev-grid,.rev-closer,'
-    + 'section.health-panel,section.exo-shock-panel,section.carnatic-panel,section.audio-embed-panel';
-
-  function txt(el){ return (el.textContent||'').replace(/\s+/g,' ').trim(); }
-  function isFull(el){ return /\bfull\b/.test(el.className||''); }
-  function isGenuinePlot(el){
-    if (!el.querySelector) return false;
-    if (el.querySelector('.js-plotly-plot,.lazy-placeholder')) return true;
-    if (el.matches && el.matches('[data-sidecar-id]')) return true;
-    if (el.querySelector('[data-sidecar-id]')) return true;
-    var sc = el.querySelectorAll('script');
-    for (var i=0;i<sc.length;i++){ var t=sc[i].textContent||''; if (/Plotly\.newPlot/.test(t)||/PLOTLYENV/.test(t)) return true; }
-    return false;
-  }
-
-  function collectAtoms(actHeader){
-    var atoms=[], n=actHeader.nextElementSibling;
-    while (n && !(n.matches && n.matches('header[id^="act-"]'))){
-      var tag=n.tagName;
-      if (tag==='STYLE'||tag==='SCRIPT'||tag==='LINK'){ n=n.nextElementSibling; continue; }
-      if (n.matches && n.matches('.grid')){
-        // explode a grid into atoms: its chart modules AND its sub-headings/tldrs
-        // (so a folded sub-section header never orphans above hidden content)
-        var added=false, ch=n.children;
-        for (var i=0;i<ch.length;i++){
-          if (ch[i].matches && (ch[i].matches(MODULE_SEL) || ch[i].matches('h2,h3,h4,header,.sect-h,.sect-tldr,.section-tldr'))){ atoms.push(ch[i]); added=true; }
-        }
-        if (!added) atoms.push(n);
-      } else { atoms.push(n); }
-      n=n.nextElementSibling;
-    }
-    return atoms;
-  }
-
-  function chooseHero(act, atoms){
-    function find(pred){ for (var i=0;i<atoms.length;i++){ try{ if (pred(atoms[i])) return atoms[i]; }catch(e){} } return null; }
-    if (act===1){ var a1=find(function(a){ return a.id==='fig-23'; }); if (a1) return a1; } // NOVELTY RATE
-    if (act===2){ var u=document.getElementById('umap-wrap'); if (u && atoms.indexOf(u)>=0) return u; }
-    if (act===3){
-      var gf=find(function(a){ return isGenuinePlot(a) && /GENRE FAMILIES/.test(txt(a)); }); if (gf) return gf; // bulletproof reversal, most legible
-      var hk=find(function(a){ return isGenuinePlot(a) && /n̂\s*=/.test(txt(a)); }); if (hk) return hk; // fallback: Hawkes
-    }
-    if (act===4){ var fdr=find(function(a){ return isGenuinePlot(a) && /BENJAMINI/.test(txt(a)); }); if (fdr) return fdr; } // the audit / trust image
-    if (act===5){ var h1=find(function(a){ return isGenuinePlot(a) && /H₁/.test(txt(a)); }); if (h1) return h1; }
-    return find(function(a){ return isGenuinePlot(a) && isFull(a); })
-        || find(isGenuinePlot)
-        || find(function(a){ return a.querySelector && a.querySelector('table,iframe'); });
-  }
-
-  function makeLabBtn(act, count){
-    var b=document.createElement('button');
-    b.type='button'; b.className='act-lab-btn'; b.setAttribute('data-act',act); b.setAttribute('aria-expanded','false');
-    b.innerHTML='<span class="lab-caret">▸</span><span class="lab-title">open the lab</span><span class="lab-count">'+count+' more</span>';
-    b.addEventListener('click', function(){ toggleAct(act, b); });
-    return b;
-  }
-  function renderSoon(){
-    // resize ONLY the displayed charts in opened labs — never a global resize
-    // event (the base resize-all loop throws on the many display:none folds).
-    [120,500,950].forEach(function(t){ setTimeout(function(){
-      if (!window.Plotly) return;
-      document.querySelectorAll('.spine-open .js-plotly-plot').forEach(function(gd){
-        // only nudge ALREADY-rendered charts; brand-new ones render via the base
-        // IntersectionObserver and would async-throw if resized mid-layout.
-        if (gd.offsetParent!==null && gd.querySelector('.main-svg')){ try{ window.Plotly.Plots.resize(gd); }catch(e){} }
-      });
-    }, t); });
-  }
-  function toggleAct(act, btn){
-    var open = btn.getAttribute('aria-expanded')==='true';
-    document.querySelectorAll('.spine-fold[data-spine-act="'+act+'"]').forEach(function(m){ m.classList.toggle('spine-open', !open); });
-    btn.setAttribute('aria-expanded', open?'false':'true');
-    var t=btn.querySelector('.lab-title'); if (t) t.textContent = open?'open the lab':'close the lab';
-    if (!open) renderSoon();
-  }
-
-  function build(){
-    if (document.body.classList.contains('spine-on')) return; // idempotent
-    var heads=[].slice.call(document.querySelectorAll('header[id^="act-"]'));
-    if (!heads.length) return;
-    var foldedAny=false;
-
-    heads.forEach(function(h){
-      var act=parseInt((h.id.match(/\d+/)||['0'])[0],10);
-      var atoms=collectAtoms(h);
-      if (atoms.length < 4) return;
-      var plots=atoms.filter(isGenuinePlot);
-      if (plots.length < 2) return;
-      var hero=chooseHero(act, atoms);
-      if (!hero) return;
-
-      hero.classList.add('spine-keep');
-      var introTldr=null;
-      for (var i=0;i<atoms.length;i++){ if (atoms[i].matches && atoms[i].matches('.section-tldr')){ introTldr=atoms[i]; break; } }
-      if (introTldr) introTldr.classList.add('spine-keep');
-
-      var foldCount=0;
-      atoms.forEach(function(a){
-        if (a===hero || a===introTldr) return;
-        if (a.tagName==='STYLE'||a.tagName==='SCRIPT') return;
-        // reorg beats (lead / AI-lab / soundtrack) stay visible in every mode
-        if (a.id && /^apple-(leadhero|ailabbeat|sunomoment)$/.test(a.id)) return;
-        a.classList.add('spine-fold'); a.setAttribute('data-spine-act', act); foldCount++;
-      });
-      if (foldCount < 1){ hero.classList.remove('spine-keep'); return; }
-
-      var anchor = hero.closest('.grid') || hero;
-      anchor.parentNode.insertBefore(makeLabBtn(act, foldCount), anchor.nextSibling);
-      foldedAny=true;
-    });
-
-    if (!foldedAny) return;
-    document.body.classList.add('spine-on');
-
-    // Default to the spine (story) on first visit; otherwise honour the saved pref.
-    var pref=null; try{ pref=localStorage.getItem(STORE_KEY); }catch(e){}
-    if (pref===null){
-      document.body.classList.add('story-only');
-      try{ localStorage.setItem(STORE_KEY,'1'); }catch(e){}
-      var sb=document.getElementById('story-toggle');
-      if (sb){ sb.setAttribute('aria-pressed','true'); sb.textContent='FULL VIEW'; }
-      document.querySelectorAll('.pace-opt').forEach(function(o){ o.classList.toggle('is-active', o.getAttribute('data-mode')==='story'); });
-    }
-  }
-
-  function start(){ try{ build(); }catch(e){ /* spine is non-fatal */ } }
-  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,500); });
-  else setTimeout(start,500);
-})();
-</script>
-<!--APPLE-SPINE-JS-END-->
 <!--APPLE-FIGFIX-START-->
 <style id="apple-figfix-css">
   /* ===== APPLE-FIGFIX — exhaustive figure consistency pass (1440 desktop, mobile-safe) =====
@@ -16450,5 +16278,190 @@ html body #umap-wrap .modebar{ top:6px !important; right:6px !important; }
 })();
 </script>
 <!--APPLE-FIGFIX-END-->
+<!--APPLE-SPINE-JS-START-->
+<script id="apple-spine-js">
+(function(){
+  'use strict';
+  if (window.__appleSpine) return;
+  window.__appleSpine = true;
+
+  // Story mode keeps ~170 chart panels display:none. Plotly's resize throws an
+  // async "Resize must be passed a displayed plot div element" when the base
+  // resize-all loop (and rotations) hit those hidden divs. Fix at the source:
+  // wrap Plotly.Plots.resize to no-op on a hidden div (benefits every caller —
+  // base resize-all, modal, automargin, our renderSoon). Belt-and-suspenders:
+  // also swallow that one known-benign message if any slips through.
+  function patchPlotlyResize(){
+    try{
+      var P=window.Plotly;
+      if (!P || !P.Plots || !P.Plots.resize || P.Plots.resize.__spineWrapped) return true;
+      var orig=P.Plots.resize;
+      P.Plots.resize=function(gd){
+        try{ var el=(typeof gd==='string')?document.getElementById(gd):gd; if (el && el.offsetParent===null) return Promise.resolve(); }catch(e){}
+        return orig.apply(this, arguments);
+      };
+      P.Plots.resize.__spineWrapped=true;
+      return true;
+    }catch(e){ return false; }
+  }
+  if (!patchPlotlyResize()){ var _pt=setInterval(function(){ if (patchPlotlyResize()) clearInterval(_pt); }, 200); setTimeout(function(){ clearInterval(_pt); }, 12000); }
+  window.addEventListener('error', function(e){
+    if (e && e.message && /Resize must be passed a displayed plot div|went wrong with axis scaling/.test(e.message)){
+      e.preventDefault(); e.stopImmediatePropagation(); return true;
+    }
+  }, true);
+
+  // sonicManifold spine v4 — the "story" mode = one hero chart per act + the rest
+  // folded behind an "open the lab" toggle. It REUSES the existing story system
+  // (body.story-only, driven by the .pace-pick control + nav #story-toggle), and
+  // redefines it (via APPLE-SPINE-CSS) from the old skeleton into the spine.
+  // No DOM moves: atoms are tagged + shown/hidden by class, so lazy Plotly figs
+  // keep their original wiring.
+
+  var STORE_KEY='sonicmanifold-story-only';
+  var MODULE_SEL = '.panel,.table-panel,.rev-grid,.rev-closer,'
+    + 'section.health-panel,section.exo-shock-panel,section.carnatic-panel,section.audio-embed-panel';
+
+  function txt(el){ return (el.textContent||'').replace(/\s+/g,' ').trim(); }
+  function isFull(el){ return /\bfull\b/.test(el.className||''); }
+  function isGenuinePlot(el){
+    if (!el.querySelector) return false;
+    if (el.querySelector('.js-plotly-plot,.lazy-placeholder')) return true;
+    if (el.matches && el.matches('[data-sidecar-id]')) return true;
+    if (el.querySelector('[data-sidecar-id]')) return true;
+    var sc = el.querySelectorAll('script');
+    for (var i=0;i<sc.length;i++){ var t=sc[i].textContent||''; if (/Plotly\.newPlot/.test(t)||/PLOTLYENV/.test(t)) return true; }
+    return false;
+  }
+
+  function collectAtoms(actHeader){
+    var atoms=[], n=actHeader.nextElementSibling;
+    while (n && !(n.matches && n.matches('header[id^="act-"]'))){
+      var tag=n.tagName;
+      if (tag==='STYLE'||tag==='SCRIPT'||tag==='LINK'){ n=n.nextElementSibling; continue; }
+      if (n.matches && n.matches('.grid')){
+        // explode a grid into atoms: its chart modules AND its sub-headings/tldrs
+        // (so a folded sub-section header never orphans above hidden content)
+        var added=false, ch=n.children;
+        for (var i=0;i<ch.length;i++){
+          if (ch[i].matches && (ch[i].matches(MODULE_SEL) || ch[i].matches('h2,h3,h4,header,.sect-h,.sect-tldr,.section-tldr'))){ atoms.push(ch[i]); added=true; }
+        }
+        if (!added) atoms.push(n);
+      } else { atoms.push(n); }
+      n=n.nextElementSibling;
+    }
+    return atoms;
+  }
+
+  function chooseHero(act, atoms){
+    function find(pred){ for (var i=0;i<atoms.length;i++){ try{ if (pred(atoms[i])) return atoms[i]; }catch(e){} } return null; }
+    if (act===1){ var a1=find(function(a){ return a.id==='fig-23'; }); if (a1) return a1; } // NOVELTY RATE
+    if (act===2){ var u=document.getElementById('umap-wrap'); if (u && atoms.indexOf(u)>=0) return u; }
+    if (act===3){
+      var gf=find(function(a){ return isGenuinePlot(a) && /GENRE FAMILIES/.test(txt(a)); }); if (gf) return gf; // bulletproof reversal, most legible
+      var hk=find(function(a){ return isGenuinePlot(a) && /n̂\s*=/.test(txt(a)); }); if (hk) return hk; // fallback: Hawkes
+    }
+    if (act===4){ var fdr=find(function(a){ return isGenuinePlot(a) && /BENJAMINI/.test(txt(a)); }); if (fdr) return fdr; } // the audit / trust image
+    if (act===5){ var h1=find(function(a){ return isGenuinePlot(a) && /H₁/.test(txt(a)); }); if (h1) return h1; }
+    // Body — fold the whole act deep; keep only the intro text visible (no health chart
+    // as a default hero — health is confounded + PII-adjacent, opt-in behind the lab).
+    if (act===6){ var bi=find(function(a){ return a.matches && a.matches('.section-tldr'); }); if (bi) return bi; }
+    // Where-this-goes — text/methods act; hero its summary table if present.
+    if (act===8){ var t8=find(function(a){ return a.querySelector && a.querySelector('table'); }); if (t8) return t8; }
+    return find(function(a){ return isGenuinePlot(a) && isFull(a); })
+        || find(isGenuinePlot)
+        || find(function(a){ return a.querySelector && a.querySelector('table,iframe'); });
+  }
+
+  function makeLabBtn(act, count){
+    var b=document.createElement('button');
+    b.type='button'; b.className='act-lab-btn'; b.setAttribute('data-act',act); b.setAttribute('aria-expanded','false');
+    b.innerHTML='<span class="lab-caret">▸</span><span class="lab-title">open the lab</span><span class="lab-count">'+count+' more</span>';
+    b.addEventListener('click', function(){ toggleAct(act, b); });
+    return b;
+  }
+  function renderSoon(){
+    // resize ONLY the displayed charts in opened labs — never a global resize
+    // event (the base resize-all loop throws on the many display:none folds).
+    [120,500,950].forEach(function(t){ setTimeout(function(){
+      if (!window.Plotly) return;
+      document.querySelectorAll('.spine-open .js-plotly-plot').forEach(function(gd){
+        // only nudge ALREADY-rendered charts; brand-new ones render via the base
+        // IntersectionObserver and would async-throw if resized mid-layout.
+        if (gd.offsetParent!==null && gd.querySelector('.main-svg')){ try{ window.Plotly.Plots.resize(gd); }catch(e){} }
+      });
+    }, t); });
+  }
+  function toggleAct(act, btn){
+    var open = btn.getAttribute('aria-expanded')==='true';
+    document.querySelectorAll('.spine-fold[data-spine-act="'+act+'"]').forEach(function(m){ m.classList.toggle('spine-open', !open); });
+    btn.setAttribute('aria-expanded', open?'false':'true');
+    var t=btn.querySelector('.lab-title'); if (t) t.textContent = open?'open the lab':'close the lab';
+    if (!open) renderSoon();
+  }
+
+  function build(){
+    if (document.body.classList.contains('spine-on')) return; // idempotent
+    var heads=[].slice.call(document.querySelectorAll('header[id^="act-"]'));
+    if (!heads.length) return;
+    var foldedAny=false;
+
+    heads.forEach(function(h){
+      var act=parseInt((h.id.match(/\d+/)||['0'])[0],10);
+      var atoms=collectAtoms(h);
+      // "deep lab" acts (Body / Voice / Where-this-goes) are image/table/embed-heavy and
+      // would otherwise stay fully expanded — fold them too, with a relaxed threshold.
+      var DEEP = (act===6 || act===7 || act===8);
+      if (atoms.length < (DEEP?3:4)) return;
+      var plots=atoms.filter(isGenuinePlot);
+      if (!DEEP && plots.length < 2) return;
+      var hero=chooseHero(act, atoms);
+      if (!hero && DEEP){
+        hero = plots[0]
+            || atoms.filter(function(a){ return a.querySelector && a.querySelector('table,iframe,img'); })[0]
+            || atoms.filter(function(a){ return a.matches && a.matches('.section-tldr'); })[0];
+      }
+      if (!hero) return;
+
+      hero.classList.add('spine-keep');
+      var introTldr=null;
+      for (var i=0;i<atoms.length;i++){ if (atoms[i].matches && atoms[i].matches('.section-tldr')){ introTldr=atoms[i]; break; } }
+      if (introTldr) introTldr.classList.add('spine-keep');
+
+      var foldCount=0;
+      atoms.forEach(function(a){
+        if (a===hero || a===introTldr) return;
+        if (a.tagName==='STYLE'||a.tagName==='SCRIPT') return;
+        // reorg beats (lead / AI-lab / soundtrack) stay visible in every mode
+        if (a.id && /^apple-(leadhero|ailabbeat|sunomoment)$/.test(a.id)) return;
+        a.classList.add('spine-fold'); a.setAttribute('data-spine-act', act); foldCount++;
+      });
+      if (foldCount < 1){ hero.classList.remove('spine-keep'); return; }
+
+      var anchor = hero.closest('.grid') || hero;
+      anchor.parentNode.insertBefore(makeLabBtn(act, foldCount), anchor.nextSibling);
+      foldedAny=true;
+    });
+
+    if (!foldedAny) return;
+    document.body.classList.add('spine-on');
+
+    // Default to the spine (story) on first visit; otherwise honour the saved pref.
+    var pref=null; try{ pref=localStorage.getItem(STORE_KEY); }catch(e){}
+    if (pref===null){
+      document.body.classList.add('story-only');
+      try{ localStorage.setItem(STORE_KEY,'1'); }catch(e){}
+      var sb=document.getElementById('story-toggle');
+      if (sb){ sb.setAttribute('aria-pressed','true'); sb.textContent='FULL VIEW'; }
+      document.querySelectorAll('.pace-opt').forEach(function(o){ o.classList.toggle('is-active', o.getAttribute('data-mode')==='story'); });
+    }
+  }
+
+  function start(){ try{ build(); }catch(e){ /* spine is non-fatal */ } }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,500); });
+  else setTimeout(start,500);
+})();
+</script>
+<!--APPLE-SPINE-JS-END-->
 </body>
 </html>
