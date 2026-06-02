@@ -11680,7 +11680,7 @@ try {
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
   #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
 </style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Extended", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest"}]</script>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Extended", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest"}]</script>
 <div id="sh-bg" aria-hidden="true">
   <audio id="sh-a" preload="auto"></audio>
   <audio id="sh-b" preload="auto"></audio>
@@ -12079,83 +12079,6 @@ try {
 })();
 </script>
 <!--APPLE-FINDINGS-END-->
-<!--APPLE-SOUNDTRACK-START-->
-<style id="apple-soundtrack-css">
-.soundtrack-credit{
-  max-width:var(--maxw,960px);margin:1.6rem auto;padding:1.4rem 1.5rem 1.55rem;
-  background:linear-gradient(150deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
-  -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);
-  border:1px solid var(--hair,rgba(255,255,255,.12));border-radius:18px;position:relative;overflow:hidden;
-}
-.soundtrack-credit::before{
-  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
-  background:radial-gradient(120% 120% at 0% 0%,rgba(33,246,188,.10),transparent 45%),radial-gradient(120% 120% at 100% 0%,rgba(155,107,255,.10),transparent 45%);
-}
-.soundtrack-credit > *{position:relative}
-.stc-head{
-  display:flex;align-items:center;gap:.7rem;
-  font:600 .82rem/1 var(--mono,'JetBrains Mono','SF Mono',monospace);letter-spacing:.16em;text-transform:uppercase;
-  color:var(--accent,#21f6bc);margin:0 0 .55rem;
-}
-.stc-eq{display:inline-flex;align-items:flex-end;gap:2px;height:14px}
-.stc-eq i{width:3px;height:100%;border-radius:2px;background:linear-gradient(var(--accent,#21f6bc),var(--ice,#86cbfe));transform-origin:bottom;animation:stcEq 1s ease-in-out infinite}
-.stc-eq i:nth-child(2){animation-delay:.18s}.stc-eq i:nth-child(3){animation-delay:.36s}.stc-eq i:nth-child(4){animation-delay:.52s}
-@keyframes stcEq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
-@media (prefers-reduced-motion:reduce){.stc-eq i{animation:none;transform:scaleY(.6)}}
-.stc-tag{
-  font:400 .96rem/1.55 var(--sans,system-ui,-apple-system,sans-serif);letter-spacing:-.01em;
-  color:var(--ink-2,rgba(255,255,255,.72));margin:0 0 1rem;max-width:62ch;
-}
-.stc-tag b{color:var(--ink-1,rgba(255,255,255,.94));font-weight:600}
-.stc-list{
-  list-style:none;counter-reset:trk;margin:0;padding:0;
-  display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(5,auto);
-  grid-auto-flow:column;gap:.34rem .9rem;
-}
-.stc-list li{
-  counter-increment:trk;display:flex;align-items:baseline;gap:.6rem;
-  font:500 .9rem/1.5 var(--sans,system-ui,-apple-system,sans-serif);color:var(--ink-1,rgba(255,255,255,.9));
-  letter-spacing:-.01em;padding:.18rem 0;border-bottom:1px solid rgba(255,255,255,.05);
-}
-.stc-list li::before{
-  content:counter(trk,decimal-leading-zero);
-  font:600 .72rem/1 var(--mono,'JetBrains Mono','SF Mono',monospace);color:var(--accent,#21f6bc);opacity:.7;
-  min-width:1.6em;letter-spacing:.04em;
-}
-.stc-foot{
-  margin:.95rem 0 0;font:500 .78rem/1.4 var(--mono,'JetBrains Mono','SF Mono',monospace);
-  letter-spacing:.02em;color:var(--ink-2,rgba(255,255,255,.5));
-}
-@media (max-width:560px){
-  .soundtrack-credit{padding:1.2rem 1.15rem 1.3rem;border-radius:16px}
-  .stc-list{grid-template-columns:1fr;grid-template-rows:none;grid-auto-flow:row;gap:.1rem}
-}
-</style>
-<script id="apple-soundtrack-js">
-(function(){
-  if (window.__appleSoundtrack) return; window.__appleSoundtrack = true;
-  var TRACKS=['Antares','Antares Extended','Fruititarian','No Masks Ad Infinitum','Stochastic Rainbow',
-              'Too Fiery Hot','Edge of the Black Hole','Hooked at First Taste','Brain rm -rf','Novelday'];
-  function build(){
-    if (document.querySelector('.soundtrack-credit')) return;
-    var about=document.getElementById('tldr');
-    if (!about || !about.parentNode) return;
-    var sec=document.createElement('section');
-    sec.className='soundtrack-credit';
-    var items=TRACKS.map(function(t){ return '<li>'+t+'</li>'; }).join('');
-    sec.innerHTML=
-      '<div class="stc-head"><span class="stc-eq"><i></i><i></i><i></i><i></i></span> the soundtrack</div>'
-      +'<p class="stc-tag">A page about a listening life deserves one of its own. Ten originals, written for it — '
-      +'<b>shuffled, crossfading, and unblockable</b>. Tap anywhere on the page and let the album ride.</p>'
-      +'<ol class="stc-list">'+items+'</ol>'
-      +'<p class="stc-foot">♪ 10 tracks · original score · press play = tap anywhere</p>';
-    about.parentNode.insertBefore(sec, about.nextSibling);
-  }
-  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', build);
-  else build();
-})();
-</script>
-<!--APPLE-SOUNDTRACK-END-->
 <!--APPLE-POLISH2-CSS-START-->
 <style id="apple-polish2-css">
 /* body copy a smudge bigger for readability (was clamp 13–15px → 14–16px) */
@@ -13580,56 +13503,6 @@ html body .term-tip{ cursor:help; }
 })();
 </script>
 <!--APPLE-INTERACT-END-->
-<!--APPLE-SONIFYKEY-START-->
-<script id="apple-sonifykey-js">
-(function(){
-  if (window.__appleSonifyKey) return; window.__appleSonifyKey = true;
-  // Key the hover-sonify scale to whatever bed track is playing. Each Suno track's
-  // key was detected from its audio (chroma + Krumhansl-Schmuckler). The SONIFY
-  // engine reads window.__sonifyKey (set dynamic via sonify.py) + a 'sonify:rekey'
-  // event. major tracks → major scale; minor tracks → Dorian (Karaharapriya, the
-  // default raga). Base freqs sit in a ~1-octave band around D3 (146.83).
-  // pentatonic (no semitone clashes → forgiving against the backing track even if
-  // the detected key is slightly off; matches Tara's default = D-minor-pentatonic).
-  var MAJ=[0,2,4,7,9], DOR=[0,3,5,7,10];
-  // keyword (matched in the now-playing label) -> {hz: root in octave near D3, degs}
-  var KEYS=[
-    {kw:'antares',      hz:116.54, degs:MAJ},  // A# maj
-    {kw:'brain',        hz:174.61, degs:MAJ},  // F maj
-    {kw:'edge',         hz:110.00, degs:DOR},  // A min
-    {kw:'black hole',   hz:110.00, degs:DOR},
-    {kw:'fruititarian', hz:123.47, degs:DOR},  // B min
-    {kw:'hooked',       hz:123.47, degs:DOR},  // B min
-    {kw:'mask',         hz:174.61, degs:MAJ},  // F maj (no masks ad infinitum)
-    {kw:'novelday',     hz:116.54, degs:DOR},  // A# min
-    {kw:'stochastic',   hz:164.81, degs:MAJ},  // E maj
-    {kw:'rainbow',      hz:164.81, degs:MAJ},
-    {kw:'fiery',        hz:146.83, degs:DOR}   // D min (= the default register)
-  ];
-  function rekeyFrom(label){
-    var t=(label||'').toLowerCase();
-    var hit=null;
-    for (var i=0;i<KEYS.length;i++){ if (t.indexOf(KEYS[i].kw)>=0){ hit=KEYS[i]; break; } }
-    if (hit){ window.__sonifyKey={hz:hit.hz, degs:hit.degs}; }
-    else { window.__sonifyKey=null; } // ambient / unknown → engine default (D Dorian)
-    try{ window.dispatchEvent(new Event('sonify:rekey')); }catch(e){}
-  }
-  function start(){
-    var el=document.getElementById('sc-now-label');
-    if (!el){ setTimeout(start, 1200); return; }
-    rekeyFrom(el.textContent);
-    try{
-      var mo=new MutationObserver(function(){ rekeyFrom(el.textContent); });
-      mo.observe(el, {childList:true, characterData:true, subtree:true});
-    }catch(e){
-      setInterval(function(){ rekeyFrom(el.textContent); }, 3000); // fallback
-    }
-  }
-  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,1500); });
-  else setTimeout(start,1500);
-})();
-</script>
-<!--APPLE-SONIFYKEY-END-->
 <!--APPLE-NAVFIX-START-->
 <style id="apple-navfix-css">
 /* ============================================================
@@ -15128,5 +15001,133 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
 })();
 </script>
 <!--APPLE-CHARTPATCH-END-->
+<!--APPLE-SOUNDTRACK-START-->
+<style id="apple-soundtrack-css">
+.soundtrack-credit{
+  max-width:var(--maxw,960px);margin:1.6rem auto;padding:1.4rem 1.5rem 1.55rem;
+  background:linear-gradient(150deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+  -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);
+  border:1px solid var(--hair,rgba(255,255,255,.12));border-radius:18px;position:relative;overflow:hidden;
+}
+.soundtrack-credit::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:radial-gradient(120% 120% at 0% 0%,rgba(33,246,188,.10),transparent 45%),radial-gradient(120% 120% at 100% 0%,rgba(155,107,255,.10),transparent 45%);
+}
+.soundtrack-credit > *{position:relative}
+.stc-head{
+  display:flex;align-items:center;gap:.7rem;
+  font:600 .82rem/1 var(--mono,'JetBrains Mono','SF Mono',monospace);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent,#21f6bc);margin:0 0 .55rem;
+}
+.stc-eq{display:inline-flex;align-items:flex-end;gap:2px;height:14px}
+.stc-eq i{width:3px;height:100%;border-radius:2px;background:linear-gradient(var(--accent,#21f6bc),var(--ice,#86cbfe));transform-origin:bottom;animation:stcEq 1s ease-in-out infinite}
+.stc-eq i:nth-child(2){animation-delay:.18s}.stc-eq i:nth-child(3){animation-delay:.36s}.stc-eq i:nth-child(4){animation-delay:.52s}
+@keyframes stcEq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){.stc-eq i{animation:none;transform:scaleY(.6)}}
+.stc-tag{
+  font:400 .96rem/1.55 var(--sans,system-ui,-apple-system,sans-serif);letter-spacing:-.01em;
+  color:var(--ink-2,rgba(255,255,255,.72));margin:0 0 1rem;max-width:62ch;
+}
+.stc-tag b{color:var(--ink-1,rgba(255,255,255,.94));font-weight:600}
+.stc-list{
+  list-style:none;counter-reset:trk;margin:0;padding:0;
+  display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(5,auto);
+  grid-auto-flow:column;gap:.34rem .9rem;
+}
+.stc-list li{
+  counter-increment:trk;display:flex;align-items:baseline;gap:.6rem;
+  font:500 .9rem/1.5 var(--sans,system-ui,-apple-system,sans-serif);color:var(--ink-1,rgba(255,255,255,.9));
+  letter-spacing:-.01em;padding:.18rem 0;border-bottom:1px solid rgba(255,255,255,.05);
+}
+.stc-list li::before{
+  content:counter(trk,decimal-leading-zero);
+  font:600 .72rem/1 var(--mono,'JetBrains Mono','SF Mono',monospace);color:var(--accent,#21f6bc);opacity:.7;
+  min-width:1.6em;letter-spacing:.04em;
+}
+.stc-foot{
+  margin:.95rem 0 0;font:500 .78rem/1.4 var(--mono,'JetBrains Mono','SF Mono',monospace);
+  letter-spacing:.02em;color:var(--ink-2,rgba(255,255,255,.5));
+}
+@media (max-width:560px){
+  .soundtrack-credit{padding:1.2rem 1.15rem 1.3rem;border-radius:16px}
+  .stc-list{grid-template-columns:1fr;grid-template-rows:none;grid-auto-flow:row;gap:.1rem}
+}
+</style>
+<script id="apple-soundtrack-js">
+(function(){
+  if (window.__appleSoundtrack) return; window.__appleSoundtrack = true;
+  var TRACKS=['Antares','Antares Extended','Fruititarian','No Masks Ad Infinitum','Stochastic Rainbow',
+              'Too Fiery Hot','Edge of the Black Hole','Hooked at First Taste','Brain rm -rf','Novelday','Latent Dimension'];
+  function build(){
+    if (document.querySelector('.soundtrack-credit')) return;
+    var about=document.getElementById('tldr');
+    if (!about || !about.parentNode) return;
+    var sec=document.createElement('section');
+    sec.className='soundtrack-credit';
+    var items=TRACKS.map(function(t){ return '<li>'+t+'</li>'; }).join('');
+    sec.innerHTML=
+      '<div class="stc-head"><span class="stc-eq"><i></i><i></i><i></i><i></i></span> the soundtrack</div>'
+      +'<p class="stc-tag">A page about a listening life deserves one of its own. Eleven originals, written for it — '
+      +'<b>shuffled, crossfading, and unblockable</b>. Tap anywhere on the page and let the album ride.</p>'
+      +'<ol class="stc-list">'+items+'</ol>'
+      +'<p class="stc-foot">♪ 11 tracks · original score · press play = tap anywhere</p>';
+    about.parentNode.insertBefore(sec, about.nextSibling);
+  }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', build);
+  else build();
+})();
+</script>
+<!--APPLE-SOUNDTRACK-END-->
+<!--APPLE-SONIFYKEY-START-->
+<script id="apple-sonifykey-js">
+(function(){
+  if (window.__appleSonifyKey) return; window.__appleSonifyKey = true;
+  // Key the hover-sonify scale to whatever bed track is playing. Each Suno track's
+  // key was detected from its audio (chroma + Krumhansl-Schmuckler). The SONIFY
+  // engine reads window.__sonifyKey (set dynamic via sonify.py) + a 'sonify:rekey'
+  // event. major tracks → major scale; minor tracks → Dorian (Karaharapriya, the
+  // default raga). Base freqs sit in a ~1-octave band around D3 (146.83).
+  // pentatonic (no semitone clashes → forgiving against the backing track even if
+  // the detected key is slightly off; matches Tara's default = D-minor-pentatonic).
+  var MAJ=[0,2,4,7,9], DOR=[0,3,5,7,10];
+  // keyword (matched in the now-playing label) -> {hz: root in octave near D3, degs}
+  var KEYS=[
+    {kw:'antares',      hz:116.54, degs:MAJ},  // A# maj
+    {kw:'brain',        hz:174.61, degs:MAJ},  // F maj
+    {kw:'edge',         hz:110.00, degs:DOR},  // A min
+    {kw:'black hole',   hz:110.00, degs:DOR},
+    {kw:'fruititarian', hz:123.47, degs:DOR},  // B min
+    {kw:'hooked',       hz:123.47, degs:DOR},  // B min
+    {kw:'mask',         hz:174.61, degs:MAJ},  // F maj (no masks ad infinitum)
+    {kw:'novelday',     hz:116.54, degs:DOR},  // A# min
+    {kw:'latent',       hz:116.54, degs:MAJ},  // A# maj (latent dimension)
+    {kw:'stochastic',   hz:164.81, degs:MAJ},  // E maj
+    {kw:'rainbow',      hz:164.81, degs:MAJ},
+    {kw:'fiery',        hz:146.83, degs:DOR}   // D min (= the default register)
+  ];
+  function rekeyFrom(label){
+    var t=(label||'').toLowerCase();
+    var hit=null;
+    for (var i=0;i<KEYS.length;i++){ if (t.indexOf(KEYS[i].kw)>=0){ hit=KEYS[i]; break; } }
+    if (hit){ window.__sonifyKey={hz:hit.hz, degs:hit.degs}; }
+    else { window.__sonifyKey=null; } // ambient / unknown → engine default (D Dorian)
+    try{ window.dispatchEvent(new Event('sonify:rekey')); }catch(e){}
+  }
+  function start(){
+    var el=document.getElementById('sc-now-label');
+    if (!el){ setTimeout(start, 1200); return; }
+    rekeyFrom(el.textContent);
+    try{
+      var mo=new MutationObserver(function(){ rekeyFrom(el.textContent); });
+      mo.observe(el, {childList:true, characterData:true, subtree:true});
+    }catch(e){
+      setInterval(function(){ rekeyFrom(el.textContent); }, 3000); // fallback
+    }
+  }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,1500); });
+  else setTimeout(start,1500);
+})();
+</script>
+<!--APPLE-SONIFYKEY-END-->
 </body>
 </html>
