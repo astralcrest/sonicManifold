@@ -15434,5 +15434,303 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
 })();
 </script>
 <!--APPLE-AUDIOUX-END-->
+<!--APPLE-GLOBALUI-START-->
+<!--
+  APPLE-GLOBALUI — additive, idempotent GLOBAL non-chart UI polish.
+  Owns: term-tooltip cursor/placement, small-font legibility, vertical rhythm,
+  ◢ section headings, "keep going" centering, nav "sonic manifold" wordmark,
+  UMAP control de-overlap + single-tooltip guarantee.
+  Injected LAST so it wins the cascade. Does NOT touch Plotly relayout or
+  figure captions (other agents own those).
+-->
+<style id="apple-globalui-css">
+/* ============================================================
+   1. TERM TOOLTIP — kill the "?" (help) cursor; keep box off the cursor
+   ============================================================ */
+/* the prior polish set .term-tip{cursor:help}; the floating "?" annoys + the
+   pointer can land under the box. Use a plain pointer, no query glyph. */
+html body .term-tip{ cursor:pointer !important; }
+html body .tk-term{ cursor:pointer !important; }
+/* the body-level tooltip must never eat pointer events nor sit under the cursor.
+   Geometry (a larger gap, viewport-aware flip) is handled in JS below. */
+html body #apple-tip{
+  pointer-events:none !important;
+  z-index:2147483600 !important;
+}
+
+/* ============================================================
+   2. FONTS — bump the small gray footnote/caption/label type to a
+   readable, consistent floor. (Plotly internal fonts untouched.)
+   ============================================================ */
+/* method / sub / caption micro-copy: readable floor + on-brand ink */
+html body .method-line,
+html body .method-line i,
+html body header .sub,
+html body .sub{
+  font-size:12.75px !important;
+  line-height:1.62 !important;
+  color:#c7bce4 !important;          /* lighter than --mute for legibility */
+  letter-spacing:.15px !important;
+}
+html body .method-line b,
+html body .method-line i b{ color:#21f6bc !important; }   /* mint accents */
+
+/* takeaway / legend micro-rows used under figures */
+html body .tk-line{ font-size:12.75px !important; line-height:1.55 !important; }
+html body .tk-legend{ font-size:12.25px !important; line-height:1.6 !important; color:#b2c2bb !important; }
+
+/* section eyebrow / uppercase mono labels: one consistent size + tracking */
+html body .act-eyebrow,
+html body .tldr-eyebrow,
+html body header.theme-divider .act-eyebrow{
+  font-size:11.5px !important;
+  letter-spacing:3px !important;
+}
+
+/* small global hint / foot lines that were sub-11px (NOT figure captions —
+   those belong to the captions agent) */
+html body .glossary-tip .hint,
+html body .stc-foot{
+  font-size:12.5px !important;
+  line-height:1.55 !important;
+}
+
+/* table heads were 10px — nudge to a readable, on-brand floor */
+html body .table-panel th,
+html body table th{ font-size:11.5px !important; letter-spacing:.8px !important; }
+
+/* ============================================================
+   3. VERTICAL WHITESPACE — tighten the big voids into a consistent rhythm.
+   The act dividers carried margin-top:120px (giant gaps between sections);
+   the ◢ sub-headers + method blocks over-padded below.
+   ============================================================ */
+html body header.theme-divider{
+  margin-top:72px !important;
+  margin-bottom:24px !important;
+  padding-top:30px !important;
+  padding-bottom:20px !important;
+}
+/* first divider after the hero shouldn't double-stack the gap */
+html body .hero-stage + header.theme-divider,
+html body header.theme-divider:first-of-type{ margin-top:48px !important; }
+
+/* ◢ / ◢◤ headings: even, calm space below — no void, no cramping */
+html body h2[style*="font-size:28px"]{ margin:0 0 16px !important; }
+html body header > h3{ margin:0 0 12px !important; }
+
+/* method-line / sub directly under a heading: pull up the gap a touch */
+html body h2[style*="font-size:28px"] + .sub,
+html body header > h3 + .sub{ margin-top:8px !important; }
+html body .method-line{ margin-top:10px !important; margin-bottom:6px !important; }
+
+/* section <header> blocks: trim the trailing pad that left a void before charts */
+html body main > header,
+html body body > header{ /* no-op anchor, real trims below */ }
+html body header:not(.theme-divider):not(.cyber-nav){ padding-bottom:6px !important; }
+
+/* grids of panels: consistent top gap after a heading block */
+html body header + .grid,
+html body header + .cards{ margin-top:10px !important; }
+
+/* ============================================================
+   4. ◢ SECTION HEADINGS — Apple-minimal, bold, subtle mint accent.
+   Restyle the wedge + the word. Applies to both ◢◤ (h2) and ◢ (h3).
+   ============================================================ */
+html body h2[style*="font-size:28px"]{
+  font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important;
+  font-weight:700 !important;
+  font-size:27px !important;
+  letter-spacing:-0.3px !important;
+  line-height:1.14 !important;
+  color:#f0eaff !important;
+  text-shadow:0 0 22px rgba(33,246,188,.10) !important;
+  padding-left:0 !important;
+}
+html body header > h3{
+  font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important;
+  font-weight:650 !important;
+  font-size:22px !important;
+  letter-spacing:-0.1px !important;
+  line-height:1.2 !important;
+  color:#e7defb !important;
+}
+/* the ◢ wedge is the first glyph of the heading text; tint it mint so it
+   reads as a crisp accent rather than washed-in body text. ::first-letter
+   targets the leading ◢ (works because the heading is a normal block). */
+html body h2[style*="font-size:28px"]::first-letter,
+html body header > h3::first-letter{
+  color:#21f6bc;
+  -webkit-text-fill-color:#21f6bc;
+}
+
+/* ============================================================
+   5. "keep going" hero cue — restore true horizontal centering.
+   A prior !important override dropped translateX(-50%).
+   ============================================================ */
+html body .hero-cue{
+  left:50% !important;
+  transform:translateX(-50%) !important;
+}
+/* keyframes that animated transform would re-break centering on desktop;
+   pin a centered idle transform and let opacity carry the bob instead. */
+html body .hero-cue{ animation-name:gui-cue-fade !important; }
+@keyframes gui-cue-fade{
+  0%,100%{ opacity:.55; transform:translateX(-50%) translateY(0); }
+  50%{ opacity:.9; transform:translateX(-50%) translateY(5px); }
+}
+@media (prefers-reduced-motion:reduce){
+  html body .hero-cue{ animation:none !important; transform:translateX(-50%) !important; }
+}
+
+/* ============================================================
+   6. NAV WORDMARK — "sonic manifold" was clipped to a transparent gradient
+   then had its background killed by a later rule (invisible). Restore a
+   bold, on-brand gradient wordmark beside TL;DR.
+   ============================================================ */
+html body .cyber-nav .brand{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:8px !important;
+}
+html body .cyber-nav .brand .label{
+  display:inline-block !important;
+  font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important;
+  font-weight:800 !important;
+  font-size:14px !important;
+  letter-spacing:.2px !important;
+  white-space:nowrap !important;
+  background:linear-gradient(96deg,#21f6bc 0%,#86cbfe 48%,#9b6bff 100%) !important;
+  -webkit-background-clip:text !important; background-clip:text !important;
+  -webkit-text-fill-color:transparent !important;
+  color:transparent !important;
+  text-shadow:none !important;
+}
+html body .cyber-nav .brand .dot{
+  opacity:1 !important;
+  box-shadow:0 0 10px rgba(33,246,188,.7) !important;
+}
+html body .cyber-nav .brand:hover .label{ filter:brightness(1.12); }
+@media (max-width:768px){
+  /* keep a compact wordmark on mobile rather than hiding it entirely */
+  html body .cyber-nav .brand .label{ display:inline-block !important; font-size:12px !important; }
+}
+
+/* ============================================================
+   7. UMAP — de-overlap the right-side controls vs Plotly modebar, and make
+   the control stack a clean vertical card.
+   ============================================================ */
+/* push our controls below the Plotly modebar so the two stop colliding */
+html body #umap-controls{
+  top:auto !important;
+  bottom:18px !important;
+  right:18px !important;
+  gap:8px !important;
+  align-items:stretch !important;
+  background:rgba(10,1,24,.55) !important;
+  padding:8px !important;
+  border-radius:12px !important;
+  border:1px solid rgba(33,246,188,.18) !important;
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+}
+html body #umap-controls .umap-ctrl-btn{
+  width:100% !important;
+  text-align:center !important;
+  font-size:11px !important;
+  letter-spacing:1.2px !important;
+}
+/* nudge Plotly modebar a hair inward so it never tucks under our card edge */
+html body #umap-wrap .modebar{ top:6px !important; right:6px !important; }
+</style>
+<script id="apple-globalui-js">
+(function(){
+  if (window.__appleGlobalUI) return; window.__appleGlobalUI = true;
+
+  /* ---- (1) TOOLTIP placement: re-place #apple-tip with a larger gap and a
+     top-of-viewport-aware flip so the box never sits under the cursor or
+     covers the term being read. We DON'T replace the existing show/hide
+     listeners — we just correct geometry after the existing handler runs. */
+  function reposition(){
+    var tip = document.getElementById('apple-tip');
+    if (!tip || !tip.classList.contains('show')) return;
+    var term = window.__guiCurTerm;
+    if (!term || !term.getBoundingClientRect) return;
+    var r = term.getBoundingClientRect();
+    var tw = tip.offsetWidth, th = tip.offsetHeight;
+    var m = 10, gap = 16, vw = window.innerWidth, vh = window.innerHeight;
+    var left = r.left + r.width/2 - tw/2;
+    left = Math.max(m, Math.min(left, vw - tw - m));
+    // prefer ABOVE with a clear gap; if the term is in the top third of the
+    // viewport (no room), drop clearly BELOW with the same gap.
+    var top;
+    var roomAbove = r.top;
+    if (roomAbove > th + gap + m){
+      top = r.top - th - gap;
+    } else {
+      top = r.bottom + gap;
+      if (top + th > vh - m) top = Math.max(m, vh - th - m);
+    }
+    tip.style.left = Math.round(left) + 'px';
+    tip.style.top  = Math.round(top)  + 'px';
+  }
+  document.addEventListener('mouseover', function(e){
+    var n = e.target && e.target.closest && e.target.closest('.term-tip[data-tip]');
+    if (n){ window.__guiCurTerm = n; requestAnimationFrame(reposition); requestAnimationFrame(function(){ requestAnimationFrame(reposition); }); }
+  }, true);
+  document.addEventListener('focusin', function(e){
+    var n = e.target && e.target.closest && e.target.closest('.term-tip[data-tip]');
+    if (n){ window.__guiCurTerm = n; requestAnimationFrame(reposition); }
+  }, true);
+
+  /* ---- (7b) SINGLE tooltip guarantee. Two systems exist: #apple-tip (terms)
+     and .glossary-tip (the [n] reference superscripts). When a term and a
+     ref sit adjacent ("UMAP[17]") both could surface. Enforce mutual
+     exclusion: showing one hides the other. */
+  function hideGlossary(){
+    var g = document.querySelector('.glossary-tip');
+    if (g) g.classList.remove('show');
+  }
+  function hideAppleTip(){
+    var a = document.getElementById('apple-tip');
+    if (a) a.classList.remove('show');
+  }
+  document.addEventListener('mouseover', function(e){
+    var t = e.target && e.target.closest;
+    if (!t) return;
+    var term = e.target.closest('.term-tip[data-tip]');
+    var ref  = e.target.closest('.fig-caption sup.ref a, sup.ref a');
+    if (term){ hideGlossary(); }
+    if (ref){ hideAppleTip(); }
+  }, true);
+
+  /* ---- (7a) UMAP 2D<->3D reliability: make the toggle idempotent by forcing
+     a clean autosize relayout after each switch, so going 2D then back to 3D
+     never leaves stale cartesian axes or an un-sized scene. We hook the
+     existing button without replacing its handler. */
+  function patchUmapToggle(){
+    var btn = document.getElementById('umap-toggle3d');
+    var wrap = document.getElementById('umap-wrap');
+    if (!btn || !wrap || btn.__guiPatched) return;
+    btn.__guiPatched = true;
+    btn.addEventListener('click', function(){
+      // runs AFTER the existing handler (added earlier in source order)
+      setTimeout(function(){
+        var gd = (window.__sonicUmap && window.__sonicUmap.gd) || wrap.querySelector('.js-plotly-plot');
+        if (gd && window.Plotly){
+          try{ window.Plotly.Plots.resize(gd); }catch(e){}
+          // force a benign relayout to flush any stale axis/scene state
+          try{ window.Plotly.relayout(gd, {autosize:true}); }catch(e){}
+        }
+      }, 60);
+    });
+  }
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', patchUmapToggle);
+  } else { patchUmapToggle(); }
+  // also retry shortly in case the UMAP block initialises late
+  setTimeout(patchUmapToggle, 1200);
+  setTimeout(patchUmapToggle, 3000);
+})();
+</script>
+<!--APPLE-GLOBALUI-END-->
 </body>
 </html>
