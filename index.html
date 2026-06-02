@@ -15732,5 +15732,325 @@ html body #umap-wrap .modebar{ top:6px !important; right:6px !important; }
 })();
 </script>
 <!--APPLE-GLOBALUI-END-->
+<!--APPLE-FIGFIX-START-->
+<style id="apple-figfix-css">
+  /* ===== APPLE-FIGFIX — exhaustive figure consistency pass (1440 desktop, mobile-safe) =====
+     Additive + idempotent. Coexists with APPLE-CHARTPATCH / CHARTPATCH2 / TAKEAWAYS.
+     Layout JS below keys by gd.layout.title TITLE-SIGNATURE and runs LAST. */
+
+  /* (1) blank-axis charts whose data sits in a narrow band but the panel stretches the
+         plot across the full page width, dragging a huge empty x-axis. Constrain the
+         PLOT to a centred max-width via the .js-plotly-plot itself (responsive: shrinks
+         on narrow screens, never a hard pixel width). PELT + a couple of other
+         categorical-x charts. Targeted by a marker class the JS adds. */
+  .figfix-narrow .js-plotly-plot,
+  .figfix-narrow.js-plotly-plot{ max-width:860px; margin-left:auto; margin-right:auto; }
+  @media (max-width:900px){ .figfix-narrow .js-plotly-plot, .figfix-narrow.js-plotly-plot{ max-width:100%; } }
+
+  /* (1b) the top-30 artists × month composite packs THREE stacked sub-panels into one div;
+          its CSS-capped height squashes them. Give that one chart real vertical room so the
+          artist labels + grid + circadian curves breathe (Plotly autosize follows the box). */
+  .js-plotly-plot.figfix-tall{ min-height:1060px !important; height:1060px !important; }
+
+  /* (2) STATIC health images (workout genre×intensity, headphone vol×HRV) render LIGHT on
+         the dark page. Root cause: these were re-exported with a DARK background, but a
+         stale `.hp-sub .hp-plot { filter:invert(0.92) hue-rotate(180deg) }` rule (from when
+         they were light) now inverts the dark source back to light. Cancel that filter on
+         these already-dark images and frame to match the dark panels. */
+  img.hp-plot.figfix-darkimg,
+  .hp-sub img.hp-plot.figfix-darkimg{
+    filter:none !important;
+    background:#0a0118; border-radius:12px;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.06) inset;
+  }
+
+  /* (3) vertical-whitespace normalisation: kill the oversized gaps that open up directly
+         below a ◢ section heading / its method blurb before the chart starts. Scoped so it
+         only tightens the known-loose spots, never collapses intentional rhythm. */
+  .figfix-tight{ margin-top:10px !important; }
+
+  /* (4) caption: the reformatted spine captions get the same labelled look as native ones. */
+  .fig-caption .ff-lbl{ font-weight:700; letter-spacing:.02em; }
+  .fig-caption .ff-intuition{ color:#8fb6ff; }
+  .fig-caption .ff-note{ display:block; margin-top:6px; font:500 12px/1.55 "JetBrains Mono",ui-monospace,monospace; color:#9fb0aa; }
+  .fig-caption .ff-note b{ color:#cde7df; }
+</style>
+<script id="apple-figfix-js">
+(function(){
+  if(window.__appleFigFix) return; window.__appleFigFix = true;
+  var DARK = '#0a0118';
+  function R(gd,o){ try{ window.Plotly.relayout(gd,o); }catch(e){} }
+  function S(gd,o,idx){ try{ window.Plotly.restyle(gd,o,idx); }catch(e){} }
+
+  /* ---------------------------------------------------------------------------
+     PART A — CAPTION CONSISTENCY (DOM, idempotent, runs once on settle)
+  --------------------------------------------------------------------------- */
+
+  // A1. Reformat the spine-injected captions (lead sentence + lone Takeaway) into the
+  //     dominant labelled format by promoting the lead sentence to an "Intuition:" line.
+  //     Also repair two captions whose Takeaway was copied from the wrong (id-colliding)
+  //     figure during spine injection.
+  var CAP_FIX = {
+    // title signature (uppercased substring) -> corrected Takeaway text (only when current is wrong)
+    "SKIP PREDICTORS": "Direction beats strength here: the model barely clears chance (AUC 0.52), so read which way each factor leans, not how hard.",
+    "ARTIST CO-LISTENING GRAPH": "Four communities fall out of who I play together — coherent neighbourhoods, not one undifferentiated blob."
+  };
+
+  function titleSig(panel){
+    try{
+      var gd = panel.querySelector('.js-plotly-plot'); if(!gd) return '';
+      var L = gd.layout||{}; var t=(L.title && (L.title.text!=null?L.title.text:L.title))||'';
+      return String(t).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+    }catch(e){ return ''; }
+  }
+
+  function fixSpineCaptions(){
+    document.querySelectorAll('.fig-caption.spine-injected-cap').forEach(function(cap){
+      try{
+        var panel = cap.closest('.panel');
+        var sig = panel ? titleSig(panel) : '';
+
+        // (i) promote lead sentence -> Intuition: line (sig-independent, do once)
+        if(!cap.hasAttribute('data-ff-intuition')){
+          cap.setAttribute('data-ff-intuition','1');
+          var tkLine = cap.querySelector('.tk-line');
+          if(tkLine && !cap.querySelector('.ff-intuition')){
+            var leadNodes = [];
+            for(var i=0;i<cap.childNodes.length;i++){
+              var n = cap.childNodes[i];
+              if(n===tkLine) break;
+              leadNodes.push(n);
+            }
+            var leadText = leadNodes.map(function(n){return n.textContent;}).join('').trim();
+            if(leadText && leadNodes.length && !/^(Math|Intuition|My data|Takeaway)\s*:/i.test(leadText)){
+              var b = document.createElement('b');
+              b.className = 'ff-lbl ff-intuition';
+              b.textContent = 'Intuition: ';
+              cap.insertBefore(b, leadNodes[0]);
+            }
+          }
+        }
+
+        // (ii) repair mismatched takeaway — RETRY until the chart title resolves (folded
+        //      charts have no layout.title yet on early ticks). Mark done only once sig known.
+        if(!cap.hasAttribute('data-ff-take') && sig){
+          cap.setAttribute('data-ff-take','1');
+          var tkSpan = cap.querySelector('.pl-takeaway');
+          if(tkSpan){
+            for(var key in CAP_FIX){
+              if(sig.indexOf(key)!==-1){
+                tkSpan.parentElement.innerHTML = '<b class="pl-takeaway">Takeaway:</b> ' + CAP_FIX[key];
+                break;
+              }
+            }
+          }
+        }
+      }catch(e){}
+    });
+  }
+
+  // A2. Append clarifying notes (idempotent) to two confusing figures, keyed by title sig.
+  var CAP_NOTE = {
+    "BOOTSTRAP CIS ON KEY SCALARS":
+      "<b>Reading it:</b> every yellow dot sits at 1.0 — each scalar's own point estimate, normalised so the bars are width-comparable. The magenta bar is that 95% confidence interval, drawn as an offset segment; a bar clear of 1.0 just reflects an asymmetric interval, not a dot outside its CI.",
+    "YOUR TASTE OVER TIME":
+      "<b>Three panels in one:</b> the thin left strip is each artist's lifetime total (why its single column is saturated); the wide grid is plays per artist per month; the bottom curves are the hour-of-day rhythm per year. Legend mixes year-lines (lower block) with genre-markers (upper block)."
+  };
+
+  function appendCaptionNotes(){
+    document.querySelectorAll('.panel').forEach(function(panel){
+      try{
+        if(panel.querySelector('.ff-note')) return;
+        var sig = titleSig(panel); if(!sig) return;
+        for(var key in CAP_NOTE){
+          if(sig.indexOf(key)!==-1){
+            var cap = panel.querySelector('.fig-caption');
+            if(cap){
+              var note = document.createElement('span');
+              note.className = 'ff-note';
+              note.innerHTML = CAP_NOTE[key];
+              cap.appendChild(note);
+            }
+            break;
+          }
+        }
+      }catch(e){}
+    });
+  }
+
+  function runCaptions(){ fixSpineCaptions(); appendCaptionNotes(); }
+
+  /* ---------------------------------------------------------------------------
+     PART B — CHART LAYOUT (Plotly.relayout / restyle, title-keyed, runs LAST)
+  --------------------------------------------------------------------------- */
+  var FIXES = {
+
+    // F-skip: the 3rd subplot's legend (kept / skipped) sits top-right ON the subplot
+    // title + plot. Send it BELOW the whole figure, centred; bump tiny subplot fonts.
+    "SKIP PREDICTORS": function(gd){
+      R(gd,{ 'legend.orientation':'h','legend.x':0.5,'legend.xanchor':'center',
+             'legend.y':-0.14,'legend.yanchor':'top','legend.font.size':12,
+             'margin.t':80,'margin.b':100,
+             'xaxis.tickfont.size':12,'xaxis2.tickfont.size':12,'xaxis3.tickfont.size':12,
+             'yaxis.tickfont.size':12,'yaxis2.tickfont.size':12,'yaxis3.tickfont.size':12,
+             'paper_bgcolor':DARK,'plot_bgcolor':DARK });
+    },
+
+    // F-stackedarea: SUBGENRE-CLUSTER % SHARE — legend box bottom-LEFT (2 rows) overlaps the
+    // area + the year ticks; the leftover 260px right margin squeezes the plot. Centre it,
+    // drop it clear below the x-axis, reclaim the right margin.
+    "SUBGENRE-CLUSTER % SHARE": function(gd){
+      R(gd,{ 'legend.orientation':'h','legend.x':0.5,'legend.xanchor':'center',
+             'legend.y':-0.22,'legend.yanchor':'top','legend.font.size':11,
+             'margin.b':150,'margin.r':40,'margin.t':60,
+             'xaxis.tickfont.size':12,'yaxis.tickfont.size':12,
+             'paper_bgcolor':DARK,'plot_bgcolor':DARK });
+    },
+
+    // F-subgenre-net: the right-side legend clips long cluster labels ("electronic, dubstep,
+    // a…") because Plotly caps legend width to the plot. Move it to a BOTTOM horizontal row
+    // where the full page width fits every label; reclaim the wide right margin for the graph.
+    "SUBGENRE NETWORK": function(gd){
+      R(gd,{ 'legend.orientation':'h','legend.x':0.5,'legend.xanchor':'center',
+             'legend.y':-0.04,'legend.yanchor':'top','legend.font.size':12,
+             'margin.r':60,'margin.b':90,'paper_bgcolor':DARK,'plot_bgcolor':DARK });
+    },
+    "BACKBONE CO-LISTENING": function(gd){
+      R(gd,{ 'legend.orientation':'h','legend.x':0.5,'legend.xanchor':'center',
+             'legend.y':-0.04,'legend.yanchor':'top','legend.font.size':12,
+             'margin.r':60,'margin.b':90,'paper_bgcolor':DARK,'plot_bgcolor':DARK });
+    },
+
+    // F-heatmap: top-30 artists × month composite — give it room (taller), bump the tiny
+    // artist y-labels + axis fonts, push the (year+genre) legend fully clear below.
+    "YOUR TASTE OVER TIME": function(gd){
+      gd.classList.add('figfix-tall');                 // CSS grants the container real height
+      R(gd,{ 'margin.t':150,'margin.b':210,'margin.l':340,
+             'legend.orientation':'h','legend.x':0.5,'legend.xanchor':'center',
+             'legend.y':-0.14,'legend.yanchor':'top','legend.font.size':11,
+             'yaxis.tickfont.size':11,'yaxis2.tickfont.size':11,'xaxis2.tickfont.size':11,
+             'xaxis3.tickfont.size':12,'yaxis3.tickfont.size':12,
+             'paper_bgcolor':DARK,'plot_bgcolor':DARK });
+      try{ if(window.Plotly && gd.getBoundingClientRect().width>0) window.Plotly.Plots.resize(gd); }catch(e){}
+    }
+    // (heart-rate-by-genre has no layout.title — keyed by id in ID_FIXES below)
+  };
+
+  // id-keyed fixes for the few named charts whose layout.title is empty (title-sig can't match).
+  // C3/HR-genre: '&middot;' renders LITERALLY in Plotly annotation text → real '·';
+  // x-axis genre labels clipped at the very bottom → bottom margin + bigger ticks.
+  var ID_FIXES = {
+    "hp-hr-bar": function(gd){
+      var ann = (gd.layout&&gd.layout.annotations)||[];
+      var fix = { 'margin.b':130,'xaxis.automargin':true,'xaxis.tickfont.size':12,
+                  'yaxis.tickfont.size':12,'paper_bgcolor':DARK,'plot_bgcolor':DARK };
+      for(var i=0;i<ann.length;i++){
+        var tx = String(ann[i] && ann[i].text || '');
+        if(/&(amp;)?middot;/.test(tx)){
+          fix['annotations['+i+'].text'] = tx.replace(/&(amp;)?middot;/g,'·');
+        }
+      }
+      R(gd,fix);
+    }
+  };
+
+  // font-floor sweep: any chart with sub-12px tick/title fonts gets bumped to >=12.
+  function fontFloor(gd){
+    try{
+      var L = gd.layout||{}; var patch={};
+      Object.keys(L).forEach(function(k){
+        if(/^[xy]axis\d*$/.test(k)){
+          if(L[k] && L[k].tickfont && L[k].tickfont.size && L[k].tickfont.size<12) patch[k+'.tickfont.size']=12;
+        }
+      });
+      if(Object.keys(patch).length) R(gd,patch);
+    }catch(e){}
+  }
+
+  function keyOf(gd){
+    try{
+      var L = gd.layout||{};
+      var t = (L.title && (L.title.text!=null?L.title.text:L.title)) || '';
+      t = String(t).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+      for(var sig in FIXES){ if(t.indexOf(sig)!==-1) return sig; }
+    }catch(e){}
+    return '';
+  }
+  function isVisible(gd){
+    try{ var r=gd.getBoundingClientRect(); return r.width>0 && r.height>0; }catch(e){ return false; }
+  }
+  function applyChart(gd){
+    try{
+      if(!gd) return;
+      // legend/margin relayouts only land correctly on a DISPLAYED div — skip hidden,
+      // they get re-applied by the visibility observer / poll once revealed.
+      if(!isVisible(gd)) return;
+      if(gd.id && ID_FIXES[gd.id]){ ID_FIXES[gd.id](gd); }
+      var k = keyOf(gd);
+      if(k && FIXES[k]){ FIXES[k](gd); }   // re-apply each sweep (idempotent) so a late base render can't win
+      fontFloor(gd);
+    }catch(e){}
+  }
+  function sweepCharts(){ if(window.Plotly) document.querySelectorAll('.js-plotly-plot').forEach(applyChart); }
+
+  // visibility-aware re-application: when a folded chart (spine "open the lab", act-lab-btn,
+  // <details>) is revealed it does NOT re-render (no sonic:plotly-rendered), so observe it
+  // entering the viewport and re-run our fixes then.
+  function bindVisibility(){
+    if(!('IntersectionObserver' in window)) return;
+    if(window.__figfixIO) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ var gd=en.target; setTimeout(function(){ applyChart(gd); }, 120); } });
+    }, { rootMargin:'200px' });
+    window.__figfixIO = io;
+    document.querySelectorAll('.js-plotly-plot').forEach(function(gd){ try{ io.observe(gd); }catch(e){} });
+  }
+  // re-run shortly after any lab/fold toggle click (covers reveal-on-click)
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest && e.target.closest('.act-lab-btn, .lab-toggle, summary, .spine-fold-toggle, [data-fold]');
+    if(t){ [200,600,1200].forEach(function(d){ setTimeout(function(){ sweepCharts(); bindVisibility(); }, d); }); }
+  }, true);
+
+  /* ---------------------------------------------------------------------------
+     PART C — CSS HOOKS (mark elements for the CSS rules above)
+  --------------------------------------------------------------------------- */
+
+  // C1. PELT-type charts: mark their panel for the centred max-width so the empty x-axis
+  //     no longer drags the chart across the page. Keyed by title sig (categorical, narrow).
+  var NARROW_SIGS = ['PELT PENALTY SENSITIVITY'];
+  function markNarrow(){
+    document.querySelectorAll('.js-plotly-plot').forEach(function(gd){
+      try{
+        var L=gd.layout||{}; var t=(L.title&&(L.title.text!=null?L.title.text:L.title))||'';
+        t=String(t).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+        for(var i=0;i<NARROW_SIGS.length;i++){
+          if(t.indexOf(NARROW_SIGS[i])!==-1){ gd.classList.add('figfix-narrow'); }
+        }
+      }catch(e){}
+    });
+  }
+
+  // C2. light-bg static health images → dark treatment.
+  function markDarkImages(){
+    document.querySelectorAll('img.hp-plot').forEach(function(im){
+      var alt=(im.alt||'').toLowerCase();
+      if(/workout|headphone|hrv|dbaspl|active-energy/.test(alt)) im.classList.add('figfix-darkimg');
+    });
+  }
+
+  function runAll(){ runCaptions(); sweepCharts(); markNarrow(); markDarkImages(); bindVisibility(); }
+
+  // hook the same render event the base patches use, then run last (longer delay)
+  window.addEventListener('sonic:plotly-rendered', function(){ setTimeout(runAll, 220); });
+  // discrete kicks + self-clearing poll so late / lazy-rendered charts still get caught
+  [700,1600,3200,5000,7500,11000,15000,20000].forEach(function(t){ setTimeout(runAll, t); });
+  // long-lived but low-frequency poll so a fold opened minutes later still gets fixed,
+  // plus the permanent IntersectionObserver catches reveals between polls.
+  var ticks=0, poll=setInterval(function(){ ticks++; runAll(); if(ticks>180) clearInterval(poll); }, 1000);
+  if(document.readyState!=='loading') setTimeout(runAll, 300);
+  else document.addEventListener('DOMContentLoaded', function(){ setTimeout(runAll,300); });
+})();
+</script>
+<!--APPLE-FIGFIX-END-->
 </body>
 </html>
