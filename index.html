@@ -12828,56 +12828,6 @@ html body nav.cyber-nav .story-toggle[aria-pressed="true"]{
 })();
 </script>
 <!--APPLE-ZOOM-END-->
-<!--APPLE-AUDIODUCK-START-->
-<script id="apple-audioduck-js">
-(function(){
-  if (window.__appleAudioDuck) return; window.__appleAudioDuck = true;
-  // Tara hit: clicking a track-mention (Phaeleh etc.) opened a Spotify embed that
-  // played OVER the Suno bed (and the bed got LOUDER, not ducked). Fix: when a
-  // track embed starts (we wrap __sonicAudio.clickPlay), duck the self-hosted bed
-  // (#sh-a/#sh-b) to a whisper and hold it there; restore when no Spotify embed is
-  // active anymore. Volume-hold (not setMuted) so the mute pill stays in sync.
-  var DUCK=0.06, decks=['sh-a','sh-b'], saved={}, holdTimer=null, watchTimer=null, gone=0;
-
-  function beds(){ return decks.map(function(id){ return document.getElementById(id); }).filter(Boolean); }
-  function spotifyActive(){
-    var ifr=document.querySelectorAll('iframe[src*="spotify"]');
-    for (var i=0;i<ifr.length;i++){ if (ifr[i].offsetParent!==null) return true; }
-    return false;
-  }
-  function duckOn(){
-    if (holdTimer) return; // already ducked
-    beds().forEach(function(a){ if (saved[a.id]==null) saved[a.id]=a.volume; });
-    holdTimer=setInterval(function(){ beds().forEach(function(a){ if (a.volume>DUCK+0.01) a.volume=DUCK; }); }, 250);
-    // restore when the embed is gone for ~3s, or after a 6-min safety cap
-    gone=0;
-    if (watchTimer) clearInterval(watchTimer);
-    var ticks=0;
-    watchTimer=setInterval(function(){
-      ticks++;
-      if (!spotifyActive()){ gone++; if (gone>=2) duckOff(); } else gone=0;
-      if (ticks>240) duckOff(); // ~6 min safety
-    }, 1500);
-  }
-  function duckOff(){
-    if (holdTimer){ clearInterval(holdTimer); holdTimer=null; }
-    if (watchTimer){ clearInterval(watchTimer); watchTimer=null; }
-    beds().forEach(function(a){ var v=saved[a.id]; if (v!=null){ try{ a.volume=v; }catch(e){} } });
-    saved={};
-  }
-
-  function wire(){
-    var A=window.__sonicAudio;
-    if (!A || typeof A.clickPlay!=='function' || A.clickPlay.__ducked){ setTimeout(wire, 800); return; }
-    var orig=A.clickPlay;
-    A.clickPlay=function(){ try{ duckOn(); }catch(e){} return orig.apply(this, arguments); };
-    A.clickPlay.__ducked=true;
-  }
-  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(wire,1200); });
-  else setTimeout(wire,1200);
-})();
-</script>
-<!--APPLE-AUDIODUCK-END-->
 <!--APPLE-POLISH3-CSS-START-->
 <style id="apple-polish3-css">
 /* ---- review wave: stop note/caption text hugging the page edges, and replace
@@ -15129,5 +15079,360 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
 })();
 </script>
 <!--APPLE-SONIFYKEY-END-->
+<!--APPLE-AUDIOUX-START-->
+<style id="apple-audioux-css">
+/* ============================================================================
+   APPLE-AUDIOUX — single, reliable audio control (2026-06-01)
+   Additive + idempotent. Owns ONLY the bottom-left control cluster + ducking.
+   Does not redefine the bed/sonify/embed logic; it drives the existing APIs:
+     window.__selfHostedBed = { open, setMuted, next, isOn }
+     window.__sonify        = { ping, ... }   (hover sonification)
+     'sonic:playing' / 'sonic:stopped' events  (Spotify embed lifecycle)
+   ========================================================================== */
+
+/* 1. KILL the confusing surfaces: the "tap anywhere" overlay + the top-right
+      ad-blocker popup. The bottom-left pill is now the one obvious control.
+      Hidden via CSS only — their JS keeps running, we just never show them. */
+#first-tap-overlay,
+#sc-enable {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* 2. The control cluster: pill (primary) + now-playing chip, bottom-left. */
+#aux-audio {
+  position: fixed;
+  left: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  z-index: 10000;                 /* above #global-mute-pill (9998) and #sc-now */
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: 'JetBrains Mono','SF Mono',monospace;
+  pointer-events: none;           /* children re-enable; gaps stay click-through */
+}
+#aux-audio > * { pointer-events: auto; }
+
+/* primary play / pause / arm button */
+#aux-play {
+  width: 44px; height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(18,18,22,0.62);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  backdrop-filter: blur(18px) saturate(1.3);
+  border: 1px solid rgba(33,246,188,0.45);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.34);
+  color: #21f6bc;
+  font-size: 16px; line-height: 1;
+  cursor: pointer;
+  -webkit-user-select: none; user-select: none;
+  transition: border-color .2s ease, color .2s ease, transform .12s ease, box-shadow .2s ease;
+}
+#aux-play:hover { border-color: rgba(33,246,188,0.85); box-shadow: 0 8px 34px rgba(33,246,188,0.22); }
+#aux-play:active { transform: scale(0.93); }
+#aux-play.armed-pulse { animation: aux-pulse 2.6s ease-in-out infinite; }
+@keyframes aux-pulse {
+  0%,100% { box-shadow: 0 8px 30px rgba(0,0,0,0.34), 0 0 0 0 rgba(33,246,188,0.0); }
+  50%     { box-shadow: 0 8px 30px rgba(0,0,0,0.34), 0 0 0 5px rgba(33,246,188,0.14); }
+}
+#aux-play.muted { color: rgba(255,110,156,0.85); border-color: rgba(255,110,156,0.4); }
+#aux-play.paused { color: rgba(163,148,201,0.85); border-color: rgba(155,107,255,0.3); }
+
+/* now-playing chip: label + skip + mute toggle. Hidden until armed. */
+#aux-now {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  max-width: min(56vw, 320px);
+  height: 30px;
+  padding: 0 6px 0 12px;
+  border-radius: 999px;
+  background: rgba(18,18,22,0.55);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid rgba(134,203,254,0.18);
+  font-size: 10.5px; letter-spacing: 0.4px;
+  color: rgba(240,234,255,0.9);
+  white-space: nowrap;
+}
+#aux-audio.is-armed #aux-now { display: inline-flex; }
+#aux-now-glyph { color: #21f6bc; flex-shrink: 0; }
+#aux-audio.is-ducked #aux-now-glyph { color: rgba(163,148,201,0.7); }
+#aux-now-label {
+  overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+#aux-now button {
+  flex-shrink: 0;
+  background: transparent; border: none; cursor: pointer;
+  color: rgba(134,203,254,0.6);
+  font-size: 13px; line-height: 1; padding: 4px 4px;
+  border-radius: 6px;
+  transition: color .15s ease, background .15s ease;
+  font-family: inherit;
+}
+#aux-now button:hover { color: #21f6bc; background: rgba(255,255,255,0.06); }
+#aux-now-mute.is-muted { color: rgba(255,110,156,0.85); }
+
+@media (max-width: 768px) {
+  #aux-play { width: 46px; height: 46px; font-size: 17px; }
+  #aux-now { max-width: 50vw; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #aux-play.armed-pulse { animation: none; }
+}
+
+/* 3. Retire the old bottom-left pill + bottom-center now-playing readout so
+      there is exactly ONE control. We hide, not remove — their listeners stay
+      live (mute-state sync) but they are no longer competing visuals. */
+#global-mute-pill { display: none !important; }
+#sc-now { display: none !important; }
+</style>
+
+<div id="aux-audio" aria-label="soundtrack controls">
+  <button id="aux-play" type="button"
+          aria-label="play soundtrack"
+          title="play the soundtrack">&#9654;</button>
+  <div id="aux-now" role="status" aria-live="polite">
+    <span id="aux-now-glyph">&#9834;</span>
+    <span id="aux-now-label">soundtrack</span>
+    <button id="aux-now-skip" type="button" aria-label="next track" title="next track">&#9197;</button>
+    <button id="aux-now-mute" type="button" aria-label="mute soundtrack" title="mute / unmute">&#128266;</button>
+  </div>
+</div>
+
+<script id="apple-audioux-js">
+(function () {
+  'use strict';
+  // DOM-level idempotency: if this block is injected more than once without the
+  // injector stripping the old copy, keep only the FIRST #aux-audio cluster and
+  // first <script id> so duplicate, click-intercepting controls can't appear.
+  (function dedup() {
+    var nodes = document.querySelectorAll('#aux-audio');
+    for (var i = 1; i < nodes.length; i++) nodes[i].parentNode && nodes[i].parentNode.removeChild(nodes[i]);
+  })();
+  if (window.__appleAudioUX2) return;          // run the logic once
+  window.__appleAudioUX2 = true;
+
+  var BED_VOL = 0.5;          // audible-but-background ceiling (spec: ~0.4–0.6)
+
+  var wrap  = document.getElementById('aux-audio');
+  var play  = document.getElementById('aux-play');
+  var now    = document.getElementById('aux-now');
+  var label = document.getElementById('aux-now-label');
+  var skipB = document.getElementById('aux-now-skip');
+  var muteB = document.getElementById('aux-now-mute');
+  if (!wrap || !play) return;
+
+  var MUTED_KEY = 'sonicManifoldMuted';
+  // STATE: this control is the single source of truth. Note we deliberately do
+  // NOT honour a stale "armed" flag across reload — after reload nothing is
+  // playing (a browser needs a fresh gesture), so the pill always starts in the
+  // "needs a click to play" state. That is the whole point of complaint A-reload.
+  var armed = false;          // has the user started the bed this page-load?
+  var paused = false;         // user-paused (armed but not playing)
+  var muted = false;          // user-muted
+  var ducked = false;         // a Spotify embed is ducking the bed
+  var lpTimer = null, longPressed = false;
+
+  function decks() {
+    return [document.getElementById('sh-a'), document.getElementById('sh-b')].filter(Boolean);
+  }
+
+  // Volume manager: ride a smooth approach toward our target on every PLAYING
+  // deck (bi-directional, so resume and un-duck ramp UP, mute/duck ramp DOWN).
+  // The bed's own crossfade ramps toward 0.85; we override that with our own
+  // ceiling/target. Running at 90ms with a step keeps it click-free and authoritative.
+  var clampTimer = null;
+  function targetVol() {
+    if (muted || paused) return 0;
+    return BED_VOL;     // ducking now pauses the deck (see duckBed) — no volume target needed
+  }
+  function applyClamp() {
+    var t = targetVol();
+    decks().forEach(function (el) {
+      try {
+        if (el.paused) return;            // don't touch a stopped deck
+        var v = el.volume, d = t - v;
+        if (Math.abs(d) < 0.012) { el.volume = t; }
+        else { el.volume = Math.max(0, Math.min(1, v + d * 0.28)); }  // ~250ms glide
+      } catch (e) {}
+    });
+  }
+  function startClamp() {
+    if (clampTimer) return;
+    clampTimer = setInterval(applyClamp, 90);
+  }
+
+  function bedOn() { return !!(window.__selfHostedBed && window.__selfHostedBed.isOn && window.__selfHostedBed.isOn()); }
+
+  // ── icon / label reflection ────────────────────────────────────────────
+  function render() {
+    play.classList.toggle('muted', muted);
+    play.classList.toggle('paused', armed && paused && !muted);
+    if (!armed) {
+      play.innerHTML = '&#9654;';                 // ▶  (needs a click to start)
+      play.classList.add('armed-pulse');
+      play.setAttribute('aria-label', 'play soundtrack');
+      play.title = 'play the soundtrack';
+      wrap.classList.remove('is-armed');
+    } else {
+      play.classList.remove('armed-pulse');
+      wrap.classList.add('is-armed');
+      if (muted)        { play.innerHTML = '&#128263;'; }      // 🔇
+      else if (paused)  { play.innerHTML = '&#9654;'; }        // ▶
+      else              { play.innerHTML = '&#10073;&#10073;'; } // ❙❙ pause
+      play.setAttribute('aria-label', paused ? 'resume soundtrack' : 'pause soundtrack');
+      play.title = paused ? 'resume' : 'pause';
+    }
+    muteB.classList.toggle('is-muted', muted);
+    muteB.innerHTML = muted ? '&#128263;' : '&#128266;';
+    wrap.classList.toggle('is-ducked', ducked);
+  }
+
+  // Sync the SHARED mute flag so hover-stings + sonify honour it. We deliberately
+  // do NOT route the self-hosted bed through here — this control owns the bed's
+  // decks directly (volume + play/pause), so calling the bed's own setMuted would
+  // fight our volume manager (it slams volume to its internal 0.85).
+  function propagateMute(m) {
+    try { localStorage.setItem(MUTED_KEY, m ? '1' : '0'); } catch (e) {}
+    try { if (window.__sonicAudio) window.__sonicAudio.setMuted(m); } catch (e) {}
+    try { if (window.__scPlayer) window.__scPlayer.setMuted(m); } catch (e) {}
+    // mirror onto the legacy hidden pill so its localStorage/UI stays coherent
+    try {
+      var gp = document.getElementById('global-mute-pill');
+      if (gp) { gp.textContent = m ? '🔇' : '🔊'; gp.classList.toggle('muted', m); }
+    } catch (e) {}
+  }
+
+  // ── core actions ───────────────────────────────────────────────────────
+  function armAndPlay() {
+    // FIRST real click: arm + start the bed inside this user gesture.
+    armed = true; paused = false; muted = false; pausedDecks = [];
+    try { if (window.__selfHostedBed && window.__selfHostedBed.open) window.__selfHostedBed.open(); } catch (e) {}
+    propagateMute(false);
+    // unlock the sonify AudioContext on this same gesture so hover-notes work
+    try { if (window.__sonify && window.__sonify.ensureCtx) window.__sonify.ensureCtx(); } catch (e) {}
+    // let downstream modules know a gesture happened (some self-arm on this)
+    try { document.dispatchEvent(new CustomEvent('sonic:first-tap', { bubbles: true })); } catch (e) {}
+    startClamp();
+    render();
+  }
+  function togglePlay() {
+    if (muted) { muted = false; paused = false; setBedPlaying(true); propagateMute(false); render(); return; }
+    paused = !paused;
+    setBedPlaying(!paused);
+    render();
+  }
+  var pausedDecks = [];   // ids of decks we paused, so resume only restarts those
+  function setBedPlaying(playIt) {
+    // Pause = stop only the deck(s) currently playing (the foreground deck, plus
+    // the standby deck if a crossfade is mid-flight). Resume = restart exactly
+    // those. We DON'T zero the volume on resume — the clamp glides it back up to
+    // target from wherever it is (the earlier bug left resume pinned at 0).
+    if (!playIt) {
+      pausedDecks = [];
+      decks().forEach(function (el) { try { if (!el.paused) { pausedDecks.push(el.id); el.pause(); } } catch (e) {} });
+    } else {
+      var toPlay = pausedDecks.length ? pausedDecks : decks().map(function (el) { return el.id; }).slice(0, 1);
+      toPlay.forEach(function (id) { var el = document.getElementById(id); try { if (el && el.paused) el.play().catch(function () {}); } catch (e) {} });
+      pausedDecks = [];
+    }
+  }
+  function toggleMute() {
+    muted = !muted;
+    propagateMute(muted);                       // sonify + hover stings honour this flag
+    if (muted) {
+      setBedPlaying(false);                     // remember + pause the active deck(s)
+    } else if (armed && !paused) {
+      setBedPlaying(true);                       // resume exactly the deck(s) we paused
+    }
+    render();
+  }
+  function skip() {
+    try { if (window.__selfHostedBed && window.__selfHostedBed.next) window.__selfHostedBed.next(); } catch (e) {}
+    setTimeout(syncLabel, 350);
+  }
+
+  // ── now-playing label (mirror the bed's own readout) ────────────────────
+  function syncLabel() {
+    var src = document.getElementById('sc-now-label');
+    var txt = src && src.textContent && src.textContent.trim();
+    if (txt) label.textContent = txt;
+    else if (!armed) label.textContent = 'soundtrack';
+  }
+  // the bed updates #sc-now-label on every track change; mirror it live
+  try {
+    var srcLabel = document.getElementById('sc-now-label');
+    if (srcLabel && window.MutationObserver) {
+      new MutationObserver(syncLabel).observe(srcLabel, { childList: true, characterData: true, subtree: true });
+    }
+  } catch (e) {}
+
+  // ── primary button: first click arms; later clicks toggle play/pause.
+  //    long-press (450ms) = mute. ───────────────────────────────────────────
+  play.addEventListener('click', function () {
+    if (longPressed) { longPressed = false; return; }  // long-press already handled
+    if (!armed) armAndPlay();
+    else togglePlay();
+  });
+  function startLP() { longPressed = false; lpTimer = setTimeout(function () { longPressed = true; if (armed) toggleMute(); }, 450); }
+  function cancelLP() { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } }
+  play.addEventListener('pointerdown', startLP);
+  play.addEventListener('pointerup', cancelLP);
+  play.addEventListener('pointerleave', cancelLP);
+
+  skipB.addEventListener('click', function (e) { e.stopPropagation(); skip(); });
+  muteB.addEventListener('click', function (e) { e.stopPropagation(); if (!armed) armAndPlay(); else toggleMute(); });
+
+  // ── Spotify embed ducking — driven by the embed lifecycle EVENTS (reliable),
+  //    not by polling iframe visibility (the old duck failed because a
+  //    position:fixed iframe always reports offsetParent === null, so it never
+  //    saw the embed as "active"). ───────────────────────────────────────────
+  // We PAUSE the bed under a Spotify embed rather than volume-duck it. Reason:
+  // the bed runs its own crossfade `ramp()` loops that drive deck .volume toward
+  // 0.85 on a 120ms interval — a volume-only duck loses that tug-of-war during a
+  // crossfade. Pausing the deck(s) stops those ramps cold, so the embed is never
+  // played over. (Spec allows DUCK *or* PAUSE; pause is the reliable one here.)
+  function duckBed() {
+    if (!armed || muted || ducked) return;
+    ducked = true;
+    setBedPlaying(false);          // remember + pause the playing deck(s)
+    render();
+  }
+  function unduckBed() {
+    if (!ducked) return;
+    ducked = false;
+    if (armed && !muted && !paused) setBedPlaying(true);   // resume exactly those decks
+    render();
+  }
+  window.addEventListener('sonic:playing', duckBed);
+  window.addEventListener('sonic:stopped', unduckBed);
+
+  // ── why the OLD APPLE-AUDIODUCK block failed (and why this one works):
+  //    it decided "is an embed playing?" by scanning iframe[src*=spotify] for
+  //    offsetParent!==null. But the embed host is position:fixed, and fixed
+  //    elements ALWAYS report offsetParent===null → it saw the embed as never
+  //    active → its duck released within ~3s (or never held), so embeds played
+  //    OVER the bed. We instead duck on the bed's own 'sonic:playing' event and
+  //    un-duck on 'sonic:stopped' — exact, no polling. Our 90ms volume manager
+  //    glides to target in ~250ms, so even if the old block's 250ms interval
+  //    briefly nudges a deck, we re-assert the authoritative level immediately.
+
+  // ── reload safety: on load, ensure we present the un-armed "click to play"
+  //    state regardless of any stale localStorage. We read the muted flag only
+  //    to show the right icon AFTER arming, never to auto-start. ───────────────
+  try { muted = (localStorage.getItem(MUTED_KEY) === '1'); } catch (e) {}
+  muted = false;  // start clean: the pill is the obvious (re)start after reload
+  render();
+  syncLabel();
+
+  console.log('[apple-audioux] single bottom-left control armed · click=arm/play · long-press=mute · event-driven duck');
+})();
+</script>
+<!--APPLE-AUDIOUX-END-->
 </body>
 </html>
