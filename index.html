@@ -2564,6 +2564,190 @@ document.addEventListener('DOMContentLoaded', function () {
     </table>
   </div><div class="fig-caption"><b class="pl-math">Math:</b> For each calendar year: rank artists by Σ hours, take top-3. Table reads as one row per year.<br><b class="pl-intuition">Intuition:</b> The simplest possible yearly fingerprint — three names per year, no normalisation. A diary written in artist names.<br><b class="pl-yourdata">My data:</b> The top-3 lists are a chronicle. The repeats (Phaeleh holding #1 for 4 years straight, etc.) are the anchors; the rotations are where each year's character lives.<br><b class="pl-takeaway">Takeaway:</b> Read this top-down and I can recover the years without dates — three names per row is the lowest-bandwidth chronicle that still reads like a diary. The repeats are anchors; the rotations are where each year's character lives.</div></div>
 
+<!--APPLE-LEADHERO-START-->
+<style id="apple-leadhero-css">
+#apple-leadhero{
+  --mint:#21f6bc; --purple:#9b6bff; --ink:#f0eaff; --bg:#0a0118;
+  position:relative; box-sizing:border-box;
+  min-height:92vh; width:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:8vh 6vw 10vh; overflow:hidden;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  background:
+    radial-gradient(120% 80% at 50% 8%, rgba(155,107,255,.16), transparent 55%),
+    radial-gradient(90% 70% at 50% 100%, rgba(33,246,188,.10), transparent 60%);
+}
+#apple-leadhero *{box-sizing:border-box}
+#apple-leadhero .lh-eyebrow{
+  font-size:clamp(11px,1.1vw,14px); letter-spacing:.42em; text-transform:uppercase;
+  color:var(--mint); opacity:.85; margin:0 0 clamp(20px,4vh,40px);
+  font-weight:600;
+}
+#apple-leadhero .lh-stat{
+  font-size:clamp(58px,13vw,184px); line-height:.9; font-weight:800;
+  letter-spacing:-.03em; margin:0;
+  background:linear-gradient(105deg,var(--mint) 0%,#7fe9ff 42%,var(--purple) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow:0 0 60px rgba(33,246,188,.18);
+}
+#apple-leadhero .lh-stat .lh-unit{
+  display:block; font-size:clamp(13px,1.5vw,20px); letter-spacing:.34em;
+  font-weight:600; color:var(--ink); opacity:.55; margin-top:clamp(10px,1.8vh,20px);
+  -webkit-text-fill-color:initial;
+}
+#apple-leadhero .lh-thesis{
+  font-size:clamp(22px,3.4vw,46px); line-height:1.18; font-weight:700;
+  color:var(--ink); margin:clamp(28px,5vh,52px) 0 0; max-width:18ch;
+  letter-spacing:-.01em;
+}
+#apple-leadhero .lh-thesis em{
+  font-style:normal; color:var(--mint);
+}
+#apple-leadhero .lh-sub{
+  font-size:clamp(13px,1.5vw,18px); line-height:1.55; font-weight:400;
+  color:var(--ink); opacity:.62; margin:clamp(16px,2.6vh,26px) auto 0; max-width:54ch;
+}
+#apple-leadhero .lh-sub b{color:var(--mint); font-weight:700; opacity:1}
+#apple-leadhero .lh-canvas-wrap{
+  position:relative; width:min(540px,80vw); height:clamp(120px,18vh,180px);
+  margin:clamp(26px,4.5vh,48px) auto 0;
+}
+#apple-leadhero canvas{position:absolute; inset:0; width:100%; height:100%}
+#apple-leadhero .lh-legend{
+  display:flex; gap:22px; justify-content:center; flex-wrap:wrap;
+  margin-top:14px; font-size:clamp(10px,1vw,12px); letter-spacing:.06em;
+  color:var(--ink); opacity:.7;
+}
+#apple-leadhero .lh-legend span{display:inline-flex; align-items:center; gap:7px}
+#apple-leadhero .lh-legend i{width:18px; height:3px; border-radius:2px; display:inline-block}
+#apple-leadhero .lh-cta{
+  display:inline-flex; align-items:center; gap:9px;
+  margin-top:clamp(26px,4.6vh,46px); padding:13px 24px;
+  font-family:inherit; font-size:clamp(12px,1.2vw,15px); font-weight:600;
+  letter-spacing:.06em; color:var(--bg); text-decoration:none; cursor:pointer;
+  border:0; border-radius:999px;
+  background:linear-gradient(100deg,var(--mint),#62e7ff);
+  box-shadow:0 8px 34px rgba(33,246,188,.28);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+#apple-leadhero .lh-cta:hover{transform:translateY(-2px); box-shadow:0 12px 42px rgba(33,246,188,.42)}
+#apple-leadhero .lh-cta .lh-arrow{font-size:1.15em; transform:translateY(1px)}
+@media (max-width:600px){
+  #apple-leadhero{min-height:88vh; padding:7vh 7vw 8vh}
+  #apple-leadhero .lh-thesis{max-width:15ch}
+}
+@media (prefers-reduced-motion:reduce){
+  #apple-leadhero .lh-cta{transition:none}
+}
+</style>
+<section id="apple-leadhero" aria-label="Agency is topological — lead">
+  <p class="lh-eyebrow">the headline result</p>
+  <h2 class="lh-stat">69%<span class="lh-unit">of my deliberate jumps cross between musical communities</span></h2>
+  <p class="lh-thesis">I connect the scenes the algorithm keeps in <em>lanes.</em></p>
+  <p class="lh-sub">
+    When I choose the next track, it bridges into a different musical community
+    <b>69%</b> of the time. On autoplay, that drops to <b>53%</b>.
+    Bridge Index <b>1.3×</b> — agency, it turns out, is topological.
+  </p>
+  <div class="lh-canvas-wrap">
+    <canvas id="lh-canvas" aria-hidden="true"></canvas>
+  </div>
+  <div class="lh-legend">
+    <span><i style="background:#21f6bc"></i> my deliberate taps · cross-community</span>
+    <span><i style="background:#6b5a86"></i> autoplay · stays in lane</span>
+  </div>
+  <a class="lh-cta" href="#fig-26">see the network <span class="lh-arrow">↓</span></a>
+</section>
+<script id="apple-leadhero-js">
+(function(){
+  var sec=document.getElementById('apple-leadhero');
+  if(!sec) return;
+  var cv=document.getElementById('lh-canvas'); if(!cv) return;
+  var ctx=cv.getContext('2d'), DPR=Math.min(window.devicePixelRatio||1,2);
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  // 3 small "communities" of nodes; mint arcs bridge across, grey arcs stay within
+  var nodes=[], comms=[], W=0,H=0;
+  var ctr=[];
+  function layout(){
+    var r=cv.getBoundingClientRect(); W=r.width; H=r.height;
+    cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+    // 3 communities spread in a clear triangle across the strip
+    ctr=[{x:W*0.16,y:H*0.62},{x:W*0.5,y:H*0.24},{x:W*0.84,y:H*0.62}];
+    var cluR=Math.min(W*0.13,H*0.34);
+    nodes=[]; comms=[[],[],[]];
+    for(var c=0;c<3;c++){
+      var n=5;
+      for(var i=0;i<n;i++){
+        var a=(i/n)*Math.PI*2 + c*0.7;
+        var rad=cluR*(0.55+(i%2)*0.4);
+        var nd={x:ctr[c].x+Math.cos(a)*rad, y:ctr[c].y+Math.sin(a)*rad, c:c, ph:Math.random()*6.28};
+        nodes.push(nd); comms[c].push(nd);
+      }
+    }
+    haloR=cluR*1.25;
+  }
+  var haloR=40;
+  // bridges across communities (lit/mint) and within (dim)
+  var bridges=[], within=[];
+  function buildEdges(){
+    bridges=[]; within=[];
+    // within
+    for(var c=0;c<3;c++){var g=comms[c];for(var i=0;i<g.length;i++)for(var j=i+1;j<g.length;j++) if(Math.random()<0.45) within.push([g[i],g[j]]);}
+    // bridges: a few across each pair
+    function brg(a,b,k){for(var i=0;i<k;i++){within;bridges.push([comms[a][i%comms[a].length],comms[b][(i+1)%comms[b].length]]);}}
+    brg(0,1,3); brg(1,2,3); brg(0,2,2);
+  }
+  var t=0;
+  var COMM=['#21f6bc','#7fb6ff','#9b6bff'];
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    t+=0.012;
+    function pos(nd){return {x:nd.x+Math.sin(t+nd.ph)*2.0, y:nd.y+Math.cos(t*0.8+nd.ph)*2.0};}
+    // faint community halos (so the 3 lanes read)
+    for(var c=0;c<3;c++){
+      var g=ctx.createRadialGradient(ctr[c].x,ctr[c].y,0,ctr[c].x,ctr[c].y,haloR);
+      g.addColorStop(0,'rgba('+(c===0?'33,246,188':c===1?'127,182,255':'155,107,255')+',0.10)');
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(ctr[c].x,ctr[c].y,haloR,0,6.28); ctx.fill();
+    }
+    // within edges (dim grey — the lanes)
+    ctx.lineWidth=1; ctx.strokeStyle='rgba(120,104,150,0.45)';
+    within.forEach(function(e){var a=pos(e[0]),b=pos(e[1]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();});
+    // bridge edges (lit mint→purple, the cross-community jumps)
+    bridges.forEach(function(e,i){
+      var a=pos(e[0]),b=pos(e[1]);
+      var grd=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+      grd.addColorStop(0,'rgba(33,246,188,0.95)'); grd.addColorStop(1,'rgba(155,107,255,0.9)');
+      ctx.lineWidth=2.4; ctx.strokeStyle=grd; ctx.shadowColor='rgba(33,246,188,0.55)'; ctx.shadowBlur=8;
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke(); ctx.shadowBlur=0;
+      // travelling pulse along the bridge
+      var p=(Math.sin(t*1.4+i)*0.5+0.5);
+      var px=a.x+(b.x-a.x)*p, py=a.y+(b.y-a.y)*p;
+      ctx.beginPath();ctx.arc(px,py,2.8,0,6.28);ctx.fillStyle='#d9fff4';ctx.fill();
+    });
+    // nodes
+    nodes.forEach(function(nd){
+      var p=pos(nd);
+      ctx.beginPath();ctx.arc(p.x,p.y,4.6,0,6.28);
+      ctx.fillStyle=COMM[nd.c]; ctx.shadowColor=COMM[nd.c]; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+    });
+    if(!reduce) raf=requestAnimationFrame(frame);
+  }
+  var raf;
+  function init(){ layout(); buildEdges(); cancelAnimationFrame(raf); if(reduce){frame();} else {raf=requestAnimationFrame(frame);} }
+  var ro=window.ResizeObserver?new ResizeObserver(function(){layout();buildEdges();}):null;
+  if(ro) ro.observe(cv);
+  window.addEventListener('resize',function(){layout();buildEdges();},{passive:true});
+  // smooth-scroll the CTA
+  var cta=sec.querySelector('.lh-cta');
+  if(cta) cta.addEventListener('click',function(ev){
+    var tgt=document.getElementById('fig-26');
+    if(tgt){ev.preventDefault(); tgt.scrollIntoView({behavior:'smooth',block:'center'});}
+  });
+  if(document.readyState!=='loading') init(); else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+<!--APPLE-LEADHERO-END-->
 <!--ACT-DIVIDER-START-act-1--><header class="theme-divider" id="act-1"><div class="act-eyebrow"><span class="act-numeral">ACT&nbsp;I</span><span class="act-name">THE SHAPE OF ATTENTION</span></div><h2 class="act-deck">Seven years, 97k plays, 6,288 artists — and a contour you can hold in your hand.</h2><div class="act-look"><b>What to look for:</b> Descriptive baseline. The receipts before the math.</div></header><!--ACT-DIVIDER-END-act-1--><!--SECT-TLDR-START-act-1--><div class="section-tldr">The raw shape of seven years: attendance patterns, top-artist arcs, and a diversity picture that resists the monoculture story. This act is the receipts — everything that follows is built on top of these counts.</div><!--SECT-TLDR-END-act-1--><!-- REV-SECTION-START -->
 <header>
   <h2 style="font-size:28px">◢◤  REVELATIONS · WHAT THE DATA KEPT</h2>
@@ -3316,6 +3500,129 @@ document.addEventListener('DOMContentLoaded', function () {
   <div class="panel half" id="fig-79"><div>                            <div id="2469b42d-9670-4631-9c61-93a0c6341f7f" class="plotly-graph-div" style="height:420px; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("2469b42d-9670-4631-9c61-93a0c6341f7f")) {                    Plotly.newPlot(                        "2469b42d-9670-4631-9c61-93a0c6341f7f",                        [{"hovertemplate":"\u003cb\u003e%{x}\u003c\u002fb\u003e\u003cbr\u003eobserved=%{y:.3f}\u003cextra\u003e\u003c\u002fextra\u003e","marker":{"color":"#21f6bc"},"name":"observed","text":["Z=-10.7","Z=7.3","Z=-5.9"],"textfont":{"color":"#fffa6a","size":12},"textposition":"outside","x":["modularity Q","clustering C\u0304","assortativity r"],"y":[0.2287,0.1323,-0.433],"type":"bar"},{"error_y":{"array":[0.0209,0.0121,0.035],"color":"#ff6e9c","thickness":2,"type":"data"},"hovertemplate":"\u003cb\u003e%{x}\u003c\u002fb\u003e\u003cbr\u003enull=%{y:.3f}\u003cextra\u003e\u003c\u002fextra\u003e","marker":{"color":"#a394c9"},"name":"null (configuration model)","x":["modularity Q","clustering C\u0304","assortativity r"],"y":[0.4518,0.0435,-0.2275],"type":"bar"}],                        {"template":{"layout":{"colorway":["#21f6bc","#ff6e9c","#86cbfe","#fffa6a","#df95ff","#9b6bff","#ff2bd6","#3eecff","#ffb86b","#a6ff6a","#ff9ee6","#b6ffea"],"font":{"color":"#f0eaff","family":"JetBrains Mono, SF Mono, monospace","size":12},"hoverlabel":{"bgcolor":"#15082d","bordercolor":"#21f6bc","font":{"color":"#f0eaff"}},"legend":{"bgcolor":"rgba(21,8,45,0.7)","bordercolor":"#a394c9","borderwidth":1},"margin":{"b":50,"l":60,"r":30,"t":60},"paper_bgcolor":"#0a0118","plot_bgcolor":"#0a0118","title":{"font":{"color":"#21f6bc","size":14},"x":0.02},"xaxis":{"gridcolor":"#241043","linecolor":"#a394c9"},"yaxis":{"gridcolor":"#241043","linecolor":"#a394c9"}}},"title":{"text":"\u25e2 NULL-MODEL Z-SCORES \u2014 observed vs 50 rewirings","font":{"size":14}},"margin":{"l":60,"r":30,"t":80,"b":50},"height":420,"barmode":"group","yaxis":{"title":{"text":"value"}}},                        {"displayModeBar": false, "responsive": true}                    )                };            </script><div class="fig-caption"><b class="pl-math">Math:</b> <code>z = (X<sub>obs</sub> − ⟨X<sub>null</sub>⟩) / σ<sub>null</sub></code>. Maslov &amp; Sneppen, <i>Science</i> (2002).<br><b class="pl-intuition">Intuition:</b> Are my network stats actually special, or just what a random graph with the same degree sequence would give? |Z| &gt; 2 = surprising; |Z| &gt; 4 = very surprising.<br><b class="pl-yourdata">My data:</b> <span class="term-tip" data-tip="Random-graph null that preserves each node's degree exactly. Rewires edges uniformly conditional on degrees — the standard baseline for 'is this network special?'" tabindex="0">Configuration model</span><!--GLOSSARY-STATIC-FWD-START--><sup class="ref"><a href="#g-30" data-glossary-ref="g-30">[30]</a></sup><!--GLOSSARY-STATIC-FWD-END--> rewires edges while preserving each node's degree, computes the same metric N times to form a null.<br><b class="pl-takeaway">Takeaway:</b> |Z| &gt; 2 = my stat is surprising vs degree-preserving rewiring; |Z| &gt; 4 = it's basically impossible by random connection. Stats that don't pass the configuration-model null don't get to be findings. I quote only the ones that beat their shuffles.<span class="fig-cite">Maslov & Sneppen 2002, Science 296:910-913 · Molloy & Reed 1995 (configuration model)</span></div></div></div>
 </div>
 <!-- NETSCI-SECTION-END -->
+<!--APPLE-AILABBEAT-START-->
+<style id="apple-ailabbeat-css">
+#apple-ailabbeat{
+  --mint:#21f6bc; --purple:#9b6bff; --ink:#f0eaff; --bg:#0a0118;
+  box-sizing:border-box; width:100%; padding:clamp(64px,11vh,140px) 6vw;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace; color:var(--ink);
+  background:
+    radial-gradient(80% 120% at 100% 0%, rgba(155,107,255,.10), transparent 55%),
+    radial-gradient(70% 90% at 0% 100%, rgba(33,246,188,.07), transparent 60%);
+  border-top:1px solid rgba(155,107,255,.16);
+  border-bottom:1px solid rgba(33,246,188,.12);
+}
+#apple-ailabbeat *{box-sizing:border-box}
+#apple-ailabbeat .alb-inner{max-width:1100px; margin:0 auto}
+#apple-ailabbeat .alb-eyebrow{
+  font-size:clamp(10px,1vw,13px); letter-spacing:.36em; text-transform:uppercase;
+  color:var(--purple); font-weight:600; margin:0 0 16px; display:flex; align-items:center; gap:12px;
+}
+#apple-ailabbeat .alb-eyebrow::before{content:""; width:34px; height:2px; background:var(--purple); opacity:.7}
+#apple-ailabbeat .alb-head{
+  font-size:clamp(26px,4.4vw,56px); line-height:1.08; font-weight:800; letter-spacing:-.02em;
+  margin:0 0 18px; max-width:20ch;
+}
+#apple-ailabbeat .alb-head em{font-style:normal; color:var(--mint)}
+#apple-ailabbeat .alb-lede{
+  font-size:clamp(14px,1.6vw,19px); line-height:1.55; color:var(--ink); opacity:.66;
+  max-width:60ch; margin:0 0 clamp(36px,6vh,64px); font-weight:400;
+}
+#apple-ailabbeat .alb-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2vw,26px);
+}
+#apple-ailabbeat .alb-card{
+  position:relative; padding:clamp(22px,2.4vw,34px) clamp(20px,2vw,28px);
+  border-radius:18px; background:rgba(255,255,255,.035);
+  border:1px solid rgba(240,234,255,.10);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  display:flex; flex-direction:column; gap:14px; overflow:hidden;
+  transition:transform .2s ease, border-color .2s ease;
+}
+#apple-ailabbeat .alb-card::before{
+  content:""; position:absolute; inset:0 0 auto 0; height:2px;
+  background:linear-gradient(90deg,var(--mint),var(--purple)); opacity:.85;
+}
+#apple-ailabbeat .alb-card:hover{transform:translateY(-4px); border-color:rgba(33,246,188,.28)}
+#apple-ailabbeat .alb-num{
+  font-size:11px; letter-spacing:.28em; color:var(--purple); font-weight:700; opacity:.85;
+}
+#apple-ailabbeat .alb-big{
+  font-size:clamp(30px,3.6vw,46px); font-weight:800; line-height:1; letter-spacing:-.02em;
+  background:linear-gradient(100deg,var(--mint),#7fe9ff 60%,var(--purple));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+#apple-ailabbeat .alb-title{font-size:clamp(15px,1.5vw,18px); font-weight:700; line-height:1.25; color:var(--ink)}
+#apple-ailabbeat .alb-body{font-size:clamp(12.5px,1.25vw,14.5px); line-height:1.55; color:var(--ink); opacity:.62; font-weight:400}
+#apple-ailabbeat .alb-body code{
+  font-family:inherit; color:var(--mint); background:rgba(33,246,188,.10);
+  padding:1px 6px; border-radius:5px; font-size:.92em;
+}
+#apple-ailabbeat .alb-foot{
+  margin-top:clamp(34px,5vh,52px); font-size:clamp(12px,1.3vw,15px); line-height:1.6;
+  color:var(--ink); opacity:.55; max-width:70ch; border-left:2px solid rgba(33,246,188,.5);
+  padding-left:18px;
+}
+#apple-ailabbeat .alb-foot b{color:var(--mint); opacity:1; font-weight:700}
+@media (max-width:860px){
+  #apple-ailabbeat .alb-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  #apple-ailabbeat .alb-card{transition:none}
+}
+</style>
+<section id="apple-ailabbeat" aria-label="What this means for recommender systems and RLHF">
+  <div class="alb-inner">
+    <p class="alb-eyebrow">For recommender systems &amp; RLHF</p>
+    <h2 class="alb-head">If you train on streaming logs, you're training on <em>autopilot.</em></h2>
+    <p class="alb-lede">
+      n=1, fully audited — but the failure modes generalize. Three findings from
+      seven years of one listener's logs that change what a play <em>means</em> as a training signal.
+    </p>
+    <div class="alb-grid">
+      <article class="alb-card">
+        <span class="alb-num">01 / PROVENANCE</span>
+        <span class="alb-big">11.5%</span>
+        <span class="alb-title">Streaming logs are not preference logs.</span>
+        <span class="alb-body">
+          80% of plays are autoadvance. Only <code>19.1%</code> involve any user action,
+          and just <code>11.5%</code> are a truly deliberate choice. A model that treats
+          every play as a positive label is mostly fitting the autoplay queue — not taste.
+        </span>
+      </article>
+      <article class="alb-card">
+        <span class="alb-num">02 / RECOVERABILITY</span>
+        <span class="alb-big">~70%</span>
+        <span class="alb-title">Intent is recoverable from timing alone.</span>
+        <span class="alb-body">
+          A classifier on session-position and recency — <em>no</em> shuffle flag, no
+          <code>reason_start</code> field — recovers deliberate intent at held-out
+          AUC <code>0.64–0.70</code>. Predicted intent reproduces the whole genre audit
+          (Spearman <code>0.75</code>). The privileged label isn't required.
+        </span>
+      </article>
+      <article class="alb-card">
+        <span class="alb-num">03 / NON-STATIONARITY</span>
+        <span class="alb-big">1.0<span style="font-size:.42em;letter-spacing:.04em;-webkit-text-fill-color:var(--ink);opacity:.55;font-weight:600"> recall</span></span>
+        <span class="alb-title">Logs are non-stationary instruments.</span>
+        <span class="alb-body">
+          A drift detector flags it: a client update silently changed what a "tap" logs
+          (<code>backbtn</code> appears 2023, an iOS device flip inflates taps) — faking a
+          behavior trend that isn't real. Recall <code>1.0</code> vs a naive baseline's
+          <code>0.0</code>. The measuring stick moved; the listener didn't.
+        </span>
+      </article>
+    </div>
+    <p class="alb-foot">
+      The contribution isn't a new model — it's a <b>calibration</b>. At n=1 the modern ML
+      playbook barely beats a bigram-plus-recency baseline; what moves the needle is
+      <b>auditing the label</b>. Provenance-aware weighting, intent recovery without the
+      privileged field, and drift detection are cheap, portable, and apply the moment your
+      reward signal is a behavior log.
+    </p>
+  </div>
+</section>
+<!--APPLE-AILABBEAT-END-->
 <!--ACT-DIVIDER-START-act-3--><header class="theme-divider" id="act-3"><div class="act-eyebrow"><span class="act-numeral">ACT&nbsp;III</span><span class="act-name">THE DYNAMICS</span></div><h2 class="act-deck">The same data, played as a process. How my listening moves through time, and what causes what.</h2><div class="act-look"><b>What to look for:</b> <span class="term-tip" data-tip="Self-exciting point process: λ(t) = μ + Σ α·exp(−β(t−tᵢ)). Each event raises the chance of more events soon; branching ratio n = α/β." tabindex="0">Hawkes</span> · Granger · <span class="term-tip" data-tip="Convergent Cross Mapping: nonlinear coupling test. Reconstruct each series' shadow manifold; check predictive cross-mapping as library length grows." tabindex="0">CCM</span> · <span class="term-tip" data-tip="Find the cheapest way to move probability mass from distribution P to Q given a per-unit cost. W₁ = total ground-distance moved." tabindex="0">optimal transport</span> · changepoints. Drift with receipts, not vibes.</div></header><!--ACT-DIVIDER-END-act-3--><!--SECT-TLDR-START-act-3--><div class="section-tldr">The same plays, read as a process unfolding in time. Hawkes self-excitement (n̂ = 0.793), Granger flows between genres, CCM nonlinear coupling, and Wasserstein drift: the data has temporal structure that correlations alone can’t touch.</div><!--SECT-TLDR-END-act-3--><!-- SCI2-SECTION-START -->
 <header>
   <h2 style="font-size:28px">◢◤  SCIENCE v2 — info-theory, point-processes, graph backbone</h2>
@@ -5487,6 +5794,157 @@ The L2 norm of the element-wise difference between two matrices: <code>‖A − 
 
 <style>.glossary-panel{padding:28px 36px;line-height:1.6}.glossary-panel h2{margin-top:28px;margin-bottom:16px;border-bottom:1px dashed rgba(155,107,255,0.25);padding-bottom:6px}.glossary-panel h2:first-of-type{margin-top:4px}.glossary-panel .entry{margin:14px 0;color:var(--ink)}.glossary-panel b{color:var(--sun)}.glossary-panel code{color:var(--mint);background:rgba(33,246,188,0.07);padding:1px 4px;border-radius:3px;font-size:0.92em}.glossary-panel .hint{color:var(--mute);font-style:italic}.glossary-panel .evt{color:var(--orchid)}.glossary-intro{max-width:760px;margin-top:10px;font-family:'Georgia','Iowan Old Style',serif;font-size:14.5px;line-height:1.7;color:var(--ink);border-left:2px solid var(--mint);padding:4px 0 4px 16px}</style>
 <!-- GLOSSARY-SECTION-END -->
+<!--APPLE-SUNOMOMENT-START-->
+<style id="apple-sunomoment-css">
+#apple-sunomoment{
+  --mint:#21f6bc; --purple:#9b6bff; --ink:#f0eaff; --bg:#0a0118;
+  box-sizing:border-box; width:100%; padding:clamp(72px,13vh,160px) 6vw;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace; color:var(--ink);
+  position:relative; overflow:hidden; text-align:center;
+  background:
+    radial-gradient(70% 90% at 50% 0%, rgba(155,107,255,.14), transparent 60%),
+    radial-gradient(90% 70% at 50% 110%, rgba(33,246,188,.10), transparent 60%);
+}
+#apple-sunomoment *{box-sizing:border-box}
+#apple-sunomoment .sm-inner{max-width:920px; margin:0 auto; position:relative; z-index:2}
+#apple-sunomoment .sm-eyebrow{
+  font-size:clamp(10px,1vw,13px); letter-spacing:.4em; text-transform:uppercase;
+  color:var(--mint); font-weight:600; margin:0 0 18px; opacity:.9;
+}
+#apple-sunomoment .sm-head{
+  font-size:clamp(28px,4.8vw,62px); line-height:1.06; font-weight:800; letter-spacing:-.02em;
+  margin:0 auto 20px; max-width:18ch;
+}
+#apple-sunomoment .sm-head em{font-style:normal;
+  background:linear-gradient(100deg,var(--mint),#7fe9ff 55%,var(--purple));
+  -webkit-background-clip:text; background-clip:text; color:transparent;}
+#apple-sunomoment .sm-sub{
+  font-size:clamp(14px,1.6vw,19px); line-height:1.55; color:var(--ink); opacity:.66;
+  max-width:58ch; margin:0 auto clamp(34px,6vh,56px); font-weight:400;
+}
+#apple-sunomoment .sm-sub b{color:var(--mint); opacity:1; font-weight:700}
+#apple-sunomoment .sm-tracks{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px clamp(20px,3vw,48px); max-width:760px; margin:0 auto clamp(34px,5.5vh,52px);
+  text-align:left;
+}
+#apple-sunomoment .sm-track{
+  display:flex; align-items:baseline; gap:14px; padding:11px 4px;
+  border-bottom:1px solid rgba(240,234,255,.08);
+  font-size:clamp(13px,1.4vw,16px); transition:color .18s ease, padding-left .18s ease;
+}
+#apple-sunomoment .sm-track:hover{color:var(--mint); padding-left:6px}
+#apple-sunomoment .sm-track .sm-n{
+  font-size:11px; color:var(--purple); opacity:.8; min-width:22px; font-weight:700; letter-spacing:.04em;
+}
+#apple-sunomoment .sm-track .sm-t{font-weight:600; letter-spacing:-.005em}
+#apple-sunomoment .sm-meta{
+  display:flex; gap:10px 22px; justify-content:center; flex-wrap:wrap;
+  font-size:clamp(10px,1vw,12px); letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink); opacity:.5; margin-bottom:clamp(28px,4.5vh,44px);
+}
+#apple-sunomoment .sm-meta span{display:inline-flex; align-items:center; gap:7px}
+#apple-sunomoment .sm-meta i{width:5px; height:5px; border-radius:50%; background:var(--mint); opacity:.8}
+#apple-sunomoment .sm-play{
+  display:inline-flex; align-items:center; gap:13px;
+  padding:15px 30px 15px 24px; border:0; border-radius:999px; cursor:pointer;
+  font-family:inherit; font-size:clamp(13px,1.3vw,16px); font-weight:700; letter-spacing:.04em;
+  color:var(--bg); background:linear-gradient(100deg,var(--mint),#62e7ff);
+  box-shadow:0 10px 40px rgba(33,246,188,.30);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+#apple-sunomoment .sm-play:hover{transform:translateY(-2px); box-shadow:0 14px 50px rgba(33,246,188,.45)}
+#apple-sunomoment .sm-play .sm-ico{
+  width:26px; height:26px; border-radius:50%; background:var(--bg);
+  display:grid; place-items:center; flex:none;
+}
+#apple-sunomoment .sm-play .sm-ico::before{
+  content:""; border-style:solid; border-width:6px 0 6px 10px;
+  border-color:transparent transparent transparent var(--mint); margin-left:2px;
+}
+#apple-sunomoment .sm-foot{
+  margin-top:clamp(22px,3.5vh,36px); font-size:clamp(11px,1.1vw,13px); line-height:1.6;
+  color:var(--ink); opacity:.45; max-width:62ch; margin-left:auto; margin-right:auto;
+}
+/* faint moving waveform behind it */
+#apple-sunomoment canvas{position:absolute; inset:auto 0 0 0; width:100%; height:34%; z-index:1; opacity:.5}
+@media (max-width:680px){
+  #apple-sunomoment .sm-tracks{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  #apple-sunomoment .sm-play,#apple-sunomoment .sm-track{transition:none}
+}
+</style>
+<section id="apple-sunomoment" aria-label="The soundtrack — original score">
+  <canvas id="sm-wave" aria-hidden="true"></canvas>
+  <div class="sm-inner">
+    <p class="sm-eyebrow">The soundtrack</p>
+    <h2 class="sm-head">A page about a listening life, <em>scored by the listener.</em></h2>
+    <p class="sm-sub">
+      Twelve tracks, written for this. The same impulse that made the
+      charts made the music — so the data has a score, and the score is <b>data-art</b>: a manifold
+      you can hear. Tap play and let it ride.
+    </p>
+    <ol class="sm-tracks" id="sm-tracklist"></ol>
+    <div class="sm-meta">
+      <span><i></i> 12 tracks</span>
+      <span><i></i> original score</span>
+      <span><i></i> shuffled &amp; crossfading</span>
+    </div>
+    <button class="sm-play" id="sm-play" type="button">
+      <span class="sm-ico"></span> play the score
+    </button>
+    <p class="sm-foot">
+      Plays through the floating audio control, bottom-left — one bed for the whole page.
+      The meta-fusion: the listener becomes the composer becomes the subject.
+    </p>
+  </div>
+</section>
+<script id="apple-sunomoment-js">
+(function(){
+  var sec=document.getElementById('apple-sunomoment'); if(!sec) return;
+  var tracks=["Antares","Antares Extended","Fruititarian","No Masks Ad Infinitum",
+    "Stochastic Rainbow","Too Fiery Hot","Edge of the Black Hole","Hooked at First Taste",
+    "Brain rm -rf","Novelday","Latent Dimension","Brainstorm"];
+  var ol=document.getElementById('sm-tracklist');
+  if(ol){ tracks.forEach(function(t,i){
+    var li=document.createElement('li'); li.className='sm-track';
+    li.innerHTML='<span class="sm-n">'+String(i+1).padStart(2,'0')+'</span><span class="sm-t">'+t+'</span>';
+    ol.appendChild(li);
+  }); }
+  // play button → drive the existing audio bed (tap-anywhere arm)
+  var btn=document.getElementById('sm-play');
+  if(btn) btn.addEventListener('click',function(){
+    var aux=document.getElementById('aux-play');
+    if(aux){ aux.click(); }   // arms + plays the bed via the new control
+    btn.querySelector('.sm-ico').style.opacity='.6';
+  });
+  // faint waveform animation
+  var cv=document.getElementById('sm-wave'); if(!cv) return;
+  var ctx=cv.getContext('2d'), DPR=Math.min(window.devicePixelRatio||1,2);
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var W=0,H=0;
+  function rs(){var r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+  var t=0, bars=64;
+  function frame(){
+    ctx.clearRect(0,0,W,H); t+=0.03;
+    var bw=W/bars;
+    for(var i=0;i<bars;i++){
+      var h=(Math.sin(i*0.5+t)*0.5+0.5)*(Math.sin(i*0.13+t*0.6)*0.5+0.5)*H*0.9+H*0.05;
+      var x=i*bw, y=H-h;
+      var g=ctx.createLinearGradient(0,y,0,H);
+      g.addColorStop(0,'rgba(33,246,188,0.55)'); g.addColorStop(1,'rgba(155,107,255,0.10)');
+      ctx.fillStyle=g; ctx.fillRect(x+bw*0.18,y,bw*0.64,h);
+    }
+    if(!reduce) raf=requestAnimationFrame(frame);
+  }
+  var raf;
+  function init(){rs(); cancelAnimationFrame(raf); if(reduce){frame();}else{raf=requestAnimationFrame(frame);}}
+  window.addEventListener('resize',rs,{passive:true});
+  if(document.readyState!=='loading') init(); else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+<!--APPLE-SUNOMOMENT-END-->
 <footer style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:36px 0 48px; color:var(--mute); font-family:JetBrains Mono, monospace; font-size:10px; letter-spacing:1.2px; opacity:0.75"><span style="color:#86cbfe"><span style="color:#21f6bc">stack:</span> Python &middot; plotly &middot; uv &middot; Tone.js &middot; Spotify Embed iframes &middot; ripser &middot; umap-learn &middot; gensim &middot; statsmodels &middot; ruptures &middot; networkx &middot; kepler-mapper &middot; GitHub Pages</span><span><i>built as a personal project alongside a day job. 24,323 lines of Python across 59 scripts. ~30 methods, one listener.</i></span><span style="opacity:0.6">build 2026-05-26 01:49Z</span></footer>
 
 
@@ -11792,172 +12250,6 @@ try {
 </script>
 <!--SELFHOSTED-AUDIO-END-->
 
-<!--APPLE-SPINE-JS-START-->
-<script id="apple-spine-js">
-(function(){
-  'use strict';
-  if (window.__appleSpine) return;
-  window.__appleSpine = true;
-
-  // Story mode keeps ~170 chart panels display:none. Plotly's resize throws an
-  // async "Resize must be passed a displayed plot div element" when the base
-  // resize-all loop (and rotations) hit those hidden divs. Fix at the source:
-  // wrap Plotly.Plots.resize to no-op on a hidden div (benefits every caller —
-  // base resize-all, modal, automargin, our renderSoon). Belt-and-suspenders:
-  // also swallow that one known-benign message if any slips through.
-  function patchPlotlyResize(){
-    try{
-      var P=window.Plotly;
-      if (!P || !P.Plots || !P.Plots.resize || P.Plots.resize.__spineWrapped) return true;
-      var orig=P.Plots.resize;
-      P.Plots.resize=function(gd){
-        try{ var el=(typeof gd==='string')?document.getElementById(gd):gd; if (el && el.offsetParent===null) return Promise.resolve(); }catch(e){}
-        return orig.apply(this, arguments);
-      };
-      P.Plots.resize.__spineWrapped=true;
-      return true;
-    }catch(e){ return false; }
-  }
-  if (!patchPlotlyResize()){ var _pt=setInterval(function(){ if (patchPlotlyResize()) clearInterval(_pt); }, 200); setTimeout(function(){ clearInterval(_pt); }, 12000); }
-  window.addEventListener('error', function(e){
-    if (e && e.message && /Resize must be passed a displayed plot div|went wrong with axis scaling/.test(e.message)){
-      e.preventDefault(); e.stopImmediatePropagation(); return true;
-    }
-  }, true);
-
-  // sonicManifold spine v4 — the "story" mode = one hero chart per act + the rest
-  // folded behind an "open the lab" toggle. It REUSES the existing story system
-  // (body.story-only, driven by the .pace-pick control + nav #story-toggle), and
-  // redefines it (via APPLE-SPINE-CSS) from the old skeleton into the spine.
-  // No DOM moves: atoms are tagged + shown/hidden by class, so lazy Plotly figs
-  // keep their original wiring.
-
-  var STORE_KEY='sonicmanifold-story-only';
-  var MODULE_SEL = '.panel,.table-panel,.rev-grid,.rev-closer,'
-    + 'section.health-panel,section.exo-shock-panel,section.carnatic-panel,section.audio-embed-panel';
-
-  function txt(el){ return (el.textContent||'').replace(/\s+/g,' ').trim(); }
-  function isFull(el){ return /\bfull\b/.test(el.className||''); }
-  function isGenuinePlot(el){
-    if (!el.querySelector) return false;
-    if (el.querySelector('.js-plotly-plot,.lazy-placeholder')) return true;
-    if (el.matches && el.matches('[data-sidecar-id]')) return true;
-    if (el.querySelector('[data-sidecar-id]')) return true;
-    var sc = el.querySelectorAll('script');
-    for (var i=0;i<sc.length;i++){ var t=sc[i].textContent||''; if (/Plotly\.newPlot/.test(t)||/PLOTLYENV/.test(t)) return true; }
-    return false;
-  }
-
-  function collectAtoms(actHeader){
-    var atoms=[], n=actHeader.nextElementSibling;
-    while (n && !(n.matches && n.matches('header[id^="act-"]'))){
-      var tag=n.tagName;
-      if (tag==='STYLE'||tag==='SCRIPT'||tag==='LINK'){ n=n.nextElementSibling; continue; }
-      if (n.matches && n.matches('.grid')){
-        // explode a grid into atoms: its chart modules AND its sub-headings/tldrs
-        // (so a folded sub-section header never orphans above hidden content)
-        var added=false, ch=n.children;
-        for (var i=0;i<ch.length;i++){
-          if (ch[i].matches && (ch[i].matches(MODULE_SEL) || ch[i].matches('h2,h3,h4,header,.sect-h,.sect-tldr,.section-tldr'))){ atoms.push(ch[i]); added=true; }
-        }
-        if (!added) atoms.push(n);
-      } else { atoms.push(n); }
-      n=n.nextElementSibling;
-    }
-    return atoms;
-  }
-
-  function chooseHero(act, atoms){
-    function find(pred){ for (var i=0;i<atoms.length;i++){ try{ if (pred(atoms[i])) return atoms[i]; }catch(e){} } return null; }
-    if (act===1){ var a1=find(function(a){ return a.id==='fig-23'; }); if (a1) return a1; } // NOVELTY RATE
-    if (act===2){ var u=document.getElementById('umap-wrap'); if (u && atoms.indexOf(u)>=0) return u; }
-    if (act===3){ var hk=find(function(a){ return isGenuinePlot(a) && /n̂\s*=/.test(txt(a)); }); if (hk) return hk; }
-    if (act===5){ var h1=find(function(a){ return isGenuinePlot(a) && /H₁/.test(txt(a)); }); if (h1) return h1; }
-    return find(function(a){ return isGenuinePlot(a) && isFull(a); })
-        || find(isGenuinePlot)
-        || find(function(a){ return a.querySelector && a.querySelector('table,iframe'); });
-  }
-
-  function makeLabBtn(act, count){
-    var b=document.createElement('button');
-    b.type='button'; b.className='act-lab-btn'; b.setAttribute('data-act',act); b.setAttribute('aria-expanded','false');
-    b.innerHTML='<span class="lab-caret">▸</span><span class="lab-title">open the lab</span><span class="lab-count">'+count+' more</span>';
-    b.addEventListener('click', function(){ toggleAct(act, b); });
-    return b;
-  }
-  function renderSoon(){
-    // resize ONLY the displayed charts in opened labs — never a global resize
-    // event (the base resize-all loop throws on the many display:none folds).
-    [120,500,950].forEach(function(t){ setTimeout(function(){
-      if (!window.Plotly) return;
-      document.querySelectorAll('.spine-open .js-plotly-plot').forEach(function(gd){
-        // only nudge ALREADY-rendered charts; brand-new ones render via the base
-        // IntersectionObserver and would async-throw if resized mid-layout.
-        if (gd.offsetParent!==null && gd.querySelector('.main-svg')){ try{ window.Plotly.Plots.resize(gd); }catch(e){} }
-      });
-    }, t); });
-  }
-  function toggleAct(act, btn){
-    var open = btn.getAttribute('aria-expanded')==='true';
-    document.querySelectorAll('.spine-fold[data-spine-act="'+act+'"]').forEach(function(m){ m.classList.toggle('spine-open', !open); });
-    btn.setAttribute('aria-expanded', open?'false':'true');
-    var t=btn.querySelector('.lab-title'); if (t) t.textContent = open?'open the lab':'close the lab';
-    if (!open) renderSoon();
-  }
-
-  function build(){
-    if (document.body.classList.contains('spine-on')) return; // idempotent
-    var heads=[].slice.call(document.querySelectorAll('header[id^="act-"]'));
-    if (!heads.length) return;
-    var foldedAny=false;
-
-    heads.forEach(function(h){
-      var act=parseInt((h.id.match(/\d+/)||['0'])[0],10);
-      var atoms=collectAtoms(h);
-      if (atoms.length < 4) return;
-      var plots=atoms.filter(isGenuinePlot);
-      if (plots.length < 2) return;
-      var hero=chooseHero(act, atoms);
-      if (!hero) return;
-
-      hero.classList.add('spine-keep');
-      var introTldr=null;
-      for (var i=0;i<atoms.length;i++){ if (atoms[i].matches && atoms[i].matches('.section-tldr')){ introTldr=atoms[i]; break; } }
-      if (introTldr) introTldr.classList.add('spine-keep');
-
-      var foldCount=0;
-      atoms.forEach(function(a){
-        if (a===hero || a===introTldr) return;
-        if (a.tagName==='STYLE'||a.tagName==='SCRIPT') return;
-        a.classList.add('spine-fold'); a.setAttribute('data-spine-act', act); foldCount++;
-      });
-      if (foldCount < 1){ hero.classList.remove('spine-keep'); return; }
-
-      var anchor = hero.closest('.grid') || hero;
-      anchor.parentNode.insertBefore(makeLabBtn(act, foldCount), anchor.nextSibling);
-      foldedAny=true;
-    });
-
-    if (!foldedAny) return;
-    document.body.classList.add('spine-on');
-
-    // Default to the spine (story) on first visit; otherwise honour the saved pref.
-    var pref=null; try{ pref=localStorage.getItem(STORE_KEY); }catch(e){}
-    if (pref===null){
-      document.body.classList.add('story-only');
-      try{ localStorage.setItem(STORE_KEY,'1'); }catch(e){}
-      var sb=document.getElementById('story-toggle');
-      if (sb){ sb.setAttribute('aria-pressed','true'); sb.textContent='FULL VIEW'; }
-      document.querySelectorAll('.pace-opt').forEach(function(o){ o.classList.toggle('is-active', o.getAttribute('data-mode')==='story'); });
-    }
-  }
-
-  function start(){ try{ build(); }catch(e){ /* spine is non-fatal */ } }
-  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,500); });
-  else setTimeout(start,500);
-})();
-</script>
-<!--APPLE-SPINE-JS-END-->
 <!--APPLE-AUDIO-CSS-START-->
 <style id="apple-audio-css">
 /* design session: coexist restyle of the audio UI to the frosted Apple look.
@@ -15924,83 +16216,6 @@ html body #umap-wrap .modebar{ top:6px !important; right:6px !important; }
 })();
 </script>
 <!--APPLE-FIGFIX-END-->
-<!--APPLE-SOUNDTRACK-START-->
-<style id="apple-soundtrack-css">
-.soundtrack-credit{
-  max-width:var(--maxw,960px);margin:1.6rem auto;padding:1.4rem 1.5rem 1.55rem;
-  background:linear-gradient(150deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
-  -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);
-  border:1px solid var(--hair,rgba(255,255,255,.12));border-radius:18px;position:relative;overflow:hidden;
-}
-.soundtrack-credit::before{
-  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
-  background:radial-gradient(120% 120% at 0% 0%,rgba(33,246,188,.10),transparent 45%),radial-gradient(120% 120% at 100% 0%,rgba(155,107,255,.10),transparent 45%);
-}
-.soundtrack-credit > *{position:relative}
-.stc-head{
-  display:flex;align-items:center;gap:.7rem;
-  font:600 .82rem/1 var(--mono,'JetBrains Mono','SF Mono',monospace);letter-spacing:.16em;text-transform:uppercase;
-  color:var(--accent,#21f6bc);margin:0 0 .55rem;
-}
-.stc-eq{display:inline-flex;align-items:flex-end;gap:2px;height:14px}
-.stc-eq i{width:3px;height:100%;border-radius:2px;background:linear-gradient(var(--accent,#21f6bc),var(--ice,#86cbfe));transform-origin:bottom;animation:stcEq 1s ease-in-out infinite}
-.stc-eq i:nth-child(2){animation-delay:.18s}.stc-eq i:nth-child(3){animation-delay:.36s}.stc-eq i:nth-child(4){animation-delay:.52s}
-@keyframes stcEq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
-@media (prefers-reduced-motion:reduce){.stc-eq i{animation:none;transform:scaleY(.6)}}
-.stc-tag{
-  font:400 .96rem/1.55 var(--sans,system-ui,-apple-system,sans-serif);letter-spacing:-.01em;
-  color:var(--ink-2,rgba(255,255,255,.72));margin:0 0 1rem;max-width:62ch;
-}
-.stc-tag b{color:var(--ink-1,rgba(255,255,255,.94));font-weight:600}
-.stc-list{
-  list-style:none;counter-reset:trk;margin:0;padding:0;
-  display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(5,auto);
-  grid-auto-flow:column;gap:.34rem .9rem;
-}
-.stc-list li{
-  counter-increment:trk;display:flex;align-items:baseline;gap:.6rem;
-  font:500 .9rem/1.5 var(--sans,system-ui,-apple-system,sans-serif);color:var(--ink-1,rgba(255,255,255,.9));
-  letter-spacing:-.01em;padding:.18rem 0;border-bottom:1px solid rgba(255,255,255,.05);
-}
-.stc-list li::before{
-  content:counter(trk,decimal-leading-zero);
-  font:600 .72rem/1 var(--mono,'JetBrains Mono','SF Mono',monospace);color:var(--accent,#21f6bc);opacity:.7;
-  min-width:1.6em;letter-spacing:.04em;
-}
-.stc-foot{
-  margin:.95rem 0 0;font:500 .78rem/1.4 var(--mono,'JetBrains Mono','SF Mono',monospace);
-  letter-spacing:.02em;color:var(--ink-2,rgba(255,255,255,.5));
-}
-@media (max-width:560px){
-  .soundtrack-credit{padding:1.2rem 1.15rem 1.3rem;border-radius:16px}
-  .stc-list{grid-template-columns:1fr;grid-template-rows:none;grid-auto-flow:row;gap:.1rem}
-}
-</style>
-<script id="apple-soundtrack-js">
-(function(){
-  if (window.__appleSoundtrack) return; window.__appleSoundtrack = true;
-  var TRACKS=['Antares','Antares Extended','Fruititarian','No Masks Ad Infinitum','Stochastic Rainbow',
-              'Too Fiery Hot','Edge of the Black Hole','Hooked at First Taste','Brain rm -rf','Novelday','Latent Dimension','Brainstorm'];
-  function build(){
-    if (document.querySelector('.soundtrack-credit')) return;
-    var about=document.getElementById('tldr');
-    if (!about || !about.parentNode) return;
-    var sec=document.createElement('section');
-    sec.className='soundtrack-credit';
-    var items=TRACKS.map(function(t){ return '<li>'+t+'</li>'; }).join('');
-    sec.innerHTML=
-      '<div class="stc-head"><span class="stc-eq"><i></i><i></i><i></i><i></i></span> the soundtrack</div>'
-      +'<p class="stc-tag">A page about a listening life deserves one of its own. Twelve originals, written for it — '
-      +'<b>shuffled, crossfading, and unblockable</b>. Tap anywhere on the page and let the album ride.</p>'
-      +'<ol class="stc-list">'+items+'</ol>'
-      +'<p class="stc-foot">♪ 12 tracks · original score · press play = tap anywhere</p>';
-    about.parentNode.insertBefore(sec, about.nextSibling);
-  }
-  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', build);
-  else build();
-})();
-</script>
-<!--APPLE-SOUNDTRACK-END-->
 <!--APPLE-SONIFYKEY-START-->
 <script id="apple-sonifykey-js">
 (function(){
@@ -16053,5 +16268,173 @@ html body #umap-wrap .modebar{ top:6px !important; right:6px !important; }
 })();
 </script>
 <!--APPLE-SONIFYKEY-END-->
+<!--APPLE-SPINE-JS-START-->
+<script id="apple-spine-js">
+(function(){
+  'use strict';
+  if (window.__appleSpine) return;
+  window.__appleSpine = true;
+
+  // Story mode keeps ~170 chart panels display:none. Plotly's resize throws an
+  // async "Resize must be passed a displayed plot div element" when the base
+  // resize-all loop (and rotations) hit those hidden divs. Fix at the source:
+  // wrap Plotly.Plots.resize to no-op on a hidden div (benefits every caller —
+  // base resize-all, modal, automargin, our renderSoon). Belt-and-suspenders:
+  // also swallow that one known-benign message if any slips through.
+  function patchPlotlyResize(){
+    try{
+      var P=window.Plotly;
+      if (!P || !P.Plots || !P.Plots.resize || P.Plots.resize.__spineWrapped) return true;
+      var orig=P.Plots.resize;
+      P.Plots.resize=function(gd){
+        try{ var el=(typeof gd==='string')?document.getElementById(gd):gd; if (el && el.offsetParent===null) return Promise.resolve(); }catch(e){}
+        return orig.apply(this, arguments);
+      };
+      P.Plots.resize.__spineWrapped=true;
+      return true;
+    }catch(e){ return false; }
+  }
+  if (!patchPlotlyResize()){ var _pt=setInterval(function(){ if (patchPlotlyResize()) clearInterval(_pt); }, 200); setTimeout(function(){ clearInterval(_pt); }, 12000); }
+  window.addEventListener('error', function(e){
+    if (e && e.message && /Resize must be passed a displayed plot div|went wrong with axis scaling/.test(e.message)){
+      e.preventDefault(); e.stopImmediatePropagation(); return true;
+    }
+  }, true);
+
+  // sonicManifold spine v4 — the "story" mode = one hero chart per act + the rest
+  // folded behind an "open the lab" toggle. It REUSES the existing story system
+  // (body.story-only, driven by the .pace-pick control + nav #story-toggle), and
+  // redefines it (via APPLE-SPINE-CSS) from the old skeleton into the spine.
+  // No DOM moves: atoms are tagged + shown/hidden by class, so lazy Plotly figs
+  // keep their original wiring.
+
+  var STORE_KEY='sonicmanifold-story-only';
+  var MODULE_SEL = '.panel,.table-panel,.rev-grid,.rev-closer,'
+    + 'section.health-panel,section.exo-shock-panel,section.carnatic-panel,section.audio-embed-panel';
+
+  function txt(el){ return (el.textContent||'').replace(/\s+/g,' ').trim(); }
+  function isFull(el){ return /\bfull\b/.test(el.className||''); }
+  function isGenuinePlot(el){
+    if (!el.querySelector) return false;
+    if (el.querySelector('.js-plotly-plot,.lazy-placeholder')) return true;
+    if (el.matches && el.matches('[data-sidecar-id]')) return true;
+    if (el.querySelector('[data-sidecar-id]')) return true;
+    var sc = el.querySelectorAll('script');
+    for (var i=0;i<sc.length;i++){ var t=sc[i].textContent||''; if (/Plotly\.newPlot/.test(t)||/PLOTLYENV/.test(t)) return true; }
+    return false;
+  }
+
+  function collectAtoms(actHeader){
+    var atoms=[], n=actHeader.nextElementSibling;
+    while (n && !(n.matches && n.matches('header[id^="act-"]'))){
+      var tag=n.tagName;
+      if (tag==='STYLE'||tag==='SCRIPT'||tag==='LINK'){ n=n.nextElementSibling; continue; }
+      if (n.matches && n.matches('.grid')){
+        // explode a grid into atoms: its chart modules AND its sub-headings/tldrs
+        // (so a folded sub-section header never orphans above hidden content)
+        var added=false, ch=n.children;
+        for (var i=0;i<ch.length;i++){
+          if (ch[i].matches && (ch[i].matches(MODULE_SEL) || ch[i].matches('h2,h3,h4,header,.sect-h,.sect-tldr,.section-tldr'))){ atoms.push(ch[i]); added=true; }
+        }
+        if (!added) atoms.push(n);
+      } else { atoms.push(n); }
+      n=n.nextElementSibling;
+    }
+    return atoms;
+  }
+
+  function chooseHero(act, atoms){
+    function find(pred){ for (var i=0;i<atoms.length;i++){ try{ if (pred(atoms[i])) return atoms[i]; }catch(e){} } return null; }
+    if (act===1){ var a1=find(function(a){ return a.id==='fig-23'; }); if (a1) return a1; } // NOVELTY RATE
+    if (act===2){ var u=document.getElementById('umap-wrap'); if (u && atoms.indexOf(u)>=0) return u; }
+    if (act===3){ var hk=find(function(a){ return isGenuinePlot(a) && /n̂\s*=/.test(txt(a)); }); if (hk) return hk; }
+    if (act===5){ var h1=find(function(a){ return isGenuinePlot(a) && /H₁/.test(txt(a)); }); if (h1) return h1; }
+    return find(function(a){ return isGenuinePlot(a) && isFull(a); })
+        || find(isGenuinePlot)
+        || find(function(a){ return a.querySelector && a.querySelector('table,iframe'); });
+  }
+
+  function makeLabBtn(act, count){
+    var b=document.createElement('button');
+    b.type='button'; b.className='act-lab-btn'; b.setAttribute('data-act',act); b.setAttribute('aria-expanded','false');
+    b.innerHTML='<span class="lab-caret">▸</span><span class="lab-title">open the lab</span><span class="lab-count">'+count+' more</span>';
+    b.addEventListener('click', function(){ toggleAct(act, b); });
+    return b;
+  }
+  function renderSoon(){
+    // resize ONLY the displayed charts in opened labs — never a global resize
+    // event (the base resize-all loop throws on the many display:none folds).
+    [120,500,950].forEach(function(t){ setTimeout(function(){
+      if (!window.Plotly) return;
+      document.querySelectorAll('.spine-open .js-plotly-plot').forEach(function(gd){
+        // only nudge ALREADY-rendered charts; brand-new ones render via the base
+        // IntersectionObserver and would async-throw if resized mid-layout.
+        if (gd.offsetParent!==null && gd.querySelector('.main-svg')){ try{ window.Plotly.Plots.resize(gd); }catch(e){} }
+      });
+    }, t); });
+  }
+  function toggleAct(act, btn){
+    var open = btn.getAttribute('aria-expanded')==='true';
+    document.querySelectorAll('.spine-fold[data-spine-act="'+act+'"]').forEach(function(m){ m.classList.toggle('spine-open', !open); });
+    btn.setAttribute('aria-expanded', open?'false':'true');
+    var t=btn.querySelector('.lab-title'); if (t) t.textContent = open?'open the lab':'close the lab';
+    if (!open) renderSoon();
+  }
+
+  function build(){
+    if (document.body.classList.contains('spine-on')) return; // idempotent
+    var heads=[].slice.call(document.querySelectorAll('header[id^="act-"]'));
+    if (!heads.length) return;
+    var foldedAny=false;
+
+    heads.forEach(function(h){
+      var act=parseInt((h.id.match(/\d+/)||['0'])[0],10);
+      var atoms=collectAtoms(h);
+      if (atoms.length < 4) return;
+      var plots=atoms.filter(isGenuinePlot);
+      if (plots.length < 2) return;
+      var hero=chooseHero(act, atoms);
+      if (!hero) return;
+
+      hero.classList.add('spine-keep');
+      var introTldr=null;
+      for (var i=0;i<atoms.length;i++){ if (atoms[i].matches && atoms[i].matches('.section-tldr')){ introTldr=atoms[i]; break; } }
+      if (introTldr) introTldr.classList.add('spine-keep');
+
+      var foldCount=0;
+      atoms.forEach(function(a){
+        if (a===hero || a===introTldr) return;
+        if (a.tagName==='STYLE'||a.tagName==='SCRIPT') return;
+        // reorg beats (lead / AI-lab / soundtrack) stay visible in every mode
+        if (a.id && /^apple-(leadhero|ailabbeat|sunomoment)$/.test(a.id)) return;
+        a.classList.add('spine-fold'); a.setAttribute('data-spine-act', act); foldCount++;
+      });
+      if (foldCount < 1){ hero.classList.remove('spine-keep'); return; }
+
+      var anchor = hero.closest('.grid') || hero;
+      anchor.parentNode.insertBefore(makeLabBtn(act, foldCount), anchor.nextSibling);
+      foldedAny=true;
+    });
+
+    if (!foldedAny) return;
+    document.body.classList.add('spine-on');
+
+    // Default to the spine (story) on first visit; otherwise honour the saved pref.
+    var pref=null; try{ pref=localStorage.getItem(STORE_KEY); }catch(e){}
+    if (pref===null){
+      document.body.classList.add('story-only');
+      try{ localStorage.setItem(STORE_KEY,'1'); }catch(e){}
+      var sb=document.getElementById('story-toggle');
+      if (sb){ sb.setAttribute('aria-pressed','true'); sb.textContent='FULL VIEW'; }
+      document.querySelectorAll('.pace-opt').forEach(function(o){ o.classList.toggle('is-active', o.getAttribute('data-mode')==='story'); });
+    }
+  }
+
+  function start(){ try{ build(); }catch(e){ /* spine is non-fatal */ } }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,500); });
+  else setTimeout(start,500);
+})();
+</script>
+<!--APPLE-SPINE-JS-END-->
 </body>
 </html>
