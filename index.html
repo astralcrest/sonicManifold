@@ -16809,6 +16809,27 @@ sup.ref a{ line-height:1.4 !important; }
 })();
 </script>
 <!--APPLE-MOBILESWEEP-END-->
+<!--APPLE-HONEST-START-->
+<style>
+.honest-fail{max-width:1040px;margin:48px auto 8px;padding:30px 26px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(155,107,255,.24);border-radius:16px;background:linear-gradient(180deg,rgba(16,10,28,.46),rgba(8,4,16,.30))}
+.honest-fail .hf-kick{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(240,234,255,.5);margin-bottom:8px}
+.honest-fail .hf-h{font-size:clamp(20px,2.8vw,28px);line-height:1.22;margin:0 0 12px;color:#f4f0ff;font-weight:700}
+.honest-fail .hf-lead{font-size:13.5px;line-height:1.68;color:rgba(240,234,255,.74);margin:0 0 20px;max-width:760px}
+.honest-fail .hf-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.honest-fail .hf-card{padding:16px 17px;border-radius:12px;background:rgba(124,77,255,.06);border:1px solid rgba(155,107,255,.15)}
+.honest-fail .hf-name{font-size:13.5px;color:#fff;font-weight:700;margin-bottom:7px}
+.honest-fail .hf-card p{font-size:12.5px;line-height:1.6;color:rgba(240,234,255,.72);margin:0}
+.honest-fail code{font-size:11.5px;background:rgba(125,240,200,.1);padding:1px 5px;border-radius:4px;color:#9ff3d3}
+body.story-only .honest-fail{display:block!important}
+@media(max-width:768px){.honest-fail{margin:36px 12px;padding:22px 16px}.honest-fail .hf-grid{grid-template-columns:1fr}}
+</style>
+<section class="honest-fail" id="honest" aria-label="What the data can't tell me">
+  <div class="hf-kick">honest failures &middot; the limits</div>
+  <h2 class="hf-h">What the data can&rsquo;t tell me.</h2>
+  <p class="hf-lead">Every section above has an edge it can&rsquo;t cross. Here they are in one place &mdash; not as hedging, but because the boundaries are part of the result. A finding is only as trustworthy as the limitation you&rsquo;re willing to state next to it.</p>
+  <div class="hf-grid"><div class="hf-card"><div class="hf-name">Skip behavior is unpredictable</div><p>I can characterize skip-spirals in aggregate, but I cannot predict any individual skip: out-of-time AUROC is 0.496, a coin flip. Whatever drives a skip in the moment isn&rsquo;t in this data.</p></div><div class="hf-card"><div class="hf-name">Intentionality is a proxy, not ground truth</div><p>The 19/81 split reads <code>reason_start</code> as intent. But a <code>clickrow</code> tap can be habit, and an auto-advanced track can be exactly what I wanted. It&rsquo;s the best stratification the export supports &mdash; not a measurement of what I meant.</p></div><div class="hf-card"><div class="hf-name">Acoustic features are ~28% missing</div><p>The tag-independent acoustic analysis relies on AcousticBrainz coverage, and roughly 28% of my tracks have no features. If what&rsquo;s missing isn&rsquo;t missing at random, the acoustic axis is estimated on a biased subset.</p></div><div class="hf-card"><div class="hf-name">The hyperbolic embedding is an assumption</div><p>I embed the co-listen graph in hyperbolic space because it looks tree-like &mdash; but the curvature is chosen, not measured. A Euclidean embedding would draw the communities slightly differently, and I can&rsquo;t fully adjudicate between them at N=1.</p></div><div class="hf-card"><div class="hf-name">&lsquo;Phase transition&rsquo; is an analogy</div><p>The phase-diagram language is evocative, not formal: a true thermodynamic transition needs a limit a single subject can&rsquo;t provide. The morphology is borrowed as a useful lens, and should be read as one.</p></div><div class="hf-card"><div class="hf-name">N=1 is the whole frame</div><p>Everything here is one person. The <i>methods</i> are meant to generalize; the <i>findings</i> are idiographic and hypothesis-generating. Nothing on this page is a population claim, and the most honest thing it can do is be reproducible.</p></div></div>
+</section>
+<!--APPLE-HONEST-END-->
 <!--APPLE-SCI2026-FOOTER-START-->
 <style>
 .sci-footer{max-width:920px;margin:90px auto 64px;padding:30px 24px 0;border-top:1px solid rgba(255,255,255,.10);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;line-height:1.75;color:rgba(240,234,255,.52);text-align:center}
