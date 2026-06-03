@@ -16911,5 +16911,50 @@ body.story-only .sci-footer{display:block!important}
 </footer>
 <!--APPLE-SCI2026-FOOTER-END-->
 
+<!--APPLE-CHAPNAV-START-->
+<style>
+.read-prog{position:fixed;top:0;left:0;width:100%;height:3px;background:rgba(255,255,255,.05);z-index:9999;pointer-events:none}
+.read-prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--sem-surv,#5ff0c0),#9b6bff);box-shadow:0 0 8px rgba(95,240,192,.4);transition:width .1s linear}
+a[data-target].act-here{color:#fff!important}
+a[data-target].act-here::after{content:"";position:absolute;left:8px;right:8px;bottom:-3px;height:2px;border-radius:2px;background:var(--sem-surv,#5ff0c0);box-shadow:0 0 7px rgba(95,240,192,.6)}
+@media(max-width:768px){.read-prog{height:2px}}
+</style>
+<div class="read-prog" aria-hidden="true"><div class="read-prog-fill"></div></div>
+<script>
+(function(){
+  if(window.__chapNav) return; window.__chapNav=true;
+  // 1) reading-progress bar
+  var fill=document.querySelector('.read-prog-fill');
+  function upd(){
+    var de=document.documentElement;
+    var h=de.scrollHeight-de.clientHeight;
+    var pct=h>0?Math.min(100,Math.max(0,(window.scrollY/h)*100)):0;
+    if(fill) fill.style.width=pct.toFixed(1)+'%';
+  }
+  var ticking=false;
+  window.addEventListener('scroll',function(){ if(!ticking){ requestAnimationFrame(function(){upd();ticking=false;}); ticking=true; } },{passive:true});
+  window.addEventListener('resize',upd); upd();
+  // 2) scroll-spy: light the current act chip
+  var chips={};
+  document.querySelectorAll('a[data-target]').forEach(function(a){
+    var t=a.getAttribute('data-target'); if(/^act-\d+$/.test(t)) chips[t]=a;
+  });
+  var dividers=document.querySelectorAll('header.theme-divider[id^="act-"]');
+  if('IntersectionObserver' in window && dividers.length){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          var id=e.target.id;
+          for(var k in chips) chips[k].classList.remove('act-here');
+          if(chips[id]) chips[id].classList.add('act-here');
+        }
+      });
+    },{rootMargin:'-12% 0px -78% 0px',threshold:0});
+    dividers.forEach(function(d){ io.observe(d); });
+  }
+})();
+</script>
+<!--APPLE-CHAPNAV-END-->
+
 </body>
 </html>
