@@ -2191,6 +2191,31 @@ body.story-only .scitrack{display:block!important}
 })();
 </script>
 <!--APPLE-SCITRACK-END-->
+<!--APPLE-SEMCOLOR-START-->
+<style>
+:root{--sem-del:#ffc985;--sem-alg:#8aa0c9;--sem-surv:#5ff0c0;--sem-neg:#a59db0}
+.sem-del{color:var(--sem-del)!important}
+.sem-alg{color:var(--sem-alg)!important}
+.sem-surv{color:var(--sem-surv)!important}
+.sem-neg{color:var(--sem-neg)!important}
+.sem-key{max-width:880px;margin:24px auto 0;padding:14px 22px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(10,6,20,.34)}
+.sem-key .sk-title{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(240,234,255,.5);margin-bottom:10px}
+.sem-key .sk-row{display:flex;flex-wrap:wrap;gap:8px 18px}
+.sem-key .sk-item{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:rgba(240,234,255,.78)}
+.sem-key .sk-dot{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+body.story-only .sem-key{display:block!important}
+@media(max-width:768px){.sem-key{margin:18px 14px 0;padding:12px 16px}}
+</style>
+<section class="sem-key" aria-label="How to read the colors">
+  <div class="sk-title">how to read the colors</div>
+  <div class="sk-row">
+    <span class="sk-item"><span class="sk-dot" style="background:var(--sem-del)"></span> deliberate / chosen</span>
+    <span class="sk-item"><span class="sk-dot" style="background:var(--sem-alg)"></span> algorithmic / served</span>
+    <span class="sk-item"><span class="sk-dot" style="background:var(--sem-surv)"></span> survived correction</span>
+    <span class="sk-item"><span class="sk-dot" style="background:var(--sem-neg)"></span> negative / limitation</span>
+  </div>
+</section>
+<!--APPLE-SEMCOLOR-END-->
 <!--APPLE-ABSTRACT-START-->
 <style>
 .sci-abstract{max-width:880px;margin:40px auto 8px;padding:30px 26px;font-family:'JetBrains Mono',ui-monospace,monospace;color:rgba(240,234,255,.82);border:1px solid rgba(155,107,255,.28);border-radius:16px;background:linear-gradient(180deg,rgba(21,8,45,.42),rgba(10,1,24,.30));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -2214,9 +2239,9 @@ body.story-only .sci-abstract{display:block!important}
   <div class="sa-find">
     <div class="sa-find-h">Three findings</div>
     <ol>
-      <li>Only <b>19.1%</b> of plays involve any explicit action (11.5% unambiguous taps); the modal play is algorithmically initiated.</li>
-      <li>Artist ranking (&rho;&gt;0.97), circadian profile (r&gt;0.98), and daily physiology coupling (r=0.996) <b>survive</b>; genre composition does <b>not</b> &mdash; ambient/lo-fi is tapped at ~half its served rate (B=0.5), hip-hop/R&amp;B above it (B=1.2); the reversal holds under a strict tap definition, three taxonomies, and tag-independent acoustic clustering.</li>
-      <li>Headline-grade effects <b>dissolve</b> under audit: a next-track predictability gap is an in-sample artifact (d=0.65&rarr;&le;0.10), and a music&rarr;heart-rate coupling fails a shuffle-instrument test of exogeneity.</li>
+      <li>Only <b class="sem-del">19.1%</b> of plays involve any explicit action (11.5% unambiguous taps); the modal play is algorithmically initiated.</li>
+      <li>Artist ranking (&rho;&gt;0.97), circadian profile (r&gt;0.98), and daily physiology coupling (r=0.996) <b class="sem-surv">survive</b>; genre composition does <b class="sem-neg">not</b> &mdash; ambient/lo-fi is tapped at ~half its served rate (B=0.5), hip-hop/R&amp;B above it (B=1.2); the reversal holds under a strict tap definition, three taxonomies, and tag-independent acoustic clustering.</li>
+      <li>Headline-grade effects <b class="sem-surv">dissolve</b> under audit: a next-track predictability gap is an in-sample artifact (d=0.65&rarr;&le;0.10), and a music&rarr;heart-rate coupling fails a shuffle-instrument test of exogeneity.</li>
     </ol>
   </div>
   <p class="sa-row"><b>Limitations.</b> N=1, on purpose &mdash; idiographic and hypothesis-generating, not a population claim.</p>
