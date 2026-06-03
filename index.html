@@ -2147,7 +2147,39 @@ document.addEventListener('DOMContentLoaded', function () {
     </a>
   </div>
 <div class="pace-pick" role="group" aria-label="choose reading pace"><span class="pace-q">how deep do you want to go?</span><div class="pace-seg"><button type="button" class="pace-opt" data-mode="story">&#9683; the 3-min story</button><button type="button" class="pace-opt is-active" data-mode="full">&#9879; the full lab</button></div><span class="pace-sub">story = the spine, no math. lab = all 100 analyses.</span></div>
-  <!--ABOUT-START-->
+  <!--APPLE-ABSTRACT-START-->
+<style>
+.sci-abstract{max-width:880px;margin:40px auto 8px;padding:30px 26px;font-family:'JetBrains Mono',ui-monospace,monospace;color:rgba(240,234,255,.82);border:1px solid rgba(155,107,255,.28);border-radius:16px;background:linear-gradient(180deg,rgba(21,8,45,.42),rgba(10,1,24,.30));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.sci-abstract .sa-kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint,#7df0c8);margin-bottom:14px}
+.sci-abstract .sa-row{font-size:13.5px;line-height:1.68;margin:0 0 12px;color:rgba(240,234,255,.80)}
+.sci-abstract .sa-row b{color:#fff;font-weight:700}
+.sci-abstract .sa-find{margin:6px 0 14px;padding:14px 16px;border-radius:12px;background:rgba(124,77,255,.08);border:1px solid rgba(155,107,255,.16)}
+.sci-abstract .sa-find-h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(240,234,255,.55);margin-bottom:10px}
+.sci-abstract .sa-find ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:9px}
+.sci-abstract .sa-find li{font-size:13px;line-height:1.6}
+.sci-abstract .sa-find li b{color:#fff}
+.sci-abstract .sa-impl{border-top:1px solid rgba(255,255,255,.08);padding-top:13px;margin-top:14px;color:rgba(240,234,255,.62)}
+body.story-only .sci-abstract{display:block!important}
+@media(max-width:768px){.sci-abstract{margin:28px 14px;padding:22px 18px}}
+</style>
+<section class="sci-abstract" id="abstract" aria-label="Abstract">
+  <div class="sa-kicker">abstract &middot; the 150-word version</div>
+  <p class="sa-row"><b>Background.</b> Streaming logs get read as records of taste &mdash; but a logged &ldquo;play&rdquo; conflates three processes: a listener&rsquo;s intentional selection, a recommender&rsquo;s auto-advance, and shuffle. The platform&rsquo;s contribution often dominates.</p>
+  <p class="sa-row"><b>Data.</b> One listener, seven years: 97,427 plays (&ge;30s) paired with continuous Apple Health physiology &mdash; 1.1M heart-rate, 11,644 nightly HRV, and 10,559 headphone audio-dose records.</p>
+  <p class="sa-row"><b>Method.</b> A deconfounding framework stratifies plays by elicited intent from Spotify&rsquo;s behavioral side-channels (<i>reason_start, reason_end, shuffle, skipped</i>), run as an audit: for each downstream summary, does the finding survive conditioning on intent?</p>
+  <div class="sa-find">
+    <div class="sa-find-h">Three findings</div>
+    <ol>
+      <li>Only <b>19.1%</b> of plays involve any explicit action (11.5% unambiguous taps); the modal play is algorithmically initiated.</li>
+      <li>Artist ranking (&rho;&gt;0.97), circadian profile (r&gt;0.98), and daily physiology coupling (r=0.996) <b>survive</b>; genre composition does <b>not</b> &mdash; ambient/lo-fi is tapped at ~half its served rate (B=0.5), hip-hop/R&amp;B above it (B=1.2); the reversal holds under a strict tap definition, three taxonomies, and tag-independent acoustic clustering.</li>
+      <li>Headline-grade effects <b>dissolve</b> under audit: a next-track predictability gap is an in-sample artifact (d=0.65&rarr;&le;0.10), and a music&rarr;heart-rate coupling fails a shuffle-instrument test of exogeneity.</li>
+    </ol>
+  </div>
+  <p class="sa-row"><b>Limitations.</b> N=1, on purpose &mdash; idiographic and hypothesis-generating, not a population claim.</p>
+  <p class="sa-row sa-impl"><b>Implications.</b> Behavioral logs are contaminated by the system that produced them; the deliberate-intent signal is a cleaner, recoverable target.</p>
+</section>
+<!--APPLE-ABSTRACT-END-->
+<!--ABOUT-START-->
   <details class="about-dash" id="tldr" open>
     <summary>about this dashboard ↓</summary>
     <div class="about-body">
