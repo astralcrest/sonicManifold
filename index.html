@@ -17146,7 +17146,10 @@ body.lab-open #lab-close-pill{display:inline-flex;opacity:1;transform:translateX
 /* mobile hardening (fan-out audit 2026-06-04) */
 @media (max-width:768px){
   html,body{ max-width:100%; overflow-x:clip; }            /* kill phantom sideways scroll; clip keeps sticky working */
-  img,svg,canvas,video,iframe,table{ max-width:100%; }
+  img,svg,canvas,video,iframe{ max-width:100%; }
+  /* methodtable: keep its horizontal scroll (don't clamp the table) */
+  .method-cmp .mc-scroll{ overflow-x:auto !important; -webkit-overflow-scrolling:touch; max-width:100%; }
+  .method-cmp table{ min-width:560px !important; max-width:none !important; width:auto !important; }
   .main-svg,.js-plotly-plot,.plotly-graph-div{ max-width:100% !important; }
   /* 44px tap targets for the glyph nav chips (was 38px) */
   html body nav.cyber-nav a{ width:44px !important; min-width:44px !important; height:44px !important; min-height:44px !important; }
