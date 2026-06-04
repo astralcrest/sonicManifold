@@ -17081,6 +17081,8 @@ html body.story-only #lr-overlay.spine-fold:not(.spine-open){ }
 #apple-sunomoment .sm-track-play.sm-playing .sm-go{ opacity:1; }
 #apple-sunomoment .sm-suno{ color:var(--mint,#7df0c8); text-decoration:none; border-bottom:1px solid rgba(125,240,200,.35); transition:border-color .18s ease,color .18s ease; }
 #apple-sunomoment .sm-suno:hover{ color:#fff; border-color:#fff; }
+/* (#4) differentiate the scientist 'curated path' chips from the act-nav (full structure): accent it as a guided-route callout */
+.scitrack{ border-left:3px solid var(--mint,#7df0c8) !important; background:linear-gradient(180deg,rgba(125,240,200,.06),rgba(8,8,16,.30)) !important; }
 /* dramatic serif act decks (design choice) — match the lead .prov-head treatment; the existing .act-deck serif rule is gated/inactive so decks were inheriting mono */
 html body .act-deck{ font-family:ui-serif,Georgia,'Times New Roman',serif !important; font-style:italic !important; font-weight:500 !important; letter-spacing:.2px !important; hyphens:none !important; -webkit-hyphens:none !important; }
 /* spine gives every .spine-keep hero min-height:300px — but TEXT heroes (.section-tldr intros in Act IV/VI) then become empty 300px boxes. Let text heroes hug their content. */
