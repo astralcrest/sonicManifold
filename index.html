@@ -1098,7 +1098,7 @@ html body.story-only .act-lab-btn:hover{ background:rgba(255,255,255,.08);border
         <a href="#REV-SECTION-START">Revelations · the receipts</a>
         <a href="#LAB-SECTION-START">ML Lab · entropy, Gini, Zipf</a>
         <a href="#GENRE-SECTION-START">Taste &amp; genre evolution</a>
-        <a href="#POPBASE-SECTION-START">Population baseline · me vs the crowd</a>
+        <a href="#act-1">Population baseline · me vs the crowd</a>
       </div></li>
 
     <li class="act-chip"><a href="#act-2" data-c="orchid" data-target="act-2"><span class="glyph">Ⅱ</span><span class="label">GEOMETRY</span></a>
@@ -1116,47 +1116,47 @@ html body.story-only .act-lab-btn:hover{ background:rgba(255,255,255,.08);border
         <a href="#OT-SECTION-START">Optimal transport · Wasserstein</a>
         <a href="#GRANGER-START">Granger causality</a>
         <a href="#CCM-START">CCM · nonlinear coupling</a>
-        <a href="#PELTTOP-START">PELT-topology · era distinctness</a>
-        <a href="#TOPOTWINS-START">Topo-twins · non-adjacent years</a>
-        <a href="#ANIM-SECTION-START">Temporal animation</a>
+        <a href="#fig-13">PELT-topology · era distinctness</a>
+        <a href="#fig-21">Topo-twins · non-adjacent years</a>
+        <a href="#fig-34">Temporal animation</a>
       </div></li>
 
     <li class="act-chip"><a href="#act-4" data-c="sun"    data-target="act-4"><span class="glyph">Ⅳ</span><span class="label">RIGOR</span></a>
       <div class="submenu">
         <a href="#RIGOR-SECTION-START">Rigor · nulls, holdouts, counterfactuals</a>
-        <a href="#KMSTAB-START">KMeans stability · ARI bootstrap</a>
-        <a href="#PHAELEH-START">Phaeleh test · is a 4-yr reign random</a>
-        <a href="#IB-START">PCA compression-fidelity</a>
-        <a href="#OTSC-START">OT synthetic control</a>
-        <a href="#CFRECC-START">Ghost recs · counterfactual</a>
+        <a href="#fig-11">KMeans stability · ARI bootstrap</a>
+        <a href="#fig-8">Phaeleh test · is a 4-yr reign random</a>
+        <a href="#fig-24">PCA compression-fidelity</a>
+        <a href="#fig-16">OT synthetic control</a>
+        <a href="#fig-18">Ghost recs · counterfactual</a>
       </div></li>
 
     <li class="act-chip"><a href="#act-5" data-c="violet" data-target="act-5"><span class="glyph">Ⅴ</span><span class="label">TOPOLOGY</span></a>
       <div class="submenu">
-        <a href="#RADICAL-SECTION-START">Radical science · TDA, RQA, HMM</a>
-        <a href="#TOPCYCLE-START">H₁ cycle · the loop, seen</a>
-        <a href="#POINCARE-START">Poincaré disk · hyperbolic shape</a>
-        <a href="#MAPPER-SECTION-START">Mapper TDA · skeleton</a>
-        <a href="#PBOT-START">Bottleneck · year-distance matrix</a>
+        <a href="#act-5">Radical science · TDA, RQA, HMM</a>
+        <a href="#h1loop-btn-wrap">H₁ cycle · the loop, seen</a>
+        <a href="#fig-45">Poincaré disk · hyperbolic shape</a>
+        <a href="#fig-47">Mapper TDA · skeleton</a>
+        <a href="#act-5">Bottleneck · year-distance matrix</a>
       </div></li>
 
     <li class="act-chip"><a href="#act-6" data-c="rose"   data-target="act-6"><span class="glyph">Ⅵ</span><span class="label">BODY</span></a>
       <div class="submenu">
-        <a href="#HEALTH-PANEL-START">Health × listening</a>
-        <a href="#EXOGENOUS-SHOCK-START">Exogenous shocks</a>
+        <a href="#health-cross">Health × listening</a>
+        <a href="#exo-shock">Exogenous shocks</a>
       </div></li>
 
     <li class="act-chip"><a href="#act-7" data-c="pink"   data-target="act-7"><span class="glyph">Ⅶ</span><span class="label">VOICE</span></a>
       <div class="submenu">
-        <a href="#VOCALIST-PANEL-START">Vocalist's shelf · Carnatic</a>
-        <a href="#AUDIO-EMBED-START">Audio embeddings · ear vs algorithm</a>
+        <a href="#vocalist-shelf">Vocalist's shelf · Carnatic</a>
+        <a href="#audio-embed">Audio embeddings · ear vs algorithm</a>
       </div></li>
 
     <li class="act-chip"><a href="#act-8" data-c="mint"   data-target="act-8"><span class="glyph">Ⅷ</span><span class="label">WHERE THIS GOES</span></a>
       <div class="submenu">
-        <a href="#NEXT-CHAPTER-START">Next chapter · research direction</a>
-        <a href="#METHODS-INDEX-START">Methods index · ~28 methods</a>
-        <a href="#GLOSSARY-SECTION-START">Glossary · borrowed words</a>
+        <a href="#next-chapter">Next chapter · research direction</a>
+        <a href="#act-8">Methods index · ~28 methods</a>
+        <a href="#g-1">Glossary · borrowed words</a>
       </div></li>
 
     <li><button type="button" class="story-toggle" id="story-toggle" aria-pressed="false">STORY ONLY</button></li>
@@ -1217,7 +1217,12 @@ document.addEventListener('DOMContentLoaded', function () {
         var n = node;
         while (n && n.nextSibling) {
           n = n.nextSibling;
-          if (n.nodeType === 1) return n;
+          if (n.nodeType === 1) {
+            var tg = n.tagName;
+            if (tg === 'STYLE' || tg === 'SCRIPT' || tg === 'LINK') continue;
+            if (n.offsetParent === null && !n.getClientRects().length) continue;
+            return n;
+          }
         }
       }
     }
@@ -1234,9 +1239,19 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!el) return;
       e.preventDefault();
       if (el.tagName && el.tagName.toLowerCase() === 'details') el.open = true;
-      var y = el.getBoundingClientRect().top + window.pageYOffset - (nav.offsetHeight + 12);
-      window.scrollTo({ top: y, behavior: 'smooth' });
       history.replaceState(null, '', '#' + id);
+      (function reaim(tries, lastTop){
+        var top = el.getBoundingClientRect().top + window.pageYOffset - (nav.offsetHeight + 12);
+        window.scrollTo({ top: top, behavior: 'smooth' });
+        if (tries > 0 && Math.abs(top - lastTop) > 4) {
+          setTimeout(function(){ reaim(tries - 1, top); }, 120);
+        } else {
+          setTimeout(function(){
+            var fin = el.getBoundingClientRect().top + window.pageYOffset - (nav.offsetHeight + 12);
+            if (Math.abs(window.pageYOffset - fin) > 4) window.scrollTo({ top: fin, behavior: 'auto' });
+          }, 140);
+        }
+      })(14, -1);
     });
   });
 
@@ -1287,12 +1302,22 @@ document.addEventListener('DOMContentLoaded', function () {
       var id = a.getAttribute('data-target');
       var el = document.getElementById(id); if (!el) return;
       e.preventDefault();
-      var y = el.getBoundingClientRect().top + window.pageYOffset - (navH + 8);
-      window.scrollTo({ top: y, behavior: 'smooth' });
       history.replaceState(null, '', '#' + id);
+      a.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      (function reaim(tries, lastTop){
+        var top = el.getBoundingClientRect().top + window.pageYOffset - (navH + 8);
+        window.scrollTo({ top: top, behavior: 'smooth' });
+        if (tries > 0 && Math.abs(top - lastTop) > 4) {
+          setTimeout(function(){ reaim(tries - 1, top); }, 120);
+        } else {
+          setTimeout(function(){
+            var fin = el.getBoundingClientRect().top + window.pageYOffset - (navH + 8);
+            if (Math.abs(window.pageYOffset - fin) > 4) window.scrollTo({ top: fin, behavior: 'auto' });
+          }, 140);
+        }
+      })(14, -1);
       var h1 = el.querySelector('.cyber-h1');
       if (h1) { h1.classList.remove('cyber-land'); void h1.offsetWidth; h1.classList.add('cyber-land'); }
-      a.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     });
   });
   function setActive(id) {
@@ -17073,7 +17098,7 @@ html body #tldr.about-dash:not([open]) > summary{ border-bottom:0 !important; pa
 html body #tldr.about-dash:not([open]){ padding:16px 18px !important; }
 html body #tldr.about-dash:not([open]) > summary::after{ content:"97,427 plays \00b7 6,288 artists \00b7 ~4,770 hours \00b7 7 years \00b7 n=1, on purpose"; display:block; margin-top:9px; font-size:12px; letter-spacing:.3px; text-transform:none; font-weight:400; color:rgba(240,234,255,.58); font-family:'JetBrains Mono',ui-monospace,monospace; }
 /* (1) fixed audio bed bar overlapped trailing content (FIELD NOTES) — give the page bottom breathing room on mobile */
-@media(max-width:768px){ html body{ padding-bottom: 64px !important; } }
+@media(max-width:768px){ html body{ padding-bottom: max(150px, calc(134px + env(safe-area-inset-bottom,0px))) !important; } }
 .scrolly-chart svg text[y="107"], .scrolly-chart svg text[y="77"]{ transform:none !important; font-size:9px !important; }
 /* (7) drift/scrolly x-axis year labels: short labels read fine horizontal — kill the -38deg rotate */
 /* (20) abstract "Three findings": tiny low-contrast placeholder → proper kicker */
@@ -17115,6 +17140,19 @@ body.lab-open #lab-close-pill{display:inline-flex;opacity:1;transform:translateX
 })();
 </script>
 <!--APPLE-LABCLOSE-END-->
+
+<!--APPLE-MOBILEFIX-START-->
+<style id="apple-mobile-fix">
+/* mobile hardening (fan-out audit 2026-06-04) */
+@media (max-width:768px){
+  html,body{ max-width:100%; overflow-x:clip; }            /* kill phantom sideways scroll; clip keeps sticky working */
+  img,svg,canvas,video,iframe,table{ max-width:100%; }
+  .main-svg,.js-plotly-plot,.plotly-graph-div{ max-width:100% !important; }
+  /* 44px tap targets for the glyph nav chips (was 38px) */
+  html body nav.cyber-nav a{ width:44px !important; min-width:44px !important; height:44px !important; min-height:44px !important; }
+}
+</style>
+<!--APPLE-MOBILEFIX-END-->
 
 </body>
 </html>
