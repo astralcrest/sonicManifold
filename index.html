@@ -2286,10 +2286,16 @@ body.story-only .scitrack{display:block!important}
   function go(href){
     var el=document.querySelector(href); if(!el) return;
     var opened=openEnclosingLab(el);
-    setTimeout(function(){
-      var t=document.querySelector(href);
-      if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
-    }, opened?440:30);
+    var tries=0;
+    function aim(){
+      var t=document.querySelector(href); if(!t) return;
+      var top=t.getBoundingClientRect().top;
+      if(tries===0){ t.scrollIntoView({behavior:'smooth',block:'start'}); }
+      else if(Math.abs(top)>36){ t.scrollIntoView({behavior:'auto',block:'start'}); }
+      tries++;
+      if(tries<7) setTimeout(aim, tries<3?280:480);
+    }
+    setTimeout(aim, opened?440:30);
   }
   document.addEventListener('click',function(e){
     var a=e.target.closest && e.target.closest('.scitrack-jump');
@@ -17228,40 +17234,7 @@ html body #tldr.about-dash:not([open]) > summary::after{ content:"97,427 plays \
 </style>
 <!--APPLE-W2FIX-END-->
 
-<!--APPLE-LABCLOSE-START-->
-<style>
-#lab-close-pill{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom,16px));transform:translateX(-50%) translateY(14px);
-  z-index:9996;display:none;align-items:center;gap:7px;padding:9px 16px;cursor:pointer;
-  font:600 12.5px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.04em;color:#f4f0ff;
-  background:rgba(20,12,38,.72);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
-  border:1px solid rgba(155,107,255,.4);border-radius:999px;box-shadow:0 6px 22px rgba(0,0,0,.4);
-  opacity:0;transition:opacity .25s ease,transform .25s ease}
-body.lab-open #lab-close-pill{display:inline-flex;opacity:1;transform:translateX(-50%) translateY(0)}
-#lab-close-pill .lcp-x{font-size:13px;opacity:.8}
-@media(max-width:768px){#lab-close-pill{bottom:calc(62px + env(safe-area-inset-bottom,0px))}}
-</style>
-<button id="lab-close-pill" type="button" aria-label="close the open lab section"><span class="lcp-x">✕</span><span>close the lab</span></button>
-<script>
-(function(){
-  if(window.__labClose) return; window.__labClose=true;
-  function openBtns(){ return [].slice.call(document.querySelectorAll('.act-lab-btn[aria-expanded="true"]')); }
-  function sync(){ document.body.classList.toggle('lab-open', openBtns().length>0); }
-  document.addEventListener('click', function(e){
-    if(e.target.closest && e.target.closest('#lab-close-pill')){
-      var open=openBtns(); if(!open.length){ sync(); return; }
-      var mid=window.scrollY + window.innerHeight/2, best=open[0], bd=Infinity;
-      open.forEach(function(b){ var y=b.getBoundingClientRect().top+window.scrollY; var d=Math.abs(y-mid); if(d<bd){bd=d;best=b;} });
-      best.click();                                   // toggleAct closes it
-      try{ best.scrollIntoView({behavior:'smooth',block:'start'}); }catch(_){}
-      setTimeout(sync, 40);
-      return;
-    }
-    if(e.target.closest && e.target.closest('.act-lab-btn')) setTimeout(sync, 30);
-  });
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', sync); else sync();
-})();
-</script>
-<!--APPLE-LABCLOSE-END-->
+
 
 <!--APPLE-MOBILEFIX-START-->
 <style id="apple-mobile-fix">
@@ -17323,7 +17296,7 @@ body.lab-open #lab-close-pill{display:inline-flex;opacity:1;transform:translateX
 <!--APPLE-REVTRIM-END-->
 
 <!--FIX-LRCTA-START--><script>(function(){if(window.__lrCtaFix)return;window.__lrCtaFix=true;document.addEventListener('click',function(e){var a=e.target&&e.target.closest&&e.target.closest('.lr-launch-cta');if(!a)return;e.preventDefault();var b=document.getElementById('lr-btn');if(b)b.click();},true);})();</script><!--FIX-LRCTA-END-->
-<!--FEAT-SCITRACK-RECALL-START--><style>#scitrack-recall{position:fixed;left:16px;bottom:132px;z-index:9990;display:none;align-items:center;gap:7px;padding:8px 13px;cursor:pointer;font:600 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#7df0c8;background:rgba(8,30,24,.82);-webkit-backdrop-filter:blur(12px) saturate(1.4);backdrop-filter:blur(12px) saturate(1.4);border:1px solid rgba(125,240,200,.4);border-radius:999px;box-shadow:0 6px 22px rgba(0,0,0,.4);transition:transform .15s ease,box-shadow .15s ease,opacity .2s ease}#scitrack-recall:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(125,240,200,.3)}#scitrack-recall.show{display:inline-flex}@media (max-width:768px){#scitrack-recall{display:none !important}}</style><button id="scitrack-recall" type="button" aria-label="jump back to the for-scientists index"><span aria-hidden="true">&#9656;</span> for scientists</button><script>(function(){if(window.__scitrackRecall)return;window.__scitrackRecall=true;var pill=document.getElementById('scitrack-recall');var track=document.querySelector('.scitrack');if(!pill||!track)return;pill.addEventListener('click',function(){track.scrollIntoView({behavior:'smooth',block:'center'});});function onScroll(){var r=track.getBoundingClientRect();pill.classList.toggle('show',r.bottom<80);}window.addEventListener('scroll',onScroll,{passive:true});onScroll();})();</script><!--FEAT-SCITRACK-RECALL-END-->
+
 <!--APPLE-UMAPEMBED-DELEGATE-START-->
 <style>
 .umap-card .spembed.sp-delegate{display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;color:#21f6bc;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;transition:background .15s ease,box-shadow .15s ease}
@@ -17372,5 +17345,5 @@ body.lab-open #lab-close-pill{display:inline-flex;opacity:1;transform:translateX
 </style>
 <!--APPLE-POLISHFINAL-END-->
 
-</body>
+<!--APPLE-SCIHOVER-START--><script>(function(){if(window.__sciHover)return;window.__sciHover=true;function build(){var nav=document.querySelector("nav.cyber-nav");if(!nav)return false;var sciA=[].slice.call(nav.querySelectorAll('a[href="#abstract"]')).find(function(a){return /SCI/i.test(a.textContent||"");});if(!sciA)return false;var li=sciA.closest("li");if(!li)return false;sciA.classList.add("scitrack-jump");if(li.querySelector(".submenu")){li.classList.add("act-chip");return true;}li.classList.add("act-chip");var jumps=[].slice.call(document.querySelectorAll(".st-chips .scitrack-jump"));var net=document.querySelector(".lh-cta.scitrack-jump");var menu=document.createElement("div");menu.className="submenu";jumps.forEach(function(j){var a=document.createElement("a");a.className="scitrack-jump";a.setAttribute("href",j.getAttribute("href"));a.textContent=(j.textContent||"").replace(/\s+/g," ").trim();menu.appendChild(a);});if(net){var a=document.createElement("a");a.className="scitrack-jump";a.setAttribute("href",net.getAttribute("href"));a.textContent="↘ see the network";menu.appendChild(a);}li.appendChild(menu);return true;}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",build);else build();setTimeout(build,1200);setTimeout(build,3000);})();</script><!--APPLE-SCIHOVER-END--><!--APPLE-PROGFIX-START--><style>.cyber-scrollbar,#cyber-scrollbar,.y60-progressbar,#y60-progressbar,#cyber-progress,.progress{pointer-events:none !important}</style><!--APPLE-PROGFIX-END--></body>
 </html>
