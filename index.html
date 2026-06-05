@@ -17269,17 +17269,23 @@ body.lab-open #lab-close-pill{display:inline-flex;opacity:1;transform:translateX
 <!--APPLE-UMAPEMBED-DELEGATE-END-->
 <!--APPLE-POLISHFINAL-START-->
 <style id="apple-polish-final">
-/* bold beautification pass: living gradient headlines + interactive cards (reduced-motion safe) */
+/* bold beautification: living gradient headlines + interactive cards (reduced-motion safe) */
 @keyframes sm-shimmer{ from{background-position:0% center} to{background-position:300% center} }
 .prov-head, .cre-loop h2, #apple-ailabbeat .alb-big, #apple-leadhero .lh-stat, #apple-sunomoment .sm-head em, .hero-bignum, .scrolly-num, .nfx-wordmark .nfx-wm-title, .lifestate h2, .theme-divider h1.act-deck, .share-card-head h2{ background-size:300% auto !important; animation:sm-shimmer 16s linear infinite; }
-/* cards lift + glow on hover — makes the receipts feel alive */
+/* FIELD NOTES were flat: make the big stats living-gradient + the cards properly frosted */
+.field-notes .fn-stat{ background:linear-gradient(92deg,#21f6bc,#7df0c8,#9b6bff) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:transparent !important; background-size:300% auto !important; animation:sm-shimmer 16s linear infinite; }
+.field-notes .fn-card{ background:linear-gradient(180deg,rgba(124,77,255,.08),rgba(8,8,16,.42)) !important; border:1px solid rgba(155,107,255,.30) !important; border-radius:14px !important; padding:18px 16px !important; }
+.field-notes .fn-card::before{ content:""; position:absolute; inset:0 0 auto 0; height:2px; border-radius:14px 14px 0 0; background:linear-gradient(90deg,#21f6bc,#9b6bff); opacity:.7; }
+.field-notes .fn-card{ position:relative; }
+/* the skip-neg / creation big stat too */
+.skip-neg .sn-num{ background:linear-gradient(92deg,#7df0c8,#bda6ff,#9b6bff) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:transparent !important; background-size:300% auto !important; animation:sm-shimmer 16s linear infinite; }
+/* cards lift + glow on hover */
 .rev-card, .hf-card, .ah-card, .fn-card, .nc-card, .sci-add, .skip-neg{ transition:transform .22s cubic-bezier(.2,.7,.2,1), box-shadow .22s ease, border-color .22s ease; will-change:transform; }
 .rev-card:hover, .hf-card:hover, .ah-card:hover, .fn-card:hover, .nc-card:hover, .sci-add:hover, .skip-neg:hover{ transform:translateY(-3px); box-shadow:0 12px 32px rgba(124,77,255,.20); border-color:rgba(155,107,255,.5); }
-/* a touch more glow on the act-deck on hover for drama */
 .theme-divider h1.act-deck{ transition:filter .3s ease; }
 .theme-divider:hover h1.act-deck{ filter:drop-shadow(0 0 18px rgba(155,107,255,.35)); }
 @media (prefers-reduced-motion: reduce){
-  .prov-head, .cre-loop h2, #apple-ailabbeat .alb-big, #apple-leadhero .lh-stat, #apple-sunomoment .sm-head em, .hero-bignum, .scrolly-num, .nfx-wordmark .nfx-wm-title, .lifestate h2, .theme-divider h1.act-deck, .share-card-head h2{ animation:none !important; }
+  .prov-head, .cre-loop h2, #apple-ailabbeat .alb-big, #apple-leadhero .lh-stat, #apple-sunomoment .sm-head em, .hero-bignum, .scrolly-num, .nfx-wordmark .nfx-wm-title, .lifestate h2, .theme-divider h1.act-deck, .share-card-head h2, .field-notes .fn-stat, .skip-neg .sn-num{ animation:none !important; }
   .rev-card, .hf-card, .ah-card, .fn-card, .nc-card, .sci-add, .skip-neg{ transition:none !important; }
 }
 </style>
