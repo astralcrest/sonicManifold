@@ -2840,7 +2840,7 @@ body.story-only .ai-impl{display:block!important}
     <span><i style="background:#21f6bc"></i> my deliberate taps · cross-community</span>
     <span><i style="background:#6b5a86"></i> autoplay · stays in lane</span>
   </div>
-  <a class="lh-cta" href="#fig-26">see the network <span class="lh-arrow">↓</span></a>
+  <a class="lh-cta scitrack-jump" href="#fig-26">see the network <span class="lh-arrow">↓</span></a>
 </section>
 <script id="apple-leadhero-js">
 (function(){
@@ -6186,13 +6186,13 @@ The L2 norm of the element-wise difference between two matrices: <code>‖A − 
     <p class="sm-eyebrow">The soundtrack</p>
     <h2 class="sm-head">A page about a listening life, <em>scored by the listener.</em></h2>
     <p class="sm-sub">
-      Fourteen tracks, written for this. The same impulse that made the
+      Fifteen tracks, written for this. The same impulse that made the
       charts made the music — so the data has a score, and the score is <b>data-art</b>: a manifold
       you can hear. Tap play and let it ride.
     </p>
     <ol class="sm-tracks" id="sm-tracklist"></ol>
     <div class="sm-meta">
-      <span><i></i> 14 tracks</span>
+      <span><i></i> 15 tracks</span>
       <span><i></i> original score</span>
       <span><i></i> shuffled &amp; crossfading</span>
       <span><i></i> <a class="sm-suno" href="https://suno.com/@astralcrest" target="_blank" rel="noopener">made on Suno &#8599;</a></span>
@@ -6211,7 +6211,7 @@ The L2 norm of the element-wise difference between two matrices: <code>‖A − 
   var sec=document.getElementById('apple-sunomoment'); if(!sec) return;
   var tracks=["Antares","Antares Infinite Cut","Fruititarian","No Masks Ad Infinitum",
     "Stochastic Rainbow","Too Fiery Hot","Edge of the Black Hole","Hooked at First Taste",
-    "Brain rm -rf","Novelday","Latent Dimension","Brainstorm","Autotropic","Exponential Novelty"];
+    "Brain rm -rf","Novelday","Latent Dimension","Brainstorm","Autotropic","Exponential Novelty","Anti Dimmable"];
   var ol=document.getElementById('sm-tracklist');
   if(ol){ tracks.forEach(function(t,i){
     var li=document.createElement('li'); li.className='sm-track sm-track-play';
@@ -12456,7 +12456,7 @@ try {
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
   #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
 </style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest"}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest"}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest"}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest"}]</script>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest"}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest"}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest"}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest"}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest"}]</script>
 <div id="sh-bg" aria-hidden="true">
   <audio id="sh-a" preload="auto"></audio>
   <audio id="sh-b" preload="auto"></audio>
@@ -16266,21 +16266,23 @@ html body #umap-wrap .modebar{ top:6px !important; right:6px !important; }
   var MAJ=[0,2,4,7,9], DOR=[0,3,5,7,10];
   // keyword (matched in the now-playing label) -> {hz: root in octave near D3, degs}
   var KEYS=[
-    {kw:'antares',      hz:116.54, degs:MAJ},  // A# maj
-    {kw:'brainstorm',   hz:116.54, degs:DOR},  // A# min (before 'brain')
-    {kw:'brain',        hz:174.61, degs:MAJ},  // F maj
-    {kw:'edge',         hz:110.00, degs:DOR},  // A min
-    {kw:'black hole',   hz:110.00, degs:DOR},
-    {kw:'fruititarian', hz:123.47, degs:DOR},  // B min
-    {kw:'hooked',       hz:123.47, degs:DOR},  // B min
-    {kw:'mask',         hz:174.61, degs:MAJ},  // F maj (no masks ad infinitum)
-    {kw:'novelday',     hz:116.54, degs:DOR},  // A# min
-    {kw:'latent',       hz:116.54, degs:MAJ},  // A# maj (latent dimension)
-    {kw:'stochastic',   hz:164.81, degs:MAJ},  // E maj
-    {kw:'rainbow',      hz:164.81, degs:MAJ},
-    {kw:'fiery',        hz:146.83, degs:DOR},  // D min (= the default register)
-    {kw:'autotropic',   hz:185.00, degs:DOR},  // F# minor (chroma+Krumhansl)
-    {kw:'exponential',  hz:207.65, degs:DOR}   // G# minor (chroma+Krumhansl)
+    {kw:'antares infinite', hz:155.56, degs:DOR},  // D# minor
+    {kw:'antares',          hz:185.00, degs:MAJ},  // F# major (after 'antares infinite')
+    {kw:'fruititarian',     hz:164.81, degs:MAJ},  // E major
+    {kw:'mask',             hz:174.61, degs:DOR},  // F minor (no masks ad infinitum)
+    {kw:'stochastic',       hz:164.81, degs:MAJ},  // E major
+    {kw:'rainbow',          hz:164.81, degs:MAJ},
+    {kw:'fiery',            hz:196.00, degs:DOR},  // G minor (too fiery hot)
+    {kw:'edge',             hz:220.00, degs:DOR},  // A minor (edge of the black hole)
+    {kw:'black hole',       hz:220.00, degs:DOR},
+    {kw:'hooked',           hz:246.94, degs:DOR},  // B minor
+    {kw:'brainstorm',       hz:233.08, degs:DOR},  // A# minor (before 'brain')
+    {kw:'brain',            hz:174.61, degs:DOR},  // F minor (brain rm -rf)
+    {kw:'novelday',         hz:207.65, degs:DOR},  // G# minor
+    {kw:'latent',           hz:155.56, degs:MAJ},  // D# major (latent dimension)
+    {kw:'autotropic',       hz:185.00, degs:DOR},  // F# minor
+    {kw:'exponential',      hz:207.65, degs:DOR},  // G# minor
+    {kw:'dimmable',         hz:246.94, degs:DOR}   // B minor (anti dimmable)
   ];
   function rekeyFrom(label){
     var t=(label||'').toLowerCase();
@@ -17081,6 +17083,9 @@ html body.story-only #lr-overlay.spine-fold:not(.spine-open){ }
 #apple-sunomoment .sm-track-play.sm-playing .sm-go{ opacity:1; }
 #apple-sunomoment .sm-suno{ color:var(--mint,#7df0c8); text-decoration:none; border-bottom:1px solid rgba(125,240,200,.35); transition:border-color .18s ease,color .18s ease; }
 #apple-sunomoment .sm-suno:hover{ color:#fff; border-color:#fff; }
+/* continuous scroll: the y scroll-snap made the page jump between acts instead of flowing */
+html, body{ scroll-snap-type:none !important; }
+header, .act-eyebrow, header[id^="act-"]{ scroll-snap-align:none !important; }
 /* (#4) differentiate the scientist 'curated path' chips from the act-nav (full structure): accent it as a guided-route callout */
 .scitrack{ border-left:3px solid var(--mint,#7df0c8) !important; background:linear-gradient(180deg,rgba(125,240,200,.06),rgba(8,8,16,.30)) !important; }
 /* dramatic serif act decks (design choice) — match the lead .prov-head treatment; the existing .act-deck serif rule is gated/inactive so decks were inheriting mono */
