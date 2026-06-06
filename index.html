@@ -16,7 +16,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="robots" content="index, follow"><meta name="build-stamp" content="2026-06-06T0851Z"><meta name="build-commit" content="0285954+">
+<meta name="robots" content="index, follow"><meta name="build-stamp" content="2026-06-06T0854Z"><meta name="build-commit" content="a05aac0+">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -2471,6 +2471,36 @@ body.story-only .pass-decay{display:block!important}
   <div class="pd-fine">method: ratification = strict deliberate re-tap (clickrow/playbtn/remote) of the same track within 30 days; 90-day burn-in; encounters within 30 days of the dataset edge excluded (censoring); streak = consecutive auto-advance plays unbroken by a tap or a skip-rejection; sensitivity run at 7/30/90-day windows. Computed 2026-06-06 on all 97,427 qualified plays.</div>
 </section>
 <!--APPLE-PASSDECAY-END-->
+<!--APPLE-AVERSION-START--><style>
+.aversion{max-width:880px;margin:56px auto 8px;padding:30px 26px;font-family:'JetBrains Mono',ui-monospace,monospace;color:rgba(240,234,255,.82);border:1px solid rgba(155,107,255,.28);border-radius:16px;background:linear-gradient(180deg,rgba(21,8,45,.42),rgba(10,1,24,.30));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.aversion .av-kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint,#7df0c8);margin-bottom:10px}
+.aversion h2{font-family:Georgia,'Iowan Old Style',serif;font-style:italic;font-weight:400;font-size:clamp(22px,3.2vw,30px);line-height:1.25;margin:0 0 16px;color:#fff}
+.aversion p{font-size:13.5px;line-height:1.7;margin:0 0 13px;color:rgba(240,234,255,.8)}
+.aversion b{color:#fff}
+.aversion .av-stat{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 16px}
+.aversion .av-num{flex:1 1 200px;padding:14px 16px;border-radius:12px;border:1px solid rgba(155,107,255,.18);background:rgba(124,77,255,.07);text-align:center}
+.aversion .av-num .v{display:block;font-size:30px;font-weight:700;letter-spacing:-.02em;color:#e2879b}
+.aversion .av-num .v.alt{color:var(--mint,#7df0c8)}
+.aversion .av-num .k{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,234,255,.5);margin-top:6px;line-height:1.5}
+.aversion .av-moral{border-left:3px solid var(--mint,#7df0c8);padding:12px 16px;background:rgba(95,240,192,.055);border-radius:0 10px 10px 0;font-size:14px;line-height:1.65;color:rgba(240,234,255,.88)}
+.aversion .av-fine{font-size:11.5px;color:rgba(240,234,255,.42);margin-top:12px;line-height:1.6}
+body.story-only .aversion{display:block!important}
+@media(max-width:768px){.aversion{margin:36px 14px;padding:22px 18px}}
+</style>
+<section class="aversion" id="aversion" aria-label="The aversion manifold">
+  <div class="av-kicker">the shadow of taste &middot; revealed anti-preference</div>
+  <h2>The stuff it keeps serving me is the stuff I never reach for.</h2>
+  <p>Every preference analysis measures what I choose. Flip it: which artists get heavy algorithmic exposure but almost no deliberate taps &mdash; the <b>wallpaper</b> I tolerate but never pick? I score each artist by how much more autoplay than choosing it gets (shrunk toward the average so rare artists aren&rsquo;t flung to the extremes), and take the top quartile: <b>201</b> tolerated artists out of 804.</p>
+  <div class="av-stat">
+    <div class="av-num"><span class="v">6.8&times;</span><span class="k">enriched in the algorithm&rsquo;s attractor: 16.9% of my tolerated artists are ambient/classical &mdash; the families autoplay drifts toward &mdash; vs just 2.5% of the artists I choose</span></div>
+    <div class="av-num"><span class="v alt">cos 0.92</span><span class="k">but the tolerated set sits right next to the chosen set in taste-space &mdash; aversion is artist-level, not a clean genre I can name</span></div>
+  </div>
+  <p>So the algorithm&rsquo;s favourite place to wander &mdash; the dark, quiet, ambient attractor &mdash; is exactly the region I keep declining. Its stationary pull and my anti-preference point at the same coordinates. But the tolerated artists don&rsquo;t form a tidy island: they&rsquo;re interspersed among the ones I love (they&rsquo;re obscure synthetic-ambient generators I never tapped, not a genre I dislike), so the contamination is artist-by-artist, not a switch I could flip on a whole style.</p>
+  <div class="av-moral">Revealed anti-preference is the negative space of a listening life: not what I reached for, but what the system kept handing me that I let run and never chose. It is 6.8&times; concentrated in exactly the corner the recommender finds most comfortable.</div>
+  <div class="av-fine">method: aversion = 1 &minus; 2&middot;(empirical-Bayes-shrunk deliberate fraction), artists with &ge;20 plays; attractor families (ambient/lo-fi, classical) from the autoplay genre-transition stationary distribution; embedding distance on the 64-d artist2vec centroids. N=1, within-log, descriptive.</div>
+</section>
+<!--APPLE-AVERSION-END-->
+
 
 <!--APPLE-SCI2026-AIIMPL-START-->
 <style>
