@@ -16,7 +16,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="robots" content="index, follow"><meta name="build-stamp" content="2026-06-06T0347Z"><meta name="build-commit" content="59cb816+">
+<meta name="robots" content="index, follow"><meta name="build-stamp" content="2026-06-06T0702Z"><meta name="build-commit" content="0e1c47f+">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -18388,6 +18388,86 @@ nav.cyber-nav .act-chip .submenu,
   .aud-paths{ margin:22px auto 12px !important; }
   .decontam-wrap{ margin:22px auto 12px !important; }
 }</style><!--APPLE-COHERE-END--><!--APPLE-FIGFIX2-START--><style>.panel .js-plotly-plot,.panel .plotly-graph-div{margin-left:auto !important;margin-right:auto !important}#era-scroll{position:relative}#era-scroll::after{content:"swipe \2192";position:absolute;right:10px;top:6px;font:700 9px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em;color:#7df0c8;opacity:.6;pointer-events:none;z-index:3}#era-scroll::before{content:"";position:absolute;top:0;bottom:0;right:0;width:34px;pointer-events:none;z-index:2;background:linear-gradient(90deg,transparent,rgba(10,1,24,.55))}</style><script>(function(){if(window.__figFix2)return;window.__figFix2=true;function byTitle(re,patch){[].slice.call(document.querySelectorAll(".js-plotly-plot")).forEach(function(gd){if(gd.__ff2)return;var t="";try{t=(gd._fullLayout&&gd._fullLayout.title&&gd._fullLayout.title.text)||"";}catch(e){}t=String(t).replace(/<[^>]+>/g,"");if(re.test(t)){try{if(window.Plotly){Plotly.relayout(gd,patch);}gd.__ff2=true;}catch(e){}}});}function fix(){/* per-chart fixes moved into the source figure JSON (P0 2026-06-06) */}function dismissTips(){try{var ae=document.activeElement;if(ae&&ae.classList&&(ae.classList.contains("term-tip")||ae.classList.contains("tip")))ae.blur();}catch(e){}}var st;window.addEventListener("scroll",function(){if(st)return;st=setTimeout(function(){st=null;dismissTips();},100);},{passive:true});if(document.readyState!=="loading")fix();else document.addEventListener("DOMContentLoaded",fix);window.addEventListener("sonic:plotly-rendered",fix);setTimeout(fix,2000);setTimeout(fix,5000);setTimeout(fix,9000);})();</script><!--APPLE-FIGFIX2-END--><!--APPLE-P0FIX-START--><style>/* era horizontal scroll: unmissable affordance */#era-scroll{position:relative}#era-scroll::after{content:"\2190 swipe \2192";font-size:11px!important;opacity:.85!important;animation:p0nudge 1.6s ease-in-out 3}@keyframes p0nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(-7px)}}.p0-era-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:34px;height:34px;border-radius:50%;border:1px solid rgba(33,246,188,.55);background:rgba(10,1,24,.82);color:#21f6bc;font:700 15px/1 'JetBrains Mono',monospace;cursor:pointer;display:grid;place-items:center;transition:background .15s ease,opacity .2s ease}.p0-era-arrow:hover{background:rgba(33,246,188,.18)}.p0-era-arrow[disabled]{opacity:.18;cursor:default}.p0-era-arrow.p0-l{left:-6px}.p0-era-arrow.p0-r{right:-6px}@media(max-width:768px){.p0-era-arrow{display:none}}/* era summary table: center + middle-align rows */#fig-38 table{margin-left:auto;margin-right:auto}#fig-38 td,#fig-38 th{vertical-align:middle}/* while scrolling, CSS hover tooltips must not linger */body.p0-scrolling .tip[data-tip]:hover::after,body.p0-scrolling .tip[data-tip]:hover::before{display:none!important}</style><script>(function(){if(window.__p0fix)return;window.__p0fix=true;function arrows(){var t=document.querySelector('#era-scroll .es-track');if(!t||t.__p0)return;t.__p0=true;var w=t.parentElement;if(getComputedStyle(w).position==='static')w.style.position='relative';function mk(dir){var b=document.createElement('button');b.className='p0-era-arrow '+(dir<0?'p0-l':'p0-r');b.textContent=dir<0?'\u2039':'\u203a';b.setAttribute('aria-label',dir<0?'scroll eras left':'scroll eras right');b.addEventListener('click',function(){t.scrollBy({left:dir*248,behavior:'smooth'});});w.appendChild(b);return b;}var L=mk(-1),R=mk(1);function upd(){L.disabled=t.scrollLeft<8;R.disabled=t.scrollLeft>t.scrollWidth-t.clientWidth-8;}t.addEventListener('scroll',upd,{passive:true});upd();}if(document.readyState!=='loading')arrows();else document.addEventListener('DOMContentLoaded',arrows);setTimeout(arrows,2500);/* sankey x/y repair: parse-time newPlot in a hidden div clamps node.x/y; one re-react once visible restores the year columns */var skTries=0;function skRepair(){var gd=document.getElementById('6e15a005-93a2-41e9-823f-f82cd7185fa3');if(!gd||!gd._fullData||!gd._fullData[0]||!window.Plotly){if(++skTries<40)setTimeout(skRepair,900);return;}try{if(gd.__skFixed)return;var vis=gd.offsetParent!==null&&gd.clientWidth>50;if(!vis){if(++skTries<40)setTimeout(skRepair,900);return;}gd.__skFixed=true;var d=JSON.parse(JSON.stringify(gd.data)),n=d[0].node;var yrs=n.label.map(function(l){return parseInt(l.slice(0,4),10);});n.x=yrs.map(function(y){return 0.03+(y-2022)/4*0.94;});var col={};yrs.forEach(function(y,i){(col[y]=col[y]||[]).push(i);});n.y=new Array(yrs.length);Object.keys(col).forEach(function(y){var c=col[y];c.forEach(function(idx,k){n.y[idx]=(k+0.5)/c.length*0.9+0.05;});});Plotly.react(gd,d,gd.layout);}catch(e){}}setTimeout(skRepair,1500);window.addEventListener('sonic:plotly-rendered',function(){setTimeout(skRepair,300);});document.addEventListener('click',function(){setTimeout(skRepair,800);},{passive:true});/* sticky hover/popup killer: on scroll, unhover visible plotly charts + suppress css tips */var sc=null,cls=null;window.addEventListener('scroll',function(){document.body.classList.add('p0-scrolling');if(cls)clearTimeout(cls);cls=setTimeout(function(){document.body.classList.remove('p0-scrolling');},420);if(sc)return;sc=setTimeout(function(){sc=null;try{if(window.Plotly&&Plotly.Fx){var vh=innerHeight;[].slice.call(document.querySelectorAll('.js-plotly-plot')).forEach(function(gd){var r=gd.getBoundingClientRect();if(r.bottom<0||r.top>vh)return;var hl=gd.querySelector('.hoverlayer');if(hl&&hl.firstChild)Plotly.Fx.unhover(gd);});}}catch(e){}},220);},{passive:true});})();</script><!--APPLE-P0FIX-END-->
+
+<!--APPLE-COHERE2-START--><style>/* cohesion fan-out: mobile dense-fig room + new-component polish + eyebrow type unification */
+@media (max-width:768px){
+  .panel{ overflow-x:hidden; }
+  .panel .js-plotly-plot,
+  .panel .plotly-graph-div,
+  .panel .js-plotly-plot .svg-container,
+  .panel .main-svg{
+    max-width:100% !important;
+    width:100% !important;
+  }
+  
+  .panel .js-plotly-plot[style*="width"]{ max-width:100% !important; }
+}
+
+@media (max-width:768px){
+  .umap-plot-host .js-plotly-plot,
+  .umap-plot-host .plotly-graph-div,
+  .has-sankey .js-plotly-plot,
+  .has-sankey .plotly-graph-div,
+  .figfix-narrow .js-plotly-plot,
+  .figfix-narrow.js-plotly-plot,
+  #fig-39 .js-plotly-plot,
+  #fig-39.js-plotly-plot{
+    max-height:74svh !important;
+    min-height:340px !important;
+  }
+  
+  .js-plotly-plot.figfix-tall,
+  .figfix-tall .js-plotly-plot{
+    max-height:none !important;
+    min-height:780px !important;
+    height:780px !important;
+  }
+}
+
+@media (max-width:480px){
+  .umap-plot-host .js-plotly-plot,
+  .umap-plot-host .plotly-graph-div,
+  .has-sankey .js-plotly-plot,
+  .has-sankey .plotly-graph-div,
+  .figfix-narrow .js-plotly-plot,
+  .figfix-narrow.js-plotly-plot,
+  #fig-39 .js-plotly-plot,
+  #fig-39.js-plotly-plot{
+    max-height:72svh !important;
+    min-height:320px !important;
+  }
+  .js-plotly-plot.figfix-tall,
+  .figfix-tall .js-plotly-plot{
+    min-height:720px !important;
+    height:720px !important;
+  }
+}
+.aud-paths .aud-eyebrow{color:var(--mint,#21f6bc)} .aps-host .rev-title{padding-right:38px} .aps-host .aps-btn{top:12px;right:12px} @media (max-width:430px){.aps-host .rev-title{padding-right:34px} .aps-host .aps-btn{top:10px;right:10px}} .apple-mgrid .amg-card{border-radius:13px} .whyn1 .wn-eyebrow{font-weight:700;letter-spacing:.2em}
+
+.whyn1 .wn-eyebrow,
+.whyn1 .wn-kicker,
+.apple-mgrid .amg-kicker,
+.decontam-kicker,
+.aud-eyebrow{
+  letter-spacing:var(--ls-eyebrow,.22em) !important;
+}
+
+.whyn1 .wn-eyebrow,
+.whyn1 .wn-kicker{
+  font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace !important;
+  font-weight:700 !important;
+}
+
+.whyn1 .wn-eyebrow,
+.apple-mgrid .amg-kicker,
+.decontam-kicker{
+  color:var(--mint,#21f6bc) !important;
+}
+
+.aud-eyebrow{
+  color:rgba(240,234,255,.55) !important;
+}
+</style><!--APPLE-COHERE2-END-->
 
 </body>
 </html>
