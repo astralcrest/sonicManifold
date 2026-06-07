@@ -11073,121 +11073,6 @@ try {
 <!--UI-POLISH-END-->
 
 
-<!--PLOTLY-MOBILE-FIX-START-->
-<style>
-  /* On mobile: panels and chart wrappers scroll horizontally as fallback */
-  @media (max-width: 600px) {
-    .panel.full, .panel.half {
-      overflow-x: auto !important;
-      -webkit-overflow-scrolling: touch;
-    }
-    .panel .plotly-graph-div {
-      min-width: 0;
-    }
-  }
-</style>
-<script>
-(function () {
-  'use strict';
-  if (window.innerWidth > 600) return;
-
-  /* Mobile Plotly fix for dense heatmaps with wide y-axis labels.
-     Strategy:
-       - For charts with long y-axis text labels (artist names, date strings)
-         that autoexpand the left margin to 150-220px on a 390px viewport,
-         we force-relayout with autosize:false and explicit pixel width so
-         the chart renders at a usable size.
-       - Parent .panel gets overflow-x:auto (via CSS above) so user can scroll.
-       - For cohort/date y-axes (short labels like "2022-03"): compact margin l=72.
-       - For gateway/artist y-axes (long labels): compact margin l=90, small tick font.
-  */
-
-  var applied = new Set();
-
-  function getMaxLabelLen(yArr) {
-    if (!yArr || !yArr.length) return 0;
-    return Math.max.apply(null, yArr.map(function(v) { return String(v).length; }));
-  }
-
-  function relayoutChart(gdiv) {
-    var id = gdiv.id;
-    if (!id || applied.has(id)) return;
-    if (!gdiv._fullData || !gdiv._fullLayout) return;
-
-    var isHeatmap = gdiv._fullData.some(function(tr) { return tr.type === 'heatmap'; });
-    if (!isHeatmap) return;
-
-    var d = gdiv._fullData[0];
-    var ylen = d && d.y ? d.y.length : 0;
-    if (ylen < 5) return;
-
-    applied.add(id);
-
-    var maxLabelLen = getMaxLabelLen(d && d.y);
-    // Long artist names (>8 chars avg) need more room or we hide them
-    var isLongLabels = maxLabelLen > 8;
-    var lMargin = isLongLabels ? 80 : 68;
-    var tickSize = isLongLabels ? 6 : 7;
-
-    setTimeout(function () {
-      try {
-        /* autosize:false + explicit width forces Plotly to respect our margin */
-        var w = Math.max(340, window.innerWidth - 24);
-        Plotly.relayout(id, {
-          autosize: false,
-          width: w,
-          'margin.l': lMargin,
-          'margin.r': 10,
-          'margin.b': 50,
-          'margin.t': 36,
-          'yaxis.tickfont.size': tickSize,
-          'xaxis.tickfont.size': tickSize,
-          'yaxis.automargin': false,
-          'xaxis.automargin': false,
-        });
-      } catch(e) { /* Plotly not ready */ }
-    }, 200);
-  }
-
-  function scanAll() {
-    document.querySelectorAll('.plotly-graph-div').forEach(function(gd) {
-      relayoutChart(gd);
-    });
-  }
-
-  /* Initial scan after page load */
-  if (document.readyState === 'complete') {
-    setTimeout(scanAll, 300);
-  } else {
-    window.addEventListener('load', function() { setTimeout(scanAll, 300); });
-  }
-
-  /* Watch for lazy-loaded charts entering the DOM */
-  var mo = new MutationObserver(function(muts) {
-    muts.forEach(function(m) {
-      m.addedNodes.forEach(function(node) {
-        if (node.nodeType !== 1) return;
-        var divs = node.classList && node.classList.contains('plotly-graph-div')
-          ? [node]
-          : (node.querySelectorAll ? Array.from(node.querySelectorAll('.plotly-graph-div')) : []);
-        divs.forEach(function(gd) { setTimeout(function() { relayoutChart(gd); }, 250); });
-      });
-    });
-  });
-  mo.observe(document.body, { childList: true, subtree: true });
-
-  /* Re-scan after scroll (lazy-load fires on scroll) */
-  var st;
-  window.addEventListener('scroll', function() {
-    clearTimeout(st);
-    st = setTimeout(scanAll, 500);
-  }, { passive: true });
-
-  console.log('[plotly-mobile-fix] armed — autosize:false relayout on heatmaps');
-})();
-</script>
-<!--PLOTLY-MOBILE-FIX-END-->
-
 <!--MISC-FIX-2026-05-START-->
 <script>
 (function() {
@@ -11706,53 +11591,30 @@ try {
 (function(){
   'use strict';
   if(window.__appleFix) return; window.__appleFix=true;
-  function P(){ return window.Plotly; }
-  function narrow(){ return window.innerWidth < 760; }
-  var relaid = new WeakSet();
-  function fix(gd){
-    if(!gd || !gd._fullLayout || !P()) return;
-    var fl=gd._fullLayout;
-    try{
-      if(narrow()){
-        if(!relaid.has(gd)){
-          var u={};
-          if(fl.margin && fl.margin.l>110){ u['margin.l']=116; u['yaxis.automargin']=false; }
-          if(fl.margin && fl.margin.r>90){ u['margin.r']=24; }
-          if(fl.margin && fl.margin.t>70 && gd.__twMT0==null){ u['margin.t']=46; }
-          if(Object.keys(u).length){ P().relayout(gd,u); relaid.add(gd); }
-        }
-      } else if(relaid.has(gd)){
-        P().relayout(gd, {'yaxis.automargin':true}); relaid.delete(gd);  // restore on widen
-      }
-    }catch(e){}
-    try{ P().Plots.resize(gd); }catch(e){}
-  }
-  function sweep(){ var n=document.querySelectorAll('.js-plotly-plot'); for(var i=0;i<n.length;i++) fix(n[i]); }
-  var last=0,pend=0;
-  function throttled(){
-    var now=Date.now();
-    if(now-last>450){ last=now; sweep(); }
-    else { clearTimeout(pend); pend=setTimeout(function(){ last=Date.now(); sweep(); },450); }
-  }
-  window.addEventListener('resize', function(){ relaid=new WeakSet(); throttled(); }, {passive:true});
-  window.addEventListener('scroll', throttled, {passive:true});  // catch lazy-rendered charts on scroll
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', sweep); else sweep();
-  [400,900,1600,2600,4200,6500,9000].forEach(function(t){ setTimeout(sweep,t); });
-  // nav-jump / hashchange can land on not-yet-rendered (black) charts: nudge scroll to
-  // re-fire the lazy-render IntersectionObserver, then resize.
-  function navKick(){
-    setTimeout(function(){ try{window.scrollBy(0,2);window.scrollBy(0,-2);}catch(e){} sweep(); },110);
-    setTimeout(sweep,450); setTimeout(sweep,1100);
-  }
+  // CONSOLIDATION 2026-06-07: the mobile margin-clamp that fought APPLE-MOBILECHART is REMOVED.
+  // MOBILECHART is now the single owner of mobile margins/fonts/legend. Kept here: only the two
+  // orthogonal helpers -- nav-jump re-render kick + scroll-reveal safety (anti black-void divider).
+  function navKick(){ setTimeout(function(){ try{window.scrollBy(0,2);window.scrollBy(0,-2);}catch(e){} },110); }
   window.addEventListener('hashchange', navKick);
   document.addEventListener('click', function(e){ var t=e.target; if(t&&t.closest&&t.closest('a[href^="#"]')) navKick(); }, true);
-  // SAFETY: scroll-reveal must never leave content invisible if its IntersectionObserver
-  // missed (fast mobile scroll / nav jump) -> this was causing black-void dividers.
   function revealSafe(){ var n=document.querySelectorAll('.reveal:not(.is-in)');
     for(var i=0;i<n.length;i++){ var r=n[i].getBoundingClientRect(); if(r.top < innerHeight*1.25) n[i].classList.add('is-in'); } }
   window.addEventListener('scroll', revealSafe, {passive:true});
   window.addEventListener('hashchange', revealSafe);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', revealSafe); else revealSafe();
   setTimeout(function(){ document.querySelectorAll('.reveal:not(.is-in)').forEach(function(el){ el.classList.add('is-in'); }); }, 5000);
+  // late automargin recompute: a few rotated-x-label charts clip their bottom ticks unless resized
+  // after their container settles. one-shot kicks + on nav-jump; idempotent (no-op when already correct).
+  function resizeKick(){ if(!window.Plotly) return;
+    document.querySelectorAll('.js-plotly-plot').forEach(function(g){ try{ if(g._fullLayout && g.offsetParent!==null) window.Plotly.Plots.resize(g); }catch(e){} }); }
+  [700,1800,3500,6500].forEach(function(t){ setTimeout(resizeKick,t); });
+  window.addEventListener('hashchange', function(){ setTimeout(resizeKick,500); });
+  // deep lazy charts render only when scrolled to (well after the timed kicks) -> resize on scroll
+  // (trailing-edge throttle) so their automargin recomputes once visible. resize only; no relayout.
+  var rzt=0,rzp=0;
+  function resizeThrottled(){ var now=Date.now();
+    if(now-rzt>400){ rzt=now; resizeKick(); } else { clearTimeout(rzp); rzp=setTimeout(function(){ rzt=Date.now(); resizeKick(); },400); } }
+  window.addEventListener('scroll', resizeThrottled, {passive:true});
 })();
 </script>
 <!--APPLE-FIX-JS-END-->
@@ -15496,20 +15358,9 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
   // Wrap a long title at its first em/en-dash so the full title shows on two lines
   // instead of clipping. Idempotent (skips if already has a <br>). Returns extra top px.
   function wrapTitle(gd){
-    try{
-      var L = gd.layout || {};
-      var tt = L.title && (L.title.text!=null?L.title.text:L.title);
-      if (typeof tt !== 'string') return 0;
-      if (tt.indexOf('<br>') !== -1) return 18;              // already wrapped
-      var plain = tt.replace(/<[^>]*>/g,'');
-      if (plain.length <= 30) return 0;                      // short enough, no wrap
-      var m = tt.match(/\s[—–-]\s/);                         // first dash separator
-      if (!m) return 0;
-      var i = tt.indexOf(m[0]);
-      var wrapped = tt.slice(0, i) + '<br>' + tt.slice(i + m[0].length);
-      R(gd, { 'title.text': wrapped });
-      return 18;
-    }catch(e){ return 0; }
+    // CONSOLIDATION: title wrapping is now owned solely by APPLE-TITLEWRAP (better measured/iterative
+    // logic). MOBILECHART no longer mutates title.text; it just reserves a little base top room.
+    return 0;
   }
 
   // Universal phone transform applied to EVERY chart.
@@ -15542,12 +15393,14 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
       o['legend.font.size'] = 9;
       o['margin.b'] = Math.max(o['margin.b'], 64);
     }
+    if (gd.__twMT0 != null) delete o['margin.t'];  // TITLEWRAP owns the top margin once it has wrapped this title
     R(gd, o);
   }
 
   function applyMobile(gd){
     try{
       if (!gd || !window.Plotly) return;
+      if (gd.id==='48696277-e20c-431b-9376-4d188161d55c'||gd.id==='0d26508e-6744-4498-b0fe-0d4f1e9029e0') return;  // ARCMOBFIX owns these two
       if (!isMobile()){
         // crossed back to desktop after a mobile pass: clear our flag, let desktop own it
         if (gd.__mPatched){ gd.__mPatched = 0; }
@@ -17179,11 +17032,9 @@ sup.ref a{ line-height:1.4 !important; }
     return set;
   }
   function run(){
-    heroPlots().forEach(function(p){
-      if(p.offsetParent===null) return;                       // only visible heroes
-      if(isMobile()){ if(!p.__titleWrapped) wrapOne(p); }
-      else { if(p.__titleWrapped && p.__origTitle!=null) restoreOne(p); }
-    });
+    /* CONSOLIDATION: title-wrap war retired -- MOBILECHART wraps mobile, TITLEWRAP wraps desktop.
+       MOBILESWEEP only un-does any title it had previously wrapped, then stays out of the way. */
+    heroPlots().forEach(function(p){ if(p.__titleWrapped && p.__origTitle!=null) restoreOne(p); });
   }
   window.__wrapTitles = run;
 
@@ -18581,8 +18432,8 @@ function fix(gd){
   try{
     if(!window.Plotly||!gd._fullLayout||gd.offsetParent===null)return;
     if(SKIP.indexOf(gd.id)!==-1)return;
-    /* spine heroes at <=480 belong to APPLE-MOBILESWEEP's wrapOne - don't fight it */
-    if(window.innerWidth<=480&&(gd.classList.contains('spine-keep')||gd.closest('.spine-keep')))return;
+    /* CONSOLIDATION: TITLEWRAP is the SINGLE title-wrap owner for ALL viewports incl. spine heroes
+       (MOBILECHART.wrapTitle + MOBILESWEEP.wrapOne retired; MOBILECHART yields margin.t via __twMT0). */
     var cr=gd.getBoundingClientRect(); if(!cr.width)return;
     var lay=gd.layout, t=lay&&lay.title;
     var txt=(typeof t==='string')?t:(t&&t.text); if(!txt)return;
