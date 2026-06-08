@@ -18720,5 +18720,33 @@ body.p0-scrolling .term-tip:focus-visible::before{ display:none !important; opac
 @media(max-width:760px){.hero-cue{position:static!important;left:auto!important;transform:none!important;bottom:auto!important;margin:18px auto 4px!important;z-index:auto!important}}
 </style>
 <!--APPLE-HEROCUE-END-->
+<!--APPLE-NAVFIT-START-->
+<style>
+/* Top nav overflowed (act labels summed ~1409px into ~1062px even at 1440) so MY ALBUM / STORY clipped. */
+/* Collapse the 8 act chips to their roman-numeral glyphs below 1481px; names stay in the hover submenu + title tooltip. */
+@media(max-width:1480px){
+  nav.cyber-nav .act-chip>a .label{display:none!important}
+  nav.cyber-nav .act-chip>a .glyph{display:inline-block!important;font-size:15px!important;font-weight:700!important;line-height:1}
+  nav.cyber-nav .act-chip>a{padding-left:10px!important;padding-right:10px!important}
+}
+</style>
+<script>(function(){
+  if(window.__navFit)return;window.__navFit=true;
+  function run(){
+    var as=document.querySelectorAll("nav.cyber-nav .act-chip>a");
+    if(!as.length)return false;
+    as.forEach(function(a){
+      if(a.getAttribute("title"))return;
+      var lab=a.querySelector(".label"), g=a.querySelector(".glyph");
+      var name=lab?lab.textContent.trim():"";
+      var num=g?g.textContent.trim():"";
+      if(name)a.setAttribute("title",(num?num+" \u00b7 ":"")+name);
+    });
+    return true;
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();
+  setTimeout(run,1500);setTimeout(run,3500);
+})();</script>
+<!--APPLE-NAVFIT-END-->
 </body>
 </html>
