@@ -6869,8 +6869,8 @@ try {
     if (!pl.isPaused) {
       embedConfirmedPlaying = true;
       if (embedProbeT) { clearTimeout(embedProbeT); embedProbeT = null; }
-    } else if (current && (pl.isPaused === true || (pl.duration && pl.position >= pl.duration - 200))) {
-      stop(true);                  // ended/paused embed → normal stop → unduckBed
+    } else if (current && pl.duration && pl.position >= pl.duration - 200) {
+      stop(true);                  // track FINISHED → normal stop → unduckBed (a mere pause keeps the embed so it can resume)
     }
   });
 
@@ -7135,12 +7135,14 @@ try {
           autoplayWarned = true;
           showToast('<b>tap anywhere</b> to enable audio — your browser blocks autoplay until first click', 6000);
         }
-        // BLOCKED-EMBED WATCHDOG: if no Spotify playback_update confirms within
-        // 2.5s, the widget is blocked/refused (Privacy Badger / autoplay policy)
-        // → fall back gracefully and un-duck the bed.
+        // NO TIMED WATCHDOG: the bare Spotify embed does not reliably postMessage a
+        // playback_update, so a timed "blocked" check tore down WORKING previews
+        // for everyone (and double-popped a false ad-blocker toast). The embed now
+        // stays in place; genuine blocks surface via Privacy Badger's own placeholder
+        // and the APPLE-AUDIOUX 35s bed-unduck safety net. The message-listener below
+        // still confirms real playback and stops on an ended/paused embed.
         embedConfirmedPlaying = false;
-        if (embedProbeT) clearTimeout(embedProbeT);
-        embedProbeT = setTimeout(function () { if (current === tid && !embedConfirmedPlaying) onEmbedBlocked(tid); }, 2500);
+        if (embedProbeT) { clearTimeout(embedProbeT); embedProbeT = null; }
       };
       ifr.onerror = function() {
         console.warn('[sonic] iframe error for tid', tid);
@@ -11748,17 +11750,21 @@ try {
     var now = Date.now(); if (now - lastT < 90) return;
     var pts = ev && ev.points; if (!pts || !pts.length) return;
     var p = pts[0];
+    // artist/track-list charts carry a tid in customdata[3] — AUDIO-HOVER plays the
+    // real preview on click, so don't layer an abstract synth note on those.
+    try { var cd0 = p.customdata; if (cd0 && (typeof cd0 === 'string' || cd0[3])) return; } catch (e) {}
     var key = (p.curveNumber) + ':' + (p.pointIndex != null ? p.pointIndex : p.x);
     if (key === lastKey) return; lastKey = key; lastT = now;
     // #3: if a genre sting is configured for this label, play it instead of the synth note
     var lab = labelOf(p);
     if (lab && STINGS[lab] && playSting(STINGS[lab])) return;
-    var v = 0.5, bright = 0.5, pan = 0;
+    var v = 0.5, bright = 0.5, pan = 0, vSet = false;
     try {
       var fl = gd._fullLayout || {}, ya = fl.yaxis, xa = fl.xaxis;
-      if (ya && ya.range && typeof p.y === 'number') { var r = ya.range, lo = Math.min(r[0], r[1]), span = Math.abs(r[1] - r[0]) || 1; v = (p.y - lo) / span; }
-      if (xa && xa.range && typeof p.x === 'number') { var rx = xa.range, lox = Math.min(rx[0], rx[1]), spx = Math.abs(rx[1] - rx[0]) || 1; bright = (p.x - lox) / spx; pan = bright * 2 - 1; }
+      if (ya && ya.range && typeof p.y === 'number') { var r = ya.range, lo = Math.min(r[0], r[1]), span = Math.abs(r[1] - r[0]) || 1; v = (p.y - lo) / span; vSet = true; }
+      if (xa && xa.range && typeof p.x === 'number') { var rx = xa.range, lox = Math.min(rx[0], rx[1]), spx = Math.abs(rx[1] - rx[0]) || 1; bright = (p.x - lox) / spx; pan = bright * 2 - 1; if (!vSet) { v = bright; vSet = true; } }
       else if (p.pointIndex != null && p.data && p.data.x) { var n = (p.data.x.length || 1); bright = p.pointIndex / Math.max(1, n - 1); pan = bright * 2 - 1; }
+      if (!vSet && p.pointIndex != null) { var dn = (p.data && p.data.x && p.data.x.length) || (p.data && p.data.y && p.data.y.length) || 1; v = p.pointIndex / Math.max(1, dn - 1); }
     } catch (e) {}
     ping({ v: v, bright: bright, pan: pan, type: (p.curveNumber % 2 ? 'sine' : 'triangle'), vol: 0.14, dur: 0.55 });
   }
