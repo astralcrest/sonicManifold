@@ -7235,6 +7235,10 @@ try {
   var rafId = null;
 
   function tick(t) {
+    // PERF: when the chip is idle + its canvas is hidden, stop the 60fps loop. Reschedule on a
+    // slow timer instead so it auto-resumes to full rate the moment the chip opens (no restart
+    // hook needed anywhere). On mobile the MOBILE-PERF governor drops the rAF entirely.
+    if (!current && !pinned && !eqCv.offsetParent) { rafId = setTimeout(function(){ rafId = requestAnimationFrame(tick); }, 500); return; }
     rafId = requestAnimationFrame(tick);
     var w = eqCv.width, h = eqCv.height;
     eqCtx.clearRect(0, 0, w, h);
@@ -11607,13 +11611,15 @@ try {
   // after their container settles. one-shot kicks + on nav-jump; idempotent (no-op when already correct).
   function resizeKick(){ if(!window.Plotly) return;
     document.querySelectorAll('.js-plotly-plot').forEach(function(g){ try{ if(g._fullLayout && g.offsetParent!==null) window.Plotly.Plots.resize(g); }catch(e){} }); }
+  function resizeKickViewport(){ if(!window.Plotly) return;
+    document.querySelectorAll('.js-plotly-plot').forEach(function(g){ try{ if(g._fullLayout && g.offsetParent!==null && !g.__rkDone) { var r=g.getBoundingClientRect(); if(r.top < innerHeight*1.2 && r.bottom > innerHeight*-0.2) { window.Plotly.Plots.resize(g); g.__rkDone=1; } } }catch(e){} }); }
   [700,1800,3500,6500].forEach(function(t){ setTimeout(resizeKick,t); });
   window.addEventListener('hashchange', function(){ setTimeout(resizeKick,500); });
   // deep lazy charts render only when scrolled to (well after the timed kicks) -> resize on scroll
   // (trailing-edge throttle) so their automargin recomputes once visible. resize only; no relayout.
   var rzt=0,rzp=0;
   function resizeThrottled(){ if(window.innerWidth<=768) return; var now=Date.now();
-    if(now-rzt>400){ rzt=now; resizeKick(); } else { clearTimeout(rzp); rzp=setTimeout(function(){ rzt=Date.now(); resizeKick(); },400); } }
+    if(now-rzt>400){ rzt=now; resizeKickViewport(); } else { clearTimeout(rzp); rzp=setTimeout(function(){ rzt=Date.now(); resizeKickViewport(); },400); } }
   window.addEventListener('scroll', resizeThrottled, {passive:true});
 })();
 </script>
@@ -15144,7 +15150,7 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
   claimAllWavelets();
   [0,30,120,300].forEach(function(t){ setTimeout(claimAllWavelets,t); });
   [600,1500,3000,4500,6500,9500].forEach(function(t){ setTimeout(sweep,t); });
-  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>45) clearInterval(poll); }, 600);
+  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>12) clearInterval(poll); }, 600);
 })();
 </script>
 <!--APPLE-CHARTPATCH2-END-->
@@ -15434,7 +15440,7 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
 
   // discrete kicks + self-clearing poll for late/lazy charts (after desktop patch's ticks)
   [500,1300,2600,4100,6100,9100].forEach(function(t){ setTimeout(sweep, t); });
-  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>45) clearInterval(poll); }, 600);
+  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>12) clearInterval(poll); }, 600);
 })();
 </script>
 <!--APPLE-MOBILECHART-END-->
@@ -15655,7 +15661,7 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
   });
   // discrete kicks + a self-clearing poll so late / re-rendered (lazy) charts still get caught
   [400,1200,2500,4000,6000,9000].forEach(function(t){ setTimeout(sweep,t); });
-  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>40) clearInterval(poll); }, 600);
+  var ticks=0, poll=setInterval(function(){ ticks++; sweep(); if(ticks>12) clearInterval(poll); }, 600);
 })();
 </script>
 <!--APPLE-CHARTPATCH-END-->
@@ -16733,7 +16739,7 @@ html body #umap-wrap .modebar{ top:6px !important; right:6px !important; }
   [700,1600,3200,5000,7500,11000,15000,20000].forEach(function(t){ setTimeout(runAll, t); });
   // long-lived but low-frequency poll so a fold opened minutes later still gets fixed,
   // plus the permanent IntersectionObserver catches reveals between polls.
-  var ticks=0, poll=setInterval(function(){ ticks++; runAll(); if(ticks>180) clearInterval(poll); }, 1000);
+  var ticks=0, poll=setInterval(function(){ ticks++; runAll(); if(ticks>40) clearInterval(poll); }, 1000);
   if(document.readyState!=='loading') setTimeout(runAll, 300);
   else document.addEventListener('DOMContentLoaded', function(){ setTimeout(runAll,300); });
 })();
