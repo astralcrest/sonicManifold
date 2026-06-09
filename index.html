@@ -2945,6 +2945,12 @@ body.y60-playing{cursor:auto}
 }
 #apple-leadhero .lh-cta:hover{transform:translateY(-2px); box-shadow:0 12px 42px rgba(33,246,188,.42)}
 #apple-leadhero .lh-cta .lh-arrow{font-size:1.15em; transform:translateY(1px)}
+@media (max-width:768px){
+  /* phone: render the network as a STATIC single paint. MOBILE-PERF's rAF governor drops the
+     animation reschedule, so frame() paints once then freezes -- restores the signature lead
+     visual without the per-frame canvas cost that got it hidden on mobile. */
+  #apple-leadhero #lh-canvas{ display:block!important; }
+}
 @media (max-width:600px){
   #apple-leadhero{min-height:88vh; padding:7vh 7vw 8vh}
   #apple-leadhero .lh-thesis{max-width:15ch}
@@ -3047,11 +3053,12 @@ body.y60-playing{cursor:auto}
     if(!reduce) raf=requestAnimationFrame(frame);
   }
   var raf;
-  function init(){ layout(); buildEdges(); cancelAnimationFrame(raf); if(reduce){frame();} else {raf=requestAnimationFrame(frame);} }
+  var phone = !!(window.matchMedia && window.matchMedia('(max-width:768px)').matches);
+  function init(){ layout(); buildEdges(); cancelAnimationFrame(raf); if(reduce||phone){ frame(); } else {raf=requestAnimationFrame(frame);} }
   if('IntersectionObserver' in window){ try{ new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ if(!reduce && !raf){ raf=requestAnimationFrame(frame); } } else { cancelAnimationFrame(raf); raf=0; } }); }, {threshold:0}).observe(cv); }catch(e){} }
   var ro=window.ResizeObserver?new ResizeObserver(function(){layout();buildEdges();}):null;
   if(ro) ro.observe(cv);
-  window.addEventListener('resize',function(){layout();buildEdges();},{passive:true});
+  window.addEventListener('resize',function(){layout();buildEdges(); if(window.innerWidth<=768) frame();},{passive:true});
   // smooth-scroll the CTA
   var cta=sec.querySelector('.lh-cta');
   if(cta) cta.addEventListener('click',function(ev){
@@ -11605,7 +11612,7 @@ try {
   // deep lazy charts render only when scrolled to (well after the timed kicks) -> resize on scroll
   // (trailing-edge throttle) so their automargin recomputes once visible. resize only; no relayout.
   var rzt=0,rzp=0;
-  function resizeThrottled(){ var now=Date.now();
+  function resizeThrottled(){ if(window.innerWidth<=768) return; var now=Date.now();
     if(now-rzt>400){ rzt=now; resizeKick(); } else { clearTimeout(rzp); rzp=setTimeout(function(){ rzt=Date.now(); resizeKick(); },400); } }
   window.addEventListener('scroll', resizeThrottled, {passive:true});
 })();
@@ -17053,12 +17060,10 @@ sup.ref a{ line-height:1.4 !important; }
   }
   window.__wrapTitles = run;
 
-  var rz, sc;
-  window.addEventListener('resize', function(){ clearTimeout(rz); rz=setTimeout(run, 300); });
-  window.addEventListener('orientationchange', function(){ setTimeout(run, 400); });
-  // heroes lazy-render below the fold — wrap them as they scroll into view
-  window.addEventListener('scroll', function(){ clearTimeout(sc); sc=setTimeout(run, 250); }, {passive:true});
-  function boot(){ [1300, 2600, 4200].forEach(function(t){ setTimeout(run, t); }); }
+  // CONSOLIDATION 2026-06-08 (mobile perf): run() only RESTORES now (wrapping moved to
+  // MOBILECHART/TITLEWRAP), so its scroll/resize/orientation listeners were pure no-op churn
+  // firing on every scroll. Dropped them; a couple boot kicks cover any stale wrap.
+  function boot(){ [1300, 2600].forEach(function(t){ setTimeout(run, t); }); }
   if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
 </script>
@@ -18659,8 +18664,19 @@ body.p0-scrolling .term-tip:focus-visible::before{ display:none !important; opac
 <!--APPLE-PRINT-END-->
 <!--APPLE-HEROCUE-START-->
 <style>
-/* mobile: the "keep going" cue was absolute-positioned and overlapped the hero stats by ~16px. drop it into flow below the stats. */
-@media(max-width:760px){.hero-cue{position:static!important;left:auto!important;transform:none!important;bottom:auto!important;margin:18px auto 4px!important;z-index:auto!important}}
+/* mobile: the "keep going" cue was absolute + overlapped the hero stats. Drop it into flow,
+   centered. Higher specificity (html body .hero-stage .hero-cue) so it beats the global
+   `.hero-cue{transform:translateX(-50%)!important}` desktop rules that were shoving it ~47px left. */
+@media(max-width:760px){
+  html body .hero-stage .hero-cue{
+    position:static!important; left:auto!important; right:auto!important;
+    transform:none!important; bottom:auto!important; top:auto!important;
+    margin:14px auto 8px!important; z-index:auto!important;
+    display:block!important; text-align:center!important;
+  }
+  /* cue now sits in flow, so the absolute-era bottom padding just left a dead gap */
+  html body .hero-stage{ padding-bottom:24px!important; }
+}
 </style>
 <!--APPLE-HEROCUE-END-->
 <!--APPLE-NAVFIT-START-->
@@ -18691,5 +18707,37 @@ body.p0-scrolling .term-tip:focus-visible::before{ display:none !important; opac
   setTimeout(run,1500);setTimeout(run,3500);
 })();</script>
 <!--APPLE-NAVFIT-END-->
+<!--MOBILE-PERF-START-->
+<script id="mobile-perf-js">
+(function(){
+  'use strict';
+  if(window.__mobilePerf) return; window.__mobilePerf=true;
+  // PHONE PERF: two decorative canvas RAF loops burn the main thread on phones even though their
+  // canvases are invisible there -- the lead-hero node-graph (#lh-canvas, display:none <=768 but its
+  // IntersectionObserver never re-fires to stop the loop) and the sonic-chip EQ (#sonic-eq, reschedules
+  // forever with no cancel). Killing them cut scroll frame-time ~40%% and worst-frame 933ms->134ms in
+  // a 390/4x-CPU profile. Drop ONLY those two, ONLY on phones; desktop is untouched. Decision is cached
+  // on the callback (one toString, gated to fns literally named frame/tick) so the hot path stays cheap.
+  var mq=window.matchMedia('(max-width:768px)'); var isM=mq.matches;
+  try{ mq.addEventListener('change',function(e){isM=e.matches;}); }
+  catch(e){ try{ mq.addListener(function(e){isM=e.matches;}); }catch(_){} }
+  var orig=window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame=function(cb){
+    try{
+      if(cb){
+        if(cb.__decoRAF===undefined){
+          cb.__decoRAF=0; var nm=cb.name;
+          if(nm==='frame'||nm==='tick'){ var src=''+cb;
+            if(src.indexOf('pos(nd)')!==-1 || src.indexOf('eqCv')!==-1) cb.__decoRAF=1; }
+        }
+        if(isM && cb.__decoRAF) return 0;
+      }
+    }catch(e){}
+    return orig(cb);
+  };
+})();
+</script>
+<!--MOBILE-PERF-END-->
+
 </body>
 </html>
