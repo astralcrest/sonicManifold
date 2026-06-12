@@ -4612,6 +4612,36 @@ body.story-only .skip-neg{display:block!important}
     separate files, so i ran the analysis you would run &mdash; then ran the audit that defeats it.
   </p>
 
+  <!--APPLE-OURA-START-->
+<style>
+.oura-card{max-width:1040px;margin:24px auto 28px;padding:24px 24px 18px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(106,168,255,.26);border-radius:16px;background:linear-gradient(180deg,rgba(10,16,32,.5),rgba(8,12,24,.34))}
+.oura-card .oc-kick{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6aa8ff;margin-bottom:8px}
+.oura-card .oc-h{font-size:clamp(17px,2.3vw,22px);line-height:1.34;margin:0 0 10px;color:#eaf0ff;font-weight:700}
+.oura-card .oc-lead{font-size:13.5px;line-height:1.66;color:rgba(232,236,246,.76);margin:0 0 16px;max-width:840px}
+.oura-card img{width:100%;max-width:980px;display:block;margin:6px auto 14px;border-radius:10px}
+.oura-card .oc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:6px 0 4px}
+@media(max-width:720px){.oura-card .oc-grid{grid-template-columns:1fr}}
+.oura-card .oc-cell{padding:13px 14px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(255,255,255,.02)}
+.oura-card .oc-cell b{display:block;font-size:12px;color:#9bf0c8;margin-bottom:5px;letter-spacing:.03em}
+.oura-card .oc-cell span{font-size:12.5px;line-height:1.55;color:rgba(232,236,246,.72)}
+.oura-card .oc-stat{color:#f5b042;font-weight:700}
+.oura-card .oc-foot{font-size:11px;color:rgba(232,236,246,.52);margin-top:12px;line-height:1.5}
+</style>
+<div class="oura-card">
+  <div class="oc-kick">new &middot; two wearables, one body</div>
+  <div class="oc-h">i added a second instrument. it didn&rsquo;t rescue the physiology &mdash; it hardened it.</div>
+  <p class="oc-lead">everything below runs on an apple watch. then a ring showed up with two more years of continuous data &mdash; about <span class="oc-stat">1,000,000</span> heart-rate readings plus every night&rsquo;s sleep and recovery &mdash; so i re-ran the same questions on independent hardware. if a &ldquo;null&rdquo; is really just one noisy sensor, a second sensor is where it cracks. it didn&rsquo;t.</p>
+  <img src="health-figs/hp-7-oura.png" loading="lazy" decoding="async" alt="Left: Oura ring and Apple Watch resting heart rate agree across 554 nights (Spearman 0.82, mean absolute error 3.7 bpm, near-zero bias). Right: an apparent resting-heart-rate-to-listening coupling survives an activity control but drops below significance once the annual cycle is removed; skin-temperature and daytime-stress couplings survive every control.">
+  <div class="oc-grid">
+    <div class="oc-cell"><b>they agree</b><span>two devices, two different resting-HR algorithms, one number: <span class="oc-stat">&rho; = 0.82</span> across 554 nights, off by <span class="oc-stat">3.7&nbsp;bpm</span> on average. the nulls aren&rsquo;t a broken watch.</span></div>
+    <div class="oc-cell"><b>late nights are fine (for sleep)</b><span>listening late doesn&rsquo;t dent sleep quality, efficiency, or next-day readiness &mdash; a clean null over <span class="oc-stat">~540 nights</span>. it costs you bedtime, not sleep.</span></div>
+    <div class="oc-cell"><b>the artifact i caught</b><span>&ldquo;run-down days &rarr; more, narrower listening&rdquo; looked real and survived an activity control &mdash; then <span class="oc-stat">dissolved</span> once i removed the yearly cycle. a season, not a cause.</span></div>
+  </div>
+  <p class="oc-foot">n&nbsp;=&nbsp;1, within-subject, 2024&ndash;2026. circular-shift surrogate (2,000 reps); partial correlations control day-of-week, activity, and the annual cycle. only two small couplings survive every control: illness-grade skin-temperature &rarr; slightly less listening, higher daytime stress &rarr; slightly more. aggregate &amp; pseudonymous &mdash; no raw timestamps, no clinical data.</p>
+</div>
+<!--APPLE-OURA-END-->
+
+
   <!-- ── Fig 1: CCM bidirectional heatmap ─────────────────────────────── -->
   <div class="hp-fig" id="hp-ccm">
     <div class="hp-fig-title">&#9698; <span class="term-tip" data-tip="Convergent Cross Mapping: nonlinear coupling test. Reconstruct each series' shadow manifold; check predictive cross-mapping as library length grows." tabindex="0">CCM</span> &mdash; CONVERGENT CROSS-MAPPING &middot; BIDIRECTIONAL COUPLING</div>
