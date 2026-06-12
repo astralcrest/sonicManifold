@@ -18819,59 +18819,6 @@ body.calm-open .calm-toggle{color:rgba(176,186,205,.6)}
 </script>
 <!--APPLE-CALM-END-->
 
-<!--APPLE-MOBFIX2-START-->
-<script>
-/* Mobile chart legibility: move vertical colorbars to horizontal-bottom on phones so heatmap data
-   areas stop collapsing; wrap overflowing titles. Desktop = strict no-op unless a chart was flipped.
-   Interval-driven (catches lazy charts); idempotent per viewport bucket; each op isolated. */
-(function(){
-  function wrapTitle(t, maxc){
-    if(!t || String(t).indexOf('<br')>=0) return null;
-    var w=String(t).split(/\s+/), L=[], c='';
-    for(var i=0;i<w.length;i++){ if((c+' '+w[i]).trim().length>maxc){ if(c)L.push(c); c=w[i]; } else c=(c?c+' ':'')+w[i]; }
-    if(c)L.push(c); var o=L.join('<br>'); return o!==String(t)?o:null;
-  }
-  var hCB={'colorbar.orientation':'h','colorbar.y':-0.3,'colorbar.yanchor':'top','colorbar.x':0.5,'colorbar.xanchor':'center','colorbar.len':0.92,'colorbar.thickness':11};
-  var vCB={'colorbar.orientation':'v','colorbar.y':0.5,'colorbar.yanchor':'middle','colorbar.x':1.02,'colorbar.xanchor':'left','colorbar.len':1,'colorbar.thickness':20};
-  var hAx={'coloraxis.colorbar.orientation':'h','coloraxis.colorbar.y':-0.3,'coloraxis.colorbar.yanchor':'top','coloraxis.colorbar.x':0.5,'coloraxis.colorbar.xanchor':'center','coloraxis.colorbar.len':0.92,'coloraxis.colorbar.thickness':11};
-  var vAx={'coloraxis.colorbar.orientation':'v','coloraxis.colorbar.y':0.5,'coloraxis.colorbar.yanchor':'middle','coloraxis.colorbar.x':1.02,'coloraxis.colorbar.xanchor':'left','coloraxis.colorbar.len':1};
-  function fix(p){
-    var P=window.Plotly; if(!P||!p._fullLayout||!p.querySelector('.main-svg')) return;
-    var isM=window.innerWidth<=768, bucket=isM?'m':'d';
-    if(p.dataset.mf2===bucket) return;
-    p.dataset.mf2=bucket;
-    var fl=p._fullLayout, cw=(p.parentElement&&p.parentElement.clientWidth)||window.innerWidth, did=false;
-    var traceCBh=false; (p.data||[]).forEach(function(t){ if(t&&t.colorbar&&t.colorbar.orientation==='h') traceCBh=true; });
-    var hasTraceCB=false; (p.data||[]).forEach(function(t){ if(t&&(t.colorbar||t.type==='heatmap'||t.type==='contour'||t.type==='histogram2d'||t.type==='histogram2dcontour')) hasTraceCB=true; });
-    var axH=!!(fl.coloraxis&&fl.coloraxis.colorbar&&fl.coloraxis.colorbar.orientation==='h');
-    var hasAx=!!(fl.coloraxis&&fl.coloraxis.colorbar);
-    if(isM){
-      try{ if(hasTraceCB){ P.restyle(p,hCB); did=true; } }catch(e){}
-      try{ if(hasAx){ P.relayout(p,hAx); did=true; } }catch(e){}
-      if(fl.title&&fl.title.text){ try{
-        var fs=Math.min((fl.title.font&&fl.title.font.size)||14,12.5);
-        var wr=wrapTitle(fl.title.text, Math.max(15, Math.floor((cw-14)/(fs*0.56))));
-        if(wr){ P.relayout(p,{'title.text':wr,'title.font.size':fs}); did=true; }
-      }catch(e){} }
-    } else {
-      // desktop: ONLY revert colorbars previously flipped to horizontal (otherwise untouched)
-      try{ if(traceCBh){ P.restyle(p,vCB); did=true; } }catch(e){}
-      try{ if(axH){ P.relayout(p,vAx); did=true; } }catch(e){}
-    }
-    if(did){ setTimeout(function(){ try{P.Plots.resize(p);}catch(e){} }, 30); }
-  }
-  function run(){ document.querySelectorAll('.js-plotly-plot').forEach(fix); }
-  var n=0, iv=setInterval(function(){ run(); if(++n>26) clearInterval(iv); }, 600);
-  var st,rt;
-  addEventListener('scroll', function(){ clearTimeout(st); st=setTimeout(run,180); }, {passive:true});
-  addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){
-    document.querySelectorAll('.js-plotly-plot').forEach(function(p){ delete p.dataset.mf2; }); run();
-  }, 320); });
-  if(document.readyState==='loading') addEventListener('DOMContentLoaded', run); else run();
-})();
-</script>
-<!--APPLE-MOBFIX2-END-->
-
 <!--APPLE-EXPRESS-START-->
 <style>
 .xpress{max-width:880px;margin:26px auto 6px;padding:22px 24px 18px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(125,240,200,.22);border-radius:16px;background:linear-gradient(180deg,rgba(10,20,18,.42),rgba(8,12,20,.30))}
@@ -18911,6 +18858,129 @@ body.calm-open .calm-toggle{color:rgba(176,186,205,.6)}
 })();
 </script>
 <!--APPLE-EXPRESS-END-->
+
+<!--APPLE-AUDIT-START-->
+<style>
+.audit-board{max-width:980px;margin:30px auto 10px;padding:26px 24px 20px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(155,107,255,.22);border-radius:18px;background:linear-gradient(180deg,rgba(18,10,30,.46),rgba(8,8,16,.32))}
+.audit-board .ab-kick{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#b69bff;margin-bottom:9px}
+.audit-board .ab-h{font-size:clamp(18px,2.6vw,25px);line-height:1.26;margin:0 0 6px;color:#f4f0ff;font-weight:700}
+.audit-board .ab-sub{font-size:13px;line-height:1.6;color:rgba(232,236,246,.66);margin:0 0 18px;max-width:680px}
+.audit-board .ab-score{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}
+.audit-board .ab-st{flex:1;min-width:120px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02)}
+.audit-board .ab-st .n{font-size:26px;font-weight:800;line-height:1}
+.audit-board .ab-st .l{font-size:11px;letter-spacing:.04em;color:rgba(232,236,246,.6);margin-top:5px;text-transform:uppercase}
+.ab-st.s .n{color:#4fe6a6} .ab-st.k .n{color:#f0607a} .ab-st.c .n{color:#f5b042}
+.audit-board .ab-filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.audit-board .ab-pill{font-family:inherit;font-size:12px;padding:6px 13px;border-radius:999px;cursor:pointer;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(232,236,246,.7);transition:.15s}
+.audit-board .ab-pill[aria-pressed="true"]{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3)}
+.audit-board .ab-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+@media(max-width:720px){.audit-board{margin:20px 12px 8px;padding:20px 15px}.audit-board .ab-grid{grid-template-columns:1fr}}
+.audit-board .ab-chip{position:relative;padding:11px 13px 11px 16px;border-radius:11px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);overflow:hidden}
+.audit-board .ab-chip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px}
+.ab-chip.s::before{background:#4fe6a6} .ab-chip.k::before{background:#f0607a} .ab-chip.c::before{background:#f5b042}
+.audit-board .ab-chip .t{font-size:13px;font-weight:700;color:#f0eaff;line-height:1.3}
+.ab-chip.k .t{color:rgba(240,234,255,.62);text-decoration:line-through;text-decoration-color:rgba(240,96,122,.7)}
+.audit-board .ab-chip .r{font-size:11.5px;line-height:1.45;color:rgba(232,236,246,.6);margin-top:3px}
+.audit-board .ab-chip .tag{position:absolute;right:11px;top:11px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.ab-chip.s .tag{color:#4fe6a6} .ab-chip.k .tag{color:#f0607a} .ab-chip.c .tag{color:#f5b042}
+.audit-board .ab-foot{font-size:11.5px;color:rgba(232,236,246,.5);margin:16px 0 0;line-height:1.5}
+</style>
+<script>
+(function(){
+  var DATA=[["s", "the 81% split", "most plays are algorithm-started, not chosen"], ["s", "the genre reversal", "served ambient, but I reach for hip-hop"], ["s", "the bridge index", "the algorithm stays in lanes; I cross them"], ["s", "who trains whom", "my picks move it more than it moves me"], ["s", "choose the opener, then ride", "deliberate choice clusters at session starts"], ["s", "the acoustic axis", "I'm served dull/dark; I reach for bright"], ["s", "two wearables agree", "Oura vs Apple resting HR, &rho;=0.82"], ["s", "replay is bursty", "18-day half-life, binge-then-drop"], ["s", "skip-spirals", "one skip makes the next 6&times; likelier"], ["s", "artist archetypes", "comet / slow-burn / plateau shapes"], ["s", "the portable proxy", "intent is recoverable from timing alone"], ["k", "my picks are less predictable", "in-sample only &mdash; held-out &asymp; zero"], ["k", "I chose more over the years", "a logging-code + device-swap artifact"], ["k", "served trends opposite to chosen", "a point-estimate mirage"], ["k", "world music primes my jazz", "a sequencing artifact in what was served"], ["k", "music drives my heart rate", "gone once the choice is exogenous (shuffle)"], ["k", "an irreducible musical self", "mostly just catalog turnover"], ["k", "distinct taste eras", "a dimensionality blow-up"], ["k", "comfort-replays track recovery", "a seven-year secular co-trend"], ["c", "run-down days &rarr; more, narrower listening", "a seasonal common cause"], ["c", "you can read my mood off the log", "classifier lands at coin-flip"], ["c", "listening lowers my stress", "it clusters in already-calm hours"], ["c", "late listening wrecks my sleep", "no effect on sleep quality"], ["c", "loyalty by how I met an artist", "null &mdash; retention is identical"], ["c", "four neat life-states", "weakly separated; a sketch, not states"]];
+  var LABEL={s:'survived',k:'killed',c:'confounded'};
+  function build(){
+    if(document.querySelector('.audit-board')) return true;
+    var anchor=document.querySelector('.xpress')||document.querySelector('.calm-toggle')||document.querySelector('.scitrack');
+    if(!anchor) return false;
+    var box=document.createElement('section'); box.className='audit-board'; box.setAttribute('aria-label','the audit: what survived, what did not');
+    var chips=DATA.map(function(f){
+      return '<div class="ab-chip '+f[0]+'" data-v="'+f[0]+'"><div class="tag">'+LABEL[f[0]]+'</div>'+
+             '<div class="t">'+f[1]+'</div><div class="r">'+f[2]+'</div></div>';
+    }).join('');
+    box.innerHTML=
+      '<div class="ab-kick">the audit &middot; receipts</div>'+
+      '<div class="ab-h">I tried to kill every finding. here&rsquo;s the body count.</div>'+
+      '<p class="ab-sub">most dashboards show you what worked. the whole point of this one is what <em>didn&rsquo;t</em>: every result below was pushed through held-out tests, surrogate nulls, and taxonomy swaps. about half died. I keep the bodies on display &mdash; that&rsquo;s the rigor.</p>'+
+      '<div class="ab-score">'+
+        '<div class="ab-st s"><div class="n">'+11+'</div><div class="l">survived the audit</div></div>'+
+        '<div class="ab-st k"><div class="n">'+8+'</div><div class="l">killed by it</div></div>'+
+        '<div class="ab-st c"><div class="n">'+6+'</div><div class="l">real but confounded</div></div>'+
+      '</div>'+
+      '<div class="ab-filters" role="group" aria-label="filter findings">'+
+        '<button class="ab-pill" data-f="all" aria-pressed="true">all</button>'+
+        '<button class="ab-pill" data-f="s" aria-pressed="false">survived</button>'+
+        '<button class="ab-pill" data-f="k" aria-pressed="false">killed</button>'+
+        '<button class="ab-pill" data-f="c" aria-pressed="false">confounded</button>'+
+      '</div>'+
+      '<div class="ab-grid">'+chips+'</div>'+
+      '<p class="ab-foot">a curated 25 of ~40 analyses across four passes; the failures aren&rsquo;t hidden in a footnote, they&rsquo;re half the screen. every one traces to a seeded, re-runnable script.</p>';
+    anchor.parentNode.insertBefore(box, anchor.nextSibling);
+    var pills=box.querySelectorAll('.ab-pill'), grid=box.querySelector('.ab-grid');
+    pills.forEach(function(p){ p.addEventListener('click', function(){
+      var f=p.getAttribute('data-f');
+      pills.forEach(function(q){ q.setAttribute('aria-pressed', q===p?'true':'false'); });
+      grid.querySelectorAll('.ab-chip').forEach(function(c){ c.style.display=(f==='all'||c.getAttribute('data-v')===f)?'':'none'; });
+    }); });
+    return true;
+  }
+  function init(){ if(!build()) setTimeout(init,200); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script>
+<!--APPLE-AUDIT-END-->
+
+<!--APPLE-MOBFIX2-START-->
+<script>
+/* Mobile chart legibility on phones (<=768): horizontal colorbars (heatmaps were collapsing),
+   wrapped titles, explicit left-margin for long y-labels, hide badly-overflowing legends.
+   Desktop = strict no-op + restores anything this changed. Interval+scroll driven; idempotent per bucket; each op isolated. */
+(function(){
+  function wrapTitle(t,maxc){ if(!t||String(t).indexOf('<br')>=0)return null;
+    var w=String(t).split(/\s+/),L=[],c=''; for(var i=0;i<w.length;i++){ if((c+' '+w[i]).trim().length>maxc){if(c)L.push(c);c=w[i];}else c=(c?c+' ':'')+w[i]; }
+    if(c)L.push(c); var o=L.join('<br>'); return o!==String(t)?o:null; }
+  var hCB={'colorbar.orientation':'h','colorbar.y':-0.3,'colorbar.yanchor':'top','colorbar.x':0.5,'colorbar.xanchor':'center','colorbar.len':0.92,'colorbar.thickness':11};
+  var vCB={'colorbar.orientation':'v','colorbar.y':0.5,'colorbar.yanchor':'middle','colorbar.x':1.02,'colorbar.xanchor':'left','colorbar.len':1,'colorbar.thickness':20};
+  var hAx={'coloraxis.colorbar.orientation':'h','coloraxis.colorbar.y':-0.3,'coloraxis.colorbar.yanchor':'top','coloraxis.colorbar.x':0.5,'coloraxis.colorbar.xanchor':'center','coloraxis.colorbar.len':0.92,'coloraxis.colorbar.thickness':11};
+  var vAx={'coloraxis.colorbar.orientation':'v','coloraxis.colorbar.y':0.5,'coloraxis.colorbar.yanchor':'middle','coloraxis.colorbar.x':1.02,'coloraxis.colorbar.xanchor':'left','coloraxis.colorbar.len':1};
+  function maxW(p,sel){ var m=0; p.querySelectorAll(sel).forEach(function(e){var r=e.getBoundingClientRect(); if(r.width>m)m=r.width;}); return m; }
+  function legOverflow(p){ var pr=p.getBoundingClientRect(),m=0; p.querySelectorAll('.legend').forEach(function(e){var r=e.getBoundingClientRect(); if(r.height)m=Math.max(m,r.bottom-pr.bottom);}); return m; }
+  function fix(p){
+    var P=window.Plotly; if(!P||!p._fullLayout||!p.querySelector('.main-svg')) return;
+    var isM=window.innerWidth<=768, bucket=isM?'m':'d';
+    if(p.dataset.mf2===bucket) return;
+    p.dataset.mf2=bucket;
+    var fl=p._fullLayout, cw=(p.parentElement&&p.parentElement.clientWidth)||window.innerWidth, did=false;
+    var traceCBh=false,hasTraceCB=false; (p.data||[]).forEach(function(t){ if(t&&t.colorbar&&t.colorbar.orientation==='h')traceCBh=true; if(t&&(t.colorbar||t.type==='heatmap'||t.type==='contour'||t.type==='histogram2d'||t.type==='histogram2dcontour'))hasTraceCB=true; });
+    var axH=!!(fl.coloraxis&&fl.coloraxis.colorbar&&fl.coloraxis.colorbar.orientation==='h'), hasAx=!!(fl.coloraxis&&fl.coloraxis.colorbar);
+    if(isM){
+      try{ if(hasTraceCB){P.restyle(p,hCB);did=true;} }catch(e){}
+      try{ if(hasAx){P.relayout(p,hAx);did=true;} }catch(e){}
+      if(fl.title&&fl.title.text){ try{ var fs=Math.min((fl.title.font&&fl.title.font.size)||14,12.5);
+        var tprr=p.getBoundingClientRect(),tov=0; p.querySelectorAll('.gtitle').forEach(function(e){var r=e.getBoundingClientRect(); if(r.width)tov=Math.max(tov,r.right-tprr.right);});
+        var base=tov>10?String(fl.title.text).replace(/<br\s*\/?>/gi,' '):fl.title.text;
+        var wr=wrapTitle(base,Math.max(15,Math.floor((cw-14)/(fs*0.56)))); if(wr){P.relayout(p,{'title.text':wr,'title.font.size':fs});did=true;} }catch(e){} }
+      // long y-labels: widen left margin to fit (capped)
+      try{ var yw=maxW(p,'.ytick text'); if(yw>(fl.margin&&fl.margin.l||0)+4){ var ml=Math.min(Math.ceil(yw)+10, Math.floor(cw*0.46)); P.relayout(p,{'margin.l':ml}); p.dataset.mf2ml='1'; did=true; } }catch(e){}
+      // hide a legend that badly overflows the plot bottom (multi-series; shapes/captions carry it)
+      try{ if(legOverflow(p)>24){ P.relayout(p,{showlegend:false}); p.dataset.mf2leg='1'; did=true; } }catch(e){}
+    } else {
+      try{ if(traceCBh){P.restyle(p,vCB);did=true;} }catch(e){}
+      try{ if(axH){P.relayout(p,vAx);did=true;} }catch(e){}
+      try{ if(p.dataset.mf2ml){P.relayout(p,{'margin.l':null});delete p.dataset.mf2ml;did=true;} }catch(e){}
+      try{ if(p.dataset.mf2leg){P.relayout(p,{showlegend:true});delete p.dataset.mf2leg;did=true;} }catch(e){}
+    }
+    if(did){ setTimeout(function(){ try{P.Plots.resize(p);}catch(e){} },30); }
+  }
+  function run(){ document.querySelectorAll('.js-plotly-plot').forEach(fix); }
+  var n=0, iv=setInterval(function(){ run(); if(++n>26) clearInterval(iv); }, 600);
+  var st,rt;
+  addEventListener('scroll', function(){ clearTimeout(st); st=setTimeout(run,180); }, {passive:true});
+  addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){ document.querySelectorAll('.js-plotly-plot').forEach(function(p){ delete p.dataset.mf2; }); run(); }, 320); });
+  if(document.readyState==='loading') addEventListener('DOMContentLoaded', run); else run();
+})();
+</script>
+<!--APPLE-MOBFIX2-END-->
 
 </body>
 </html>
