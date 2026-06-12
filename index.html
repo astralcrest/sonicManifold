@@ -18775,5 +18775,48 @@ body.p0-scrolling .term-tip:focus-visible::before{ display:none !important; opac
 </script>
 <!--MOBILE-PERF-END-->
 
+<!--APPLE-CALM-START-->
+<style>
+/* calm default: defer the four "how to read this" meta-blocks behind one quiet toggle so ENTER lands on the story */
+body.calm-on:not(.calm-open) .scitrack,
+body.calm-on:not(.calm-open) #aud-paths,
+body.calm-on:not(.calm-open) .aud-paths,
+body.calm-on:not(.calm-open) .sem-key,
+body.calm-on:not(.calm-open) .sci-abstract{display:none!important}
+.calm-toggle{display:block;max-width:880px;margin:30px auto 6px;padding:11px 18px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12.5px;letter-spacing:.03em;color:rgba(176,186,205,.8);background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.08);border-radius:12px;cursor:pointer;text-align:center;transition:color .2s,border-color .2s,background .2s;width:calc(100% - 32px)}
+.calm-toggle:hover{color:#9bf0c8;border-color:rgba(125,240,200,.3);background:rgba(125,240,200,.05)}
+.calm-toggle .ct-caret{display:inline-block;margin-right:9px;transition:transform .2s}
+body.calm-open .calm-toggle .ct-caret{transform:rotate(90deg)}
+body.calm-open .calm-toggle{color:rgba(176,186,205,.6)}
+@media(max-width:720px){.calm-toggle{margin:18px auto 6px;font-size:12px}}
+</style>
+<script>
+(function(){
+  function init(){
+    var sc=document.querySelector('.scitrack');
+    if(!sc){ return setTimeout(init,200); }
+    if(document.querySelector('.calm-toggle')) return;
+    document.body.classList.add('calm-on');
+    var open=false; try{ open=localStorage.getItem('sonicmanifold-calm-open')==='1'; }catch(e){}
+    var t=document.createElement('button');
+    t.className='calm-toggle'; t.type='button';
+    t.innerHTML='<span class="ct-caret">&#9656;</span> for researchers &middot; how to read this &mdash; abstract, audience paths, colour key';
+    function apply(){
+      document.body.classList.toggle('calm-open', open);
+      t.setAttribute('aria-expanded', open?'true':'false');
+      try{ localStorage.setItem('sonicmanifold-calm-open', open?'1':'0'); }catch(e){}
+    }
+    t.addEventListener('click', function(){
+      open=!open; apply();
+      if(open){ var x=document.querySelector('.scitrack'); if(x) x.scrollIntoView({behavior:'smooth',block:'start'}); }
+    });
+    sc.parentNode.insertBefore(t, sc);
+    apply();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script>
+<!--APPLE-CALM-END-->
+
 </body>
 </html>
