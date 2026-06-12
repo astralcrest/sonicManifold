@@ -4636,6 +4636,7 @@ body.story-only .skip-neg{display:block!important}
     <div class="oc-cell"><b>they agree</b><span>two devices, two different resting-HR algorithms, one number: <span class="oc-stat">&rho; = 0.82</span> across 554 nights, off by <span class="oc-stat">3.7&nbsp;bpm</span> on average. the nulls aren&rsquo;t a broken watch.</span></div>
     <div class="oc-cell"><b>late nights are fine (for sleep)</b><span>listening late doesn&rsquo;t dent sleep quality, efficiency, or next-day readiness &mdash; a clean null over <span class="oc-stat">~540 nights</span>. it costs you bedtime, not sleep.</span></div>
     <div class="oc-cell"><b>the artifact i caught</b><span>&ldquo;run-down days &rarr; more, narrower listening&rdquo; looked real and survived an activity control &mdash; then <span class="oc-stat">dissolved</span> once i removed the yearly cycle. a season, not a cause.</span></div>
+  <div class="oc-cell" style="grid-column:1/-1;background:rgba(245,176,66,.05);border-color:rgba(245,176,66,.2)"><b>and the tags?</b><span>oura lets you flag your days. i hand-logged ~<span class="oc-stat">100</span> rough ones. neither the ring nor the playlist can pick them out &mdash; a classifier lands at <span class="oc-stat">coin-flip</span> (AUC&nbsp;&asymp;&nbsp;0.50). the closest thing to a signal: my busier listening hours read as slightly calmer &mdash; but a before/after test says that&rsquo;s correlation, not the music doing the calming. you can&rsquo;t read a mood off a log.</span></div>
   </div>
   <p class="oc-foot">n&nbsp;=&nbsp;1, within-subject, 2024&ndash;2026. circular-shift surrogate (2,000 reps); partial correlations control day-of-week, activity, and the annual cycle. only two small couplings survive every control: illness-grade skin-temperature &rarr; slightly less listening, higher daytime stress &rarr; slightly more. aggregate &amp; pseudonymous &mdash; no raw timestamps, no clinical data.</p>
 </div>
@@ -18817,6 +18818,99 @@ body.calm-open .calm-toggle{color:rgba(176,186,205,.6)}
 })();
 </script>
 <!--APPLE-CALM-END-->
+
+<!--APPLE-MOBFIX2-START-->
+<script>
+/* Mobile chart legibility: move vertical colorbars to horizontal-bottom on phones so heatmap data
+   areas stop collapsing; wrap overflowing titles. Desktop = strict no-op unless a chart was flipped.
+   Interval-driven (catches lazy charts); idempotent per viewport bucket; each op isolated. */
+(function(){
+  function wrapTitle(t, maxc){
+    if(!t || String(t).indexOf('<br')>=0) return null;
+    var w=String(t).split(/\s+/), L=[], c='';
+    for(var i=0;i<w.length;i++){ if((c+' '+w[i]).trim().length>maxc){ if(c)L.push(c); c=w[i]; } else c=(c?c+' ':'')+w[i]; }
+    if(c)L.push(c); var o=L.join('<br>'); return o!==String(t)?o:null;
+  }
+  var hCB={'colorbar.orientation':'h','colorbar.y':-0.3,'colorbar.yanchor':'top','colorbar.x':0.5,'colorbar.xanchor':'center','colorbar.len':0.92,'colorbar.thickness':11};
+  var vCB={'colorbar.orientation':'v','colorbar.y':0.5,'colorbar.yanchor':'middle','colorbar.x':1.02,'colorbar.xanchor':'left','colorbar.len':1,'colorbar.thickness':20};
+  var hAx={'coloraxis.colorbar.orientation':'h','coloraxis.colorbar.y':-0.3,'coloraxis.colorbar.yanchor':'top','coloraxis.colorbar.x':0.5,'coloraxis.colorbar.xanchor':'center','coloraxis.colorbar.len':0.92,'coloraxis.colorbar.thickness':11};
+  var vAx={'coloraxis.colorbar.orientation':'v','coloraxis.colorbar.y':0.5,'coloraxis.colorbar.yanchor':'middle','coloraxis.colorbar.x':1.02,'coloraxis.colorbar.xanchor':'left','coloraxis.colorbar.len':1};
+  function fix(p){
+    var P=window.Plotly; if(!P||!p._fullLayout||!p.querySelector('.main-svg')) return;
+    var isM=window.innerWidth<=768, bucket=isM?'m':'d';
+    if(p.dataset.mf2===bucket) return;
+    p.dataset.mf2=bucket;
+    var fl=p._fullLayout, cw=(p.parentElement&&p.parentElement.clientWidth)||window.innerWidth, did=false;
+    var traceCBh=false; (p.data||[]).forEach(function(t){ if(t&&t.colorbar&&t.colorbar.orientation==='h') traceCBh=true; });
+    var hasTraceCB=false; (p.data||[]).forEach(function(t){ if(t&&(t.colorbar||t.type==='heatmap'||t.type==='contour'||t.type==='histogram2d'||t.type==='histogram2dcontour')) hasTraceCB=true; });
+    var axH=!!(fl.coloraxis&&fl.coloraxis.colorbar&&fl.coloraxis.colorbar.orientation==='h');
+    var hasAx=!!(fl.coloraxis&&fl.coloraxis.colorbar);
+    if(isM){
+      try{ if(hasTraceCB){ P.restyle(p,hCB); did=true; } }catch(e){}
+      try{ if(hasAx){ P.relayout(p,hAx); did=true; } }catch(e){}
+      if(fl.title&&fl.title.text){ try{
+        var fs=Math.min((fl.title.font&&fl.title.font.size)||14,12.5);
+        var wr=wrapTitle(fl.title.text, Math.max(15, Math.floor((cw-14)/(fs*0.56))));
+        if(wr){ P.relayout(p,{'title.text':wr,'title.font.size':fs}); did=true; }
+      }catch(e){} }
+    } else {
+      // desktop: ONLY revert colorbars previously flipped to horizontal (otherwise untouched)
+      try{ if(traceCBh){ P.restyle(p,vCB); did=true; } }catch(e){}
+      try{ if(axH){ P.relayout(p,vAx); did=true; } }catch(e){}
+    }
+    if(did){ setTimeout(function(){ try{P.Plots.resize(p);}catch(e){} }, 30); }
+  }
+  function run(){ document.querySelectorAll('.js-plotly-plot').forEach(fix); }
+  var n=0, iv=setInterval(function(){ run(); if(++n>26) clearInterval(iv); }, 600);
+  var st,rt;
+  addEventListener('scroll', function(){ clearTimeout(st); st=setTimeout(run,180); }, {passive:true});
+  addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){
+    document.querySelectorAll('.js-plotly-plot').forEach(function(p){ delete p.dataset.mf2; }); run();
+  }, 320); });
+  if(document.readyState==='loading') addEventListener('DOMContentLoaded', run); else run();
+})();
+</script>
+<!--APPLE-MOBFIX2-END-->
+
+<!--APPLE-EXPRESS-START-->
+<style>
+.xpress{max-width:880px;margin:26px auto 6px;padding:22px 24px 18px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(125,240,200,.22);border-radius:16px;background:linear-gradient(180deg,rgba(10,20,18,.42),rgba(8,12,20,.30))}
+.xpress .xp-kick{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#7df0c8;margin-bottom:12px}
+.xpress ol{margin:0;padding:0;list-style:none;counter-reset:xp}
+.xpress li{counter-increment:xp;position:relative;padding:9px 0 9px 30px;font-size:13.5px;line-height:1.55;color:rgba(232,236,246,.82);border-top:1px solid rgba(255,255,255,.05)}
+.xpress li:first-child{border-top:none}
+.xpress li::before{content:counter(xp);position:absolute;left:0;top:9px;width:19px;height:19px;border-radius:50%;background:rgba(125,240,200,.12);color:#7df0c8;font-size:10.5px;display:flex;align-items:center;justify-content:center}
+.xpress li b{color:#f4f0ff;font-weight:700}
+.xpress .xp-num{color:#f5b042;font-weight:700}
+.xpress .xp-foot{margin:14px 0 0;font-size:12px;color:rgba(232,236,246,.55)}
+.xpress .xp-foot a{color:#7df0c8;text-decoration:none;border-bottom:1px solid rgba(125,240,200,.3)}
+@media(max-width:720px){.xpress{margin:18px 12px 6px;padding:18px 16px}.xpress li{font-size:13px}}
+</style>
+<script>
+(function(){
+  function build(){
+    if(document.querySelector('.xpress')) return true;
+    var anchor=document.querySelector('.calm-toggle')||document.querySelector('.scitrack');
+    if(!anchor) return false;
+    var box=document.createElement('section'); box.className='xpress'; box.setAttribute('aria-label','the study in six lines');
+    box.innerHTML='<div class="xp-kick">the whole study, in six lines</div>'+
+      '<ol>'+
+      '<li><b>Most of it wasn&rsquo;t me.</b> <span class="xp-num">81%</span> of my plays were started by the algorithm, not a choice &mdash; so a &ldquo;listening history&rdquo; is mostly an exposure log.</li>'+
+      '<li><b>The reversal.</b> I&rsquo;m served ambient/lo-fi about <span class="xp-num">2&times;</span> more than I actually reach for it; hip-hop &amp; R&amp;B I choose <em>above</em> what I&rsquo;m fed.</li>'+
+      '<li><b>Who steers whom.</b> The algorithm stays in its lanes; I&rsquo;m the one who bridges genres. Agency here is topological, not loud.</li>'+
+      '<li><b>The body doesn&rsquo;t read the playlist.</b> Two independent wearables agree the music&harr;physiology link is a confound, not a cause &mdash; and a mood isn&rsquo;t legible in either stream.</li>'+
+      '<li><b>Most flashy findings died under audit.</b> Roughly half survived their own robustness checks. The failures are reported as first-class results.</li>'+
+      '<li><b>n&nbsp;=&nbsp;1, on purpose.</b> One instrumented life &mdash; ~97k plays, 7 years, two wearables &mdash; audited honestly.</li>'+
+      '</ol>'+
+      '<p class="xp-foot">that&rsquo;s the gist. scroll for the long version, or jump to any act in the bar above. <a href="#honest">how I could be wrong &rarr;</a></p>';
+    anchor.parentNode.insertBefore(box, anchor);
+    return true;
+  }
+  function init(){ if(!build()) setTimeout(init,200); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script>
+<!--APPLE-EXPRESS-END-->
 
 </body>
 </html>
