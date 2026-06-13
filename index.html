@@ -19070,5 +19070,25 @@ window.addEventListener('load',sweep);document.addEventListener('click',sweep,{p
 .fig-cite{font-size:11.5px}
 .fig-caption sup.ref{font-size:11px}
 </style><!--APPLE-TYPEFLOOR-END-->
+<!--APPLE-SPFALLBACK-START--><style>
+.rev-embed{min-height:80px}
+.rev-embed iframe{width:100%;min-height:80px;border:0;display:block}
+.rev-open{display:inline-flex;align-items:center;gap:5px;margin-top:7px;font:600 10.5px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.04em;color:var(--mint,#21f6bc);text-decoration:none;opacity:.82;transition:opacity .2s ease}
+.rev-open:hover{opacity:1}
+@media (max-width:480px){.card .lbl{font-size:11px}}
+</style><script>
+(function(){if(window.__revFallback)return;window.__revFallback=true;
+function wire(){document.querySelectorAll('.rev-embed').forEach(function(box){
+  if(box.__rev)return;var ifr=box.querySelector('iframe');if(!ifr)return;var url=ifr.getAttribute('data-src')||ifr.getAttribute('src')||'';
+  var m=/track\/([A-Za-z0-9]+)/.exec(url);if(!m)return;box.__rev=1;
+  var a=document.createElement('a');a.className='rev-open';a.href='https://open.spotify.com/track/'+m[1];
+  a.target='_blank';a.rel='noopener';a.innerHTML='open in Spotify \u2197';
+  a.title='if the player is blank, your privacy extension blocked it \u2014 this opens the track in Spotify';
+  if(box.parentNode)box.parentNode.insertBefore(a,box.nextSibling);
+});}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire);else wire();
+setTimeout(wire,1200);setTimeout(wire,4000);
+})();
+</script><!--APPLE-SPFALLBACK-END-->
 </body>
 </html>
