@@ -15814,7 +15814,7 @@ html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before 
           aria-label="play soundtrack"
           title="play the soundtrack">&#9654;</button>
   <div id="aux-now" role="status" aria-live="polite">
-    <span id="aux-now-glyph">&#9834;</span>
+    <span id="aux-now-glyph" class="aux-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
     <span id="aux-now-label">soundtrack</span>
     <button id="aux-now-skip" type="button" aria-label="next track" title="next track">&#9197;</button>
     <button id="aux-now-mute" type="button" aria-label="mute soundtrack" title="mute / unmute">&#128266;</button>
@@ -19043,5 +19043,32 @@ var n=0,iv=setInterval(function(){sweep();if(++n>20)clearInterval(iv);},1500);
 window.addEventListener('load',sweep);document.addEventListener('click',sweep,{passive:true});
 })();
 </script><!--APPLE-HOVERFIX-END-->
+<!--APPLE-AUDIOBEAUTY-START--><style>
+/* animated equalizer in the soundtrack pill — motion = playback state */
+#aux-now-glyph.aux-eq{display:inline-flex;align-items:flex-end;gap:2px;width:15px;height:13px;color:var(--mint,#21f6bc)}
+#aux-now-glyph.aux-eq i{flex:1;border-radius:1px;height:30%;background:linear-gradient(to top,var(--mint,#21f6bc),var(--ice,#86cbfe));transform-origin:bottom}
+#aux-audio.is-armed #aux-now-glyph.aux-eq i{animation:auxEq .9s ease-in-out infinite}
+#aux-now-glyph.aux-eq i:nth-child(1){animation-duration:.78s}
+#aux-now-glyph.aux-eq i:nth-child(2){animation-duration:1.05s;animation-delay:.12s}
+#aux-now-glyph.aux-eq i:nth-child(3){animation-duration:.62s;animation-delay:.05s}
+#aux-now-glyph.aux-eq i:nth-child(4){animation-duration:.92s;animation-delay:.18s}
+@keyframes auxEq{0%,100%{height:22%}50%{height:100%}}
+#aux-audio:has(#aux-play.paused) #aux-now-glyph.aux-eq i,
+#aux-audio:has(#aux-play.muted) #aux-now-glyph.aux-eq i{animation-play-state:paused;height:34%}
+/* play button: springy press + a soft mint glow while actually playing */
+#aux-play{transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease,opacity .35s ease,background .25s ease,border-color .25s ease,color .2s ease}
+#aux-play:hover{transform:scale(1.07)}
+#aux-play:active{transform:scale(.9)}
+#aux-audio.is-armed #aux-play:not(.paused):not(.muted){animation:auxGlow 2.6s ease-in-out infinite}
+@keyframes auxGlow{0%,100%{box-shadow:0 8px 26px rgba(0,0,0,.34),0 0 0 0 rgba(33,246,188,0)}50%{box-shadow:0 8px 26px rgba(0,0,0,.34),0 0 0 6px rgba(33,246,188,.13)}}
+@media (prefers-reduced-motion:reduce){#aux-now-glyph.aux-eq i{animation:none!important}#aux-now-glyph.aux-eq i:nth-child(1){height:55%}#aux-now-glyph.aux-eq i:nth-child(2){height:92%}#aux-now-glyph.aux-eq i:nth-child(3){height:42%}#aux-now-glyph.aux-eq i:nth-child(4){height:72%}#aux-play{animation:none!important}}
+</style><!--APPLE-AUDIOBEAUTY-END-->
+<!--APPLE-TYPEFLOOR-START--><style>
+/* lift the smallest reading text to a legible floor (captions/footnotes) */
+.fig-caption{font-size:13px}
+.fig-caption b{font-size:11.5px}
+.fig-cite{font-size:11.5px}
+.fig-caption sup.ref{font-size:11px}
+</style><!--APPLE-TYPEFLOOR-END-->
 </body>
 </html>
