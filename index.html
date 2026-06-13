@@ -19499,5 +19499,105 @@ p.mi-subtitle, p.amg-sub, p.amg-desc, p.decontam-sub, p.hp-partial-note{
 </script>
 <!--APPLE-STRESSTEST-END-->
 
+<!--APPLE-RESEARCHMODE-START-->
+<style>
+#rm-toggle{position:fixed;top:calc(var(--nav-h,56px) + 8px);left:14px;z-index:9994;
+  display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;
+  font:600 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;color:#cdeede;background:rgba(20,9,42,.7);border:1px solid rgba(138,217,192,.28);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .2s,border-color .2s,color .2s;}
+#rm-toggle:hover{background:rgba(33,246,188,.12);border-color:rgba(33,246,188,.5);}
+#rm-toggle .rm-dot{width:7px;height:7px;border-radius:50%;background:#8ad9c0;box-shadow:0 0 7px #8ad9c0;}
+@media (max-width:899.98px){#rm-toggle{top:auto;bottom:calc(56px + env(safe-area-inset-bottom,0px) + 10px);left:12px;}}
+
+/* ---- research-mode overrides (reversible: scoped under html.research-mode) ---- */
+html.research-mode{
+  --mint:#7fc7b4; --rose:#cf94a8; --ice:#94b6d6; --orchid:#b6a4cf; --gold:#cdc78f; --orchid2:#b6a4cf;
+}
+html.research-mode #rm-toggle{background:rgba(33,246,188,.14);border-color:rgba(138,217,192,.5);color:#dffaef;}
+html.research-mode #rm-toggle .rm-dot{background:#cdc78f;box-shadow:0 0 7px #cdc78f;}
+/* hide the decorative corner glyphs */
+html.research-mode .rm-glyph{display:none !important;}
+/* Act -> Part relabel */
+.rm-alt{display:none;}
+html.research-mode .rm-orig{display:none;}
+html.research-mode .rm-alt{display:inline;}
+/* calmer type: serif drama -> clean sans, flatten the neon headings */
+html.research-mode .act-deck{font-family:-apple-system,'Segoe UI','Inter',system-ui,sans-serif !important;
+  letter-spacing:-.01em !important;color:#ece7f6 !important;font-weight:600 !important;}
+html.research-mode .act-numeral{color:#9a8fb8 !important;letter-spacing:.16em !important;}
+html.research-mode .theme-divider::before{opacity:.22 !important;}
+html.research-mode h1,html.research-mode h2,html.research-mode h3{letter-spacing:-.005em !important;}
+/* soften card neon a touch */
+html.research-mode .stx-card,html.research-mode .card{border-color:rgba(150,150,180,.22) !important;}
+@media (prefers-reduced-motion:no-preference){
+  html.research-mode .act-deck,html.research-mode .act-numeral{transition:color .35s ease;}
+}
+</style>
+<button id="rm-toggle" type="button" aria-pressed="false" title="switch between the cinematic view and a calmer, paper-style reading view">
+  <span class="rm-dot" aria-hidden="true"></span><span class="rm-label">research view</span>
+</button>
+<script>
+(function(){
+  var KEY='sonicmanifold-research-view';
+  var btn=document.getElementById('rm-toggle'); if(!btn) return;
+  var label=btn.querySelector('.rm-label');
+  var enhanced=false;
+
+  function enhance(){
+    if(enhanced) return; enhanced=true;
+    try{
+      // 1) wrap the ◢◤ corner glyphs so CSS can hide them reversibly
+      var SKIP={SCRIPT:1,STYLE:1,CODE:1,PRE:1,TEXTAREA:1};
+      var walker=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+        acceptNode:function(n){
+          if(!n.nodeValue || n.nodeValue.indexOf('◢')<0 && n.nodeValue.indexOf('◤')<0) return NodeFilter.FILTER_REJECT;
+          if(n.parentNode && SKIP[n.parentNode.nodeName]) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      });
+      var hits=[], t;
+      while(t=walker.nextNode()){ hits.push(t); }
+      hits.forEach(function(node){
+        var parts=node.nodeValue.split(/([◢◤]+\s?)/);
+        if(parts.length<2) return;
+        var frag=document.createDocumentFragment();
+        parts.forEach(function(p){
+          if(!p) return;
+          if(/[◢◤]/.test(p)){ var sp=document.createElement('span'); sp.className='rm-glyph'; sp.textContent=p; frag.appendChild(sp); }
+          else { frag.appendChild(document.createTextNode(p)); }
+        });
+        node.parentNode.replaceChild(frag, node);
+      });
+      // 2) Act I -> Part 1 (reversible: original + alt span)
+      var nums=document.querySelectorAll('.act-numeral');
+      for(var i=0;i<nums.length;i++){
+        var el=nums[i]; if(el.querySelector('.rm-orig')) continue;
+        var orig=el.textContent;
+        var o=document.createElement('span'); o.className='rm-orig'; o.textContent=orig;
+        var a=document.createElement('span'); a.className='rm-alt'; a.textContent='Part '+(i+1);
+        el.textContent=''; el.appendChild(o); el.appendChild(a);
+      }
+    }catch(e){}
+  }
+
+  function apply(on){
+    if(on) enhance();
+    document.documentElement.classList.toggle('research-mode', on);
+    btn.setAttribute('aria-pressed', on?'true':'false');
+    if(label) label.textContent = on ? 'cinematic view' : 'research view';
+    try{ localStorage.setItem(KEY, on?'1':'0'); }catch(e){}
+    // nudge any lazily-rendered charts to resize after the type change
+    if(on && window.Plotly){ try{ requestAnimationFrame(function(){ window.dispatchEvent(new Event('resize')); }); }catch(e){} }
+  }
+
+  btn.addEventListener('click', function(){ apply(!document.documentElement.classList.contains('research-mode')); });
+  // restore persisted preference
+  var saved; try{ saved=localStorage.getItem(KEY); }catch(e){}
+  if(saved==='1'){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ apply(true); }); } else { apply(true); } }
+})();
+</script>
+<!--APPLE-RESEARCHMODE-END-->
+
 </body>
 </html>
