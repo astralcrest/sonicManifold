@@ -19111,5 +19111,385 @@ function go(){var h=document.getElementById('apple-leadhero');if(!h||rm)return;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
 })();
 </script><!--APPLE-HEROCINE-END-->
+<!--APPLE-STRESSTEST-START-->
+<style>
+#stress-test{max-width:1080px;margin:0 auto;padding:clamp(28px,6vw,72px) 20px;}
+#stress-test .stx-eyebrow{font:600 12px/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#8ad9c0;margin:0 0 10px;}
+#stress-test .stx-h{font:700 clamp(24px,4.4vw,40px)/1.12 -apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:-.02em;color:#f3eeff;margin:0 0 12px;max-width:20ch;}
+#stress-test .stx-lede{font:400 clamp(15px,2.1vw,18px)/1.55 -apple-system,'Segoe UI',system-ui,sans-serif;color:#c7bce0;margin:0 0 30px;max-width:56ch;}
+#stress-test .stx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:16px;}
+#stress-test .stx-card{position:relative;background:linear-gradient(180deg,rgba(32,16,58,.62),rgba(18,8,38,.62));border:1px solid rgba(138,217,192,.22);border-radius:16px;padding:20px 20px 22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden;}
+#stress-test .stx-card::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,#8ad9c0,#b69cff);opacity:.85;}
+#stress-test .stx-tag{font:600 11px/1.3 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#b69cff;margin:0 0 10px;}
+#stress-test .stx-claim{font:600 16px/1.4 -apple-system,'Segoe UI',system-ui,sans-serif;color:#f3eeff;margin:0 0 10px;}
+#stress-test .stx-test{font:400 14px/1.6 -apple-system,'Segoe UI',system-ui,sans-serif;color:#c2b7dc;margin:0;}
+#stress-test .stx-test b{color:#eae3ff;font-weight:700;}
+#stress-test .stx-foot{font:400 13.5px/1.6 -apple-system,'Segoe UI',system-ui,sans-serif;color:#9d92bb;margin:26px 0 0;max-width:60ch;}
+@media (prefers-reduced-motion:no-preference){#stress-test .stx-card{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1);}#stress-test.stx-in .stx-card{opacity:1;transform:none;}#stress-test.stx-in .stx-card:nth-child(2){transition-delay:.09s;}#stress-test.stx-in .stx-card:nth-child(3){transition-delay:.18s;}}
+</style>
+<section id="stress-test" aria-label="Stress-testing the findings that survived">
+  <p class="stx-eyebrow">how do i know it&rsquo;s real?</p>
+  <h2 class="stx-h">I went back and tried to break the ones that lived.</h2>
+  <p class="stx-lede">My flashiest effect already died on its own audit &mdash; you just saw it. So for the findings that held, here&rsquo;s what I threw at them, and why I trust them.</p>
+  <div class="stx-grid">
+    <article class="stx-card">
+      <div class="stx-tag">the genre flip</div>
+      <p class="stx-claim">Ambient gets served to me about twice as often as I actually reach for it. Hip-hop is the reverse.</p>
+      <p class="stx-test">For some cause I never measured to explain that away, it would have to pull on both my choices <em>and</em> my genres roughly <b>3&times; harder</b> than everything I did measure &mdash; when in a session a play landed, how recently I&rsquo;d heard the artist, what came before it. Nothing I know about my own listening is that strong.</p>
+    </article>
+    <article class="stx-card">
+      <div class="stx-tag">not a fluke era</div>
+      <p class="stx-claim">Maybe it&rsquo;s just Spotify quietly changing its app over seven years, not me.</p>
+      <p class="stx-test">So I cut the years in half and ran everything twice. The genre flip shows up in <b>both halves</b>, in the same order. And the flashy effect dies in <b>each half too</b>, not only on average. It&rsquo;s the listener, not the era.</p>
+    </article>
+    <article class="stx-card">
+      <div class="stx-tag">the detector travels</div>
+      <p class="stx-claim">I can tell a song I chose from one the app served &mdash; using nothing but timing.</p>
+      <p class="stx-test">No genre, no audio: just <em>when</em> in a session a play happened and how long since I&rsquo;d last heard that artist. Train it on one stretch of years and it still calls the next stretch right about <b>7 times in 10</b>.</p>
+    </article>
+  </div>
+  <p class="stx-foot">The honest gap that&rsquo;s left: all of this is one person &mdash; me. The detector hasn&rsquo;t been run on a second listener&rsquo;s library yet. That&rsquo;s the next test, and it&rsquo;s the one that would turn &ldquo;works for me&rdquo; into &ldquo;works.&rdquo;</p>
+</section>
+<script>
+(function(){
+  function place(){
+    var el=document.getElementById('stress-test'); if(!el) return;
+    var anchor=document.getElementById('oos-star')||document.getElementById('ai-systems')||document.getElementById('apple-ailabbeat');
+    if(anchor&&anchor.parentNode&&el.previousElementSibling!==anchor){
+      anchor.parentNode.insertBefore(el,anchor.nextSibling);
+    }
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){el.classList.add('stx-in');io.disconnect();}});},{threshold:.18});
+      io.observe(el);
+    } else { el.classList.add('stx-in'); }
+    setTimeout(function(){el.classList.add('stx-in');},1800);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){setTimeout(place,400);});}
+  else{setTimeout(place,400);}
+})();
+</script>
+<!--APPLE-STRESSTEST-END-->
+
+<!--APPLE-CINESPINE-START-->
+<style>
+@media (min-width:900px){
+  #cine-spine{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:9990;
+    width:44px;min-height:230px;border-radius:24px;
+    background:linear-gradient(180deg,rgba(30,15,56,.50),rgba(14,6,32,.50));
+    border:1px solid rgba(138,217,192,.18);
+    backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);
+    box-shadow:0 10px 34px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.05);
+    pointer-events:none;opacity:0;transition:opacity .8s ease;}
+  html.cine-on #cine-spine{opacity:1;}
+  /* move the section-progress nav from the right edge onto the left spine */
+  .section-dots{right:auto !important;left:14px !important;width:44px;align-items:center;
+    background:transparent !important;border:none !important;box-shadow:none !important;
+    -webkit-backdrop-filter:none !important;backdrop-filter:none !important;padding:16px 0 !important;}
+  /* and the back-to-top button onto the same left rail, just below the dots */
+  .cyber-top{right:auto !important;left:17px !important;bottom:auto !important;
+    top:calc(50% + 92px) !important;z-index:9998;}
+}
+@media (min-width:900px) and (prefers-reduced-motion:reduce){
+  #cine-spine{opacity:1;transition:none;}
+}
+</style>
+<div id="cine-spine" aria-hidden="true"></div>
+<script>
+(function(){
+  function arm(){ try{ document.documentElement.classList.add('cine-on'); }catch(e){} }
+  if(window.matchMedia && !window.matchMedia('(min-width:900px)').matches){ return; }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){ requestAnimationFrame(arm); });
+  } else { requestAnimationFrame(arm); }
+})();
+</script>
+<!--APPLE-CINESPINE-END-->
+
+<!--APPLE-SPINEHUB-START-->
+<style>
+@media (min-width:900px){
+  /* the scattered floaters are now represented by proxies on the spine */
+  .share-card-btn{display:none !important;}
+  #global-mute-pill{display:none !important;}
+  .cyber-top{display:none !important;}
+  #spine-actions{position:fixed;left:14px;bottom:84px;z-index:9998;width:44px;
+    display:flex;flex-direction:column;align-items:center;gap:9px;
+    padding:9px 0;border-radius:22px;
+    background:linear-gradient(180deg,rgba(30,15,56,.46),rgba(14,6,32,.46));
+    border:1px solid rgba(138,217,192,.16);
+    backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);
+    box-shadow:0 8px 26px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.05);
+    opacity:0;transform:translateY(8px);transition:opacity .7s ease,transform .7s ease;}
+  html.spinehub-on #spine-actions{opacity:1;transform:none;}
+  .spine-btn{width:34px;height:34px;padding:0;border-radius:11px;display:grid;place-items:center;
+    cursor:pointer;font-size:13px;line-height:1;color:#bde9d8;
+    background:rgba(255,255,255,.04);border:1px solid rgba(155,107,255,.24);
+    transition:background .2s ease,border-color .2s ease,transform .15s ease;}
+  .spine-btn:hover{background:rgba(155,107,255,.16);border-color:rgba(155,107,255,.44);transform:translateY(-1px);}
+  .spine-btn:focus-visible{outline:2px solid rgba(138,217,192,.7);outline-offset:2px;}
+}
+@media (max-width:899.98px){ #spine-actions{display:none !important;} }
+@media (min-width:900px) and (prefers-reduced-motion:reduce){
+  #spine-actions{opacity:1;transform:none;transition:none;}
+}
+</style>
+<div id="spine-actions" aria-label="quick controls" role="group">
+  <button type="button" class="spine-btn" id="spine-top" aria-label="back to top" title="back to top">&#9650;</button>
+  <button type="button" class="spine-btn" id="spine-share" aria-label="share card" title="generate a share card">&#10138;</button>
+  <button type="button" class="spine-btn" id="spine-mute" aria-label="mute / unmute audio" title="mute all audio" aria-pressed="false">&#128266;</button>
+</div>
+<script>
+(function(){
+  var sa=document.getElementById('spine-actions');
+  if(window.matchMedia && !window.matchMedia('(min-width:900px)').matches){
+    if(sa) sa.style.display='none'; return;
+  }
+  function proxy(id, targetId){
+    var b=document.getElementById(id); if(!b) return;
+    b.addEventListener('click', function(e){
+      e.preventDefault();
+      var t=document.getElementById(targetId);
+      if(t) t.click();
+    });
+  }
+  function wire(){
+    proxy('spine-top','cyber-top');
+    proxy('spine-share','share-card-btn');
+    proxy('spine-mute','global-mute-pill');
+    // mirror mute glyph + pressed state from the (hidden) original onto the proxy
+    var orig=document.getElementById('global-mute-pill');
+    var px=document.getElementById('spine-mute');
+    if(orig && px){
+      var sync=function(){
+        var t=(orig.textContent||'').trim();
+        if(t) px.textContent=t;
+        px.setAttribute('aria-pressed', orig.getAttribute('aria-pressed')||'false');
+      };
+      try{ new MutationObserver(sync).observe(orig,
+        {childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['aria-pressed','title']}); }catch(e){}
+      sync();
+    }
+    try{ document.documentElement.classList.add('spinehub-on'); }catch(e){}
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ requestAnimationFrame(wire); }); }
+  else { requestAnimationFrame(wire); }
+})();
+</script>
+<!--APPLE-SPINEHUB-END-->
+
+<!--APPLE-SPINEBAR-M-START-->
+<style>
+@media (max-width:899.98px){
+  /* lone bottom-right floater folds into the bar's top proxy */
+  #cyber-top{display:none !important;}
+  /* the soundtrack/EQ player sits in the bar's LEFT slot (kept, not hidden) */
+  #aux-audio{left:12px !important;
+    bottom:max(8px, calc(7px + env(safe-area-inset-bottom,0px))) !important;
+    z-index:10001 !important;}
+  #spine-bar-m{position:fixed;left:0;right:0;bottom:0;z-index:9990;
+    height:calc(56px + env(safe-area-inset-bottom,0px));
+    padding:0 14px env(safe-area-inset-bottom,0px) 0;
+    display:flex;align-items:center;justify-content:flex-end;gap:12px;
+    background:linear-gradient(0deg,rgba(12,5,28,.90),rgba(20,9,42,.60));
+    border-top:1px solid rgba(138,217,192,.18);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 -8px 26px rgba(0,0,0,.38);
+    opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease;}
+  html.spinebar-on #spine-bar-m{opacity:1;transform:none;}
+  .spine-bar-btn{width:42px;height:42px;padding:0;border-radius:13px;display:grid;place-items:center;
+    cursor:pointer;font-size:16px;line-height:1;color:#cdeede;
+    background:rgba(255,255,255,.05);border:1px solid rgba(155,107,255,.26);
+    transition:background .15s ease,border-color .15s ease;}
+  .spine-bar-btn:active{background:rgba(155,107,255,.20);border-color:rgba(155,107,255,.46);}
+  .spine-bar-btn:focus-visible{outline:2px solid rgba(138,217,192,.7);outline-offset:2px;}
+}
+@media (min-width:900px){ #spine-bar-m{display:none !important;} }
+@media (max-width:899.98px) and (prefers-reduced-motion:reduce){
+  #spine-bar-m{opacity:1;transform:none;transition:none;}
+}
+</style>
+<div id="spine-bar-m" aria-label="quick controls" role="group">
+  <button type="button" class="spine-bar-btn" id="spine-m-share" aria-label="share card" title="generate a share card">&#10138;</button>
+  <button type="button" class="spine-bar-btn" id="spine-m-mute" aria-label="mute / unmute audio" title="mute all audio" aria-pressed="false">&#128266;</button>
+  <button type="button" class="spine-bar-btn" id="spine-m-top" aria-label="back to top" title="back to top">&#9650;</button>
+</div>
+<script>
+(function(){
+  var bar=document.getElementById('spine-bar-m');
+  if(window.matchMedia && window.matchMedia('(min-width:900px)').matches){
+    if(bar) bar.style.display='none'; return;
+  }
+  function proxy(id, targetId){
+    var b=document.getElementById(id); if(!b) return;
+    b.addEventListener('click', function(e){
+      e.preventDefault();
+      var t=document.getElementById(targetId);
+      if(t) t.click();
+    });
+  }
+  function wire(){
+    proxy('spine-m-share','share-card-btn');
+    proxy('spine-m-mute','global-mute-pill');
+    proxy('spine-m-top','cyber-top');
+    var orig=document.getElementById('global-mute-pill');
+    var px=document.getElementById('spine-m-mute');
+    if(orig && px){
+      var sync=function(){
+        var t=(orig.textContent||'').trim();
+        if(t) px.textContent=t;
+        px.setAttribute('aria-pressed', orig.getAttribute('aria-pressed')||'false');
+      };
+      try{ new MutationObserver(sync).observe(orig,
+        {childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['aria-pressed','title']}); }catch(e){}
+      sync();
+    }
+    try{ document.documentElement.classList.add('spinebar-on'); }catch(e){}
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ requestAnimationFrame(wire); }); }
+  else { requestAnimationFrame(wire); }
+})();
+</script>
+<!--APPLE-SPINEBAR-M-END-->
+
+<!--APPLE-TYPESCALE-START-->
+<style>
+/* readable floor for the core narrative explainer prose (was an inherited 12px).
+   block paragraphs only — reflows vertically, never touches charts/ticks/mono. */
+.math, .intuit, .mydata, .take{
+  font-size:clamp(13px, 0.35vw + 11.85px, 13.5px) !important;
+  line-height:1.6 !important;
+}
+/* readable floor for the remaining genuine narrative READING prose that was
+   sub-13px (non-mono subtitles / descriptions / notes). Audited: the main body
+   copy (leads/ledes/intros/theses) is already >=13px; intentional secondary
+   LABELS (mono eyebrows, footers, citations, kickers, metas) are deliberately
+   left small so the type hierarchy survives. block <p> only -> vertical reflow. */
+p.mi-subtitle, p.amg-sub, p.amg-desc, p.decontam-sub, p.hp-partial-note{
+  font-size:clamp(13px, 0.2vw + 12.4px, 13.25px) !important;
+}
+</style>
+<!--APPLE-TYPESCALE-END-->
+
+<!--APPLE-STICKYSCROLL-START-->
+<style>
+#ss-scrolly{position:relative;max-width:1080px;margin:72px auto 40px;padding:0 22px;}
+#ss-scrolly .ss-eyebrow{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mint,#21f6bc);
+  text-align:center;margin:0 0 8px;opacity:.85;}
+#ss-scrolly .ss-wrap{display:block;}
+#ss-scrolly .ss-graphic{position:sticky;top:calc(var(--nav-h,56px) + 10px);z-index:3;
+  margin:0 auto 8px;max-width:520px;
+  background:linear-gradient(180deg,rgba(20,9,42,.62),rgba(10,3,24,.62));
+  border:1px solid rgba(138,217,192,.16);border-radius:20px;padding:14px 14px 10px;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:0 12px 34px rgba(0,0,0,.34);}
+#ss-scrolly svg{display:block;width:100%;height:auto;}
+#ss-scrolly .ss-steps{max-width:560px;margin:0 auto;}
+#ss-scrolly .ss-step{min-height:64vh;display:flex;flex-direction:column;justify-content:center;}
+#ss-scrolly .ss-step h3{font-family:ui-serif,Georgia,'Times New Roman',serif;
+  font-size:clamp(20px,3vw,28px);line-height:1.22;margin:0 0 10px;color:#f4eefb;font-weight:600;}
+#ss-scrolly .ss-step p{font-size:clamp(14px,1.4vw,16px);line-height:1.62;margin:0;color:#cdbfe0;}
+#ss-scrolly .ss-step b{color:#bff3df;font-weight:600;}
+/* graphic layers — default (no JS / data-active absent) = all revealed (never blank) */
+#ss-scrolly .ss-path{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:100;stroke-dashoffset:0;}
+#ss-scrolly .ss-path-algo{stroke:#6bb8ff;}
+#ss-scrolly .ss-path-me{stroke:#33e6a0;}
+#ss-scrolly .ss-badge{transition:opacity .45s ease;}
+#ss-scrolly[data-active] .ss-path,
+#ss-scrolly[data-active] .ss-badge{opacity:0;transition:opacity .5s ease,stroke-dashoffset .9s ease;}
+#ss-scrolly[data-active] .ss-path{stroke-dashoffset:100;}
+/* step reveals */
+#ss-scrolly[data-active="1"] .ss-path-algo,#ss-scrolly[data-active="1"] .ss-badge-algo,
+#ss-scrolly[data-active="2"] .ss-path-algo,#ss-scrolly[data-active="2"] .ss-badge-algo,
+#ss-scrolly[data-active="2"] .ss-path-me,#ss-scrolly[data-active="2"] .ss-badge-me,
+#ss-scrolly[data-active="3"] .ss-path-algo,#ss-scrolly[data-active="3"] .ss-path-me,
+#ss-scrolly[data-active="3"] .ss-badge-bridge{opacity:1;stroke-dashoffset:0;}
+#ss-scrolly[data-active="2"] .ss-path-algo,#ss-scrolly[data-active="3"] .ss-path-algo{opacity:.4;}
+@media (min-width:780px){
+  #ss-scrolly .ss-wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;}
+  #ss-scrolly .ss-graphic{order:2;margin-top:6vh;}
+  #ss-scrolly .ss-steps{order:1;}
+  #ss-scrolly .ss-step{min-height:78vh;}
+}
+@media (prefers-reduced-motion:reduce){
+  #ss-scrolly[data-active] .ss-path,#ss-scrolly[data-active] .ss-badge{opacity:1;stroke-dashoffset:0;transition:none;}
+}
+</style>
+<section id="ss-scrolly" aria-label="A closer look — two listening topologies">
+  <p class="ss-eyebrow">a closer look &middot; scroll</p>
+  <div class="ss-wrap">
+    <div class="ss-graphic" aria-hidden="true">
+      <svg viewBox="0 0 420 300" role="img">
+        <rect x="16" y="38" width="388" height="64" rx="14" fill="rgba(107,184,255,.07)" stroke="rgba(107,184,255,.22)"/>
+        <rect x="16" y="198" width="388" height="64" rx="14" fill="rgba(51,230,160,.06)" stroke="rgba(51,230,160,.20)"/>
+        <text x="28" y="30" fill="#7fb6e6" font-family="JetBrains Mono,monospace" font-size="11">community A &mdash; e.g. hip-hop &middot; r&amp;b</text>
+        <text x="28" y="284" fill="#6fcaa6" font-family="JetBrains Mono,monospace" font-size="11">community B &mdash; e.g. ambient &middot; electronic</text>
+        <g fill="rgba(180,200,255,.45)">
+          <circle cx="70" cy="70" r="5"/><circle cx="140" cy="70" r="5"/><circle cx="210" cy="70" r="5"/><circle cx="280" cy="70" r="5"/><circle cx="350" cy="70" r="5"/>
+        </g>
+        <g fill="rgba(150,235,200,.42)">
+          <circle cx="90" cy="230" r="5"/><circle cx="160" cy="230" r="5"/><circle cx="230" cy="230" r="5"/><circle cx="300" cy="230" r="5"/><circle cx="360" cy="230" r="5"/>
+        </g>
+        <path class="ss-path ss-path-algo" pathLength="100" d="M40,70 L120,66 L200,74 L250,230 L300,70 L380,72"/>
+        <path class="ss-path ss-path-me" pathLength="100" d="M40,70 L100,230 L160,70 L220,230 L290,70 L350,230"/>
+        <g class="ss-badge ss-badge-algo" transform="translate(252,116)">
+          <rect x="0" y="0" width="150" height="22" rx="11" fill="rgba(107,184,255,.16)" stroke="rgba(107,184,255,.4)"/>
+          <text x="11" y="15" fill="#bcd9f7" font-family="JetBrains Mono,monospace" font-size="11">autoplay &rarr; 53% cross</text>
+        </g>
+        <g class="ss-badge ss-badge-me" transform="translate(16,160)">
+          <rect x="0" y="0" width="146" height="22" rx="11" fill="rgba(51,230,160,.16)" stroke="rgba(51,230,160,.42)"/>
+          <text x="11" y="15" fill="#bff3df" font-family="JetBrains Mono,monospace" font-size="11">my taps &rarr; 69% cross</text>
+        </g>
+        <g class="ss-badge ss-badge-bridge" transform="translate(120,128)">
+          <rect x="0" y="0" width="180" height="26" rx="13" fill="rgba(155,107,255,.18)" stroke="rgba(155,107,255,.46)"/>
+          <text x="14" y="17" fill="#e8dcff" font-family="JetBrains Mono,monospace" font-size="12">Bridge Index 1.3&times;</text>
+        </g>
+      </svg>
+    </div>
+    <div class="ss-steps">
+      <div class="ss-step" data-step="0">
+        <h3>My library isn&rsquo;t one blob.</h3>
+        <p>Seven years of plays cluster into <b>communities</b> &mdash; lanes of artists who keep showing up together. Two of them, sketched here.</p>
+      </div>
+      <div class="ss-step" data-step="1">
+        <h3>The algorithm stays in its lane.</h3>
+        <p>When autoplay picks the next track, it lands in a <b>different</b> community only <b>53%</b> of the time. It mostly keeps me where I already am.</p>
+      </div>
+      <div class="ss-step" data-step="2">
+        <h3>I&rsquo;m the one who bridges.</h3>
+        <p>When <b>I</b> pick the next track, it crosses into another community <b>69%</b> of the time &mdash; I hop between lanes far more than the recommender does.</p>
+      </div>
+      <div class="ss-step" data-step="3">
+        <h3>Same library, two topologies.</h3>
+        <p><b>Bridge Index 1.3&times;.</b> The difference isn&rsquo;t how much I listen &mdash; it&rsquo;s the <i>shape</i> of the path through it. Agency, it turns out, is topological.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  var root=document.getElementById('ss-scrolly'); if(!root) return;
+  function start(){
+    // relocate to just before Act III as a transition (graceful if anchor missing)
+    try{
+      var anchor=document.getElementById('act-3')||document.getElementById('act-2');
+      if(anchor && anchor.parentNode && root.parentNode){ anchor.parentNode.insertBefore(root, anchor); }
+    }catch(e){}
+    var steps=[].slice.call(root.querySelectorAll('.ss-step'));
+    if(!steps.length) return;
+    root.setAttribute('data-active','0');
+    if(!('IntersectionObserver' in window)){ root.removeAttribute('data-active'); return; }
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ root.setAttribute('data-active', e.target.getAttribute('data-step')); }});
+    }, { rootMargin:'-45% 0px -45% 0px', threshold:0 });
+    steps.forEach(function(st){ io.observe(st); });
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', start); }
+  else { start(); }
+})();
+</script>
+<!--APPLE-STICKYSCROLL-END-->
+
 </body>
 </html>
