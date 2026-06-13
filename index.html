@@ -2244,7 +2244,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <span class="dot">·</span>
       <span><b>4,770</b> hours</span>
     </div>
-    <a class="hero-cue" href="#tldr" aria-label="scroll for context">
+    <a class="hero-cue" href="#abstract" aria-label="skip to the abstract — start reading">
       keep going<span class="arrow">↓</span><span class="arrow2">↓</span>
     </a>
   </div>
@@ -11113,10 +11113,10 @@ try {
 (function() {
   /* Hero cue → open details#tldr on click */
   document.addEventListener('DOMContentLoaded', function() {
-    var cue = document.querySelector('a.hero-cue[href="#tldr"]');
+    var cue = document.querySelector('a.hero-cue');
     var det = document.getElementById('tldr');
     if (cue && det) {
-      cue.addEventListener('click', function() { det.open = true; });
+      cue.addEventListener('click', function(e){ var t=document.getElementById('abstract'); if(!t) return; e.preventDefault(); var nv=document.querySelector('.cyber-nav'); var off=(nv?nv.offsetHeight:56)+12; (function aim(n,last){ var y=t.getBoundingClientRect().top+window.pageYOffset-off; window.scrollTo({top:y,behavior:'smooth'}); if(n>0 && Math.abs(y-last)>4){ setTimeout(function(){aim(n-1,y);},150); } })(8,-1); if(history.replaceState) history.replaceState(null,'','#abstract'); });
     }
   });
 
@@ -19501,7 +19501,7 @@ p.mi-subtitle, p.amg-sub, p.amg-desc, p.decontam-sub, p.hp-partial-note{
 
 <!--APPLE-RESEARCHMODE-START-->
 <style>
-#rm-toggle{position:fixed;top:calc(var(--nav-h,56px) + 8px);left:14px;z-index:9994;
+#rm-toggle{position:static;white-space:nowrap;flex:0 0 auto;
   display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;
   font:600 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;
   cursor:pointer;color:#cdeede;background:rgba(20,9,42,.7);border:1px solid rgba(138,217,192,.28);
@@ -19540,7 +19540,7 @@ html.research-mode .stx-card,html.research-mode .card{border-color:rgba(150,150,
 <script>
 (function(){
   var KEY='sonicmanifold-research-view';
-  var btn=document.getElementById('rm-toggle'); if(!btn) return;
+  var btn=document.getElementById('rm-toggle'); if(!btn) return; try{var _nav=document.querySelector('.cyber-nav ul'),_st=document.getElementById('story-toggle');if(_nav&&!btn.closest('.cyber-nav')){var _li=document.createElement('li');_li.className='rm-nav-li';_li.appendChild(btn);var _stli=_st&&_st.closest('li');if(_stli&&_stli.parentNode===_nav&&_stli.nextSibling){_nav.insertBefore(_li,_stli.nextSibling);}else{_nav.appendChild(_li);}}}catch(e){}
   var label=btn.querySelector('.rm-label');
   var enhanced=false;
 
