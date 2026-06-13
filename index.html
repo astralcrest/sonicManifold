@@ -19111,65 +19111,6 @@ function go(){var h=document.getElementById('apple-leadhero');if(!h||rm)return;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
 })();
 </script><!--APPLE-HEROCINE-END-->
-<!--APPLE-STRESSTEST-START-->
-<style>
-#stress-test{max-width:1080px;margin:0 auto;padding:clamp(28px,6vw,72px) 20px;}
-#stress-test .stx-eyebrow{font:600 12px/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#8ad9c0;margin:0 0 10px;}
-#stress-test .stx-h{font:700 clamp(24px,4.4vw,40px)/1.12 -apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:-.02em;color:#f3eeff;margin:0 0 12px;max-width:20ch;}
-#stress-test .stx-lede{font:400 clamp(15px,2.1vw,18px)/1.55 -apple-system,'Segoe UI',system-ui,sans-serif;color:#c7bce0;margin:0 0 30px;max-width:56ch;}
-#stress-test .stx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:16px;}
-#stress-test .stx-card{position:relative;background:linear-gradient(180deg,rgba(32,16,58,.62),rgba(18,8,38,.62));border:1px solid rgba(138,217,192,.22);border-radius:16px;padding:20px 20px 22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden;}
-#stress-test .stx-card::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,#8ad9c0,#b69cff);opacity:.85;}
-#stress-test .stx-tag{font:600 11px/1.3 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#b69cff;margin:0 0 10px;}
-#stress-test .stx-claim{font:600 16px/1.4 -apple-system,'Segoe UI',system-ui,sans-serif;color:#f3eeff;margin:0 0 10px;}
-#stress-test .stx-test{font:400 14px/1.6 -apple-system,'Segoe UI',system-ui,sans-serif;color:#c2b7dc;margin:0;}
-#stress-test .stx-test b{color:#eae3ff;font-weight:700;}
-#stress-test .stx-foot{font:400 13.5px/1.6 -apple-system,'Segoe UI',system-ui,sans-serif;color:#9d92bb;margin:26px 0 0;max-width:60ch;}
-@media (prefers-reduced-motion:no-preference){#stress-test .stx-card{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1);}#stress-test.stx-in .stx-card{opacity:1;transform:none;}#stress-test.stx-in .stx-card:nth-child(2){transition-delay:.09s;}#stress-test.stx-in .stx-card:nth-child(3){transition-delay:.18s;}}
-</style>
-<section id="stress-test" aria-label="Stress-testing the findings that survived">
-  <p class="stx-eyebrow">how do i know it&rsquo;s real?</p>
-  <h2 class="stx-h">I went back and tried to break the ones that lived.</h2>
-  <p class="stx-lede">My flashiest effect already died on its own audit &mdash; you just saw it. So for the findings that held, here&rsquo;s what I threw at them, and why I trust them.</p>
-  <div class="stx-grid">
-    <article class="stx-card">
-      <div class="stx-tag">the genre flip</div>
-      <p class="stx-claim">Ambient gets served to me about twice as often as I actually reach for it. Hip-hop is the reverse.</p>
-      <p class="stx-test">For some cause I never measured to explain that away, it would have to pull on both my choices <em>and</em> my genres roughly <b>3&times; harder</b> than everything I did measure &mdash; when in a session a play landed, how recently I&rsquo;d heard the artist, what came before it. Nothing I know about my own listening is that strong.</p>
-    </article>
-    <article class="stx-card">
-      <div class="stx-tag">not a fluke era</div>
-      <p class="stx-claim">Maybe it&rsquo;s just Spotify quietly changing its app over seven years, not me.</p>
-      <p class="stx-test">So I cut the years in half and ran everything twice. The genre flip shows up in <b>both halves</b>, in the same order. And the flashy effect dies in <b>each half too</b>, not only on average. It&rsquo;s the listener, not the era.</p>
-    </article>
-    <article class="stx-card">
-      <div class="stx-tag">the detector travels</div>
-      <p class="stx-claim">I can tell a song I chose from one the app served &mdash; using nothing but timing.</p>
-      <p class="stx-test">No genre, no audio: just <em>when</em> in a session a play happened and how long since I&rsquo;d last heard that artist. Train it on one stretch of years and it still calls the next stretch right about <b>7 times in 10</b>.</p>
-    </article>
-  </div>
-  <p class="stx-foot">The honest gap that&rsquo;s left: all of this is one person &mdash; me. The detector hasn&rsquo;t been run on a second listener&rsquo;s library yet. That&rsquo;s the next test, and it&rsquo;s the one that would turn &ldquo;works for me&rdquo; into &ldquo;works.&rdquo;</p>
-</section>
-<script>
-(function(){
-  function place(){
-    var el=document.getElementById('stress-test'); if(!el) return;
-    var anchor=document.getElementById('oos-star')||document.getElementById('ai-systems')||document.getElementById('apple-ailabbeat');
-    if(anchor&&anchor.parentNode&&el.previousElementSibling!==anchor){
-      anchor.parentNode.insertBefore(el,anchor.nextSibling);
-    }
-    if('IntersectionObserver' in window){
-      var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){el.classList.add('stx-in');io.disconnect();}});},{threshold:.18});
-      io.observe(el);
-    } else { el.classList.add('stx-in'); }
-    setTimeout(function(){el.classList.add('stx-in');},1800);
-  }
-  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){setTimeout(place,400);});}
-  else{setTimeout(place,400);}
-})();
-</script>
-<!--APPLE-STRESSTEST-END-->
-
 <!--APPLE-CINESPINE-START-->
 <style>
 @media (min-width:900px){
@@ -19490,6 +19431,73 @@ p.mi-subtitle, p.amg-sub, p.amg-desc, p.decontam-sub, p.hp-partial-note{
 })();
 </script>
 <!--APPLE-STICKYSCROLL-END-->
+
+<!--APPLE-STRESSTEST-START-->
+<style>
+#stress-test{max-width:1080px;margin:0 auto;padding:clamp(28px,6vw,72px) 20px;}
+#stress-test .stx-eyebrow{font:600 12px/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#8ad9c0;margin:0 0 10px;}
+#stress-test .stx-h{font:700 clamp(24px,4.4vw,40px)/1.12 -apple-system,'Segoe UI',system-ui,sans-serif;letter-spacing:-.02em;color:#f3eeff;margin:0 0 12px;max-width:20ch;}
+#stress-test .stx-lede{font:400 clamp(15px,2.1vw,18px)/1.55 -apple-system,'Segoe UI',system-ui,sans-serif;color:#c7bce0;margin:0 0 30px;max-width:56ch;}
+#stress-test .stx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:16px;}
+#stress-test .stx-card{position:relative;background:linear-gradient(180deg,rgba(32,16,58,.62),rgba(18,8,38,.62));border:1px solid rgba(138,217,192,.22);border-radius:16px;padding:20px 20px 22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden;}
+#stress-test .stx-card::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,#8ad9c0,#b69cff);opacity:.85;}
+#stress-test .stx-tag{font:600 11px/1.3 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#b69cff;margin:0 0 10px;}
+#stress-test .stx-claim{font:600 16px/1.4 -apple-system,'Segoe UI',system-ui,sans-serif;color:#f3eeff;margin:0 0 10px;}
+#stress-test .stx-test{font:400 14px/1.6 -apple-system,'Segoe UI',system-ui,sans-serif;color:#c2b7dc;margin:0;}
+#stress-test .stx-test b{color:#eae3ff;font-weight:700;}
+#stress-test .stx-kill{font:600 12.5px/1.5 'JetBrains Mono',ui-monospace,monospace;color:#ff9bb0;margin:13px 0 0;padding-top:11px;border-top:1px solid rgba(255,155,176,.18);}
+#stress-test .stx-kill b{color:#ffd0db;font-weight:700;}
+#stress-test .stx-foot{font:400 13.5px/1.6 -apple-system,'Segoe UI',system-ui,sans-serif;color:#9d92bb;margin:26px 0 0;max-width:60ch;}
+#stress-test .stx-cta{display:inline-flex;align-items:center;gap:9px;margin:16px 0 0;padding:11px 20px;border-radius:999px;font:600 12.5px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#0a0118;background:linear-gradient(100deg,#8ad9c0,#b69cff);text-decoration:none;transition:transform .15s ease,box-shadow .15s ease;}
+#stress-test .stx-cta:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(138,217,192,.28);}
+@media (prefers-reduced-motion:no-preference){#stress-test .stx-card{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1);}#stress-test.stx-in .stx-card{opacity:1;transform:none;}#stress-test.stx-in .stx-card:nth-child(2){transition-delay:.09s;}#stress-test.stx-in .stx-card:nth-child(3){transition-delay:.18s;}}
+</style>
+<section id="stress-test" aria-label="Stress-testing the findings that survived">
+  <p class="stx-eyebrow">how do i know it&rsquo;s real?</p>
+  <h2 class="stx-h">I went back and tried to break the ones that lived.</h2>
+  <p class="stx-lede">My flashiest effect already died on its own audit &mdash; you just saw it. So for the findings that held, here&rsquo;s what I threw at them, and why I trust them.</p>
+  <div class="stx-grid">
+    <article class="stx-card">
+      <div class="stx-tag">the genre flip</div>
+      <p class="stx-claim">Ambient gets served to me about twice as often as I actually reach for it. Hip-hop is the reverse.</p>
+      <p class="stx-test">For some cause I never measured to explain that away, it would have to pull on both my choices <em>and</em> my genres roughly <b>3&times; harder</b> than everything I did measure &mdash; when in a session a play landed, how recently I&rsquo;d heard the artist, what came before it. Nothing I know about my own listening is that strong.</p>
+      <p class="stx-kill">&#10007; would die if &mdash; a cause I never measured pulled on both my taps and my genres <b>&ge;3&times; harder</b> than timing did. (E-value 2.94.)</p>
+    </article>
+    <article class="stx-card">
+      <div class="stx-tag">not a fluke era</div>
+      <p class="stx-claim">Maybe it&rsquo;s just Spotify quietly changing its app over seven years, not me.</p>
+      <p class="stx-test">So I cut the years in half and ran everything twice. The genre flip shows up in <b>both halves</b>, in the same order. And the flashy effect dies in <b>each half too</b>, not only on average. It&rsquo;s the listener, not the era.</p>
+      <p class="stx-kill">&#10007; would die if &mdash; the flip showed up in <b>only one half</b>. It shows in both.</p>
+    </article>
+    <article class="stx-card">
+      <div class="stx-tag">the detector travels</div>
+      <p class="stx-claim">I can tell a song I chose from one the app served &mdash; using nothing but timing.</p>
+      <p class="stx-test">No genre, no audio: just <em>when</em> in a session a play happened and how long since I&rsquo;d last heard that artist. Train it on one stretch of years and it still calls the next stretch right about <b>7 times in 10</b>.</p>
+      <p class="stx-kill">&#10007; would die if &mdash; timing-only dropped to a <b>coin-flip on a second person&rsquo;s library</b>. The check is built; it needs one more export.</p>
+    </article>
+  </div>
+  <p class="stx-foot">The honest gap that&rsquo;s left: all of this is one person &mdash; me. The detector hasn&rsquo;t been run on a second listener&rsquo;s library yet. That&rsquo;s the next test, and it&rsquo;s the one that would turn &ldquo;works for me&rdquo; into &ldquo;works.&rdquo;</p>
+  <a class="stx-cta" href="./yourturn.html">&#9654;&ensp;run the first cut on your own history</a>
+</section>
+<script>
+(function(){
+  function place(){
+    var el=document.getElementById('stress-test'); if(!el) return;
+    var anchor=document.getElementById('oos-star')||document.getElementById('ai-systems')||document.getElementById('apple-ailabbeat');
+    if(anchor&&anchor.parentNode&&el.previousElementSibling!==anchor){
+      anchor.parentNode.insertBefore(el,anchor.nextSibling);
+    }
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){el.classList.add('stx-in');io.disconnect();}});},{threshold:.18});
+      io.observe(el);
+    } else { el.classList.add('stx-in'); }
+    setTimeout(function(){el.classList.add('stx-in');},1800);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){setTimeout(place,400);});}
+  else{setTimeout(place,400);}
+})();
+</script>
+<!--APPLE-STRESSTEST-END-->
 
 </body>
 </html>
