@@ -19090,5 +19090,26 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 setTimeout(wire,1200);setTimeout(wire,4000);
 })();
 </script><!--APPLE-SPFALLBACK-END-->
+<!--APPLE-HEROCINE-START--><style>
+#apple-leadhero.cine-armed .lh-eyebrow,#apple-leadhero.cine-armed .lh-stat,#apple-leadhero.cine-armed .lh-thesis,#apple-leadhero.cine-armed .lh-legend,#apple-leadhero.cine-armed .lh-cta{opacity:0;transform:translateY(16px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+#apple-leadhero.cine-armed.lh-in .lh-eyebrow{opacity:1;transform:none;transition-delay:.05s}
+#apple-leadhero.cine-armed.lh-in .lh-stat{opacity:1;transform:none;transition-delay:.24s}
+#apple-leadhero.cine-armed.lh-in .lh-thesis{opacity:1;transform:none;transition-delay:.48s}
+#apple-leadhero.cine-armed.lh-in .lh-legend{opacity:1;transform:none;transition-delay:.94s}
+#apple-leadhero.cine-armed.lh-in .lh-cta{opacity:1;transform:none;transition-delay:1.12s}
+</style><script>
+(function(){if(window.__heroCine)return;window.__heroCine=true;
+var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+function go(){var h=document.getElementById('apple-leadhero');if(!h||rm)return;
+  h.classList.add('cine-armed');
+  var fire=function(){h.classList.add('lh-in');};
+  if(!('IntersectionObserver'in window)){fire();return;}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){fire();io.disconnect();}});},{threshold:.2});
+  io.observe(h);
+  setTimeout(function(){if(!h.classList.contains('lh-in'))fire();},1600);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
+})();
+</script><!--APPLE-HEROCINE-END-->
 </body>
 </html>
