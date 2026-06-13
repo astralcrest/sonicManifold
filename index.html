@@ -18934,34 +18934,60 @@ body.calm-open .calm-toggle{color:rgba(176,186,205,.6)}
 <script>
 /* Mobile chart legibility on phones (<=768): horizontal colorbars (heatmaps were collapsing),
    wrapped titles, explicit left-margin for long y-labels, hide badly-overflowing legends.
-   Desktop = strict no-op + restores anything this changed. Interval+scroll driven; idempotent per bucket; each op isolated. */
+   Stubborn long titles (incl. inline <span> subtitle lines that ignore title.font.size) are
+   stripped+rewrapped+shrunk ONLY when they actually overflow, re-runnable until they fit.
+   Desktop = strict no-op + restores anything this changed. Interval+scroll driven; each op isolated. */
 (function(){
-  function wrapTitle(t,maxc){ if(!t||String(t).indexOf('<br')>=0)return null;
-    var w=String(t).split(/\s+/),L=[],c=''; for(var i=0;i<w.length;i++){ if((c+' '+w[i]).trim().length>maxc){if(c)L.push(c);c=w[i];}else c=(c?c+' ':'')+w[i]; }
-    if(c)L.push(c); var o=L.join('<br>'); return o!==String(t)?o:null; }
   var hCB={'colorbar.orientation':'h','colorbar.y':-0.3,'colorbar.yanchor':'top','colorbar.x':0.5,'colorbar.xanchor':'center','colorbar.len':0.92,'colorbar.thickness':11};
   var vCB={'colorbar.orientation':'v','colorbar.y':0.5,'colorbar.yanchor':'middle','colorbar.x':1.02,'colorbar.xanchor':'left','colorbar.len':1,'colorbar.thickness':20};
   var hAx={'coloraxis.colorbar.orientation':'h','coloraxis.colorbar.y':-0.3,'coloraxis.colorbar.yanchor':'top','coloraxis.colorbar.x':0.5,'coloraxis.colorbar.xanchor':'center','coloraxis.colorbar.len':0.92,'coloraxis.colorbar.thickness':11};
   var vAx={'coloraxis.colorbar.orientation':'v','coloraxis.colorbar.y':0.5,'coloraxis.colorbar.yanchor':'middle','coloraxis.colorbar.x':1.02,'coloraxis.colorbar.xanchor':'left','coloraxis.colorbar.len':1};
   function maxW(p,sel){ var m=0; p.querySelectorAll(sel).forEach(function(e){var r=e.getBoundingClientRect(); if(r.width>m)m=r.width;}); return m; }
   function legOverflow(p){ var pr=p.getBoundingClientRect(),m=0; p.querySelectorAll('.legend').forEach(function(e){var r=e.getBoundingClientRect(); if(r.height)m=Math.max(m,r.bottom-pr.bottom);}); return m; }
+  // Re-runnable, scoped: only acts on titles/labels that ACTUALLY overflow; self-terminating; desktop restores.
+  function fitTitle(p,P,fl,cw){
+    if(!(fl.title&&fl.title.text)) return;
+    var gt=p.querySelector('.gtitle'); if(!gt) return;
+    var pr=p.getBoundingClientRect(), tr=gt.getBoundingClientRect();
+    var over=Math.max(tr.right-pr.right, pr.left-tr.left);
+    if(!p.__mf2tw){
+      if(over<=10) return;                              // leave well-fitting titles untouched
+      if(p.__mf2t0===undefined) p.__mf2t0=fl.title.text;
+      var plain=String(p.__mf2t0).replace(/<\/?span[^>]*>/gi,'').replace(/<br\s*\/?>/gi,' ').replace(/\s+/g,' ').trim();
+      var f0=Math.min((fl.title.font&&fl.title.font.size)||14,12);
+      var maxc=Math.max(14,Math.floor((cw-16)/(f0*0.72)));
+      var L=[],c=''; plain.split(' ').forEach(function(w){ if((c+' '+w).trim().length>maxc){ if(c)L.push(c); c=w;} else c=(c?c+' ':'')+w; }); if(c)L.push(c);
+      p.__mf2tw=L.join('<br>');
+      try{ P.relayout(p,{'title.text':p.__mf2tw,'title.font.size':f0}); }catch(e){}
+      return;
+    }
+    var tf=parseInt(p.dataset.mf2tf||'0',10);
+    if(over>8&&tf<9){ var cur=(fl.title.font&&fl.title.font.size)||12; if(cur>9){ try{P.relayout(p,{'title.font.size':Math.max(9,cur-0.8)});}catch(e){} } p.dataset.mf2tf=String(tf+1); }
+  }
+  function refit(p,P,fl,cw,isM){
+    if(!isM){
+      if(p.__mf2tw){ try{P.relayout(p,{'title.text':p.__mf2t0,'title.font.size':null});}catch(e){} p.__mf2tw=null; delete p.dataset.mf2tf; }
+      if(p.dataset.mf2yf){ try{P.relayout(p,{'yaxis.tickfont.size':null});}catch(e){} delete p.dataset.mf2yf; }
+      return;
+    }
+    fitTitle(p,P,fl,cw);
+    try{ var yw=maxW(p,'.ytick text');
+      if(yw>0){ var need=Math.min(Math.ceil(yw)+12, Math.floor(cw*0.52)), curML=(fl.margin&&fl.margin.l)||0;
+        if(need>curML+3){ P.relayout(p,{'margin.l':need}); p.dataset.mf2ml='1'; } } }catch(e){}
+  }
   function fix(p){
     var P=window.Plotly; if(!P||!p._fullLayout||!p.querySelector('.main-svg')) return;
     var isM=window.innerWidth<=768, bucket=isM?'m':'d';
+    var fl=p._fullLayout, cw=(p.parentElement&&p.parentElement.clientWidth)||window.innerWidth;
+    refit(p,P,fl,cw,isM);
     if(p.dataset.mf2===bucket) return;
     p.dataset.mf2=bucket;
-    var fl=p._fullLayout, cw=(p.parentElement&&p.parentElement.clientWidth)||window.innerWidth, did=false;
+    var did=false;
     var traceCBh=false,hasTraceCB=false; (p.data||[]).forEach(function(t){ if(t&&t.colorbar&&t.colorbar.orientation==='h')traceCBh=true; if(t&&(t.colorbar||t.type==='heatmap'||t.type==='contour'||t.type==='histogram2d'||t.type==='histogram2dcontour'))hasTraceCB=true; });
     var axH=!!(fl.coloraxis&&fl.coloraxis.colorbar&&fl.coloraxis.colorbar.orientation==='h'), hasAx=!!(fl.coloraxis&&fl.coloraxis.colorbar);
     if(isM){
       try{ if(hasTraceCB){P.restyle(p,hCB);did=true;} }catch(e){}
       try{ if(hasAx){P.relayout(p,hAx);did=true;} }catch(e){}
-      if(fl.title&&fl.title.text){ try{ var fs=Math.min((fl.title.font&&fl.title.font.size)||14,12.5);
-        var tprr=p.getBoundingClientRect(),tov=0; p.querySelectorAll('.gtitle').forEach(function(e){var r=e.getBoundingClientRect(); if(r.width)tov=Math.max(tov,r.right-tprr.right);});
-        var base=tov>10?String(fl.title.text).replace(/<br\s*\/?>/gi,' '):fl.title.text;
-        var wr=wrapTitle(base,Math.max(15,Math.floor((cw-14)/(fs*0.56)))); if(wr){P.relayout(p,{'title.text':wr,'title.font.size':fs});did=true;} }catch(e){} }
-      // long y-labels: widen left margin to fit (capped)
-      try{ var yw=maxW(p,'.ytick text'); if(yw>(fl.margin&&fl.margin.l||0)+4){ var ml=Math.min(Math.ceil(yw)+10, Math.floor(cw*0.46)); P.relayout(p,{'margin.l':ml}); p.dataset.mf2ml='1'; did=true; } }catch(e){}
       // hide a legend that badly overflows the plot bottom (multi-series; shapes/captions carry it)
       try{ if(legOverflow(p)>24){ P.relayout(p,{showlegend:false}); p.dataset.mf2leg='1'; did=true; } }catch(e){}
     } else {
@@ -18973,14 +18999,41 @@ body.calm-open .calm-toggle{color:rgba(176,186,205,.6)}
     if(did){ setTimeout(function(){ try{P.Plots.resize(p);}catch(e){} },30); }
   }
   function run(){ document.querySelectorAll('.js-plotly-plot').forEach(fix); }
-  var n=0, iv=setInterval(function(){ run(); if(++n>26) clearInterval(iv); }, 600);
+  var n=0, iv=setInterval(function(){ run(); if(++n>40) clearInterval(iv); }, 600);
   var st,rt;
   addEventListener('scroll', function(){ clearTimeout(st); st=setTimeout(run,180); }, {passive:true});
-  addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){ document.querySelectorAll('.js-plotly-plot').forEach(function(p){ delete p.dataset.mf2; }); run(); }, 320); });
+  addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(function(){ document.querySelectorAll('.js-plotly-plot').forEach(function(p){ delete p.dataset.mf2; delete p.dataset.mf2yf; }); run(); }, 320); });
   if(document.readyState==='loading') addEventListener('DOMContentLoaded', run); else run();
 })();
 </script>
 <!--APPLE-MOBFIX2-END-->
 
+<!--APPLE-HERO-VIZ-START-->
+<style>
+.hero-viz{max-width:880px;margin:30px auto 2px;padding:0 16px;text-align:center}
+.hero-viz figure{margin:0}
+.hero-viz img{width:100%;max-width:438px;height:auto;border-radius:14px;display:block;margin:0 auto;box-shadow:0 10px 44px rgba(0,0,0,.5);border:1px solid rgba(125,240,200,.10)}
+.hero-viz figcaption{max-width:540px;margin:13px auto 0;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12.5px;line-height:1.55;color:rgba(232,236,246,.6)}
+@media(max-width:720px){.hero-viz{margin:16px 6px 2px;padding:0 6px}.hero-viz img{max-width:100%}.hero-viz figcaption{font-size:12px}}
+</style>
+<script>
+(function(){
+  function build(){
+    if(document.querySelector(".hero-viz")) return true;
+    var anchor=document.querySelector(".xpress")||document.querySelector(".calm-toggle")||document.querySelector(".scitrack");
+    if(!anchor) return false;
+    var f=document.createElement("section"); f.className="hero-viz"; f.setAttribute("aria-label","where the next song goes");
+    f.innerHTML='<figure>'+
+      '<img src="health-figs/hp-9-bridge.png?v=1" alt="16-row dot chart: in every one of my listening communities, the song i deliberately chose leaves its genre more often (64% overall) than the song the algorithm autoplayed (40%)." loading="eager" decoding="async" width="962" height="1296">'+
+      '<figcaption>each row is one of my listening communities. the song i chose (green) leaves its genre lane more often than the one i was fed (blue) &mdash; in all sixteen, no exceptions.</figcaption>'+
+      '</figure>';
+    anchor.parentNode.insertBefore(f, anchor);
+    return true;
+  }
+  function init(){ if(!build()) setTimeout(init,200); }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
+})();
+</script>
+<!--APPLE-HERO-VIZ-END-->
 </body>
 </html>
