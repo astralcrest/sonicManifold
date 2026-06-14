@@ -19994,5 +19994,174 @@ body::after{
 })();
 </script>
 <!--FIELD-VERDICT-END-->
+<!--FIELD-BODYCOUNT-START-->
+<style>
+/* ===== FIELD STUDY · Phase 7 — FIELD-BODYCOUNT (the audit, executed on scroll) ===== */
+#field-bodycount{--bc-surv:#21f6bc;--bc-retract:#D6A84E;position:relative;max-width:1080px;
+  margin:64px auto 52px;padding:0 22px}
+#field-bodycount .bc-eyebrow{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--bc-retract);
+  text-align:center;margin:0 0 6px;opacity:.92}
+#field-bodycount .bc-wrap{display:block}
+#field-bodycount .bc-graphic{position:sticky;top:calc(var(--nav-h,56px) + 14px);z-index:3;
+  margin:0 auto 10px;max-width:540px}
+#field-bodycount .bc-card{position:relative;background:linear-gradient(180deg,rgba(21,8,45,.5),rgba(10,1,24,.42));
+  border:1px solid rgba(124,128,140,.30);border-radius:18px;padding:22px 22px 20px;
+  -webkit-backdrop-filter:blur(11px);backdrop-filter:blur(11px);box-shadow:0 14px 38px rgba(0,0,0,.36)}
+/* verdict badge — two pills stacked, cross-fade SURVIVING -> RETRACTED */
+#field-bodycount .bc-verdict{display:inline-grid;margin:0 0 14px}
+#field-bodycount .bc-verdict>span{grid-area:1/1;display:inline-flex;align-items:center;gap:.42em;
+  font-family:'Inter',var(--ui),system-ui,sans-serif;font-weight:700;font-size:10.5px;
+  letter-spacing:.15em;text-transform:uppercase;line-height:1;white-space:nowrap;padding:5px 11px;
+  border-radius:999px;border:1px solid currentColor;transition:opacity .55s ease}
+#field-bodycount .bc-v-surv{color:var(--bc-surv);box-shadow:0 0 16px -6px rgba(33,246,188,.55)}
+#field-bodycount .bc-v-ret{color:var(--bc-retract);opacity:0}
+#field-bodycount[data-active="2"] .bc-v-surv,#field-bodycount[data-active="3"] .bc-v-surv{opacity:0}
+#field-bodycount[data-active="2"] .bc-v-ret,#field-bodycount[data-active="3"] .bc-v-ret{opacity:1}
+#field-bodycount .bc-claim{font-family:ui-serif,Georgia,'Times New Roman',serif;
+  font-size:clamp(19px,2.6vw,25px);line-height:1.32;margin:0;color:#f4eefb;font-weight:500}
+#field-bodycount .bc-claim em{font-style:italic;color:#fff}
+#field-bodycount .bc-stat{position:relative;display:inline-block;white-space:nowrap;
+  font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-weight:700;color:#fff}
+#field-bodycount .bc-strike{position:absolute;left:-3px;top:0;width:calc(100% + 6px);height:100%;
+  overflow:visible;pointer-events:none}
+#field-bodycount .bc-strike-line{stroke:var(--bc-retract);stroke-width:3;stroke-linecap:round;
+  stroke-dasharray:100;stroke-dashoffset:100;filter:drop-shadow(0 0 5px rgba(214,168,78,.55))}
+#field-bodycount[data-active="2"] .bc-strike-line,
+#field-bodycount[data-active="3"] .bc-strike-line{stroke-dashoffset:0;transition:stroke-dashoffset .9s ease}
+#field-bodycount .bc-out{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:12.5px;
+  line-height:1.5;color:#cdbfe0;margin:12px 0 0;opacity:0;transform:translateY(6px);
+  transition:opacity .55s ease,transform .55s ease}
+#field-bodycount .bc-out b{color:var(--bc-surv)}
+#field-bodycount[data-active="2"] .bc-out,#field-bodycount[data-active="3"] .bc-out{opacity:1;transform:none}
+/* scrolling steps */
+#field-bodycount .bc-steps{max-width:560px;margin:0 auto}
+#field-bodycount .bc-step{min-height:62vh;display:flex;flex-direction:column;justify-content:center}
+#field-bodycount .bc-step h3{font-family:ui-serif,Georgia,'Times New Roman',serif;
+  font-size:clamp(20px,3vw,28px);line-height:1.2;margin:0 0 10px;color:#f4eefb;font-weight:600}
+#field-bodycount .bc-step p{font-size:clamp(14px,1.4vw,16px);line-height:1.62;margin:0;color:#cdbfe0}
+#field-bodycount .bc-step b{color:#bff3df;font-weight:600}
+#field-bodycount .bc-killed{list-style:none;margin:14px 0 0;padding:0}
+#field-bodycount .bc-killed li{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  font-size:13px;line-height:1.7;color:#cdbfe0;padding-left:22px;position:relative}
+#field-bodycount .bc-killed li::before{content:"\2715";position:absolute;left:0;color:var(--bc-retract);font-weight:700}
+#field-bodycount .bc-tally{font-size:14px;line-height:1.65;color:#cdbfe0;margin:18px 0 0;
+  padding-top:14px;border-top:1px solid rgba(124,128,140,.22)}
+#field-bodycount .bc-count{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-weight:700;
+  font-size:18px;color:var(--bc-retract);font-feature-settings:'tnum' 1}
+#field-bodycount .bc-surv-item{color:#cdbfe0;font-weight:600;transition:color .6s ease,text-shadow .6s ease}
+#field-bodycount[data-active="3"] .bc-surv-item{color:var(--bc-surv);text-shadow:0 0 13px rgba(33,246,188,.45)}
+body.story-only #field-bodycount{display:block!important}
+@media (min-width:780px){
+  #field-bodycount .bc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+  #field-bodycount .bc-graphic{order:2;margin-top:6vh}
+  #field-bodycount .bc-steps{order:1}
+  #field-bodycount .bc-step{min-height:76vh}
+}
+@media (prefers-reduced-motion:reduce){
+  #field-bodycount .bc-v-surv{opacity:0}
+  #field-bodycount .bc-v-ret{opacity:1}
+  #field-bodycount .bc-strike-line{stroke-dashoffset:0;transition:none}
+  #field-bodycount .bc-out{opacity:1;transform:none;transition:none}
+  #field-bodycount .bc-surv-item{color:var(--bc-surv);transition:none}
+}
+</style>
+
+<section id="field-bodycount" aria-label="The body count — the claims that didn't survive the audit">
+  <p class="bc-eyebrow">the body count &middot; the audit, executed</p>
+  <div class="bc-wrap">
+    <div class="bc-graphic">
+      <div class="bc-card">
+        <div class="bc-verdict">
+          <span class="bc-v-surv"><span aria-hidden="true">&#10003;</span>Surviving</span>
+          <span class="bc-v-ret"><span aria-hidden="true">&#10007;</span>Retracted</span>
+        </div>
+        <p class="bc-claim">My deliberate picks look <em>less predictable</em> than autoplay &mdash;
+          <span class="bc-stat">d&nbsp;=&nbsp;0.50<svg class="bc-strike" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><line class="bc-strike-line" x1="0" y1="6" x2="100" y2="6" pathLength="100"></line></svg></span>
+        </p>
+        <p class="bc-out">out of sample: <b>d&nbsp;=&nbsp;&minus;0.02</b> &middot; 95% CI brackets zero &middot; the gap is gone</p>
+      </div>
+    </div>
+    <div class="bc-steps">
+      <div class="bc-step" data-step="0">
+        <h3>The flashiest thing I found.</h3>
+        <p>In&#8209;sample, my own picks looked beautifully <b>less predictable</b> than the algorithm&rsquo;s. A clean story wrote itself: I&rsquo;m the signal, the machine is the rut.</p>
+      </div>
+      <div class="bc-step" data-step="1">
+        <h3>Then I audited it.</h3>
+        <p>Same model, stricter test &mdash; train on the first 80% of the timeline, score only the unseen 20%. The story now has to earn it on data it never saw.</p>
+      </div>
+      <div class="bc-step" data-step="2">
+        <h3>It didn&rsquo;t survive.</h3>
+        <p>Out of sample the gap collapses to nothing. Most of the &ldquo;effect&rdquo; was the model memorising my own history &mdash; plus autoplay mechanically switching to more&#8209;similar artists.</p>
+      </div>
+      <div class="bc-step" data-step="3">
+        <h3>And it wasn&rsquo;t the only one.</h3>
+        <p>Three of my flashiest claims collapsed under their own audit:</p>
+        <ul class="bc-killed">
+          <li>the next&#8209;track predictability gap</li>
+          <li>genre as &ldquo;taste&rdquo; &mdash; served, not chosen</li>
+          <li>music &rarr; heart&#8209;rate, a causal read</li>
+        </ul>
+        <p class="bc-tally"><span class="bc-count">0</span> headline claims retired by the audit. The ones that lived earned it: <b class="bc-surv-item">the bridge</b>, <b class="bc-surv-item">the ranking</b> (&rho;&gt;0.97), <b class="bc-surv-item">the rhythm</b> (r&gt;0.98), <b class="bc-surv-item">the intent detector</b> (AUC 0.64&ndash;0.70).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* FIELD STUDY · Phase 7 — BODY COUNT scrolly. Reuses the #ss-scrolly mechanism: IO sets
+   data-active; CSS does the strike/flip/reveal. Plus a 0->3 count tick + survivors glow at step 3.
+   No Plotly, no node-graph rebuild — additive. */
+(function(){
+  if(window.__fieldBodyCount) return; window.__fieldBodyCount=1;
+  var root=document.getElementById('field-bodycount'); if(!root) return;
+  var reduce=false; try{ reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches; }catch(e){}
+
+  function place(){
+    try{
+      var before=document.getElementById('stress-test');
+      var anchor=before||document.getElementById('oos-star');
+      if(anchor&&anchor.parentNode){
+        if(before){ if(before.previousElementSibling!==root) before.parentNode.insertBefore(root, before); }
+        else if(anchor.nextSibling!==root){ anchor.parentNode.insertBefore(root, anchor.nextSibling); }
+      }
+    }catch(e){}
+  }
+
+  var counted=false;
+  function tickCount(){
+    if(counted) return; counted=true;
+    var el=root.querySelector('.bc-count'); if(!el) return;
+    if(reduce){ el.textContent='3'; return; }
+    var n=0; el.textContent='0';
+    var iv=setInterval(function(){ n++; el.textContent=String(n); if(n>=3) clearInterval(iv); }, 280);
+  }
+
+  function start(){
+    place();
+    var steps=[].slice.call(root.querySelectorAll('.bc-step'));
+    if(!steps.length) return;
+    if(reduce){ root.setAttribute('data-active','3'); tickCount(); return; }
+    root.setAttribute('data-active','0');
+    if(!('IntersectionObserver' in window)){ root.setAttribute('data-active','3'); tickCount(); return; }
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){
+          var s=e.target.getAttribute('data-step');
+          root.setAttribute('data-active', s);
+          if(s==='3') tickCount();
+        }
+      });
+    }, { rootMargin:'-45% 0px -45% 0px', threshold:0 });
+    steps.forEach(function(st){ io.observe(st); });
+  }
+
+  function boot(){ start(); setTimeout(place,900); setTimeout(place,2200); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot,500); });
+  else setTimeout(boot,500);
+})();
+</script>
+<!--FIELD-BODYCOUNT-END-->
 </body>
 </html>
