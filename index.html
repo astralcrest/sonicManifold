@@ -2768,7 +2768,7 @@ body.y60-playing{cursor:auto}
     {id:'fig-41',          label:'EDGE OF CRITICAL',      cap:"My plays self-excite &mdash; one seeds the next. <b>n&#770; = 0.79</b> for my top artist, p = 7.4&times;10<sup>&minus;53</sup> against criticality."},
     {id:'fig-16',          label:'DRIFT WITH RECEIPTS',   cap:"Wasserstein-1 between years &mdash; the minimum taste-mass that actually moved. Change you can measure, not vibes."},
     {id:'act-4',           label:'THE AUDIT',             cap:"Survives the stricter test: artist ranking (&rho;&gt;0.97), daily rhythm, physiology coupling. Dissolves: genre composition, a predictability gap, a music&rarr;heart-rate read."},
-    {id:'apple-sunomoment',label:'THE SOUNDTRACK',        cap:"Seventeen tracks I made from my own listening dialect &mdash; a page about a listening life deserves one of its own."},
+    {id:'apple-sunomoment',label:'THE SOUNDTRACK',        cap:"Eighteen tracks I made from my own listening dialect &mdash; a page about a listening life deserves one of its own."},
     {id:'g-1',             label:'GO DEEPER',             cap:"Every borrowed word &mdash; Hawkes, Ricci, UMAP, Wasserstein &mdash; with the intuition and the formula. Click any superscript to teleport."}
   ];
   var TOTAL_MS=78000, SETTLE=560;
@@ -2961,13 +2961,14 @@ body.y60-playing{cursor:auto}
 </style>
 <section id="apple-leadhero" aria-label="Agency is topological — lead">
   <p class="lh-eyebrow">the headline result</p>
-  <h2 class="lh-stat">69%<span class="lh-unit">of my deliberate jumps cross between musical communities</span></h2>
-  <p class="lh-thesis">The algorithm stays in its lanes. I&rsquo;m the one who <em>bridges</em> them.</p>
+  <h2 class="lh-stat">~50%<span class="lh-unit">of my deliberate jumps cross between musical communities</span></h2>
+  <p class="lh-thesis">I cross between musical worlds half the time. The algorithm, a third. Agency is topological.</p>
   <p class="lh-sub">
     When I pick the next track, it crosses into a different musical community (a Louvain cluster of artists who co-occur in my listening)
-    <b>69%</b> of the time. On autoplay, that drops to <b>53%</b>.
-    Bridge Index <b>1.3×</b> — agency, it turns out, is topological.
+    <b>~50%</b> of the time. On autoplay, that drops to <b>~31%</b>.
+    Bridge Index <b>1.61</b> — agency, it turns out, is topological.
   </p>
+  <p class="lh-disclosure" style="font-size:clamp(11px,1.15vw,13px); opacity:.6; line-height:1.55; max-width:62ch; margin:10px auto 0;">bridge index 1.61 (95% ci 1.57–1.65) — holds across every partition, seed and resolution i swept (lowest 1.20), about 3× a shuffled-label baseline. one listener, seven years; the communities were drawn from listening geometry, blind to which plays were mine.</p>
   <div class="lh-canvas-wrap">
     <canvas id="lh-canvas" aria-hidden="true"></canvas>
   </div>
@@ -6365,15 +6366,15 @@ X <em>Granger-causes</em> Y if X&rsquo;s recent past improves the forecast of Y 
     <p class="sm-eyebrow">The soundtrack</p>
     <h2 class="sm-head">A page about a listening life, <em>scored by the listener.</em></h2>
     <p class="sm-sub">
-      Sixteen tracks, written for this. The same impulse that made the
+      Eighteen tracks, written for this. The same impulse that made the
       charts made the music — so the data has a score, and the score is <b>data-art</b>: a manifold
       you can hear. Tap play and let it ride.
     </p>
     <ol class="sm-tracks" id="sm-tracklist"></ol>
     <div class="sm-meta">
-      <span><i></i> 17 tracks</span>
+      <span><i></i> 18 tracks</span>
       <span><i></i> original score</span>
-      <span><i></i> shuffled &amp; crossfading</span>
+      <span><i></i> crossfading bed</span>
       <span><i></i> <a class="sm-suno" href="https://suno.com/@astralcrest" target="_blank" rel="noopener">made on Suno &#8599;</a></span>
     </div>
     <button class="sm-play" id="sm-play" type="button">
@@ -6388,26 +6389,68 @@ X <em>Granger-causes</em> Y if X&rsquo;s recent past improves the forecast of Y 
 <script id="apple-sunomoment-js">
 (function(){
   var sec=document.getElementById('apple-sunomoment'); if(!sec) return;
-  var tracks=["Antares","Antares Infinite Cut","Fruititarian","No Masks Ad Infinitum",
-    "Stochastic Rainbow","Too Fiery Hot","Edge of the Black Hole","Hooked at First Taste",
-    "Brain rm -rf","Novelday","Latent Dimension","Brainstorm","Autotropic","Exponential Novelty","Anti Dimmable","Save Her","Reach Back"];
+  /* __SONGS_REBUILD_V1 — featured + full-work movements, title->bed lookup */
+  function pretty(t){ return t==='Novelday' ? 'Novel Day' : t; }
+  var bedIdx={};
+  try{ var rawb=document.getElementById('sh-tracks');
+    if(rawb) JSON.parse(rawb.textContent).forEach(function(o,k){ if(o&&o.t) bedIdx[o.t.toLowerCase()]=k; });
+  }catch(e){}
+  function armBed(){ var aux=document.getElementById('aux-play');
+    try{ if(window.__selfHostedBed && !window.__selfHostedBed.isOn() && aux) aux.click(); }catch(e){}
+    return aux; }
+  function playTitle(title, el){
+    var aux=armBed(), bi=bedIdx[(title||'').toLowerCase()];
+    try{ if(bi!=null && window.__selfHostedBed && window.__selfHostedBed.playIndex) window.__selfHostedBed.playIndex(bi);
+         else if(aux) aux.click(); }catch(e){}
+    [].forEach.call(sec.querySelectorAll('.sm-playing'),function(n){ n.classList.remove('sm-playing'); });
+    if(el) el.classList.add('sm-playing');
+  }
+  function mkPlayable(el, title){
+    el.setAttribute('role','button'); el.setAttribute('tabindex','0'); el.title='play “'+pretty(title)+'”';
+    function go(){ playTitle(title, el); }
+    el.addEventListener('click', go);
+    el.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+  }
+  var FEATURED=["Reach Back","What the Helly","Autotropic","Latent Dimension"];
+  var MOVEMENTS=[
+    {label:"I · Groundwork",   note:"sparse, open harmonic space",        tracks:["What the Helly","No Masks Ad Infinitum","Brainstorm"]},
+    {label:"II · Accumulation", note:"layered density, pattern-building",   tracks:["Edge of the Black Hole","Reach Back","Latent Dimension"]},
+    {label:"III · Tension",     note:"modal drift, unresolved suspension",  tracks:["Brain rm -rf","Save Her","Antares","Too Fiery Hot"]},
+    {label:"IV · Release",      note:"harmonic resolution, reduced density", tracks:["Fruititarian","Antares Infinite Cut","Stochastic Rainbow","Novelday"]},
+    {label:"V · Coda",          note:"space returns, an echo of the open",  tracks:["Anti Dimmable","Hooked at First Taste","Exponential Novelty","Autotropic"]}
+  ];
   var ol=document.getElementById('sm-tracklist');
-  if(ol){ tracks.forEach(function(t,i){
-    var li=document.createElement('li'); li.className='sm-track sm-track-play';
-    li.setAttribute('role','button'); li.setAttribute('tabindex','0'); li.title='play \u201c'+t+'\u201d';
-    li.innerHTML='<span class="sm-n">'+String(i+1).padStart(2,'0')+'</span><span class="sm-t">'+t+'</span><span class="sm-go" aria-hidden="true">\u25B6</span>';
-    function playThis(){
-      var aux=document.getElementById('aux-play');
-      try { if (window.__selfHostedBed && !window.__selfHostedBed.isOn() && aux) aux.click(); } catch(e){}
-      try { if (window.__selfHostedBed && window.__selfHostedBed.playIndex) window.__selfHostedBed.playIndex(i);
-            else if (aux) aux.click(); } catch(e){}
-      [].forEach.call(ol.children,function(n){ n.classList.remove('sm-playing'); });
-      li.classList.add('sm-playing');
-    }
-    li.addEventListener('click', playThis);
-    li.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); playThis(); } });
-    ol.appendChild(li);
-  }); }
+  if(ol){
+    var parent=ol.parentNode;
+    var feat=document.createElement('div'); feat.className='sm-featured';
+    feat.innerHTML='<p class="sm-feat-h">Start here</p>';
+    var frow=document.createElement('ol'); frow.className='sm-feat-row';
+    FEATURED.forEach(function(t){
+      var li=document.createElement('li'); li.className='sm-feat';
+      li.innerHTML='<span class="sm-feat-t">'+pretty(t)+'</span><span class="sm-go" aria-hidden="true">▶</span>';
+      mkPlayable(li, t); frow.appendChild(li);
+    });
+    feat.appendChild(frow); parent.insertBefore(feat, ol);
+    var det=document.createElement('details'); det.className='sm-fullwork';
+    var sum=document.createElement('summary'); sum.className='sm-fw-sum';
+    sum.innerHTML='<span class="sm-fw-label">The full work</span><span class="sm-fw-sub">18 tracks, in order · five movements</span><span class="sm-fw-caret" aria-hidden="true">▾</span>';
+    det.appendChild(sum);
+    var n=0;
+    MOVEMENTS.forEach(function(mv){
+      var grp=document.createElement('div'); grp.className='sm-mvmt';
+      grp.innerHTML='<p class="sm-mv-h"><span class="sm-mv-label">'+mv.label+'</span><span class="sm-mv-note">'+mv.note+'</span></p>';
+      var mol=document.createElement('ol'); mol.className='sm-mv-list';
+      mv.tracks.forEach(function(t){
+        n++;
+        var li=document.createElement('li'); li.className='sm-track sm-track-play';
+        li.innerHTML='<span class="sm-n">'+String(n).padStart(2,'0')+'</span><span class="sm-t">'+pretty(t)+'</span><span class="sm-go" aria-hidden="true">▶</span>';
+        mkPlayable(li, t); mol.appendChild(li);
+      });
+      grp.appendChild(mol); det.appendChild(grp);
+    });
+    parent.insertBefore(det, ol);
+    parent.removeChild(ol);
+  }
   // play button → drive the existing audio bed (tap-anywhere arm)
   var btn=document.getElementById('sm-play');
   if(btn) btn.addEventListener('click',function(){
@@ -6464,17 +6507,17 @@ body.story-only #creation-loop{display:block!important}
 @media(max-width:760px){.cre-loop .cl-grid{grid-template-columns:1fr;gap:16px} .cre-loop{margin:18px 12px;padding:20px 16px}}
 </style>
 <section class="cre-loop" id="creation-loop" aria-label="The listening to creation loop">
-  <div class="cl-kick">the loop &middot; 17 tracks i made</div>
+  <div class="cl-kick">the loop &middot; 18 tracks i made</div>
   <h2>i don&rsquo;t just listen &mdash; i make. so i ran my own catalog through the same pipeline. i make in the dialect i listen in.</h2>
   <div class="cl-grid">
     <div>
       <p><b>i make in the dialect i listen in.</b> two tracks i literally tagged <em class="glow">&ldquo;phaeleh-core&rdquo;</em> &mdash; and phaeleh is my <span class="cl-num">#1 artist, four years running</span>. the rest sprawl across exactly my listening genres: UK garage &amp; 2-step, half-time dubstep, neo-soul, weeknd-dark R&amp;B, afrobeats, chillstep, melodic house &mdash; the stuff i actually <i>tap</i>, not the ambient the algorithm keeps serving me.</p>
-      <p><b>the mood matches the math.</b> i tagged nearly every track &ldquo;dark, deep, profound&rdquo; &mdash; the audio agrees: median <span class="cl-num">129&nbsp;BPM</span>, <span class="cl-num">76% minor</span>, harmonic ratio <span class="cl-num">0.81</span>. six of seventeen land dead on ~129&nbsp;BPM &mdash; a tempo i return to without deciding to.</p>
-      <p><b>loudness spread across all seventeen: <span class="cl-num">1.8&nbsp;dB</span>.</b> i master to the same loud floor every time. &ldquo;commits hard, full volume&rdquo; isn&rsquo;t just how i listen &mdash; it&rsquo;s how i build.</p>
+      <p><b>the mood matches the math.</b> i tagged nearly every track &ldquo;dark, deep, profound&rdquo; &mdash; the audio agrees: median <span class="cl-num">129&nbsp;BPM</span>, <span class="cl-num">78% minor</span>, harmonic ratio <span class="cl-num">0.81</span>. six of eighteen land dead on ~129&nbsp;BPM &mdash; a tempo i return to without deciding to.</p>
+      <p><b>loudness spread across all eighteen: <span class="cl-num">1.8&nbsp;dB</span>.</b> i master to the same loud floor every time. &ldquo;commits hard, full volume&rdquo; isn&rsquo;t just how i listen &mdash; it&rsquo;s how i build.</p>
     </div>
     <div>
-      <svg viewBox="0 0 360 210" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:520px;height:auto"><line x1="188.0" y1="20" x2="188.0" y2="178" stroke="#7df0c8" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/><text x="188.0" y="16" text-anchor="middle" fill="#7df0c8" font-size="9" font-family="JetBrains Mono,monospace">129 bpm</text><line x1="50" y1="178" x2="346" y2="178" stroke="#241043" stroke-width="1"/><text x="198" y="208" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">tempo (bpm) &#8594;</text><text x="12" y="100" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace" transform="rotate(-90 12 100)">brightness (hz) &#8594;</text><text x="72.0" y="196" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">100</text><text x="152.0" y="196" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">120</text><text x="232.0" y="196" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">140</text><text x="312.0" y="196" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">160</text><text x="44" y="176.4" text-anchor="end" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">2.0k</text><text x="44" y="110.6" text-anchor="end" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">2.5k</text><text x="44" y="44.7" text-anchor="end" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">3.0k</text><circle cx="69.6" cy="66.8" r="5.5" fill="#7df0c8" opacity="0.82"/><circle cx="102.8" cy="58.1" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="121.2" cy="92.7" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="121.2" cy="87.7" r="5.5" fill="#7df0c8" opacity="0.82"/><circle cx="142.0" cy="110.8" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="168.9" r="5.5" fill="#7df0c8" opacity="0.82"/><circle cx="188.8" cy="95.4" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="165.3" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="123.0" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="70.2" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="45.4" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="216.0" cy="170.1" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="216.0" cy="32.0" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="216.0" cy="98.7" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="318.0" cy="109.1" r="5.5" fill="#7df0c8" opacity="0.82"/><circle cx="246.4" cy="108.9" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="69.6" cy="174.0" r="5.5" fill="#b388ff" opacity="0.82"/></svg>
-      <div class="cl-legend"><span><i style="background:#b388ff"></i>minor &middot; 13</span><span><i style="background:#7df0c8"></i>major &middot; 4</span></div>
+      <svg viewBox="0 0 360 210" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:520px;height:auto"><line x1="188.0" y1="20" x2="188.0" y2="178" stroke="#7df0c8" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/><text x="188.0" y="16" text-anchor="middle" fill="#7df0c8" font-size="9" font-family="JetBrains Mono,monospace">129 bpm</text><line x1="50" y1="178" x2="346" y2="178" stroke="#241043" stroke-width="1"/><text x="198" y="208" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">tempo (bpm) &#8594;</text><text x="12" y="100" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace" transform="rotate(-90 12 100)">brightness (hz) &#8594;</text><text x="72.0" y="196" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">100</text><text x="152.0" y="196" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">120</text><text x="232.0" y="196" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">140</text><text x="312.0" y="196" text-anchor="middle" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">160</text><text x="44" y="162.5" text-anchor="end" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">2.0k</text><text x="44" y="131.2" text-anchor="end" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">2.5k</text><text x="44" y="100.0" text-anchor="end" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">3.0k</text><text x="44" y="68.8" text-anchor="end" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">3.5k</text><text x="44" y="37.5" text-anchor="end" fill="#8c7fb0" font-size="9" font-family="JetBrains Mono,monospace">4.0k</text><line x1="50" y1="162.5" x2="346" y2="162.5" stroke="#241043" stroke-width="0.5" opacity="0.5"/><line x1="50" y1="131.2" x2="346" y2="131.2" stroke="#241043" stroke-width="0.5" opacity="0.5"/><line x1="50" y1="100.0" x2="346" y2="100.0" stroke="#241043" stroke-width="0.5" opacity="0.5"/><line x1="50" y1="68.8" x2="346" y2="68.8" stroke="#241043" stroke-width="0.5" opacity="0.5"/><line x1="50" y1="37.5" x2="346" y2="37.5" stroke="#241043" stroke-width="0.5" opacity="0.5"/><circle cx="69.6" cy="111.9" r="5.5" fill="#7df0c8" opacity="0.82"/><circle cx="69.6" cy="165.8" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="102.8" cy="107.8" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="121.2" cy="121.8" r="5.5" fill="#7df0c8" opacity="0.82"/><circle cx="121.2" cy="124.2" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="142.0" cy="132.8" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="101.8" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="113.5" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="125.5" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="138.6" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="158.7" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="188.8" cy="160.4" r="5.5" fill="#7df0c8" opacity="0.82"/><circle cx="195.2" cy="36.6" r="6" fill="#b388ff" opacity="0.95" stroke="#fff" stroke-width="1"/><text x="203.2" y="39.6" fill="#7df0c8" font-size="7.5" font-family="JetBrains Mono,monospace">4.0k &#x2605;</text><circle cx="216.0" cy="95.4" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="216.0" cy="127.1" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="216.0" cy="160.9" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="246.4" cy="131.9" r="5.5" fill="#b388ff" opacity="0.82"/><circle cx="318.0" cy="132.0" r="5.5" fill="#7df0c8" opacity="0.82"/></svg>
+      <div class="cl-legend"><span><i style="background:#b388ff"></i>minor &middot; 14</span><span><i style="background:#7df0c8"></i>major &middot; 4</span></div>
     </div>
   </div>
   <div class="cl-quote">
@@ -6482,7 +6525,7 @@ body.story-only #creation-loop{display:block!important}
     <div class="cq-lyric">&ldquo;ninety-seven thousand songs across the dark &hellip; the algorithm thought it had me figured out / i was always brighter than the data could allow.&rdquo;</div>
     <p style="margin:0">the dashboard, sung back at it: the receipts say the algorithm drove <b>81%</b> of my plays &mdash; the song says it never actually had <i>me</i>.</p>
   </div>
-  <p class="cl-foot">tempo &times; brightness, one dot per created track. caveat: N=17, one maker, and i can&rsquo;t put creation and listening on a single numeric axis &mdash; the listening side has no published per-track tempo. an echo, not a proof &mdash; but it&rsquo;s a loud one. track 17, &ldquo;reach back,&rdquo; is the outlier &mdash; a dark F-minor bossa nova, the lowest dot here. <span style="opacity:.7">(audio: librosa chroma + Krumhansl; genres/themes: my own track notes.)</span></p>
+  <p class="cl-foot">tempo &times; brightness, one dot per created track. caveat: N=18, one maker, and i can&rsquo;t put creation and listening on a single numeric axis &mdash; the listening side has no published per-track tempo. an echo, not a proof &mdash; but it&rsquo;s a loud one. track 17, &ldquo;reach back,&rdquo; remains an outlier &mdash; a dark F-minor bossa nova, the lowest dot here. <span style="opacity:.7">(audio: librosa chroma + Krumhansl; genres/themes: my own track notes.)</span></p>
 </section>
 <!--APPLE-CREATION-END-->
 
@@ -7269,8 +7312,8 @@ try {
     // PERF: when the chip is idle + its canvas is hidden, stop the 60fps loop. Reschedule on a
     // slow timer instead so it auto-resumes to full rate the moment the chip opens (no restart
     // hook needed anywhere). On mobile the MOBILE-PERF governor drops the rAF entirely.
-    if (!current && !pinned && !eqCv.offsetParent) { rafId = setTimeout(function(){ rafId = requestAnimationFrame(tick); }, 500); return; }
-    rafId = requestAnimationFrame(tick);
+    if (!current && !pinned && !eqCv.offsetParent && !__eqReduce) { rafId = setTimeout(function(){ rafId = requestAnimationFrame(tick); }, 500); return; }
+    if(!__eqReduce){ rafId = requestAnimationFrame(tick); }
     var w = eqCv.width, h = eqCv.height;
     eqCtx.clearRect(0, 0, w, h);
     if (!current && !pinned) {
@@ -7325,7 +7368,8 @@ try {
       ringFg.setAttribute('stroke-dashoffset', (2 * Math.PI * 22).toFixed(2));
     }
   }
-  rafId = requestAnimationFrame(tick);
+  var __eqReduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches);
+  if(__eqReduce){ tick(0); } else { rafId = requestAnimationFrame(tick); }
 
   // ── tap-to-pin on hovered Plotly point ────────────────────────────
   // wired via plotly_click (delegated below in wirePlotly)
@@ -12598,7 +12642,7 @@ try {
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
   #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
 </style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest"}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest"}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest"}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest"}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest"}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest"}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest"}]</script>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest"}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest"}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest"}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest"}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest"}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest"}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest"}, {"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest"}]</script>
 <div id="sh-bg" aria-hidden="true">
   <audio id="sh-a" preload="auto"></audio>
   <audio id="sh-b" preload="auto"></audio>
@@ -18654,7 +18698,7 @@ body.p0-scrolling .term-tip:focus-visible::before{ display:none !important; opac
     +'</div>'
     +'<div class="ps-h">What I found</div>'
     +'<ol class="ps-find">'
-    +'<li><span class="lead">Agency is topological.</span> Left alone, the algorithm stays in its lane &mdash; only <b>40%</b> of its hops cross between musical communities. My own picks bridge them <b>64%</b> of the time. The signature of a person in the data is the <i>shape</i> of the path, not the volume of clicks.</li>'
+    +'<li><span class="lead">Agency is topological.</span> Left alone, the algorithm stays in its lane &mdash; only <b>~31%</b> of its hops cross between musical communities. My own picks bridge them <b>~50%</b> of the time. The signature of a person in the data is the <i>shape</i> of the path, not the volume of clicks.</li>'
     +'<li><span class="lead">Served &ne; chosen.</span> Ambient &amp; lo-fi is fed to me at roughly <b>twice</b> the rate I actually reach for it (B=0.5); hip-hop &amp; R&amp;B the reverse (B=1.2). Genre &ldquo;taste&rdquo; read straight off the logs is mostly the recommender&rsquo;s, not mine.</li>'
     +'<li><span class="lead">The audit is the finding.</span> Hold the data to a stricter standard &mdash; condition on intent &mdash; and some headline effects survive while others dissolve. The deliberate-choice signal itself is recoverable (AUC 0.64&ndash;0.70).</li>'
     +'</ol>'
@@ -19024,8 +19068,8 @@ body.calm-open .calm-toggle{color:rgba(176,186,205,.6)}
     if(!anchor) return false;
     var f=document.createElement("section"); f.className="hero-viz"; f.setAttribute("aria-label","where the next song goes");
     f.innerHTML='<figure>'+
-      '<img src="health-figs/hp-9-bridge.png?v=1" alt="16-row dot chart: in every one of my listening communities, the song i deliberately chose leaves its genre more often (64% overall) than the song the algorithm autoplayed (40%)." loading="eager" decoding="async" width="962" height="1296">'+
-      '<figcaption>each row is one of my sixteen listening communities. green &mdash; the songs i chose &mdash; leaves the genre lane more often than blue, the songs the algorithm queued next. 64% vs 40% overall, and it holds in every community, no exceptions.</figcaption>'+
+      '<img src="health-figs/hp-9-bridge.png?v=1" alt="16-row dot chart: in every one of my listening communities, the song i deliberately chose leaves its genre more often (~50% overall) than the song the algorithm autoplayed (~31%)." loading="eager" decoding="async" width="962" height="1296">'+
+      '<figcaption>each row is one of my sixteen listening communities. green &mdash; the songs i chose &mdash; leaves the genre lane more often than blue, the songs the algorithm queued next. ~50% vs ~31% overall (combined-graph partition gives the higher 64% / 40% split), and it holds in every community, no exceptions.</figcaption>'+
       '</figure>';
     anchor.parentNode.insertBefore(f, anchor);
     return true;
@@ -20163,5 +20207,655 @@ body.story-only #field-bodycount{display:block!important}
 })();
 </script>
 <!--FIELD-BODYCOUNT-END-->
+<!--REDESIGN-FIX-START-->
+
+<style id="redesign-fix-css">
+/* ===== REDESIGN-FIX  (polish pass 1) ===== */
+
+/* (6) color custom-props — order-independent, fixes hero gradient that
+   references --ice-bright / --mint-soft before they were defined. */
+:root{ --ice-bright:#7fe9ff; --mint-soft:#7df0c8; }
+
+/* (1) sticky-column void kill: align sticky graphic + steps to top so the
+   short sticky graphic doesn't leave a tall dark void beside the steps col. */
+.bc-wrap{ align-items:start !important; }
+.ss-wrap{ align-items:start !important; }
+
+/* (3) bodycount eyebrow floats in a void above its cards — tighten. */
+#field-bodycount .bc-eyebrow{ margin-top:0 !important; margin-bottom:16px !important; }
+
+/* (4) chapter ghost numeral clips at right edge for wide numerals. */
+header.theme-divider .act-ghost{ overflow:hidden; }
+/* chapters IV and VIII are the widest numerals — pull them in a touch. */
+header#act-4 .act-ghost,
+header#act-8 .act-ghost{ font-size:clamp(120px,16vw,200px) !important; right:1% !important; }
+
+/* (2) full-bleed stat charts render tiny in a wide canvas — give the inline
+   Plotly graph div a sensible floor and cap the adjacent prose measure.
+   Scoped conservatively: only inline graph divs that Plotly itself tags. */
+.stat-figure .js-plotly-plot,
+.stat-section .js-plotly-plot,
+.bignum-figure .js-plotly-plot{ min-width:min(620px,92%); }
+.stat-section .stat-prose,
+.stat-figure figcaption{ max-width:680px; }
+
+/* (5) ENDING SIGNAL — the page feels boundless; make the FINAL chapter
+   divider visually distinct (amber rule + a quiet "final chapter" eyebrow)
+   and give the last spine dot a square outline. */
+header#act-8{ border-top:1px solid rgba(214,168,78,.42) !important; }
+header#act-8 .act-eyebrow::after{
+  content:"final chapter";
+  display:inline-block; margin-left:12px;
+  font:600 10.5px/1 "JetBrains Mono","SF Mono",ui-monospace,monospace;
+  letter-spacing:.14em; text-transform:uppercase;
+  color:var(--bc-retract,#D6A84E); opacity:.85; vertical-align:middle;
+}
+.cs-dot:last-of-type{ border-radius:2px !important; outline:1px solid rgba(214,168,78,.7); }
+
+/* (7) bodycount still uses pre-redesign PURPLE — bring to charcoal.
+   Scoped to #field-bodycount so the shared ss-scrolly colors are untouched. */
+#field-bodycount .bc-card{
+  background:linear-gradient(180deg,rgba(21,23,27,.82),rgba(14,15,18,.72)) !important;
+}
+#field-bodycount .bc-step p,
+#field-bodycount .bc-out,
+#field-bodycount .bc-tally,
+#field-bodycount .bc-killed li{ color:var(--mute,#9CA0A8) !important; }
+#field-bodycount .bc-step b{ color:var(--ink,#E6E8EC) !important; }
+
+/* (8) stress-test eyebrow uses an orphan green — unify to brand mint. */
+.stx-eyebrow{ color:var(--mint,#21f6bc) !important; }
+
+/* (12) restore hero-essay to its intended reading size (a 13px!important
+   shrink had crushed it). */
+.hero-essay{ font-size:14.5px !important; }
+
+/* (13) reading measure for long prose (panel/prose absent in this build —
+   apply to the one long-form container that exists). */
+.hero-essay{ max-width:66ch; }
+
+/* (14) caption legibility floor — nothing should read below 10px. */
+.fig-caption{ font-size:max(10px, 1em) !important; }
+.fig-cite{ font-size:max(10px, 1em) !important; }
+
+/* (10) mobile — bottom sticky bar (#spine-bar-m, fixed/bottom) overlaps
+   content; reserve room below the fold. */
+@media (max-width:600px){
+  body{ padding-bottom:max(80px, calc(env(safe-area-inset-bottom) + 72px)) !important; }
+}
+
+/* (15) mobile heading floor — chapter heads should still read as headings. */
+@media (max-width:480px){
+  header.theme-divider h2.act-deck{ font-size:clamp(26px,7vw,30px) !important; }
+}
+
+/* (9) hero scroll-cue ran ~3 overlapping infinite loops — keep only the
+   gentle bob (hero-cue-drop); null the fade + the second drop. */
+.hero-cue{ animation:hero-cue-drop 1.4s ease-in-out infinite !important; }
+.hero-cue .arrow2{ animation:none !important; opacity:.6 !important; }
+
+/* ===== (A11Y) reduced-motion — several animations ignored the pref.
+   Mirrors the existing #ss-scrolly reduced-motion pattern. ===== */
+@media (prefers-reduced-motion:reduce){
+  .lazy-placeholder::before{ animation:none !important; }
+  .lazy-spinner .ring{ animation:none !important; }
+  header.theme-divider h2.act-deck{ animation:none !important; }
+  .ref-flash{ animation:none !important; outline:2px solid var(--mint,#21f6bc) !important; }
+  #field-bodycount .bc-strike-line{ transition:none !important; }
+  #field-bodycount .bc-out{ transition:none !important; }
+  #sm-enter{ transition:none !important; }
+  .hero-cue, .hero-cue .arrow2{ animation:none !important; }
+}
+
+/* (18) hide the nav wordmark while the lead-hero is in view (set by JS). */
+body.hero-active .cyber-nav .brand{
+  opacity:0 !important; pointer-events:none; transition:opacity .3s ease;
+}
+
+/* (19) intent-lead scroll-progress cue. */
+#intent-lead{ position:relative; }
+#rfx-ilead-progress{
+  position:sticky; top:var(--rfx-navh,56px); left:0; height:2px; width:0%;
+  background:var(--mint,#21f6bc); opacity:.7; z-index:40; border-radius:0 2px 2px 0;
+  pointer-events:none; will-change:width;
+}
+</style>
+
+
+<script>
+(function(){
+  if (window.__redesignFix) return;
+  window.__redesignFix = true;
+
+  function q(sel,root){ return (root||document).querySelector(sel); }
+  function qa(sel,root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+
+  // (16) splash skip a11y — make the clickable <div> a real button.
+  function fixSkipA11y(){
+    try{
+      var skip = document.getElementById('sm-enter-skip');
+      if (!skip || skip.__rfxA11y) return;
+      skip.__rfxA11y = true;
+      if (!skip.getAttribute('role')) skip.setAttribute('role','button');
+      if (!skip.hasAttribute('tabindex')) skip.setAttribute('tabindex','0');
+      skip.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 13 || e.keyCode === 32){
+          e.preventDefault();
+          skip.click();
+        }
+      });
+    }catch(e){}
+  }
+
+  // (17) splash focus trap while #sm-enter is visible.
+  function fixFocusTrap(){
+    try{
+      var splash = document.getElementById('sm-enter');
+      if (!splash || splash.__rfxTrap) return;
+      var btn = document.getElementById('sm-enter-btn');
+      var skip = document.getElementById('sm-enter-skip');
+      if (!btn) return;
+      splash.__rfxTrap = true;
+
+      function isDismissed(){
+        if (!splash.isConnected) return true;
+        if (splash.classList.contains('sme-out')) return true;
+        var cs = window.getComputedStyle(splash);
+        if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity||'1') === 0) return true;
+        if (splash.hasAttribute('hidden')) return true;
+        return false;
+      }
+
+      function onKey(e){
+        if (e.key !== 'Tab' && e.keyCode !== 9) return;
+        if (isDismissed()) return;
+        var focusables = [btn, skip].filter(function(el){
+          return el && el.offsetParent !== null;
+        });
+        if (!focusables.length) return;
+        var first = focusables[0], last = focusables[focusables.length-1];
+        var active = document.activeElement;
+        if (e.shiftKey){
+          if (active === first || focusables.indexOf(active) === -1){
+            e.preventDefault(); last.focus();
+          }
+        } else {
+          if (active === last || focusables.indexOf(active) === -1){
+            e.preventDefault(); first.focus();
+          }
+        }
+      }
+      document.addEventListener('keydown', onKey, true);
+
+      // move focus to the primary button on show.
+      try{ if (!isDismissed()) btn.focus(); }catch(e){}
+
+      // stop trapping once dismissed.
+      var mo = new MutationObserver(function(){
+        if (isDismissed()){
+          try{ document.removeEventListener('keydown', onKey, true); }catch(e){}
+          try{ mo.disconnect(); }catch(e){}
+        }
+      });
+      try{ mo.observe(splash, {attributes:true, attributeFilter:['class','style','hidden']}); }catch(e){}
+      try{ if (splash.parentNode) mo.observe(splash.parentNode, {childList:true}); }catch(e){}
+    }catch(e){}
+  }
+
+  // (18) hero nav-wordmark hide via IntersectionObserver on #apple-leadhero.
+  function fixHeroNavHide(){
+    try{
+      var hero = document.getElementById('apple-leadhero');
+      if (!hero || hero.__rfxHeroObs) return;
+      if (!('IntersectionObserver' in window)) return;
+      hero.__rfxHeroObs = true;
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          document.body.classList.toggle('hero-active', en.isIntersecting && en.intersectionRatio > 0.12);
+        });
+      }, {threshold:[0, 0.12, 0.5]});
+      io.observe(hero);
+    }catch(e){}
+  }
+
+  // (19) intent-lead scroll-progress cue.
+  function fixIntentProgress(){
+    try{
+      var sec = document.getElementById('intent-lead');
+      if (!sec || sec.__rfxProgress) return;
+      sec.__rfxProgress = true;
+
+      // measure nav height for the sticky offset.
+      try{
+        var nav = document.querySelector('.cyber-nav');
+        var h = nav ? Math.round(nav.getBoundingClientRect().height) : 56;
+        if (h && h > 0) document.documentElement.style.setProperty('--rfx-navh', h + 'px');
+      }catch(e){}
+
+      var bar = document.createElement('div');
+      bar.id = 'rfx-ilead-progress';
+      bar.setAttribute('aria-hidden','true');
+      sec.insertBefore(bar, sec.firstChild);
+
+      var ticking = false;
+      function update(){
+        ticking = false;
+        try{
+          var r = sec.getBoundingClientRect();
+          var vh = window.innerHeight || document.documentElement.clientHeight;
+          var total = r.height - vh;
+          var done = (total > 0) ? ( -r.top ) / total : 0;
+          done = Math.max(0, Math.min(1, done));
+          bar.style.width = (done * 100).toFixed(2) + '%';
+        }catch(e){}
+      }
+      function onScroll(){
+        if (!ticking){ ticking = true; window.requestAnimationFrame(update); }
+      }
+      window.addEventListener('scroll', onScroll, {passive:true});
+      window.addEventListener('resize', onScroll, {passive:true});
+      update();
+    }catch(e){}
+  }
+
+  // (20) top-N artists bar chart fills only ~30% width — find the inline
+  // graph div whose layout title mentions ARTISTS and let it autorange.
+  function fixArtistsWidth(){
+    try{
+      if (!window.Plotly) return;
+      var divs = qa('.js-plotly-plot');
+      var hit = false;
+      divs.forEach(function(gd){
+        try{
+          if (gd.__rfxArtists) return;
+          var t = gd && gd.layout && gd.layout.title;
+          var txt = '';
+          if (t){ txt = (typeof t === 'string') ? t : (t.text || ''); }
+          if (/ARTISTS/i.test(txt) && /TOP/i.test(txt)){
+            gd.__rfxArtists = true;
+            hit = true;
+            window.Plotly.relayout(gd, {'xaxis.autorange': true, 'margin.r': 24});
+          }
+        }catch(e){}
+      });
+      return hit;
+    }catch(e){ return false; }
+  }
+
+  function runOnce(){
+    fixSkipA11y();
+    fixFocusTrap();
+    fixHeroNavHide();
+    fixIntentProgress();
+  }
+
+  // artists-width relies on Plotly having rendered — poll briefly.
+  function pollArtists(){
+    try{
+      var tries = 0, max = 20;
+      var iv = setInterval(function(){
+        tries++;
+        var done = fixArtistsWidth();
+        if (done || tries >= max) clearInterval(iv);
+      }, 600);
+    }catch(e){}
+  }
+
+  function boot(){
+    try{ runOnce(); }catch(e){}
+    try{ pollArtists(); }catch(e){}
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  window.addEventListener('load', function(){ try{ runOnce(); }catch(e){} });
+  setTimeout(function(){ try{ runOnce(); fixArtistsWidth(); }catch(e){} }, 800);
+})();
+</script>
+
+<!--REDESIGN-FIX-END-->
+<!--REDESIGN-FONT-START-->
+<style>
+/* REDESIGN-FONT — default reading voice: monospace -> sans (--ui).
+   Mono is RE-ASSERTED below on every data-terminal/chrome/stat selector
+   that was mono on purpose; reading-serif is re-asserted so the
+   `body !important` swap cannot clobber it. Revert: delete this block
+   (or restore index.html.bak_font). */
+body{font-family:var(--ui,'Inter','IBM Plex Sans',system-ui,-apple-system,sans-serif)!important;}
+/* keep-mono: data-terminal chrome, stats, nav, captions/cites, kickers,
+   axis/tick text, toasts, controls, splash sub-wordmark, code/kbd/pre/samp */
+.hero-stats,
+.hero-cue,
+.hero-bignum,
+.hero-bignum-lbl,
+.fig-caption b,
+.fig-caption code,
+.fig-cite,
+.fig-caption sup.ref a,
+header.theme-divider .act-eyebrow,
+header.theme-divider .act-look,
+.sr-only-focusable:focus,.sr-only-focusable:focus-visible,
+.fig-caption details.math-collapse>summary,
+#generative-tip strong,
+code, kbd, pre, samp, tt, .fig-caption code, .hero-essay code, .glossary-panel code, .panel code,
+.table-panel td.num, .table-panel th.num, .panel td.num, .panel th.num,
+.act-ghost,
+.js-plotly-plot text,
+#sm-enter,
+.cyber-nav,
+.cyber-nav .story-toggle,
+.section-dots .sd-dot::after,
+.lazy-spinner,
+#global-zoom-hint,
+.sankey-mobile-msg,
+.mobile-toggle,
+.scitrack,
+.sem-key,
+.sci-abstract,
+.prov-eyebrow,
+.prov-split-legend,
+.prov-body b,
+.prov-fig figcaption,
+.prov-rlhf .rlhf-tag,
+.oos-star,
+.pass-decay,
+.aversion,
+.arch,
+.ai-impl,
+.sci-add-h,
+.sci-add b,
+.surprising-hero-label,
+.surprising-hero-text .hero-stat,
+.surprising-hero-text .hero-stat-b,
+.novel-callout-header,
+.novel-callout-list .nc-stat,
+.novel-callout-list .nc-method,
+.scrolly-opener .scroll-cue,
+.scrolly-num,
+.scrolly-unit,
+.y60-cta,
+.y60-desc,
+.y60-overlay .y60-cap-label,
+.y60-abort,
+.hero-essay-source,
+.about-dash summary,
+#apple-leadhero,
+#umap-method summary,
+#umap-method .body .pill,
+#umap-search,
+#umap-suggest div,
+#umap-hint,
+#umap-clear,
+.umap-ctrl-btn,
+.umap-tip,
+.umap-card .hdr .nm,
+.umap-card .hdr .meta,
+.umap-card .sec-lbl,
+.umap-card .close,
+.atyp-hyp,
+#apple-ailabbeat,
+.skip-neg,
+.health-panel header h2,
+.hp-fig-title,
+.hp-caption b.pillar,
+.hp-null .null-head,
+.health-limits b,
+.hp-sub h3,
+.hp-sub .fig-caption b.pillar,
+.hp-partial-title,
+.hp-partial-table,
+.hp-null-block h3,
+.hp-killed h3,
+.oura-card,
+.exo-shock-panel header h2,
+.exo-finding h3,
+.exo-caption b.pillar,
+.exo-limits b,
+.lifestate .ls-eyebrow,
+.lifestate .ls-body b,
+.lifestate .ls-name,
+.lifestate .ls-pct,
+.lifestate figcaption,
+.carnatic-panel header h2,
+.cp-headline .cp-num,
+.cp-grid h3,
+.cp-cat,
+.cp-stats,
+.cp-h,
+.cp-chart-wrap h3,
+.cp-take b,
+.next-chapter h3,
+.next-chapter li::before,
+.next-chapter .nc-tag,
+.research-dir,
+.method-cmp,
+.methods-index-section h2,
+table.methods-index thead th,
+table.methods-index .mi-method,
+table.methods-index .mi-result,
+table.methods-index .mi-valid,
+table.methods-index .mi-link a,
+#apple-sunomoment,
+.cre-loop,
+#sonic-audio-chip,
+#sonic-cta,
+#sonic-toast,
+#sonic-mobile-mini,
+#h1loop-panel,
+#h1loop-panel .h1l-ctrls button,
+#lr-btn,
+#lr-card,
+#lr-card .lr-ctrls button,
+#lr-card .lr-esc,
+#ambient-toggle,
+#ambient-prompt,
+#carnatic-chip,
+#touch-synth-chip,
+#generative-chip,
+#conduct-hint,
+#first-tap-desc,
+#first-tap-btn,
+.glossary-tip .tip-title,
+.glossary-tip code,
+.glossary-tip .hint,
+.share-card-btn,
+.share-card-head,
+.share-card-tab,
+.share-card-foot,
+.share-card-dl,
+#chip-rail-toggle::after,
+.science-caveat,
+.pace-q,
+.pace-sub,
+.pace-opt,
+#sc-now,
+#sc-enable,
+.nfx-pace-hint,
+#tldr.about-dash > summary,
+.nfx-wordmark .nfx-wm-sub,
+#aux-audio,
+.honest-fail,
+.sci-footer,
+html body #tldr.about-dash:not([open]) > summary::after,
+.umap-card .spembed.sp-delegate,
+section > header h2[style], header h2[style*='font-size'],
+.panel > h2[style*='font-size:20px'], .glossary-panel h2[style],
+.panel h3,
+.umap-mobile-note,
+.whyn1,
+#era-scroll,
+.apple-mgrid .amg-kicker,
+.apple-mgrid .amg-name,
+.apple-mgrid .amg-jump,
+.aps-toast,
+.decontam-kicker,
+.decontam-warn,
+.decontam-ctrl label .dc-val,
+.decontam-num,
+.decontam-formula,
+.decontam-anchor b,
+.whyn1 .wn-eyebrow, .whyn1 .wn-kicker,
+.sci-portal a,
+#sv-nav-return,
+.ps-find .lead,
+.calm-toggle,
+.xpress,
+.audit-board,
+.hero-viz figcaption,
+#ss-scrolly .ss-eyebrow,
+.field-mast__meta,
+.fv-note,
+#field-bodycount .bc-eyebrow,
+#field-bodycount .bc-stat,
+#field-bodycount .bc-out,
+#field-bodycount .bc-killed li,
+#field-bodycount .bc-count
+{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace!important;}
+/* extra chrome that inherits mono today (kickers/eyebrows) — keep mono,
+   but never touch .field-mast__kicker, which is sans BY DESIGN */
+[class*="kicker"]:not(.field-mast__kicker),
+[class*="eyebrow"]:not(.field-mast__kicker)
+{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace!important;}
+/* keep-serif: reading-serif essays/decks/quotes/tldr that would be
+   clobbered by body!important (their own rules lack !important) */
+.hero-tagline,
+.fig-caption i,
+.tip[data-tip]:hover::after,.tip[data-tip]:focus-visible::after,
+.term-tip::after,
+.section-tldr,
+#generative-tip,
+#sm-enter .sme-wm,
+.prov-head,
+.prov-sub,
+.oos-star h2,
+.pass-decay h2,
+.aversion h2,
+.arch h2,
+.scrolly-opener,
+.scrolly-copy,
+.hero-essay,
+.about-dash .about-body,
+.rev-closer,
+.lifestate h2,
+.glossary-intro,
+.cre-loop h2,
+.cre-loop .cl-quote .cq-lyric,
+#carnatic-chip .cs-note,
+#touch-synth-chip .tsc-note,
+#idle-koan,
+.glossary-tip em,.glossary-tip i,
+.whyn1 .wn-head,
+#ss-scrolly .ss-step h3,
+.dropcap::first-letter,
+.pull-quote,
+#field-bodycount .bc-claim,
+#field-bodycount .bc-step h3
+{font-family:var(--serif,'Source Serif 4','Spectral','Iowan Old Style',Georgia,'Times New Roman',serif)!important;}
+</style>
+<!--REDESIGN-FONT-END-->
+<!--REDESIGN-FIX2-START--><style>.fn-card,.rev-card,.hf-card,.ah-card,.nc-card,.sci-add,.skip-neg{will-change:auto!important}.fn-card:hover,.rev-card:hover,.hf-card:hover,.ah-card:hover,.nc-card:hover,.sci-add:hover,.skip-neg:hover{will-change:transform}@keyframes caFlowX{from{transform:translateX(-170%)}to{transform:translateX(170%)}}.ca-flow{left:0!important;animation-name:caFlowX!important}@media(prefers-reduced-motion:reduce){.ca-flow{animation:none!important;transform:none!important;left:0!important;width:100%!important;opacity:.18}}</style><script>(function(){if(window.__redesignFix2)return;window.__redesignFix2=1;var MOBILE=function(){return window.innerWidth<=768;};function patchFig10(){if(!MOBILE())return;try{var panels=document.querySelectorAll('[id="fig-10"]');for(var p=0;p<panels.length;p++){var gd=panels[p].querySelector('.js-plotly-plot,.plotly-graph-div');if(!gd||!gd._fullLayout)continue;if(!gd._fullLayout.xaxis2)continue;if(gd.__fix2done)continue;gd.__fix2done=1;try{window.Plotly.relayout(gd,{'xaxis2.tickangle':-90,'xaxis2.nticks':8,'margin.b':55,'height':560});}catch(e){gd.__fix2done=0;}}}catch(e){}}function sweepHover(){try{var ns=document.querySelectorAll('.js-plotly-plot');for(var i=0;i<ns.length;i++){var gd=ns[i];if(!gd||!gd._fullLayout)continue;if(gd.__fix2Hover)continue;gd.__fix2Hover=1;try{window.Plotly.relayout(gd,{'hoverlabel.bgcolor':'#15171B','hoverlabel.bordercolor':'rgba(124,128,140,.4)','hoverlabel.font.color':'#E6E8EC'});}catch(e){gd.__fix2Hover=0;}}}catch(e){}}function runAll(){patchFig10();sweepHover();}var debT=null;function onResize(){if(debT)clearTimeout(debT);debT=setTimeout(function(){patchFig10();},250);}try{window.addEventListener('resize',onResize,{passive:true});}catch(e){window.addEventListener('resize',onResize);}var n=0;(function poll(){runAll();if(++n<40)setTimeout(poll,400);})();if('IntersectionObserver' in window){try{var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){runAll();}});});var ob=function(){var ns=document.querySelectorAll('.js-plotly-plot,[id="fig-10"]');for(var i=0;i<ns.length;i++){try{io.observe(ns[i]);}catch(e){}}};ob();setTimeout(ob,1500);setTimeout(ob,4000);}catch(e){}}if(document.readyState!=='loading')runAll();else document.addEventListener('DOMContentLoaded',runAll);window.addEventListener('load',runAll);})();</script><!--REDESIGN-FIX2-END-->
+<!--REDESIGN-TYPE-START-->
+<style id="redesign-type">
+/* ============================================================
+   TYPE-SCALE CONSOLIDATION  (additive, role-preserving)
+   One system the major elements snap to. Reuses the existing
+   --fs-* major-third scale (POLISH-CSS). Defines line-height +
+   letter-spacing tokens, then snaps VERIFIED role classes only.
+   Bare h2/h3 are deliberately NOT touched: they are overloaded
+   (serif narrative heads AND mono-uppercase eyebrows share the
+   element) -- snapping them globally would flatten that role
+   distinction. See injector header + handoff report.
+   ============================================================ */
+:root{
+  /* line-height roles */
+  --lh-display:1.15;
+  --lh-card:1.35;
+  --lh-prose:1.65;
+  /* letter-spacing roles */
+  --ls-tight:-0.01em;
+  --ls-wide:0.12em;
+  --ls-ultra:0.34em;
+}
+/* --- reading prose: line-height to prose; base size only where ad-hoc body --- */
+.hero-essay{
+  font-size:var(--fs-base) !important;
+  line-height:var(--lh-prose) !important;
+}
+/* .scrolly-copy is an intentionally LARGER serif intro (clamp 15-21px):
+   snap line-height only, never shrink its size, keep serif/italic. */
+.scrolly-copy{
+  line-height:var(--lh-prose) !important;
+}
+/* --- captions / cites: smallest role, 10px floor, card line-height --- */
+.fig-caption,.fig-cite{
+  font-size:max(10px,var(--fs-xs)) !important;
+  line-height:var(--lh-card) !important;
+}
+/* --- eyebrows / kickers (verified uppercase small-cap labels): unify
+       tracking + size; keep their existing color/family/transform. --- */
+.cl-kick,
+[class*="kicker"],[class*="eyebrow"]{
+  font-size:var(--fs-sm) !important;
+  letter-spacing:var(--ls-ultra) !important;
+}
+/* tldr-eyebrow is a filled pill (bespoke font shorthand): keep its size,
+   only unify tracking so it sits in the same system. */
+.tldr-eyebrow{
+  font-size:10px !important;
+  letter-spacing:var(--ls-ultra) !important;
+}
+/* NOTE: section subheads (h3 role) deliberately SKIPPED. No verifiable
+   generic subhead class exists; bare h3 is overloaded (7 of 14 base h3
+   rules render it as a mono-uppercase eyebrow), so a global h3 snap would
+   flatten the eyebrow vs subhead distinction. Left for the owner. */
+/* --- narrative serif subheads: ONLY the verified section-scoped serif h2s.
+       Keep serif + italic (never touch font-family/style); size/lh only. --- */
+.oos-star h2,.pass-decay h2,.aversion h2,.arch h2{
+  font-size:var(--fs-xl) !important;
+  line-height:var(--lh-card) !important;
+}
+/* --- chapter / act deck heads: keep serif + shimmer; normalize size + lh --- */
+.act-deck{
+  font-size:var(--fs-2xl) !important;
+  line-height:var(--lh-display) !important;
+}
+</style>
+<!--REDESIGN-TYPE-END-->
+<!--SONGS-CSS-START--><style>
+#apple-sunomoment .sm-featured{margin:4px 0 24px}
+#apple-sunomoment .sm-feat-h{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#21f6bc;opacity:.9;margin:0 0 12px}
+#apple-sunomoment .sm-feat-row{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+#apple-sunomoment .sm-feat{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid rgba(33,246,188,.28);border-radius:13px;background:linear-gradient(180deg,rgba(33,246,188,.07),rgba(155,107,255,.05));cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+#apple-sunomoment .sm-feat:hover{transform:translateY(-2px);border-color:rgba(33,246,188,.6);background:linear-gradient(180deg,rgba(33,246,188,.12),rgba(155,107,255,.08))}
+#apple-sunomoment .sm-feat-t{font-weight:600;font-size:15px;color:#eef0f2;letter-spacing:-.01em}
+#apple-sunomoment .sm-feat .sm-go{color:#21f6bc;font-size:12px;opacity:.85;flex:none}
+#apple-sunomoment .sm-feat.sm-playing{border-color:#21f6bc;background:linear-gradient(180deg,rgba(33,246,188,.16),rgba(155,107,255,.1))}
+#apple-sunomoment .sm-fullwork{border-top:1px solid rgba(124,128,140,.18);margin-top:2px}
+#apple-sunomoment .sm-fw-sum{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:12px;padding:16px 2px;outline:none}
+#apple-sunomoment .sm-fw-sum::-webkit-details-marker{display:none}
+#apple-sunomoment .sm-fw-label{font-family:'JetBrains Mono','SF Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#eef0f2}
+#apple-sunomoment .sm-fw-sub{font-size:12px;color:#9aa0aa;letter-spacing:.02em}
+#apple-sunomoment .sm-fw-caret{margin-left:auto;color:#9aa0aa;font-size:11px;transition:transform .2s ease}
+#apple-sunomoment .sm-fullwork[open] .sm-fw-caret{transform:rotate(180deg)}
+#apple-sunomoment .sm-mvmt{margin:8px 0 18px}
+#apple-sunomoment .sm-mv-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 9px;padding-bottom:7px;border-bottom:1px dashed rgba(124,128,140,.2)}
+#apple-sunomoment .sm-mv-label{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#21f6bc}
+#apple-sunomoment .sm-mv-note{font-size:12px;font-style:italic;color:#8b919b}
+#apple-sunomoment .sm-mv-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:4px 18px}
+#apple-sunomoment .sm-mv-list .sm-track{display:flex;align-items:center;gap:11px;padding:8px 6px;border-radius:9px;cursor:pointer;transition:background .15s ease}
+#apple-sunomoment .sm-mv-list .sm-track:hover{background:rgba(255,255,255,.04)}
+#apple-sunomoment .sm-mv-list .sm-n{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;color:#6b7280;flex:none;width:20px}
+#apple-sunomoment .sm-mv-list .sm-t{font-size:14px;color:#d6d9de;flex:1}
+#apple-sunomoment .sm-mv-list .sm-go{color:#21f6bc;font-size:11px;opacity:0;transition:opacity .15s ease;flex:none}
+#apple-sunomoment .sm-mv-list .sm-track:hover .sm-go{opacity:.8}
+#apple-sunomoment .sm-mv-list .sm-track.sm-playing{background:rgba(33,246,188,.1)}
+#apple-sunomoment .sm-mv-list .sm-track.sm-playing .sm-go{opacity:1}
+#apple-sunomoment .sm-mv-list .sm-track.sm-playing .sm-t{color:#21f6bc}
+@media(max-width:640px){#apple-sunomoment .sm-feat-row{grid-template-columns:1fr}#apple-sunomoment .sm-mv-list{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#apple-sunomoment .sm-feat,#apple-sunomoment .sm-fw-caret,#apple-sunomoment .sm-mv-list .sm-track{transition:none}}
+</style><!--SONGS-CSS-END-->
 </body>
 </html>
