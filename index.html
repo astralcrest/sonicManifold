@@ -10,13 +10,13 @@
 <!--PUBLISH-HINTS-END-->
 <!--PUBLISH-HEAD-START-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="description" content="Only 19% of my Spotify plays over seven years were a deliberate tap — 64% the algorithm served, 17% I shuffled — a contamination problem for any AI trained on behavior. An N=1 listening analysis, decoded with network science, information theory, and topology.">
-<link rel="canonical" href="https://astralcrest.github.io/sonicManifold/"><!--APPLE-JSONLD-START--><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Dataset", "name": "sonic manifold — a listening life, decoded", "description": "An N=1 analysis of seven years of one listener's Spotify history: only 19% of plays were deliberate taps — 64% algorithm-served, 17% shuffled — a behavioral-data contamination problem for any AI trained on engagement logs. Decoded with network science, information theory, and topology.", "url": "https://astralcrest.github.io/sonicManifold/", "creator": {"@type": "Person", "name": "astralcrest", "url": "https://astralcrest.github.io/sonicManifold/"}, "keywords": ["behavioral data contamination", "recommender systems", "RLHF", "preference learning", "N=1 longitudinal", "music information retrieval", "network science", "Hawkes process", "topological data analysis"], "datePublished": "2026-06-06", "inLanguage": "en", "license": "https://creativecommons.org/licenses/by/4.0/", "isAccessibleForFree": true}</script><!--APPLE-JSONLD-END-->
+<meta name="description" content="Only 19% of my Spotify plays over seven years were a deliberate tap — 64% the algorithm served, 17% I shuffled — a contamination problem in one behavior log (N=1) — portable to any with provenance side-channels. An N=1 listening analysis, decoded with network science, information theory, and topology.">
+<link rel="canonical" href="https://astralcrest.github.io/sonicManifold/"><!--APPLE-JSONLD-START--><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Dataset", "name": "sonic manifold — a listening life, decoded", "description": "An N=1 analysis of seven years of one listener's Spotify history: only 19% of plays were deliberate taps — 64% algorithm-served, 17% shuffled — a behavioral-data contamination problem shown in one engagement log (N=1) — portable to any with provenance. Decoded with network science, information theory, and topology.", "url": "https://astralcrest.github.io/sonicManifold/", "creator": {"@type": "Person", "name": "astralcrest", "url": "https://astralcrest.github.io/sonicManifold/"}, "keywords": ["behavioral data contamination", "recommender systems", "RLHF", "preference learning", "N=1 longitudinal", "music information retrieval", "network science", "Hawkes process", "topological data analysis"], "datePublished": "2026-06-06", "inLanguage": "en", "license": "https://creativecommons.org/licenses/by/4.0/", "isAccessibleForFree": true}</script><!--APPLE-JSONLD-END-->
 <meta name="theme-color" content="#0a0118">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="robots" content="index, follow"><meta name="build-stamp" content="2026-06-07T1717Z"><meta name="build-commit" content="6c62af0+">
+<meta name="robots" content="index, follow"><meta name="build-stamp" content="2026-06-15T1800Z"><meta name="build-commit" content="bc843eb+">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -24,13 +24,13 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/">
 <meta property="og:title" content="sonic manifold — a listening life, decoded">
-<meta property="og:description" content="Only 19% of my Spotify plays were a deliberate tap — 64% the algorithm served, 17% I shuffled. A training-data problem for every AI system built on behavior.">
+<meta property="og:description" content="Only 19% of my Spotify plays were a deliberate tap — 64% the algorithm served, 17% I shuffled. A contamination problem visible in one listener’s logs — portable to any behavior log with provenance.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="sonic manifold — a listening life, decoded">
-<meta name="twitter:description" content="Only 19% of my Spotify plays were a deliberate tap — 64% the algorithm served, 17% I shuffled. A training-data problem for every AI system built on behavior.">
+<meta name="twitter:description" content="Only 19% of my Spotify plays were a deliberate tap — 64% the algorithm served, 17% I shuffled. A contamination problem visible in one listener’s logs — portable to any behavior log with provenance.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <!--PUBLISH-HEAD-END-->
 
@@ -2511,7 +2511,7 @@ body.story-only .pass-decay{display:block!important}
     <div class="pd-card decay">
       <span class="pc-tag">audit 2 &middot; passivity decay</span>
       <div class="pc-stat">23.8% &rarr; 1.5%</div>
-      <p>Follow an unbroken autoplay run. For tracks I&rsquo;d <b>already ratified</b>, deep streaks are real delegation &mdash; re-tap odds <i>rise</i> with depth (0.55&rarr;0.91, &rho;=+0.61). For tracks I&rsquo;d <b>never tapped</b>, they collapse: 23.8% at depth 1 down to 1.5% by depth ~70 (&rho;=&minus;0.88, p&asymp;10<sup>&minus;11</sup>). The deeper the system wanders from my last choice, the less each play means.</p>
+      <p>Follow an unbroken autoplay run. For tracks I&rsquo;d <b>already ratified</b>, deep streaks are real delegation &mdash; re-tap odds <i>rise</i> with depth (0.55&rarr;0.91, cluster slope +0.0028 (marginal)). For tracks I&rsquo;d <b>never tapped</b>, they collapse: 23.8% at depth 1 down to 1.5% by depth ~70 (slope &minus;0.0034, MixedLM p&asymp;6&times;10<sup>&minus;12</sup>). The deeper the system wanders from my last choice, the less each play means.</p>
     </div>
   </div>
   <div class="pd-take">Delegation is real &mdash; but only over material I had already ratified. The algorithmic tail is close to preference-free, which is exactly why raw play counts overweight it. And the honest counterpoint stands: a passive play isn&rsquo;t pure noise &mdash; even a never-tapped track at autoplay depth 1 gets ratified 24% of the time. The claim is <b>provenance ambiguity</b>, not meaninglessness.</div>
@@ -2811,7 +2811,7 @@ body.y60-playing{cursor:auto}
     {id:'intent-lead',     label:'CHOSEN ≠ SERVED',  cap:"Only <b>19%</b> of my plays start with a deliberate choice. So &ldquo;my taste&rdquo; read straight off the log is mostly the <em>recommender&rsquo;s</em> &mdash; everything here is re-checked against that."},
     {id:'umap-wrap',       label:'A MAP OF ME',           cap:"Every artist I&rsquo;ve played, projected into 3D by <em>co-listening</em>. No Spotify labels enter &mdash; the geometry is mine."},
     {id:'act-2',           label:'THE GEOMETRY',          cap:"Communities of artists born, merging and dissolving year over year. My musical tribes have demography."},
-    {id:'fig-26',          label:'AGENCY IS TOPOLOGICAL', cap:"Left alone, the algorithm stays in its lane; <b>my</b> picks bridge between scenes. The signature of a person is the <em>shape of the path</em>, not the click count."},
+    {id:'fig-26',          label:'WHO BRIDGES THE SCENES', cap:"Left alone, the algorithm stays in its lane; <b>my</b> picks bridge between scenes. The signature of a person is the <em>shape of the path</em>, not the click count."},
     {id:'fig-41',          label:'EDGE OF CRITICAL',      cap:"My plays self-excite &mdash; one seeds the next. <b>n&#770; = 0.79</b> for my top artist, p = 7.4&times;10<sup>&minus;53</sup> against criticality."},
     {id:'fig-16',          label:'DRIFT WITH RECEIPTS',   cap:"Wasserstein-1 between years &mdash; the minimum taste-mass that actually moved. Change you can measure, not vibes."},
     {id:'act-4',           label:'THE AUDIT',             cap:"Survives the stricter test: artist ranking (&rho;&gt;0.97), daily rhythm, physiology coupling. Dissolves: genre composition, a predictability gap, a music&rarr;heart-rate read."},
@@ -20062,7 +20062,7 @@ body::after{
     {id:'oos-star', v:'retracted',
      note:'Died in its own audit. In&#8209;sample d=0.50 &rarr; held&#8209;out d=&minus;0.02 (CI brackets zero). Most of the effect was the model memorising my own history.'},
     {id:'pass-decay', v:'survives',
-     note:'Two audits over all 97,427 plays. First&#8209;encounter return 7.2% vs 28.7%; never&#8209;tapped autoplay collapses 24%&rarr;1.5% (&rho;=&minus;0.88, p&asymp;10&#8315;&#185;&#185;).'},
+     note:'Two audits over all 97,427 plays. First&#8209;encounter return 7.2% vs 28.7%; never&#8209;tapped autoplay collapses 24%&rarr;1.5% (slope &minus;0.0034, MixedLM p&asymp;6&times;10&#8315;&#185;&#178;).'},
     {id:'aversion', v:'caution',
      note:'Real but narrow. 6.8&times; attractor&#8209;enriched, yet the tolerated set sits cos&nbsp;0.92 from the chosen one &mdash; artist&#8209;level, not a genre I can name.'}
   ];
