@@ -830,8 +830,8 @@ html body.story-only .act-lab-btn:hover{ background:rgba(255,255,255,.08);border
     <div class="sme-eyebrow">a listening life, decoded &middot; n=1</div>
     <h1 class="sme-wm">sonic manifold</h1>
     <p class="sme-hook"><b>Only 19% of my plays were a deliberate tap.</b><br>seven years, 97,427 plays &mdash; 64% the algorithm served, 17% I shuffled, 19% I chose.</p>
-    <button class="sme-btn" id="sm-enter-btn" type="button">&#9654; enter <span>(sound on)</span></button>
-    <div class="sme-skip" id="sm-enter-skip">continue without sound</div>
+    <button class="sme-btn" id="sm-enter-btn" type="button">&#9654; enter <span>(with sound)</span></button>
+    <div class="sme-skip" id="sm-enter-skip">enter silently</div>
   </div>
 </div>
 <script id="apple-enter-js">
@@ -2314,49 +2314,6 @@ body.story-only .scitrack{display:block!important}
 })();
 </script>
 <!--APPLE-SCITRACK-END-->
-<!--AUDIT-GAUNTLET-START-->
-<style>
-.gauntlet{max-width:880px;margin:22px auto 0;padding:22px 26px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(255,110,156,.30);border-radius:16px;background:linear-gradient(180deg,rgba(30,8,16,.42),rgba(16,4,10,.30));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-.gauntlet .gt-eyebrow{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:#ff6e9c;opacity:.9;margin:0 0 8px}
-.gauntlet h2{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:clamp(18px,2.6vw,26px);font-weight:800;letter-spacing:.4px;color:#fff;margin:0 0 8px;line-height:1.16}
-.gauntlet h2 .gt-die{color:#ff6e9c}
-.gauntlet .gt-lede{font-family:'Inter',system-ui,sans-serif;font-size:13.5px;line-height:1.62;color:#cfd2da;margin:0 0 16px;max-width:64ch}
-.gauntlet .gt-gates{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px;padding:0;list-style:none}
-.gauntlet .gt-gates li{font-size:10px;letter-spacing:.4px;padding:5px 10px;border:1px solid rgba(125,240,200,.26);border-radius:999px;color:#7df0c8;background:rgba(33,246,188,.05)}
-.gauntlet .gt-gates li b{color:#fff;font-weight:700}
-.gauntlet .gt-ledger{display:flex;gap:20px;flex-wrap:wrap;margin:0 0 16px;align-items:flex-end}
-.gauntlet .gt-ledger>div{min-width:54px}
-.gauntlet .gt-ledger .gt-n{font-size:26px;font-weight:800;line-height:1}
-.gauntlet .gt-ledger .gt-l{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:#9CA0A8;display:block;margin-top:4px}
-.gauntlet .gt-killed .gt-n{color:#ff6e9c}.gauntlet .gt-caveat .gt-n{color:#fffa6a}.gauntlet .gt-surv .gt-n{color:#21f6bc}
-.gauntlet .gt-tools{font-family:'Inter',system-ui,sans-serif;font-size:11.5px;color:#9CA0A8;line-height:1.7;margin:0 0 16px;border-top:1px solid rgba(124,128,140,.22);padding-top:13px}
-.gauntlet .gt-tools b{color:#cfd2da;font-weight:600}
-.gauntlet .gt-chips{display:flex;flex-wrap:wrap;gap:8px}
-.gauntlet .gt-chip{font-size:11px;letter-spacing:.3px;padding:8px 13px;border-radius:999px;border:1px solid rgba(125,240,200,.32);color:#7df0c8;text-decoration:none;background:rgba(33,246,188,.06);transition:transform .15s,border-color .15s,color .15s;cursor:pointer}
-.gauntlet .gt-chip:hover{transform:translateY(-2px);border-color:#21f6bc;color:#21f6bc}
-@media(max-width:520px){.gauntlet{padding:18px 16px;margin-top:16px}}
-</style>
-<section class="gauntlet" aria-label="The Gauntlet: how I know it is real">
-  <p class="gt-eyebrow">how do i know it&rsquo;s real</p>
-  <h2>THE GAUNTLET &mdash; every claim runs seven gates. <span class="gt-die">most die here.</span></h2>
-  <p class="gt-lede">Nothing reaches this page until it clears a fixed, pre-ordered audit. The exciting ones fail first &mdash; music&rarr;heart-rate, the predictability gap, the &ldquo;topological&rdquo; reading of my own bridge. What survives, I trust; what didn&rsquo;t is reported as a first-class result in <a href="#graveyard" style="color:#ff6e9c">the graveyard</a>.</p>
-  <ul class="gt-gates">
-    <li><b>0</b>&nbsp;pre-registered</li><li><b>0b</b>&nbsp;measured target</li><li><b>1</b>&nbsp;held-out</li><li><b>2</b>&nbsp;perturbation</li><li><b>3</b>&nbsp;power</li><li><b>4</b>&nbsp;surrogate</li><li><b>5</b>&nbsp;confounder</li>
-  </ul>
-  <div class="gt-ledger">
-    <div class="gt-killed"><span class="gt-n">3</span><span class="gt-l">killed</span></div>
-    <div class="gt-caveat"><span class="gt-n">2</span><span class="gt-l">caveated</span></div>
-    <div class="gt-surv"><span class="gt-n">1</span><span class="gt-l">survived</span></div>
-    <div><span class="gt-n" style="color:#cfd2da">~&frac12;</span><span class="gt-l">of all flashy claims survive</span></div>
-  </div>
-  <p class="gt-tools"><b>One life, eight disciplines:</b> topological data analysis &middot; network science &middot; information theory &middot; causal inference (IPW / E-values) &middot; survival &amp; point processes (Hawkes) &middot; sequence embeddings (Word2Vec / UMAP) &middot; Bayesian N=1 &middot; cross-instrument physiology. <a href="#methods-index" class="scitrack-jump" style="color:#7df0c8">see the full methods index &rarr;</a></p>
-  <div class="gt-chips">
-    <a class="gt-chip scitrack-jump" href="#graveyard">the graveyard &rarr;</a>
-    <a class="gt-chip scitrack-jump" href="#honest">what the data can&rsquo;t tell me &rarr;</a>
-    <a class="gt-chip scitrack-jump" href="#exo-shape-inversion">shape inversion &rarr;</a>
-  </div>
-</section>
-<!--AUDIT-GAUNTLET-END-->
 
 <!--APPLE-SEMCOLOR-START-->
 <style>
@@ -2416,6 +2373,49 @@ body.story-only .sci-abstract{display:block!important}
   <p class="sa-row" style="font-size:11.5px;color:rgba(240,234,255,.45);margin-top:10px;border-top:1px dashed rgba(255,255,255,.07);padding-top:10px">working paper: <i>&ldquo;Streaming Logs Are Not Preference Logs: A Provenance-Deconfounding Framework and a Single-Subject Audit of What Survives&rdquo;</i> (in preparation)</p>
 </section>
 <!--APPLE-ABSTRACT-END-->
+<!--AUDIT-GAUNTLET-START-->
+<style>
+.gauntlet{max-width:880px;margin:22px auto 0;padding:22px 26px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(255,110,156,.30);border-radius:16px;background:linear-gradient(180deg,rgba(30,8,16,.42),rgba(16,4,10,.30));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.gauntlet .gt-eyebrow{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:#ff6e9c;opacity:.9;margin:0 0 8px}
+.gauntlet h2{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:clamp(18px,2.6vw,26px);font-weight:800;letter-spacing:.4px;color:#fff;margin:0 0 8px;line-height:1.16}
+.gauntlet h2 .gt-die{color:#ff6e9c}
+.gauntlet .gt-lede{font-family:'Inter',system-ui,sans-serif;font-size:13.5px;line-height:1.62;color:#cfd2da;margin:0 0 16px;max-width:64ch}
+.gauntlet .gt-gates{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px;padding:0;list-style:none}
+.gauntlet .gt-gates li{font-size:10px;letter-spacing:.4px;padding:5px 10px;border:1px solid rgba(125,240,200,.26);border-radius:999px;color:#7df0c8;background:rgba(33,246,188,.05)}
+.gauntlet .gt-gates li b{color:#fff;font-weight:700}
+.gauntlet .gt-ledger{display:flex;gap:20px;flex-wrap:wrap;margin:0 0 16px;align-items:flex-end}
+.gauntlet .gt-ledger>div{min-width:54px}
+.gauntlet .gt-ledger .gt-n{font-size:26px;font-weight:800;line-height:1}
+.gauntlet .gt-ledger .gt-l{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:#9CA0A8;display:block;margin-top:4px}
+.gauntlet .gt-killed .gt-n{color:#ff6e9c}.gauntlet .gt-caveat .gt-n{color:#fffa6a}.gauntlet .gt-surv .gt-n{color:#21f6bc}
+.gauntlet .gt-tools{font-family:'Inter',system-ui,sans-serif;font-size:11.5px;color:#9CA0A8;line-height:1.7;margin:0 0 16px;border-top:1px solid rgba(124,128,140,.22);padding-top:13px}
+.gauntlet .gt-tools b{color:#cfd2da;font-weight:600}
+.gauntlet .gt-chips{display:flex;flex-wrap:wrap;gap:8px}
+.gauntlet .gt-chip{font-size:11px;letter-spacing:.3px;padding:8px 13px;border-radius:999px;border:1px solid rgba(125,240,200,.32);color:#7df0c8;text-decoration:none;background:rgba(33,246,188,.06);transition:transform .15s,border-color .15s,color .15s;cursor:pointer}
+.gauntlet .gt-chip:hover{transform:translateY(-2px);border-color:#21f6bc;color:#21f6bc}
+@media(max-width:520px){.gauntlet{padding:18px 16px;margin-top:16px}}
+</style>
+<section class="gauntlet" aria-label="The Gauntlet: how I know it is real">
+  <p class="gt-eyebrow">how do i know it&rsquo;s real</p>
+  <h2>THE GAUNTLET &mdash; every claim runs seven gates. <span class="gt-die">most die here.</span></h2>
+  <p class="gt-lede">Nothing reaches this page until it clears a fixed, pre-ordered audit. The exciting ones fail first &mdash; music&rarr;heart-rate, the predictability gap, the &ldquo;topological&rdquo; reading of my own bridge. What survives, I trust; what didn&rsquo;t is reported as a first-class result in <a href="#graveyard" style="color:#ff6e9c">the graveyard</a>.</p>
+  <ul class="gt-gates">
+    <li><b>0</b>&nbsp;pre-registered</li><li><b>0b</b>&nbsp;measured target</li><li><b>1</b>&nbsp;held-out</li><li><b>2</b>&nbsp;perturbation</li><li><b>3</b>&nbsp;power</li><li><b>4</b>&nbsp;surrogate</li><li><b>5</b>&nbsp;confounder</li>
+  </ul>
+  <div class="gt-ledger">
+    <div class="gt-killed"><span class="gt-n">3</span><span class="gt-l">killed</span></div>
+    <div class="gt-caveat"><span class="gt-n">2</span><span class="gt-l">caveated</span></div>
+    <div class="gt-surv"><span class="gt-n">1</span><span class="gt-l">survived</span></div>
+    <div><span class="gt-n" style="color:#cfd2da">~&frac12;</span><span class="gt-l">of all flashy claims survive</span></div>
+  </div>
+  <p class="gt-tools"><b>One life, eight disciplines:</b> topological data analysis &middot; network science &middot; information theory &middot; causal inference (IPW / E-values) &middot; survival &amp; point processes (Hawkes) &middot; sequence embeddings (Word2Vec / UMAP) &middot; Bayesian N=1 &middot; cross-instrument physiology. <a href="#methods-index" class="scitrack-jump" style="color:#7df0c8">see the full methods index &rarr;</a></p>
+  <div class="gt-chips">
+    <a class="gt-chip scitrack-jump" href="#graveyard">the graveyard &rarr;</a>
+    <a class="gt-chip scitrack-jump" href="#honest">what the data can&rsquo;t tell me &rarr;</a>
+    <a class="gt-chip scitrack-jump" href="#exo-shape-inversion">shape inversion &rarr;</a>
+  </div>
+</section>
+<!--AUDIT-GAUNTLET-END-->
 <!--ABOUT-START-->
   <details class="about-dash" id="tldr">
     <summary>about this dashboard ↓</summary>
@@ -19470,11 +19470,11 @@ p.mi-subtitle, p.amg-sub, p.amg-desc, p.decontam-sub, p.hp-partial-note{
         <path class="ss-path ss-path-me" pathLength="100" d="M40,70 L100,230 L160,70 L220,230 L290,70 L350,230"/>
         <g class="ss-badge ss-badge-algo" transform="translate(252,116)">
           <rect x="0" y="0" width="150" height="22" rx="11" fill="rgba(107,184,255,.16)" stroke="rgba(107,184,255,.4)"/>
-          <text x="11" y="15" fill="#bcd9f7" font-family="JetBrains Mono,monospace" font-size="11">autoplay &rarr; 53% cross</text>
+          <text x="11" y="15" fill="#bcd9f7" font-family="JetBrains Mono,monospace" font-size="11">autoplay &rarr; 31% cross</text>
         </g>
         <g class="ss-badge ss-badge-me" transform="translate(16,160)">
           <rect x="0" y="0" width="146" height="22" rx="11" fill="rgba(51,230,160,.16)" stroke="rgba(51,230,160,.42)"/>
-          <text x="11" y="15" fill="#bff3df" font-family="JetBrains Mono,monospace" font-size="11">my taps &rarr; 69% cross</text>
+          <text x="11" y="15" fill="#bff3df" font-family="JetBrains Mono,monospace" font-size="11">my taps &rarr; 50% cross</text>
         </g>
         <g class="ss-badge ss-badge-bridge" transform="translate(120,128)">
           <rect x="0" y="0" width="180" height="26" rx="13" fill="rgba(155,107,255,.18)" stroke="rgba(155,107,255,.46)"/>
@@ -19489,11 +19489,11 @@ p.mi-subtitle, p.amg-sub, p.amg-desc, p.decontam-sub, p.hp-partial-note{
       </div>
       <div class="ss-step" data-step="1">
         <h3>The algorithm stays in its lane.</h3>
-        <p>When autoplay picks the next track, it lands in a <b>different</b> community only <b>53%</b> of the time. It mostly keeps me where I already am.</p>
+        <p>When autoplay picks the next track, it lands in a <b>different</b> community only <b>~31%</b> of the time. It mostly keeps me where I already am.</p>
       </div>
       <div class="ss-step" data-step="2">
         <h3>I&rsquo;m the one who bridges.</h3>
-        <p>When <b>I</b> pick the next track, it crosses into another community <b>69%</b> of the time &mdash; I hop between lanes far more than the recommender does.</p>
+        <p>When <b>I</b> pick the next track, it crosses into another community <b>~50%</b> of the time &mdash; I hop between lanes far more than the recommender does.</p>
       </div>
       <div class="ss-step" data-step="3">
         <h3>Same library, two topologies.</h3>
@@ -20939,5 +20939,15 @@ html{background:#0a0118}
 <div id="aurora-bg" aria-hidden="true"></div>
 <!--FIELD-AURORA-BG-END-->
 
+<!--HERO-SPLASH-POLISH-START-->
+<style id="hero-splash-polish">
+/* hero + splash refinements */
+header .hero-stage h1{background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;-webkit-text-fill-color:#eef0f4!important;color:#eef0f4!important;animation:none!important}
+.hero-detonate{display:none!important}
+#sm-enter .sme-btn{animation:none!important}
+#sm-enter .sme-skip{display:inline-block;margin-top:16px;padding:14px 34px;border-radius:999px;border:1px solid rgba(240,234,255,.32);color:rgba(240,234,255,.82);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+#sm-enter .sme-skip:hover{color:#fff;border-color:rgba(240,234,255,.6)}
+</style>
+<!--HERO-SPLASH-POLISH-END-->
 </body>
 </html>
