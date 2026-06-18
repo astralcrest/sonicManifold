@@ -2235,15 +2235,25 @@ document.addEventListener('DOMContentLoaded', function () {
   <div class="hero-stage">
     <div class="hero-detonate" aria-hidden="true"><span class="hero-bignum" id="hero-bignum" data-target="97427">97,427</span><span class="hero-bignum-lbl">plays</span></div>
     <script>(function(){try{var e=document.getElementById('hero-bignum');if(e&&window.matchMedia&&!matchMedia('(prefers-reduced-motion:reduce)').matches)e.textContent='0';}catch(_){ }})();</script>
-    <h1>◢◤  sonic manifold — a listening life, decoded</h1>
-    <p class="hero-tagline">seven years. one listener. <span class="accent">all of it, measured.</span></p>
+    <style>
+      .hero-stage h1.hero-wordmark{font-size:clamp(20px,2.7vw,34px)!important;font-weight:700!important;line-height:1.2!important;letter-spacing:-.01em;color:rgba(238,240,244,.84)!important;margin:0 auto clamp(16px,2.6vh,30px)!important;-webkit-text-fill-color:initial!important;background:none!important}
+      .hero-stage .hero-finding{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;font-size:clamp(30px,5.6vw,62px);line-height:1.08;font-weight:800;letter-spacing:-.022em;color:#eef0f4;margin:0 auto clamp(16px,2.4vh,24px);max-width:16ch}
+      .hero-stage .hero-finding em{font-style:normal;color:var(--mint,#21f6bc);text-shadow:0 0 34px rgba(33,246,188,.32)}
+      .hero-stage .hero-stakes{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(11.5px,1.2vw,13.5px);letter-spacing:.04em;color:rgba(240,234,255,.6);margin:clamp(16px,2.6vh,26px) auto 0}
+      .hero-stage .hero-stakes .hs-em{color:#ff6e9c}
+      @media(max-width:600px){.hero-stage .hero-finding{max-width:14ch}}
+    </style>
+    <h1 class="hero-wordmark">◢◤  sonic manifold — a listening life, decoded</h1>
+    <p class="hero-finding">the algorithm stayed in its lane. <em>i’m the one who crossed.</em></p>
+    <p class="hero-tagline">of the music i actually chose, <span class="accent">~50%</span> jumped between musical scenes. autoplay managed ~31%.</p>
     <div class="hero-stats">
-      <span><b>97,427</b> plays <span class="unit" style="opacity:.6;font-size:.8em">(&ge;30s)</span></span>
+      <span><b>97,427</b> plays</span>
       <span class="dot">·</span>
-      <span><b>6,288</b> artists</span>
+      <span><b>81%</b> machine-queued</span>
       <span class="dot">·</span>
-      <span><b>4,770</b> hours</span>
+      <span><b>19%</b> i chose</span>
     </div>
+    <p class="hero-stakes">every claim here ran a fixed audit. <span class="hs-em">most died.</span></p>
     <a class="hero-cue" href="#abstract" aria-label="skip to the abstract — start reading">
       keep going<span class="arrow">↓</span><span class="arrow2">↓</span>
     </a>
@@ -19805,7 +19815,7 @@ body::after{
     m.innerHTML=
       '<span class="field-mast__kicker">A Field Study</span>'+
       '<span class="field-mast__meta"><span>N=1</span><span class="sep">·</span>'+
-      '<span>7 years</span><span class="sep">·</span><span>5 min read</span></span>'+
+      '<span>7 years</span><span class="sep">·</span><span>audited</span></span>'+
       '<span class="field-mast__rule" aria-hidden="true"></span>';
     stage.insertBefore(m, stage.firstChild);
   }
