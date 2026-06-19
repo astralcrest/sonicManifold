@@ -12665,7 +12665,7 @@ try {
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
   #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
 </style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest"}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest"}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest"}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest"}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest"}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest"}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest"}, {"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest"}]</script>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest"}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest"}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest"}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest"}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest"}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest"}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest"}]</script>
 <div id="sh-bg" aria-hidden="true">
   <audio id="sh-a" preload="auto"></audio>
   <audio id="sh-b" preload="auto"></audio>
@@ -12687,11 +12687,11 @@ try {
     for (var i = 0; i < arr.length; i++) { if (groupOf(arr[i]) === groupOf(arr[(i + 1) % arr.length])) return false; }
     return true;
   }
-  var _att = 0;
-  do {
-    for (var i = tracks.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = tracks[i]; tracks[i] = tracks[j]; tracks[j] = t; }
-    _att++;
-  } while (!adjOK(tracks) && _att < 60);
+  // ENTRY-ORDER: deterministic autoplay. #sh-tracks is the hand-curated entry/retention
+  // sequence (front-loaded hooks for the ~90s conversion window), so it plays in array
+  // order from index 0 — NOT shuffled. The order already keeps the two Antares cuts
+  // non-adjacent (circularly); adjOK/groupOf above are retained but unused.
+  void adjOK;
 
   var FADE_MS = 5000, STEP = 50, VOL = 0.85;
   var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
@@ -20753,5 +20753,130 @@ header .hero-stage h1{background:none!important;-webkit-background-clip:border-b
 #sm-enter .sme-skip:hover{color:#fff;border-color:rgba(240,234,255,.6)}
 </style>
 <!--HERO-SPLASH-POLISH-END-->
+<!--APPLE-DESIGNPASS-START-->
+<style id="apple-designpass">
+/* ===== Stage A: readability + uniformity pass (additive, idempotent) ===== */
+
+/* DESKTOP nav: kill the edge mask-fade that reads as "cut off"; sharpen idle contrast */
+@media (min-width:1025px){
+  html body nav.cyber-nav ul{ -webkit-mask-image:none !important; mask-image:none !important; }
+}
+/* tame the doubled rainbow hairline so the bar reads premium, not busy */
+.cyber-nav::after{ opacity:.30 !important; }
+
+/* MOBILE readability floors — nothing below a legible size on a phone */
+@media (max-width:480px){
+  .fig-caption{ font-size:12px !important; line-height:1.5 !important; }
+  .card .lbl{ font-size:10px !important; letter-spacing:.06em !important; }
+  header .sub{ font-size:12px !important; }
+  .glossary-panel{ font-size:13px !important; }
+}
+/* chart tick labels: floor at 9px (was 7-8px = illegible) */
+@media (max-width:768px){
+  .js-plotly-plot .xtick text, .js-plotly-plot .ytick text{ font-size:9px !important; }
+}
+
+/* now-playing pill: stop clipping the track to "astral…" */
+@media (max-width:480px){
+  #sc-now{ max-width:calc(100vw - 20px) !important; }
+  #sc-now-label{ font-size:11px !important; }
+}
+
+/* tap targets >= ~44px on touch */
+@media (max-width:768px){
+  #global-mute-pill{ width:44px !important; height:44px !important; font-size:17px !important; }
+  #sc-now-skip{ min-width:34px !important; min-height:34px !important; padding:7px 8px !important; }
+  /* one audio surface on mobile: the bottom pill + mute pill (drop the redundant top nub) */
+  #sonic-audio-chip{ display:none !important; }
+}
+</style>
+<!--APPLE-DESIGNPASS-END-->
+
+<!--CYBER-NAV-MOBILE-START-->
+<style id="cyber-nav-mobile-css">
+.cyber-burger{ display:none; }
+@media (max-width:768px){
+  html body nav.cyber-nav ul{ display:none !important; }
+  .cyber-burger{ display:flex; flex-direction:column; justify-content:center; gap:5px;
+    width:44px; height:44px; margin-left:auto; background:none; border:0; cursor:pointer; padding:0;
+    -webkit-tap-highlight-color:transparent; }
+  .cyber-burger span{ display:block; height:2px; width:22px; border-radius:2px; margin:0 auto;
+    background:linear-gradient(90deg,var(--mint,#21f6bc),var(--orchid,#bda6ff));
+    box-shadow:0 0 8px rgba(33,246,188,.5); transition:transform .25s ease, opacity .2s ease; }
+  body.nav-open .cyber-burger span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  body.nav-open .cyber-burger span:nth-child(2){ opacity:0; }
+  body.nav-open .cyber-burger span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+  #cyber-sheet{ position:fixed; inset:var(--nav-h,50px) 0 0 0; z-index:9998;
+    background:rgba(10,1,24,0.975); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px);
+    display:flex; flex-direction:column; padding:16px 16px max(28px,env(safe-area-inset-bottom)); gap:3px;
+    overflow-y:auto; opacity:0; transform:translateY(-8px); pointer-events:none;
+    transition:opacity .22s ease, transform .22s ease; }
+  body.nav-open #cyber-sheet{ opacity:1; transform:none; pointer-events:auto; }
+  body.nav-open{ overflow:hidden; }
+  #cyber-sheet .cs-head{ font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; letter-spacing:.28em;
+    text-transform:uppercase; color:var(--mint,#21f6bc); opacity:.8; margin:6px 4px 10px; }
+  #cyber-sheet .cs-row{ display:flex; align-items:center; gap:14px; min-height:52px; padding:0 12px;
+    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:14px; letter-spacing:1px; color:var(--ink,#f0eaff);
+    border-radius:10px; border-bottom:1px solid rgba(124,128,140,0.16); text-decoration:none; background:none; width:100%;
+    text-align:left; cursor:pointer; }
+  #cyber-sheet .cs-row:active{ background:rgba(33,246,188,0.10); }
+  #cyber-sheet .cs-glyph{ font-size:18px; width:26px; text-align:center; color:var(--mint,#21f6bc); flex:0 0 26px; }
+  #cyber-sheet .cs-divider{ height:1px; background:rgba(124,128,140,0.22); margin:10px 4px; }
+}
+@media (min-width:769px){ .cyber-burger, #cyber-sheet{ display:none !important; } }
+</style>
+<script id="cyber-nav-mobile-js">
+(function(){
+  if(window.__cyberMobileNav) return; window.__cyberMobileNav=true;
+  var nav=document.querySelector('nav.cyber-nav')||document.querySelector('.cyber-nav'); if(!nav) return;
+  var ul=nav.querySelector('ul'); if(!ul) return;
+
+  var burger=document.createElement('button');
+  burger.type='button'; burger.id='cyber-burger'; burger.className='cyber-burger';
+  burger.setAttribute('aria-label','open chapter menu'); burger.setAttribute('aria-expanded','false');
+  burger.setAttribute('aria-controls','cyber-sheet');
+  burger.innerHTML='<span></span><span></span><span></span>';
+  nav.appendChild(burger);
+
+  var sheet=document.createElement('div');
+  sheet.id='cyber-sheet'; sheet.setAttribute('role','dialog'); sheet.setAttribute('aria-modal','true');
+  sheet.setAttribute('aria-label','chapters and views');
+  document.body.appendChild(sheet);
+
+  function topLevel(){
+    // direct interactive children of the nav ul (chapters, TL;DR, aux) — NOT submenu deep-links
+    return Array.prototype.filter.call(ul.querySelectorAll('a,button'), function(el){
+      if(el.closest('.submenu')) return false;   // top-level only, not deep-links
+      var li=el.closest('li'); return li && li.parentNode===ul;
+    });
+  }
+  function build(){
+    sheet.innerHTML='';
+    var head=document.createElement('div'); head.className='cs-head'; head.textContent='chapters & views';
+    sheet.appendChild(head);
+    topLevel().forEach(function(el){
+      var row=document.createElement('button'); row.type='button'; row.className='cs-row';
+      var glyph=el.querySelector('.glyph'); var label=el.querySelector('.label');
+      var gtxt=glyph?glyph.textContent:''; var ltxt=label?label.textContent:(el.textContent||'').trim();
+      if(!gtxt){ var _h=el.getAttribute('href')||''; gtxt = _h==='#tldr' ? '≡' : '▸'; }
+      var gspan=document.createElement('span'); gspan.className='cs-glyph'; gspan.textContent=gtxt;
+      try{ if(glyph){ var gc=getComputedStyle(glyph).color; if(gc) gspan.style.color=gc; } }catch(e){}
+      var lspan=document.createElement('span'); lspan.className='cs-label'; lspan.textContent=ltxt;
+      row.appendChild(gspan); row.appendChild(lspan);
+      row.addEventListener('click', function(){ close(); try{ el.click(); }catch(e){} });
+      sheet.appendChild(row);
+    });
+  }
+  function open(){ build(); document.body.classList.add('nav-open'); burger.setAttribute('aria-expanded','true'); }
+  function close(){ document.body.classList.remove('nav-open'); burger.setAttribute('aria-expanded','false'); }
+  function toggle(){ document.body.classList.contains('nav-open') ? close() : open(); }
+
+  burger.addEventListener('click', function(e){ e.stopPropagation(); toggle(); });
+  sheet.addEventListener('click', function(e){ if(e.target===sheet) close(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && document.body.classList.contains('nav-open')) close(); });
+})();
+</script>
+<!--CYBER-NAV-MOBILE-END-->
+
 </body>
 </html>
