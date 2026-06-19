@@ -12785,160 +12785,6 @@ try {
 
 
 
-<!--SELFHOSTED-AUDIO-START-->
-<style>
-  /* hidden native-audio decks; reuses the SC player's #sc-now readout */
-  #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
-</style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest"}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest"}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest"}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest"}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest"}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest"}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "g": "antares"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest"}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest"}]</script>
-<div id="sh-bg" aria-hidden="true">
-  <audio id="sh-a" preload="auto"></audio>
-  <audio id="sh-b" preload="auto"></audio>
-</div>
-<script>
-(function () {
-  'use strict';
-  var tracks = [];
-  try { tracks = JSON.parse(document.getElementById('sh-tracks').textContent); } catch (e) {}
-  if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
-  window.__preferSelfHosted = true;                          // SoundCloud player stands down
-
-  // Fisher-Yates shuffle, re-rolled until no two same-group tracks are adjacent
-  // (circular — the queue loops, so last↔first counts). Group = `g` field, else
-  // the src (unique). Keeps versions of one song (e.g. Antares / Antares Infinite Cut) apart.
-  function groupOf(t) { return t.g || t.src; }
-  function adjOK(arr) {
-    if (arr.length < 2) return true;
-    for (var i = 0; i < arr.length; i++) { if (groupOf(arr[i]) === groupOf(arr[(i + 1) % arr.length])) return false; }
-    return true;
-  }
-  // ENTRY-ORDER: deterministic autoplay. #sh-tracks is the hand-curated entry/retention
-  // sequence (front-loaded hooks for the ~90s conversion window), so it plays in array
-  // order from index 0 — NOT shuffled. The order already keeps the two Antares cuts
-  // non-adjacent (circularly); adjOK/groupOf above are retained but unused.
-  void adjOK;
-
-  var FADE_MS = 5000, STEP = 50, VOL = 0.85;
-  var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
-  if (!els.a || !els.b) return;
-  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false;
-  var ramps = { a: null, b: null };
-  var nowEl = document.getElementById('sc-now'), nowLabel = document.getElementById('sc-now-label'), nowSkip = document.getElementById('sc-now-skip');
-  function other(d) { return d === 'a' ? 'b' : 'a'; }
-
-  function setNow(qi) {
-    try { document.dispatchEvent(new CustomEvent('bed:track', { detail: { index: qi, title: tracks[qi] && tracks[qi].t, artist: tracks[qi] && tracks[qi].a } })); } catch (e) {}
-    if (!nowEl) return;
-    nowEl.classList.remove('sc-now-ambient'); nowEl.title = '';
-    if (nowLabel) nowLabel.textContent = tracks[qi].a + ' \u2014 ' + tracks[qi].t;
-    nowEl.classList.add('show');
-    clearTimeout(nowEl.__shT); nowEl.__shT = setTimeout(function () { nowEl.classList.remove('show'); }, 6000);
-  }
-  function load(d, qi, autoplay) {
-    idx[d] = qi; var el = els[d];
-    el.src = tracks[qi].src; el.load();
-    if (autoplay) { el.volume = 0; el.play().catch(function () {}); }
-  }
-  function ramp(d, to, cb) {
-    if (ramps[d]) clearInterval(ramps[d]);
-    var el = els[d], from = el.volume || 0, steps = Math.max(1, Math.round(FADE_MS / STEP)), n = 0;
-    ramps[d] = setInterval(function () {
-      n++; var q = n / steps, sm = q*q*(3 - 2*q); var v = Math.sqrt(Math.max(0, from*from*(1 - sm) + to*to*sm));
-      try { el.volume = muted ? 0 : Math.max(0, Math.min(1, v)); } catch (e) {}
-      if (n >= steps) { clearInterval(ramps[d]); ramps[d] = null; if (cb) cb(); }
-    }, STEP);
-  }
-  function bind(d) {
-    var el = els[d];
-    el.addEventListener('timeupdate', function () {
-      if (d !== active || crossing || muted) return;
-      if (!el.duration || !isFinite(el.duration) || el.duration < FADE_MS / 1000 + 2) return;
-      if (el.currentTime >= el.duration - FADE_MS / 1000) startCrossfade();
-    });
-    el.addEventListener('ended', function () { if (d === active && !crossing && el.currentTime >= (el.duration || 0) - 0.5) goNext(); });
-    el.addEventListener('playing', function () { if (d === active) { document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[d]); } });
-    el.addEventListener('error', function () { if (d === active && !crossing) goNext(); });
-  }
-  var swapT = null, gen = 0;
-  function clearCross() {
-    if (swapT) { clearTimeout(swapT); swapT = null; }
-    if (ramps && ramps.a) { clearInterval(ramps.a); ramps.a = null; }
-    if (ramps && ramps.b) { clearInterval(ramps.b); ramps.b = null; }
-    crossing = false;
-  }
-  function startCrossfade() {
-    if (crossing) return;
-    var sb = other(active); crossing = true; var myGen = ++gen;
-    try { els[sb].currentTime = 0; } catch (e) {}
-    els[sb].volume = 0; els[sb].play().catch(function () {});
-    ramp(sb, VOL);
-    var fo = active;
-    ramp(fo, 0, function () { try { els[fo].pause(); els[fo].currentTime = 0; } catch (e) {} });
-    setNow(idx[sb]);
-    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, FADE_MS + 80);
-  }
-  function goNext() { clearCross(); finishSwap(other(active)); }
-  function finishSwap(na) {
-    var oa = other(na); active = na; crossing = false;
-    try { els[na].volume = muted ? 0 : VOL; if (els[na].paused) els[na].play().catch(function () {}); } catch (e) {}
-    document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[na]);
-    var ni = (idx[na] + 1) % tracks.length; load(oa, ni, false);
-  }
-  function open() {
-    if (started) return; started = true;
-    document.body.classList.add('sc-open');
-    load('a', 0, true); ramp('a', VOL);
-    load('b', 1 % tracks.length, false);
-  }
-  function setMuted(m) {
-    muted = !!m;
-    if (m) { ['a', 'b'].forEach(function (d) { try { els[d].volume = 0; } catch (e) {} }); try { els[active].pause(); } catch (e) {} document.body.classList.remove('sc-playing'); }
-    else if (started) { try { els[active].volume = VOL; els[active].play().catch(function () {}); } catch (e) {} document.body.classList.add('sc-playing'); }
-  }
-  var skipLock = false;
-  function skip() {
-    if (!started || skipLock) return;
-    skipLock = true; setTimeout(function () { skipLock = false; }, 600);
-    gen++;
-    clearCross();
-    var sb = other(active);
-    try { els[sb].pause(); els[sb].volume = 0; } catch (e) {}
-    var ni = (idx[active] + 1) % tracks.length;
-    load(active, ni, true); ramp(active, VOL);
-    load(sb, (ni + 1) % tracks.length, false);
-  }
-
-  bind('a'); bind('b');
-  document.addEventListener('sonic:first-tap', open);
-  if (nowSkip) nowSkip.addEventListener('click', skip);
-  document.addEventListener('keydown', function (e) {
-    if (!started) return;
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-    if (e.key === 'n') skip();
-  });
-  window.__bedCrossing = function () { return crossing; };
-  window.__selfHostedBed = { open: open, setMuted: setMuted, next: skip, isOn: function () { return started && !muted; },
-    activeId: function () { return els[active] && els[active].id; },
-    currentIndex: function () { return idx[active]; },
-    playIndex: function (n) {
-      if (!tracks.length) return;
-      n = ((n % tracks.length) + tracks.length) % tracks.length;
-      if (!started) { try { open(); } catch (e) {} }
-      var go = function () {
-        if (skipLock) return; skipLock = true; setTimeout(function(){ skipLock = false; }, 600);
-        gen++; clearCross();
-        var sb = other(active);
-        try { els[sb].pause(); els[sb].volume = 0; } catch (e) {}
-        load(active, n, true); ramp(active, VOL);
-        load(sb, (n + 1) % tracks.length, false);
-      };
-      if (started) go(); else setTimeout(go, 160);
-    } };
-  console.log('[sonic-init] SELF-HOSTED bed armed ·', tracks.length, 'tracks (unblockable, same-origin)');
-})();
-</script>
-<!--SELFHOSTED-AUDIO-END-->
-
 <!--APPLE-AUDIO-CSS-START-->
 <style id="apple-audio-css">
 /* design session: coexist restyle of the audio UI to the frosted Apple look.
@@ -21112,5 +20958,209 @@ nav.cyber-nav .act-chip:not(.sci-li):focus-within > .submenu:not(.nfx-open){ dis
 /* .hero-stage.hero-revealed: keep the existing snap-to-final, no change needed */
 </style>
 <!--APPLE-PERF-TITLE-END-->
+
+<!--SELFHOSTED-AUDIO-START-->
+<style>
+  /* hidden native-audio decks; reuses the SC player's #sc-now readout */
+  #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
+</style>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "1A"}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B"}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest", "k": "1A"}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A"}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A"}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B"}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "k": "3A", "g": "antares"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A"}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A"}]</script>
+<div id="sh-bg" aria-hidden="true">
+  <audio id="sh-a" preload="auto"></audio>
+  <audio id="sh-b" preload="auto"></audio>
+</div>
+<script>
+(function () {
+  'use strict';
+  var tracks = [];
+  try { tracks = JSON.parse(document.getElementById('sh-tracks').textContent); } catch (e) {}
+  if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
+  window.__preferSelfHosted = true;                          // SoundCloud player stands down
+
+  function groupOf(t) { return t.g || t.src; }
+  function adjOK(arr) {
+    if (arr.length < 2) return true;
+    for (var i = 0; i < arr.length; i++) { if (groupOf(arr[i]) === groupOf(arr[(i + 1) % arr.length])) return false; }
+    return true;
+  }
+  // ENTRY-ORDER: deterministic autoplay. #sh-tracks is the hand-curated entry/retention
+  // sequence (front-loaded hooks for the ~90s conversion window), so it plays in array
+  // order from index 0 — NOT shuffled. adjOK/groupOf retained but unused.
+  void adjOK;
+
+  // O3 DJ crossfade tuning. FADE_MS = trigger window = the LONGEST crossfade,
+  // so there is always room for a key-clash (longer) fade before track end.
+  var FADE_MS = 3000, STEP = 50, VOL = 0.85;
+  var XFADE_BASE = 2200, XFADE_CLASH = 3000;             // ms — clash gets the longer fade
+  var LP_OPEN = 20000, LP_SOFT = 5200, LP_CLASH = 2600;  // outgoing low-pass target (Hz)
+
+  var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
+  if (!els.a || !els.b) return;
+  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false;
+  var ramps = { a: null, b: null };
+  var nowEl = document.getElementById('sc-now'), nowLabel = document.getElementById('sc-now-label'), nowSkip = document.getElementById('sc-now-skip');
+  function other(d) { return d === 'a' ? 'b' : 'a'; }
+
+  // O3: Web-Audio low-pass per deck for a DJ-style tail sweep. el.volume still
+  // controls gain (the equal-power crossfade math is untouched); the filter only
+  // colours the OUTGOING tail. Progressive enhancement — if Web Audio is blocked,
+  // waOK stays false and lpTo() is a no-op while the volume crossfade runs as before.
+  var actx = null, filt = { a: null, b: null }, waOK = false;
+  function ensureACtx() {
+    if (actx) return;
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      ['a', 'b'].forEach(function (d) {
+        var src = actx.createMediaElementSource(els[d]);
+        var f = actx.createBiquadFilter();
+        f.type = 'lowpass'; f.frequency.value = LP_OPEN; f.Q.value = 0.6;
+        src.connect(f); f.connect(actx.destination);
+        filt[d] = f;
+      });
+      waOK = true;
+    } catch (e) { actx = null; waOK = false; }
+  }
+  function lpTo(d, hz, ms) {
+    if (!waOK || !filt[d]) return;
+    try {
+      var now = actx.currentTime, p = filt[d].frequency;
+      p.cancelScheduledValues(now); p.setValueAtTime(Math.max(200, p.value || LP_OPEN), now);
+      p.exponentialRampToValueAtTime(Math.max(200, hz), now + Math.max(0.05, ms / 1000 * 0.9));
+    } catch (e) {}
+  }
+
+  // O3 key-aware: Camelot distance — 0 same · 1 compatible (neighbour or relative) · 2 clash.
+  function camDist(a, b) {
+    if (!a || !b) return 1;
+    if (a === b) return 0;
+    var na = parseInt(a, 10), nb = parseInt(b, 10), la = a.slice(-1), lb = b.slice(-1);
+    if (la === lb) { var d = Math.abs(na - nb); d = Math.min(d, 12 - d); return d <= 1 ? 1 : 2; }
+    if (na === nb) return 1;   // relative major/minor (same number, A<->B)
+    return 2;
+  }
+  function keyOf(qi) { return tracks[qi] && tracks[qi].k; }
+
+  function setNow(qi) {
+    try { document.dispatchEvent(new CustomEvent('bed:track', { detail: { index: qi, title: tracks[qi] && tracks[qi].t, artist: tracks[qi] && tracks[qi].a } })); } catch (e) {}
+    if (!nowEl) return;
+    nowEl.classList.remove('sc-now-ambient'); nowEl.title = '';
+    if (nowLabel) nowLabel.textContent = tracks[qi].a + ' — ' + tracks[qi].t;
+    nowEl.classList.add('show');
+    clearTimeout(nowEl.__shT); nowEl.__shT = setTimeout(function () { nowEl.classList.remove('show'); }, 6000);
+  }
+  function load(d, qi, autoplay) {
+    idx[d] = qi; var el = els[d];
+    el.src = tracks[qi].src; el.load();
+    if (autoplay) { el.volume = 0; el.play().catch(function () {}); }
+  }
+  function ramp(d, to, cb, durMs) {
+    if (ramps[d]) clearInterval(ramps[d]);
+    var dur = durMs || FADE_MS;
+    var el = els[d], from = el.volume || 0, steps = Math.max(1, Math.round(dur / STEP)), n = 0;
+    ramps[d] = setInterval(function () {
+      n++; var q = n / steps, sm = q*q*(3 - 2*q); var v = Math.sqrt(Math.max(0, from*from*(1 - sm) + to*to*sm));
+      try { el.volume = muted ? 0 : Math.max(0, Math.min(1, v)); } catch (e) {}
+      if (n >= steps) { clearInterval(ramps[d]); ramps[d] = null; if (cb) cb(); }
+    }, STEP);
+  }
+  function bind(d) {
+    var el = els[d];
+    el.addEventListener('timeupdate', function () {
+      if (d !== active || crossing || muted) return;
+      if (!el.duration || !isFinite(el.duration) || el.duration < FADE_MS / 1000 + 2) return;
+      if (el.currentTime >= el.duration - FADE_MS / 1000) startCrossfade();
+    });
+    el.addEventListener('ended', function () { if (d === active && !crossing && el.currentTime >= (el.duration || 0) - 0.5) goNext(); });
+    el.addEventListener('playing', function () { if (d === active) { document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[d]); } });
+    el.addEventListener('error', function () { if (d === active && !crossing) goNext(); });
+  }
+  var swapT = null, gen = 0;
+  function clearCross() {
+    if (swapT) { clearTimeout(swapT); swapT = null; }
+    if (ramps && ramps.a) { clearInterval(ramps.a); ramps.a = null; }
+    if (ramps && ramps.b) { clearInterval(ramps.b); ramps.b = null; }
+    crossing = false;
+  }
+  function startCrossfade() {
+    if (crossing) return;
+    var sb = other(active); crossing = true; var myGen = ++gen;
+    var clash = camDist(keyOf(idx[active]), keyOf(idx[sb])) >= 2;
+    var dur = clash ? XFADE_CLASH : XFADE_BASE;
+    try { els[sb].currentTime = 0; } catch (e) {}
+    els[sb].volume = 0; els[sb].play().catch(function () {});
+    lpTo(sb, LP_OPEN, 250);                                  // incoming opens full-range
+    ramp(sb, VOL, null, dur);
+    var fo = active;
+    lpTo(fo, clash ? LP_CLASH : LP_SOFT, dur);               // outgoing tail muffles (deeper on a clash)
+    ramp(fo, 0, function () { try { els[fo].pause(); els[fo].currentTime = 0; } catch (e) {} lpTo(fo, LP_OPEN, 200); }, dur);
+    setNow(idx[sb]);
+    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dur + 80);
+  }
+  function goNext() { clearCross(); finishSwap(other(active)); }
+  function finishSwap(na) {
+    var oa = other(na); active = na; crossing = false;
+    try { els[na].volume = muted ? 0 : VOL; if (els[na].paused) els[na].play().catch(function () {}); } catch (e) {}
+    document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[na]);
+    var ni = (idx[na] + 1) % tracks.length; load(oa, ni, false);
+  }
+  function open() {
+    if (started) return; started = true;
+    ensureACtx(); if (actx) actx.resume().catch(function () {});   // Web Audio on first gesture
+    document.body.classList.add('sc-open');
+    load('a', 0, true); ramp('a', VOL);
+    load('b', 1 % tracks.length, false);
+  }
+  function setMuted(m) {
+    muted = !!m;
+    if (m) { ['a', 'b'].forEach(function (d) { try { els[d].volume = 0; } catch (e) {} }); try { els[active].pause(); } catch (e) {} document.body.classList.remove('sc-playing'); }
+    else if (started) { try { els[active].volume = VOL; els[active].play().catch(function () {}); } catch (e) {} document.body.classList.add('sc-playing'); }
+  }
+  var skipLock = false;
+  function skip() {
+    if (!started || skipLock) return;
+    skipLock = true; setTimeout(function () { skipLock = false; }, 800);
+    if (crossing) clearCross();
+    var fo = active, sb = other(active); gen++;             // O3: fast crossfade, not a hard cut
+    var ni = (idx[fo] + 1) % tracks.length;
+    crossing = true;
+    lpTo(fo, LP_SOFT, 500);
+    ramp(fo, 0, function () { try { els[fo].pause(); els[fo].currentTime = 0; } catch (e) {} lpTo(fo, LP_OPEN, 200); }, 500);
+    load(sb, ni, true); lpTo(sb, LP_OPEN, 200);
+    setTimeout(function () { ramp(sb, VOL, null, 500); setNow(idx[sb]); }, 70);
+    swapT = setTimeout(function () { finishSwap(sb); }, 620);
+  }
+
+  bind('a'); bind('b');
+  document.addEventListener('sonic:first-tap', open);
+  document.addEventListener('sonic:first-tap', function () { if (actx && actx.state === 'suspended') actx.resume().catch(function () {}); });
+  if (nowSkip) nowSkip.addEventListener('click', skip);
+  document.addEventListener('keydown', function (e) {
+    if (!started) return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'n') skip();
+  });
+  window.__bedCrossing = function () { return crossing; };
+  window.__selfHostedBed = { open: open, setMuted: setMuted, next: skip, isOn: function () { return started && !muted; },
+    activeId: function () { return els[active] && els[active].id; },
+    currentIndex: function () { return idx[active]; },
+    playIndex: function (n) {
+      if (!tracks.length) return;
+      n = ((n % tracks.length) + tracks.length) % tracks.length;
+      if (!started) { try { open(); } catch (e) {} }
+      var go = function () {
+        if (skipLock) return; skipLock = true; setTimeout(function(){ skipLock = false; }, 600);
+        gen++; clearCross();
+        var sb = other(active);
+        try { els[sb].pause(); els[sb].volume = 0; } catch (e) {}
+        load(active, n, true); ramp(active, VOL);
+        load(sb, (n + 1) % tracks.length, false);
+      };
+      if (started) go(); else setTimeout(go, 160);
+    } };
+  console.log('[sonic-init] SELF-HOSTED bed armed ·', tracks.length, 'tracks · DJ crossfade (unblockable, same-origin)');
+})();
+</script>
+<!--SELFHOSTED-AUDIO-END-->
+
 </body>
 </html>
