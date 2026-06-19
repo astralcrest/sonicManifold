@@ -2416,14 +2416,13 @@ body.story-only .scitrack{display:block!important}
   <div class="st-kick">for scientists &mdash; start here</div>
   <p class="st-sub">Skip the narrative. These jump straight into the lab (and switch on the full view).</p>
   <div class="st-chips">
-    <a class="st-chip scitrack-jump" href="#abstract"><span class="st-n">00</span> abstract</a>
-    <a class="st-chip scitrack-jump" href="#intent-lead"><span class="st-n">01</span> intent &amp; arousal axis</a>
-    <a class="st-chip scitrack-jump" href="#ai-systems"><span class="st-n">02</span> the contamination case</a>
-    <a class="st-chip scitrack-jump" href="#fig-41"><span class="st-n">03</span> Hawkes self-excitation</a>
-    <a class="st-chip scitrack-jump" href="#fig-35"><span class="st-n">04</span> persistent homology</a>
-    <a class="st-chip scitrack-jump" href="#honest"><span class="st-n">05</span> what the data can&rsquo;t tell me</a>
-    <a class="st-chip scitrack-jump" href="#exo-shape-inversion"><span class="st-n">06</span> shape inversion</a>
-    <a class="st-chip scitrack-jump" href="#graveyard"><span class="st-n">07</span> the graveyard</a>
+    <a class="st-chip scitrack-jump" href="#intent-lead"><span class="st-n">00</span> intent &amp; arousal axis</a>
+    <a class="st-chip scitrack-jump" href="#ai-systems"><span class="st-n">01</span> the contamination case</a>
+    <a class="st-chip scitrack-jump" href="#fig-41"><span class="st-n">02</span> Hawkes self-excitation</a>
+    <a class="st-chip scitrack-jump" href="#fig-35"><span class="st-n">03</span> persistent homology</a>
+    <a class="st-chip scitrack-jump" href="#honest"><span class="st-n">04</span> what the data can&rsquo;t tell me</a>
+    <a class="st-chip scitrack-jump" href="#exo-shape-inversion"><span class="st-n">05</span> shape inversion</a>
+    <a class="st-chip scitrack-jump" href="#graveyard"><span class="st-n">06</span> the graveyard</a>
   </div>
 </section>
 <script>
@@ -21084,5 +21083,25 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
 })();
 </script>
 <!--TOPO-RESTORE-END-->
+<!--APPLE-ENTER-SOUND-V2-START-->
+<script id="apple-enter-sound-v2">
+(function(){
+  if(window.__enterSoundV2) return; window.__enterSoundV2 = true;
+  document.addEventListener('click', function(ev){
+    var t = ev.target; if(!t || !t.closest || !t.closest('#sm-enter-btn')) return;
+    try{ localStorage.removeItem('sonicManifoldMuted'); }catch(e){}
+    // The user chose ENTER (with sound). A competing handler can re-mute the bed
+    // right after open(). Re-assert unmute at 3 fixed moments (self-terminating —
+    // no interval, no observer). Only acts while muted, never mutes a playing bed.
+    [150, 450, 900].forEach(function(d){
+      setTimeout(function(){
+        var bed = window.__selfHostedBed;
+        if(bed && bed.isOn && !bed.isOn() && bed.setMuted){ bed.setMuted(false); }
+      }, d);
+    });
+  }, true);
+})();
+</script>
+<!--APPLE-ENTER-SOUND-V2-END-->
 </body>
 </html>
