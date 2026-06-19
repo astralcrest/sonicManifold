@@ -21411,5 +21411,14 @@ body:not(.story-only) nav.cyber-nav .story-toggle::after { content:'STORY VIEW';
 </script>
 <!--SELFHOSTED-AUDIO-END-->
 
+<!--APPLE-REMOVE-TOUR-START-->
+<style id="apple-remove-tour-css">
+/* Remove the Listening Room tour (Spotify-embed audio tour, unreliable). Nav CTA
+   already hidden elsewhere; this hides the launch button + overlay/host too.
+   display:none is gap-safe (removed from flow). Reversible: delete this block. */
+#lr-btn, #lr-overlay, #lr-host, .lr-iframe-host { display:none !important; }
+nav li:has(.lr-launch-cta), nav li:has(a[href="#lr-btn"]) { display:none !important; }
+</style>
+<!--APPLE-REMOVE-TOUR-END-->
 </body>
 </html>
