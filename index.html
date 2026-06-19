@@ -20890,5 +20890,59 @@ nav.cyber-nav > ul > li.sci-li{ position:relative; }
 nav.cyber-nav > ul > li.sci-li::before{ content:""; position:absolute; left:-3px; top:26%; bottom:26%; width:1px; background:linear-gradient(180deg,transparent,rgba(124,128,140,.6),transparent); pointer-events:none; }
 </style>
 <!--APPLE-DESIGNPASS2-END-->
+<!--APPLE-NAVPOLISH3-START-->
+<style id="apple-navpolish3-css">
+/* ===== (1) dropdown single-open: only the JS .nfx-open class shows a submenu ===== */
+nav.cyber-nav .act-chip:not(.sci-li):hover > .submenu:not(.nfx-open),
+nav.cyber-nav .act-chip:not(.sci-li):focus-within > .submenu:not(.nfx-open){ display:none !important; }
+
+/* ===== (2) sleek spine controls: SVG icons + hover labels (desktop >=900) ===== */
+@media (min-width:900px){
+  #spine-actions .spine-btn{ position:relative; font-size:0 !important; color:#bde9d8; }
+  #spine-actions .spine-btn::before{ content:""; display:block; width:17px; height:17px;
+    background:currentColor;
+    -webkit-mask:var(--sp-ic) center/contain no-repeat; mask:var(--sp-ic) center/contain no-repeat; }
+  #spine-top{   --sp-ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M5%206h14%27%2F%3E%3Cpath%20d%3D%27m7%2014%205-5%205%205%27%2F%3E%3Cpath%20d%3D%27M12%209v8%27%2F%3E%3C%2Fsvg%3E"); }
+  #spine-share{ --sp-ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Ccircle%20cx%3D%2718%27%20cy%3D%275%27%20r%3D%272.6%27%2F%3E%3Ccircle%20cx%3D%276%27%20cy%3D%2712%27%20r%3D%272.6%27%2F%3E%3Ccircle%20cx%3D%2718%27%20cy%3D%2719%27%20r%3D%272.6%27%2F%3E%3Cpath%20d%3D%27m8.3%2010.8%207.4-4.3%27%2F%3E%3Cpath%20d%3D%27m8.3%2013.2%207.4%204.3%27%2F%3E%3C%2Fsvg%3E"); }
+  #spine-mute{  --sp-ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M11%205%206%209H3v6h3l5%204z%27%2F%3E%3Cpath%20d%3D%27M15.5%208.5a5%205%200%200%201%200%207%27%2F%3E%3Cpath%20d%3D%27M18.7%206a8.5%208.5%200%200%201%200%2012%27%2F%3E%3C%2Fsvg%3E"); }
+  #spine-mute[data-muted="1"]{ --sp-ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M11%205%206%209H3v6h3l5%204z%27%2F%3E%3Cpath%20d%3D%27m16.5%209.5%205%205%27%2F%3E%3Cpath%20d%3D%27m21.5%209.5-5%205%27%2F%3E%3C%2Fsvg%3E"); color:#ff9ec4; }
+  /* hover/focus label pill to the right */
+  #spine-actions .spine-btn::after{ content:attr(data-label); position:absolute; left:42px; top:50%;
+    transform:translateY(-50%) translateX(-4px); white-space:nowrap;
+    background:rgba(14,6,32,.96); color:#cfeede; padding:5px 9px; border-radius:8px;
+    font:600 9.5px/1 "JetBrains Mono",ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase;
+    border:1px solid rgba(138,217,192,.28); box-shadow:0 6px 18px -6px rgba(0,0,0,.6);
+    opacity:0; pointer-events:none; transition:opacity .16s ease, transform .16s ease; }
+  #spine-actions .spine-btn:hover::after,
+  #spine-actions .spine-btn:focus-visible::after{ opacity:1; transform:translateY(-50%) translateX(0); }
+}
+</style>
+<script id="apple-navpolish3-js">
+(function(){
+  if(window.__navPolish3) return; window.__navPolish3=true;
+  function run(){
+    var top=document.getElementById('spine-top'),
+        sh =document.getElementById('spine-share'),
+        mu =document.getElementById('spine-mute');
+    if(top) top.setAttribute('data-label','top');
+    if(sh)  sh.setAttribute('data-label','share card');
+    if(mu){
+      var sync=function(){
+        var t=(mu.textContent||'');
+        var muted = t.indexOf('\uD83D\uDD07')>=0 || mu.getAttribute('aria-pressed')==='true';
+        mu.setAttribute('data-muted', muted?'1':'0');
+        mu.setAttribute('data-label', muted?'muted':'sound');
+      };
+      sync();
+      try{ new MutationObserver(sync).observe(mu,
+        {childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['aria-pressed']}); }catch(e){}
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){requestAnimationFrame(run);});
+  else requestAnimationFrame(run);
+  setTimeout(run,1500); setTimeout(run,3500);
+})();
+</script>
+<!--APPLE-NAVPOLISH3-END-->
 </body>
 </html>
