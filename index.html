@@ -12158,8 +12158,8 @@ try {
 
 <!-- two hidden off-screen decks — audio crossfades but nothing is visible -->
 <div id="sc-bg-wrap">
-  <iframe id="sc-iframe"   scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
-  <iframe id="sc-iframe-b" scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
+  <iframe id="sc-iframe"   loading="lazy" scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
+  <iframe id="sc-iframe-b" loading="lazy" scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="about:blank"></iframe>
 </div>
 <div id="sc-now" role="status" aria-live="polite">
   <span id="sc-now-glyph">&#9834;</span>
@@ -20944,5 +20944,48 @@ nav.cyber-nav .act-chip:not(.sci-li):focus-within > .submenu:not(.nfx-open){ dis
 })();
 </script>
 <!--APPLE-NAVPOLISH3-END-->
+
+
+
+<!--APPLE-PERF-TITLE-START-->
+<style id="apple-perf-title-css">
+/*
+ * A1-PERF: hero title opacity floor + capped reveal delay.
+ * Overrides the heroReveal animation-delay chain injected in the base <style>
+ * at line 41.  Uses !important to win without restructuring the original block.
+ *
+ * Before: h1 opacity:0, delay:1.7s  (user sees blank hero for 1.7+ seconds)
+ * After:  h1 opacity:0.85 at rest, animation delay ≤0.35s, duration 0.5s
+ *
+ * .hero-stage.hero-revealed keeps its existing "opacity:1; animation:none"
+ * fast-path — this block only tightens the floor for the un-revealed state.
+ */
+
+/* Floor: never fully invisible on first paint */
+.hero-stage h1,
+.hero-stage .hero-tagline,
+.hero-stage .hero-stats,
+.hero-stage .hero-cue {
+  opacity: 0.85 !important;
+}
+
+/* Cap animation-delay so content is readable within 0.35s */
+.hero-stage h1         { animation-delay: 0s    !important; animation-duration: 0.5s !important; }
+.hero-stage .hero-tagline { animation-delay: 0.12s !important; animation-duration: 0.5s !important; }
+.hero-stage .hero-stats   { animation-delay: 0.22s !important; animation-duration: 0.5s !important; }
+.hero-stage .hero-cue     { animation-delay: 0.32s !important; animation-duration: 0.5s !important; }
+
+/* heroReveal keyframe: start from the new floor, not from 0 */
+@keyframes heroReveal {
+  from { opacity: 0.85; transform: translateY(8px); }
+  to   { opacity: 1;    transform: translateY(0);   }
+}
+
+/* A1-c: reserve space for lazy charts so rendering doesn't push content (CLS) */
+.lazy-placeholder { min-height: 320px !important; }
+
+/* .hero-stage.hero-revealed: keep the existing snap-to-final, no change needed */
+</style>
+<!--APPLE-PERF-TITLE-END-->
 </body>
 </html>
