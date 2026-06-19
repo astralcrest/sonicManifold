@@ -21235,25 +21235,27 @@ footer {
 }
 </style>
 <!--APPLE-FONTBUMP-END-->
-<!--APPLE-NAVSIMPLIFY-START-->
-<style id="apple-navsimplify-css">
-/* drop RESEARCH VIEW — cosmetic 'paper-style' glyph-hider; its name collided with FULL VIEW */
-.rm-nav-li, #rm-toggle { display:none !important; }
-/* rename the STORY toggle for clarity: hide the JS-set text, show a state-driven label.
-   story-only (default landing) -> invite to EXPAND ALL; full view -> invite back to STORY. */
-html body nav.cyber-nav .story-toggle { font-size:0 !important; }
-html body nav.cyber-nav .story-toggle::after {
-  font-size:10.5px; letter-spacing:1.5px; font-weight:700; text-transform:uppercase;
-  content:'EXPAND ALL';
-}
-body:not(.story-only) nav.cyber-nav .story-toggle::after { content:'STORY VIEW'; }
-</style>
-<!--APPLE-NAVSIMPLIFY-END-->
+
 <!--APPLE-REMOVE-TOUR-START-->
 <style id="apple-remove-tour-css">
 #lr-btn, #lr-overlay, #lr-host, .lr-iframe-host { display:none !important; }
 nav li:has(.lr-launch-cta), nav li:has(a[href="#lr-btn"]) { display:none !important; }
 </style>
 <!--APPLE-REMOVE-TOUR-END-->
+<!--APPLE-NAVSIMPLIFY-START-->
+<style id="apple-navsimplify-css">
+/* drop RESEARCH VIEW — cosmetic 'paper-style' glyph-hider; its name collided with FULL VIEW */
+.rm-nav-li, #rm-toggle { display:none !important; }
+/* rename the STORY toggle for clarity: hide the JS-set text, show a state-driven label.
+   NOTE: must match the existing high-specificity `.story-toggle#story-toggle` rule (1,2,3)
+   or font-size:0 loses and the original text shows THROUGH the label (doubling bug). */
+html body nav.cyber-nav .story-toggle#story-toggle { font-size:0 !important; }
+html body nav.cyber-nav .story-toggle#story-toggle::after {
+  font-size:10.5px; letter-spacing:1.5px; font-weight:700; text-transform:uppercase;
+  content:'EXPAND ALL';
+}
+html body:not(.story-only) nav.cyber-nav .story-toggle#story-toggle::after { content:'STORY VIEW'; }
+</style>
+<!--APPLE-NAVSIMPLIFY-END-->
 </body>
 </html>
