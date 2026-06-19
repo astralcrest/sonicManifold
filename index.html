@@ -20962,6 +20962,244 @@ nav.cyber-nav .act-chip:not(.sci-li):focus-within > .submenu:not(.nfx-open){ dis
 </style>
 <!--APPLE-PERF-TITLE-END-->
 
+<!--APPLE-FONTBUMP-START-->
+<style id="apple-fontbump-css">
+/*
+ * APPLE-FONTBUMP — legibility nudge pass (2026-06-19)
+ * Raises the reading-tier text that survived below ~12.5px after TYPEFLOOR+TYPESCALE.
+ * All jumps ≤ +1px. Intentional micro-labels (nav badges, ticks, lbl eyebrows,
+ * hero-cue, dropdown sub-items) deliberately untouched — type hierarchy preserved.
+ * Uses !important throughout to win vs. the layered prior marker blocks.
+ */
+
+/* --- caption pillar labels & cites ----------------------------------- */
+/* TYPEFLOOR set .fig-caption b → 11.5px; nudge to 12.5px */
+.fig-caption b,
+.exo-caption b.pillar,
+.hp-caption b.pillar,
+.hp-sub .fig-caption b.pillar,
+.cp-take b.pillar {
+  font-size: 12.5px !important;
+}
+/* TYPEFLOOR set .fig-cite → 11.5px; nudge to 12px */
+.fig-cite {
+  font-size: 12px !important;
+}
+/* TYPEFLOOR set sup.ref → 11px; nudge to 11.5px */
+.fig-caption sup.ref,
+.fig-caption sup.ref a {
+  font-size: 11.5px !important;
+}
+
+/* --- act-look: mobile was stuck at 12.5px, desktop already 13.5px --- */
+/* Only override the mobile breakpoint — desktop !important at 13.5px wins already */
+@media (max-width: 768px) {
+  .act-look {
+    font-size: 13px !important;
+  }
+}
+
+/* --- metric / ML-LAB tooltip text ------------------------------------ */
+/* .tip was 11–12px depending on context; raise floor to 12.5px */
+.tip,
+.metric-tooltips .tip,
+[data-tip] .tip {
+  font-size: 12.5px !important;
+}
+
+/* --- desktop nav links (not badges/dropdown items) ------------------- */
+/* nav a was 11px; nav.cyber-nav a was 11px !important → bump to 12px  */
+/* Leave: .submenu a (10px badge, intentional), nav a[data-tldr] (badge), */
+/*         .story-toggle (chip), mobile overrides below 900px            */
+@media (min-width: 900px) {
+  nav a,
+  nav.cyber-nav a {
+    font-size: 12px !important;
+  }
+}
+
+/* --- footer ---------------------------------------------------------- */
+footer {
+  font-size: 11.5px !important;
+}
+
+/* --- hero-stats: desktop mono stat row ------------------------------ */
+/* was 11.5px desktop, 10px mobile; nudge desktop only */
+@media (min-width: 768px) {
+  .hero-stats {
+    font-size: 12px !important;
+  }
+}
+</style>
+<!--APPLE-FONTBUMP-END-->
+<!--APPLE-NAVICONS-START-->
+<style id="apple-navicons-css">
+/* ── Kill ::before mask pseudo-elements from NAVPOLISH3 ── */
+@media (min-width:900px){
+  #spine-actions .spine-btn::before{
+    display:none !important;
+    content:none !important;
+  }
+  /* Button: flex center (redundant with grid but explicit) */
+  #spine-actions .spine-btn{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    font-size:0 !important;           /* hide any residual text node */
+    line-height:0 !important;         /* collapse line-box height */
+    padding:0 !important;
+  }
+  /* Inline SVG child — sized here so JS doesn't need to set attrs */
+  #spine-actions .spine-btn > svg{
+    width:17px; height:17px;
+    display:block;
+    flex:none;
+    color:#bde9d8;                    /* default icon tint */
+    stroke:currentColor;
+    pointer-events:none;
+    /* crisp rendering at 2x */
+    shape-rendering:geometricPrecision;
+  }
+  /* Muted state: rose tint on the button, SVG inherits via currentColor */
+  #spine-mute[data-muted="1"] > svg{ color:#ff9ec4; }
+  /* Hover: brighten icon */
+  #spine-actions .spine-btn:hover > svg{ color:#ffffff; }
+}
+</style>
+<script id="apple-navicons-js">
+(function(){
+  if(window.__navIconsV2) return; window.__navIconsV2 = true;
+
+  var TOP_SVG   = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h14"/><path d="m7 14 5-5 5 5"/><path d="M12 9v8"/></svg>';
+  var SHARE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.9 7.6-4.4"/><path d="m8.2 13.1 7.6 4.4"/></svg>';
+  var SOUND_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.7 6a8.5 8.5 0 0 1 0 12"/></svg>';
+  var MUTE_SVG  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16.5 9.5 5 5"/><path d="m21.5 9.5-5 5"/></svg>';
+
+  function parseSVG(str){
+    var t = document.createElement('template');
+    t.innerHTML = str;
+    return t.content.firstElementChild;
+  }
+
+  function injectIcons(){
+    var top   = document.getElementById('spine-top');
+    var share = document.getElementById('spine-share');
+    var mute  = document.getElementById('spine-mute');
+    if(!top || !share || !mute) return;
+
+    // Clear any text nodes left by the emoji fallback
+    function clearText(el){
+      Array.from(el.childNodes).forEach(function(n){
+        if(n.nodeType === 3) el.removeChild(n); // text node
+      });
+    }
+
+    // Inject SVGs (idempotent: skip if already present)
+    if(!top.querySelector('svg')){
+      clearText(top);
+      top.appendChild(parseSVG(TOP_SVG));
+    }
+    if(!share.querySelector('svg')){
+      clearText(share);
+      share.appendChild(parseSVG(SHARE_SVG));
+    }
+    if(!mute.querySelector('svg')){
+      clearText(mute);
+      mute.appendChild(parseSVG(SOUND_SVG));
+    }
+
+    // Mute state sync: swap SVG + data-muted on the proxy button
+    var orig = document.getElementById('global-mute-pill');
+    function syncMute(){
+      var isMuted = (mute.getAttribute('data-muted') === '1') ||
+                    (mute.getAttribute('aria-pressed') === 'true');
+      // Also check original pill
+      if(orig){
+        var origPressed = orig.getAttribute('aria-pressed') === 'true';
+        var origText    = (orig.textContent||'');
+        var muteEmoji   = origText.indexOf('🔇') >= 0;
+        isMuted = origPressed || muteEmoji;
+        mute.setAttribute('aria-pressed', isMuted ? 'true' : 'false');
+        mute.setAttribute('data-muted',   isMuted ? '1'    : '0');
+        mute.setAttribute('data-label',   isMuted ? 'muted': 'sound');
+      }
+      var existing = mute.querySelector('svg');
+      var newSVG   = parseSVG(isMuted ? MUTE_SVG : SOUND_SVG);
+      if(existing){
+        mute.replaceChild(newSVG, existing);
+      } else {
+        clearText(mute);
+        mute.appendChild(newSVG);
+      }
+    }
+    syncMute();
+
+    if(orig){
+      try{
+        new MutationObserver(syncMute).observe(orig,{
+          childList:true, characterData:true, subtree:true,
+          attributes:true, attributeFilter:['aria-pressed']
+        });
+      }catch(e){}
+    }
+    // Also watch data-muted on the proxy itself (set by NAVPOLISH3 observer)
+    try{
+      new MutationObserver(syncMute).observe(mute,{
+        attributes:true, attributeFilter:['data-muted','aria-pressed']
+      });
+    }catch(e){}
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ requestAnimationFrame(injectIcons); });
+  } else {
+    requestAnimationFrame(injectIcons);
+  }
+  // Belt-and-suspenders: re-run after lazy content settles
+  setTimeout(injectIcons, 1200);
+  setTimeout(injectIcons, 3000);
+})();
+</script>
+<!--APPLE-NAVICONS-END-->
+<!--APPLE-NAVSIMPLIFY-START-->
+<style id="apple-navsimplify-css">
+/* drop RESEARCH VIEW — cosmetic 'paper-style' glyph-hider; its name collided with FULL VIEW */
+.rm-nav-li, #rm-toggle { display:none !important; }
+/* rename the STORY toggle for clarity: hide the JS-set text, show a state-driven label.
+   story-only (default landing) -> invite to EXPAND ALL; full view -> invite back to STORY. */
+html body nav.cyber-nav .story-toggle { font-size:0 !important; }
+html body nav.cyber-nav .story-toggle::after {
+  font-size:10.5px; letter-spacing:1.5px; font-weight:700; text-transform:uppercase;
+  content:'EXPAND ALL';
+}
+body:not(.story-only) nav.cyber-nav .story-toggle::after { content:'STORY VIEW'; }
+</style>
+<!--APPLE-NAVSIMPLIFY-END-->
+<!--APPLE-ENTER-SOUND-FIX-START-->
+<script id="apple-enter-sound-fix">
+(function(){
+  if(window.__enterSoundFix) return; window.__enterSoundFix = true;
+  document.addEventListener('click', function(ev){
+    var t = ev.target; if(!t || !t.closest || !t.closest('#sm-enter-btn')) return;
+    try{ localStorage.removeItem('sonicManifoldMuted'); }catch(e){}
+    // The user chose ENTER (with sound). A competing handler can re-mute the bed
+    // the instant it opens, so poll briefly and re-assert the bed's own unmute
+    // (setMuted(false)) until sound is actually on. Only acts while muted, so it
+    // never mutes a playing bed.
+    var n = 0, iv = setInterval(function(){
+      n++;
+      var bed = window.__selfHostedBed;
+      if(bed && bed.isOn){
+        if(bed.isOn()){ clearInterval(iv); return; }   // sound is on -> done
+        if(bed.setMuted){ bed.setMuted(false); }        // opened-but-muted -> unmute
+      }
+      if(n >= 12) clearInterval(iv);                     // ~1.2s safety cap
+    }, 100);
+  }, true);
+})();
+</script>
+<!--APPLE-ENTER-SOUND-FIX-END-->
+
 <!--SELFHOSTED-AUDIO-START-->
 <style>
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
@@ -21121,16 +21359,24 @@ nav.cyber-nav .act-chip:not(.sci-li):focus-within > .submenu:not(.nfx-open){ dis
   var skipLock = false;
   function skip() {
     if (!started || skipLock) return;
-    skipLock = true; setTimeout(function () { skipLock = false; }, 800);
+    skipLock = true; setTimeout(function () { skipLock = false; }, 1100);
     if (crossing) clearCross();
-    var fo = active, sb = other(active); gen++;             // O3: fast crossfade, not a hard cut
+    gen++; var myGen = gen;
+    var fo = active, sb = other(active), SKIP_MS = 1400;    // O3: real audible crossfade on skip
     var ni = (idx[fo] + 1) % tracks.length;
+    // The standby deck is normally already preloaded with the next track (finishSwap
+    // preloads it), so REUSE it — reloading forced a re-buffer that read as a hard cut.
+    // Only (re)load if the standby is stale.
+    if (idx[sb] !== ni || !els[sb].src) load(sb, ni, false);
     crossing = true;
-    lpTo(fo, LP_SOFT, 500);
-    ramp(fo, 0, function () { try { els[fo].pause(); els[fo].currentTime = 0; } catch (e) {} lpTo(fo, LP_OPEN, 200); }, 500);
-    load(sb, ni, true); lpTo(sb, LP_OPEN, 200);
-    setTimeout(function () { ramp(sb, VOL, null, 500); setNow(idx[sb]); }, 70);
-    swapT = setTimeout(function () { finishSwap(sb); }, 620);
+    try { els[sb].currentTime = 0; } catch (e) {}
+    els[sb].volume = 0; els[sb].play().catch(function () {});
+    lpTo(sb, LP_OPEN, 200);
+    ramp(sb, VOL, null, SKIP_MS);                           // fade incoming IN over 1.4s
+    lpTo(fo, LP_SOFT, SKIP_MS);                             // muffle outgoing tail
+    ramp(fo, 0, function () { try { els[fo].pause(); els[fo].currentTime = 0; } catch (e) {} lpTo(fo, LP_OPEN, 200); }, SKIP_MS);
+    setNow(idx[sb]);
+    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, SKIP_MS + 80);
   }
 
   bind('a'); bind('b');
