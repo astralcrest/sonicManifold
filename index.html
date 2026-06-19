@@ -14270,460 +14270,7 @@ html body .term-tip{ cursor:help; }
 })();
 </script>
 <!--APPLE-INTERACT-END-->
-<!--APPLE-NAVFIX-START-->
-<style id="apple-navfix-css">
-/* ============================================================
-   APPLE-NAVFIX  —  additive, idempotent nav + top-bar UX patch
-   Fixes punch-list N1–N6. Pure additive CSS/JS. No audio logic.
-   Palette: mint #21f6bc · ice #86cbfe · orchid #df95ff ·
-            purple #7C808C · ink #E6E8EC · near-black #0E0F12
-   ============================================================ */
 
-/* ---- N2: stop the nav <ul> from clipping the hover submenu ----
-   The act-chip submenu becomes position:fixed (JS-placed) so the ul's
-   overflow-y:hidden can never clip it again. Keep horizontal
-   chip-rail scroll intact. */
-nav.cyber-nav ul { overflow-y: visible !important; }
-
-nav.cyber-nav .act-chip .submenu {
-  position: fixed !important;            /* escapes ul clip entirely */
-  left: var(--nfx-sm-left, 50%) !important;
-  top: var(--nfx-sm-top, 56px) !important;
-  transform: none !important;
-  z-index: 10050 !important;
-  display: none;                          /* shown via .nfx-open (JS) */
-  flex-direction: column;
-  min-width: 248px;
-  max-width: min(340px, 92vw);
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
-  padding: 10px 8px !important;
-  background: rgba(10, 1, 24, 0.97) !important;
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(124,128,140, 0.45) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 18px 50px -12px rgba(0,0,0,.8),
-              0 0 0 1px rgba(33,246,188,.06) inset !important;
-  animation: nfxSubIn .14s ease both;
-}
-nav.cyber-nav .act-chip .submenu.nfx-open { display: flex !important; }
-@keyframes nfxSubIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform:none; } }
-
-/* On small screens there is no hover; the chip's top-level link navigates.
-   Never show the fixed popover there (also defends against tap->mouseenter). */
-@media (max-width: 768px) {
-  nav.cyber-nav .act-chip .submenu,
-  nav.cyber-nav .act-chip .submenu.nfx-open { display: none !important; }
-}
-
-nav.cyber-nav .act-chip .submenu a {
-  white-space: normal !important;
-  line-height: 1.35 !important;
-  padding: 8px 12px !important;
-  font-size: 10.5px !important;
-}
-
-/* ---- N1/N6: de-clutter the top bar.
-   The hero .pace-pick duplicates the persistent nav #story-toggle,
-   and the "LISTENING ROOM TOUR" CTA targets a missing anchor.
-   Hide both; keep ONE clear control = the nav story toggle. ---- */
-.pace-pick { display: none !important; }
-nav.cyber-nav a[data-cta] { display: none !important; }
-
-/* Make the surviving single control unmistakable */
-html body nav.cyber-nav .story-toggle#story-toggle {
-  height: 34px !important;
-  padding: 0 15px !important;
-  border-radius: 11px !important;
-  font-size: 10.5px !important;
-  letter-spacing: 1.4px !important;
-  font-weight: 700 !important;
-}
-html body nav.cyber-nav .story-toggle#story-toggle::before {
-  content: "◓ ";
-  opacity: .9;
-}
-html body nav.cyber-nav .story-toggle#story-toggle[aria-pressed="true"]::before {
-  content: "⚗ ";
-}
-
-/* A small, centered hero hint replacing the removed pace-pick block.
-   Injected by JS as .nfx-pace-hint (idempotent). */
-.nfx-pace-hint {
-  display: block;
-  text-align: center;
-  margin: 2px auto 34px;
-  font-family: "JetBrains Mono","SF Mono",ui-monospace,monospace;
-  font-size: 11px;
-  letter-spacing: 1.4px;
-  color: rgba(181,168,212,.78);
-}
-.nfx-pace-hint b { color: var(--mint, #21f6bc); font-weight: 600; }
-.nfx-pace-hint button.nfx-inline {
-  appearance: none; border: 0; background: none; cursor: pointer;
-  font: inherit; letter-spacing: inherit;
-  color: var(--ice, #86cbfe); text-decoration: underline; text-underline-offset: 3px;
-  padding: 0 2px;
-}
-.nfx-pace-hint button.nfx-inline:hover { color: var(--mint, #21f6bc); }
-
-/* ---- N3/N4: TL;DR layout + wordmark fills the blank space.
-   Wrap #tldr and the wordmark in a 2-col grid (named .tldr-grid so
-   it survives the existing body.story-only grid:not(.tldr-grid) rule). */
-.tldr-grid.nfx-tldr-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 30px;
-  align-items: stretch;
-  max-width: 1180px;
-  margin: 0 auto 12px;
-  padding: 0 18px;
-}
-.tldr-grid.nfx-tldr-grid > #tldr { margin: 0 !important; max-width: none !important; }
-
-/* TL;DR refinement (N3) */
-#tldr.about-dash {
-  border: 1px solid rgba(124,128,140,.22) !important;
-  border-radius: 16px !important;
-  background:
-    radial-gradient(120% 100% at 0% 0%, rgba(33,246,188,.05), transparent 55%),
-    rgba(255,255,255,.022) !important;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  box-shadow: 0 10px 40px -20px rgba(0,0,0,.7) !important;
-  padding: clamp(18px, 2.4vw, 30px) !important;
-}
-#tldr.about-dash > summary {
-  cursor: pointer;
-  list-style: none;
-  font-family: "JetBrains Mono","SF Mono",ui-monospace,monospace;
-  font-size: clamp(15px, 1.6vw, 18px); font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase;
-  color: var(--mint, #21f6bc);
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(124,128,140,.16);
-  margin-bottom: 12px;
-}
-#tldr.about-dash > summary::-webkit-details-marker { display: none; }
-
-/* The generative wordmark card (N4) */
-.nfx-wordmark {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  min-height: 260px;
-  border: 1px solid rgba(124,128,140,.22);
-  background:
-    radial-gradient(130% 120% at 85% 12%, rgba(124,128,140,.16), transparent 60%),
-    radial-gradient(120% 120% at 8% 95%, rgba(33,246,188,.12), transparent 60%),
-    #0E0F12;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 14px; padding: 26px;
-  box-shadow: 0 10px 40px -20px rgba(0,0,0,.8);
-}
-.nfx-wordmark canvas {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  display: block; opacity: .85; pointer-events: none;
-}
-.nfx-wordmark .nfx-wm-text { position: relative; z-index: 2; text-align: center; }
-.nfx-wordmark .nfx-wm-title {
-  font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
-  font-weight: 700; font-size: clamp(26px, 3vw, 40px);
-  letter-spacing: -0.5px; line-height: 1.02;
-  background: linear-gradient(96deg, #21f6bc, #86cbfe 45%, #7C808C);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-}
-.nfx-wordmark .nfx-wm-sub {
-  margin-top: 8px;
-  font-family: "JetBrains Mono","SF Mono",ui-monospace,monospace;
-  font-size: 10.5px; letter-spacing: 2.5px; text-transform: uppercase;
-  color: rgba(181,168,212,.85);
-}
-
-@media (max-width: 820px) {
-  .tldr-grid.nfx-tldr-grid { grid-template-columns: 1fr; gap: 20px; }
-  .nfx-wordmark { min-height: 180px; }
-}
-
-/* ---- N5: mute pill — clearer, the one persistent audio control ---- */
-#global-mute-pill {
-  width: 42px !important; height: 42px !important;
-  font-size: 18px !important;
-  opacity: 1 !important;
-  background: rgba(10, 1, 24, 0.88) !important;
-  border: 1px solid rgba(33,246,188,.45) !important;
-  box-shadow: 0 6px 22px -6px rgba(0,0,0,.7),
-              0 0 0 1px rgba(33,246,188,.08) inset,
-              0 0 16px -6px rgba(33,246,188,.5) !important;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease !important;
-}
-#global-mute-pill:hover {
-  transform: translateY(-1px) scale(1.06) !important;
-  border-color: var(--mint, #21f6bc) !important;
-  box-shadow: 0 8px 26px -6px rgba(0,0,0,.75),
-              0 0 22px -4px rgba(33,246,188,.7) !important;
-}
-#global-mute-pill.nfx-muted {
-  border-color: rgba(223,149,255,.5) !important;
-  box-shadow: 0 6px 22px -6px rgba(0,0,0,.7),
-              0 0 16px -6px rgba(223,149,255,.5) !important;
-}
-@media (max-width: 600px) {
-  #global-mute-pill { width: 44px !important; height: 44px !important; bottom: 14px !important; left: 14px !important; }
-}
-</style>
-
-<script id="apple-navfix-js">
-(function () {
-  'use strict';
-  if (window.__appleNavfix) return;            /* idempotent */
-  window.__appleNavfix = true;
-
-  function init() {
-    var nav = document.querySelector('nav.cyber-nav');
-    if (!nav) return;
-    var navH = function () { return nav.offsetHeight || 56; };
-
-    /* ---- shared: resolve an anchor id OR a marker-comment to its element ---- */
-    function resolveAnchor(id) {
-      if (!id) return null;
-      var el = document.getElementById(id);
-      if (el) return el;
-      var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_COMMENT, null, false);
-      var node;
-      while ((node = walker.nextNode())) {
-        var nv = (node.nodeValue || '').trim();
-        if (nv === id || nv === id.replace(/-/g, ' ')) {
-          var n = node;
-          while (n && n.nextSibling) { n = n.nextSibling; if (n.nodeType === 1) return n; }
-        }
-      }
-      return null;
-    }
-
-    /* ---- N1/N6: keep ONE control. If currently in story-only (spine)
-         mode, chapter targets are folded/hidden — so leaving story mode
-         is required before any chapter scroll can land. ---- */
-    function inStoryOnly() { return document.body.classList.contains('story-only'); }
-
-    function leaveStoryMode() {
-      if (!inStoryOnly()) return false;
-      var btn = document.getElementById('story-toggle');
-      if (btn) { btn.click(); return true; }     /* reuse existing toggle + its persistence */
-      document.body.classList.remove('story-only');
-      return true;
-    }
-
-    /* ---- N2: correct smooth-scroll to a target, with nav offset.
-         Never uses element.scrollIntoView (that yanked the window back
-         to the nav because the chip rail ul is a scroll container). ---- */
-    function targetY(el) {
-      return Math.max(0, el.getBoundingClientRect().top + window.pageYOffset - (navH() + 14));
-    }
-    function prefersReduce() {
-      try { return matchMedia('(prefers-reduced-motion:reduce)').matches; } catch (e) { return false; }
-    }
-
-    /* Leaving story-mode unfolds the lab and the page keeps GROWING for a
-       while (charts render, reveals animate), so a single measure-and-scroll
-       lands short. We re-resolve + re-correct on a short settling schedule,
-       stopping once the target's absolute position is stable. ---- */
-    function navigateTo(id) {
-      var unfolded = leaveStoryMode();
-      var reduce = prefersReduce();
-
-      function correct(behavior) {
-        var el = resolveAnchor(id);
-        if (!el) return null;
-        if (el.tagName && el.tagName.toLowerCase() === 'details') el.open = true;
-        var y = targetY(el);
-        window.scrollTo({ top: y, behavior: behavior });
-        return y;
-      }
-
-      if (id) { try { history.replaceState(null, '', '#' + id); } catch (e) {} }
-
-      /* The page grows as we move: charts lazy-render on scroll and (when
-         unfolding) the whole lab expands. A single scroll lands short, so
-         we re-resolve + re-correct on a settling schedule until the target's
-         absolute position stops moving. Unfolding needs a longer tail. */
-      var delays = unfolded ? [0, 120, 280, 480, 750, 1100, 1500]
-                            : [0, 160, 360, 620, 950];
-      delays.forEach(function (d, i) {
-        setTimeout(function () { correct(i === 0 ? 'auto' : (reduce ? 'auto' : 'smooth')); }, d);
-      });
-    }
-
-    /* ---- N2: rebind ALL nav anchors in capture phase so we beat the
-         old handler (which contained the scrollIntoView yank). ---- */
-    nav.addEventListener('click', function (e) {
-      var a = e.target.closest && e.target.closest('a[data-target], a[href^="#"]');
-      if (!a || !nav.contains(a)) return;
-      var id = a.getAttribute('data-target') || (a.getAttribute('href') || '').replace('#', '');
-      if (!id) return;
-      var el0 = document.getElementById(id);
-      var isMarker = !el0 && !!resolveAnchor(id);
-      /* only intercept things we can actually resolve */
-      if (!el0 && !isMarker) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      closeAllSubmenus();
-      navigateTo(id);
-    }, true);
-
-    /* ---- N2: hover/focus submenu as a fixed popover (escapes ul clip) ---- */
-    function positionSubmenu(chip, sm) {
-      var link = chip.querySelector(':scope > a') || chip.querySelector('a');
-      var r = (link || chip).getBoundingClientRect();
-      sm.style.setProperty('--nfx-sm-top', (navH() + 4) + 'px');
-      sm.classList.add('nfx-open');               /* measure with real width */
-      var w = sm.offsetWidth || 260;
-      var left = r.left + r.width / 2 - w / 2;
-      left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
-      sm.style.setProperty('--nfx-sm-left', left + 'px');
-    }
-    function closeAllSubmenus() {
-      Array.prototype.forEach.call(
-        nav.querySelectorAll('.act-chip .submenu.nfx-open'),
-        function (s) { s.classList.remove('nfx-open'); }
-      );
-    }
-
-    var chips = Array.prototype.slice.call(nav.querySelectorAll('.act-chip'));
-    chips.forEach(function (chip) {
-      var sm = chip.querySelector('.submenu');
-      if (!sm) return;
-      var open = function () { closeAllSubmenus(); positionSubmenu(chip, sm); };
-      chip.addEventListener('mouseenter', open);
-      chip.addEventListener('focusin', open);
-      chip.addEventListener('mouseleave', function () { sm.classList.remove('nfx-open'); });
-      chip.addEventListener('focusout', function (e) {
-        if (!chip.contains(e.relatedTarget)) sm.classList.remove('nfx-open');
-      });
-    });
-    window.addEventListener('scroll', closeAllSubmenus, { passive: true });
-    window.addEventListener('resize', closeAllSubmenus);
-
-    /* ---- N1/N6: drop a small centered pace hint where pace-pick was ---- */
-    (function () {
-      var sec1 = document.getElementById('sec-1');
-      var about = document.getElementById('tldr');
-      if (!sec1 || document.querySelector('.nfx-pace-hint')) return;
-      var hint = document.createElement('p');
-      hint.className = 'nfx-pace-hint';
-      hint.innerHTML = 'reading the <b>3-min story</b> · want the math? '
-        + '<button type="button" class="nfx-inline" data-nfx-full>open the full lab ⚗</button>';
-      hint.querySelector('[data-nfx-full]').addEventListener('click', function () {
-        var btn = document.getElementById('story-toggle');
-        if (btn) btn.click();
-      });
-      function syncHint() {
-        hint.style.display = inStoryOnly() ? 'block' : 'none';
-      }
-      if (about && about.parentNode) about.parentNode.insertBefore(hint, about);
-      else sec1.insertBefore(hint, sec1.firstChild);
-      syncHint();
-      var st = document.getElementById('story-toggle');
-      if (st) st.addEventListener('click', function () { setTimeout(syncHint, 0); });
-      new MutationObserver(syncHint).observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    })();
-
-    /* ---- N3/N4: wrap TL;DR + a generative wordmark into .tldr-grid ---- */
-    (function () {
-      var about = document.getElementById('tldr');
-      if (!about || document.querySelector('.nfx-tldr-grid')) return;
-
-      var grid = document.createElement('div');
-      grid.className = 'tldr-grid nfx-tldr-grid';
-      about.parentNode.insertBefore(grid, about);
-      grid.appendChild(about);
-
-      var wm = document.createElement('div');
-      wm.className = 'nfx-wordmark';
-      wm.innerHTML =
-        '<canvas aria-hidden="true"></canvas>' +
-        '<div class="nfx-wm-text">' +
-          '<div class="nfx-wm-title">sonic<br>manifold</div>' +
-          '<div class="nfx-wm-sub">a listening life, decoded</div>' +
-        '</div>';
-      grid.appendChild(wm);
-
-      /* tiny generative graphic: drifting mint/ice/purple field lines */
-      try {
-        var cv = wm.querySelector('canvas');
-        var ctx = cv.getContext('2d');
-        var dpr = Math.min(2, window.devicePixelRatio || 1);
-        var reduce = false;
-        try { reduce = matchMedia('(prefers-reduced-motion:reduce)').matches; } catch (e) {}
-        function size() {
-          var r = wm.getBoundingClientRect();
-          cv.width = Math.max(2, Math.round(r.width * dpr));
-          cv.height = Math.max(2, Math.round(r.height * dpr));
-        }
-        size();
-        window.addEventListener('resize', size);
-        var cols = ['#21f6bc', '#86cbfe', '#9b6bff'];
-        var t = 0, raf = 0;
-        function draw() {
-          var W = cv.width, H = cv.height;
-          ctx.clearRect(0, 0, W, H);
-          for (var i = 0; i < 5; i++) {
-            ctx.beginPath();
-            var amp = H * (0.06 + i * 0.02);
-            var yb = H * (0.2 + i * 0.14);
-            var ph = t * 0.012 + i * 0.9;
-            for (var x = 0; x <= W; x += 8) {
-              var y = yb
-                + Math.sin(x * 0.006 + ph) * amp
-                + Math.sin(x * 0.013 + ph * 1.7) * amp * 0.4;
-              if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            }
-            ctx.strokeStyle = cols[i % cols.length];
-            ctx.globalAlpha = 0.16 + (i % 3) * 0.05;
-            ctx.lineWidth = 1.4 * dpr;
-            ctx.stroke();
-          }
-          ctx.globalAlpha = 1;
-          t += 1;
-          if (!reduce) raf = requestAnimationFrame(draw);
-        }
-        draw();
-        /* pause when offscreen to save cycles */
-        if ('IntersectionObserver' in window && !reduce) {
-          new IntersectionObserver(function (en) {
-            en.forEach(function (e) {
-              if (e.isIntersecting) { if (!raf) draw(); }
-              else { cancelAnimationFrame(raf); raf = 0; }
-            });
-          }).observe(wm);
-        }
-      } catch (e) {}
-    })();
-
-    /* ---- N5: reflect mute state on the pill for the .nfx-muted style ---- */
-    (function () {
-      var pill = document.getElementById('global-mute-pill');
-      if (!pill) return;
-      function refl() {
-        var muted = pill.getAttribute('aria-pressed') === 'true'
-          || /🔇|muted/i.test(pill.textContent || '')
-          || pill.classList.contains('is-muted')
-          || pill.classList.contains('muted');
-        pill.classList.toggle('nfx-muted', !!muted);
-      }
-      refl();
-      new MutationObserver(refl).observe(pill, { attributes: true, childList: true, subtree: true, characterData: true });
-    })();
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 0); });
-  } else { setTimeout(init, 0); }
-})();
-</script>
-<!--APPLE-NAVFIX-END-->
 <!--APPLE-MOBILELAYOUT-START-->
 <style id="apple-mobilelayout-css">
 /* ============================================================
@@ -20962,6 +20509,99 @@ nav.cyber-nav .act-chip:not(.sci-li):focus-within > .submenu:not(.nfx-open){ dis
 </style>
 <!--APPLE-PERF-TITLE-END-->
 
+<!--APPLE-FONTBUMP-START-->
+<style id="apple-fontbump-css">
+/*
+ * APPLE-FONTBUMP — legibility nudge pass (2026-06-19)
+ * Raises the reading-tier text that survived below ~12.5px after TYPEFLOOR+TYPESCALE.
+ * All jumps ≤ +1px. Intentional micro-labels (nav badges, ticks, lbl eyebrows,
+ * hero-cue, dropdown sub-items) deliberately untouched — type hierarchy preserved.
+ * Uses !important throughout to win vs. the layered prior marker blocks.
+ */
+
+/* --- caption pillar labels & cites ----------------------------------- */
+/* TYPEFLOOR set .fig-caption b → 11.5px; nudge to 12.5px */
+.fig-caption b,
+.exo-caption b.pillar,
+.hp-caption b.pillar,
+.hp-sub .fig-caption b.pillar,
+.cp-take b.pillar {
+  font-size: 12.5px !important;
+}
+/* TYPEFLOOR set .fig-cite → 11.5px; nudge to 12px */
+.fig-cite {
+  font-size: 12px !important;
+}
+/* TYPEFLOOR set sup.ref → 11px; nudge to 11.5px */
+.fig-caption sup.ref,
+.fig-caption sup.ref a {
+  font-size: 11.5px !important;
+}
+
+/* --- act-look: mobile was stuck at 12.5px, desktop already 13.5px --- */
+/* Only override the mobile breakpoint — desktop !important at 13.5px wins already */
+@media (max-width: 768px) {
+  .act-look {
+    font-size: 13px !important;
+  }
+}
+
+/* --- metric / ML-LAB tooltip text ------------------------------------ */
+/* .tip was 11–12px depending on context; raise floor to 12.5px */
+.tip,
+.metric-tooltips .tip,
+[data-tip] .tip {
+  font-size: 12.5px !important;
+}
+
+/* --- desktop nav links (not badges/dropdown items) ------------------- */
+/* nav a was 11px; nav.cyber-nav a was 11px !important → bump to 12px  */
+/* Leave: .submenu a (10px badge, intentional), nav a[data-tldr] (badge), */
+/*         .story-toggle (chip), mobile overrides below 900px            */
+@media (min-width: 900px) {
+  nav a,
+  nav.cyber-nav a {
+    font-size: 12px !important;
+  }
+}
+
+/* --- footer ---------------------------------------------------------- */
+footer {
+  font-size: 11.5px !important;
+}
+
+/* --- hero-stats: desktop mono stat row ------------------------------ */
+/* was 11.5px desktop, 10px mobile; nudge desktop only */
+@media (min-width: 768px) {
+  .hero-stats {
+    font-size: 12px !important;
+  }
+}
+</style>
+<!--APPLE-FONTBUMP-END-->
+
+<!--APPLE-REMOVE-TOUR-START-->
+<style id="apple-remove-tour-css">
+#lr-btn, #lr-overlay, #lr-host, .lr-iframe-host { display:none !important; }
+nav li:has(.lr-launch-cta), nav li:has(a[href="#lr-btn"]) { display:none !important; }
+</style>
+<!--APPLE-REMOVE-TOUR-END-->
+<!--APPLE-NAVSIMPLIFY-START-->
+<style id="apple-navsimplify-css">
+/* drop RESEARCH VIEW — cosmetic 'paper-style' glyph-hider; its name collided with FULL VIEW */
+.rm-nav-li, #rm-toggle { display:none !important; }
+/* rename the STORY toggle for clarity: hide the JS-set text, show a state-driven label.
+   NOTE: must match the existing high-specificity `.story-toggle#story-toggle` rule (1,2,3)
+   or font-size:0 loses and the original text shows THROUGH the label (doubling bug). */
+html body nav.cyber-nav .story-toggle#story-toggle { font-size:0 !important; }
+html body nav.cyber-nav .story-toggle#story-toggle::after {
+  font-size:10.5px; letter-spacing:1.5px; font-weight:700; text-transform:uppercase;
+  content:'EXPAND ALL';
+}
+html body:not(.story-only) nav.cyber-nav .story-toggle#story-toggle::after { content:'STORY VIEW'; }
+</style>
+<!--APPLE-NAVSIMPLIFY-END-->
+
 <!--SELFHOSTED-AUDIO-START-->
 <style>
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
@@ -20993,9 +20633,9 @@ nav.cyber-nav .act-chip:not(.sci-li):focus-within > .submenu:not(.nfx-open){ dis
 
   // O3 DJ crossfade tuning. FADE_MS = trigger window = the LONGEST crossfade,
   // so there is always room for a key-clash (longer) fade before track end.
-  var FADE_MS = 3000, STEP = 50, VOL = 0.85;
-  var XFADE_BASE = 2200, XFADE_CLASH = 3000;             // ms — clash gets the longer fade
-  var LP_OPEN = 20000, LP_SOFT = 5200, LP_CLASH = 2600;  // outgoing low-pass target (Hz)
+  var FADE_MS = 3400, STEP = 50, VOL = 0.85;
+  var XFADE_BASE = 2600, XFADE_CLASH = 3400;             // ms — longer = clearly audible DJ blend
+  var LP_OPEN = 20000, LP_SOFT = 2600, LP_CLASH = 1500;  // outgoing low-pass target (Hz) — deep enough to HEAR the muffle on ambient/chillstep
 
   var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
   if (!els.a || !els.b) return;
@@ -21121,16 +20761,24 @@ nav.cyber-nav .act-chip:not(.sci-li):focus-within > .submenu:not(.nfx-open){ dis
   var skipLock = false;
   function skip() {
     if (!started || skipLock) return;
-    skipLock = true; setTimeout(function () { skipLock = false; }, 800);
+    skipLock = true; setTimeout(function () { skipLock = false; }, 1100);
     if (crossing) clearCross();
-    var fo = active, sb = other(active); gen++;             // O3: fast crossfade, not a hard cut
+    gen++; var myGen = gen;
+    var fo = active, sb = other(active), SKIP_MS = 1400;    // O3: real audible crossfade on skip
     var ni = (idx[fo] + 1) % tracks.length;
+    // The standby deck is normally already preloaded with the next track (finishSwap
+    // preloads it), so REUSE it — reloading forced a re-buffer that read as a hard cut.
+    // Only (re)load if the standby is stale.
+    if (idx[sb] !== ni || !els[sb].src) load(sb, ni, false);
     crossing = true;
-    lpTo(fo, LP_SOFT, 500);
-    ramp(fo, 0, function () { try { els[fo].pause(); els[fo].currentTime = 0; } catch (e) {} lpTo(fo, LP_OPEN, 200); }, 500);
-    load(sb, ni, true); lpTo(sb, LP_OPEN, 200);
-    setTimeout(function () { ramp(sb, VOL, null, 500); setNow(idx[sb]); }, 70);
-    swapT = setTimeout(function () { finishSwap(sb); }, 620);
+    try { els[sb].currentTime = 0; } catch (e) {}
+    els[sb].volume = 0; els[sb].play().catch(function () {});
+    lpTo(sb, LP_OPEN, 200);
+    ramp(sb, VOL, null, SKIP_MS);                           // fade incoming IN over 1.4s
+    lpTo(fo, LP_SOFT, SKIP_MS);                             // muffle outgoing tail
+    ramp(fo, 0, function () { try { els[fo].pause(); els[fo].currentTime = 0; } catch (e) {} lpTo(fo, LP_OPEN, 200); }, SKIP_MS);
+    setNow(idx[sb]);
+    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, SKIP_MS + 80);
   }
 
   bind('a'); bind('b');
@@ -21165,97 +20813,12 @@ nav.cyber-nav .act-chip:not(.sci-li):focus-within > .submenu:not(.nfx-open){ dis
 </script>
 <!--SELFHOSTED-AUDIO-END-->
 
-<!--APPLE-FONTBUMP-START-->
-<style id="apple-fontbump-css">
-/*
- * APPLE-FONTBUMP — legibility nudge pass (2026-06-19)
- * Raises the reading-tier text that survived below ~12.5px after TYPEFLOOR+TYPESCALE.
- * All jumps ≤ +1px. Intentional micro-labels (nav badges, ticks, lbl eyebrows,
- * hero-cue, dropdown sub-items) deliberately untouched — type hierarchy preserved.
- * Uses !important throughout to win vs. the layered prior marker blocks.
- */
-
-/* --- caption pillar labels & cites ----------------------------------- */
-/* TYPEFLOOR set .fig-caption b → 11.5px; nudge to 12.5px */
-.fig-caption b,
-.exo-caption b.pillar,
-.hp-caption b.pillar,
-.hp-sub .fig-caption b.pillar,
-.cp-take b.pillar {
-  font-size: 12.5px !important;
-}
-/* TYPEFLOOR set .fig-cite → 11.5px; nudge to 12px */
-.fig-cite {
-  font-size: 12px !important;
-}
-/* TYPEFLOOR set sup.ref → 11px; nudge to 11.5px */
-.fig-caption sup.ref,
-.fig-caption sup.ref a {
-  font-size: 11.5px !important;
-}
-
-/* --- act-look: mobile was stuck at 12.5px, desktop already 13.5px --- */
-/* Only override the mobile breakpoint — desktop !important at 13.5px wins already */
-@media (max-width: 768px) {
-  .act-look {
-    font-size: 13px !important;
-  }
-}
-
-/* --- metric / ML-LAB tooltip text ------------------------------------ */
-/* .tip was 11–12px depending on context; raise floor to 12.5px */
-.tip,
-.metric-tooltips .tip,
-[data-tip] .tip {
-  font-size: 12.5px !important;
-}
-
-/* --- desktop nav links (not badges/dropdown items) ------------------- */
-/* nav a was 11px; nav.cyber-nav a was 11px !important → bump to 12px  */
-/* Leave: .submenu a (10px badge, intentional), nav a[data-tldr] (badge), */
-/*         .story-toggle (chip), mobile overrides below 900px            */
-@media (min-width: 900px) {
-  nav a,
-  nav.cyber-nav a {
-    font-size: 12px !important;
-  }
-}
-
-/* --- footer ---------------------------------------------------------- */
-footer {
-  font-size: 11.5px !important;
-}
-
-/* --- hero-stats: desktop mono stat row ------------------------------ */
-/* was 11.5px desktop, 10px mobile; nudge desktop only */
-@media (min-width: 768px) {
-  .hero-stats {
-    font-size: 12px !important;
-  }
-}
+<!--APPLE-NAVFIX-START-->
+<style id="apple-navfix-css">
+/* the action-group pipe before FOR SCIENTISTS rendered wonky (off-center / mis-gap
+   after NAVSIMPLIFY re-packed the row). Remove it — cleaner without. */
+nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !important; }
 </style>
-<!--APPLE-FONTBUMP-END-->
-
-<!--APPLE-REMOVE-TOUR-START-->
-<style id="apple-remove-tour-css">
-#lr-btn, #lr-overlay, #lr-host, .lr-iframe-host { display:none !important; }
-nav li:has(.lr-launch-cta), nav li:has(a[href="#lr-btn"]) { display:none !important; }
-</style>
-<!--APPLE-REMOVE-TOUR-END-->
-<!--APPLE-NAVSIMPLIFY-START-->
-<style id="apple-navsimplify-css">
-/* drop RESEARCH VIEW — cosmetic 'paper-style' glyph-hider; its name collided with FULL VIEW */
-.rm-nav-li, #rm-toggle { display:none !important; }
-/* rename the STORY toggle for clarity: hide the JS-set text, show a state-driven label.
-   NOTE: must match the existing high-specificity `.story-toggle#story-toggle` rule (1,2,3)
-   or font-size:0 loses and the original text shows THROUGH the label (doubling bug). */
-html body nav.cyber-nav .story-toggle#story-toggle { font-size:0 !important; }
-html body nav.cyber-nav .story-toggle#story-toggle::after {
-  font-size:10.5px; letter-spacing:1.5px; font-weight:700; text-transform:uppercase;
-  content:'EXPAND ALL';
-}
-html body:not(.story-only) nav.cyber-nav .story-toggle#story-toggle::after { content:'STORY VIEW'; }
-</style>
-<!--APPLE-NAVSIMPLIFY-END-->
+<!--APPLE-NAVFIX-END-->
 </body>
 </html>
