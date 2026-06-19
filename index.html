@@ -6155,7 +6155,14 @@ body.story-only .method-cmp{display:block!important}
         <td class="mi-valid" title="permutation null, bootstrap CI, or held-out test">&mdash;</td>
         <td class="mi-link"><a href="#fig-74" title="jump to figure">→</a></td>
       </tr>
-    </tbody>
+          <tr>
+        <td class="mi-method">THE GAUNTLET</td>
+        <td class="mi-desc">7-gate pre-ordered audit (pre-register → measure target → held-out → perturbation → power → surrogate → confounder); every claim runs in sequence, no gate skipped</td>
+        <td class="mi-result">3 killed / 2 caveated / 1 survived &mdash; ~&frac12; of flashy claims clear all gates</td>
+        <td class="mi-valid" title="permutation null, bootstrap CI, or held-out test">&mdash;</td>
+        <td class="mi-link"><a href="#gauntlet" title="jump to The Gauntlet">→</a></td>
+      </tr>
+</tbody>
   </table>
   </div>
   <p class="mi-footer"><b>&#10003;</b> = the claim has a permutation null, <span class="term-tip" data-tip="Bootstrap confidence interval: resample N times with replacement, report 2.5th/97.5th percentiles of the resampled statistic." tabindex="0">bootstrap CI</span>, or held-out test attached. <b>&mdash;</b> = the panel is descriptive only and labelled as such. Descriptive claims aren&rsquo;t allowed to launder themselves as inferential in this dashboard, and inferential ones aren&rsquo;t allowed to skip their nulls.</p>
@@ -20820,5 +20827,262 @@ html body:not(.story-only) nav.cyber-nav .story-toggle#story-toggle::after { con
 nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !important; }
 </style>
 <!--APPLE-NAVFIX-END-->
+<!--APPLE-NAVNAMES-START-->
+<style>
+/*
+  APPLE-NAVNAMES — raise act-chip label hide breakpoint to 1499px.
+  Selector: nav.cyber-nav .act-chip>a .label (chapter glyphs Ⅰ–Ⅷ only).
+  Action items (FOR SCIENTISTS, MY ALBUM, TL;DR, brand) are NOT .act-chip>a
+  descendants, so they are unaffected by this rule.
+  Extends APPLE-NAVFIT (max-width:1480px) by an extra 19px.
+*/
+@media(max-width:1499px){
+  nav.cyber-nav .act-chip>a .label{display:none!important}
+  nav.cyber-nav .act-chip>a .glyph{display:inline-block!important;font-size:15px!important;font-weight:700!important;line-height:1!important}
+  nav.cyber-nav .act-chip>a{padding-left:10px!important;padding-right:10px!important}
+}
+@media(min-width:1500px){
+  /* Restore labels on very wide screens — counteracts APPLE-NAVFIT's 1480px rule
+     for the 1481–1499px range. Above 1499px we want names visible. */
+  nav.cyber-nav .act-chip>a .label{display:inline!important}
+}
+</style>
+<!--APPLE-NAVNAMES-END-->
+<!--APPLE-SPINEICONS-V3-START-->
+<style id="apple-spineicons-v3-css">
+/*
+ * APPLE-SPINEICONS-V3: re-center + crisp the spine-btn mask glyphs.
+ * Additive over NAVPOLISH3 — overrides only the misaligned properties.
+ * Pure CSS, no JS. Cannot loop. Safe to re-run idempotently.
+ */
+@media (min-width:900px){
+  /* Fix: ::before was display:block filling full 34px grid cell width;
+     mask glyph anchored left → off-center.  justify-self:center collapses
+     the box to intrinsic width (== mask size) and re-centers in the cell. */
+  #spine-actions .spine-btn::before{
+    display:block !important;
+    width:18px !important;
+    height:18px !important;
+    justify-self:center !important;
+    align-self:center !important;
+    margin:0 auto !important;
+    /* Split mask props — more robust than shorthand across Chromium builds */
+    -webkit-mask-position:center center !important;
+    -webkit-mask-repeat:no-repeat !important;
+    -webkit-mask-size:contain !important;
+    mask-position:center center !important;
+    mask-repeat:no-repeat !important;
+    mask-size:contain !important;
+  }
+  /* Slightly brighter tint for non-retina legibility; same hue as NAVPOLISH3 */
+  #spine-actions .spine-btn{
+    color:#cff5e7 !important;
+  }
+  /* Muted state keeps rose accent from NAVPOLISH3 */
+  #spine-actions #spine-mute[data-muted="1"]{
+    color:#ff9ec4 !important;
+  }
+}
+</style>
+<!--APPLE-SPINEICONS-V3-END-->
+
+<!--TOPO-RESTORE-START-->
+<script>
+/* Topology-net canvas restore — injected idempotently; runs once at DCL.
+   Inserts .lh-canvas-wrap + legend ABOVE the existing .lh-barchart inside
+   #apple-leadhero so the animation sits above and the data bar stays below. */
+(function(){
+  function mount(){
+    var sec = document.getElementById('apple-leadhero');
+    if (!sec) return;
+    /* idempotency: don't double-insert */
+    if (sec.querySelector('#lh-canvas')) return;
+
+    var bar = sec.querySelector('.lh-barchart');
+    if (!bar) return;  /* safety: don't inject if barchart missing */
+
+    /* ── DOM: canvas wrap ── */
+    var wrap = document.createElement('div');
+    wrap.className = 'lh-canvas-wrap';
+
+    var cv = document.createElement('canvas');
+    cv.id = 'lh-canvas';
+    cv.setAttribute('aria-hidden', 'true');
+    wrap.appendChild(cv);
+    sec.insertBefore(wrap, bar);
+
+    /* ── DOM: legend (placed between canvas and bar) ── */
+    var legend = document.createElement('div');
+    legend.className = 'lh-legend';
+    legend.innerHTML =
+      '<span><i style="background:#21f6bc"></i> my deliberate taps &middot; cross-community</span>' +
+      '<span><i style="background:#6b5a86"></i> autoplay &middot; stays in lane</span>';
+    sec.insertBefore(legend, bar);
+
+    /* ── Animation ── */
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    var phone  = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+
+    var ctx = cv.getContext('2d');
+    var DPR = Math.min(window.devicePixelRatio || 1, 2);
+    var nodes = [], comms = [], W = 0, H = 0, ctr = [], haloR = 40;
+    var bridges = [], within = [];
+    var t = 0, raf = 0;
+    var COMM = ['#21f6bc', '#7fb6ff', '#9b6bff'];
+
+    function layout() {
+      var r = cv.getBoundingClientRect();
+      W = r.width; H = r.height;
+      if (!W || !H) return;
+      cv.width  = W * DPR;
+      cv.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctr = [
+        {x: W * 0.16, y: H * 0.62},
+        {x: W * 0.5,  y: H * 0.24},
+        {x: W * 0.84, y: H * 0.62}
+      ];
+      var cluR = Math.min(W * 0.13, H * 0.34);
+      haloR = cluR * 1.25;
+      nodes = []; comms = [[], [], []];
+      for (var c = 0; c < 3; c++) {
+        var n = 5;
+        for (var i = 0; i < n; i++) {
+          var a   = (i / n) * Math.PI * 2 + c * 0.7;
+          var rad = cluR * (0.55 + (i % 2) * 0.4);
+          var nd  = {x: ctr[c].x + Math.cos(a) * rad,
+                     y: ctr[c].y + Math.sin(a) * rad,
+                     c: c, ph: Math.random() * 6.28};
+          nodes.push(nd); comms[c].push(nd);
+        }
+      }
+    }
+
+    function buildEdges() {
+      bridges = []; within = [];
+      for (var c = 0; c < 3; c++) {
+        var g = comms[c];
+        for (var i = 0; i < g.length; i++)
+          for (var j = i + 1; j < g.length; j++)
+            if (Math.random() < 0.45) within.push([g[i], g[j]]);
+      }
+      function brg(a, b, k) {
+        for (var i = 0; i < k; i++)
+          bridges.push([comms[a][i % comms[a].length],
+                        comms[b][(i + 1) % comms[b].length]]);
+      }
+      brg(0, 1, 3); brg(1, 2, 3); brg(0, 2, 2);
+    }
+
+    function pos(nd) {
+      return {x: nd.x + Math.sin(t + nd.ph) * 2.0,
+              y: nd.y + Math.cos(t * 0.8 + nd.ph) * 2.0};
+    }
+
+    function frame() {
+      if (!W || !H) { raf = 0; return; }
+      ctx.clearRect(0, 0, W, H);
+      t += 0.012;
+
+      /* community halos */
+      for (var c = 0; c < 3; c++) {
+        var g = ctx.createRadialGradient(
+          ctr[c].x, ctr[c].y, 0, ctr[c].x, ctr[c].y, haloR);
+        g.addColorStop(0, 'rgba(' + (c===0 ? '33,246,188' : c===1 ? '127,182,255' : '155,107,255') + ',0.10)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(ctr[c].x, ctr[c].y, haloR, 0, 6.28); ctx.fill();
+      }
+
+      /* within edges */
+      ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(120,104,150,0.45)';
+      within.forEach(function(e) {
+        var a = pos(e[0]), b = pos(e[1]);
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      });
+
+      /* bridge edges + travelling pulse */
+      bridges.forEach(function(e, i) {
+        var a = pos(e[0]), b = pos(e[1]);
+        var grd = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+        grd.addColorStop(0, 'rgba(33,246,188,0.95)');
+        grd.addColorStop(1, 'rgba(155,107,255,0.9)');
+        ctx.lineWidth = 2.4; ctx.strokeStyle = grd;
+        ctx.shadowColor = 'rgba(33,246,188,0.55)'; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        ctx.shadowBlur = 0;
+        var p  = Math.sin(t * 1.4 + i) * 0.5 + 0.5;
+        var px = a.x + (b.x - a.x) * p, py = a.y + (b.y - a.y) * p;
+        ctx.beginPath(); ctx.arc(px, py, 2.8, 0, 6.28);
+        ctx.fillStyle = '#d9fff4'; ctx.fill();
+      });
+
+      /* nodes */
+      nodes.forEach(function(nd) {
+        var p = pos(nd);
+        ctx.beginPath(); ctx.arc(p.x, p.y, 4.6, 0, 6.28);
+        ctx.fillStyle = COMM[nd.c];
+        ctx.shadowColor = COMM[nd.c]; ctx.shadowBlur = 12;
+        ctx.fill(); ctx.shadowBlur = 0;
+      });
+
+      /* LOOP-SAFETY: only reschedule if still running (raf != 0 means active) */
+      if (!reduce && raf) raf = requestAnimationFrame(frame);
+    }
+
+    function init() {
+      layout(); buildEdges();
+      cancelAnimationFrame(raf); raf = 0;
+      if (reduce || phone) {
+        /* static single paint on mobile / reduced-motion */
+        frame();
+      } else {
+        raf = requestAnimationFrame(frame);
+      }
+    }
+
+    /* LOOP-SAFETY: IntersectionObserver watches <canvas>; never writes to it —
+       only sets the local `raf` var. Disconnect is not needed because we only
+       cancel/start the rAF; the observer itself is harmless to keep alive. */
+    if ('IntersectionObserver' in window) {
+      try {
+        new IntersectionObserver(function(entries) {
+          entries.forEach(function(e) {
+            if (e.isIntersecting) {
+              /* re-measure on first reveal: the canvas was likely 0-size at init
+                 (it's far down the page), so layout()/W/H were never set. */
+              if (!W || !H || !nodes.length) { layout(); buildEdges(); }
+              if (reduce || phone) { frame(); }
+              else if (!raf) { raf = requestAnimationFrame(frame); }
+            } else {
+              cancelAnimationFrame(raf); raf = 0;
+            }
+          });
+        }, {threshold: 0}).observe(cv);
+      } catch(err) {}
+    }
+
+    /* ResizeObserver for canvas re-layout */
+    if (window.ResizeObserver) {
+      new ResizeObserver(function() {
+        layout(); buildEdges();
+        if (phone || reduce) frame();  /* repaint once on resize even on mobile */
+      }).observe(cv);
+    }
+    window.addEventListener('resize', function() {
+      phone = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+      layout(); buildEdges();
+      if (phone || reduce) frame();
+    }, {passive: true});
+
+    if (document.readyState !== 'loading') init();
+    else document.addEventListener('DOMContentLoaded', init);
+  }
+
+  if (document.readyState !== 'loading') mount();
+  else document.addEventListener('DOMContentLoaded', mount);
+})();
+</script>
+<!--TOPO-RESTORE-END-->
 </body>
 </html>
