@@ -2273,7 +2273,132 @@ document.addEventListener('DOMContentLoaded', function () {
     <a class="hero-cue" href="#abstract" aria-label="skip to the abstract — start reading">
       keep going<span class="arrow">↓</span><span class="arrow2">↓</span>
     </a>
-  </div>
+  
+
+<!--APPLE-SURFACE-TEASER-START-->
+<style>
+/* genre teaser strip — shown in hero, visible in all modes */
+.gteaser{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  max-width:560px;margin:clamp(14px,2.6vh,28px) auto 0;
+  padding:12px 18px 10px;
+  border-radius:10px;
+  border:1px solid rgba(33,246,188,.18);
+  background:rgba(33,246,188,.04);
+}
+.gteaser-lab{
+  font:700 10px/1 "JetBrains Mono",ui-monospace,monospace;
+  letter-spacing:.14em;text-transform:uppercase;color:rgba(240,234,255,.42);
+  white-space:nowrap;flex-shrink:0;
+}
+.gteaser-bars{display:flex;flex-direction:column;gap:7px;flex:1;min-width:160px}
+.gteaser-row{display:flex;align-items:center;gap:8px}
+.gteaser-genre{
+  flex:0 0 92px;font:600 10px/1.2 "JetBrains Mono",ui-monospace,monospace;
+  color:rgba(240,234,255,.55);text-align:right;white-space:nowrap;
+}
+.gteaser-track{flex:1;height:10px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
+.gteaser-bar{
+  display:block;height:100%;border-radius:4px;width:0;
+  transition:width .9s cubic-bezier(.22,.61,.36,1);
+}
+.gteaser-link{
+  font:600 10px/1 "JetBrains Mono",ui-monospace,monospace;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--mint,#21f6bc);
+  text-decoration:none;white-space:nowrap;flex-shrink:0;
+  opacity:.82;
+}
+.gteaser-link:hover{opacity:1;text-decoration:underline}
+@media(max-width:600px){
+  .gteaser{max-width:calc(100vw - 48px);gap:12px;padding:10px 14px 8px}
+  .gteaser-genre{flex-basis:64px}
+}
+@media(prefers-reduced-motion:reduce){.gteaser-bar{transition:none}}
+</style>
+<script>
+(function(){
+  if(window.__gteaser)return; window.__gteaser=true;
+  /* Two representative poles from the APPLE-GENREFLIP data:
+     hip-hop/r&b: tapped=35.4% vs served=27.3%  → I choose it (mint)
+     ambient/lofi: tapped=3.7%  vs served=8.3%  → algorithm pushes it (orchid) */
+  var DATA=[
+    {g:"hip-hop · r&b", d:35.4, s:27.3, col:"#21f6bc"},
+    {g:"ambient/lofi",  d:3.7,  s:8.3,  col:"#9b6bff"}
+  ];
+  var MAX=36;
+
+  function build(){
+    if(document.querySelector('.gteaser'))return true;
+    /* inject after the hero-stage last child, before pace-pick */
+    var hero=document.querySelector('.hero-stage');
+    if(!hero)return false;
+    var paceRow=document.querySelector('.pace-pick');
+    if(!paceRow||!paceRow.parentNode)return false;
+
+    var box=document.createElement('div');
+    box.className='gteaser';
+
+    var html='<span class="gteaser-lab">i tap vs. what\'s served</span>'
+           + '<div class="gteaser-bars">';
+    DATA.forEach(function(x,i){
+      html+='<div class="gteaser-row">'
+          +'<span class="gteaser-genre">'+x.g+'</span>'
+          +'<span class="gteaser-track">'
+          +'<span class="gteaser-bar" data-ti="'+i+'" style="background:'+x.col+'"></span>'
+          +'</span>'
+          +'</div>';
+    });
+    html+='</div>';
+    html+='<a class="gteaser-link" href="#ai-systems">all genres ▸</a>';
+    box.innerHTML=html;
+
+    /* insert inside hero-stage, before pace-pick */
+    paceRow.parentNode.insertBefore(box, paceRow);
+
+    function animate(){
+      DATA.forEach(function(x,i){
+        var bar=box.querySelector('.gteaser-bar[data-ti="'+i+'"]');
+        if(bar) bar.style.width=(100*x.d/MAX)+'%';
+      });
+    }
+
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ animate(); io.disconnect(); } });
+      },{threshold:0.1});
+      io.observe(box);
+    } else {
+      animate();
+    }
+
+    /* scroll-to: clicking the link opens any enclosing spine-fold first */
+    box.querySelector('.gteaser-link').addEventListener('click',function(e){
+      var target=document.getElementById('ai-systems');
+      if(!target)return;
+      e.preventDefault();
+      /* if the PROVENANCE-LEAD / ai-systems block is somehow folded (future-proofing) */
+      var fold=target.closest&&target.closest('.spine-fold');
+      if(fold&&!fold.classList.contains('spine-open')){
+        var act=fold.getAttribute('data-spine-act');
+        var btn=act!=null&&document.querySelector('.act-lab-btn[data-act="'+act+'"]');
+        if(btn)btn.click();
+        setTimeout(function(){target.scrollIntoView({behavior:'smooth',block:'start'});},440);
+      } else {
+        target.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    });
+
+    return true;
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);
+  else build();
+  setTimeout(build,600);
+  setTimeout(build,1800);
+})();
+</script>
+<!--APPLE-SURFACE-TEASER-END-->
+</div>
 <div class="pace-pick" role="group" aria-label="choose reading pace"><span class="pace-q">how deep do you want to go?</span><div class="pace-seg"><button type="button" class="pace-opt" data-mode="story">&#9683; the 3-min story</button><button type="button" class="pace-opt is-active" data-mode="full">&#9879; the full lab</button></div><span class="pace-sub">story = the spine, no math. lab = every chart and method (~100 panels, ~28 methods).</span></div>
   <!--APPLE-SCITRACK-START-->
 <style>
