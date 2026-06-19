@@ -851,6 +851,22 @@ html body.story-only .act-lab-btn:hover{ background:rgba(255,255,255,.08);border
     ov.classList.add('sme-out');
     setTimeout(function(){ try{ ov.style.display='none'; }catch(e){} }, 950);
   }
+  // SILENT-ENTRY FIX: the page-wide first-tap capture listener (FIRST-TAP block) arms the
+  // self-hosted bed on ANY click. This document-capture listener is registered during the
+  // initial parse (APPLE-ENTER sits far above FIRST-TAP), so it runs FIRST on the same click
+  // and flips the global mute pill before the bed can ramp up. "enter silently" -> mute on;
+  // "enter (with sound)" -> clear a stale silent-entry mute so sound actually plays.
+  document.addEventListener('click', function(ev){
+    try{
+      var t=ev.target; if(!t||!t.closest) return;
+      var isSkip=t.closest('#sm-enter-skip'), isBtn=t.closest('#sm-enter-btn');
+      if(!isSkip && !isBtn) return;
+      var pill=document.getElementById('global-mute-pill'); if(!pill) return;
+      var m='0'; try{ m=localStorage.getItem('sonicManifoldMuted'); }catch(e){}
+      if(isSkip && m!=='1') pill.click();        // mute everything before first-tap arms the bed
+      else if(isBtn && m==='1') pill.click();     // clear a stale silent-entry mute so sound plays
+    }catch(e){}
+  }, true);
   var b=document.getElementById('sm-enter-btn'); if(b) b.addEventListener('click', function(e){ e.stopPropagation(); dismiss(true); });
   var sk=document.getElementById('sm-enter-skip'); if(sk) sk.addEventListener('click', function(e){ e.stopPropagation(); dismiss(false); });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !ov.classList.contains('sme-out')) dismiss(false); });
