@@ -20878,5 +20878,17 @@ header .hero-stage h1{background:none!important;-webkit-background-clip:border-b
 </script>
 <!--CYBER-NAV-MOBILE-END-->
 
+<!--APPLE-DESIGNPASS2-START-->
+<style id="apple-designpass2">
+/* ===== Stage B: nav idle legibility + action-group divider (additive, idempotent, desktop-effect-only) ===== */
+/* idle nav links were ink@62% (dim); lift to ink@82% so the numeral rail reads clearly */
+html body nav.cyber-nav a:not(.active){ color:color-mix(in srgb, var(--ink) 82%, transparent) !important; }
+html body nav.cyber-nav .story-toggle:not(.back-mode){ color:color-mix(in srgb, var(--ink) 72%, transparent) !important; }
+/* width-neutral group divider between the numbered chapters and the action controls
+   (✦ / MY ALBUM / STORY / RESEARCH VIEW). position:absolute => 0 flex width => no rail overflow */
+nav.cyber-nav > ul > li.sci-li{ position:relative; }
+nav.cyber-nav > ul > li.sci-li::before{ content:""; position:absolute; left:-3px; top:26%; bottom:26%; width:1px; background:linear-gradient(180deg,transparent,rgba(124,128,140,.6),transparent); pointer-events:none; }
+</style>
+<!--APPLE-DESIGNPASS2-END-->
 </body>
 </html>
