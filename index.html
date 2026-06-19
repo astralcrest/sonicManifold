@@ -21175,30 +21175,7 @@ html body nav.cyber-nav .story-toggle::after {
 body:not(.story-only) nav.cyber-nav .story-toggle::after { content:'STORY VIEW'; }
 </style>
 <!--APPLE-NAVSIMPLIFY-END-->
-<!--APPLE-ENTER-SOUND-FIX-START-->
-<script id="apple-enter-sound-fix">
-(function(){
-  if(window.__enterSoundFix) return; window.__enterSoundFix = true;
-  document.addEventListener('click', function(ev){
-    var t = ev.target; if(!t || !t.closest || !t.closest('#sm-enter-btn')) return;
-    try{ localStorage.removeItem('sonicManifoldMuted'); }catch(e){}
-    // The user chose ENTER (with sound). A competing handler can re-mute the bed
-    // the instant it opens, so poll briefly and re-assert the bed's own unmute
-    // (setMuted(false)) until sound is actually on. Only acts while muted, so it
-    // never mutes a playing bed.
-    var n = 0, iv = setInterval(function(){
-      n++;
-      var bed = window.__selfHostedBed;
-      if(bed && bed.isOn){
-        if(bed.isOn()){ clearInterval(iv); return; }   // sound is on -> done
-        if(bed.setMuted){ bed.setMuted(false); }        // opened-but-muted -> unmute
-      }
-      if(n >= 12) clearInterval(iv);                     // ~1.2s safety cap
-    }, 100);
-  }, true);
-})();
-</script>
-<!--APPLE-ENTER-SOUND-FIX-END-->
+
 
 <!--SELFHOSTED-AUDIO-START-->
 <style>
