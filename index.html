@@ -20608,217 +20608,6 @@ html body:not(.story-only) nav.cyber-nav .story-toggle#story-toggle::after { con
 </style>
 <!--APPLE-NAVSIMPLIFY-END-->
 
-<!--SELFHOSTED-AUDIO-START-->
-<style>
-  /* hidden native-audio decks; reuses the SC player's #sc-now readout */
-  #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
-</style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "1A"}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B"}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest", "k": "1A"}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A"}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A"}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A"}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A"}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A"}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares"}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B"}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B"}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "k": "3A", "g": "antares"}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B"}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B"}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A"}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A"}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A"}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A"}]</script>
-<div id="sh-bg" aria-hidden="true">
-  <audio id="sh-a" preload="auto"></audio>
-  <audio id="sh-b" preload="auto"></audio>
-</div>
-<script>
-(function () {
-  'use strict';
-  var tracks = [];
-  try { tracks = JSON.parse(document.getElementById('sh-tracks').textContent); } catch (e) {}
-  if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
-  window.__preferSelfHosted = true;                          // SoundCloud player stands down
-
-  function groupOf(t) { return t.g || t.src; }
-  function adjOK(arr) {
-    if (arr.length < 2) return true;
-    for (var i = 0; i < arr.length; i++) { if (groupOf(arr[i]) === groupOf(arr[(i + 1) % arr.length])) return false; }
-    return true;
-  }
-  // ENTRY-ORDER: deterministic autoplay. #sh-tracks is the hand-curated entry/retention
-  // sequence (front-loaded hooks for the ~90s conversion window), so it plays in array
-  // order from index 0 — NOT shuffled. adjOK/groupOf retained but unused.
-  void adjOK;
-
-  // O3 DJ crossfade tuning. FADE_MS = trigger window = the LONGEST crossfade,
-  // so there is always room for a key-clash (longer) fade before track end.
-  var FADE_MS = 3400, STEP = 50, VOL = 0.85;
-  var XFADE_BASE = 2600, XFADE_CLASH = 3400;             // ms — longer = clearly audible DJ blend
-  var LP_OPEN = 20000, LP_SOFT = 2600, LP_CLASH = 1500;  // outgoing low-pass target (Hz) — deep enough to HEAR the muffle on ambient/chillstep
-
-  var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
-  if (!els.a || !els.b) return;
-  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false;
-  var ramps = { a: null, b: null };
-  var nowEl = document.getElementById('sc-now'), nowLabel = document.getElementById('sc-now-label'), nowSkip = document.getElementById('sc-now-skip');
-  function other(d) { return d === 'a' ? 'b' : 'a'; }
-
-  // O3: Web-Audio low-pass per deck for a DJ-style tail sweep. el.volume still
-  // controls gain (the equal-power crossfade math is untouched); the filter only
-  // colours the OUTGOING tail. Progressive enhancement — if Web Audio is blocked,
-  // waOK stays false and lpTo() is a no-op while the volume crossfade runs as before.
-  var actx = null, filt = { a: null, b: null }, waOK = false;
-  function ensureACtx() {
-    if (actx) return;
-    try {
-      actx = new (window.AudioContext || window.webkitAudioContext)();
-      ['a', 'b'].forEach(function (d) {
-        var src = actx.createMediaElementSource(els[d]);
-        var f = actx.createBiquadFilter();
-        f.type = 'lowpass'; f.frequency.value = LP_OPEN; f.Q.value = 0.6;
-        src.connect(f); f.connect(actx.destination);
-        filt[d] = f;
-      });
-      waOK = true;
-    } catch (e) { actx = null; waOK = false; }
-  }
-  function lpTo(d, hz, ms) {
-    if (!waOK || !filt[d]) return;
-    try {
-      var now = actx.currentTime, p = filt[d].frequency;
-      p.cancelScheduledValues(now); p.setValueAtTime(Math.max(200, p.value || LP_OPEN), now);
-      p.exponentialRampToValueAtTime(Math.max(200, hz), now + Math.max(0.05, ms / 1000 * 0.9));
-    } catch (e) {}
-  }
-
-  // O3 key-aware: Camelot distance — 0 same · 1 compatible (neighbour or relative) · 2 clash.
-  function camDist(a, b) {
-    if (!a || !b) return 1;
-    if (a === b) return 0;
-    var na = parseInt(a, 10), nb = parseInt(b, 10), la = a.slice(-1), lb = b.slice(-1);
-    if (la === lb) { var d = Math.abs(na - nb); d = Math.min(d, 12 - d); return d <= 1 ? 1 : 2; }
-    if (na === nb) return 1;   // relative major/minor (same number, A<->B)
-    return 2;
-  }
-  function keyOf(qi) { return tracks[qi] && tracks[qi].k; }
-
-  function setNow(qi) {
-    try { document.dispatchEvent(new CustomEvent('bed:track', { detail: { index: qi, title: tracks[qi] && tracks[qi].t, artist: tracks[qi] && tracks[qi].a } })); } catch (e) {}
-    if (!nowEl) return;
-    nowEl.classList.remove('sc-now-ambient'); nowEl.title = '';
-    if (nowLabel) nowLabel.textContent = tracks[qi].a + ' — ' + tracks[qi].t;
-    nowEl.classList.add('show');
-    clearTimeout(nowEl.__shT); nowEl.__shT = setTimeout(function () { nowEl.classList.remove('show'); }, 6000);
-  }
-  function load(d, qi, autoplay) {
-    idx[d] = qi; var el = els[d];
-    el.src = tracks[qi].src; el.load();
-    if (autoplay) { el.volume = 0; el.play().catch(function () {}); }
-  }
-  function ramp(d, to, cb, durMs) {
-    if (ramps[d]) clearInterval(ramps[d]);
-    var dur = durMs || FADE_MS;
-    var el = els[d], from = el.volume || 0, steps = Math.max(1, Math.round(dur / STEP)), n = 0;
-    ramps[d] = setInterval(function () {
-      n++; var q = n / steps, sm = q*q*(3 - 2*q); var v = Math.sqrt(Math.max(0, from*from*(1 - sm) + to*to*sm));
-      try { el.volume = muted ? 0 : Math.max(0, Math.min(1, v)); } catch (e) {}
-      if (n >= steps) { clearInterval(ramps[d]); ramps[d] = null; if (cb) cb(); }
-    }, STEP);
-  }
-  function bind(d) {
-    var el = els[d];
-    el.addEventListener('timeupdate', function () {
-      if (d !== active || crossing || muted) return;
-      if (!el.duration || !isFinite(el.duration) || el.duration < FADE_MS / 1000 + 2) return;
-      if (el.currentTime >= el.duration - FADE_MS / 1000) startCrossfade();
-    });
-    el.addEventListener('ended', function () { if (d === active && !crossing && el.currentTime >= (el.duration || 0) - 0.5) goNext(); });
-    el.addEventListener('playing', function () { if (d === active) { document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[d]); } });
-    el.addEventListener('error', function () { if (d === active && !crossing) goNext(); });
-  }
-  var swapT = null, gen = 0;
-  function clearCross() {
-    if (swapT) { clearTimeout(swapT); swapT = null; }
-    if (ramps && ramps.a) { clearInterval(ramps.a); ramps.a = null; }
-    if (ramps && ramps.b) { clearInterval(ramps.b); ramps.b = null; }
-    crossing = false;
-  }
-  function startCrossfade() {
-    if (crossing) return;
-    var sb = other(active); crossing = true; var myGen = ++gen;
-    var clash = camDist(keyOf(idx[active]), keyOf(idx[sb])) >= 2;
-    var dur = clash ? XFADE_CLASH : XFADE_BASE;
-    try { els[sb].currentTime = 0; } catch (e) {}
-    els[sb].volume = 0; els[sb].play().catch(function () {});
-    lpTo(sb, LP_OPEN, 250);                                  // incoming opens full-range
-    ramp(sb, VOL, null, dur);
-    var fo = active;
-    lpTo(fo, clash ? LP_CLASH : LP_SOFT, dur);               // outgoing tail muffles (deeper on a clash)
-    ramp(fo, 0, function () { try { els[fo].pause(); els[fo].currentTime = 0; } catch (e) {} lpTo(fo, LP_OPEN, 200); }, dur);
-    setNow(idx[sb]);
-    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dur + 80);
-  }
-  function goNext() { clearCross(); finishSwap(other(active)); }
-  function finishSwap(na) {
-    var oa = other(na); active = na; crossing = false;
-    try { els[na].volume = muted ? 0 : VOL; if (els[na].paused) els[na].play().catch(function () {}); } catch (e) {}
-    document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[na]);
-    var ni = (idx[na] + 1) % tracks.length; load(oa, ni, false);
-  }
-  function open() {
-    if (started) return; started = true;
-    ensureACtx(); if (actx) actx.resume().catch(function () {});   // Web Audio on first gesture
-    document.body.classList.add('sc-open');
-    load('a', 0, true); ramp('a', VOL);
-    load('b', 1 % tracks.length, false);
-  }
-  function setMuted(m) {
-    muted = !!m;
-    if (m) { ['a', 'b'].forEach(function (d) { try { els[d].volume = 0; } catch (e) {} }); try { els[active].pause(); } catch (e) {} document.body.classList.remove('sc-playing'); }
-    else if (started) { try { els[active].volume = VOL; els[active].play().catch(function () {}); } catch (e) {} document.body.classList.add('sc-playing'); }
-  }
-  var skipLock = false;
-  function skip() {
-    if (!started || skipLock) return;
-    skipLock = true; setTimeout(function () { skipLock = false; }, 1100);
-    if (crossing) clearCross();
-    gen++; var myGen = gen;
-    var fo = active, sb = other(active), SKIP_MS = 1400;    // O3: real audible crossfade on skip
-    var ni = (idx[fo] + 1) % tracks.length;
-    // The standby deck is normally already preloaded with the next track (finishSwap
-    // preloads it), so REUSE it — reloading forced a re-buffer that read as a hard cut.
-    // Only (re)load if the standby is stale.
-    if (idx[sb] !== ni || !els[sb].src) load(sb, ni, false);
-    crossing = true;
-    try { els[sb].currentTime = 0; } catch (e) {}
-    els[sb].volume = 0; els[sb].play().catch(function () {});
-    lpTo(sb, LP_OPEN, 200);
-    ramp(sb, VOL, null, SKIP_MS);                           // fade incoming IN over 1.4s
-    lpTo(fo, LP_SOFT, SKIP_MS);                             // muffle outgoing tail
-    ramp(fo, 0, function () { try { els[fo].pause(); els[fo].currentTime = 0; } catch (e) {} lpTo(fo, LP_OPEN, 200); }, SKIP_MS);
-    setNow(idx[sb]);
-    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, SKIP_MS + 80);
-  }
-
-  bind('a'); bind('b');
-  document.addEventListener('sonic:first-tap', open);
-  document.addEventListener('sonic:first-tap', function () { if (actx && actx.state === 'suspended') actx.resume().catch(function () {}); });
-  if (nowSkip) nowSkip.addEventListener('click', skip);
-  document.addEventListener('keydown', function (e) {
-    if (!started) return;
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-    if (e.key === 'n') skip();
-  });
-  window.__bedCrossing = function () { return crossing; };
-  window.__selfHostedBed = { open: open, setMuted: setMuted, next: skip, isOn: function () { return started && !muted; },
-    activeId: function () { return els[active] && els[active].id; },
-    currentIndex: function () { return idx[active]; },
-    playIndex: function (n) {
-      if (!tracks.length) return;
-      n = ((n % tracks.length) + tracks.length) % tracks.length;
-      if (!started) { try { open(); } catch (e) {} }
-      var go = function () {
-        if (skipLock) return; skipLock = true; setTimeout(function(){ skipLock = false; }, 600);
-        gen++; clearCross();
-        var sb = other(active);
-        try { els[sb].pause(); els[sb].volume = 0; } catch (e) {}
-        load(active, n, true); ramp(active, VOL);
-        load(sb, (n + 1) % tracks.length, false);
-      };
-      if (started) go(); else setTimeout(go, 160);
-    } };
-  console.log('[sonic-init] SELF-HOSTED bed armed ·', tracks.length, 'tracks · DJ crossfade (unblockable, same-origin)');
-})();
-</script>
-<!--SELFHOSTED-AUDIO-END-->
-
 <!--APPLE-NAVFIX-START-->
 <style id="apple-navfix-css">
 /* the action-group pipe before FOR SCIENTISTS rendered wonky (off-center / mis-gap
@@ -21103,5 +20892,336 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
 })();
 </script>
 <!--APPLE-ENTER-SOUND-V2-END-->
+
+
+<!--SELFHOSTED-AUDIO-START-->
+<style>
+  /* hidden native-audio decks; reuses the SC player's #sc-now readout */
+  #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
+</style>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "1A", "bpm": 129.2, "b0": 7.105, "min": 7.34, "dur": 195.4}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B", "bpm": 99.38, "b0": 0.209, "min": 0.19, "dur": 264.48}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.091, "min": 1.53, "dur": 228.16}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A", "bpm": 136.0, "b0": 0.209, "min": 0.23, "dur": 286.4}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A", "bpm": 129.2, "b0": 1.881, "min": 2.28, "dur": 206.48}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A", "bpm": 129.2, "b0": 0.07, "min": 0.51, "dur": 181.56}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A", "bpm": 112.35, "b0": 1.3, "min": 1.53, "dur": 166.08}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A", "bpm": 129.2, "b0": 2.02, "min": 2.09, "dur": 215.36}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares", "bpm": 129.2, "b0": 0.209, "min": 0.51, "dur": 479.4}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B", "bpm": 112.35, "b0": 0.0, "min": 0.28, "dur": 479.4}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B", "bpm": 117.45, "b0": 1.672, "min": 1.86, "dur": 479.4}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "k": "3A", "g": "antares", "bpm": 129.2, "b0": 0.0, "min": 0.42, "dur": 162.32}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B", "bpm": 161.5, "b0": 0.07, "min": 0.05, "dur": 203.92}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B", "bpm": 99.38, "b0": 0.046, "min": 0.33, "dur": 177.72}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A", "bpm": 107.67, "b0": 0.673, "min": 0.65, "dur": 187.44}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.44, "min": 1.58, "dur": 237.56}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A", "bpm": 129.2, "b0": 0.046, "min": 0.46, "dur": 83.4}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A", "bpm": 143.55, "b0": 1.254, "min": 1.21, "dur": 218.0}]</script>
+<div id="sh-bg" aria-hidden="true">
+  <audio id="sh-a" preload="auto"></audio>
+  <audio id="sh-b" preload="auto"></audio>
+</div>
+<script>
+(function () {
+  'use strict';
+  var tracks = [];
+  try { tracks = JSON.parse(document.getElementById('sh-tracks').textContent); } catch (e) {}
+  if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
+  window.__preferSelfHosted = true;                          // SoundCloud player stands down
+
+  // ---- tuning ------------------------------------------------------------
+  // GFULL = unity deck gain. The bed's BACKGROUND LEVEL is owned by the separate
+  // APPLE-AUDIOUX layer (it tweens #sh-a/#sh-b el.volume to ~0.5 and stands down
+  // during our crossfade via __bedCrossing). So we drive WA gain at UNITY and match
+  // both decks to that external el.volume — the equal-power blend never pumps.
+  var GFULL = 1.0;
+  var FADE_MS = 3800;                              // auto-trigger window (>= longest blend)
+  var XF_BASE = 2900, XF_CLASH = 3700, XF_SKIP = 2300;     // blend durations (ms)
+  var LP_FLOOR = 760, LP_CLASH = 460;              // outgoing lowpass dive target (Hz)
+  var HP_IN = 240;                                 // incoming highpass riser entry (Hz)
+  var BASS_KILL = -26, BASS_FULL = 0;              // lowshelf gain (dB)
+
+  // ---- elements / state --------------------------------------------------
+  var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
+  if (!els.a || !els.b) return;
+  ['a','b'].forEach(function (d) {
+    try { els[d].preservesPitch = false; els[d].mozPreservesPitch = false; els[d].webkitPreservesPitch = false; } catch (e) {}
+  });
+  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false;
+  var volRamps = { a: null, b: null }, swapT = null, gen = 0, skipLock = false;
+  var nowEl = document.getElementById('sc-now'), nowLabel = document.getElementById('sc-now-label'), nowSkip = document.getElementById('sc-now-skip');
+  function other(d) { return d === 'a' ? 'b' : 'a'; }
+  function T(qi) { return tracks[((qi % tracks.length) + tracks.length) % tracks.length]; }
+  // bed background level is owned by APPLE-AUDIOUX (el.volume ~0.5). Match it so both
+  // decks share one level during a blend → the equal-power WA crossfade never pumps.
+  function bgDefault() { return window.__appleAudioUX2 ? 0.5 : 0.85; }
+  function bgLvl() { var v = els[active] && els[active].volume; return (v > 0.02 && v <= 1) ? v : bgDefault(); }
+
+  // legacy non-adjacency guard (retained, unused — array order is intentional)
+  function groupOf(t) { return t.g || t.src; }
+  function adjOK(arr) { if (arr.length < 2) return true; for (var i = 0; i < arr.length; i++) { if (groupOf(arr[i]) === groupOf(arr[(i+1)%arr.length])) return false; } return true; }
+  void adjOK;
+
+  // ---- Camelot distance: 0 same · 1 compatible · 2 clash -----------------
+  function camDist(a, b) {
+    if (!a || !b) return 1;
+    if (a === b) return 0;
+    var na = parseInt(a, 10), nb = parseInt(b, 10), la = a.slice(-1), lb = b.slice(-1);
+    if (la === lb) { var d = Math.abs(na - nb); d = Math.min(d, 12 - d); return d <= 1 ? 1 : 2; }
+    if (na === nb) return 1;        // relative major/minor
+    return 2;
+  }
+
+  // ---- Web Audio DJ mixer ------------------------------------------------
+  var actx = null, waOK = false, master = null, echo = null, verb = null;
+  var deck = { a: null, b: null };  // {src,hp,lo,mid,lp,gain,echoSend,verbSend}
+
+  function makeIR(sec, decay) {
+    var rate = actx.sampleRate, len = Math.max(1, Math.floor(sec * rate));
+    var buf = actx.createBuffer(2, len, rate);
+    for (var ch = 0; ch < 2; ch++) {
+      var d = buf.getChannelData(ch);
+      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  }
+  function buildDeck(d) {
+    var src = actx.createMediaElementSource(els[d]);
+    var hp  = actx.createBiquadFilter(); hp.type  = 'highpass'; hp.frequency.value = 20;    hp.Q.value = 0.5;
+    var lo  = actx.createBiquadFilter(); lo.type  = 'lowshelf'; lo.frequency.value = 135;   lo.gain.value = 0;
+    var mid = actx.createBiquadFilter(); mid.type = 'peaking';  mid.frequency.value = 950;  mid.Q.value = 0.8; mid.gain.value = 0;
+    var lp  = actx.createBiquadFilter(); lp.type  = 'lowpass';  lp.frequency.value = 20000; lp.Q.value = 0.6;
+    var gain = actx.createGain(); gain.gain.value = 0.0001;
+    src.connect(hp); hp.connect(lo); lo.connect(mid); mid.connect(lp); lp.connect(gain); gain.connect(master);
+    // sends tapped POST-filter, PRE-gain → echo/reverb throw is independent of the gain fade
+    var echoSend = actx.createGain(); echoSend.gain.value = 0; lp.connect(echoSend); echoSend.connect(echo.input);
+    var verbSend = actx.createGain(); verbSend.gain.value = 0; lp.connect(verbSend); verbSend.connect(verb.input);
+    return { src: src, hp: hp, lo: lo, mid: mid, lp: lp, gain: gain, echoSend: echoSend, verbSend: verbSend };
+  }
+  function ensureACtx() {
+    if (actx) return;
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      master = actx.createGain(); master.gain.value = GFULL; master.connect(actx.destination);
+      // echo bus: in → delay → (lowpass) → feedback → delay; lowpass → master
+      var ein = actx.createGain();
+      var dl  = actx.createDelay(2.0); dl.delayTime.value = 0.34;
+      var fb  = actx.createGain(); fb.gain.value = 0.40;
+      var dlp = actx.createBiquadFilter(); dlp.type = 'lowpass'; dlp.frequency.value = 2400;
+      ein.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(master);
+      echo = { input: ein, delay: dl, fb: fb };
+      // reverb bus: in → convolver → lowpass → master
+      var vin = actx.createGain();
+      var conv = actx.createConvolver(); conv.buffer = makeIR(3.4, 2.6);
+      var vlp = actx.createBiquadFilter(); vlp.type = 'lowpass'; vlp.frequency.value = 4200;
+      vin.connect(conv); conv.connect(vlp); vlp.connect(master);
+      verb = { input: vin, conv: conv };
+      deck.a = buildDeck('a'); deck.b = buildDeck('b');
+      waOK = true;
+    } catch (e) { actx = null; waOK = false; }
+  }
+  function ct() { return actx ? actx.currentTime : 0; }
+  function ramp(param, to, ms, exp) {
+    if (!param) return;
+    var t0 = ct(), t1 = t0 + Math.max(0.01, ms / 1000);
+    try {
+      param.cancelScheduledValues(t0);
+      param.setValueAtTime(typeof param.value === 'number' ? param.value : to, t0);
+      if (exp) param.exponentialRampToValueAtTime(Math.max(1e-4, to), t1);
+      else param.linearRampToValueAtTime(to, t1);
+    } catch (e) {}
+  }
+  function fadeGain(param, to, ms, up) {   // equal-power gain curve
+    if (!param) return;
+    var t0 = ct(), from = (typeof param.value === 'number') ? param.value : 0, n = 48, a = new Float32Array(n);
+    for (var i = 0; i < n; i++) { var x = i / (n - 1), g = up ? Math.sin(0.5 * Math.PI * x) : Math.cos(0.5 * Math.PI * x); a[i] = from + (to - from) * g; }
+    try { param.cancelScheduledValues(t0); param.setValueCurveAtTime(a, t0, Math.max(0.05, ms / 1000)); } catch (e) { ramp(param, to, ms); }
+  }
+  // delay (ms) until the outgoing's next beat near a target offset (graceful: time-based if no grid)
+  function beatAlign(meta, fromCt, targetOffsetS) {
+    if (!meta || !meta.bpm || meta.b0 == null) return targetOffsetS * 1000;
+    var per = 60 / meta.bpm, tt = fromCt + targetOffsetS, k = Math.round((tt - meta.b0) / per), off = (meta.b0 + k * per) - fromCt;
+    if (off < 0.05 || off > targetOffsetS * 2) off = targetOffsetS;
+    return off * 1000;
+  }
+
+  // ---- now-playing readout ----------------------------------------------
+  function setNow(qi) {
+    try { document.dispatchEvent(new CustomEvent('bed:track', { detail: { index: qi, title: T(qi) && T(qi).t, artist: T(qi) && T(qi).a } })); } catch (e) {}
+    if (!nowEl) return;
+    nowEl.classList.remove('sc-now-ambient'); nowEl.title = '';
+    if (nowLabel) nowLabel.textContent = T(qi).a + ' — ' + T(qi).t;
+    nowEl.classList.add('show');
+    clearTimeout(nowEl.__shT); nowEl.__shT = setTimeout(function () { nowEl.classList.remove('show'); }, 6000);
+  }
+  function load(d, qi, autoplay) {
+    idx[d] = qi; var el = els[d]; el.src = T(qi).src;
+    try { el.load(); } catch (e) {}
+    if (autoplay) { try { if (waOK) { el.volume = bgDefault(); deck[d].gain.gain.value = 0.0001; } else { el.volume = 0; } el.play().catch(function () {}); } catch (e) {} }
+  }
+  function volRamp(d, to, durMs) {   // fallback path only (no Web Audio)
+    if (volRamps[d]) clearInterval(volRamps[d]);
+    var el = els[d], from = el.volume || 0, steps = Math.max(1, Math.round((durMs || FADE_MS) / 50)), n = 0;
+    volRamps[d] = setInterval(function () {
+      n++; var q = n / steps, sm = q * q * (3 - 2 * q), v = Math.sqrt(Math.max(0, from * from * (1 - sm) + to * to * sm));
+      try { el.volume = muted ? 0 : Math.max(0, Math.min(1, v)); } catch (e) {}
+      if (n >= steps) { clearInterval(volRamps[d]); volRamps[d] = null; }
+    }, 50);
+  }
+
+  // ---- the cinematic blend ----------------------------------------------
+  function clearCross() {
+    if (swapT) { clearTimeout(swapT); swapT = null; }
+    ['a', 'b'].forEach(function (d) { if (volRamps[d]) { clearInterval(volRamps[d]); volRamps[d] = null; } });
+    crossing = false;
+  }
+  function blend(durMs) {
+    if (crossing) return;
+    var fo = active, sb = other(active); crossing = true; var myGen = ++gen;
+    var foM = T(idx[fo]), inM = T(idx[sb]);
+    var clash = camDist(foM.k, inM.k) >= 2;
+    var dur = durMs || (clash ? XF_CLASH : XF_BASE);
+    var foCt = 0; try { foCt = els[fo].currentTime || 0; } catch (e) {}
+
+    var inStart = (inM.min != null ? inM.min : 0); if (inStart > 8) inStart = 0;
+    try { els[sb].currentTime = inStart; } catch (e) {}
+    els[sb].volume = (waOK ? bgLvl() : 0);
+    els[sb].play().catch(function () {});
+
+    if (waOK) {
+      var Df = deck[fo], Di = deck[sb];
+      if (foM.bpm) { try { echo.delay.delayTime.setTargetAtTime((60 / foM.bpm) * 0.75, ct(), 0.05); } catch (e) {} }
+      // INCOMING: filtered + bass-cut entry, gain up (still bassless → no mud)
+      Di.hp.frequency.cancelScheduledValues(ct()); Di.hp.frequency.setValueAtTime(HP_IN, ct());
+      Di.lo.gain.cancelScheduledValues(ct());       Di.lo.gain.setValueAtTime(BASS_KILL, ct());
+      Di.mid.gain.value = 0; Di.lp.frequency.value = 20000;
+      fadeGain(Di.gain.gain, GFULL, dur * 0.58, true);
+      ramp(Di.verbSend.gain, GFULL * 0.16, dur * 0.45);
+      // OUTGOING: sink through lowpass + echo throw + reverb wash
+      ramp(Df.lp.frequency, clash ? LP_CLASH : LP_FLOOR, dur * 0.96, true);
+      ramp(Df.echoSend.gain, GFULL * (clash ? 0.52 : 0.34), dur * 0.6);
+      ramp(Df.verbSend.gain, GFULL * (clash ? 0.50 : 0.30), dur * 0.6);
+      // BASS SWAP on the beat near the blend's middle
+      var swapMs = beatAlign(foM, foCt, dur / 1000 * 0.55);
+      setTimeout(function () {
+        if (myGen !== gen) return;
+        ramp(Df.lo.gain, BASS_KILL, 620);                 // kill outgoing lows
+        ramp(Di.lo.gain, BASS_FULL, 720);                 // incoming body arrives
+        ramp(Di.hp.frequency, 20, 820, true);             // incoming opens full-range
+        if (clash) ramp(Df.mid.gain, -9, 520);            // notch outgoing mids to hide a clash
+      }, swapMs);
+      // OUTGOING gain out (just after the swap)
+      setTimeout(function () { if (myGen === gen) fadeGain(Df.gain.gain, 0.0001, dur * 0.46, false); }, Math.min(swapMs + 120, dur * 0.5));
+    } else {
+      els[sb].volume = 0; volRamp(sb, GFULL, dur); volRamp(fo, 0, dur);
+    }
+    setNow(idx[sb]);
+    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dur + 140);
+  }
+  function goNext() { clearCross(); finishSwap(other(active)); }
+  function finishSwap(na) {
+    var oa = other(na); active = na; crossing = false;
+    if (waOK && deck[na]) {
+      var Dn = deck[na], Do = deck[oa];
+      ramp(Dn.gain.gain, GFULL, 140); ramp(Dn.lo.gain, 0, 220); ramp(Dn.mid.gain, 0, 220);
+      Dn.hp.frequency.cancelScheduledValues(ct()); ramp(Dn.hp.frequency, 20, 60, true);
+      ramp(Dn.lp.frequency, 20000, 220, true); ramp(Dn.verbSend.gain, 0, 900); ramp(Dn.echoSend.gain, 0, 500);
+      // hard-reset the outgoing deck to neutral (its echo/reverb tail rings out on its own)
+      Do.gain.gain.cancelScheduledValues(ct()); Do.gain.gain.setValueAtTime(0.0001, ct());
+      ramp(Do.echoSend.gain, 0, 1300); ramp(Do.verbSend.gain, 0, 1300);
+      Do.lo.gain.value = 0; Do.mid.gain.value = 0; Do.hp.frequency.value = 20; Do.lp.frequency.value = 20000;
+    } else {
+      try { els[na].volume = muted ? 0 : GFULL; } catch (e) {}
+    }
+    try { els[na].playbackRate = 1; if (els[na].paused) els[na].play().catch(function () {}); els[oa].pause(); els[oa].currentTime = 0; els[oa].playbackRate = 1; } catch (e) {}
+    document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[na]);
+    load(oa, (idx[na] + 1) % tracks.length, false);
+  }
+
+  // ---- tape-stop brake → slam (used for 'My Album' jumps) ----------------
+  function brakeTo(n) {
+    if (!started) { try { open(); } catch (e) {} }
+    if (skipLock) return; skipLock = true; setTimeout(function () { skipLock = false; }, 900);
+    clearCross(); var myGen = ++gen;
+    var fo = active, sb = other(active); crossing = true;
+    if (idx[sb] !== n || !els[sb].src) load(sb, n, false); else idx[sb] = n;
+    if (waOK) {
+      try {
+        ramp(deck[fo].lp.frequency, 340, 620, true);
+        ramp(deck[fo].echoSend.gain, GFULL * 0.55, 380);
+        ramp(deck[fo].verbSend.gain, GFULL * 0.48, 380);
+      } catch (e) {}
+    }
+    var i = 0, steps = 22;
+    var br = setInterval(function () {
+      i++; var x = i / steps; try { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); } catch (e) {}
+      if (i >= steps || myGen !== gen) clearInterval(br);
+    }, 28);
+    setTimeout(function () {
+      if (myGen !== gen) return;
+      try { els[fo].pause(); els[fo].playbackRate = 1; } catch (e) {}
+      var inStart = (T(n).min != null ? T(n).min : 0); if (inStart > 8) inStart = 0;
+      try { els[sb].currentTime = inStart; els[sb].volume = (waOK ? bgLvl() : 0); els[sb].play().catch(function () {}); } catch (e) {}
+      if (waOK && deck[sb]) {
+        var Di = deck[sb]; Di.lo.gain.value = 0; Di.mid.gain.value = 0; Di.hp.frequency.value = 20; Di.lp.frequency.value = 20000;
+        Di.gain.gain.cancelScheduledValues(ct()); Di.gain.gain.setValueAtTime(0.0001, ct()); ramp(Di.gain.gain, GFULL, 240);
+      } else { els[sb].volume = 0; volRamp(sb, GFULL, 240); }
+      finishSwap(sb);
+    }, 660);
+  }
+
+  // ---- deck wiring -------------------------------------------------------
+  function bind(d) {
+    var el = els[d];
+    el.addEventListener('timeupdate', function () {
+      if (d !== active || crossing || muted) return;
+      if (!el.duration || !isFinite(el.duration) || el.duration < FADE_MS / 1000 + 2) return;
+      if (el.currentTime >= el.duration - FADE_MS / 1000) blend();
+    });
+    el.addEventListener('ended', function () { if (d === active && !crossing && el.currentTime >= (el.duration || 0) - 0.5) goNext(); });
+    el.addEventListener('playing', function () { if (d === active) { document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[d]); } });
+    el.addEventListener('error', function () { if (d === active && !crossing) goNext(); });
+  }
+
+  function open() {
+    if (started) return; started = true;
+    ensureACtx(); if (actx) actx.resume().catch(function () {});
+    document.body.classList.add('sc-open');
+    load('a', 0, true);
+    if (waOK) ramp(deck.a.gain.gain, GFULL, 1300); else volRamp('a', GFULL, 1300);
+    load('b', 1 % tracks.length, false);
+  }
+  function setMuted(m) {
+    muted = !!m;
+    if (m) {
+      if (waOK) { ramp(master.gain, 0.0001, 160); } else { ['a', 'b'].forEach(function (d) { try { els[d].volume = 0; } catch (e) {} }); }
+      setTimeout(function () { if (muted) { try { els[active].pause(); } catch (e) {} } }, waOK ? 180 : 0);
+      document.body.classList.remove('sc-playing');
+    } else if (started) {
+      try { els[active].play().catch(function () {}); } catch (e) {}
+      if (waOK) { master.gain.cancelScheduledValues(ct()); ramp(master.gain, GFULL, 180); } else { try { els[active].volume = GFULL; } catch (e) {} }
+      document.body.classList.add('sc-playing');
+    }
+  }
+  function skip() {
+    if (!started || skipLock) return;
+    skipLock = true; setTimeout(function () { skipLock = false; }, 1100);
+    if (crossing) clearCross();
+    // ensure standby holds the NEXT track, then run the full cinematic blend (fast)
+    var sb = other(active), ni = (idx[active] + 1) % tracks.length;
+    if (idx[sb] !== ni || !els[sb].src) load(sb, ni, false);
+    blend(XF_SKIP);
+  }
+
+  bind('a'); bind('b');
+  document.addEventListener('sonic:first-tap', open);
+  document.addEventListener('sonic:first-tap', function () { if (actx && actx.state === 'suspended') actx.resume().catch(function () {}); });
+  if (nowSkip) nowSkip.addEventListener('click', skip);
+  document.addEventListener('keydown', function (e) {
+    if (!started) return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'n') skip();
+  });
+
+  window.__bedCrossing = function () { return crossing; };
+  window.__selfHostedBed = {
+    open: open, setMuted: setMuted, next: skip, isOn: function () { return started && !muted; },
+    activeId: function () { return els[active] && els[active].id; },
+    currentIndex: function () { return idx[active]; },
+    playIndex: function (n) {
+      if (!tracks.length) return;
+      n = ((n % tracks.length) + tracks.length) % tracks.length;
+      var go = function () { brakeTo(n); };
+      if (started) go(); else { try { open(); } catch (e) {} setTimeout(go, 180); }
+    }
+  };
+  console.log('[sonic-init] SELF-HOSTED bed armed ·', tracks.length, 'tracks · O4 DJ engine (bass-swap · filter sweep · echo throw · reverb wash · tape-stop)');
+})();
+</script>
+<!--SELFHOSTED-AUDIO-END-->
+
 </body>
 </html>
