@@ -20897,6 +20897,7 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
 
 
 
+
 <!--SELFHOSTED-AUDIO-START-->
 <style>
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
@@ -20921,8 +20922,7 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
   // during our crossfade via __bedCrossing). So we drive WA gain at UNITY and match
   // both decks to that external el.volume — the equal-power blend never pumps.
   var GFULL = 1.0;
-  var FADE_MS = 3800;                              // auto-trigger window (>= longest blend)
-  var SHOWCASE_S = 80, CAP_S = 200;                // first auto-blend ~80s in (heard early), then mix out every <= 200s — tasteful background DJ-set cadence, short tracks still finish naturally
+  var FADE_MS = 3800;                              // dissolve begins this long before a track's natural end
   var XF_BASE = 3200, XF_CLASH = 3700, XF_SKIP = 2600;     // dissolve durations (ms)
   var LP_FLOOR = 760, LP_CLASH = 460;              // outgoing lowpass dive target (Hz)
   var HP_IN = 240;                                 // incoming highpass riser entry (Hz)
@@ -20934,7 +20934,7 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
   ['a','b'].forEach(function (d) {
     try { els[d].preservesPitch = false; els[d].mozPreservesPitch = false; els[d].webkitPreservesPitch = false; } catch (e) {}
   });
-  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false, firstLeg = true;
+  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false;
   var volRamps = { a: null, b: null }, swapT = null, gen = 0, skipLock = false;
   var nowEl = document.getElementById('sc-now'), nowLabel = document.getElementById('sc-now-label'), nowSkip = document.getElementById('sc-now-skip');
   function other(d) { return d === 'a' ? 'b' : 'a'; }
@@ -21069,7 +21069,6 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
   // (only its reverb tail — pure ambience, not a competing track — lingers under it).
   function blend(durMs) {
     if (crossing) return;
-    firstLeg = false;
     var fo = active, sb = other(active); crossing = true; var myGen = ++gen;
     var foM = T(idx[fo]), inM = T(idx[sb]);
     var dur = durMs || XF_BASE;
@@ -21136,7 +21135,6 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
   function brakeTo(n) {
     if (!started) { try { open(); } catch (e) {} }
     if (skipLock) return; skipLock = true; setTimeout(function () { skipLock = false; }, 900);
-    firstLeg = false;
     clearCross(); var myGen = ++gen;
     var fo = active, sb = other(active); crossing = true;
     if (idx[sb] !== n || !els[sb].src) load(sb, n, false); else idx[sb] = n;
@@ -21173,8 +21171,7 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
       if (!el.duration || !isFinite(el.duration)) return;
       var endAt = el.duration - FADE_MS / 1000;
       if (endAt < 2) return;
-      var mixAt = Math.min(endAt, firstLeg ? SHOWCASE_S : CAP_S);   // early first blend, then a tasteful cadence
-      if (el.currentTime >= mixAt) blend();
+      if (el.currentTime >= endAt) blend();   // transition ONLY at the track's natural end — never a mid-song cut
     });
     el.addEventListener('ended', function () { if (d === active && !crossing && el.currentTime >= (el.duration || 0) - 0.5) goNext(); });
     el.addEventListener('playing', function () { if (d === active) { document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[d]); } });
