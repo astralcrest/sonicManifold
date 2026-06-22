@@ -21253,5 +21253,17 @@ html body nav.cyber-nav .story-toggle{
 }
 </style>
 <!--COLOR-SMOOTH-END-->
+<!--MOBILE-BOTTOMBAR-START-->
+<style>
+@media (max-width:899.98px){
+  /* one clean bottom bar: drop the redundant 2nd mute (the soundtrack pill already has one) */
+  #spine-m-mute{ display:none !important; }
+  /* the audio pill never collides with the right control cluster + label truncates */
+  #aux-audio{ max-width:calc(100vw - 124px) !important; }
+  #aux-now-label{ max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:middle; }
+  #spine-bar-m{ gap:10px !important; padding-right:12px !important; }
+}
+</style>
+<!--MOBILE-BOTTOMBAR-END-->
 </body>
 </html>
