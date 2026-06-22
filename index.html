@@ -849,6 +849,7 @@ html body.story-only .act-lab-btn:hover{ background:rgba(255,255,255,.08);border
       var p=document.getElementById('aux-play'); if(p){ try{ p.click(); }catch(e){} }
     }
     ov.classList.add('sme-out');
+    if(!location.hash){ try{window.scrollTo(0,0);}catch(e){} requestAnimationFrame(function(){try{window.scrollTo(0,0);}catch(e){}}); setTimeout(function(){try{window.scrollTo(0,0);}catch(e){}},140); }
     setTimeout(function(){ try{ ov.style.display='none'; }catch(e){} }, 950);
   }
   // SILENT-ENTRY FIX: the page-wide first-tap capture listener (FIRST-TAP block) arms the
@@ -12082,7 +12083,7 @@ try {
   document.addEventListener('click',function(e){
     var t=e.target; if(!t||!t.closest) return;
     if(t.closest('.pace-opt')||t.closest('#story-toggle')||t.closest('.story-toggle')){
-      setTimeout(function(){ prep(); sweep(); },70);
+      setTimeout(function(){ prep(); sweep(); try{window.scrollTo({top:0,behavior:'smooth'});}catch(_e){window.scrollTo(0,0);} },70);
     }
   },true);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',prep); else prep();
