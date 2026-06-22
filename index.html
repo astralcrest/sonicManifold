@@ -13736,7 +13736,7 @@ html body .term-tip{ cursor:help; }
     if (!to || !to.closest || !to.closest('.term-tip[data-tip]')) hide();
   });
   document.addEventListener('focusin', function(e){ var n=e.target&&e.target.closest&&e.target.closest('.term-tip[data-tip]'); if(n) show(n); });
-  document.addEventListener('focusout', hide);
+  document.addEventListener('focusout', hide); document.addEventListener('click', function(e){ if(!cur) return; var n=e.target&&e.target.closest&&e.target.closest('.term-tip[data-tip]'); if(n!==cur){ try{cur&&cur.blur&&cur.blur();}catch(_e){} hide(); } });
   window.addEventListener('scroll', function(){ if(cur) hide(); }, {passive:true});
 })();
 </script>
@@ -19769,7 +19769,7 @@ body.hero-active .cyber-nav .brand{
       document.addEventListener('keydown', onKey, true);
 
       // move focus to the primary button on show.
-      try{ if (!isDismissed()) btn.focus(); }catch(e){}
+      try{ if (!isDismissed()) btn.focus({preventScroll:true}); }catch(e){}
 
       // stop trapping once dismissed.
       var mo = new MutationObserver(function(){
