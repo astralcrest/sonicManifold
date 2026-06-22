@@ -21237,5 +21237,21 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
 </script>
 <!--SELFHOSTED-AUDIO-END-->
 
+<!--COLOR-SMOOTH-START-->
+<style>
+/* smooth abrupt color flips — nav active-chapter, toggles, dots, links (color/border/shadow only; never layout) */
+html body nav.cyber-nav a,
+html body nav.cyber-nav a .glyph,
+html body nav.cyber-nav .story-toggle{
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease !important;
+}
+.pace-opt, .act-chip, .sd-dot, .cyber-scrollbar .seg, .term-tip, .tid-mention, a, button{
+  transition: color .16s ease, background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+@media (prefers-reduced-motion: reduce){
+  html body nav.cyber-nav a, html body nav.cyber-nav a .glyph, .pace-opt, a, button{ transition: none !important; }
+}
+</style>
+<!--COLOR-SMOOTH-END-->
 </body>
 </html>
