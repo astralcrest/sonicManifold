@@ -20894,6 +20894,9 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
 <!--APPLE-ENTER-SOUND-V2-END-->
 
 
+
+
+
 <!--SELFHOSTED-AUDIO-START-->
 <style>
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
@@ -20919,7 +20922,8 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
   // both decks to that external el.volume — the equal-power blend never pumps.
   var GFULL = 1.0;
   var FADE_MS = 3800;                              // auto-trigger window (>= longest blend)
-  var XF_BASE = 2900, XF_CLASH = 3700, XF_SKIP = 2300;     // blend durations (ms)
+  var SHOWCASE_S = 80, CAP_S = 200;                // first auto-blend ~80s in (heard early), then mix out every <= 200s — tasteful background DJ-set cadence, short tracks still finish naturally
+  var XF_BASE = 3200, XF_CLASH = 3700, XF_SKIP = 2600;     // dissolve durations (ms)
   var LP_FLOOR = 760, LP_CLASH = 460;              // outgoing lowpass dive target (Hz)
   var HP_IN = 240;                                 // incoming highpass riser entry (Hz)
   var BASS_KILL = -26, BASS_FULL = 0;              // lowshelf gain (dB)
@@ -20930,7 +20934,7 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
   ['a','b'].forEach(function (d) {
     try { els[d].preservesPitch = false; els[d].mozPreservesPitch = false; els[d].webkitPreservesPitch = false; } catch (e) {}
   });
-  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false;
+  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false, firstLeg = true;
   var volRamps = { a: null, b: null }, swapT = null, gen = 0, skipLock = false;
   var nowEl = document.getElementById('sc-now'), nowLabel = document.getElementById('sc-now-label'), nowSkip = document.getElementById('sc-now-skip');
   function other(d) { return d === 'a' ? 'b' : 'a'; }
@@ -21017,7 +21021,8 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
   function fadeGain(param, to, ms, up) {   // equal-power gain curve
     if (!param) return;
     var t0 = ct(), from = (typeof param.value === 'number') ? param.value : 0, n = 48, a = new Float32Array(n);
-    for (var i = 0; i < n; i++) { var x = i / (n - 1), g = up ? Math.sin(0.5 * Math.PI * x) : Math.cos(0.5 * Math.PI * x); a[i] = from + (to - from) * g; }
+    // equal-power: rise = from→to via sin; fall = from→to via cos (both start AT `from`)
+    for (var i = 0; i < n; i++) { var x = i / (n - 1); a[i] = up ? (from + (to - from) * Math.sin(0.5 * Math.PI * x)) : (to + (from - to) * Math.cos(0.5 * Math.PI * x)); }
     try { param.cancelScheduledValues(t0); param.setValueCurveAtTime(a, t0, Math.max(0.05, ms / 1000)); } catch (e) { ramp(param, to, ms); }
   }
   // delay (ms) until the outgoing's next beat near a target offset (graceful: time-based if no grid)
@@ -21058,14 +21063,19 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
     ['a', 'b'].forEach(function (d) { if (volRamps[d]) { clearInterval(volRamps[d]); volRamps[d] = null; } });
     crossing = false;
   }
+  // FX DISSOLVE — only ONE song's melody is ever audible. The outgoing track
+  // evaporates into a filtered echo/reverb wash; the incoming stays SILENT until
+  // it blooms in on a downbeat, by which point the outgoing's dry signal is gone
+  // (only its reverb tail — pure ambience, not a competing track — lingers under it).
   function blend(durMs) {
     if (crossing) return;
+    firstLeg = false;
     var fo = active, sb = other(active); crossing = true; var myGen = ++gen;
     var foM = T(idx[fo]), inM = T(idx[sb]);
-    var clash = camDist(foM.k, inM.k) >= 2;
-    var dur = durMs || (clash ? XF_CLASH : XF_BASE);
+    var dur = durMs || XF_BASE;
     var foCt = 0; try { foCt = els[fo].currentTime || 0; } catch (e) {}
 
+    // incoming plays from its mix-in but is held SILENT (gain 0) until the drop
     var inStart = (inM.min != null ? inM.min : 0); if (inStart > 8) inStart = 0;
     try { els[sb].currentTime = inStart; } catch (e) {}
     els[sb].volume = (waOK ? bgLvl() : 0);
@@ -21074,32 +21084,33 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
     if (waOK) {
       var Df = deck[fo], Di = deck[sb];
       if (foM.bpm) { try { echo.delay.delayTime.setTargetAtTime((60 / foM.bpm) * 0.75, ct(), 0.05); } catch (e) {} }
-      // INCOMING: filtered + bass-cut entry, gain up (still bassless → no mud)
-      Di.hp.frequency.cancelScheduledValues(ct()); Di.hp.frequency.setValueAtTime(HP_IN, ct());
-      Di.lo.gain.cancelScheduledValues(ct());       Di.lo.gain.setValueAtTime(BASS_KILL, ct());
-      Di.mid.gain.value = 0; Di.lp.frequency.value = 20000;
-      fadeGain(Di.gain.gain, GFULL, dur * 0.58, true);
-      ramp(Di.verbSend.gain, GFULL * 0.16, dur * 0.45);
-      // OUTGOING: sink through lowpass + echo throw + reverb wash
-      ramp(Df.lp.frequency, clash ? LP_CLASH : LP_FLOOR, dur * 0.96, true);
-      ramp(Df.echoSend.gain, GFULL * (clash ? 0.52 : 0.34), dur * 0.6);
-      ramp(Df.verbSend.gain, GFULL * (clash ? 0.50 : 0.30), dur * 0.6);
-      // BASS SWAP on the beat near the blend's middle
-      var swapMs = beatAlign(foM, foCt, dur / 1000 * 0.55);
+      // hold incoming silent + pre-bloom (filtered) until the drop
+      Di.gain.gain.cancelScheduledValues(ct()); Di.gain.gain.setValueAtTime(0.0001, ct());
+      Di.lo.gain.value = 0; Di.mid.gain.value = 0; Di.lp.frequency.value = 20000;
+      Di.hp.frequency.cancelScheduledValues(ct()); Di.hp.frequency.setValueAtTime(320, ct());
+      Di.verbSend.gain.value = 0; Di.echoSend.gain.value = 0;
+      // OUTGOING DISSOLVES: deep lowpass sweep + echo throw + reverb wash; dry melody gone by ~46%
+      var outMs = dur * 0.46;
+      ramp(Df.lp.frequency, 300, outMs * 1.1, true);
+      ramp(Df.echoSend.gain, bgLvl() * 0.62, outMs * 0.7);
+      ramp(Df.verbSend.gain, bgLvl() * 0.55, outMs * 0.7);
+      fadeGain(Df.gain.gain, 0.0001, outMs, false);
+      // DROP the incoming on a downbeat, after the outgoing is silent
+      var dropMs = Math.max(outMs + 60, beatAlign(foM, foCt, dur / 1000 * 0.5));
       setTimeout(function () {
         if (myGen !== gen) return;
-        ramp(Df.lo.gain, BASS_KILL, 620);                 // kill outgoing lows
-        ramp(Di.lo.gain, BASS_FULL, 720);                 // incoming body arrives
-        ramp(Di.hp.frequency, 20, 820, true);             // incoming opens full-range
-        if (clash) ramp(Df.mid.gain, -9, 520);            // notch outgoing mids to hide a clash
-      }, swapMs);
-      // OUTGOING gain out (just after the swap)
-      setTimeout(function () { if (myGen === gen) fadeGain(Df.gain.gain, 0.0001, dur * 0.46, false); }, Math.min(swapMs + 120, dur * 0.5));
+        try { els[sb].volume = bgLvl(); } catch (e) {}
+        fadeGain(Di.gain.gain, GFULL, dur * 0.32, true);   // bloom up
+        ramp(Di.hp.frequency, 20, 780, true);              // filter opens — the track "arrives"
+        setNow(idx[sb]);
+      }, dropMs);
     } else {
-      els[sb].volume = 0; volRamp(sb, GFULL, dur); volRamp(fo, 0, dur);
+      // no Web Audio: still one-at-a-time — fade the outgoing out, then fade the incoming in
+      els[sb].volume = 0;
+      volRamp(fo, 0, dur * 0.5);
+      setTimeout(function () { if (myGen === gen) { volRamp(sb, GFULL, dur * 0.42); setNow(idx[sb]); } }, dur * 0.52);
     }
-    setNow(idx[sb]);
-    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dur + 140);
+    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dur + 160);
   }
   function goNext() { clearCross(); finishSwap(other(active)); }
   function finishSwap(na) {
@@ -21125,6 +21136,7 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
   function brakeTo(n) {
     if (!started) { try { open(); } catch (e) {} }
     if (skipLock) return; skipLock = true; setTimeout(function () { skipLock = false; }, 900);
+    firstLeg = false;
     clearCross(); var myGen = ++gen;
     var fo = active, sb = other(active); crossing = true;
     if (idx[sb] !== n || !els[sb].src) load(sb, n, false); else idx[sb] = n;
@@ -21158,8 +21170,11 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
     var el = els[d];
     el.addEventListener('timeupdate', function () {
       if (d !== active || crossing || muted) return;
-      if (!el.duration || !isFinite(el.duration) || el.duration < FADE_MS / 1000 + 2) return;
-      if (el.currentTime >= el.duration - FADE_MS / 1000) blend();
+      if (!el.duration || !isFinite(el.duration)) return;
+      var endAt = el.duration - FADE_MS / 1000;
+      if (endAt < 2) return;
+      var mixAt = Math.min(endAt, firstLeg ? SHOWCASE_S : CAP_S);   // early first blend, then a tasteful cadence
+      if (el.currentTime >= mixAt) blend();
     });
     el.addEventListener('ended', function () { if (d === active && !crossing && el.currentTime >= (el.duration || 0) - 0.5) goNext(); });
     el.addEventListener('playing', function () { if (d === active) { document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[d]); } });
@@ -21211,6 +21226,7 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
     open: open, setMuted: setMuted, next: skip, isOn: function () { return started && !muted; },
     activeId: function () { return els[active] && els[active].id; },
     currentIndex: function () { return idx[active]; },
+    _dbg: function () { return waOK ? { aG: +deck.a.gain.gain.value.toFixed(3), bG: +deck.b.gain.gain.value.toFixed(3), aLP: Math.round(deck.a.lp.frequency.value), bLP: Math.round(deck.b.lp.frequency.value), active: active, cross: crossing } : { waOK: false }; },
     playIndex: function (n) {
       if (!tracks.length) return;
       n = ((n % tracks.length) + tracks.length) % tracks.length;
