@@ -6569,9 +6569,9 @@ X <em>Granger-causes</em> Y if X&rsquo;s recent past improves the forecast of Y 
     el.addEventListener('click', go);
     el.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
   }
-  var FEATURED=["Reach Back","What the Helly","Autotropic","Latent Dimension"];
+  var FEATURED=["Can't Resist the Bite","Reach Back","What the Helly","Autotropic","Latent Dimension"];
   var MOVEMENTS=[
-    {label:"I · Groundwork",   note:"sparse, open harmonic space",        tracks:["What the Helly","No Masks Ad Infinitum","Brainstorm"]},
+    {label:"I · Groundwork",   note:"sparse, open harmonic space",        tracks:["Can't Resist the Bite","What the Helly","No Masks Ad Infinitum","Brainstorm"]},
     {label:"II · Accumulation", note:"layered density, pattern-building",   tracks:["Edge of the Black Hole","Reach Back","Latent Dimension"]},
     {label:"III · Tension",     note:"modal drift, unresolved suspension",  tracks:["Brain rm -rf","Save Her","Antares","Too Fiery Hot"]},
     {label:"IV · Release",      note:"harmonic resolution, reduced density", tracks:["Fruititarian","Antares Infinite Cut","Stochastic Rainbow","Novelday"]},
@@ -6591,7 +6591,7 @@ X <em>Granger-causes</em> Y if X&rsquo;s recent past improves the forecast of Y 
     feat.appendChild(frow); parent.insertBefore(feat, ol);
     var det=document.createElement('details'); det.className='sm-fullwork';
     var sum=document.createElement('summary'); sum.className='sm-fw-sum';
-    sum.innerHTML='<span class="sm-fw-label">The full work</span><span class="sm-fw-sub">18 tracks, in order · five movements</span><span class="sm-fw-caret" aria-hidden="true">▾</span>';
+    sum.innerHTML='<span class="sm-fw-label">The full work</span><span class="sm-fw-sub">19 tracks, in order · five movements</span><span class="sm-fw-caret" aria-hidden="true">▾</span>';
     det.appendChild(sum);
     var n=0;
     MOVEMENTS.forEach(function(mv){
@@ -14942,11 +14942,23 @@ html body .term-tip{ cursor:help; }
       thinAxis(gd,'xaxis',1,-45); R(gd,{ 'xaxis.tickfont.size':8,'yaxis.tickfont.size':8 });
     }
     else if (has(s,'SKIP PREDICTORS')){
-      // two subplots crammed -> give height; OR labels overlap tick numbers
-      R(gd,{ 'title.font.size':12, 'margin.t':52, 'margin.b':70,
-             'xaxis.tickfont.size':8, 'xaxis2.tickfont.size':8, 'yaxis.tickfont.size':8,
-             'yaxis2.tickfont.size':8 });
-      setTallContainer(gd, 460);
+      // desktop is a 1x3 horizontal subplot grid (coef forest | ROC | predicted-prob);
+      // at 360px the three panels collapse on top of each other. Re-stack them 3x1 vertical.
+      R(gd,{ 'title.font.size':11,'margin.t':42,'margin.b':50,'margin.l':70,'margin.r':16,
+             'xaxis.domain':[0,1],'xaxis2.domain':[0,1],'xaxis3.domain':[0,1],
+             'yaxis.domain':[0.70,0.95],'yaxis2.domain':[0.38,0.61],'yaxis3.domain':[0.06,0.29],
+             'yaxis.automargin':true,
+             'xaxis.tickfont.size':8,'yaxis.tickfont.size':7,
+             'xaxis2.tickfont.size':8,'yaxis2.tickfont.size':8,
+             'xaxis3.tickfont.size':8,'yaxis3.tickfont.size':8,
+             'xaxis.title.font.size':8,'xaxis2.title.font.size':8,'xaxis3.title.font.size':8,
+             'yaxis2.title.font.size':8,'yaxis3.title.font.size':8,
+             'xaxis.title.standoff':4,'xaxis2.title.standoff':4,'xaxis3.title.standoff':4,
+             'annotations[0].x':0.5,'annotations[0].xanchor':'center','annotations[0].y':0.985,'annotations[0].xref':'paper','annotations[0].yref':'paper','annotations[0].font.size':9,
+             'annotations[1].x':0.5,'annotations[1].xanchor':'center','annotations[1].y':0.645,'annotations[1].xref':'paper','annotations[1].yref':'paper','annotations[1].font.size':9,
+             'annotations[2].x':0.5,'annotations[2].xanchor':'center','annotations[2].y':0.325,'annotations[2].xref':'paper','annotations[2].yref':'paper','annotations[2].font.size':9,
+             'legend.orientation':'h','legend.x':0.5,'legend.xanchor':'center','legend.y':-0.02,'legend.yanchor':'top','legend.font.size':8 });
+      setTallContainer(gd, 780);
     }
     else if (has(s,'ISOLATION FOREST')){
       R(gd,{ 'xaxis.tickfont.size':8,'yaxis.tickfont.size':8,
@@ -14980,6 +14992,52 @@ html body .term-tip{ cursor:help; }
       // desktop pins width:780 -> kill it so it fits the column
       R(gd,{ 'autosize':true, 'width':null, 'height':320,
              'margin.t':52, 'margin.b':46, 'xaxis.automargin':true });
+    }
+    // ---- screenshot-targeted mobile fixes (2026-06-22) ----
+    else if (has(s,'COHORT RETENTION') || has(s,'ARTIST COHORT')){
+      // 54 discovery-month rows: thin the y ticks; pin the colorbar to the heatmap so it
+      // stops floating below as a phantom axis; rotate the 24 M+ ticks tight.
+      thinAxis(gd,'yaxis',6,0);
+      R(gd,{ 'margin.l':50,'margin.r':40,'margin.t':46,'margin.b':54,
+             'xaxis.tickfont.size':7,'yaxis.tickfont.size':7,'xaxis.tickangle':-90,
+             'xaxis.title.font.size':9,'yaxis.title.font.size':9,
+             'xaxis.title.standoff':6,'yaxis.title.standoff':6 });
+      S(gd,{ 'colorbar.thickness':8,'colorbar.len':0.78,'colorbar.x':1.0,'colorbar.xanchor':'left',
+             'colorbar.y':0.5,'colorbar.yanchor':'middle','colorbar.tickfont.size':7,
+             'colorbar.title.font.size':8 },[0]);
+      setTallContainer(gd, 440);
+    }
+    else if (has(s,'TASTE DIVERSITY')){
+      // dual-axis: the secondary (right) y-axis never got automargin, so its title
+      // "unique artists" printed over its own ticks. automargin reserves the room.
+      R(gd,{ 'yaxis.automargin':true,'yaxis2.automargin':true,
+             'yaxis.tickfont.size':8,'yaxis2.tickfont.size':8,
+             'yaxis.title.font.size':9,'yaxis2.title.font.size':9,
+             'yaxis2.title.standoff':3,'margin.r':46,'margin.l':46,
+             'xaxis.tickfont.size':8 });
+    }
+    else if (has(s,'PHASE TRANSITION')){
+      // shorten the long axis titles (they doubled-up / overlapped at 360px),
+      // push the legend clear of the x-title, shrink the 6 transition labels.
+      R(gd,{ 'xaxis.title.text':'control \u03be (novelty rate)','yaxis.title.text':'order \u03b7 (top-3 conc.)',
+             'xaxis.title.font.size':9,'yaxis.title.font.size':9,
+             'xaxis.title.standoff':8,'yaxis.title.standoff':6,
+             'xaxis.automargin':true,'yaxis.automargin':true,
+             'xaxis.tickfont.size':8,'yaxis.tickfont.size':8,
+             'margin.l':50,'margin.t':46,'margin.b':94,
+             'legend.orientation':'h','legend.x':0.5,'legend.xanchor':'center','legend.y':-0.34,
+             'legend.yanchor':'top','legend.font.size':8 });
+      var pAnn=(gd.layout&&gd.layout.annotations)||[], pO={};
+      for(var pi=0;pi<pAnn.length;pi++){ pO['annotations['+pi+'].font.size']=7.5; }
+      if(Object.keys(pO).length) R(gd,pO);
+    }
+    else if (has(s,'LORENZ') || has(s,'ZIPF')){
+      // bottom legend was landing on the x-axis title; drop it further + open the margin.
+      R(gd,{ 'legend.orientation':'h','legend.x':0.5,'legend.xanchor':'center',
+             'legend.y':-0.30,'legend.yanchor':'top','legend.font.size':8,
+             'legend.bgcolor':'rgba(21,8,45,0.55)','margin.b':86,
+             'xaxis.title.standoff':10,'xaxis.title.font.size':9,'yaxis.title.font.size':9,
+             'xaxis.automargin':true,'yaxis.automargin':true });
     }
   }
 
@@ -15063,6 +15121,18 @@ html body .term-tip{ cursor:help; }
   }, 200); }
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
+
+  // late-rendered charts (deep scroll / view-switch after the poll self-clears) still need the
+  // mobile pass: re-sweep on scroll (throttled, passive), touching only not-yet-patched charts.
+  var scT;
+  window.addEventListener('scroll', function(){
+    if(scT || !isMobile()) return;
+    scT=setTimeout(function(){ scT=0;
+      document.querySelectorAll('.js-plotly-plot').forEach(function(g){
+        if(!(g.__mPatched && g.__mW===window.innerWidth)) applyMobile(g);
+      });
+    }, 400);
+  }, {passive:true});
 
   // discrete kicks + self-clearing poll for late/lazy charts (after desktop patch's ticks)
   [500,1300,2600,4100,6100,9100].forEach(function(t){ setTimeout(sweep, t); });
@@ -17956,7 +18026,7 @@ nav.cyber-nav .act-chip .submenu,
 
 <!--APPLE-UIPRETTY-START--><style>/* ① ★ headline-finding -> designed callout card */html body .surprising-hero-box{position:relative;flex-direction:column;gap:10px;padding:20px 22px 18px!important;background:linear-gradient(160deg,rgba(33,246,188,.10),rgba(124,128,140,.06) 60%,rgba(10,1,24,.30))!important;border:1px solid rgba(33,246,188,.32)!important;border-left:3px solid var(--mint,#21f6bc)!important;border-radius:16px!important;box-shadow:0 14px 40px -16px rgba(0,0,0,.7),0 0 22px -10px rgba(33,246,188,.30)!important}html body .surprising-hero-box::before{content:'\2605  HEADLINE FINDING';position:absolute;top:-11px;left:18px;font:700 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;color:#0E0F12;background:linear-gradient(90deg,#21f6bc,#7df0c8);padding:5px 11px;border-radius:999px;box-shadow:0 4px 14px -4px rgba(33,246,188,.6)}html body .surprising-hero-star{display:none}html body .surprising-hero-label{display:none}html body .surprising-hero-text{font-size:14px!important;line-height:1.72!important;margin-top:4px!important}html body .surprising-hero-text .hero-stat{color:#fff;background:rgba(33,246,188,.12);border-radius:6px;padding:1px 6px;font-weight:700}/* soundbar (#aux-audio) polish: refined play button + track pill */html body #aux-play{background:linear-gradient(150deg,rgba(33,246,188,.20),rgba(18,18,22,.85))!important;border:1px solid rgba(33,246,188,.42)!important;box-shadow:0 6px 20px -8px rgba(0,0,0,.7),0 0 0 0 rgba(33,246,188,.0);transition:box-shadow .3s ease,transform .15s ease}html body #aux-play:hover{transform:translateY(-1px)}html body.sc-playing #aux-play{box-shadow:0 6px 20px -8px rgba(0,0,0,.7),0 0 16px -2px rgba(33,246,188,.5);animation:auxpulse 2.4s ease-in-out infinite}@keyframes auxpulse{0%,100%{box-shadow:0 6px 20px -8px rgba(0,0,0,.7),0 0 12px -3px rgba(33,246,188,.35)}50%{box-shadow:0 6px 22px -8px rgba(0,0,0,.7),0 0 22px -2px rgba(33,246,188,.6)}}html body #aux-now{background:linear-gradient(180deg,rgba(21,8,45,.92),rgba(10,1,24,.92))!important;border:1px solid rgba(33,246,188,.26)!important;box-shadow:0 6px 20px -10px rgba(0,0,0,.7)}html body #aux-now-glyph{color:#21f6bc!important;filter:drop-shadow(0 0 5px rgba(33,246,188,.5))}@media(prefers-reduced-motion:reduce){html body.sc-playing #aux-play{animation:none!important}}</style><!--APPLE-UIPRETTY-END-->
 
-<!--APPLE-ARCMOBFIX-START--><style>.arc-swipe{font:700 10px/1 'JetBrains Mono',ui-monospace,monospace;color:#7df0c8;opacity:.75;text-align:right;padding:2px 10px 4px;letter-spacing:.1em}@media(min-width:769px){.arc-swipe{display:none}}</style><script>(function(){if(window.__arcMobFix)return;window.__arcMobFix=true;var LIFE='48696277-e20c-431b-9376-4d188161d55c',ARC='0d26508e-6744-4498-b0fe-0d4f1e9029e0';function fix(){if(innerWidth>768||!window.Plotly)return;var life=document.getElementById(LIFE);if(life&&life._fullLayout&&!life.__amf){life.__amf=1;try{Plotly.relayout(life,{showlegend:false,'margin.t':54,'margin.b':40,'title.font.size':12});}catch(e){}}var arc=document.getElementById(ARC);if(arc&&arc._fullLayout&&!arc.__amf){arc.__amf=1;var wrap=arc.closest('.panel')||arc.parentElement;if(wrap){wrap.style.overflowX='auto';wrap.style.webkitOverflowScrolling='touch';if(!wrap.querySelector('.arc-swipe')){var sw=document.createElement('div');sw.className='arc-swipe';sw.textContent='swipe \u2192 (30 artists)';wrap.insertBefore(sw,wrap.firstChild);}}arc.style.minWidth='760px';try{Plotly.relayout(arc,{width:760,autosize:false});}catch(e){}}}window.addEventListener('sonic:plotly-rendered',fix);window.addEventListener('resize',function(){if(innerWidth<=768)fix();});document.addEventListener('click',function(){setTimeout(fix,600);},true);setTimeout(fix,2200);setTimeout(fix,5000);setTimeout(fix,9000);})();</script><!--APPLE-ARCMOBFIX-END-->
+<!--APPLE-ARCMOBFIX-START--><style>.arc-swipe{font:700 10px/1 'JetBrains Mono',ui-monospace,monospace;color:#7df0c8;opacity:.8;text-align:left;padding:3px 12px 5px;letter-spacing:.07em}@media(min-width:769px){.arc-swipe{display:none}}.arc-scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x}</style><script>(function(){if(window.__arcMobFix)return;window.__arcMobFix=true;var LIFE='48696277-e20c-431b-9376-4d188161d55c',ARC='0d26508e-6744-4498-b0fe-0d4f1e9029e0';function fix(){if(innerWidth>768||!window.Plotly)return;var life=document.getElementById(LIFE);if(life&&life._fullLayout&&!life.__amf){life.__amf=1;try{Plotly.relayout(life,{showlegend:false,'margin.t':54,'margin.b':40,'title.font.size':12});}catch(e){}}var arc=document.getElementById(ARC);if(arc&&arc._fullLayout){var wrap=arc.closest('.panel')||arc.parentElement;if(wrap){wrap.classList.add('arc-scrollx');if(!wrap.querySelector('.arc-swipe')){var sw=document.createElement('div');sw.className='arc-swipe';sw.textContent='\u2190 swipe \u2192 all 30 artists';wrap.insertBefore(sw,wrap.firstChild);}}arc.style.minWidth='720px';arc.style.pointerEvents='none';if(!arc._fullLayout.width||arc._fullLayout.width!==720){try{Plotly.relayout(arc,{width:720,autosize:false,'margin.l':16,'margin.r':16,'title.font.size':12,'title.x':0.01,'title.xanchor':'left'});}catch(e){}}}}window.addEventListener('sonic:plotly-rendered',fix);window.addEventListener('resize',function(){if(innerWidth<=768)fix();});document.addEventListener('click',function(){setTimeout(fix,600);},true);setTimeout(fix,2200);setTimeout(fix,5000);setTimeout(fix,9000);})();</script><!--APPLE-ARCMOBFIX-END-->
 
 <!--APPLE-TITLEWRAP-START-->
 <script id="apple-titlewrap-js">
@@ -20901,12 +20971,53 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
 
 
 
+<!--COLOR-SMOOTH-START-->
+<style>
+/* smooth abrupt color flips — nav active-chapter, toggles, dots, links (color/border/shadow only; never layout) */
+html body nav.cyber-nav a,
+html body nav.cyber-nav a .glyph,
+html body nav.cyber-nav .story-toggle{
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease !important;
+}
+.pace-opt, .act-chip, .sd-dot, .cyber-scrollbar .seg, .term-tip, .tid-mention, a, button{
+  transition: color .16s ease, background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+@media (prefers-reduced-motion: reduce){
+  html body nav.cyber-nav a, html body nav.cyber-nav a .glyph, .pace-opt, a, button{ transition: none !important; }
+}
+</style>
+<!--COLOR-SMOOTH-END-->
+<!--MOBILE-BOTTOMBAR-START-->
+<style>
+@media (max-width:899.98px){
+  /* one clean bottom bar: drop the redundant 2nd mute (the soundtrack pill already has one) */
+  #spine-m-mute{ display:none !important; }
+  /* the audio pill never collides with the right control cluster + label truncates */
+  #aux-audio{ max-width:calc(100vw - 124px) !important; }
+  #aux-now-label{ max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:middle; }
+  #spine-bar-m{ gap:10px !important; padding-right:12px !important; }
+}
+</style>
+<!--MOBILE-BOTTOMBAR-END-->
+<!--MOBILE-NAVOPAQUE-START-->
+<style id="mobile-navopaque-css">
+/* phones: the frosted nav was translucent enough that tall panel <h2> headers
+   (e.g. "PHASE DIAGRAM \u2014 order vs control") ghosted through it on scroll.
+   Make the bar near-opaque on mobile so scrolled content is hidden behind it. */
+@media (max-width:600px){
+  html body nav.cyber-nav{
+    background: linear-gradient(180deg, rgba(14,7,30,.95) 0%, rgba(9,4,20,.975) 100%) !important;
+  }
+}
+</style>
+<!--MOBILE-NAVOPAQUE-END-->
+
 <!--SELFHOSTED-AUDIO-START-->
 <style>
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
   #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
 </style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "1A", "bpm": 129.2, "b0": 7.105, "min": 7.34, "dur": 195.4}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B", "bpm": 99.38, "b0": 0.209, "min": 0.19, "dur": 264.48}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.091, "min": 1.53, "dur": 228.16}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A", "bpm": 136.0, "b0": 0.209, "min": 0.23, "dur": 286.4}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A", "bpm": 129.2, "b0": 1.881, "min": 2.28, "dur": 206.48}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A", "bpm": 129.2, "b0": 0.07, "min": 0.51, "dur": 181.56}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A", "bpm": 112.35, "b0": 1.3, "min": 1.53, "dur": 166.08}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A", "bpm": 129.2, "b0": 2.02, "min": 2.09, "dur": 215.36}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares", "bpm": 129.2, "b0": 0.209, "min": 0.51, "dur": 479.4}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B", "bpm": 112.35, "b0": 0.0, "min": 0.28, "dur": 479.4}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B", "bpm": 117.45, "b0": 1.672, "min": 1.86, "dur": 479.4}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "k": "3A", "g": "antares", "bpm": 129.2, "b0": 0.0, "min": 0.42, "dur": 162.32}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B", "bpm": 161.5, "b0": 0.07, "min": 0.05, "dur": 203.92}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B", "bpm": 99.38, "b0": 0.046, "min": 0.33, "dur": 177.72}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A", "bpm": 107.67, "b0": 0.673, "min": 0.65, "dur": 187.44}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.44, "min": 1.58, "dur": 237.56}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A", "bpm": 129.2, "b0": 0.046, "min": 0.46, "dur": 83.4}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A", "bpm": 143.55, "b0": 1.254, "min": 1.21, "dur": 218.0}]</script>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/cant-resist-the-bite.mp3", "t": "Can't Resist the Bite", "a": "astralcrest", "k": "12A", "bpm": 68.0, "b0": 0.906, "min": 0.65, "dur": 187.64}, {"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "1A", "bpm": 129.2, "b0": 7.105, "min": 7.34, "dur": 195.4}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B", "bpm": 99.38, "b0": 0.209, "min": 0.19, "dur": 264.48}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.091, "min": 1.53, "dur": 228.16}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A", "bpm": 136.0, "b0": 0.209, "min": 0.23, "dur": 286.4}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A", "bpm": 129.2, "b0": 1.881, "min": 2.28, "dur": 206.48}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A", "bpm": 129.2, "b0": 0.07, "min": 0.51, "dur": 181.56}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A", "bpm": 112.35, "b0": 1.3, "min": 1.53, "dur": 166.08}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A", "bpm": 129.2, "b0": 2.02, "min": 2.09, "dur": 215.36}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares", "bpm": 129.2, "b0": 0.209, "min": 0.51, "dur": 479.4}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B", "bpm": 112.35, "b0": 0.0, "min": 0.28, "dur": 479.4}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B", "bpm": 117.45, "b0": 1.672, "min": 1.86, "dur": 479.4}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "k": "3A", "g": "antares", "bpm": 129.2, "b0": 0.0, "min": 0.42, "dur": 162.32}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B", "bpm": 161.5, "b0": 0.07, "min": 0.05, "dur": 203.92}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B", "bpm": 99.38, "b0": 0.046, "min": 0.33, "dur": 177.72}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A", "bpm": 107.67, "b0": 0.673, "min": 0.65, "dur": 187.44}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.44, "min": 1.58, "dur": 237.56}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A", "bpm": 129.2, "b0": 0.046, "min": 0.46, "dur": 83.4}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A", "bpm": 143.55, "b0": 1.254, "min": 1.21, "dur": 218.0}]</script>
 <div id="sh-bg" aria-hidden="true">
   <audio id="sh-a" preload="auto"></audio>
   <audio id="sh-b" preload="auto"></audio>
@@ -21091,14 +21202,16 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
       Di.lo.gain.value = 0; Di.mid.gain.value = 0; Di.lp.frequency.value = 20000;
       Di.hp.frequency.cancelScheduledValues(ct()); Di.hp.frequency.setValueAtTime(320, ct());
       Di.verbSend.gain.value = 0; Di.echoSend.gain.value = 0;
-      // OUTGOING DISSOLVES: deep lowpass sweep + echo throw + reverb wash; dry melody gone by ~46%
-      var outMs = dur * 0.46;
+      // OUTGOING DISSOLVES: deep lowpass sweep + echo throw + reverb wash; dry melody gone by ~62%
+      var outMs = dur * 0.62;
       ramp(Df.lp.frequency, 300, outMs * 1.1, true);
       ramp(Df.echoSend.gain, bgLvl() * 0.62, outMs * 0.7);
       ramp(Df.verbSend.gain, bgLvl() * 0.55, outMs * 0.7);
       fadeGain(Df.gain.gain, 0.0001, outMs, false);
-      // DROP the incoming on a downbeat, after the outgoing is silent
-      var dropMs = Math.max(outMs + 60, beatAlign(foM, foCt, dur / 1000 * 0.5));
+      // DROP the incoming on a downbeat, OVERLAPPING the outgoing tail. The old
+      // "wait for full silence" handoff left audible dead air on real phones (mobile
+      // <audio> decode/start latency made the incoming arrive after the wash decayed).
+      var dropMs = Math.min(outMs, Math.max(dur * 0.34, beatAlign(foM, foCt, dur / 1000 * 0.40)));
       setTimeout(function () {
         if (myGen !== gen) return;
         try { els[sb].volume = bgLvl(); } catch (e) {}
@@ -21112,7 +21225,7 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
       volRamp(fo, 0, dur * 0.5);
       setTimeout(function () { if (myGen === gen) { volRamp(sb, GFULL, dur * 0.42); setNow(idx[sb]); } }, dur * 0.52);
     }
-    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dur + 160);
+    swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, Math.max(dur + 160, (dropMs || 0) + dur * 0.32 + 120));
   }
   function goNext() { clearCross(); finishSwap(other(active)); }
   function finishSwap(na) {
@@ -21239,33 +21352,5 @@ nav.cyber-nav > ul > li.sci-li::before { display:none !important; content:none !
 </script>
 <!--SELFHOSTED-AUDIO-END-->
 
-<!--COLOR-SMOOTH-START-->
-<style>
-/* smooth abrupt color flips — nav active-chapter, toggles, dots, links (color/border/shadow only; never layout) */
-html body nav.cyber-nav a,
-html body nav.cyber-nav a .glyph,
-html body nav.cyber-nav .story-toggle{
-  transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease !important;
-}
-.pace-opt, .act-chip, .sd-dot, .cyber-scrollbar .seg, .term-tip, .tid-mention, a, button{
-  transition: color .16s ease, background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
-}
-@media (prefers-reduced-motion: reduce){
-  html body nav.cyber-nav a, html body nav.cyber-nav a .glyph, .pace-opt, a, button{ transition: none !important; }
-}
-</style>
-<!--COLOR-SMOOTH-END-->
-<!--MOBILE-BOTTOMBAR-START-->
-<style>
-@media (max-width:899.98px){
-  /* one clean bottom bar: drop the redundant 2nd mute (the soundtrack pill already has one) */
-  #spine-m-mute{ display:none !important; }
-  /* the audio pill never collides with the right control cluster + label truncates */
-  #aux-audio{ max-width:calc(100vw - 124px) !important; }
-  #aux-now-label{ max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:middle; }
-  #spine-bar-m{ gap:10px !important; padding-right:12px !important; }
-}
-</style>
-<!--MOBILE-BOTTOMBAR-END-->
 </body>
 </html>
