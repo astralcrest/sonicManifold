@@ -21077,6 +21077,10 @@ html body nav.cyber-nav .story-toggle{
   try { tracks = JSON.parse(document.getElementById('sh-tracks').textContent); } catch (e) {}
   if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
   window.__preferSelfHosted = true;                          // SoundCloud player stands down
+  // PHONE: the heavy Web-Audio DJ graph (convolution reverb + 2 decks + echo) starves mobile
+  // -> "super slow" + buffer-underrun warble; the tape-stop playbackRate ramp (preservesPitch=false)
+  // is the audible pitch-drop. On phones use the light <audio> volume-crossfade path instead.
+  var isPhone = /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent||'') || (Math.min(screen.width||9999, screen.height||9999) <= 500);
 
   // ---- tuning ------------------------------------------------------------
   // GFULL = unity deck gain. The bed's BACKGROUND LEVEL is owned by the separate
@@ -21149,6 +21153,7 @@ html body nav.cyber-nav .story-toggle{
   }
   function ensureACtx() {
     if (actx) return;
+    if (isPhone) { waOK = false; return; }   // phone: stay on the light <audio> volume-crossfade path
     try {
       actx = new (window.AudioContext || window.webkitAudioContext)();
       master = actx.createGain(); master.gain.value = GFULL; master.connect(actx.destination);
@@ -21311,7 +21316,11 @@ html body nav.cyber-nav .story-toggle{
     }
     var i = 0, steps = 22;
     var br = setInterval(function () {
-      i++; var x = i / steps; try { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); } catch (e) {}
+      i++; var x = i / steps;
+      try {
+        if (isPhone) { els[fo].volume = Math.max(0, (muted ? 0 : GFULL) * (1 - x)); }   // phone: fade, no pitch-drop
+        else { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); }
+      } catch (e) {}
       if (i >= steps || myGen !== gen) clearInterval(br);
     }, 28);
     setTimeout(function () {
