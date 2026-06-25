@@ -21424,6 +21424,12 @@ html body nav.cyber-nav .story-toggle{
 <style id="desktop-wl-css">
 .era-summary-panel{overflow-x:auto !important}
 .era-summary-panel table{min-width:560px}
+/* owner: use the desktop room — wide data tables go full-width instead of scrolling in a half panel */
+@media(min-width:1080px){
+  .grid:has(> .panel.table-panel){ max-width:var(--fld-marquee,1560px) !important; }
+  .panel.table-panel{ grid-column:span 12 !important; overflow-x:auto; }
+  .panel.table-panel > table, .panel.table-panel table{ width:100% !important; }
+}
 </style>
 <!--DESKTOP-WL-CSS-END-->
 <!--APPLE-NAVSCROLL-START-->
