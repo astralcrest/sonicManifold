@@ -14997,6 +14997,50 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <style id="mobile-navopaque-css">@media (max-width:600px){html body nav.cyber-nav{background:linear-gradient(180deg,rgba(14,7,30,.95) 0%,rgba(9,4,20,.975) 100%) !important}}</style>
 <!--MOBILE-NAVOPAQUE-END-->
 
+<!--FABLE-DJFLOW-START-->
+<script>
+/* FABLE-DJFLOW — key-aware full-album sequencing (Camelot cycle score 5 -> 22/40).
+   Reorders the #sh-tracks JSON in place BEFORE its first read, via a one-shot
+   document.getElementById hook installed just ahead of the SELFHOSTED-AUDIO block.
+   The engine's init parse is the first read; every other consumer (featured
+   bedIndexOf, Camelot hover decoder, sonify rekey) parses the same JSON lazily
+   afterwards, so engine indices, album jumps and now-playing labels all stay
+   coherent. Slot 0 stays Tryin' (owner-chosen opener); unknown/new tracks are
+   appended in their original relative order; on any surprise the reorder aborts
+   and the original order stands. The hook restores itself on first hit. */
+(function () {
+  'use strict';
+  if (window.__fableDJFlow) return;
+  var ORDER = ["tryin.mp3", "save-her.mp3", "edge-of-the-black-hole.mp3", "reach-back.mp3", "fruititarian.mp3", "stochastic-rainbow.mp3", "autotropic.mp3", "hooked-at-first-taste.mp3", "anti-dimmable.mp3", "too-fiery-hot.mp3", "latent-dimension.mp3", "cant-resist-the-bite.mp3", "brain-rm-rf.mp3", "no-masks-ad-infinitum.mp3", "antares.mp3", "brainstorm.mp3", "what-the-helly.mp3", "antares-v2.mp3", "novelday.mp3", "exponential-novelty.mp3"];
+  var state = { applied: false, order: ORDER };
+  window.__fableDJFlow = state;
+  var orig = document.getElementById;
+  function base(src) { return String(src || '').split('/').pop(); }
+  function resort(el) {
+    try {
+      var arr = JSON.parse(el.textContent);
+      if (!Array.isArray(arr) || arr.length < 2) return;
+      var bySrc = {}, seen = {}, out = [], i, b;
+      for (i = 0; i < arr.length; i++) bySrc[base(arr[i] && arr[i].src)] = arr[i];
+      for (i = 0; i < ORDER.length; i++) if (bySrc[ORDER[i]]) { out.push(bySrc[ORDER[i]]); seen[ORDER[i]] = 1; }
+      for (i = 0; i < arr.length; i++) { b = base(arr[i] && arr[i].src); if (!seen[b]) { out.push(arr[i]); seen[b] = 1; } }
+      if (out.length !== arr.length) return;                    /* unexpected shape: leave untouched */
+      if (base(out[0] && out[0].src) !== 'tryin.mp3') return;   /* opener guard */
+      el.textContent = JSON.stringify(out);
+      state.applied = true;
+    } catch (e) {}
+  }
+  document.getElementById = function (id) {
+    var el = orig.apply(document, arguments);
+    if (id === 'sh-tracks' && el) {
+      document.getElementById = orig;   /* restore FIRST — one-shot, zero residue */
+      resort(el);
+    }
+    return el;
+  };
+})();
+</script>
+<!--FABLE-DJFLOW-END-->
 <!--SELFHOSTED-AUDIO-START-->
 <style>#sh-bg{position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden}</style>
 <script id="sh-tracks" type="application/json">[{"src": "audio/bed/tryin.mp3", "t": "Tryin'", "a": "astralcrest", "k": "6A", "bpm": 172.27, "b0": 18.135, "min": 18.44, "dur": 207.04}, {"src": "audio/bed/cant-resist-the-bite.mp3", "t": "Can't Resist the Bite", "a": "astralcrest", "k": "4B", "bpm": 68.0, "b0": 0.906, "min": 0.65, "dur": 187.64}, {"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "2A", "bpm": 129.2, "b0": 7.105, "min": 7.34, "dur": 195.4}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B", "bpm": 99.38, "b0": 0.209, "min": 0.19, "dur": 264.48}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.091, "min": 1.53, "dur": 228.16}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A", "bpm": 136.0, "b0": 0.209, "min": 0.23, "dur": 286.4}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A", "bpm": 129.2, "b0": 1.881, "min": 2.28, "dur": 206.48}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A", "bpm": 129.2, "b0": 0.07, "min": 0.51, "dur": 181.56}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A", "bpm": 112.35, "b0": 1.3, "min": 1.53, "dur": 166.08}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A", "bpm": 129.2, "b0": 2.02, "min": 2.09, "dur": 215.36}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares", "bpm": 129.2, "b0": 0.209, "min": 0.51, "dur": 479.4}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B", "bpm": 112.35, "b0": 0.0, "min": 0.28, "dur": 479.4}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B", "bpm": 117.45, "b0": 1.672, "min": 1.86, "dur": 479.4}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "k": "3A", "g": "antares", "bpm": 129.2, "b0": 0.0, "min": 0.42, "dur": 162.32}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B", "bpm": 161.5, "b0": 0.07, "min": 0.05, "dur": 203.92}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B", "bpm": 99.38, "b0": 0.046, "min": 0.33, "dur": 177.72}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A", "bpm": 107.67, "b0": 0.673, "min": 0.65, "dur": 187.44}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.44, "min": 1.58, "dur": 237.56}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A", "bpm": 129.2, "b0": 0.046, "min": 0.46, "dur": 83.4}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A", "bpm": 143.55, "b0": 1.254, "min": 1.21, "dur": 218.0}]</script>
@@ -15857,5 +15901,692 @@ html.fable-hint-off #global-zoom-hint{display:none !important}
 })();
 </script>
 <!--FABLE-MINIMAL-JS-END-->
+<!--FABLE-UMAPFIX-START-->
+<script>
+/* FABLE-UMAPFIX — render watchdog for the acoustic-tag-space UMAP scatter3d
+   (sidecar fig 1d59ce10-...). The SIDECAR-PERF loader is one-shot: the IO
+   unobserves and SIDECARS[id] is deleted before the fetch, so if the WebGL
+   plot ever ends up blank (gl init at 0 size while the #audio-embed spine-fold
+   was hidden, a lost GL context, a dropped render) nothing ever retries.
+   FIGFIX-class fix: observe the panel; whenever it is visible but has no
+   healthy WebGL canvas, re-fetch the 53KB sidecar JSON and re-render via the
+   real Plotly. 1.4s settle delay so the native path always finishes first;
+   max 6 attempts; no-op forever once healthy. */
+(function () {
+  'use strict';
+  if (window.__fableUmapFix) return;
+  window.__fableUmapFix = { attempts: 0, healed: 0 };
+  var ID = '1d59ce10-4879-4d16-8a88-b2e46833a7c9';
+  var URL = 'figdata-' + ID + '.json';
+  var MAX = 6, busy = false, timer = null;
+  function el() { return document.getElementById(ID); }
+  function panel() { var e = el(); return e ? e.closest('.panel') : null; }
+  function visible() {
+    var p = panel();
+    return !!(p && p.offsetParent !== null && p.getBoundingClientRect().width > 0);
+  }
+  function healthy() {
+    var e = el(); if (!e || !e._fullLayout) return false;
+    var cs = e.querySelectorAll('canvas');
+    for (var i = 0; i < cs.length; i++) {
+      var c = cs[i];
+      if (c.width > 0 && c.height > 0) {
+        try { var g = c.getContext('webgl2') || c.getContext('webgl'); if (g && !g.isContextLost()) return true; } catch (err) {}
+      }
+    }
+    return false;
+  }
+  function heal() {
+    if (busy || !window.__plotlyReal || window.__fableUmapFix.attempts >= MAX) return;
+    if (!visible() || healthy()) return;
+    busy = true; window.__fableUmapFix.attempts++;
+    fetch(URL)
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) {
+        var e = el();
+        if (!e || healthy() || !visible()) { busy = false; return; }
+        var p = panel();
+        if (p) {
+          p.dataset.lazyReady = '1';
+          var ph = p.querySelector('.lazy-placeholder'); if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+          var w = e.parentNode; if (w && w.style.display === 'none') w.style.display = '';
+          if (e.style.display === 'none') e.style.display = '';
+        }
+        var cfg = j.config || {};
+        if (window.__lazyEnhanceConfig) cfg = window.__lazyEnhanceConfig(cfg, j.data, j.layout);
+        try { window.__plotlyReal.purge(e); } catch (err) {}
+        window.__plotlyReal.newPlot(e, j.data, j.layout, cfg).then(function () {
+          busy = false; window.__fableUmapFix.healed++;
+          try { window.dispatchEvent(new CustomEvent('sonic:plotly-rendered', { detail: { id: ID } })); } catch (err) {}
+        })['catch'](function () { busy = false; });
+      })['catch'](function () { busy = false; });
+  }
+  function check() {
+    if (timer) return;
+    timer = setTimeout(function () { timer = null; heal(); }, 1400);
+  }
+  function arm() {
+    var p = panel(); if (!p) return;
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (ents) {
+        for (var i = 0; i < ents.length; i++) if (ents[i].isIntersecting) check();
+      }, { rootMargin: '300px 0px 300px 0px', threshold: 0 });
+      io.observe(p);
+    } else { check(); }
+    document.addEventListener('click', function (ev) {
+      var t = ev.target;
+      if (t && t.closest && t.closest('#story-toggle,.pace-opt,.pace-pick')) setTimeout(check, 700);
+    }, true);
+    window.addEventListener('sonic:plotly-rendered', function (ev) {
+      if (ev && ev.detail && ev.detail.id === ID) setTimeout(check, 900);
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arm); else arm();
+})();
+</script>
+<!--FABLE-UMAPFIX-END-->
+<!--FABLE-SELFTEST-START-->
+<style id="fable-selftest-css">
+#fable-selftest{padding:0 16px;margin:26px 0 10px;font-family:'JetBrains Mono',ui-monospace,monospace}
+html body.story-only #fable-selftest{display:block!important}
+#fable-selftest [hidden]{display:none!important}
+#fable-selftest .fst-panel{max-width:880px;margin:0 auto;padding:24px 26px;border:1px solid rgba(154,163,178,.22);border-radius:16px;background:#0b0e14;color:#cfd2da}
+#fable-selftest .fst-eyebrow{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:#21f6bc;margin:0 0 8px}
+#fable-selftest .fst-head{font-family:'Inter',system-ui,sans-serif;font-size:clamp(20px,3vw,30px);font-weight:750;letter-spacing:-.015em;color:#fff;margin:0 0 8px;line-height:1.2}
+#fable-selftest .fst-lede{font-family:'Inter',system-ui,sans-serif;font-size:13.5px;line-height:1.62;color:#cfd2da;max-width:64ch;margin:0 0 14px}
+#fable-selftest .fst-drop{position:relative;border:1.5px dashed rgba(33,246,188,.4);border-radius:14px;padding:32px 18px;text-align:center;background:rgba(33,246,188,.03);cursor:pointer;transition:border-color .15s,background .15s}
+#fable-selftest .fst-drop.drag{border-color:#21f6bc;background:rgba(33,246,188,.09)}
+#fable-selftest .fst-drop input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+#fable-selftest .fst-drop-big{display:block;font-size:15px;color:#dfe3ea;font-weight:700;letter-spacing:.4px}
+#fable-selftest .fst-drop-sub{display:block;font-size:11px;color:#9ca0a8;margin-top:6px}
+#fable-selftest .fst-mm{display:none}
+#fable-selftest .fst-privacy{font-size:10.5px;color:#9ca0a8;line-height:1.7;margin:12px 0 0}
+#fable-selftest .fst-privacy b{color:#21f6bc;font-weight:600}
+#fable-selftest .fst-progress{font-size:11.5px;color:#21f6bc;margin:14px 0 0;min-height:16px;overflow-wrap:anywhere}
+#fable-selftest .fst-refusal{font-family:'Inter',system-ui,sans-serif;margin:14px 0 0;padding:14px 16px;border:1px solid rgba(255,110,156,.45);border-radius:12px;color:#ff6e9c;font-size:12.5px;line-height:1.65;background:rgba(255,110,156,.05)}
+#fable-selftest .fst-results{margin:18px 0 0}
+#fable-selftest .fst-grid{display:flex;gap:28px;flex-wrap:wrap;margin:0 0 16px}
+#fable-selftest .fst-stat .fst-n{font-size:22px;font-weight:800;color:#dfe3ea;display:block;line-height:1.1}
+#fable-selftest .fst-stat .fst-l{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:#9ca0a8;margin-top:4px;display:block}
+#fable-selftest .fst-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:0 0 12px;background:#12151c}
+#fable-selftest .fst-bar i{display:block;height:100%}
+#fable-selftest .fst-bar .b-del{background:#21f6bc}
+#fable-selftest .fst-bar .b-shf{background:#5a6170}
+#fable-selftest .fst-bar .b-mch{background:#aeb6c4}
+#fable-selftest .fst-split{display:flex;gap:26px;flex-wrap:wrap;margin:0 0 18px}
+#fable-selftest .fst-seg .n{font-size:clamp(30px,4.6vw,50px);font-weight:800;line-height:1;display:block}
+#fable-selftest .fst-seg .l{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:#9ca0a8;margin-top:5px;display:block}
+#fable-selftest .fst-seg.del .n{color:#21f6bc}
+#fable-selftest .fst-seg.shf .n{color:#7d8595}
+#fable-selftest .fst-seg.mch .n{color:#dfe3ea}
+#fable-selftest .fst-verdict{font-family:'Inter',system-ui,sans-serif;font-size:clamp(19px,2.6vw,27px);font-weight:750;letter-spacing:-.015em;color:#dfe3ea;margin:2px 0 8px;line-height:1.25}
+#fable-selftest .fst-verdict.hit{color:#21f6bc}
+#fable-selftest .fst-probeline{font-size:11.5px;color:#9ca0a8;line-height:1.7;margin:0 0 12px;overflow-wrap:anywhere}
+#fable-selftest .fst-warnline{font-family:'Inter',system-ui,sans-serif;color:#ff6e9c;font-size:11.5px;line-height:1.6;margin:0 0 10px}
+#fable-selftest .fst-caveat{font-family:'Inter',system-ui,sans-serif;font-size:11.5px;color:#9ca0a8;line-height:1.65;border-top:1px solid rgba(124,128,140,.22);padding-top:12px;margin:0 0 14px;max-width:72ch}
+#fable-selftest .fst-share{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#fable-selftest .fst-btn{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.4px;padding:9px 14px;border-radius:999px;border:1px solid rgba(33,246,188,.4);color:#21f6bc;background:rgba(33,246,188,.06);cursor:pointer;text-decoration:none;transition:border-color .15s,transform .15s;display:inline-block}
+#fable-selftest .fst-btn:hover{border-color:#21f6bc;transform:translateY(-1px)}
+#fable-selftest .fst-ask{font-family:'Inter',system-ui,sans-serif;font-size:12.5px;color:#dfe3ea;margin:12px 0 0}
+#fable-selftest .fst-json{margin:12px 0 0}
+#fable-selftest .fst-json summary{font-size:10.5px;color:#9ca0a8;cursor:pointer;letter-spacing:.4px}
+#fable-selftest .fst-json pre{font-size:10px;line-height:1.5;color:#9ca0a8;background:#070a0f;border:1px solid rgba(124,128,140,.18);border-radius:10px;padding:12px;overflow-x:auto;margin:8px 0 0;max-width:100%}
+#fable-selftest .fst-reset{margin:14px 0 0;background:none;border:none;color:#9ca0a8;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;letter-spacing:.5px;text-decoration:underline;cursor:pointer;padding:0}
+@media(max-width:700px){
+#fable-selftest{padding:0 10px}
+#fable-selftest .fst-panel{padding:18px 16px}
+#fable-selftest .fst-drop{padding:20px 14px}
+#fable-selftest .fst-dd{display:none}
+#fable-selftest .fst-mm{display:block;font-size:13.5px}
+#fable-selftest .fst-grid{gap:18px}
+#fable-selftest .fst-split{gap:16px}
+#fable-selftest .fst-seg .n{font-size:34px}
+}
+</style>
+<script>
+(function(){
+'use strict';
+if(window.__fableSelftest) return; window.__fableSelftest=1;
+var VERSION='bridge_probe_js/0.9 (in-browser self-test, 2026-07-03)';
+var TAP={playbtn:1,clickrow:1,remote:1};
+var CFG={seed:1234,msMin:30000,gapS:1800,win:5,minComm:5,nShuf:300,nBoot:500,minPlays:5000,ciBudgetMs:9000};
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function shuffleArr(arr,rng){for(var i=arr.length-1;i>0;i--){var j=(rng()*(i+1))|0;var t=arr[i];arr[i]=arr[j];arr[j]=t;}return arr;}
+function pctile(arr,q){var a=[];for(var i=0;i<arr.length;i++){if(isFinite(arr[i]))a.push(arr[i]);}if(!a.length)return NaN;a.sort(function(x,y){return x-y;});var idx=(a.length-1)*q/100,lo=Math.floor(idx),hi=Math.ceil(idx);return a[lo]+(a[hi]-a[lo])*(idx-lo);}
+function fmt(n){return Number(n).toLocaleString('en-US');}
+function r4(x){return Math.round(x*1e4)/1e4;}
+
+/* ---- minimal zip reader: EOCD + central dir + hand-rolled raw-deflate inflate.
+   (~140 lines; inlined instead of a lib so the whole compute path is
+   dependency- and network-free. stored + fixed + dynamic huffman blocks;
+   no zip64 — refuses politely.) ---- */
+function inflateRaw(src,hint){
+  var out=new Uint8Array(hint&&hint>0?hint:Math.max(1024,src.length*4)),outLen=0;
+  var pos=0,bitBuf=0,bitCnt=0;
+  function ensure(n){if(outLen+n>out.length){var g=new Uint8Array(Math.max(out.length*2,outLen+n+1024));g.set(out.subarray(0,outLen));out=g;}}
+  function bits(n){while(bitCnt<n){if(pos>=src.length)throw new Error('truncated deflate stream');bitBuf|=src[pos++]<<bitCnt;bitCnt+=8;}var v=bitBuf&((1<<n)-1);bitBuf>>>=n;bitCnt-=n;return v;}
+  function buildHuff(lens){
+    var maxLen=0,i;for(i=0;i<lens.length;i++)if(lens[i]>maxLen)maxLen=lens[i];
+    if(!maxLen)return null;
+    var blCount=new Int32Array(maxLen+1);for(i=0;i<lens.length;i++)blCount[lens[i]]++;blCount[0]=0;
+    var nextCode=new Int32Array(maxLen+1),code=0;
+    for(var b=1;b<=maxLen;b++){code=(code+blCount[b-1])<<1;nextCode[b]=code;}
+    var size=1<<maxLen,table=new Int32Array(size),lenTab=new Uint8Array(size);
+    for(i=0;i<size;i++)table[i]=-1;
+    for(i=0;i<lens.length;i++){
+      var l=lens[i];if(!l)continue;
+      var c=nextCode[l]++,rc=0;
+      for(var k=0;k<l;k++){rc=(rc<<1)|((c>>k)&1);}
+      for(var f=rc;f<size;f+=(1<<l)){table[f]=i;lenTab[f]=l;}
+    }
+    return {table:table,lenTab:lenTab,max:maxLen,mask:size-1};
+  }
+  function decodeSym(h){
+    while(bitCnt<h.max&&pos<src.length){bitBuf|=src[pos++]<<bitCnt;bitCnt+=8;}
+    var idx=bitBuf&h.mask,l=h.lenTab[idx];
+    if(!l||l>bitCnt)throw new Error('bad huffman code');
+    bitBuf>>>=l;bitCnt-=l;return h.table[idx];
+  }
+  var LB=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
+  var LE=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+  var DB=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
+  var DE=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+  var fixedLit=null,fixedDist=null;
+  function getFixed(){
+    if(!fixedLit){
+      var l=new Uint8Array(288),i;
+      for(i=0;i<144;i++)l[i]=8;for(i=144;i<256;i++)l[i]=9;for(i=256;i<280;i++)l[i]=7;for(i=280;i<288;i++)l[i]=8;
+      fixedLit=buildHuff(l);
+      var d=new Uint8Array(30);for(i=0;i<30;i++)d[i]=5;
+      fixedDist=buildHuff(d);
+    }
+    return [fixedLit,fixedDist];
+  }
+  var CLORD=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
+  var final=0;
+  while(!final){
+    final=bits(1);
+    var type=bits(2);
+    if(type===0){
+      var drop=bitCnt&7;bitBuf>>>=drop;bitCnt-=drop;
+      var len=bits(16),nlen=bits(16);
+      if((len^0xffff)!==nlen)throw new Error('stored block length mismatch');
+      ensure(len);
+      for(var k=0;k<len;k++)out[outLen++]=bits(8);
+      continue;
+    }
+    var lit,dist;
+    if(type===1){var fx=getFixed();lit=fx[0];dist=fx[1];}
+    else if(type===2){
+      var hlit=bits(5)+257,hdist=bits(5)+1,hclen=bits(4)+4;
+      var clLens=new Uint8Array(19);
+      for(var c=0;c<hclen;c++)clLens[CLORD[c]]=bits(3);
+      var clH=buildHuff(clLens);if(!clH)throw new Error('empty code-length table');
+      var lens=new Uint8Array(hlit+hdist),n=0;
+      while(n<hlit+hdist){
+        var sym=decodeSym(clH);
+        if(sym<16)lens[n++]=sym;
+        else if(sym===16){if(!n)throw new Error('repeat with no prior');var rep=bits(2)+3,pv=lens[n-1];while(rep--)lens[n++]=pv;}
+        else if(sym===17){var z=bits(3)+3;while(z--)lens[n++]=0;}
+        else{var z2=bits(7)+11;while(z2--)lens[n++]=0;}
+      }
+      lit=buildHuff(lens.subarray(0,hlit));
+      dist=buildHuff(lens.subarray(hlit));
+      if(!lit)throw new Error('empty literal table');
+    } else throw new Error('bad block type');
+    for(;;){
+      var s=decodeSym(lit);
+      if(s<256){ensure(1);out[outLen++]=s;continue;}
+      if(s===256)break;
+      s-=257;
+      var mlen=LB[s]+(LE[s]?bits(LE[s]):0);
+      if(!dist)throw new Error('length code with no distance table');
+      var ds=decodeSym(dist);
+      var d2=DB[ds]+(DE[ds]?bits(DE[ds]):0);
+      if(d2>outLen)throw new Error('distance too far back');
+      ensure(mlen);
+      var from=outLen-d2;
+      for(var m=0;m<mlen;m++)out[outLen++]=out[from+m];
+    }
+  }
+  return out.subarray(0,outLen);
+}
+function unzip(u8){
+  var n=u8.length,eocd=-1;
+  for(var p=n-22,min=Math.max(0,n-65557);p>=min;p--){
+    if(u8[p]===0x50&&u8[p+1]===0x4b&&u8[p+2]===0x05&&u8[p+3]===0x06){eocd=p;break;}
+  }
+  if(eocd<0)throw new Error('no zip end record');
+  var dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
+  var cnt=dv.getUint16(eocd+10,true),cdOff=dv.getUint32(eocd+16,true);
+  if(cdOff===0xffffffff)throw new Error('zip64 archive');
+  var wanted=/(^|\/)(Streaming_History_Audio[^\/]*\.json|endsong[^\/]*\.json)$/i;
+  var dec=new TextDecoder('utf-8'),outFiles=[],p2=cdOff;
+  for(var e=0;e<cnt;e++){
+    if(p2+46>n||dv.getUint32(p2,true)!==0x02014b50)break;
+    var method=dv.getUint16(p2+10,true);
+    var csize=dv.getUint32(p2+20,true),usize=dv.getUint32(p2+24,true);
+    var nlen=dv.getUint16(p2+28,true),xlen=dv.getUint16(p2+30,true),clen=dv.getUint16(p2+32,true);
+    var lho=dv.getUint32(p2+42,true);
+    var name=dec.decode(u8.subarray(p2+46,p2+46+nlen));
+    p2+=46+nlen+xlen+clen;
+    if(name.indexOf('__MACOSX')>=0||!wanted.test(name))continue;
+    if(csize===0xffffffff||usize===0xffffffff||lho===0xffffffff)throw new Error('zip64 entry');
+    if(dv.getUint32(lho,true)!==0x04034b50)throw new Error('bad local header');
+    var nl2=dv.getUint16(lho+26,true),xl2=dv.getUint16(lho+28,true);
+    var dstart=lho+30+nl2+xl2;
+    var raw=u8.subarray(dstart,dstart+csize),bytes;
+    if(method===0)bytes=raw;
+    else if(method===8)bytes=inflateRaw(raw,usize);
+    else throw new Error('unsupported compression method '+method);
+    outFiles.push({name:name,text:dec.decode(bytes)});
+  }
+  return outFiles;
+}
+
+/* ---- probe pipeline (mirrors bridge_probe.py; partition differs by design) ---- */
+function el(id){return document.getElementById(id);}
+function tick(){return new Promise(function(r){setTimeout(r,0);});}
+function prog(msg){var p=el('fst-progress');if(p){p.hidden=false;p.textContent='▸ '+msg;}}
+function refuse(msg){
+  var r=el('fst-refusal'),p=el('fst-progress');
+  if(p)p.hidden=true;
+  if(r){r.hidden=false;r.innerHTML=msg+' <button class="fst-reset" id="fst-reset-r" type="button">try another export</button>';
+    var b=el('fst-reset-r');if(b)b.addEventListener('click',resetUI);}
+}
+function resetUI(){
+  var r=el('fst-refusal'),res=el('fst-results'),p=el('fst-progress'),d=el('fst-drop'),f=el('fst-file');
+  if(r){r.hidden=true;r.innerHTML='';}
+  if(res){res.hidden=true;res.innerHTML='';}
+  if(p){p.hidden=true;p.textContent='';}
+  if(d)d.hidden=false;
+  if(f)f.value='';
+}
+
+async function compute(fileList){
+  var t0=performance.now();
+  var rng=mulberry32(CFG.seed);
+  var warnings=[];
+  prog('reading '+fileList.length+' file(s)…');await tick();
+  var texts=[];
+  for(var fi=0;fi<fileList.length;fi++){
+    var f=fileList[fi];
+    if(/\.zip$/i.test(f.name)){
+      prog('unzipping '+f.name+'…');await tick();
+      var u8=new Uint8Array(await f.arrayBuffer()),got;
+      try{got=unzip(u8);}
+      catch(err){throw{refusal:'couldn’t read that zip ('+err.message+'). unzip it yourself and drop the Streaming_History_Audio_*.json files instead.'};}
+      if(!got.length)throw{refusal:'no Streaming_History_Audio_*.json (or endsong_*.json) inside that zip. drop the extended-streaming-history zip — or unzip it and drop the json files.'};
+      for(var g=0;g<got.length;g++)texts.push(got[g]);
+    } else if(/\.json$/i.test(f.name)){
+      if(/Streaming_History_Video/i.test(f.name))continue;
+      texts.push({name:f.name,text:await f.text()});
+    }
+  }
+  if(!texts.length)throw{refusal:'nothing i can read — drop the Streaming_History_Audio_*.json files or the whole export .zip.'};
+
+  prog('parsing '+texts.length+' json file(s)…');await tick();
+  var tsA=[],aidA=[],rsA=[],shA=[];
+  var nRaw=0,nReason=0;
+  var artMap=new Map();
+  var artNamesTmp=[];
+  for(var ti=0;ti<texts.length;ti++){
+    var data;
+    try{data=JSON.parse(texts[ti].text);}catch(e){continue;}
+    if(!Array.isArray(data))continue;
+    for(var ri=0;ri<data.length;ri++){
+      var r=data[ri];
+      if(!r||typeof r!=='object'||typeof r.ts!=='string'||!('ms_played' in r))continue;
+      nRaw++;
+      if(r.reason_start)nReason++;
+      if((r.ms_played||0)<CFG.msMin)continue;
+      var uri=r.spotify_track_uri,art=r.master_metadata_album_artist_name;
+      if(!uri||!art)continue;
+      tsA.push(r.ts);artNamesTmp.push(art);rsA.push(r.reason_start||'');shA.push(!!r.shuffle);
+    }
+    if(ti%4===3)await tick();
+  }
+  if(!nRaw)throw{refusal:'no streaming-history rows found in those files. the probe wants the Streaming_History_Audio_*.json files from spotify’s “extended streaming history” export (or the zip).'};
+  if(nReason/nRaw<0.5)throw{refusal:'your export doesn’t carry the <b>reason_start</b> field (present on '+Math.round(100*nReason/nRaw)+'% of rows). older exports omit it; without it i can’t separate your picks from autoplay. nothing to send — sorry, and thanks for trying.'};
+  var nPlays=tsA.length;
+  if(nPlays<CFG.minPlays)throw{refusal:'only '+fmt(nPlays)+' qualified plays (≥30s with artist metadata) — the probe needs '+fmt(CFG.minPlays)+' for a stable estimate. nothing to send.'};
+
+  // chronological sort (ISO8601 Z sorts lexicographically)
+  var order=new Array(nPlays);for(var i=0;i<nPlays;i++)order[i]=i;
+  order.sort(function(x,y){return tsA[x]<tsA[y]?-1:tsA[x]>tsA[y]?1:0;});
+  var ts2=new Array(nPlays),an2=new Array(nPlays),rs2=new Array(nPlays),sh2=new Array(nPlays);
+  for(i=0;i<nPlays;i++){var o=order[i];ts2[i]=tsA[o];an2[i]=artNamesTmp[o];rs2[i]=rsA[o];sh2[i]=shA[o];}
+  tsA=ts2;rsA=rs2;shA=sh2;
+
+  // artist ids, sorted for determinism (mirrors python's sorted set)
+  var uniq=Array.from(new Set(an2)).sort();
+  for(i=0;i<uniq.length;i++)artMap.set(uniq[i],i);
+  var nA=uniq.length;
+  var aid=new Int32Array(nPlays);
+  for(i=0;i<nPlays;i++)aid[i]=artMap.get(an2[i]);
+
+  // provenance split (display): tap = deliberate; else shuffle flag = shuffle; else machine-queued
+  var nDel=0,nShf=0;
+  for(i=0;i<nPlays;i++){if(TAP[rsA[i]]===1)nDel++;else if(shA[i])nShf++;}
+  var pctDeliberate=nDel/nPlays;
+  var years=[parseInt(tsA[0].slice(0,4),10),parseInt(tsA[nPlays-1].slice(0,4),10)];
+
+  // sessions + transitions (verbatim logic: landing track's reason_start)
+  prog(fmt(nRaw)+' rows → '+fmt(nPlays)+' qualified plays · building sessions…');await tick();
+  var sessions=[];var cur=[];
+  var trA=[],trB=[],trI=[],trS=[];
+  var prevAid=-1,prevT=0,sid=-1;
+  for(i=0;i<nPlays;i++){
+    var t=Date.parse(tsA[i].slice(0,19)+'Z')/1000;
+    if(!isFinite(t))continue;
+    var isNew=prevAid<0||(t-prevT)>CFG.gapS;
+    if(isNew){if(cur.length)sessions.push(cur);cur=[];sid++;}
+    else{
+      var rs=rsA[i],intent=-1;
+      if(TAP[rs]===1)intent=1;
+      else if(rs==='trackdone'&&!shA[i])intent=0;
+      if(intent>=0){trA.push(prevAid);trB.push(aid[i]);trI.push(intent);trS.push(sid);}
+    }
+    cur.push(aid[i]);prevAid=aid[i];prevT=t;
+  }
+  if(cur.length)sessions.push(cur);
+  var nSessions=sessions.length,nClass=trA.length;
+
+  // session co-occurrence graph (window 5, 1/d weights)
+  prog(fmt(nSessions)+' sessions · weaving the co-occurrence graph…');await tick();
+  var edges=new Map();
+  for(var si=0;si<nSessions;si++){
+    var seq=sessions[si],L=seq.length;
+    for(i=0;i<L;i++){
+      var ai=seq[i];
+      for(var d=1;d<=CFG.win;d++){
+        var j=i+d;if(j>=L)break;
+        var bj=seq[j];if(ai===bj)continue;
+        var key=ai<bj?ai*nA+bj:bj*nA+ai;
+        edges.set(key,(edges.get(key)||0)+1/d);
+      }
+    }
+    if(si%3000===2999)await tick();
+  }
+  var nE=edges.size;
+
+  // adjacency (CSR)
+  var deg=new Int32Array(nA);
+  edges.forEach(function(w,k){var a=Math.floor(k/nA),b=k%nA;deg[a]++;deg[b]++;});
+  var off=new Int32Array(nA+1);
+  for(i=0;i<nA;i++)off[i+1]=off[i]+deg[i];
+  var nbr=new Int32Array(off[nA]),wgt=new Float64Array(off[nA]);
+  var fill=Int32Array.from(off.subarray(0,nA));
+  edges.forEach(function(w,k){var a=Math.floor(k/nA),b=k%nA;nbr[fill[a]]=b;wgt[fill[a]++]=w;nbr[fill[b]]=a;wgt[fill[b]++]=w;});
+
+  // single-pass seeded label propagation (NOT louvain; probe-grade only)
+  prog(fmt(nA)+' artists · '+fmt(nE)+' edges · label propagation (seed '+CFG.seed+')…');await tick();
+  var lporder=new Int32Array(nA);for(i=0;i<nA;i++)lporder[i]=i;
+  shuffleArr(lporder,rng);
+  var labels=new Int32Array(nA);for(i=0;i<nA;i++)labels[i]=i;
+  var tally=new Map();
+  for(var oi=0;oi<nA;oi++){
+    i=lporder[oi];
+    if(off[i+1]===off[i])continue;
+    tally.clear();
+    for(var e2=off[i];e2<off[i+1];e2++){
+      var Lb=labels[nbr[e2]];
+      tally.set(Lb,(tally.get(Lb)||0)+wgt[e2]);
+    }
+    var best=-1,bw=-Infinity;
+    tally.forEach(function(w,Lc){if(w>bw+1e-12||(Math.abs(w-bw)<=1e-12&&Lc<best)){bw=w;best=Lc;}});
+    if(best>=0)labels[i]=best;
+  }
+  var sizes=new Int32Array(nA);
+  for(i=0;i<nA;i++)sizes[labels[i]]++;
+  var nCommRaw=0,nKept=0;
+  for(i=0;i<nA;i++){if(sizes[i]>0){nCommRaw++;if(sizes[i]>=CFG.minComm)nKept++;}}
+  if(nKept<2)throw{refusal:'the co-occurrence graph collapsed into a single community on this log — cross-community rates are undefined here. the python probe (louvain) may still work; nothing to send from this tab.'};
+  var labVec=new Int32Array(nA);
+  for(i=0;i<nA;i++)labVec[i]=sizes[labels[i]]>=CFG.minComm?labels[i]:-1;
+
+  // modularity of the raw partition (mirrors python's full-label modularity)
+  var mTot=0;var strength=new Float64Array(nA);
+  var wIn=new Map(),sTot=new Map();
+  edges.forEach(function(w,k){
+    var a=Math.floor(k/nA),b=k%nA;
+    mTot+=w;strength[a]+=w;strength[b]+=w;
+    if(labels[a]===labels[b])wIn.set(labels[a],(wIn.get(labels[a])||0)+w);
+  });
+  for(i=0;i<nA;i++){if(strength[i]>0)sTot.set(labels[i],(sTot.get(labels[i])||0)+strength[i]);}
+  var qMod=0;
+  if(mTot>0)sTot.forEach(function(sV,c){qMod+=(wIn.get(c)||0)/mTot-Math.pow(sV/(2*mTot),2);});
+
+  // observed BI over transitions with both endpoints partitioned
+  prog(fmt(nKept)+' communities (≥'+CFG.minComm+' artists) · computing your bridge index…');await tick();
+  var tapA=[],tapB=[],tapS=[],algA=[],algB=[],algS=[];
+  for(i=0;i<nClass;i++){
+    var pa=trA[i],pb=trB[i];
+    if(labVec[pa]<0||labVec[pb]<0)continue;
+    if(trI[i]===1){tapA.push(pa);tapB.push(pb);tapS.push(trS[i]);}
+    else{algA.push(pa);algB.push(pb);algS.push(trS[i]);}
+  }
+  if(!tapA.length||!algA.length)throw{refusal:'no usable tap and/or autoplay transitions after partitioning — the probe can’t form the ratio on this log. nothing to send.'};
+  if(tapA.length<500)warnings.push('fewer than 500 deliberate (tap) transitions — expect a wide interval');
+  var nT=tapA.length,nG=algA.length;
+  var tapCross=0,algCross=0;
+  var tA32=Int32Array.from(tapA),tB32=Int32Array.from(tapB),gA32=Int32Array.from(algA),gB32=Int32Array.from(algB);
+  for(i=0;i<nT;i++)if(labVec[tA32[i]]!==labVec[tB32[i]])tapCross++;
+  for(i=0;i<nG;i++)if(labVec[gA32[i]]!==labVec[gB32[i]])algCross++;
+  var tapRate=tapCross/nT,algRate=algCross/nG;
+  if(algRate<=0)throw{refusal:'your autoplay cross-community rate is zero — the bridge index is undefined on this log. nothing to send.'};
+  var biObs=tapRate/algRate;
+  var coverage=(nT+nG)/Math.max(nClass,1);
+
+  // mechanical floor: size-preserving label shuffles over partitioned nodes
+  prog('BI '+biObs.toFixed(3)+' · mechanical floor ('+CFG.nShuf+' label shuffles)…');await tick();
+  var partNodes=[];
+  for(i=0;i<nA;i++)if(labVec[i]>=0)partNodes.push(i);
+  var P=partNodes.length;
+  var nodePos=new Int32Array(nA);for(i=0;i<nA;i++)nodePos[i]=-1;
+  for(i=0;i<P;i++)nodePos[partNodes[i]]=i;
+  var baseLabs=new Int32Array(P);
+  for(i=0;i<P;i++)baseLabs[i]=labVec[partNodes[i]];
+  var ta=new Int32Array(nT),tb=new Int32Array(nT),ga=new Int32Array(nG),gb=new Int32Array(nG);
+  for(i=0;i<nT;i++){ta[i]=nodePos[tA32[i]];tb[i]=nodePos[tB32[i]];}
+  for(i=0;i<nG;i++){ga[i]=nodePos[gA32[i]];gb[i]=nodePos[gB32[i]];}
+  var nullBI=new Float64Array(CFG.nShuf);
+  var pl=new Int32Array(P);
+  var nGE=0;
+  for(var sh=0;sh<CFG.nShuf;sh++){
+    pl.set(baseLabs);
+    for(i=P-1;i>0;i--){var jj=(rng()*(i+1))|0;var tv=pl[i];pl[i]=pl[jj];pl[jj]=tv;}
+    var tc=0,ac=0;
+    for(i=0;i<nT;i++)if(pl[ta[i]]!==pl[tb[i]])tc++;
+    for(i=0;i<nG;i++)if(pl[ga[i]]!==pl[gb[i]])ac++;
+    var tr2=tc/nT,ar2=ac/nG;
+    nullBI[sh]=ar2>0?tr2/ar2:NaN;
+    if(isFinite(nullBI[sh])&&nullBI[sh]>=biObs)nGE++;
+    if(sh%60===59){prog('mechanical floor … '+(sh+1)+'/'+CFG.nShuf);await tick();}
+  }
+  var fs=0,fc=0;
+  for(i=0;i<CFG.nShuf;i++)if(isFinite(nullBI[i])){fs+=nullBI[i];fc++;}
+  var floorMean=fc?fs/fc:NaN;
+  var floorCI=[pctile(nullBI,2.5),pctile(nullBI,97.5)];
+  var pPerm=(nGE+1)/(CFG.nShuf+1);
+  var nLE=0;
+  for(i=0;i<CFG.nShuf;i++)if(isFinite(nullBI[i])&&nullBI[i]<=biObs)nLE++;
+  var pLow=(nLE+1)/(CFG.nShuf+1);
+
+  // 95% CI: session-block bootstrap (skipped over budget)
+  var biCI=null;
+  if(performance.now()-t0<CFG.ciBudgetMs){
+    prog('floor '+(isFinite(floorMean)?floorMean.toFixed(3):'—')+' · session-block bootstrap ('+CFG.nBoot+' resamples)…');await tick();
+    var sidMap=new Map();
+    for(i=0;i<nT;i++)if(!sidMap.has(tapS[i]))sidMap.set(tapS[i],sidMap.size);
+    for(i=0;i<nG;i++)if(!sidMap.has(algS[i]))sidMap.set(algS[i],sidMap.size);
+    var S=sidMap.size;
+    var perSess=new Float64Array(S*4);
+    for(i=0;i<nT;i++){var k1=sidMap.get(tapS[i])*4;perSess[k1]++;if(labVec[tA32[i]]!==labVec[tB32[i]])perSess[k1+1]++;}
+    for(i=0;i<nG;i++){var k2=sidMap.get(algS[i])*4;perSess[k2+2]++;if(labVec[gA32[i]]!==labVec[gB32[i]])perSess[k2+3]++;}
+    var boot=new Float64Array(CFG.nBoot);
+    for(var b2=0;b2<CFG.nBoot;b2++){
+      var m0=0,m1=0,m2=0,m3=0;
+      for(i=0;i<S;i++){
+        var pick=((rng()*S)|0)*4;
+        m0+=perSess[pick];m1+=perSess[pick+1];m2+=perSess[pick+2];m3+=perSess[pick+3];
+      }
+      boot[b2]=(m0>0&&m2>0&&m3>0)?(m1/m0)/(m3/m2):NaN;
+      if(b2%120===119){prog('bootstrap … '+(b2+1)+'/'+CFG.nBoot);await tick();}
+    }
+    biCI=[pctile(boot,2.5),pctile(boot,97.5)];
+  } else {
+    warnings.push('bootstrap ci skipped (over the in-tab time budget) — the python probe computes it');
+  }
+
+  var result={
+    script_version:VERSION,
+    partition:'single-pass seeded label propagation — NOT the paper’s louvain; magnitudes not comparable across methods',
+    params:{seed:CFG.seed,ms_played_min:CFG.msMin,session_gap_min:CFG.gapS/60,cooc_window:CFG.win,min_community_size:CFG.minComm,n_shuffles:CFG.nShuf,n_boot:biCI?CFG.nBoot:0},
+    n_plays:nPlays,
+    n_sessions:nSessions,
+    n_artists_rounded:Math.round(nA/100)*100,
+    date_range_years:years,
+    pct_deliberate:r4(pctDeliberate),
+    n_tap_transitions:nT,
+    n_algo_transitions:nG,
+    tap_cross_rate:r4(tapRate),
+    algo_cross_rate:r4(algRate),
+    BI:r4(biObs),
+    BI_CI95:biCI?[r4(biCI[0]),r4(biCI[1])]:null,
+    floor_mean:r4(floorMean),
+    floor_CI95:[r4(floorCI[0]),r4(floorCI[1])],
+    p_perm:Math.round(pPerm*1e6)/1e6,
+    partition_stats:{n_communities:nKept,n_communities_raw:nCommRaw,modularity:r4(qMod),pct_transitions_covered:r4(coverage)},
+    warnings:warnings
+  };
+  result.__display={nDel:nDel,nShf:nShf,pLow:pLow,elapsedMs:Math.round(performance.now()-t0)};
+  return result;
+}
+
+function render(res){
+  var disp=res.__display;
+  var box=el('fst-results'),p=el('fst-progress'),d=el('fst-drop');
+  if(!box)return;
+  var share={};
+  for(var k in res)if(k!=='__display')share[k]=res[k];
+  var json=JSON.stringify(share,null,2);
+  var n=res.n_plays;
+  var pd=Math.round(100*disp.nDel/n),ps=Math.round(100*disp.nShf/n),pm=100-pd-ps;
+  var yrs=res.date_range_years[0]===res.date_range_years[1]?String(res.date_range_years[0]):res.date_range_years[0]+'–'+res.date_range_years[1];
+  var ratio=res.BI/res.floor_mean;
+  var verdict,hit=false;
+  if(res.p_perm<0.05&&res.BI>res.floor_mean){verdict='you bridge '+ratio.toFixed(2)+'× your mechanical floor.';hit=true;}
+  else if(disp.pLow<0.05&&res.BI<res.floor_mean){verdict='inverse asymmetry: your autoplay crosses your communities more than your taps do.';}
+  else{verdict='no detectable asymmetry above your mechanical floor.';}
+  var ciLine=res.BI_CI95?('95% ci ['+res.BI_CI95[0].toFixed(2)+', '+res.BI_CI95[1].toFixed(2)+'] (session-block bootstrap, '+res.params.n_boot+' resamples)'):'ci skipped (time budget) — the python probe computes it';
+  var mail='mailto:astralcrestlab@proton.me?subject='+encodeURIComponent('bridge probe result (in-tab self-test)')+'&body='+encodeURIComponent(json+'\n\n(sent from the sonicManifold in-tab probe — aggregates only, no names, no timestamps.)');
+  var html=''
+   +'<div class="fst-grid">'
+   +'<div class="fst-stat"><span class="fst-n">'+fmt(n)+'</span><span class="fst-l">qualified plays</span></div>'
+   +'<div class="fst-stat"><span class="fst-n">'+yrs+'</span><span class="fst-l">years</span></div>'
+   +'<div class="fst-stat"><span class="fst-n">'+fmt(res.n_sessions)+'</span><span class="fst-l">sessions</span></div>'
+   +'<div class="fst-stat"><span class="fst-n">~'+fmt(res.n_artists_rounded)+'</span><span class="fst-l">artists</span></div>'
+   +'</div>'
+   +'<div class="fst-bar"><i class="b-del" style="width:'+pd+'%"></i><i class="b-shf" style="width:'+ps+'%"></i><i class="b-mch" style="width:'+pm+'%"></i></div>'
+   +'<div class="fst-split">'
+   +'<div class="fst-seg del"><span class="n">'+pd+'%</span><span class="l">deliberate</span></div>'
+   +'<div class="fst-seg shf"><span class="n">'+ps+'%</span><span class="l">shuffle</span></div>'
+   +'<div class="fst-seg mch"><span class="n">'+pm+'%</span><span class="l">machine-queued</span></div>'
+   +'</div>'
+   +'<div class="fst-verdict'+(hit?' hit':'')+'">'+verdict+'</div>'
+   +'<p class="fst-probeline">bridge index '+res.BI.toFixed(3)+' · tap cross-rate '+res.tap_cross_rate.toFixed(3)+' vs autoplay '+res.algo_cross_rate.toFixed(3)+' · floor '+res.floor_mean.toFixed(3)+' ['+res.floor_CI95[0].toFixed(2)+', '+res.floor_CI95[1].toFixed(2)+'] · p='+res.p_perm.toFixed(4)+' · '+ciLine+' · '+fmt(res.partition_stats.n_communities)+' communities · '+disp.elapsedMs+'ms, all in this tab</p>'
+   +(res.warnings.length?'<p class="fst-warnline">'+res.warnings.join(' · ')+'</p>':'')
+   +'<p class="fst-caveat">honesty note: this in-tab probe partitions your artist graph with single-pass label propagation, not the paper’s louvain — the magnitude is not comparable to the study’s number (or anyone else’s). for the paper-grade number, run the python probe (bridge_probe.py) on the same folder. the ratio-vs-your-own-floor above is the honest read.</p>'
+   +'<div class="fst-share">'
+   +'<button class="fst-btn" id="fst-copy" type="button">copy aggregates</button>'
+   +'<a class="fst-btn" id="fst-mail" href="'+mail+'">email it → astralcrestlab@proton.me</a>'
+   +'</div>'
+   +'<p class="fst-ask">if you send this, you become n=2. that’s the whole ask.</p>'
+   +'<details class="fst-json"><summary>the exact json — everything that would leave, and nothing else</summary><pre id="fst-pre"></pre></details>'
+   +'<button class="fst-reset" id="fst-reset" type="button">run another export</button>';
+  box.innerHTML=html;
+  el('fst-pre').textContent=json;
+  box.hidden=false;
+  if(p)p.hidden=true;
+  if(d)d.hidden=true;
+  el('fst-reset').addEventListener('click',resetUI);
+  el('fst-copy').addEventListener('click',function(){
+    var btn=this;
+    function done(ok){btn.textContent=ok?'copied.':'copy failed — use the json below';setTimeout(function(){btn.textContent='copy aggregates';},1800);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(json).then(function(){done(true);},function(){done(false);});}
+    else{try{var ta2=document.createElement('textarea');ta2.value=json;document.body.appendChild(ta2);ta2.select();document.execCommand('copy');document.body.removeChild(ta2);done(true);}catch(e){done(false);}}
+  });
+  window.__fstLast=share;
+}
+
+var busy=false;
+function handleFiles(fileList){
+  if(busy||!fileList||!fileList.length)return;
+  var files=Array.prototype.slice.call(fileList); // snapshot BEFORE resetUI clears the live FileList
+  busy=true;
+  resetUI();
+  var d=el('fst-drop');if(d)d.hidden=true;
+  compute(files).then(function(res){busy=false;render(res);})
+  .catch(function(err){
+    busy=false;
+    var d2=el('fst-drop');if(d2)d2.hidden=false;
+    if(err&&err.refusal)refuse(err.refusal);
+    else{refuse('something broke while computing ('+((err&&err.message)||err)+'). nothing was sent anywhere — it never is.');}
+  });
+}
+
+var TPL=''
+ +'<div class="fst-panel">'
+ +'<p class="fst-eyebrow">run it on yourself</p>'
+ +'<h2 class="fst-head">your split, computed in this tab.</h2>'
+ +'<p class="fst-lede">drag your spotify extended streaming history here — the json files or the whole zip. nothing uploads. the code runs where you’re standing.</p>'
+ +'<div class="fst-drop" id="fst-drop">'
+ +'<input type="file" id="fst-file" multiple accept=".json,.zip" aria-label="drop or pick your spotify extended streaming history files">'
+ +'<span class="fst-drop-big fst-dd">drop the export here</span>'
+ +'<span class="fst-drop-big fst-mm">tap to pick your export files</span>'
+ +'<span class="fst-drop-sub">Streaming_History_Audio_*.json · or the whole my_spotify_data.zip</span>'
+ +'</div>'
+ +'<p class="fst-privacy"><b>proof it’s local:</b> open devtools → network tab while this runs. zero requests. the numbers never leave this page unless you copy them. (don’t have the export? spotify → account → privacy → download your data → extended streaming history. takes spotify a few days.)</p>'
+ +'<p class="fst-progress" id="fst-progress" hidden></p>'
+ +'<div class="fst-refusal" id="fst-refusal" hidden></div>'
+ +'<div class="fst-results" id="fst-results" hidden></div>'
+ +'</div>';
+
+function wire(){
+  var input=el('fst-file'),drop=el('fst-drop');
+  if(!input||!drop)return;
+  input.addEventListener('change',function(){handleFiles(input.files);});
+  ['dragenter','dragover'].forEach(function(ev){
+    drop.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();drop.classList.add('drag');});
+  });
+  ['dragleave','dragend'].forEach(function(ev){
+    drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove('drag');});
+  });
+  drop.addEventListener('drop',function(e){
+    e.preventDefault();e.stopPropagation();drop.classList.remove('drag');
+    if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length)handleFiles(e.dataTransfer.files);
+  });
+}
+function mount(){
+  if(el('fable-selftest'))return true;
+  var anchor=el('gauntlet')||el('apple-leadhero')||el('act-1');
+  if(!anchor||!anchor.parentNode)return false;
+  var sec=document.createElement('section');
+  sec.id='fable-selftest';
+  sec.setAttribute('aria-label','run the bridge probe on your own spotify export — in this tab, nothing uploads');
+  sec.innerHTML=TPL;
+  anchor.insertAdjacentElement('afterend',sec);
+  wire();
+  return true;
+}
+var tries=0;
+function tryMount(){if(mount())return;if(++tries<24)setTimeout(tryMount,300);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(tryMount,60);});
+else setTimeout(tryMount,60);
+})();
+</script>
+<!--FABLE-SELFTEST-END-->
 </body>
 </html>
