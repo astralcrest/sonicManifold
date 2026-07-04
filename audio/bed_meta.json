@@ -1,0 +1,170 @@
+{
+  "antares-v2.mp3": {
+    "bpm": 129.2,
+    "b0": 0.209,
+    "dur": 479.4,
+    "mixin": 0.51,
+    "ein": 0.54,
+    "eout": 0.58
+  },
+  "antares.mp3": {
+    "bpm": 129.2,
+    "b0": 0.0,
+    "dur": 162.32,
+    "mixin": 0.42,
+    "ein": 0.45,
+    "eout": 0.35
+  },
+  "anti-dimmable.mp3": {
+    "bpm": 112.35,
+    "b0": 1.3,
+    "dur": 166.08,
+    "mixin": 1.53,
+    "ein": 0.38,
+    "eout": 0.54
+  },
+  "autotropic.mp3": {
+    "bpm": 136.0,
+    "b0": 0.209,
+    "dur": 286.4,
+    "mixin": 0.23,
+    "ein": 0.4,
+    "eout": 0.26
+  },
+  "brain-rm-rf.mp3": {
+    "bpm": 129.2,
+    "b0": 0.046,
+    "dur": 83.4,
+    "mixin": 0.46,
+    "ein": 0.36,
+    "eout": 0.28
+  },
+  "brainstorm.mp3": {
+    "bpm": 129.2,
+    "b0": 2.02,
+    "dur": 215.36,
+    "mixin": 2.09,
+    "ein": 0.32,
+    "eout": 0.53
+  },
+  "cant-resist-the-bite.mp3": {
+    "bpm": 68.0,
+    "b0": 0.906,
+    "dur": 187.64,
+    "mixin": 0.65,
+    "ein": 0.23,
+    "eout": 0.28
+  },
+  "edge-of-the-black-hole.mp3": {
+    "bpm": 129.2,
+    "b0": 0.07,
+    "dur": 181.56,
+    "mixin": 0.51,
+    "ein": 0.34,
+    "eout": 0.42
+  },
+  "exponential-novelty.mp3": {
+    "bpm": 136.0,
+    "b0": 1.091,
+    "dur": 228.16,
+    "mixin": 1.53,
+    "ein": 0.45,
+    "eout": 0.57
+  },
+  "fruititarian.mp3": {
+    "bpm": 99.38,
+    "b0": 0.046,
+    "dur": 177.72,
+    "mixin": 0.33,
+    "ein": 0.47,
+    "eout": 0.4
+  },
+  "hooked-at-first-taste.mp3": {
+    "bpm": 129.2,
+    "b0": 1.881,
+    "dur": 206.48,
+    "mixin": 2.28,
+    "ein": 0.42,
+    "eout": 0.5
+  },
+  "latent-dimension.mp3": {
+    "bpm": 112.35,
+    "b0": 0.0,
+    "dur": 479.4,
+    "mixin": 0.28,
+    "ein": 0.29,
+    "eout": 0.52
+  },
+  "no-masks-ad-infinitum.mp3": {
+    "bpm": 107.67,
+    "b0": 0.673,
+    "dur": 187.44,
+    "mixin": 0.65,
+    "ein": 0.49,
+    "eout": 0.48
+  },
+  "novelday.mp3": {
+    "bpm": 136.0,
+    "b0": 1.44,
+    "dur": 237.56,
+    "mixin": 1.58,
+    "ein": 0.29,
+    "eout": 0.49
+  },
+  "reach-back.mp3": {
+    "bpm": 99.38,
+    "b0": 0.209,
+    "dur": 264.48,
+    "mixin": 0.19,
+    "ein": 0.47,
+    "eout": 0.43
+  },
+  "save-her.mp3": {
+    "bpm": 143.55,
+    "b0": 1.254,
+    "dur": 218.0,
+    "mixin": 1.21,
+    "ein": 0.42,
+    "eout": 0.41
+  },
+  "stochastic-rainbow.mp3": {
+    "bpm": 161.5,
+    "b0": 0.07,
+    "dur": 203.92,
+    "mixin": 0.05,
+    "ein": 0.48,
+    "eout": 0.77
+  },
+  "too-fiery-hot.mp3": {
+    "bpm": 117.45,
+    "b0": 1.672,
+    "dur": 479.4,
+    "mixin": 1.86,
+    "ein": 0.32,
+    "eout": 0.64
+  },
+  "tryin.mp3": {
+    "bpm": 172.27,
+    "b0": 18.135,
+    "dur": 207.04,
+    "mixin": 18.44,
+    "ein": 0.15,
+    "eout": 0.51
+  },
+  "what-the-helly.mp3": {
+    "bpm": 129.2,
+    "b0": 7.105,
+    "dur": 195.4,
+    "mixin": 7.34,
+    "ein": 0.16,
+    "eout": 0.47
+  },
+  "lizard-in-the-sun.mp3": {
+    "bpm": 112.35,
+    "b0": 4.319,
+    "dur": 196.24,
+    "mixin": 4.41,
+    "ein": 0.17,
+    "eout": 0.57
+  }
+}
