@@ -1,0 +1,16 @@
+# local-only session/coordination files — never push (public repo)
+CLAUDE.md
+COORDINATION.md
+WORKLOG_*.md
+.claude/
+.design-review/
+.playwright-mcp/
+# build inputs / private media (site does not reference these at runtime)
+audio/voice/
+audio/bed_meta.json
+# scratch artifacts
+/*.jpeg
+/*.png
+/_*.html
+*.bak_*
+probe/__pycache__/
