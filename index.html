@@ -16498,7 +16498,7 @@ function render(res){
    +'<div class="fst-verdict'+(hit?' hit':'')+'">'+verdict+'</div>'
    +'<p class="fst-probeline">bridge index '+res.BI.toFixed(3)+' · tap cross-rate '+res.tap_cross_rate.toFixed(3)+' vs autoplay '+res.algo_cross_rate.toFixed(3)+' · floor '+res.floor_mean.toFixed(3)+' ['+res.floor_CI95[0].toFixed(2)+', '+res.floor_CI95[1].toFixed(2)+'] · p='+res.p_perm.toFixed(4)+' · '+ciLine+' · '+fmt(res.partition_stats.n_communities)+' communities · '+disp.elapsedMs+'ms, all in this tab</p>'
    +(res.warnings.length?'<p class="fst-warnline">'+res.warnings.join(' · ')+'</p>':'')
-   +'<p class="fst-caveat">honesty note: this in-tab probe partitions your artist graph with single-pass label propagation, not the paper’s louvain — the magnitude is not comparable to the study’s number (or anyone else’s). for the paper-grade number, run the python probe (bridge_probe.py) on the same folder. the ratio-vs-your-own-floor above is the honest read.</p>'
+   +'<p class="fst-caveat">honesty note: this in-tab probe partitions your artist graph with single-pass label propagation, not the paper’s louvain — the magnitude is not comparable to the study’s number (or anyone else’s). for the paper-grade number, run the python probe (<a href="probe/bridge_probe.py" download>bridge_probe.py</a> · <a href="probe/BRIDGE_PROBE_INSTRUCTIONS.md" target="_blank" rel="noopener">instructions</a>) on the same folder. the ratio-vs-your-own-floor above is the honest read.</p>'
    +'<div class="fst-share">'
    +'<button class="fst-btn" id="fst-copy" type="button">copy aggregates</button>'
    +'<a class="fst-btn" id="fst-mail" href="'+mail+'">email it → astralcrestlab@proton.me</a>'
