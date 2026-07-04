@@ -16850,12 +16850,100 @@ document.addEventListener('click',function(e){
 <!--FABLE-NAVFIX-END-->
 
 
+<!--FABLE-FRAME-START-->
+<style id="fable-frame-css">
+.ffr-concede{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(11px,1.15vw,13px);line-height:1.6;color:rgba(240,234,255,.55);margin:-4px auto clamp(12px,2vh,18px);max-width:52ch}
+.ffr-epi{margin:clamp(14px,2.2vh,22px) auto 0;max-width:56ch}
+.ffr-epi-q{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:clamp(13px,1.4vw,15.5px);line-height:1.62;color:rgba(240,234,255,.6);margin:0}
+.ffr-epi-src{display:inline-block;margin-top:7px;font:500 10.5px/1.5 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;color:rgba(33,246,188,.62);background:none;border:0;padding:0;cursor:pointer}
+.ffr-epi-src:hover,.ffr-epi-src:focus-visible{color:#21f6bc;text-decoration:underline}
+.ffr-cta{display:inline-block;margin:clamp(12px,1.8vh,18px) auto 0;font:600 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#21f6bc;border:1px solid rgba(33,246,188,.35);border-radius:999px;padding:9px 16px;text-decoration:none;background:rgba(33,246,188,.05);transition:border-color .15s,background .15s}
+.ffr-cta:hover{border-color:#21f6bc;background:rgba(33,246,188,.1)}
+.ffr-scope{display:block;font:400 10.5px/1.6 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.05em;color:rgba(240,234,255,.42);margin-top:6px}
+.gt-strike{font-family:"JetBrains Mono",ui-monospace,monospace;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 16px}
+.gt-strike s{font-size:clamp(34px,4.6vw,54px);font-weight:800;line-height:1;color:rgba(240,234,255,.38);text-decoration:line-through;text-decoration-color:#ff6e9c;text-decoration-thickness:4px}
+.gt-strike .gt-arr{font-size:clamp(18px,2.4vw,26px);color:rgba(240,234,255,.45)}
+.gt-strike .gt-band{font-size:clamp(34px,4.6vw,54px);font-weight:800;line-height:1;color:#21f6bc;text-shadow:0 0 28px rgba(33,246,188,.25)}
+.gt-strike .gt-strike-l{flex-basis:100%;font:400 10.5px/1.5 "JetBrains Mono",ui-monospace,monospace;color:rgba(240,234,255,.45);letter-spacing:.04em}
+.gt-scope{font:400 10.5px/1.6 "JetBrains Mono",ui-monospace,monospace;color:rgba(240,234,255,.42);margin:-6px 0 12px}
+.audit-board .ab-scope{font:400 11px/1.6 "JetBrains Mono",ui-monospace,monospace;color:rgba(232,236,246,.45);margin:8px 0 4px}
+.ffr-chep{margin:14px auto 0;max-width:60ch}
+.ffr-chep .q{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:13px;line-height:1.6;color:currentColor;opacity:.55;margin:0}
+.ffr-chep .c{display:block;margin-top:4px;font:500 10px/1.5 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.1em;opacity:.5;cursor:pointer}
+.ffr-chep .c:hover{opacity:.85;text-decoration:underline}
+.ffr-cre-lede{font-size:14.5px;line-height:1.66;color:#e9def7;margin:0 0 12px;max-width:74ch}
+.ffr-cre-lede b{color:#fff}
+.ffr-cre-stat{display:block;margin-top:6px;font:500 11px/1.6 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.03em;color:rgba(240,234,255,.5)}
+.ffr-nn{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:0 0 18px}
+.ffr-nn-k{font:700 10px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(240,234,255,.45)}
+.ffr-nn-chip{font:500 11px/1.45 "JetBrains Mono",ui-monospace,monospace;color:#cfd2da;border:1px solid rgba(179,136,255,.28);background:rgba(179,136,255,.06);border-radius:999px;padding:6px 11px}
+@media(max-width:520px){.gt-strike{gap:10px}.ffr-nn-chip{font-size:10.5px;padding:5px 9px}}
+</style>
+<script id="fable-frame-js">
+(function(){
+  'use strict';
+  if(window.__fableFrame) return; window.__fableFrame=1;
+  function tracks(){ try{ var el=document.getElementById('sh-tracks'); return el?JSON.parse(el.textContent):[]; }catch(e){ return []; } }
+  function idxOf(title){ var t=tracks(); for(var i=0;i<t.length;i++){ if(t[i]&&t[i].t&&String(t[i].t).toLowerCase()===title) return i; } return -1; }
+  function playTrack(title){
+    var i=idxOf(title); if(i<0) return false;
+    try{ document.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
+    try{ window.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
+    try{
+      var bed=window.__selfHostedBed;
+      if(bed&&bed.playIndex){
+        if(!bed.isOn()){ var aux=document.getElementById('aux-play'); if(aux) aux.click(); }
+        bed.playIndex(i);
+        return true;
+      }
+    }catch(e){}
+    return false;
+  }
+  function armEpi(){
+    var src=document.getElementById('ffr-epi-src'); if(!src||src.__ffr) return; src.__ffr=1;
+    var i=idxOf('autotropic');
+    if(i>=0) src.textContent='— autotropic, track '+(i+1)+' of the album this page plays';
+    src.addEventListener('click', function(){ playTrack('autotropic'); });
+  }
+  function armCta(){
+    var a=document.getElementById('ffr-selftest-cta'); if(!a||a.__ffr) return; a.__ffr=1;
+    a.addEventListener('click', function(e){
+      if(window.fableGo){ e.preventDefault(); try{ window.fableGo('fable-selftest'); }catch(_){ location.hash='#fable-selftest'; } }
+    });
+  }
+  var EPIS=[
+    {sel:'#act-2', after:'.act-look', q:'“a latent dimension where gravity’s optional”', t:'latent dimension'},
+    {sel:'#apple-leadhero', after:'.lh-disclosure', q:'“searched for a new paradigm”', t:'exponential novelty'},
+    {sel:'.sci-add .sci-add-box', after:'.sci-add-h', q:'“i initiate, you respond. that’s not the same as reciprocal”', t:'reach back'}
+  ];
+  function mountEpis(){
+    EPIS.forEach(function(ep){
+      var host=document.querySelector(ep.sel);
+      if(!host||host.querySelector('.ffr-chep')) return;
+      var fig=document.createElement('figure'); fig.className='ffr-chep';
+      var q=document.createElement('p'); q.className='q'; q.textContent=ep.q;
+      var c=document.createElement('figcaption'); c.className='c';
+      c.textContent='— '+ep.t;
+      c.title='from “'+ep.t+'”, on the album this page plays · click to play';
+      c.setAttribute('role','button'); c.tabIndex=0;
+      c.addEventListener('click', function(){ playTrack(ep.t); });
+      c.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); playTrack(ep.t); } });
+      fig.appendChild(q); fig.appendChild(c);
+      var anchor=ep.after?host.querySelector(ep.after):null;
+      if(anchor) anchor.insertAdjacentElement('afterend', fig); else host.appendChild(fig);
+    });
+  }
+  function init(){ armEpi(); armCta(); mountEpis(); setTimeout(mountEpis,1500); setTimeout(mountEpis,4000); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+<!--FABLE-FRAME-END-->
 <!--SELFHOSTED-AUDIO-START-->
 <style>
   /* hidden native-audio decks; reuses the SC player's #sc-now readout */
   #sh-bg { position: fixed; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden; }
 </style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/cant-resist-the-bite.mp3", "t": "Can't Resist the Bite", "a": "astralcrest", "k": "4B", "bpm": 68.0, "b0": 0.906, "min": 0.65, "dur": 187.64}, {"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "2A", "bpm": 129.2, "b0": 7.105, "min": 7.34, "dur": 195.4}, {"src": "audio/bed/tryin.mp3", "t": "Tryin'", "a": "astralcrest", "k": "6A", "bpm": 172.27, "b0": 18.135, "min": 18.44, "dur": 207.04}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "k": "3A", "g": "antares", "bpm": 129.2, "b0": 0.0, "min": 0.42, "dur": 162.32}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.091, "min": 1.53, "dur": 228.16}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B", "bpm": 99.38, "b0": 0.046, "min": 0.33, "dur": 177.72}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B", "bpm": 161.5, "b0": 0.07, "min": 0.05, "dur": 203.92}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B", "bpm": 117.45, "b0": 1.672, "min": 1.86, "dur": 479.4}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A", "bpm": 143.55, "b0": 1.254, "min": 1.21, "dur": 218.0}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A", "bpm": 129.2, "b0": 0.07, "min": 0.51, "dur": 181.56}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B", "bpm": 112.35, "b0": 0.0, "min": 0.28, "dur": 479.4}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A", "bpm": 136.0, "b0": 0.209, "min": 0.23, "dur": 286.4}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A", "bpm": 112.35, "b0": 1.3, "min": 1.53, "dur": 166.08}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A", "bpm": 129.2, "b0": 1.881, "min": 2.28, "dur": 206.48}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.44, "min": 1.58, "dur": 237.56}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares", "bpm": 129.2, "b0": 0.209, "min": 0.51, "dur": 479.4}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A", "bpm": 129.2, "b0": 2.02, "min": 2.09, "dur": 215.36}, {"src": "audio/bed/lizard-in-the-sun.mp3", "t": "Lizard in the Sun", "a": "astralcrest", "k": "3B", "bpm": 112.35, "b0": 4.319, "min": 4.41, "dur": 196.24}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A", "bpm": 107.67, "b0": 0.673, "min": 0.65, "dur": 187.44}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A", "bpm": 129.2, "b0": 0.046, "min": 0.46, "dur": 83.4}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B", "bpm": 99.38, "b0": 0.209, "min": 0.19, "dur": 264.48}]</script>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "2A", "bpm": 129.2, "b0": 7.105, "min": 7.34, "dur": 195.4}, {"src": "audio/bed/cant-resist-the-bite.mp3", "t": "Can't Resist the Bite", "a": "astralcrest", "k": "4B", "bpm": 68.0, "b0": 0.906, "min": 0.65, "dur": 187.64}, {"src": "audio/bed/tryin.mp3", "t": "Tryin'", "a": "astralcrest", "k": "6A", "bpm": 172.27, "b0": 18.135, "min": 18.44, "dur": 207.04}, {"src": "audio/bed/antares.mp3", "t": "Antares", "a": "astralcrest", "k": "3A", "g": "antares", "bpm": 129.2, "b0": 0.0, "min": 0.42, "dur": 162.32}, {"src": "audio/bed/exponential-novelty.mp3", "t": "Exponential Novelty", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.091, "min": 1.53, "dur": 228.16}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A", "bpm": 136.0, "b0": 0.209, "min": 0.23, "dur": 286.4}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B", "bpm": 99.38, "b0": 0.046, "min": 0.33, "dur": 177.72}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B", "bpm": 161.5, "b0": 0.07, "min": 0.05, "dur": 203.92}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B", "bpm": 117.45, "b0": 1.672, "min": 1.86, "dur": 479.4}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A", "bpm": 143.55, "b0": 1.254, "min": 1.21, "dur": 218.0}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A", "bpm": 129.2, "b0": 0.07, "min": 0.51, "dur": 181.56}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B", "bpm": 112.35, "b0": 0.0, "min": 0.28, "dur": 479.4}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A", "bpm": 112.35, "b0": 1.3, "min": 1.53, "dur": 166.08}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A", "bpm": 129.2, "b0": 1.881, "min": 2.28, "dur": 206.48}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.44, "min": 1.58, "dur": 237.56}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares", "bpm": 129.2, "b0": 0.209, "min": 0.51, "dur": 479.4}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A", "bpm": 129.2, "b0": 2.02, "min": 2.09, "dur": 215.36}, {"src": "audio/bed/lizard-in-the-sun.mp3", "t": "Lizard in the Sun", "a": "astralcrest", "k": "3B", "bpm": 112.35, "b0": 4.319, "min": 4.41, "dur": 196.24}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A", "bpm": 107.67, "b0": 0.673, "min": 0.65, "dur": 187.44}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A", "bpm": 129.2, "b0": 0.046, "min": 0.46, "dur": 83.4}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B", "bpm": 99.38, "b0": 0.209, "min": 0.19, "dur": 264.48}]</script>
 <div id="sh-bg" aria-hidden="true">
   <audio id="sh-a" preload="auto"></audio>
   <audio id="sh-b" preload="auto"></audio>
@@ -16867,14 +16955,14 @@ document.addEventListener('click',function(e){
   try { tracks = JSON.parse(document.getElementById('sh-tracks').textContent); } catch (e) {}
   if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
   window.__preferSelfHosted = true;                          // SoundCloud player stands down
-  /* FABLE-DJ2-ORDER — ?order=b ear-test variant: slots 1-2 swapped (helly first, bite second).
+  /* FABLE-DJ2-ORDER — ?order=b ear-test variant: slots 1-2 swapped (bite first, helly second; default is helly-first).
      The DOM JSON is rewritten too, so every lazy consumer (featured bedIndexOf, Camelot hover
      decoder, sonify rekey) shares the same index space as the engine. */
   try {
     if (/[?&]order=b(?:&|#|$)/i.test(location.search) && tracks.length > 1) {
       var _sw = tracks[0]; tracks[0] = tracks[1]; tracks[1] = _sw;
       try { document.getElementById('sh-tracks').textContent = JSON.stringify(tracks); } catch (e) {}
-      try { console.log('[dj2] ORDER B active — slots 1-2 swapped'); } catch (e) {}
+      try { console.log('[dj2] ORDER B active (bite opener) — slots 1-2 swapped'); } catch (e) {}
     }
   } catch (e) {}
   // PHONE: the heavy Web-Audio DJ graph (convolution reverb + 2 decks + echo) starves mobile
@@ -17319,92 +17407,5 @@ document.addEventListener('click',function(e){
 </script>
 <!--SELFHOSTED-AUDIO-END-->
 
-<!--FABLE-FRAME-START-->
-<style id="fable-frame-css">
-.ffr-concede{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(11px,1.15vw,13px);line-height:1.6;color:rgba(240,234,255,.55);margin:-4px auto clamp(12px,2vh,18px);max-width:52ch}
-.ffr-epi{margin:clamp(14px,2.2vh,22px) auto 0;max-width:56ch}
-.ffr-epi-q{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:clamp(13px,1.4vw,15.5px);line-height:1.62;color:rgba(240,234,255,.6);margin:0}
-.ffr-epi-src{display:inline-block;margin-top:7px;font:500 10.5px/1.5 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;color:rgba(33,246,188,.62);background:none;border:0;padding:0;cursor:pointer}
-.ffr-epi-src:hover,.ffr-epi-src:focus-visible{color:#21f6bc;text-decoration:underline}
-.ffr-cta{display:inline-block;margin:clamp(12px,1.8vh,18px) auto 0;font:600 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#21f6bc;border:1px solid rgba(33,246,188,.35);border-radius:999px;padding:9px 16px;text-decoration:none;background:rgba(33,246,188,.05);transition:border-color .15s,background .15s}
-.ffr-cta:hover{border-color:#21f6bc;background:rgba(33,246,188,.1)}
-.ffr-scope{display:block;font:400 10.5px/1.6 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.05em;color:rgba(240,234,255,.42);margin-top:6px}
-.gt-strike{font-family:"JetBrains Mono",ui-monospace,monospace;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 16px}
-.gt-strike s{font-size:clamp(34px,4.6vw,54px);font-weight:800;line-height:1;color:rgba(240,234,255,.38);text-decoration:line-through;text-decoration-color:#ff6e9c;text-decoration-thickness:4px}
-.gt-strike .gt-arr{font-size:clamp(18px,2.4vw,26px);color:rgba(240,234,255,.45)}
-.gt-strike .gt-band{font-size:clamp(34px,4.6vw,54px);font-weight:800;line-height:1;color:#21f6bc;text-shadow:0 0 28px rgba(33,246,188,.25)}
-.gt-strike .gt-strike-l{flex-basis:100%;font:400 10.5px/1.5 "JetBrains Mono",ui-monospace,monospace;color:rgba(240,234,255,.45);letter-spacing:.04em}
-.gt-scope{font:400 10.5px/1.6 "JetBrains Mono",ui-monospace,monospace;color:rgba(240,234,255,.42);margin:-6px 0 12px}
-.audit-board .ab-scope{font:400 11px/1.6 "JetBrains Mono",ui-monospace,monospace;color:rgba(232,236,246,.45);margin:8px 0 4px}
-.ffr-chep{margin:14px auto 0;max-width:60ch}
-.ffr-chep .q{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:13px;line-height:1.6;color:currentColor;opacity:.55;margin:0}
-.ffr-chep .c{display:block;margin-top:4px;font:500 10px/1.5 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.1em;opacity:.5;cursor:pointer}
-.ffr-chep .c:hover{opacity:.85;text-decoration:underline}
-.ffr-cre-lede{font-size:14.5px;line-height:1.66;color:#e9def7;margin:0 0 12px;max-width:74ch}
-.ffr-cre-lede b{color:#fff}
-.ffr-cre-stat{display:block;margin-top:6px;font:500 11px/1.6 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.03em;color:rgba(240,234,255,.5)}
-.ffr-nn{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:0 0 18px}
-.ffr-nn-k{font:700 10px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(240,234,255,.45)}
-.ffr-nn-chip{font:500 11px/1.45 "JetBrains Mono",ui-monospace,monospace;color:#cfd2da;border:1px solid rgba(179,136,255,.28);background:rgba(179,136,255,.06);border-radius:999px;padding:6px 11px}
-@media(max-width:520px){.gt-strike{gap:10px}.ffr-nn-chip{font-size:10.5px;padding:5px 9px}}
-</style>
-<script id="fable-frame-js">
-(function(){
-  'use strict';
-  if(window.__fableFrame) return; window.__fableFrame=1;
-  function tracks(){ try{ var el=document.getElementById('sh-tracks'); return el?JSON.parse(el.textContent):[]; }catch(e){ return []; } }
-  function idxOf(title){ var t=tracks(); for(var i=0;i<t.length;i++){ if(t[i]&&t[i].t&&String(t[i].t).toLowerCase()===title) return i; } return -1; }
-  function playTrack(title){
-    var i=idxOf(title); if(i<0) return false;
-    try{ document.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
-    try{ window.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
-    try{
-      var bed=window.__selfHostedBed;
-      if(bed&&bed.playIndex){
-        if(!bed.isOn()){ var aux=document.getElementById('aux-play'); if(aux) aux.click(); }
-        bed.playIndex(i);
-        return true;
-      }
-    }catch(e){}
-    return false;
-  }
-  function armEpi(){
-    var src=document.getElementById('ffr-epi-src'); if(!src||src.__ffr) return; src.__ffr=1;
-    var i=idxOf('autotropic');
-    if(i>=0) src.textContent='— autotropic, track '+(i+1)+' of the album this page plays';
-    src.addEventListener('click', function(){ playTrack('autotropic'); });
-  }
-  function armCta(){
-    var a=document.getElementById('ffr-selftest-cta'); if(!a||a.__ffr) return; a.__ffr=1;
-    a.addEventListener('click', function(e){
-      if(window.fableGo){ e.preventDefault(); try{ window.fableGo('fable-selftest'); }catch(_){ location.hash='#fable-selftest'; } }
-    });
-  }
-  var EPIS=[
-    {sel:'#act-2', after:'.act-look', q:'“a latent dimension where gravity’s optional”', t:'latent dimension'},
-    {sel:'#apple-leadhero', after:'.lh-disclosure', q:'“searched for a new paradigm”', t:'exponential novelty'},
-    {sel:'.sci-add .sci-add-box', after:'.sci-add-h', q:'“i initiate, you respond. that’s not the same as reciprocal”', t:'reach back'}
-  ];
-  function mountEpis(){
-    EPIS.forEach(function(ep){
-      var host=document.querySelector(ep.sel);
-      if(!host||host.querySelector('.ffr-chep')) return;
-      var fig=document.createElement('figure'); fig.className='ffr-chep';
-      var q=document.createElement('p'); q.className='q'; q.textContent=ep.q;
-      var c=document.createElement('figcaption'); c.className='c';
-      c.textContent='— '+ep.t;
-      c.title='from “'+ep.t+'”, on the album this page plays · click to play';
-      c.setAttribute('role','button'); c.tabIndex=0;
-      c.addEventListener('click', function(){ playTrack(ep.t); });
-      c.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); playTrack(ep.t); } });
-      fig.appendChild(q); fig.appendChild(c);
-      var anchor=ep.after?host.querySelector(ep.after):null;
-      if(anchor) anchor.insertAdjacentElement('afterend', fig); else host.appendChild(fig);
-    });
-  }
-  function init(){ armEpi(); armCta(); mountEpis(); setTimeout(mountEpis,1500); setTimeout(mountEpis,4000); }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
-})();
-</script>
-<!--FABLE-FRAME-END--></body>
+</body>
 </html>
