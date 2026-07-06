@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bridge index — compute your own</title>
+<style>
+  :root{
+    --bg:#07090c; --panel:#0d1116; --panel2:#11161d; --line:#1b232c;
+    --ink:#e7edf2; --dim:#8a97a3; --faint:#5a6672; --mint:#21f6bc; --mint-dk:#0e6b53;
+    --warn:#f6c221; --bad:#f66c6c;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 70% -10%, rgba(33,246,188,.06), transparent 60%),
+      var(--bg);
+    color:var(--ink); font-family:var(--sans);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+    padding:32px 20px 80px; letter-spacing:.1px;
+  }
+  .wrap{max-width:760px;margin:0 auto}
+  h1{
+    font-size:15px;font-weight:600;letter-spacing:.28em;text-transform:lowercase;
+    color:var(--mint);margin:0 0 4px; font-family:var(--mono);
+  }
+  .sub{color:var(--dim);font-size:14px;margin:0 0 26px;max-width:60ch}
+  .sub b{color:var(--ink);font-weight:600}
+  .privacy{
+    display:flex;gap:12px;align-items:flex-start;
+    border:1px solid var(--mint-dk);border-radius:10px;
+    background:linear-gradient(180deg,rgba(33,246,188,.07),rgba(33,246,188,.02));
+    padding:13px 15px;margin:0 0 24px;font-size:13px;color:var(--ink);
+  }
+  .privacy .dot{color:var(--mint);font-size:16px;line-height:1.3}
+  .privacy b{color:var(--mint)}
+  .privacy span{color:var(--dim)}
+  .card{
+    border:1px solid var(--line);background:var(--panel);border-radius:12px;
+    padding:20px;margin:0 0 18px;
+  }
+  .drop{
+    border:1.5px dashed #2b3742;border-radius:12px;padding:26px 18px;text-align:center;
+    background:var(--panel2);transition:border-color .15s,background .15s;cursor:pointer;
+  }
+  .drop.hot{border-color:var(--mint);background:rgba(33,246,188,.05)}
+  .drop .big{font-size:14px;color:var(--ink);margin-bottom:6px}
+  .drop .small{font-size:12px;color:var(--faint);font-family:var(--mono)}
+  .drop .mint{color:var(--mint)}
+  input[type=file]{display:none}
+  .files{margin-top:12px;font-size:12px;color:var(--dim);font-family:var(--mono)}
+  .files ul{margin:6px 0 0;padding-left:16px}
+  .files li{margin:1px 0}
+  .row{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
+  button{
+    font-family:var(--mono);font-size:13px;letter-spacing:.04em;
+    background:var(--mint);color:#05100b;border:0;border-radius:8px;
+    padding:11px 20px;cursor:pointer;font-weight:600;text-transform:lowercase;
+  }
+  button:disabled{background:#1c2a2a;color:var(--faint);cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .status{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .log{
+    font-family:var(--mono);font-size:11px;color:var(--faint);
+    white-space:pre-wrap;margin-top:14px;max-height:160px;overflow:auto;
+    border-top:1px solid var(--line);padding-top:12px;display:none;
+  }
+  .log.show{display:block}
+  /* results */
+  #results{display:none}
+  #results.show{display:block}
+  .verdict{
+    font-size:19px;line-height:1.45;color:var(--ink);margin:0 0 4px;font-weight:500;
+  }
+  .verdict .bi{color:var(--mint);font-weight:700;font-family:var(--mono)}
+  .verdict .fl{color:var(--dim);font-family:var(--mono)}
+  .refline{font-size:13px;color:var(--dim);margin:0 0 22px}
+  .refline b{color:var(--ink)}
+  .hero{
+    display:flex;align-items:baseline;gap:14px;margin:6px 0 20px;
+    padding:18px 20px;border:1px solid var(--mint-dk);border-radius:12px;
+    background:linear-gradient(180deg,rgba(33,246,188,.06),transparent);
+  }
+  .hero .num{font-family:var(--mono);font-size:52px;font-weight:700;color:var(--mint);line-height:1}
+  .hero .lab{color:var(--dim);font-size:13px}
+  .hero .ci{color:var(--faint);font-size:12px;font-family:var(--mono)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:4px 0}
+  .tile{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:13px 14px}
+  .tile .k{font-size:11px;color:var(--faint);text-transform:lowercase;letter-spacing:.06em;font-family:var(--mono)}
+  .tile .v{font-size:22px;font-weight:600;color:var(--ink);font-family:var(--mono);margin-top:3px}
+  .tile .v.mint{color:var(--mint)}
+  .tile .x{font-size:11px;color:var(--dim);margin-top:2px}
+  .barwrap{margin:20px 0 6px}
+  .barwrap .lab{font-size:12px;color:var(--dim);font-family:var(--mono);margin-bottom:7px;display:flex;justify-content:space-between}
+  .bar{height:9px;border-radius:5px;background:#141b22;position:relative;overflow:hidden;margin-bottom:12px}
+  .bar > i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;display:block}
+  .bar .tap{background:var(--mint)}
+  .bar .algo{background:#39505c}
+  .err{color:var(--bad);font-size:13px;font-family:var(--mono);margin-top:12px;display:none}
+  .err.show{display:block}
+  .foot{color:var(--faint);font-size:11px;font-family:var(--mono);margin-top:34px;line-height:1.7}
+  .foot a{color:var(--dim)}
+  details{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+  summary{font-family:var(--mono);font-size:12px;color:var(--dim);cursor:pointer}
+  pre{font-family:var(--mono);font-size:11px;color:var(--faint);overflow:auto;background:#0a0e12;padding:12px;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-block;margin-bottom:14px;color:var(--dim,#7c808c);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none">&larr;&nbsp;sonicManifold</a>
+  <h1>bridge&nbsp;index</h1>
+  <p class="sub">
+    drop your own spotify <b>extended streaming history</b> and get one number: how much
+    more you cross between your listening communities when <b>you</b> pick the next track
+    versus when the <b>algorithm</b> auto-advances. the path out of n&nbsp;=&nbsp;1 —
+    each person computes their own index, on their own machine.
+  </p>
+
+  <div class="privacy">
+    <span class="dot">&#9679;</span>
+    <div>
+      <b>100% in your browser.</b>
+      <span>nothing is uploaded, nothing is fetched, no server, no network. your export
+      never leaves this tab — the math runs on this page and the raw files are dropped
+      the moment you close it. works offline; you can disconnect and it still runs.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="drop" id="drop">
+      <input type="file" id="picker" multiple accept=".json,application/json">
+      <div class="big">drop <span class="mint">Streaming_History_Audio_*.json</span> here</div>
+      <div class="small">or click to pick files &middot; select all the audio files at once &middot; video files are ignored</div>
+    </label>
+    <div class="files" id="files"></div>
+    <div class="row">
+      <button id="go" disabled>compute my bridge index</button>
+      <span class="status" id="status"></span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div id="results">
+    <p class="verdict" id="verdict"></p>
+    <p class="refline" id="refline"></p>
+
+    <div class="hero">
+      <div>
+        <div class="num" id="biNum">–</div>
+      </div>
+      <div>
+        <div class="lab">your bridge index</div>
+        <div class="ci" id="biCi"></div>
+      </div>
+    </div>
+
+    <div class="barwrap">
+      <div class="lab"><span>when you tap the next track <span id="tapPct" style="color:var(--mint)"></span></span></div>
+      <div class="bar"><i class="tap" id="tapBar"></i></div>
+      <div class="lab"><span>when the algorithm auto-advances <span id="algoPct" style="color:var(--dim)"></span></span></div>
+      <div class="bar"><i class="algo" id="algoBar"></i></div>
+    </div>
+
+    <div class="grid">
+      <div class="tile"><div class="k">qualified plays</div><div class="v" id="tPlays"></div><div class="x">&ge;30s, with artist</div></div>
+      <div class="tile"><div class="k">sessions</div><div class="v" id="tSess"></div><div class="x">30-min gap splits</div></div>
+      <div class="tile"><div class="k">tap cross-rate</div><div class="v mint" id="tTap"></div><div class="x" id="tTapN"></div></div>
+      <div class="tile"><div class="k">algo cross-rate</div><div class="v" id="tAlgo"></div><div class="x" id="tAlgoN"></div></div>
+      <div class="tile"><div class="k">mechanical floor</div><div class="v" id="tFloor"></div><div class="x">label-shuffle null</div></div>
+      <div class="tile"><div class="k">permutation p</div><div class="v" id="tP"></div><div class="x" id="tPx"></div></div>
+      <div class="tile"><div class="k">communities</div><div class="v" id="tComm"></div><div class="x" id="tMod"></div></div>
+      <div class="tile"><div class="k">years covered</div><div class="v" id="tYears"></div><div class="x">from your log</div></div>
+    </div>
+
+    <details>
+      <summary>raw aggregate output (this is all a probe would ever share — no names, no timestamps)</summary>
+      <pre id="rawJson"></pre>
+    </details>
+  </div>
+
+  <div class="foot">
+    method: qualified plays = ms_played &ge; 30s with artist metadata &middot; sessions split on 30-min gaps &middot;
+    intent: tap = playbtn/clickrow/remote, algo = trackdone &amp; not shuffle &middot; partition = seeded louvain
+    (res 1.0) on your session co-occurrence graph &middot; floor = size-preserving community-label shuffle &middot;
+    a port of bridge_probe.py, self-contained, no dependencies.<br>
+    reference listener = <b style="color:var(--dim)">astralcrest</b> (sonicManifold). your louvain differs by design; magnitudes compare probe-vs-probe.
+  </div>
+</div>
+
+<script>
+/* bi_tool_core.js — pure-JS Bridge Index probe.
+ *
+ * A dependency-free port of bridge_probe.py. Runs identically in node (for
+ * unit testing against the reference export) and in the browser (the drop-a-file
+ * widget). No I/O, no network, no globals leaked — one factory that returns the
+ * algorithm. Everything the tool computes lives here.
+ *
+ * BI = (cross-community transition rate when YOU pick the next track)
+ *      / (cross-community transition rate when the ALGORITHM auto-advances)
+ *
+ * Definitions (qualification, session gap, intent labels) are copied verbatim
+ * from the reference bridge_probe.py, which itself copies them from the study's
+ * bridge_index.py. The community partition is a seeded inline Louvain over the
+ * subject's own session co-occurrence graph — same algorithm & resolution as the
+ * reference, minus networkx. Magnitudes are compared probe-vs-probe (each user
+ * computes their own BI + own label-shuffle floor), never against a fixed value.
+ */
+(function (root, factory) {
+  if (typeof module !== "undefined" && module.exports) module.exports = factory();
+  else root.BITool = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  var PROBE_VERSION = "bi_tool_core/1.0 (js port of bridge_probe/1.0)";
+
+  var DEFAULTS = {
+    TAP: ["playbtn", "clickrow", "remote"], // listener-initiated
+    SESSION_GAP_S: 30 * 60, // 30-min gap closes a session
+    MS_PLAYED_MIN: 30000, // qualified play threshold
+    COOC_WINDOW: 5, // session co-occurrence context window
+    MIN_COMM_SIZE: 5, // communities smaller than this dropped from scoring
+    N_SHUFFLES: 200, // size-preserving label shuffles (mechanical floor)
+    N_BOOT: 1000, // session-block bootstrap resamples
+    MIN_PLAYS: 5000, // refuse below this: estimates too unstable
+    SEED: 1234,
+    RESOLUTION: 1.0,
+  };
+
+  // ---- seeded RNG (mulberry32) — deterministic given SEED -------------------
+  function makeRng(seed) {
+    var a = seed >>> 0;
+    function rand() {
+      a |= 0;
+      a = (a + 0x6d2b79f5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+    return {
+      random: rand,
+      // int in [0, n)
+      int: function (n) {
+        return (rand() * n) | 0;
+      },
+      // Fisher-Yates of arange(n) -> Int32Array
+      permutation: function (n) {
+        var arr = new Int32Array(n);
+        for (var i = 0; i < n; i++) arr[i] = i;
+        for (var k = n - 1; k > 0; k--) {
+          var j = (rand() * (k + 1)) | 0;
+          var tmp = arr[k];
+          arr[k] = arr[j];
+          arr[j] = tmp;
+        }
+        return arr;
+      },
+      // Fisher-Yates shuffle of a numeric array in place; returns it
+      shuffleInPlace: function (arr) {
+        for (var k = arr.length - 1; k > 0; k--) {
+          var j = (rand() * (k + 1)) | 0;
+          var tmp = arr[k];
+          arr[k] = arr[j];
+          arr[j] = tmp;
+        }
+        return arr;
+      },
+    };
+  }
+
+  // ---- parse timestamp -> epoch seconds (UTC) -------------------------------
+  function parseTs(ts) {
+    // 'YYYY-MM-DDTHH:MM:SSZ' -> seconds. Mirrors bridge_probe.parse_ts.
+    return Date.parse(ts.slice(0, 19) + "Z") / 1000;
+  }
+
+  // ---- qualify + sort plays -------------------------------------------------
+  // entries: flat array of raw Spotify export rows. Returns
+  //   { rows: [[ts, artist, reason_start, shuffleBool], ...] sorted by ts,
+  //     n_raw, n_with_reason }
+  function qualify(entries, cfg) {
+    var rows = [];
+    var n_raw = 0;
+    var n_with_reason = 0;
+    for (var i = 0; i < entries.length; i++) {
+      var r = entries[i];
+      n_raw++;
+      if (r.reason_start) n_with_reason++;
+      if ((r.ms_played || 0) < cfg.MS_PLAYED_MIN) continue;
+      var uri = r.spotify_track_uri;
+      var art = r.master_metadata_album_artist_name;
+      if (!uri || !art) continue;
+      rows.push([r.ts, art, r.reason_start || null, !!r.shuffle]);
+    }
+    // ISO8601 'Z' sorts lexicographically == chronologically
+    rows.sort(function (x, y) {
+      return x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0;
+    });
+    return { rows: rows, n_raw: n_raw, n_with_reason: n_with_reason };
+  }
+
+  // ---- sessions + transitions ----------------------------------------------
+  // Returns { sessions: [[artistId,...], ...], trans: [[a,b,intent,sid], ...] }
+  // where intent is 'tap' | 'algo'. Mirrors bridge_probe.build_sessions_and_transitions.
+  function buildSessionsAndTransitions(rows, artistIds, cfg) {
+    var tapSet = {};
+    for (var t = 0; t < cfg.TAP.length; t++) tapSet[cfg.TAP[t]] = true;
+
+    var sessions = [];
+    var trans = [];
+    var prevArt = null;
+    var prevT = null;
+    var sid = -1;
+    var curSeq = [];
+
+    for (var i = 0; i < rows.length; i++) {
+      var ts = rows[i][0];
+      var art = rows[i][1];
+      var rs = rows[i][2];
+      var shuf = rows[i][3];
+      var tt = parseTs(ts);
+      var newSession = prevArt === null || tt - prevT > cfg.SESSION_GAP_S;
+      if (newSession) {
+        if (curSeq.length) sessions.push(curSeq);
+        curSeq = [];
+        sid += 1;
+      } else {
+        // intent of the TRANSITION = how the CURRENT (landing) track started
+        var intent = null;
+        if (tapSet[rs]) intent = "tap";
+        else if (rs === "trackdone" && !shuf) intent = "algo";
+        if (intent !== null) {
+          trans.push([artistIds[prevArt], artistIds[art], intent, sid]);
+        }
+      }
+      curSeq.push(artistIds[art]);
+      prevArt = art;
+      prevT = tt;
+    }
+    if (curSeq.length) sessions.push(curSeq);
+    return { sessions: sessions, trans: trans };
+  }
+
+  // ---- weighted co-occurrence graph -----------------------------------------
+  // sessions hold integer artist ids. Edge weight += 1/dist for artists within
+  // COOC_WINDOW positions. Returns array of [a, b, w] triples (a < b).
+  function buildCoocGraph(sessions, cfg, nArtists) {
+    // key = a * S + b (a < b), S = nArtists. Aggregate weights in a Map.
+    var S = nArtists;
+    var edges = new Map();
+    var W = cfg.COOC_WINDOW;
+    for (var s = 0; s < sessions.length; s++) {
+      var idx = sessions[s];
+      var n = idx.length;
+      for (var i = 0; i < n; i++) {
+        var ai = idx[i];
+        var dmax = i + W < n ? W : n - 1 - i;
+        for (var d = 1; d <= dmax; d++) {
+          var bj = idx[i + d];
+          if (ai === bj) continue;
+          var lo, hi;
+          if (ai < bj) {
+            lo = ai;
+            hi = bj;
+          } else {
+            lo = bj;
+            hi = ai;
+          }
+          var key = lo * S + hi;
+          edges.set(key, (edges.get(key) || 0) + 1.0 / d);
+        }
+      }
+    }
+    // decode to triples
+    var triples = [];
+    edges.forEach(function (w, key) {
+      var a = Math.floor(key / S);
+      var b = key - a * S;
+      triples.push([a, b, w]);
+    });
+    return triples;
+  }
+
+  // ---- one Louvain level ----------------------------------------------------
+  // edges: array of [a,b,w] (may contain self-loops a==b from aggregation).
+  // Returns { labels: Int32Array(n), improved: bool }.
+  function louvainLevel(n, edges, rng, resolution, maxPasses) {
+    maxPasses = maxPasses || 20;
+    var nbrsHead = new Int32Array(n).fill(-1); // adjacency as linked lists
+    // build neighbor arrays
+    var nbrs = new Array(n);
+    for (var i = 0; i < n; i++) nbrs[i] = [];
+    var strength = new Float64Array(n);
+    for (var e = 0; e < edges.length; e++) {
+      var a = edges[e][0],
+        b = edges[e][1],
+        w = edges[e][2];
+      if (a === b) {
+        strength[a] += 2.0 * w;
+      } else {
+        nbrs[a].push(b, w); // flat [node, weight, node, weight, ...]
+        nbrs[b].push(a, w);
+        strength[a] += w;
+        strength[b] += w;
+      }
+    }
+    var m2 = 0.0;
+    for (var s = 0; s < n; s++) m2 += strength[s];
+    var labels = new Int32Array(n);
+    for (var l = 0; l < n; l++) labels[l] = l;
+    if (m2 <= 0) return { labels: labels, improved: false };
+
+    var commTot = new Float64Array(n);
+    for (var c = 0; c < n; c++) commTot[c] = strength[c];
+    var improvedAny = false;
+
+    for (var pass = 0; pass < maxPasses; pass++) {
+      var moves = 0;
+      var order = rng.permutation(n);
+      for (var oi = 0; oi < n; oi++) {
+        var node = order[oi];
+        var ci = labels[node];
+        // gather weights to neighboring communities
+        var wcom = new Map();
+        var adj = nbrs[node];
+        for (var p = 0; p < adj.length; p += 2) {
+          var jc = labels[adj[p]];
+          wcom.set(jc, (wcom.get(jc) || 0) + adj[p + 1]);
+        }
+        commTot[ci] -= strength[node];
+        var bestC = ci;
+        var wci = wcom.get(ci) || 0;
+        var bestGain = wci - (resolution * strength[node] * commTot[ci]) / m2;
+        wcom.forEach(function (wc, cc) {
+          if (cc === ci) return;
+          var g = wc - (resolution * strength[node] * commTot[cc]) / m2;
+          if (g > bestGain + 1e-12) {
+            bestGain = g;
+            bestC = cc;
+          }
+        });
+        commTot[bestC] += strength[node];
+        if (bestC !== ci) {
+          labels[node] = bestC;
+          moves++;
+        }
+      }
+      if (moves === 0) break;
+      improvedAny = true;
+    }
+    return { labels: labels, improved: improvedAny };
+  }
+
+  // ---- full Louvain (levels + aggregation) ----------------------------------
+  // Returns Int32Array of community label per original node.
+  function louvain(nNodes, edges, rng, resolution, log) {
+    var orig = new Int32Array(nNodes);
+    for (var i = 0; i < nNodes; i++) orig[i] = i;
+    var curEdges = edges;
+    var curN = nNodes;
+    var level = 0;
+    var S = nNodes; // stride for aggregation keys (community ids < curN <= nNodes)
+    while (true) {
+      var res = louvainLevel(curN, curEdges, rng, resolution);
+      var labels = res.labels;
+      var improved = res.improved;
+      // compact-renumber labels
+      var compact = new Map();
+      for (var k = 0; k < labels.length; k++) {
+        var lv = labels[k];
+        if (!compact.has(lv)) compact.set(lv, compact.size);
+      }
+      var relabeled = new Int32Array(labels.length);
+      for (var k2 = 0; k2 < labels.length; k2++) relabeled[k2] = compact.get(labels[k2]);
+      // orig = relabeled[orig]
+      for (var o = 0; o < nNodes; o++) orig[o] = relabeled[orig[o]];
+      level += 1;
+      var nComm = compact.size;
+      if (log) log("  louvain level " + level + ": " + curN + " -> " + nComm + " communities");
+      if (!improved || nComm === curN) return orig;
+      // aggregate edges over communities
+      var agg = new Map();
+      for (var e = 0; e < curEdges.length; e++) {
+        var ca = relabeled[curEdges[e][0]];
+        var cb = relabeled[curEdges[e][1]];
+        var lo, hi;
+        if (ca <= cb) {
+          lo = ca;
+          hi = cb;
+        } else {
+          lo = cb;
+          hi = ca;
+        }
+        var key = lo * S + hi;
+        agg.set(key, (agg.get(key) || 0) + curEdges[e][2]);
+      }
+      var aggEdges = [];
+      agg.forEach(function (w, key) {
+        var a = Math.floor(key / S);
+        var b = key - a * S;
+        aggEdges.push([a, b, w]);
+      });
+      curEdges = aggEdges;
+      curN = nComm;
+    }
+  }
+
+  // ---- Newman weighted modularity -------------------------------------------
+  function modularity(labels, edges) {
+    var m = 0.0;
+    for (var e = 0; e < edges.length; e++) m += edges[e][2];
+    if (m <= 0) return 0.0;
+    var strength = new Map();
+    var wIn = new Map();
+    for (var i = 0; i < edges.length; i++) {
+      var a = edges[i][0],
+        b = edges[i][1],
+        w = edges[i][2];
+      strength.set(a, (strength.get(a) || 0) + w);
+      strength.set(b, (strength.get(b) || 0) + w);
+      if (labels[a] === labels[b]) {
+        var la = labels[a];
+        wIn.set(la, (wIn.get(la) || 0) + w);
+      }
+    }
+    var sTot = new Map();
+    strength.forEach(function (s, node) {
+      var c = labels[node];
+      sTot.set(c, (sTot.get(c) || 0) + s);
+    });
+    var q = 0.0;
+    sTot.forEach(function (st, c) {
+      q += (wIn.get(c) || 0) / m - Math.pow(st / (2.0 * m), 2);
+    });
+    return q;
+  }
+
+  function percentile(sortedArr, p) {
+    // linear-interpolation percentile on an already-sorted (asc) array
+    if (sortedArr.length === 0) return NaN;
+    var idx = (p / 100) * (sortedArr.length - 1);
+    var lo = Math.floor(idx),
+      hi = Math.ceil(idx);
+    if (lo === hi) return sortedArr[lo];
+    var frac = idx - lo;
+    return sortedArr[lo] * (1 - frac) + sortedArr[hi] * frac;
+  }
+
+  function nanmean(arr) {
+    var s = 0,
+      c = 0;
+    for (var i = 0; i < arr.length; i++)
+      if (!isNaN(arr[i])) {
+        s += arr[i];
+        c++;
+      }
+    return c ? s / c : NaN;
+  }
+
+  function nanstd(arr) {
+    var mu = nanmean(arr);
+    var s = 0,
+      c = 0;
+    for (var i = 0; i < arr.length; i++)
+      if (!isNaN(arr[i])) {
+        s += (arr[i] - mu) * (arr[i] - mu);
+        c++;
+      }
+    return c > 1 ? Math.sqrt(s / (c - 1)) : 0;
+  }
+
+  function nanPercentiles(arr, ps) {
+    var clean = [];
+    for (var i = 0; i < arr.length; i++) if (!isNaN(arr[i])) clean.push(arr[i]);
+    clean.sort(function (a, b) {
+      return a - b;
+    });
+    return ps.map(function (p) {
+      return percentile(clean, p);
+    });
+  }
+
+  var round = function (x, d) {
+    var f = Math.pow(10, d);
+    return Math.round(x * f) / f;
+  };
+
+  // ---- main entry -----------------------------------------------------------
+  // entries: flat array of raw export rows (Video files excluded upstream).
+  // opts: { onProgress(msg), overrides... }. Returns { ok, result } or { ok:false, error }.
+  function computeBI(entries, opts) {
+    opts = opts || {};
+    var cfg = {};
+    for (var k in DEFAULTS) cfg[k] = k in opts ? opts[k] : DEFAULTS[k];
+    var log = opts.onProgress || function () {};
+    var rng = makeRng(cfg.SEED);
+    var warnings = [];
+
+    var q = qualify(entries, cfg);
+    var rows = q.rows;
+
+    if (q.n_raw && q.n_with_reason / q.n_raw < 0.5) {
+      return {
+        ok: false,
+        error:
+          "your export appears to lack the 'reason_start' field (present on " +
+          Math.round((100 * q.n_with_reason) / q.n_raw) +
+          "% of rows). Without it the probe can't separate your picks from autoplay.",
+      };
+    }
+    if (rows.length < cfg.MIN_PLAYS) {
+      return {
+        ok: false,
+        error:
+          "only " +
+          rows.length +
+          " qualified plays (>=30s with artist metadata); the probe needs at least " +
+          cfg.MIN_PLAYS +
+          " for a stable estimate.",
+      };
+    }
+
+    var nPlays = rows.length;
+    var years = [parseInt(rows[0][0].slice(0, 4), 10), parseInt(rows[rows.length - 1][0].slice(0, 4), 10)];
+
+    // artist id map
+    var artistSet = {};
+    for (var i = 0; i < rows.length; i++) artistSet[rows[i][1]] = true;
+    var artists = Object.keys(artistSet).sort();
+    var artistIds = {};
+    for (var ai = 0; ai < artists.length; ai++) artistIds[artists[ai]] = ai;
+    var nArtists = artists.length;
+
+    // tap-play share (over plays, not transitions)
+    var tapSet = {};
+    for (var tt = 0; tt < cfg.TAP.length; tt++) tapSet[cfg.TAP[tt]] = true;
+    var nTapPlays = 0;
+    for (var r = 0; r < rows.length; r++) if (tapSet[rows[r][2]]) nTapPlays++;
+    var pctDeliberate = nTapPlays / nPlays;
+
+    log("building sessions + transitions...");
+    var st = buildSessionsAndTransitions(rows, artistIds, cfg);
+    var sessions = st.sessions;
+    var trans = st.trans;
+    var nSessions = sessions.length;
+    var nTapTrans = 0,
+      nAlgoTrans = 0;
+    for (var ti = 0; ti < trans.length; ti++) trans[ti][2] === "tap" ? nTapTrans++ : nAlgoTrans++;
+    log(
+      "qualified plays=" + nPlays + " sessions=" + nSessions + " artists=" + nArtists +
+        " transitions (tap=" + nTapTrans + " algo=" + nAlgoTrans + ")"
+    );
+
+    log("building co-occurrence graph...");
+    var edges = buildCoocGraph(sessions, cfg, nArtists);
+    log("  " + nArtists + " artists, " + edges.length + " weighted edges");
+
+    log("partitioning (seeded Louvain)...");
+    var labels = louvain(nArtists, edges, rng, cfg.RESOLUTION, log);
+    var qMod = modularity(labels, edges);
+
+    // community sizes -> keep those with >= MIN_COMM_SIZE
+    var sizes = new Map();
+    for (var lidx = 0; lidx < labels.length; lidx++)
+      sizes.set(labels[lidx], (sizes.get(labels[lidx]) || 0) + 1);
+    var nCommRaw = sizes.size;
+    var kept = new Set();
+    sizes.forEach(function (sz, lab) {
+      if (sz >= cfg.MIN_COMM_SIZE) kept.add(lab);
+    });
+    log(
+      "  communities: " + nCommRaw + " raw -> " + kept.size + " with >=" + cfg.MIN_COMM_SIZE +
+        " artists (modularity " + round(qMod, 3) + ")"
+    );
+    if (kept.size < 2) {
+      return {
+        ok: false,
+        error: "the co-occurrence graph collapsed into a single community — cross-community rates are undefined on this log.",
+      };
+    }
+
+    // label vector over kept nodes only (others = -1, excluded)
+    var labVec = new Int32Array(nArtists).fill(-1);
+    for (var nv = 0; nv < nArtists; nv++) if (kept.has(labels[nv])) labVec[nv] = labels[nv];
+
+    // observed BI: both endpoints must be in a kept community; cross = labels differ
+    var tapA = [],
+      tapB = [],
+      tapSid = [];
+    var algoA = [],
+      algoB = [],
+      algoSid = [];
+    var nClass = 0;
+    for (var tr = 0; tr < trans.length; tr++) {
+      nClass++;
+      var ia = trans[tr][0],
+        ib = trans[tr][1],
+        intent = trans[tr][2],
+        sid = trans[tr][3];
+      if (labVec[ia] < 0 || labVec[ib] < 0) continue;
+      if (intent === "tap") {
+        tapA.push(ia);
+        tapB.push(ib);
+        tapSid.push(sid);
+      } else {
+        algoA.push(ia);
+        algoB.push(ib);
+        algoSid.push(sid);
+      }
+    }
+    if (tapA.length === 0 || algoA.length === 0) {
+      return { ok: false, error: "no usable tap and/or autoplay transitions after partitioning." };
+    }
+    if (tapA.length < 500)
+      warnings.push("fewer than 500 deliberate (tap) transitions — expect a wide confidence interval");
+
+    // cross indicators
+    var tapCross = new Float64Array(tapA.length);
+    var tapCrossSum = 0;
+    for (var t1 = 0; t1 < tapA.length; t1++) {
+      var c1 = labVec[tapA[t1]] !== labVec[tapB[t1]] ? 1 : 0;
+      tapCross[t1] = c1;
+      tapCrossSum += c1;
+    }
+    var algoCross = new Float64Array(algoA.length);
+    var algoCrossSum = 0;
+    for (var a1 = 0; a1 < algoA.length; a1++) {
+      var c2 = labVec[algoA[a1]] !== labVec[algoB[a1]] ? 1 : 0;
+      algoCross[a1] = c2;
+      algoCrossSum += c2;
+    }
+    var tapRate = tapCrossSum / tapA.length;
+    var algoRate = algoCrossSum / algoA.length;
+    if (algoRate <= 0) return { ok: false, error: "autoplay cross-community rate is zero — BI undefined." };
+    var biObs = tapRate / algoRate;
+    var coverage = (tapA.length + algoA.length) / Math.max(nClass, 1);
+
+    // ---- mechanical floor: size-preserving label shuffles -------------------
+    log("label-shuffle floor (" + cfg.N_SHUFFLES + " shuffles)...");
+    // partitioned nodes, compact positions
+    var partNodes = [];
+    for (var pn = 0; pn < nArtists; pn++) if (labVec[pn] >= 0) partNodes.push(pn);
+    var nodePos = new Int32Array(nArtists).fill(-1);
+    for (var pp = 0; pp < partNodes.length; pp++) nodePos[partNodes[pp]] = pp;
+    var baseLabs = new Int32Array(partNodes.length);
+    for (var bl = 0; bl < partNodes.length; bl++) baseLabs[bl] = labVec[partNodes[bl]];
+    // remap transition endpoints into compact index space
+    var taC = new Int32Array(tapA.length),
+      tbC = new Int32Array(tapA.length);
+    for (var tc = 0; tc < tapA.length; tc++) {
+      taC[tc] = nodePos[tapA[tc]];
+      tbC[tc] = nodePos[tapB[tc]];
+    }
+    var aaC = new Int32Array(algoA.length),
+      abC = new Int32Array(algoA.length);
+    for (var ac = 0; ac < algoA.length; ac++) {
+      aaC[ac] = nodePos[algoA[ac]];
+      abC[ac] = nodePos[algoB[ac]];
+    }
+    var nullBi = new Float64Array(cfg.N_SHUFFLES);
+    var pl = Int32Array.from(baseLabs);
+    for (var sh = 0; sh < cfg.N_SHUFFLES; sh++) {
+      rng.shuffleInPlace(pl);
+      var tSum = 0;
+      for (var q1 = 0; q1 < taC.length; q1++) if (pl[taC[q1]] !== pl[tbC[q1]]) tSum++;
+      var aSum = 0;
+      for (var q2 = 0; q2 < aaC.length; q2++) if (pl[aaC[q2]] !== pl[abC[q2]]) aSum++;
+      var tR = tSum / taC.length;
+      var aR = aSum / aaC.length;
+      nullBi[sh] = aR > 0 ? tR / aR : NaN;
+    }
+    var floorMean = nanmean(nullBi);
+    var floorCi = nanPercentiles(nullBi, [2.5, 97.5]);
+    var nullStd = nanstd(nullBi);
+    if (!(nullStd > 0)) warnings.push("degenerate permutation null (std=0) — p_perm unreliable");
+    // one-sided permutation p: fraction of shuffles with BI >= observed
+    var geq = 0;
+    for (var g = 0; g < nullBi.length; g++) if (nullBi[g] >= biObs) geq++;
+    var pPerm = (geq + 1) / (cfg.N_SHUFFLES + 1);
+
+    // ---- 95% CI: session-block bootstrap ------------------------------------
+    log("session-block bootstrap (" + cfg.N_BOOT + " resamples)...");
+    // unique session ids present in transitions
+    var sidPos = new Map();
+    var allSids = [];
+    function noteSid(s) {
+      if (!sidPos.has(s)) {
+        sidPos.set(s, allSids.length);
+        allSids.push(s);
+      }
+    }
+    for (var ss1 = 0; ss1 < tapSid.length; ss1++) noteSid(tapSid[ss1]);
+    for (var ss2 = 0; ss2 < algoSid.length; ss2++) noteSid(algoSid[ss2]);
+    var S = allSids.length;
+    // per-session accumulators [tap_n, tap_cross, algo_n, algo_cross]
+    var perSess = new Float64Array(S * 4);
+    for (var ps1 = 0; ps1 < tapSid.length; ps1++) {
+      var kk = sidPos.get(tapSid[ps1]) * 4;
+      perSess[kk] += 1;
+      perSess[kk + 1] += tapCross[ps1];
+    }
+    for (var ps2 = 0; ps2 < algoSid.length; ps2++) {
+      var kk2 = sidPos.get(algoSid[ps2]) * 4;
+      perSess[kk2 + 2] += 1;
+      perSess[kk2 + 3] += algoCross[ps2];
+    }
+    var boot = new Float64Array(cfg.N_BOOT);
+    for (var bi = 0; bi < cfg.N_BOOT; bi++) {
+      var m0 = 0,
+        m1 = 0,
+        m2b = 0,
+        m3 = 0;
+      for (var bb = 0; bb < S; bb++) {
+        var pick = rng.int(S) * 4;
+        m0 += perSess[pick];
+        m1 += perSess[pick + 1];
+        m2b += perSess[pick + 2];
+        m3 += perSess[pick + 3];
+      }
+      boot[bi] = m0 > 0 && m2b > 0 && m3 > 0 ? m1 / m0 / (m3 / m2b) : NaN;
+    }
+    var biCi = nanPercentiles(boot, [2.5, 97.5]);
+
+    var result = {
+      script_version: PROBE_VERSION,
+      params: {
+        seed: cfg.SEED,
+        ms_played_min: cfg.MS_PLAYED_MIN,
+        session_gap_min: cfg.SESSION_GAP_S / 60,
+        cooc_window: cfg.COOC_WINDOW,
+        min_community_size: cfg.MIN_COMM_SIZE,
+        n_shuffles: cfg.N_SHUFFLES,
+        n_boot: cfg.N_BOOT,
+      },
+      n_plays: nPlays,
+      n_sessions: nSessions,
+      n_artists_rounded: Math.round(nArtists / 100) * 100,
+      date_range_years: [years[0], years[1]],
+      pct_deliberate: round(pctDeliberate, 4),
+      n_tap_transitions: tapA.length,
+      n_algo_transitions: algoA.length,
+      tap_cross_rate: round(tapRate, 4),
+      algo_cross_rate: round(algoRate, 4),
+      BI: round(biObs, 4),
+      BI_CI95: [round(biCi[0], 4), round(biCi[1], 4)],
+      floor_mean: round(floorMean, 4),
+      floor_CI95: [round(floorCi[0], 4), round(floorCi[1], 4)],
+      p_perm: round(pPerm, 6),
+      partition_stats: {
+        n_communities: kept.size,
+        n_communities_raw: nCommRaw,
+        modularity: round(qMod, 4),
+        pct_transitions_covered: round(coverage, 4),
+      },
+      warnings: warnings,
+    };
+    log(
+      "DONE. BI=" + round(biObs, 3) + " [" + round(biCi[0], 3) + ", " + round(biCi[1], 3) +
+        "], mechanical floor " + round(floorMean, 3) + ", p_perm=" + pPerm
+    );
+    return { ok: true, result: result };
+  }
+
+  return {
+    VERSION: PROBE_VERSION,
+    DEFAULTS: DEFAULTS,
+    computeBI: computeBI,
+    // exposed for unit tests
+    _internal: {
+      makeRng: makeRng,
+      parseTs: parseTs,
+      qualify: qualify,
+      buildSessionsAndTransitions: buildSessionsAndTransitions,
+      buildCoocGraph: buildCoocGraph,
+      louvain: louvain,
+      modularity: modularity,
+    },
+  };
+});
+
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var picker=document.getElementById("picker"), drop=document.getElementById("drop"),
+      go=document.getElementById("go"), statusEl=document.getElementById("status"),
+      filesEl=document.getElementById("files"), logEl=document.getElementById("log"),
+      errEl=document.getElementById("err"), results=document.getElementById("results");
+  var chosen=[]; // {name, file}
+
+  function fmtInt(n){ return n.toLocaleString("en-US"); }
+  function pct(x){ return (x*100).toFixed(1)+"%"; }
+
+  function showFiles(){
+    if(!chosen.length){ filesEl.innerHTML=""; go.disabled=true; return; }
+    var audio=chosen.filter(function(c){return !/video/i.test(c.name);});
+    var skipped=chosen.length-audio.length;
+    var html="<div>"+audio.length+" file(s) staged"+(skipped?(" &middot; "+skipped+" video file(s) ignored"):"")+"</div><ul>";
+    audio.forEach(function(c){ html+="<li>"+c.name+"</li>"; });
+    filesEl.innerHTML=html+"</ul>";
+    go.disabled = audio.length===0;
+  }
+
+  function addFiles(fileList){
+    for(var i=0;i<fileList.length;i++){
+      var f=fileList[i];
+      if(!/\.json$/i.test(f.name)) continue;
+      chosen.push({name:f.name,file:f});
+    }
+    showFiles();
+  }
+
+  picker.addEventListener("change",function(e){ chosen=[]; addFiles(e.target.files); });
+  ["dragenter","dragover"].forEach(function(ev){
+    drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.add("hot"); });
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.remove("hot"); });
+  });
+  drop.addEventListener("drop",function(e){
+    chosen=[];
+    if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+  });
+
+  function readFile(file){
+    return new Promise(function(resolve,reject){
+      var r=new FileReader();
+      r.onload=function(){ resolve(r.result); };
+      r.onerror=function(){ reject(new Error("could not read "+file.name)); };
+      r.readAsText(file);
+    });
+  }
+
+  function log(msg){ logEl.textContent += msg+"\n"; logEl.scrollTop=logEl.scrollHeight; }
+
+  go.addEventListener("click",function(){
+    errEl.classList.remove("show"); errEl.textContent="";
+    results.classList.remove("show");
+    logEl.textContent=""; logEl.classList.add("show");
+    go.disabled=true; picker.disabled=true;
+    statusEl.textContent="reading files…";
+
+    var audio=chosen.filter(function(c){return !/video/i.test(c.name);});
+    var entries=[];
+    var chain=Promise.resolve();
+    audio.forEach(function(c){
+      chain=chain.then(function(){
+        return readFile(c.file).then(function(txt){
+          var data;
+          try{ data=JSON.parse(txt); }
+          catch(e){ throw new Error("could not parse "+c.name+" ("+e.message+")"); }
+          if(!Array.isArray(data)) throw new Error(c.name+" is not a Spotify history array");
+          log("read "+c.name+" ("+fmtInt(data.length)+" rows)");
+          for(var i=0;i<data.length;i++) entries.push(data[i]);
+          txt=null; data=null; // release
+        });
+      });
+    });
+
+    chain.then(function(){
+      statusEl.textContent="computing… (a few seconds on a large export)";
+      // defer so the status paints before the synchronous crunch
+      return new Promise(function(res){ setTimeout(res,30); });
+    }).then(function(){
+      var out=BITool.computeBI(entries,{ onProgress:log, N_SHUFFLES:200, N_BOOT:1000 });
+      entries=null;
+      if(!out.ok){
+        statusEl.textContent="";
+        errEl.textContent="couldn't compute: "+out.error;
+        errEl.classList.add("show");
+        go.disabled=false; picker.disabled=false;
+        return;
+      }
+      render(out.result);
+      statusEl.textContent="done — nothing was sent.";
+      go.disabled=false; picker.disabled=false;
+    }).catch(function(e){
+      statusEl.textContent="";
+      errEl.textContent=e.message||String(e);
+      errEl.classList.add("show");
+      go.disabled=false; picker.disabled=false;
+    });
+  });
+
+  function render(r){
+    document.getElementById("biNum").textContent=r.BI.toFixed(2)+"×";
+    document.getElementById("biCi").textContent="95% ci ["+r.BI_CI95[0].toFixed(2)+", "+r.BI_CI95[1].toFixed(2)+"]";
+
+    var v=document.getElementById("verdict");
+    var clears = r.BI > r.floor_CI95[1];
+    v.innerHTML = clears
+      ? "you cross listening communities <span class='bi'>"+r.BI.toFixed(1)+"×</span> more when you steer than your algorithm does — clearing the <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> mechanical floor."
+      : "your bridge index is <span class='bi'>"+r.BI.toFixed(2)+"×</span>, which does <b>not</b> clear its <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> shuffle floor — no bridge signal on this log.";
+
+    document.getElementById("refline").innerHTML =
+      "the reference listener <b>astralcrest</b> sits at bi &asymp; <b>1.9</b>. "+
+      (r.BI>=1.8 ? "you steer about as hard." : r.BI>=1.3 ? "you steer, but a touch less." : r.BI>1 ? "you steer more than your algorithm, but gently." : "your algorithm bridges as much as you do.");
+
+    var tapW=Math.min(100,r.tap_cross_rate*100), algoW=Math.min(100,r.algo_cross_rate*100);
+    document.getElementById("tapBar").style.width=tapW+"%";
+    document.getElementById("algoBar").style.width=algoW+"%";
+    document.getElementById("tapPct").textContent="— "+pct(r.tap_cross_rate)+" cross communities";
+    document.getElementById("algoPct").textContent="— "+pct(r.algo_cross_rate)+" cross communities";
+
+    document.getElementById("tPlays").textContent=fmtInt(r.n_plays);
+    document.getElementById("tSess").textContent=fmtInt(r.n_sessions);
+    document.getElementById("tTap").textContent=pct(r.tap_cross_rate);
+    document.getElementById("tTapN").textContent=fmtInt(r.n_tap_transitions)+" transitions";
+    document.getElementById("tAlgo").textContent=pct(r.algo_cross_rate);
+    document.getElementById("tAlgoN").textContent=fmtInt(r.n_algo_transitions)+" transitions";
+    document.getElementById("tFloor").textContent=r.floor_mean.toFixed(2)+"×";
+    document.getElementById("tP").textContent=r.p_perm<0.005?"<0.005":r.p_perm.toFixed(3);
+    document.getElementById("tPx").textContent="of "+r.params.n_shuffles+" shuffles";
+    document.getElementById("tComm").textContent=r.partition_stats.n_communities;
+    document.getElementById("tMod").textContent="Q = "+r.partition_stats.modularity.toFixed(2);
+    document.getElementById("tYears").textContent=r.date_range_years[0]+"–"+r.date_range_years[1];
+
+    document.getElementById("rawJson").textContent=JSON.stringify(r,null,2);
+    results.classList.add("show");
+    results.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+})();
+</script>
+</body>
+</html>
