@@ -15,7 +15,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="build-stamp" content="2026-07-06 00:55Z">
+<meta name="build-stamp" content="2026-07-06 07:01Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -16820,15 +16820,17 @@ document.addEventListener('click',function(e){
           cl=document.getElementById('creation-loop'),
           a8=document.getElementById('act-8');
       // v1 moves
-      if(g && a5 && a5.parentNode===g.parentNode) moveBefore([g], a5);
+      if(g && g.parentNode && g.parentNode.lastElementChild!==g) g.parentNode.appendChild(g); // graveyard = final coda
       if(a3 && a2 && a4 && a3.parentNode===a2.parentNode) moveBefore(clusterOf(a3,['act-4']), a2);
       if(vs && suno && !window.__fableSuno && vs.parentNode===suno.parentNode){
         var anchor=vs.nextElementSibling;
         if(anchor){ moveBefore([suno, cl].filter(Boolean), anchor); window.__fableSuno=true; }
       } else if(a8 && suno && !window.__fableSuno){ moveBefore([suno, cl].filter(Boolean), a8); window.__fableSuno=true; }
-      // v2: catchy gradient — voice/maker cluster then body, topology last of the acts
+      // v2: catchy gradient — voice/maker cluster then body; where-this-goes closes the acts
       if(a6 && a5 && a6.parentNode===a5.parentNode) moveBefore(clusterOf(a6,['act-7']), a5);
       if(a7 && a6 && a7.parentNode===a6.parentNode) moveBefore(clusterOf(a7,['act-8']), a6);
+      // closer: WHERE THIS GOES (act-8) ends the acts; TOPOLOGY (act-5) precedes it.
+      if(a5 && a8 && a5.parentNode===a8.parentNode && (a8.compareDocumentPosition(a5) & 4)){ a8.parentNode.insertBefore(a5, a8); }
       // credits/PGP footer must end the page in every view
       // (glossary relocates to body-level after <main>, so append to BODY, re-assert on bounded timers)
       try{
