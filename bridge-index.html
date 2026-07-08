@@ -909,12 +909,17 @@
     for(var i=0;i<fileList.length;i++){
       var f=fileList[i];
       if(!/\.json$/i.test(f.name)) continue;
-      chosen.push({name:f.name,file:f});
+      var key=f.name+"|"+f.size;
+      var dup=false;
+      for(var j=0;j<chosen.length;j++){ if(chosen[j].key===key){ dup=true; break; } }
+      if(dup) continue;
+      chosen.push({name:f.name,file:f,key:key});
     }
     showFiles();
   }
 
-  picker.addEventListener("change",function(e){ chosen=[]; addFiles(e.target.files); });
+  // accumulate across picks (mobile pickers often return one batch at a time)
+  picker.addEventListener("change",function(e){ addFiles(e.target.files); });
   ["dragenter","dragover"].forEach(function(ev){
     drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.add("hot"); });
   });
@@ -922,16 +927,24 @@
     drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.remove("hot"); });
   });
   drop.addEventListener("drop",function(e){
-    chosen=[];
     if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
   });
 
   function readFile(file){
-    return new Promise(function(resolve,reject){
-      var r=new FileReader();
-      r.onload=function(){ resolve(r.result); };
-      r.onerror=function(){ reject(new Error("could not read "+file.name)); };
-      r.readAsText(file);
+    function once(){
+      return new Promise(function(resolve,reject){
+        var r=new FileReader();
+        r.onload=function(){ resolve(r.result); };
+        r.onerror=function(){
+          var why=(r.error&&r.error.name)?(" ("+r.error.name+")"):"";
+          reject(new Error("could not read "+file.name+why));
+        };
+        r.readAsText(file);
+      });
+    }
+    // one silent retry — transient provider (iCloud/Drive) reads often succeed second time
+    return once().catch(function(){
+      return new Promise(function(res){ setTimeout(res,350); }).then(once);
     });
   }
 
@@ -946,6 +959,7 @@
 
     var audio=chosen.filter(function(c){return !/video/i.test(c.name);});
     var entries=[];
+    var failed=[];
     var chain=Promise.resolve();
     audio.forEach(function(c){
       chain=chain.then(function(){
@@ -957,11 +971,21 @@
           log("read "+c.name+" ("+fmtInt(data.length)+" rows)");
           for(var i=0;i<data.length;i++) entries.push(data[i]);
           txt=null; data=null; // release
+        }).catch(function(e){
+          // one bad file must not kill the run — skip it, keep the rest
+          failed.push(c.name);
+          log("skipped "+c.name+" — "+(e.message||e));
         });
       });
     });
 
     chain.then(function(){
+      if(!entries.length){
+        throw new Error("none of the files could be read. most common cause: the files are cloud placeholders (iCloud / Google Drive) or still inside the zip — download them fully to the device, unzip, then re-add.");
+      }
+      if(failed.length){
+        log(failed.length+" file(s) skipped — result covers the readable "+ (audio.length-failed.length) +" file(s) only.");
+      }
       statusEl.textContent="computing… (a few seconds on a large export)";
       // defer so the status paints before the synchronous crunch
       return new Promise(function(res){ setTimeout(res,30); });
