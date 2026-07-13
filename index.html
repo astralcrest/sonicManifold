@@ -15,7 +15,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="build-stamp" content="2026-07-13 01:16Z">
+<meta name="build-stamp" content="2026-07-13 06:27Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -392,7 +392,7 @@ if(document.readyState!=='loading')boot();else document.addEventListener('DOMCon
   function dismiss(withSound){
     try{ sessionStorage.setItem('sm-entered','1'); }catch(e){}
     if(withSound){
-      try{ window.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
+      try{ window.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){} try{ document.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
       var p=document.getElementById('aux-play'); if(p){ try{ p.click(); }catch(e){} }
     }
     ov.classList.add('sme-out');
@@ -801,7 +801,962 @@ document.addEventListener('DOMContentLoaded', function () {
 })();
 </script>
 <!--CYBER-NAV-MOBILE-END-->
+<!--SELFHOSTED-AUDIO-START-->
+<style>#sh-bg{position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden}</style>
+<script id="sh-tracks" type="application/json">[{"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A", "bpm": 129.2, "b0": 2.02, "min": 2.09, "dur": 215.36}, {"src": "audio/bed/lizard-in-the-sun.mp3", "t": "Lizard in the Sun", "a": "astralcrest", "k": "3B", "bpm": 112.35, "b0": 4.319, "min": 4.41, "dur": 196.24}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A", "bpm": 107.67, "b0": 0.673, "min": 0.65, "dur": 187.44}, {"src": "audio/bed/tryin.mp3", "t": "Tryin'", "a": "astralcrest", "k": "6A", "bpm": 172.27, "b0": 18.135, "min": 18.44, "dur": 207.04}, {"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "2A", "bpm": 129.2, "b0": 7.105, "min": 7.34, "dur": 195.4}, {"src": "audio/bed/choose-me-whole.mp3", "t": "Choose Me Whole", "a": "astralcrest", "k": "6A", "bpm": 123.05, "b0": 0.023, "min": 0.51, "dur": 258.44}, {"src": "audio/bed/hitting-the-infinite-derivative.mp3", "t": "Hitting the Infinite Derivative", "a": "astralcrest", "k": "11A", "bpm": 66.26, "b0": 0.0, "min": 0.05, "dur": 130.88}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B", "bpm": 112.35, "b0": 0.0, "min": 0.28, "dur": 479.4}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B", "bpm": 99.38, "b0": 0.209, "min": 0.19, "dur": 264.48}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A", "bpm": 129.2, "b0": 0.046, "min": 0.46, "dur": 83.4}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A", "bpm": 129.2, "b0": 0.07, "min": 0.51, "dur": 181.56}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares", "bpm": 129.2, "b0": 0.139, "min": 0.51, "dur": 479.4}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A", "bpm": 112.35, "b0": 1.3, "min": 1.53, "dur": 166.08}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B", "bpm": 117.45, "b0": 1.695, "min": 1.86, "dur": 479.4}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A", "bpm": 143.55, "b0": 0.836, "min": 1.21, "dur": 218.0}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B", "bpm": 161.5, "b0": 0.07, "min": 0.05, "dur": 203.92}, {"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A", "bpm": 136.0, "b0": 0.209, "min": 0.23, "dur": 286.4}, {"src": "audio/bed/cant-resist-the-bite.mp3", "t": "Can't Resist the Bite", "a": "astralcrest", "k": "4B", "bpm": 68.0, "b0": 0.906, "min": 0.65, "dur": 187.64}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A", "bpm": 129.2, "b0": 1.881, "min": 2.28, "dur": 206.48}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.44, "min": 1.58, "dur": 237.56}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B", "bpm": 99.38, "b0": 0.046, "min": 0.33, "dur": 177.72}]</script>
+<div id="sh-bg" aria-hidden="true">
+  <audio id="sh-a" preload="none"></audio>
+  <audio id="sh-b" preload="none"></audio>
+</div>
+<script>
+(function () {
+  'use strict';
+  var tracks = [];
+  try { tracks = JSON.parse(document.getElementById('sh-tracks').textContent); } catch (e) {}
+  if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
+  window.__preferSelfHosted = true;                          // SoundCloud player stands down
+  /* FABLE-DJ2-ORDER — ?order=b ear-test variant: slots 1-2 swapped (bite first, helly second; default is helly-first).
+     The DOM JSON is rewritten too, so every lazy consumer (featured bedIndexOf, Camelot hover
+     decoder, sonify rekey) shares the same index space as the engine. */
+  try {
+    if (/[?&]order=b(?:&|#|$)/i.test(location.search) && tracks.length > 1) {
+      var _sw = tracks[0]; tracks[0] = tracks[1]; tracks[1] = _sw;
+      try { document.getElementById('sh-tracks').textContent = JSON.stringify(tracks); } catch (e) {}
+      try { console.log('[dj2] ORDER B active (bite opener) — slots 1-2 swapped'); } catch (e) {}
+    }
+  } catch (e) {}
+  // PHONE: the heavy Web-Audio DJ graph (convolution reverb + 2 decks + echo) starves mobile
+  // -> "super slow" + buffer-underrun warble; the tape-stop playbackRate ramp (preservesPitch=false)
+  // is the audible pitch-drop. On phones use the light <audio> volume-crossfade path instead.
+  var isPhone = /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent||'') || (Math.min(screen.width||9999, screen.height||9999) <= 500);
 
+  // ---- tuning ------------------------------------------------------------
+  // GFULL = unity deck gain. The bed's BACKGROUND LEVEL is owned by the separate
+  // APPLE-AUDIOUX layer (it tweens #sh-a/#sh-b el.volume to ~0.5 and stands down
+  // during our crossfade via __bedCrossing). So we drive WA gain at UNITY and match
+  // both decks to that external el.volume — the equal-power blend never pumps.
+  var GFULL = 1.0;
+  var FADE_MS = 3800;                              // dissolve begins this long before a track's natural end
+  var XF_BASE = 3200, XF_CLASH = 3700, XF_SKIP = 2600;     // dissolve durations (ms)
+  var LP_FLOOR = 760, LP_CLASH = 460;              // outgoing lowpass dive target (Hz)
+  var HP_IN = 240;                                 // incoming highpass riser entry (Hz)
+  var BASS_KILL = -26, BASS_FULL = 0;              // lowshelf gain (dB)
+  /* FABLE-DJ2 tuning — key-adaptive dissolve + beat-quantized onset + synthesized riser */
+  var DJ2 = {
+    MATCH_DUR: 0.65, CLASH_DUR: 1.40,    // dissolve length vs base: same/adjacent key vs clash
+    MATCH_LP: 950,   CLASH_LP: 210,      // outgoing lowpass dive target (Hz): brighter vs deeper
+    MATCH_ECHO: 0.42, CLASH_ECHO: 0.74,  // echo-send ceilings (x bed level)
+    MATCH_VERB: 0.36, CLASH_VERB: 0.62,  // reverb-send ceilings
+    BASE_FB: 0.40,   CLASH_FB: 0.56,     // echo feedback (regen) — restored after every swap
+    BAR_MAX_S: 1.2,                      // onset quantize: next bar if this close, else next beat
+    RISER_MIN: 1.0,  RISER_MAX: 2.0      // riser length bounds (s); crest = the incoming's entry
+  };
+  /* FABLE-DJ4 tuning — stutter-roll · echo-throw · brake/spin-up (unchanged
+     from DJ3) + backspin · filter-flutter · chop-in · filter-bloom (new).
+     `DJ3` is aliased to this SAME object so every pre-existing DJ3.* read
+     below keeps working verbatim — nothing else in the file needed to change. */
+  var DJ4 = {
+    ROLL_BARS: 2, ROLL_BARS_SKIP: 1,     // natural end gates the final 2 bars; skip gates 1 (responsive)
+    ROLL_DUTY: 0.62, ROLL_HP: 950,       // chop on-fraction; rising-highpass sweep target (Hz)
+    ECHO_FB: 0.65, ECHO_DUCK_MS: 120, ECHO_TAIL_S: 1.7,
+    BRAKE_MS: 700, SPIN_MS: 280, SPIN_R0: 0.55, GAP_MS: 130,   // spin-up kept SHORT (<300 ms) per owner — no long pitch-up
+    END_PAD_S: 0.30,                     // roll ends this early so the cut beats the file running out
+    // -- new in DJ4 --
+    BACKSPIN_CAP_S: 1.1, BACKSPIN_LEAD_MS: 2000,               // target capture window + pre-anchor runway (best-effort; short skips get less)
+    BACKSPIN_FLOURISH_S: 0.65, BACKSPIN_HP_LO: 300, BACKSPIN_HP_HI: 2500,
+    BACKSPIN_SILENCE_RMS: 0.004, BACKSPIN_MIN_S: 0.15,         // below either -> degrade to brake
+    FLUTTER_LO: 350, FLUTTER_HI: 4000, FLUTTER_MAX_S: 2.2,     // LP wobble bounds + hard cap on the final-bar runway
+    CHOP_DUTY: 0.55,
+    BLOOM_LP_LO: 240, BLOOM_LP_HI: 16000
+  };
+  var DJ3 = DJ4;   // FABLE-DJ4: alias — keeps every existing DJ3.* reference working unchanged
+
+  // ---- elements / state --------------------------------------------------
+  var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
+  if (!els.a || !els.b) return;
+  ['a','b'].forEach(function (d) {
+    try { els[d].preservesPitch = false; els[d].mozPreservesPitch = false; els[d].webkitPreservesPitch = false; } catch (e) {}
+  });
+  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false;
+  var volRamps = { a: null, b: null }, swapT = null, gen = 0, skipLock = false;
+  var fxT = null, curRiser = null;                 /* FABLE-DJ2: quantized-dissolve timer + live riser handle */
+  var dj3T = [], dj3Spin = null;                   /* FABLE-DJ3: per-character timers + varispeed interval */
+  var dj4Cap = null, dj4Flourish = null, dj4Flutter = null;   /* FABLE-DJ4: backspin capture tap / playback nodes + flutter LFO handle */
+  var dj4WorkletOK = false, dj4WorkletP = null;    /* FABLE-DJ4: lazy one-time AudioWorklet module registration */
+  var nowEl = document.getElementById('sc-now'), nowLabel = document.getElementById('sc-now-label'), nowSkip = document.getElementById('sc-now-skip');
+  function other(d) { return d === 'a' ? 'b' : 'a'; }
+  function T(qi) { return tracks[((qi % tracks.length) + tracks.length) % tracks.length]; }
+  // bed background level is owned by APPLE-AUDIOUX (el.volume ~0.5). Match it so both
+  // decks share one level during a blend → the equal-power WA crossfade never pumps.
+  function bgDefault() { return window.__appleAudioUX2 ? 0.62 : 0.85; }
+  function bgLvl() { var v = els[active] && els[active].volume; return (v > 0.02 && v <= 1) ? v : bgDefault(); }
+
+  // legacy non-adjacency guard (retained, unused — array order is intentional)
+  function groupOf(t) { return t.g || t.src; }
+  function adjOK(arr) { if (arr.length < 2) return true; for (var i = 0; i < arr.length; i++) { if (groupOf(arr[i]) === groupOf(arr[(i+1)%arr.length])) return false; } return true; }
+  void adjOK;
+
+  // ---- Camelot distance: 0 same · 1 compatible · 2 clash -----------------
+  function camDist(a, b) {
+    if (!a || !b) return 1;
+    if (a === b) return 0;
+    var na = parseInt(a, 10), nb = parseInt(b, 10), la = a.slice(-1), lb = b.slice(-1);
+    if (la === lb) { var d = Math.abs(na - nb); d = Math.min(d, 12 - d); return d <= 1 ? 1 : 2; }
+    if (na === nb) return 1;        // relative major/minor
+    return 2;
+  }
+
+  // ---- Web Audio DJ mixer ------------------------------------------------
+  var actx = null, waOK = false, master = null, echo = null, verb = null;
+  var deck = { a: null, b: null };  // {src,hp,lo,mid,lp,gain,echoSend,verbSend}
+
+  function makeIR(sec, decay) {
+    var rate = actx.sampleRate, len = Math.max(1, Math.floor(sec * rate));
+    var buf = actx.createBuffer(2, len, rate);
+    for (var ch = 0; ch < 2; ch++) {
+      var d = buf.getChannelData(ch);
+      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  }
+  function buildDeck(d) {
+    var src = actx.createMediaElementSource(els[d]);
+    var hp  = actx.createBiquadFilter(); hp.type  = 'highpass'; hp.frequency.value = 20;    hp.Q.value = 0.5;
+    var lo  = actx.createBiquadFilter(); lo.type  = 'lowshelf'; lo.frequency.value = 135;   lo.gain.value = 0;
+    var mid = actx.createBiquadFilter(); mid.type = 'peaking';  mid.frequency.value = 950;  mid.Q.value = 0.8; mid.gain.value = 0;
+    var lp  = actx.createBiquadFilter(); lp.type  = 'lowpass';  lp.frequency.value = 20000; lp.Q.value = 0.6;
+    var gain = actx.createGain(); gain.gain.value = 0.0001;
+    src.connect(hp); hp.connect(lo); lo.connect(mid); mid.connect(lp); lp.connect(gain); gain.connect(master);
+    // sends tapped POST-filter, PRE-gain → echo/reverb throw is independent of the gain fade
+    var echoSend = actx.createGain(); echoSend.gain.value = 0; lp.connect(echoSend); echoSend.connect(echo.input);
+    var verbSend = actx.createGain(); verbSend.gain.value = 0; lp.connect(verbSend); verbSend.connect(verb.input);
+    return { src: src, hp: hp, lo: lo, mid: mid, lp: lp, gain: gain, echoSend: echoSend, verbSend: verbSend };
+  }
+  function ensureACtx() {
+    if (actx) return;
+    if (isPhone) { waOK = false; return; }   // phone: stay on the light <audio> volume-crossfade path
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      master = actx.createGain(); master.gain.value = GFULL; master.connect(actx.destination);
+      // echo bus: in → delay → (lowpass) → feedback → delay; lowpass → master
+      var ein = actx.createGain();
+      var dl  = actx.createDelay(2.0); dl.delayTime.value = 0.34;
+      var fb  = actx.createGain(); fb.gain.value = 0.40;
+      var dlp = actx.createBiquadFilter(); dlp.type = 'lowpass'; dlp.frequency.value = 2400;
+      ein.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(master);
+      echo = { input: ein, delay: dl, fb: fb };
+      // reverb bus: in → convolver → lowpass → master
+      var vin = actx.createGain();
+      var conv = actx.createConvolver(); conv.buffer = makeIR(3.4, 2.6);
+      var vlp = actx.createBiquadFilter(); vlp.type = 'lowpass'; vlp.frequency.value = 4200;
+      vin.connect(conv); conv.connect(vlp); vlp.connect(master);
+      verb = { input: vin, conv: conv };
+      deck.a = buildDeck('a'); deck.b = buildDeck('b');
+      waOK = true;
+      dj4EnsureWorklet();                                     /* FABLE-DJ4: fire-and-forget module registration */
+    } catch (e) { actx = null; waOK = false; }
+  }
+  /* FABLE-DJ4 (a) — inline AudioWorklet: a small circular per-channel ring
+     buffer. 'start' arms continuous capture; 'stop' freezes it and posts back
+     the last `ms` of audio (transferable Float32Arrays) via postMessage. Ring
+     capacity is time-bounded (~1.5 s) so an armed tap can never grow unbounded
+     even if left running — bounding cost per rule 5 of the DJ4 spec. */
+  var DJ4_WORKLET_SRC = [
+    "class DJ4Ring extends AudioWorkletProcessor {",
+    "  constructor(opts) {",
+    "    super();",
+    "    var o = (opts && opts.processorOptions) || {};",
+    "    this.n = o.n || Math.round((o.rate || sampleRate) * 1.5);",
+    "    this.L = new Float32Array(this.n);",
+    "    this.R = new Float32Array(this.n);",
+    "    this.w = 0; this.filled = 0; this.on = false;",
+    "    var self = this;",
+    "    this.port.onmessage = function (e) {",
+    "      var d = e.data || {};",
+    "      if (d.cmd === 'start') { self.on = true; }",
+    "      else if (d.cmd === 'stop') { self.on = false; self.emit(d.ms || 1200); }",
+    "    };",
+    "  }",
+    "  emit(ms) {",
+    "    var n = Math.min(this.filled, Math.round(ms / 1000 * sampleRate), this.n);",
+    "    var o0 = new Float32Array(n), o1 = new Float32Array(n);",
+    "    for (var i = 0; i < n; i++) {",
+    "      var idx = (this.w - n + i) % this.n; if (idx < 0) idx += this.n;",
+    "      o0[i] = this.L[idx]; o1[i] = this.R[idx];",
+    "    }",
+    "    try { this.port.postMessage({ ch0: o0, ch1: o1, n: n, rate: sampleRate }, [o0.buffer, o1.buffer]); }",
+    "    catch (e) { this.port.postMessage({ ch0: o0, ch1: o1, n: n, rate: sampleRate }); }",
+    "  }",
+    "  process(inputs) {",
+    "    var inp = inputs[0];",
+    "    if (!this.on || !inp || !inp.length) return true;",
+    "    var L = inp[0], R = inp[1] || inp[0];",
+    "    for (var i = 0; i < L.length; i++) {",
+    "      this.L[this.w] = L[i]; this.R[this.w] = R ? R[i] : L[i];",
+    "      this.w = (this.w + 1) % this.n; if (this.filled < this.n) this.filled++;",
+    "    }",
+    "    return true;",
+    "  }",
+    "}",
+    "registerProcessor('dj4-ring', DJ4Ring);"
+  ].join('\n');
+  function dj4EnsureWorklet() {
+    if (dj4WorkletP) return dj4WorkletP;
+    if (!actx || !actx.audioWorklet) { dj4WorkletOK = false; dj4WorkletP = Promise.resolve(false); return dj4WorkletP; }
+    try {
+      var url = URL.createObjectURL(new Blob([DJ4_WORKLET_SRC], { type: 'application/javascript' }));
+      dj4WorkletP = actx.audioWorklet.addModule(url).then(function () {
+        dj4WorkletOK = true; try { URL.revokeObjectURL(url); } catch (e) {} return true;
+      }, function () {
+        dj4WorkletOK = false; try { URL.revokeObjectURL(url); } catch (e) {} return false;
+      });
+    } catch (e) { dj4WorkletOK = false; dj4WorkletP = Promise.resolve(false); }
+    return dj4WorkletP;
+  }
+  /* FABLE-DJ4 (a) — start/stop the ring-buffer tap on a deck's post-filter node
+     (same tap point as echoSend/verbSend). Idempotent: starting a new capture
+     tears down any stale one first (belt-and-suspenders alongside clearCross). */
+  function dj4TeardownCap() {
+    if (!dj4Cap) return;
+    try { dj4Cap.node.port.postMessage({ cmd: 'stop', ms: 0 }); } catch (e) {}
+    try { dj4Cap.node.port.onmessage = null; } catch (e) {}
+    try { dj4Cap.node.disconnect(); } catch (e) {}
+    try { dj4Cap.silent.disconnect(); } catch (e) {}
+    dj4Cap = null;
+  }
+  function dj4CaptureStart(d) {
+    if (!dj4WorkletOK || !actx || !deck[d]) return;
+    dj4TeardownCap();
+    try {
+      var node = new AudioWorkletNode(actx, 'dj4-ring', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2] });
+      var silent = actx.createGain(); silent.gain.value = 0;   // pulled into the render graph without being audible
+      deck[d].lp.connect(node); node.connect(silent); silent.connect(master);
+      node.port.postMessage({ cmd: 'start' });
+      dj4Cap = { node: node, silent: silent, deck: d };
+    } catch (e) { dj4Cap = null; }
+  }
+  function dj4TeardownFlourish() {
+    if (!dj4Flourish) return;
+    try { dj4Flourish.src.onended = null; dj4Flourish.src.stop(); } catch (e) {}
+    try { dj4Flourish.src.disconnect(); } catch (e) {}
+    try { dj4Flourish.hp.disconnect(); } catch (e) {}
+    try { dj4Flourish.g.disconnect(); } catch (e) {}
+    dj4Flourish = null;
+  }
+  function dj4TeardownFlutter() {
+    if (!dj4Flutter) return;
+    try { dj4Flutter.lfo.onended = null; dj4Flutter.lfo.stop(); } catch (e) {}
+    try { dj4Flutter.lfo.disconnect(); } catch (e) {}
+    try { dj4Flutter.lg.disconnect(); } catch (e) {}
+    dj4Flutter = null;
+  }
+  /* FABLE-DJ4 (b) — decelerating square gate for CHOP-IN: 16ths x2 beats ->
+     8ths x1 beat -> quarter x1 beat -> open. Mirrors dj3RollGate's shape
+     (same setValueAtTime/linearRamp curve style) but growing, not shrinking. */
+  function dj4ChopGate(param, t0, beatS, lvl) {
+    var segs = [[2 * beatS, 8], [beatS, 2], [beatS, 1]];
+    var t = t0, E = 0.006, FLOOR = 0.0001;
+    try {
+      param.cancelScheduledValues(t0);
+      param.setValueAtTime(FLOOR, t0);
+      for (var s = 0; s < segs.length; s++) {
+        var segLen = segs[s][0], n = segs[s][1], chop = segLen / n;
+        for (var c = 0; c < n; c++) {
+          var on = t + c * chop, off = on + chop * DJ4.CHOP_DUTY;
+          param.setValueAtTime(FLOOR, on);
+          param.linearRampToValueAtTime(lvl, on + E);
+          param.setValueAtTime(lvl, Math.max(on + E, off - E));
+          param.linearRampToValueAtTime(FLOOR, off);
+        }
+        t += segLen;
+      }
+      param.setValueAtTime(lvl, t);   // open — fully in
+    } catch (e) {}
+    return t;
+  }
+  function ct() { return actx ? actx.currentTime : 0; }
+  function ramp(param, to, ms, exp) {
+    if (!param) return;
+    var t0 = ct(), t1 = t0 + Math.max(0.01, ms / 1000);
+    try {
+      param.cancelScheduledValues(t0);
+      param.setValueAtTime(typeof param.value === 'number' ? param.value : to, t0);
+      if (exp) param.exponentialRampToValueAtTime(Math.max(1e-4, to), t1);
+      else param.linearRampToValueAtTime(to, t1);
+    } catch (e) {}
+  }
+  function fadeGain(param, to, ms, up) {   // equal-power gain curve
+    if (!param) return;
+    var t0 = ct(), from = (typeof param.value === 'number') ? param.value : 0, n = 48, a = new Float32Array(n);
+    // equal-power: rise = from→to via sin; fall = from→to via cos (both start AT `from`)
+    for (var i = 0; i < n; i++) { var x = i / (n - 1); a[i] = up ? (from + (to - from) * Math.sin(0.5 * Math.PI * x)) : (to + (from - to) * Math.cos(0.5 * Math.PI * x)); }
+    try { param.cancelScheduledValues(t0); param.setValueCurveAtTime(a, t0, Math.max(0.05, ms / 1000)); } catch (e) { ramp(param, to, ms); }
+  }
+  // delay (ms) until the outgoing's next beat near a target offset (graceful: time-based if no grid)
+  function beatAlign(meta, fromCt, targetOffsetS) {
+    if (!meta || !meta.bpm || meta.b0 == null) return targetOffsetS * 1000;
+    var per = 60 / meta.bpm, tt = fromCt + targetOffsetS, k = Math.round((tt - meta.b0) / per), off = (meta.b0 + k * per) - fromCt;
+    if (off < 0.05 || off > targetOffsetS * 2) off = targetOffsetS;
+    return off * 1000;
+  }
+  /* FABLE-DJ2 (b): delay (s) to the outgoing's next DOWNBEAT (bar = 4 beats from b0);
+     if the bar boundary is > 1.2 s out, the next beat instead — skips stay responsive. */
+  function dj2Quant(meta, nowS) {
+    if (!meta || !meta.bpm || meta.b0 == null) return { delayS: 0, grid: 'none' };
+    var per = 60 / meta.bpm;
+    function next(g) { var k = Math.ceil((nowS - meta.b0) / g - 1e-4), t = meta.b0 + Math.max(0, k) * g, d = t - nowS; return d < 0.02 ? d + g : d; }
+    var d = next(per * 4), grid = 'bar';
+    if (d > DJ2.BAR_MAX_S) { d = next(per); grid = 'beat'; }
+    if (d > DJ2.BAR_MAX_S + 0.2) { d = 0; grid = 'none'; }
+    return { delayS: d, grid: grid };
+  }
+  /* FABLE-DJ3 — deterministic per-pair character: the key relation picks the
+     move; the outgoing index rotates the hard-clash pairs (~1 in 3 -> brake). */
+  function camWheel(a, b) {
+    var na = parseInt(a, 10) || 0, nb = parseInt(b, 10) || 0;
+    var d = Math.abs(na - nb); return Math.min(d, 12 - d);
+  }
+  /* FABLE-DJ4 (a)(c) — same key-relation buckets as DJ3; the outgoing INDEX
+     now also picks a seed-alternate within two of them: mid-distance
+     echo/flutter, hard-clash brake/backspin/wash. Still deterministic. */
+  function dj3Char(foI, m1, m2) {
+    if (camDist(m1.k, m2.k) <= 1 || camWheel(m1.k, m2.k) <= 1) return 'roll';
+    if (camWheel(m1.k, m2.k) <= 2) return (foI % 2 === 1) ? 'flutter' : 'echo';
+    if (foI % 3 === 1) return 'brake';
+    if (foI % 3 === 2) return 'backspin';
+    return 'wash';
+  }
+  /* FABLE-DJ3 — delay (s) to the outgoing grid point at/just BEFORE targetS
+     (end-anchored starts: the move must finish before the file runs out). */
+  function dj3GridBefore(meta, nowS, targetS, useBar) {
+    if (!meta || !meta.bpm || meta.b0 == null) return Math.max(0, targetS - nowS);
+    var g = (60 / meta.bpm) * (useBar ? 4 : 1);
+    var t = meta.b0 + Math.floor((targetS - meta.b0) / g + 1e-4) * g;
+    while (t < nowS + 0.05) t += g;
+    return t - nowS;
+  }
+  function dj3GridErr(meta, tS, useBar) {
+    if (!meta || !meta.bpm || meta.b0 == null) return null;
+    var g = (60 / meta.bpm) * (useBar ? 4 : 1), r = (tS - meta.b0) % g;
+    if (r < 0) r += g;
+    return Math.round(Math.min(r, g - r) * 1000);
+  }
+  /* FABLE-DJ3 — natural-end trigger lead: a 2-bar roll needs more runway than
+     the stock FADE_MS; every other character keeps the v2 lead. */
+  function dj3Lead(d) {
+    if (!waOK) return FADE_MS;
+    try {
+      var m = T(idx[d]), n2 = T(idx[d] + 1);
+      if (dj3Char(idx[d], m, n2) === 'roll' && m.bpm) return Math.max(FADE_MS, DJ3.ROLL_BARS * (240000 / m.bpm) + 1800);
+    } catch (e) {}
+    return FADE_MS;
+  }
+  /* FABLE-DJ3 (roll) — square-ish gain-gate accelerando on the outgoing deck:
+     1/2-bar chops -> 1/4 -> 1/8, cutting to silence at the returned end time.
+     Pure WA gain automation on the existing deck node — no buffer capture. */
+  function dj3RollGate(param, t0, barS, bars, lvl) {
+    var segs = bars >= 2 ? [[1.0, 2], [0.5, 2], [0.5, 4]]      // 2 bars: 1/2-bar -> 1/4 -> 1/8 chops
+                         : [[0.5, 2], [0.25, 2], [0.25, 4]];   // 1 bar (skip): same shape, halved
+    var t = t0, E = 0.008, FLOOR = 0.0001;
+    try {
+      param.cancelScheduledValues(t0);
+      param.setValueAtTime(Math.max(FLOOR, param.value || lvl), t0);
+      for (var s = 0; s < segs.length; s++) {
+        var segLen = segs[s][0] * barS, n = segs[s][1], chop = segLen / n;
+        for (var c = 0; c < n; c++) {
+          var on = t + c * chop, off = on + chop * DJ3.ROLL_DUTY;
+          if (s || c) param.setValueAtTime(FLOOR, on);
+          param.linearRampToValueAtTime(lvl, on + E);
+          param.setValueAtTime(lvl, Math.max(on + E, off - E));
+          param.linearRampToValueAtTime(FLOOR, off);
+        }
+        t += segLen;
+      }
+      param.setValueAtTime(FLOOR, t);
+    } catch (e) {}
+    return t;
+  }
+  /* FABLE-DJ2 (c): Camelot key -> tonic frequency, C2-rooted. nB majors step a fifth
+     (+7 semitones) per hour from 8B = C; nA is the relative minor (tonic +9 semitones). */
+  function keyRootHz(k) {
+    var n = parseInt(k, 10);
+    if (!n || n < 1 || n > 12) return 110;
+    var s = (((n - 8) * 7) % 12 + 12) % 12;
+    if (/a$/i.test(String(k))) s = (s + 9) % 12;
+    return 65.406 * Math.pow(2, s / 12);
+  }
+  /* FABLE-DJ2 (c): quiet synthesized swell (key-rooted sine octave-climb + rising filtered
+     noise) on its OWN gain node into master — crests ~-18 dBFS exactly at crestT, then
+     releases. Deck gains are never touched. Returns a handle with cancel(). */
+  function riser(rootHz, durS, crestT) {
+    if (!waOK || !actx || !master) return null;
+    try {
+      var t1 = crestT, t0 = Math.max(ct() + 0.02, t1 - durS);
+      var g = actx.createGain();
+      g.gain.setValueAtTime(0.0008, t0);
+      g.gain.exponentialRampToValueAtTime(0.126, t1);           // -18 dB crest at the incoming's entry
+      g.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.16);   // fast release once the track lands
+      g.connect(master);
+      var o = actx.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(Math.max(40, rootHz * 2), t0);
+      o.frequency.exponentialRampToValueAtTime(Math.max(80, rootHz * 4), t1);
+      var og = actx.createGain(); og.gain.value = 0.55; o.connect(og); og.connect(g);
+      var nz = actx.createBufferSource(); nz.buffer = makeIR(Math.min(2.6, durS + 0.4), 0);  // flat noise
+      var bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 2.4;
+      bp.frequency.setValueAtTime(Math.max(300, rootHz * 4), t0);
+      bp.frequency.exponentialRampToValueAtTime(Math.min(6000, rootHz * 16), t1);
+      var ng = actx.createGain(); ng.gain.value = 0.5;
+      nz.connect(bp); bp.connect(ng); ng.connect(g);
+      var done = false;
+      function release() {
+        if (done) return; done = true;
+        try { g.disconnect(); } catch (e) {}
+        try { og.disconnect(); ng.disconnect(); bp.disconnect(); } catch (e) {}
+        if (window.__dj2Riser) window.__dj2Riser.released++;
+      }
+      o.onended = release;
+      o.start(t0); o.stop(t1 + 0.2); nz.start(t0); nz.stop(t1 + 0.2);
+      window.__dj2Riser = window.__dj2Riser || { created: 0, released: 0 };
+      window.__dj2Riser.created++;
+      return { cancel: function () { try { o.stop(); } catch (e) {} try { nz.stop(); } catch (e) {} release(); } };
+    } catch (e) { return null; }
+  }
+
+  // ---- now-playing readout ----------------------------------------------
+  function setNow(qi) {
+    try { document.dispatchEvent(new CustomEvent('bed:track', { detail: { index: qi, title: T(qi) && T(qi).t, artist: T(qi) && T(qi).a } })); } catch (e) {}
+    if (!nowEl) return;
+    nowEl.classList.remove('sc-now-ambient'); nowEl.title = '';
+    if (nowLabel) nowLabel.textContent = T(qi).a + ' — ' + T(qi).t;
+    nowEl.classList.add('show');
+    clearTimeout(nowEl.__shT); nowEl.__shT = setTimeout(function () { nowEl.classList.remove('show'); }, 6000);
+  }
+  function load(d, qi, autoplay) {
+    idx[d] = qi; var el = els[d]; el.src = T(qi).src;
+    try { el.load(); } catch (e) {}
+    if (autoplay) { try { if (waOK) { el.volume = bgDefault(); deck[d].gain.gain.value = 0.0001; } else { el.volume = 0; } el.play().catch(function () {}); } catch (e) {} }
+  }
+  function volRamp(d, to, durMs) {   // fallback path only (no Web Audio)
+    if (volRamps[d]) clearInterval(volRamps[d]);
+    var el = els[d], from = el.volume || 0, steps = Math.max(1, Math.round((durMs || FADE_MS) / 50)), n = 0;
+    volRamps[d] = setInterval(function () {
+      n++; var q = n / steps, sm = q * q * (3 - 2 * q), v = Math.sqrt(Math.max(0, from * from * (1 - sm) + to * to * sm));
+      try { el.volume = muted ? 0 : Math.max(0, Math.min(1, v)); } catch (e) {}
+      if (n >= steps) { clearInterval(volRamps[d]); volRamps[d] = null; }
+    }, 50);
+  }
+
+  // ---- the cinematic blend ----------------------------------------------
+  function clearCross() {
+    if (swapT) { clearTimeout(swapT); swapT = null; }
+    if (fxT) { clearTimeout(fxT); fxT = null; }                                     /* FABLE-DJ2 */
+    if (curRiser) { try { curRiser.cancel(); } catch (e) {} curRiser = null; }      /* FABLE-DJ2 */
+    /* FABLE-DJ3 — flush character state: pending timers, varispeed interval,
+       scheduled gate automation, cranked echo regen, warped playback rates. */
+    while (dj3T.length) { clearTimeout(dj3T.pop()); }
+    if (dj3Spin) { clearInterval(dj3Spin); dj3Spin = null; }
+    dj4TeardownCap(); dj4TeardownFlourish(); dj4TeardownFlutter();      /* FABLE-DJ4: worklet tap, backspin playback, flutter LFO */
+    if (waOK) {
+      ['a', 'b'].forEach(function (d) {
+        try { var g = deck[d].gain.gain, v = g.value; g.cancelScheduledValues(ct()); g.setValueAtTime(Math.max(0.0001, v), ct()); } catch (e) {}
+      });
+      try { ramp(echo.fb.gain, DJ2.BASE_FB, 240); } catch (e) {}
+    }
+    try { els.a.playbackRate = 1; els.b.playbackRate = 1; } catch (e) {}            /* FABLE-DJ3 */
+    ['a', 'b'].forEach(function (d) { if (volRamps[d]) { clearInterval(volRamps[d]); volRamps[d] = null; } });
+    crossing = false;
+  }
+  // FX DISSOLVE — only ONE song's melody is ever audible. The outgoing track
+  // evaporates into a filtered echo/reverb wash; the incoming stays SILENT until
+  // it blooms in on a downbeat, by which point the outgoing's dry signal is gone
+  // (only its reverb tail — pure ambience, not a competing track — lingers under it).
+  function blend(durMs) {
+    if (crossing) return;
+    var fo = active, sb = other(active); crossing = true; var myGen = ++gen;
+    var foM = T(idx[fo]), inM = T(idx[sb]);
+    var foCt = 0; try { foCt = els[fo].currentTime || 0; } catch (e) {}
+
+    if (!waOK) {
+      // no Web Audio (phones + blocked WA): unchanged light path — fade out, then in
+      var durL = durMs || XF_BASE;
+      var inStartL = (inM.min != null ? inM.min : 0); if (inStartL > 8) inStartL = 0;
+      try { els[sb].currentTime = inStartL; } catch (e) {}
+      els[sb].volume = 0;
+      els[sb].play().catch(function () {});
+      volRamp(fo, 0, durL * 0.5);
+      setTimeout(function () { if (myGen === gen) { volRamp(sb, GFULL, durL * 0.42); setNow(idx[sb]); } }, durL * 0.52);
+      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, durL + 160);
+      return;
+    }
+
+    /* FABLE-DJ2 (a) — key-adaptive dissolve character */
+    var dist = camDist(foM.k, inM.k);
+    var dur   = Math.round((durMs || XF_BASE) * (dist === 2 ? DJ2.CLASH_DUR : DJ2.MATCH_DUR));
+    var lpT   = dist === 2 ? DJ2.CLASH_LP   : DJ2.MATCH_LP;
+    var echoT = dist === 2 ? DJ2.CLASH_ECHO : DJ2.MATCH_ECHO;
+    var verbT = dist === 2 ? DJ2.CLASH_VERB : DJ2.MATCH_VERB;
+
+    /* FABLE-DJ3 — deterministic per-pair character (seed = outgoing track index) */
+    var ch = dj3Char(idx[fo], foM, inM), isSkip = !!durMs;
+    if (ch === 'roll' && !(foM.bpm && foM.b0 != null)) ch = 'wash';       // no beat grid -> keep the v2 wash
+    if (ch === 'flutter' && !(foM.bpm && foM.b0 != null)) ch = 'wash';    /* FABLE-DJ4: LFO needs the outgoing's bpm */
+    if (ch === 'backspin' && !dj4WorkletOK) ch = 'brake';                 /* FABLE-DJ4: no AudioWorklet -> brake */
+    if (ch === 'backspin') dj4CaptureStart(fo);                           /* FABLE-DJ4: arm the ring-buffer tap NOW — runway is whatever's left before the anchor */
+    var foDur = 0; try { if (els[fo].duration && isFinite(els[fo].duration)) foDur = els[fo].duration; } catch (e) {}
+    try { console.log('[dj3] pair ' + idx[fo] + '->' + idx[sb] + ' char=' + ch + ' keys=' + (foM.k || '?') + '>' + (inM.k || '?') + ' seed=' + idx[fo] + (isSkip ? ' (skip)' : ' (end)')); } catch (e) {}
+
+    /* FABLE-DJ2 (b) — quantize the start to the outgoing's grid. v3: NATURAL ends
+       are END-ANCHORED (the move finishes as the file does — full length holds);
+       skips keep the <=1.2 s bar-else-beat rule so 'n' stays responsive. */
+    var q;
+    if (!isSkip && foDur && ch !== 'wash') {                          /* FABLE-DJ3 */
+      var barS0 = foM.bpm ? 240 / foM.bpm : 2;
+      var useBar = ch === 'roll' || ch === 'flutter';                  /* FABLE-DJ4: flutter also needs a bar-grid runway */
+      var tgt = ch === 'roll'     ? foDur - DJ3.ROLL_BARS * barS0 - DJ3.END_PAD_S
+              : ch === 'flutter'  ? foDur - barS0 - DJ3.END_PAD_S
+              : ch === 'brake'    ? foDur - (DJ3.BRAKE_MS / 1000 + 0.15)
+              : ch === 'backspin' ? foDur - (DJ4.BACKSPIN_FLOURISH_S + DJ3.GAP_MS / 1000 + 0.15)
+              :                     foDur - 0.35;
+      q = { delayS: dj3GridBefore(foM, foCt, tgt, useBar), grid: (useBar ? 'bar' : 'beat') + '@end' };
+    } else {
+      q = dj2Quant(foM, foCt);
+    }
+    fxT = setTimeout(function () { fxT = null; if (myGen === gen) fx(); }, Math.round(q.delayS * 1000));
+
+    /* FABLE-DJ3 — shared helpers for the character schedulers */
+    function primeIn(atS, hpHz, lpStartHz) {   // incoming: playing, gain-silent, EQ neutral
+      var Di = deck[sb];
+      try { els[sb].currentTime = atS; } catch (e) {}
+      els[sb].volume = bgLvl();
+      els[sb].play().catch(function () {});
+      Di.gain.gain.cancelScheduledValues(ct()); Di.gain.gain.setValueAtTime(0.0001, ct());
+      Di.lo.gain.value = 0; Di.mid.gain.value = 0;
+      Di.lp.frequency.cancelScheduledValues(ct()); Di.lp.frequency.setValueAtTime(lpStartHz || 20000, ct());  /* FABLE-DJ4 (b): filter-bloom starts closed when given */
+      Di.hp.frequency.cancelScheduledValues(ct()); Di.hp.frequency.setValueAtTime(hpHz, ct());
+      Di.verbSend.gain.value = 0; Di.echoSend.gain.value = 0;
+      return Di;
+    }
+    function inStart0() { var s = (inM.min != null ? inM.min : 0); return s > 8 ? 0 : s; }
+    function dj3Rec(extra) {
+      var foCt3 = 0; try { foCt3 = els[fo].currentTime || 0; } catch (e) {}
+      var rec = { ch: ch, pair: idx[fo] + '>' + idx[sb], from: foM.t || '', to: inM.t || '',
+                  keys: (foM.k || '?') + '>' + (inM.k || '?'), seed: idx[fo], skip: isSkip,
+                  quant: q.grid, quantMs: Math.round(q.delayS * 1000),
+                  gridErrMs: dj3GridErr(foM, foCt3, String(q.grid).slice(0, 3) === 'bar'), bpm: foM.bpm || 0 };
+      for (var k2 in extra) rec[k2] = extra[k2];
+      (window.__dj3Log = window.__dj3Log || []).push(rec);
+      try { console.log('[dj3] ' + JSON.stringify(rec)); } catch (e) {}
+      return rec;
+    }
+    /* FABLE-DJ3 (1) STUTTER-ROLL BUILD — same/adjacent keys: gate the outgoing's
+       final bars (1/2 -> 1/4 -> 1/8-bar chops) under a rising highpass + riser;
+       the incoming lands on ITS OWN first downbeat as the roll cuts to silence. */
+    function fxRoll() {
+      var Df = deck[fo];
+      var foCt2 = foCt; try { foCt2 = els[fo].currentTime || foCt; } catch (e) {}
+      var barS = 240 / foM.bpm, bars = isSkip ? DJ3.ROLL_BARS_SKIP : DJ3.ROLL_BARS;
+      var remainS = Infinity;
+      try { if (els[fo].duration && isFinite(els[fo].duration)) remainS = Math.max(0, els[fo].duration - foCt2); } catch (e) {}
+      while (bars > 1 && bars * barS + DJ3.END_PAD_S - 0.15 > remainS) bars--;   // 0.15 slack: the end-anchor lands EXACTLY at 2 bars + pad
+      if (bars * barS + 0.25 > remainS) { ch = 'wash'; try { console.log('[dj3] roll degraded -> wash (tail too short)'); } catch (e) {} return fx(); }
+      var t0 = ct() + 0.02;
+      var tEnd = dj3RollGate(Df.gain.gain, t0, barS, bars, GFULL);
+      var rollMs = Math.round((tEnd - t0) * 1000);
+      ramp(Df.hp.frequency, DJ3.ROLL_HP, rollMs, true);              // rising highpass under the roll
+      ramp(Df.echoSend.gain, 0, 120);                                // dry gate only — no leftover throw
+      ramp(Df.verbSend.gain, bgLvl() * 0.28, Math.round(rollMs * 0.8));
+      var dropMs = rollMs + 40;
+      /* incoming pre-rolled so its own first downbeat lands exactly at the cut */
+      var s0 = inStart0(), landed = 0;
+      if (inM.bpm && inM.b0 != null) {
+        var gIn = 240 / inM.bpm, tgt2 = s0 + dropMs / 1000;
+        var aligned = inM.b0 + Math.ceil((tgt2 - inM.b0) / gIn - 1e-4) * gIn;
+        if (aligned - dropMs / 1000 >= 0) { s0 = aligned - dropMs / 1000; landed = 1; }
+      }
+      primeIn(s0, 60);
+      /* FABLE-DJ3: no riser (retired per owner) — the gate accelerando + HP sweep IS the build */
+      dj3Rec({ rollMs: rollMs, bars: bars, dropMs: dropMs, inDownbeat: landed });
+      dj3T.push(setTimeout(function () {
+        if (myGen !== gen) return;
+        try { els[sb].volume = bgLvl(); } catch (e) {}
+        ramp(deck[sb].hp.frequency, 20, 240, true);
+        setNow(idx[sb]);
+        /* FABLE-DJ4 (b) CHOP-IN — decelerating gate on the incoming's OWN grid; no grid -> plain bloom (unchanged) */
+        if (inM.bpm && inM.b0 != null) {
+          var beatSIn = 60 / inM.bpm;
+          dj4ChopGate(deck[sb].gain.gain, ct() + 0.004, beatSIn, GFULL);
+          try { console.log('[dj4] char=chop-in beatS=' + beatSIn.toFixed(3)); } catch (e) {}
+        } else {
+          fadeGain(deck[sb].gain.gain, GFULL, 160, true);              // clean land — the roll already cut to silence
+        }
+      }, dropMs));
+      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dropMs + 460);
+    }
+    /* FABLE-DJ3 (2) ECHO-THROW — mid-distance keys: dry dies in ~120 ms into the
+       delay bus cranked (fb 0.65, dotted-eighth); the echoes ARE the transition
+       (FX tail over silence, same standing as the v2 wash's reverb tail). */
+    function fxEcho() {
+      var Df = deck[fo];
+      var foCt2 = foCt; try { foCt2 = els[fo].currentTime || foCt; } catch (e) {}
+      var beatS = foM.bpm ? 60 / foM.bpm : 0.44;
+      try { echo.delay.delayTime.setTargetAtTime(Math.min(1.9, beatS * 0.75), ct(), 0.03); } catch (e) {}
+      ramp(echo.fb.gain, DJ3.ECHO_FB, 140);
+      ramp(Df.echoSend.gain, bgLvl() * 0.95, 90);                    // the throw
+      ramp(Df.verbSend.gain, bgLvl() * 0.30, 240);
+      fadeGain(Df.gain.gain, 0.0001, DJ3.ECHO_DUCK_MS, false);       // dry gone fast — no-blend rule holds
+      var feedMs = Math.max(380, Math.round(beatS * 750) + 60);
+      dj3T.push(setTimeout(function () { if (myGen === gen) ramp(Df.echoSend.gain, 0, 90); }, feedMs));
+      var tailMs = Math.round(DJ3.ECHO_TAIL_S * 1000);
+      var dropMs = Math.round(beatAlign(foM, foCt2, (DJ3.ECHO_DUCK_MS + tailMs) / 1000));
+      if (dropMs < feedMs + 500) dropMs += Math.round(beatS * 1000) || 400;
+      primeIn(inStart0(), 140, DJ4.BLOOM_LP_LO);                        /* FABLE-DJ4 (b): filter-bloom starts closed */
+      /* FABLE-DJ3: no riser (retired per owner) — the decaying echoes carry the gap alone */
+      dj3Rec({ echoS: +(beatS * 0.75).toFixed(3), fb: DJ3.ECHO_FB, tailMs: tailMs, dropMs: dropMs });
+      dj3T.push(setTimeout(function () {
+        if (myGen !== gen) return;
+        try { els[sb].volume = bgLvl(); } catch (e) {}
+        fadeGain(deck[sb].gain.gain, GFULL, 420, true);
+        ramp(deck[sb].hp.frequency, 20, 340, true);
+        var barSIn = inM.bpm ? 240 / inM.bpm : 2;                      /* FABLE-DJ4 (b) FILTER-BLOOM */
+        ramp(deck[sb].lp.frequency, DJ4.BLOOM_LP_HI, Math.round(1.5 * barSIn * 1000), true);
+        try { console.log('[dj4] char=filter-bloom src=echo'); } catch (e) {}
+        setNow(idx[sb]);
+      }, dropMs));
+      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dropMs + 700);
+    }
+    /* FABLE-DJ3 (3) BRAKE & SPIN-UP — ~1 in 3 hard clashes (seeded): tape-stop
+       the outgoing on the beat, then the incoming spins up 0.55->1 gain-matched.
+       Desktop-only by construction: fx runs only when waOK (phones never enter). */
+    /* FABLE-DJ4 — shared incoming landing for brake AND backspin: the spin-up
+       slam, factored out unchanged so backspin reuses it verbatim (per spec,
+       brake/backspin landings stay identical). `pauseFo` only applies to
+       brake — its outgoing element was varispeed'd via playbackRate and needs
+       an immediate park; backspin never touches els[fo].playbackRate (only a
+       separate captured-buffer source was varispeed'd), so finishSwap()'s own
+       pause/reset at the end of the transition is enough. */
+    function dj4SpinUpSlam(dropMs, pauseFo) {
+      dj3T.push(setTimeout(function () {
+        if (myGen !== gen) return;
+        if (pauseFo) { try { els[fo].pause(); els[fo].playbackRate = 1; } catch (e) {} }   // brake done; park the deck
+        try { els[sb].volume = bgLvl(); els[sb].playbackRate = DJ3.SPIN_R0; } catch (e) {}
+        fadeGain(deck[sb].gain.gain, GFULL, DJ3.SPIN_MS, true);
+        ramp(deck[sb].hp.frequency, 20, DJ3.SPIN_MS, true);
+        var j = 0, st2 = 16;
+        dj3Spin = setInterval(function () {
+          j++; var y = j / st2;
+          try { els[sb].playbackRate = Math.min(1, DJ3.SPIN_R0 + (1 - DJ3.SPIN_R0) * (1 - (1 - y) * (1 - y))); } catch (e) {}
+          if (j >= st2 || myGen !== gen) { clearInterval(dj3Spin); dj3Spin = null; try { els[sb].playbackRate = 1; } catch (e) {} }
+        }, Math.round(DJ3.SPIN_MS / st2));
+        setNow(idx[sb]);
+      }, dropMs));
+      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dropMs + DJ3.SPIN_MS + 260);
+    }
+    function fxBrake() {
+      var Df = deck[fo];
+      ramp(Df.lp.frequency, 320, Math.round(DJ3.BRAKE_MS * 0.9), true);
+      ramp(Df.verbSend.gain, bgLvl() * 0.5, 300);
+      fadeGain(Df.gain.gain, 0.0001, Math.round(DJ3.BRAKE_MS * 0.98), false);
+      var steps = 24, i = 0;
+      dj3Spin = setInterval(function () {
+        i++; var x = i / steps;
+        try { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); } catch (e) {}
+        if (i >= steps || myGen !== gen) { clearInterval(dj3Spin); dj3Spin = null; }
+      }, Math.round(DJ3.BRAKE_MS / steps));
+      var dropMs = DJ3.BRAKE_MS + DJ3.GAP_MS;
+      primeIn(inStart0(), 40);
+      dj3Rec({ brakeMs: DJ3.BRAKE_MS, spinMs: DJ3.SPIN_MS, dropMs: dropMs });
+      dj4SpinUpSlam(dropMs, true);
+    }
+    /* FABLE-DJ4 (a) BACKSPIN — hard clash, seed%3===2: reverse + varispeed the
+       outgoing's OWN last ~1.0-1.2 s (the ring-buffer tap armed back in blend()
+       when the character was decided) through a rising highpass, cut hard,
+       gap, then the SAME spin-up slam as brake. Any failure at any point
+       (no worklet, no/short/silent capture, buffer-build throw) -> fxBrake(). */
+    function fxBackspin() {
+      var Df = deck[fo];
+      if (!dj4Cap || dj4Cap.deck !== fo) { try { console.log('[dj4] backspin -> brake (no capture)'); } catch (e) {} return fxBrake(); }
+      var node = dj4Cap.node, gotData = false;
+      try {
+        node.port.onmessage = function (e) {
+          if (gotData || myGen !== gen) return; gotData = true;
+          finishBackspin(e.data);
+        };
+        node.port.postMessage({ cmd: 'stop', ms: Math.round(DJ4.BACKSPIN_CAP_S * 1000) });
+      } catch (e) { dj4TeardownCap(); return fxBrake(); }
+      dj3T.push(setTimeout(function () {   // watchdog: the worklet should answer almost immediately
+        if (myGen !== gen || gotData) return;
+        try { console.log('[dj4] backspin -> brake (capture timeout)'); } catch (e) {}
+        dj4TeardownCap(); fxBrake();
+      }, 260));
+      function finishBackspin(data) {
+        dj4TeardownCap();
+        var n = (data && data.n) || 0, rate = (data && data.rate) || (actx ? actx.sampleRate : 44100);
+        var ok = n >= DJ4.BACKSPIN_MIN_S * rate;
+        if (ok) {
+          var ch0 = data.ch0, step = Math.max(1, Math.floor(n / 400)), sum = 0, cnt = 0;
+          for (var i = 0; i < n; i += step) { sum += ch0[i] * ch0[i]; cnt++; }
+          if (Math.sqrt(sum / Math.max(1, cnt)) < DJ4.BACKSPIN_SILENCE_RMS) ok = false;   // came back silent -> brake
+        }
+        if (!ok) { try { console.log('[dj4] backspin -> brake (silent/short capture)'); } catch (e) {} return fxBrake(); }
+        try {
+          var n2 = n, buf = actx.createBuffer(2, n2, rate), c0 = buf.getChannelData(0), c1 = buf.getChannelData(1), s0 = data.ch0, s1 = data.ch1 || data.ch0;
+          for (var j = 0; j < n2; j++) { c0[j] = s0[n2 - 1 - j]; c1[j] = s1[n2 - 1 - j]; }   // REVERSE
+          var t0 = ct() + 0.01;
+          var src = actx.createBufferSource(); src.buffer = buf;
+          var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.Q.value = 0.7;
+          hp.frequency.setValueAtTime(DJ4.BACKSPIN_HP_LO, t0);
+          hp.frequency.exponentialRampToValueAtTime(DJ4.BACKSPIN_HP_HI, t0 + DJ4.BACKSPIN_FLOURISH_S);
+          var g = actx.createGain(); g.gain.setValueAtTime(bgLvl(), t0);
+          g.gain.linearRampToValueAtTime(bgLvl() * 0.707, t0 + DJ4.BACKSPIN_FLOURISH_S);   // ~-3 dB tail fade
+          src.playbackRate.setValueAtTime(1.0, t0);
+          src.playbackRate.linearRampToValueAtTime(2.5, t0 + DJ4.BACKSPIN_FLOURISH_S);     // real varispeed — pitch rises with it, no synth tone
+          src.connect(hp); hp.connect(g); g.connect(master);
+          fadeGain(Df.gain.gain, 0.0001, 70, false);            // cut the outgoing dry to 0 — no-blend rule holds
+          src.start(t0); src.stop(t0 + DJ4.BACKSPIN_FLOURISH_S + 0.03);
+          dj4Flourish = { src: src, hp: hp, g: g };
+          src.onended = function () { try { src.disconnect(); hp.disconnect(); g.disconnect(); } catch (e) {} if (dj4Flourish && dj4Flourish.src === src) dj4Flourish = null; };
+        } catch (e) { try { console.log('[dj4] backspin -> brake (playback build failed)'); } catch (e2) {} return fxBrake(); }
+        var dropMs = Math.round(DJ4.BACKSPIN_FLOURISH_S * 1000) + DJ3.GAP_MS;   // flourish + >=120 ms gap
+        primeIn(inStart0(), 40);
+        dj3Rec({ backspinN: n2, rate: rate, flourishMs: Math.round(DJ4.BACKSPIN_FLOURISH_S * 1000), dropMs: dropMs });
+        try { console.log('[dj4] char=backspin n=' + n2 + ' dropMs=' + dropMs); } catch (e) {}
+        dj4SpinUpSlam(dropMs, false);
+      }
+    }
+    /* FABLE-DJ4 (c) FILTER-FLUTTER — mid-distance seed-alternate to echo: a
+       square LFO (8th-note rate, inaudible control signal into the lowpass
+       AudioParam — NOT a synth riser, it never reaches an audible bus) wobbles
+       the outgoing lowpass 350<->4000 Hz for the final bar, then a hard cut;
+       the incoming lands via FILTER-BLOOM (b). */
+    function fxFlutter() {
+      var Df = deck[fo];
+      var beatS = foM.bpm ? 60 / foM.bpm : 0.44, barS = beatS * 4;
+      var t0 = ct() + 0.02, dur = Math.min(barS, DJ4.FLUTTER_MAX_S), lfoHz = 1 / (beatS / 2);
+      var lfo = actx.createOscillator(); lfo.type = 'square'; lfo.frequency.setValueAtTime(lfoHz, t0);
+      var center = (DJ4.FLUTTER_LO + DJ4.FLUTTER_HI) / 2, depth = (DJ4.FLUTTER_HI - DJ4.FLUTTER_LO) / 2;
+      var lg = actx.createGain(); lg.gain.setValueAtTime(depth, t0);
+      Df.lp.frequency.cancelScheduledValues(t0); Df.lp.frequency.setValueAtTime(center, t0);
+      lfo.connect(lg); lg.connect(Df.lp.frequency);   // control-rate only — lg never connects to master
+      lfo.start(t0); lfo.stop(t0 + dur + 0.05);
+      dj4Flutter = { lfo: lfo, lg: lg };
+      lfo.onended = function () { try { lfo.disconnect(); lg.disconnect(); } catch (e) {} if (dj4Flutter && dj4Flutter.lfo === lfo) dj4Flutter = null; };
+      ramp(Df.verbSend.gain, bgLvl() * 0.35, Math.round(dur * 800));
+      var dropMs = Math.round(dur * 1000) + 20;
+      fadeGain(Df.gain.gain, 0.0001, Math.min(180, Math.round(dropMs * 0.3)), false);   // hard cut at the anchor
+      primeIn(inStart0(), 240, DJ4.BLOOM_LP_LO);
+      dj3Rec({ lfoHz: +lfoHz.toFixed(3), flutterS: +dur.toFixed(3), dropMs: dropMs });
+      try { console.log('[dj4] char=flutter lfoHz=' + lfoHz.toFixed(2) + ' dur=' + dur.toFixed(2)); } catch (e) {}
+      dj3T.push(setTimeout(function () {
+        if (myGen !== gen) return;
+        try { lfo.stop(); } catch (e) {}
+        try { els[sb].volume = bgLvl(); } catch (e) {}
+        fadeGain(deck[sb].gain.gain, GFULL, 420, true);
+        ramp(deck[sb].hp.frequency, 20, 340, true);
+        var barSIn = inM.bpm ? 240 / inM.bpm : 2;                      /* FABLE-DJ4 (b) FILTER-BLOOM */
+        ramp(deck[sb].lp.frequency, DJ4.BLOOM_LP_HI, Math.round(1.5 * barSIn * 1000), true);
+        try { console.log('[dj4] char=filter-bloom src=flutter'); } catch (e) {}
+        setNow(idx[sb]);
+      }, dropMs));
+      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dropMs + 700);
+    }
+
+    function fx() {
+      if (ch === 'roll')     return fxRoll();      /* FABLE-DJ3 */
+      if (ch === 'echo')     return fxEcho();       /* FABLE-DJ3 */
+      if (ch === 'brake')    return fxBrake();      /* FABLE-DJ3 */
+      if (ch === 'flutter')  return fxFlutter();    /* FABLE-DJ4 */
+      if (ch === 'backspin') return fxBackspin();   /* FABLE-DJ4 */
+      var Df = deck[fo], Di = deck[sb];
+      var foCt2 = foCt; try { foCt2 = els[fo].currentTime || foCt; } catch (e) {}
+      // incoming primed at its mix-in but held SILENT (gain 0) until the drop
+      var inStart = (inM.min != null ? inM.min : 0); if (inStart > 8) inStart = 0;
+      try { els[sb].currentTime = inStart; } catch (e) {}
+      els[sb].volume = bgLvl();
+      els[sb].play().catch(function () {});
+      if (foM.bpm) { try { echo.delay.delayTime.setTargetAtTime((60 / foM.bpm) * 0.75, ct(), 0.05); } catch (e) {} }
+      if (dist === 2) ramp(echo.fb.gain, DJ2.CLASH_FB, 320);   // clash: more regen in the wash
+      // hold incoming silent + pre-bloom (filtered) until the drop
+      Di.gain.gain.cancelScheduledValues(ct()); Di.gain.gain.setValueAtTime(0.0001, ct());
+      Di.lo.gain.value = 0; Di.mid.gain.value = 0;
+      Di.lp.frequency.cancelScheduledValues(ct()); Di.lp.frequency.setValueAtTime(DJ4.BLOOM_LP_LO, ct());  /* FABLE-DJ4 (b): filter-bloom starts closed */
+      Di.hp.frequency.cancelScheduledValues(ct()); Di.hp.frequency.setValueAtTime(320, ct());
+      Di.verbSend.gain.value = 0; Di.echoSend.gain.value = 0;
+      // OUTGOING DISSOLVES: lowpass sweep + echo throw + reverb wash; dry melody spent by outMs.
+      // Same/adjacent key -> shorter, brighter wash; clash -> longer, deeper, more feedback.
+      var outMs = Math.round(dur * 0.62);
+      var remainMs = Infinity;
+      try { if (els[fo].duration && isFinite(els[fo].duration)) remainMs = Math.max(0, (els[fo].duration - foCt2) * 1000); } catch (e) {}
+      if (remainMs < outMs + 260) outMs = Math.max(900, Math.round(remainMs - 260));  // natural end: fade completes before the file runs out
+      ramp(Df.lp.frequency, lpT, outMs * 1.1, true);
+      ramp(Df.echoSend.gain, bgLvl() * echoT, outMs * 0.7);
+      ramp(Df.verbSend.gain, bgLvl() * verbT, outMs * 0.7);
+      fadeGain(Df.gain.gain, 0.0001, outMs, false);
+      // ONE SONG AT A TIME (owner rule): the incoming blooms only after the outgoing's
+      // gain is fully spent — on the first beat past silence, never overlapping the dry out.
+      var per = foM.bpm ? 60000 / foM.bpm : 0;
+      var dropMs = beatAlign(foM, foCt2, (outMs + 140) / 1000), hop = 0;
+      while (per && dropMs < outMs + 60 && hop++ < 6) dropMs += per;
+      if (dropMs < outMs + 60) dropMs = outMs + 60;
+      dropMs = Math.round(dropMs);
+      /* FABLE-DJ3 — riser RETIRED per owner 2026-07-04 ("the weird zoooooop up
+         on dj transitions feels a little weird"): no default path synthesizes a
+         rising sweep anymore. riser() is kept inert below for possible one-off use. */
+      var rec = { from: foM.t || '', to: inM.t || '', keys: (foM.k || '?') + '>' + (inM.k || '?'), dist: dist,
+                  durMs: dur, outMs: outMs, lp: lpT, echoAmt: echoT, quant: q.grid, quantMs: Math.round(q.delayS * 1000),
+                  dropMs: dropMs, foCtAtFx: +foCt2.toFixed(3), bpm: foM.bpm || 0, b0: (foM.b0 == null ? null : foM.b0) };
+      (window.__dj2Log = window.__dj2Log || []).push(rec);
+      try { console.log('[dj2] ' + JSON.stringify(rec)); } catch (e) {}
+      setTimeout(function () {
+        if (myGen !== gen) return;
+        try { els[sb].volume = bgLvl(); } catch (e) {}
+        fadeGain(Di.gain.gain, GFULL, dur * 0.32, true);   // bloom up
+        ramp(Di.hp.frequency, 20, 780, true);              // filter opens — the track "arrives"
+        var barSIn2 = inM.bpm ? 240 / inM.bpm : 2;                      /* FABLE-DJ4 (b) FILTER-BLOOM */
+        ramp(Di.lp.frequency, DJ4.BLOOM_LP_HI, Math.round(1.5 * barSIn2 * 1000), true);
+        try { console.log('[dj4] char=filter-bloom src=wash'); } catch (e) {}
+        setNow(idx[sb]);
+      }, dropMs);
+      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, Math.max(dur + 160, dropMs + dur * 0.32 + 160));
+    }
+  }
+  function goNext() { clearCross(); finishSwap(other(active)); }
+  function finishSwap(na) {
+    var oa = other(na); active = na; crossing = false;
+    if (waOK && deck[na]) {
+      var Dn = deck[na], Do = deck[oa];
+      ramp(Dn.gain.gain, GFULL, 140); ramp(Dn.lo.gain, 0, 220); ramp(Dn.mid.gain, 0, 220);
+      Dn.hp.frequency.cancelScheduledValues(ct()); ramp(Dn.hp.frequency, 20, 60, true);
+      ramp(Dn.lp.frequency, 20000, 220, true); ramp(Dn.verbSend.gain, 0, 900); ramp(Dn.echoSend.gain, 0, 500);
+      // hard-reset the outgoing deck to neutral (its echo/reverb tail rings out on its own)
+      Do.gain.gain.cancelScheduledValues(ct()); Do.gain.gain.setValueAtTime(0.0001, ct());
+      ramp(Do.echoSend.gain, 0, 1300); ramp(Do.verbSend.gain, 0, 1300);
+      Do.lo.gain.value = 0; Do.mid.gain.value = 0; Do.hp.frequency.value = 20; Do.lp.frequency.value = 20000;
+      try { ramp(echo.fb.gain, DJ2.BASE_FB, 800); } catch (e) {}   /* FABLE-DJ2: un-boost clash regen */
+      curRiser = null;                                             /* FABLE-DJ2: riser self-releases */
+    } else {
+      try { els[na].volume = muted ? 0 : GFULL; } catch (e) {}
+    }
+    try { els[na].playbackRate = 1; if (els[na].paused) els[na].play().catch(function () {}); els[oa].pause(); els[oa].currentTime = 0; els[oa].playbackRate = 1; } catch (e) {}
+    document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[na]);
+    load(oa, (idx[na] + 1) % tracks.length, false);
+  }
+
+  // ---- tape-stop brake → slam (used for 'My Album' jumps) ----------------
+  function brakeTo(n) {
+    if (!started) { try { open(); } catch (e) {} }
+    if (skipLock) return; skipLock = true; setTimeout(function () { skipLock = false; }, 900);
+    clearCross(); var myGen = ++gen;
+    var fo = active, sb = other(active); crossing = true;
+    if (idx[sb] !== n || !els[sb].src) load(sb, n, false); else idx[sb] = n;
+    if (waOK) {
+      try {
+        ramp(deck[fo].lp.frequency, 340, 620, true);
+        ramp(deck[fo].echoSend.gain, GFULL * 0.55, 380);
+        ramp(deck[fo].verbSend.gain, GFULL * 0.48, 380);
+      } catch (e) {}
+    }
+    var i = 0, steps = 22;
+    var br = setInterval(function () {
+      i++; var x = i / steps;
+      try {
+        if (isPhone) { els[fo].volume = Math.max(0, (muted ? 0 : GFULL) * (1 - x)); }   // phone: fade, no pitch-drop
+        else { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); }
+      } catch (e) {}
+      if (i >= steps || myGen !== gen) clearInterval(br);
+    }, 28);
+    setTimeout(function () {
+      if (myGen !== gen) return;
+      try { els[fo].pause(); els[fo].playbackRate = 1; } catch (e) {}
+      var inStart = (T(n).min != null ? T(n).min : 0); if (inStart > 8) inStart = 0;
+      try { els[sb].currentTime = inStart; els[sb].volume = (waOK ? bgLvl() : 0); els[sb].play().catch(function () {}); } catch (e) {}
+      if (waOK && deck[sb]) {
+        var Di = deck[sb]; Di.lo.gain.value = 0; Di.mid.gain.value = 0; Di.hp.frequency.value = 20; Di.lp.frequency.value = 20000;
+        Di.gain.gain.cancelScheduledValues(ct()); Di.gain.gain.setValueAtTime(0.0001, ct()); ramp(Di.gain.gain, GFULL, 240);
+      } else { els[sb].volume = 0; volRamp(sb, GFULL, 240); }
+      finishSwap(sb);
+    }, 660);
+  }
+
+  // ---- deck wiring -------------------------------------------------------
+  function bind(d) {
+    var el = els[d];
+    el.addEventListener('timeupdate', function () {
+      if (d !== active || crossing || muted) return;
+      if (!el.duration || !isFinite(el.duration)) return;
+      var endAt = el.duration - dj3Lead(d) / 1000;   /* FABLE-DJ3: char-aware lead (a 2-bar roll needs runway) */
+      if (endAt < 2) return;
+      if (el.currentTime >= endAt) blend();   // transition ONLY at the track's natural end — never a mid-song cut
+    });
+    el.addEventListener('ended', function () { if (d === active && !crossing && el.currentTime >= (el.duration || 0) - 0.5) goNext(); });
+    el.addEventListener('playing', function () { if (d === active) { document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[d]); } });
+    el.addEventListener('error', function () { if (d === active && !crossing) goNext(); });
+  }
+
+  function open() {
+    if (started) return; started = true; var __m=false; try{__m=localStorage.getItem('sonicManifoldMuted')==='1';}catch(e){} if(__m){ started=false; if(!window.__shWaitUnmute){window.__shWaitUnmute=setInterval(function(){var mm=false;try{mm=localStorage.getItem('sonicManifoldMuted')==='1';}catch(e){} if(!mm){clearInterval(window.__shWaitUnmute);window.__shWaitUnmute=null;open();}},2500);} return; }
+    ensureACtx(); try { els.a.preload = els.b.preload = 'auto'; } catch (e) {} if (actx) actx.resume().catch(function () {});
+    document.body.classList.add('sc-open');
+    load('a', 0, true);
+    if (waOK) ramp(deck.a.gain.gain, GFULL, 1300); else volRamp('a', GFULL, 1300);
+    load('b', 1 % tracks.length, false);
+  }
+  function setMuted(m) {
+    muted = !!m;
+    if (m) {
+      if (waOK) { ramp(master.gain, 0.0001, 160); } else { ['a', 'b'].forEach(function (d) { try { els[d].volume = 0; } catch (e) {} }); }
+      setTimeout(function () { if (muted) { try { els[active].pause(); } catch (e) {} } }, waOK ? 180 : 0);
+      document.body.classList.remove('sc-playing');
+    } else if (started) {
+      try { if (actx && actx.state !== 'running') actx.resume().catch(function(){}); } catch (e) {}
+      try { els[active].play().catch(function () {}); } catch (e) {}
+      if (waOK) { master.gain.cancelScheduledValues(ct()); ramp(master.gain, GFULL, 180); } else { try { els[active].volume = GFULL; } catch (e) {} }
+      document.body.classList.add('sc-playing');
+    }
+  }
+  function skip() {
+    if (!started || skipLock) return;
+    skipLock = true; setTimeout(function () { skipLock = false; }, 1100);
+    if (crossing) clearCross();
+    // ensure standby holds the NEXT track, then run the full cinematic blend (fast)
+    var sb = other(active), ni = (idx[active] + 1) % tracks.length;
+    if (idx[sb] !== ni || !els[sb].src) load(sb, ni, false);
+    blend(XF_SKIP);
+  }
+
+  bind('a'); bind('b');
+  document.addEventListener('sonic:first-tap', open);
+  document.addEventListener('sonic:first-tap', function () { if (actx && actx.state !== 'running') actx.resume().catch(function () {}); });
+  // resume on tab-return: iOS suspends the ctx as 'interrupted' and OS-pauses the <audio>;
+  // without this the master gain sits at ~0 against a frozen clock = silent forever
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible' || !started || muted) return;
+    try { if (actx && actx.state !== 'running') actx.resume().catch(function(){}); } catch (e) {}
+    try { var __rel = els[active]; if (__rel && __rel.paused) __rel.play().catch(function(){}); } catch (e) {}
+  });
+  if (nowSkip) nowSkip.addEventListener('click', skip);
+  document.addEventListener('keydown', function (e) {
+    if (!started) return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'n') skip();
+  });
+
+  window.__bedCrossing = function () { return crossing; };
+  window.__selfHostedBed = {
+    open: open, setMuted: setMuted, next: skip, isOn: function () { return started && !muted; },
+    activeId: function () { return els[active] && els[active].id; },
+    currentIndex: function () { return idx[active]; },
+    _dbg: function () { return waOK ? { aG: +deck.a.gain.gain.value.toFixed(3), bG: +deck.b.gain.gain.value.toFixed(3), aLP: Math.round(deck.a.lp.frequency.value), bLP: Math.round(deck.b.lp.frequency.value), active: active, cross: crossing, rate: +((els[active] && els[active].playbackRate) || 1).toFixed(3), dj2: (window.__dj2Log || []).slice(-1)[0] || null, dj3: (window.__dj3Log || []).slice(-1)[0] || null, riser: window.__dj2Riser || null, dj4: { worklet: dj4WorkletOK, cap: !!dj4Cap, flourish: !!dj4Flourish, flutter: !!dj4Flutter } } : { waOK: false, rate: +((els[active] && els[active].playbackRate) || 1).toFixed(3) }; },
+    playIndex: function (n) {
+      if (!tracks.length) return;
+      n = ((n % tracks.length) + tracks.length) % tracks.length;
+      var go = function () { brakeTo(n); };
+      if (started) go(); else { try { open(); } catch (e) {} setTimeout(go, 180); }
+    }
+  };
+  console.log('[sonic-init] SELF-HOSTED bed armed ·', tracks.length, 'tracks · O4 DJ engine + FABLE-DJ2 + FABLE-DJ3 + FABLE-DJ4 (backspin · filter-flutter · chop-in · filter-bloom)');
+})();
+</script>
+<!--SELFHOSTED-AUDIO-END-->
 <!--INTRO-ART-START-->
 <style>.hero-stage>*{position:relative;z-index:2}#intro-art-canvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:0;opacity:0;transition:opacity 1.2s ease}#intro-art-canvas.on{opacity:1}.intro-art-svg{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:0;opacity:0.55}header,.scrolly-opener,.surprising-hero,.novel-callout,.about-dash{position:relative;z-index:1}</style>
 <svg class="intro-art-svg" id="intro-art-svg" aria-hidden="true" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
@@ -5196,7 +6151,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function playTitle(title, el){
     var bi=bedIndexOf(title);
     try{ document.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
-    try{ window.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
+    try{ window.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){} try{ document.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
     try{
       if(bi!=null && window.__selfHostedBed && window.__selfHostedBed.playIndex){ window.__selfHostedBed.playIndex(bi); }
       else { var aux=document.getElementById('aux-play'); if(aux) aux.click(); }
@@ -12866,7 +13821,8 @@ try {
   }
   function toggleAct(act, btn){
     var open = btn.getAttribute('aria-expanded')==='true';
-    document.querySelectorAll('.spine-fold[data-spine-act="'+act+'"]').forEach(function(m){ m.classList.toggle('spine-open', !open); });
+    document.querySelectorAll('.spine-fold[data-spine-act="'+act+'"]').forEach(function(m){ m.classList.toggle('spine-open', !open);
+      if(!open){ setTimeout(function(){ try{ if(window.Plotly&&window.Plotly.Plots){ m.querySelectorAll('.js-plotly-plot').forEach(function(gd){ try{ Plotly.Plots.resize(gd); }catch(e){} }); } }catch(e){} }, 120); } });
     btn.setAttribute('aria-expanded', open?'false':'true');
     var t=btn.querySelector('.lab-title'); if (t) t.textContent = open?'open the lab':'close the lab';
     if (!open) renderSoon();
@@ -15598,7 +16554,9 @@ X <em>Granger-causes</em> Y if X&rsquo;s recent past improves the forecast of Y 
     var cs = e.querySelectorAll('canvas');
     for (var i = 0; i < cs.length; i++) {
       var c = cs[i];
-      if (c.width > 0 && c.height > 0) {
+      var want = e.getBoundingClientRect().height || 700;
+      var got = c.getBoundingClientRect().height || 0;
+      if (c.width > 0 && c.height > 0 && got >= want * 0.6) {
         try { var g = c.getContext('webgl2') || c.getContext('webgl'); if (g && !g.isContextLost()) return true; } catch (err) {}
       }
     }
@@ -16838,7 +17796,7 @@ document.addEventListener('click',function(e){
   function playTrack(title){
     var i=idxOf(title); if(i<0) return false;
     try{ document.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
-    try{ window.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
+    try{ window.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){} try{ document.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
     try{
       var bed=window.__selfHostedBed;
       if(bed&&bed.playIndex){
@@ -17271,7 +18229,8 @@ function start(){shim();
 function go(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(start,50);});});}
 if(document.readyState!=='loading')go();else document.addEventListener('DOMContentLoaded',go);
 })();
-</script><!--FABLE-DEFER-END--><!--FABLE-UX-START--><style id="fable-ux-css">#rfx-ilead-progress{display:none!important}@media (max-width:899.98px){#aux-audio{bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;left:10px!important;max-width:calc(100vw - 128px)!important}body{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))!important}#fable-back{bottom:calc(74px + env(safe-area-inset-bottom,0px))!important}}#spine-bar-m{left:auto!important;right:10px!important;width:auto!important;height:auto!important;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px)) 8px!important;border-radius:14px 14px 0 0;border-left:1px solid rgba(138,217,192,.18)}#spine-m-share{width:auto!important;padding:0 12px!important;display:inline-flex!important;gap:6px;align-items:center}.sbb-lab{font:600 11px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.4px;color:#cdeede}body.nav-open #aux-audio,body.nav-open #mobile-toggle,body.nav-open .mobile-toggle,body.nav-open #spine-bar-m,body.nav-open #fable-back{display:none!important}#mobile-toggle,.mobile-toggle{min-height:40px!important;display:inline-flex!important;align-items:center;gap:5px;left:auto!important;right:10px!important;top:calc(var(--nav-h,50px) + 8px)!important;max-width:calc(100vw - 24px);white-space:nowrap;font-family:'JetBrains Mono',ui-monospace,monospace!important;font-size:11px!important;letter-spacing:.4px;color:#21f6bc!important;background:rgba(6,16,13,.97)!important;border:1px solid rgba(33,246,188,.5)!important;border-radius:999px!important;padding:0 13px!important;cursor:pointer;box-shadow:0 4px 16px -8px rgba(0,0,0,.6);opacity:1!important;z-index:90!important}#mobile-toggle:active,.mobile-toggle:active{background:rgba(33,246,188,.16)!important;transform:scale(.97)}nav.cyber-nav #cyber-brand{min-height:44px;display:inline-flex;align-items:center}@media (max-width:600px){.pace-opt{padding:11px 12px!important}}.audit-board .ab-pill{min-height:40px}.fig-caption[data-fc] .fc-toggle{padding:10px 13px!important}.pc-tag,.oss-kicker,.rlhf-tag,.decontam-warn,.pd-kicker,.gt-strike-l{font-size:11px!important}@media (max-width:768px){.method-cmp .mc-scroll{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}.method-cmp::after{content:'swipe \2192';display:block;text-align:right;font:600 10px 'JetBrains Mono',monospace;color:rgba(33,246,188,.55);letter-spacing:.6px;margin-top:4px}}#cyber-sheet.sm-acc-on .fable-subtoggle{display:none!important}#cyber-sheet .cs-row[data-smacc]{position:relative}.sm-chev{margin-left:auto;color:#21f6bc;opacity:.85;transition:transform .18s ease;font-size:12px}.cs-row.sm-open .sm-chev{transform:rotate(180deg)}.fable-subwrap .cs-row{padding-left:34px!important;opacity:.94;min-height:44px}.sm-actgate{display:block;margin:2px auto 26px;padding:11px 18px;max-width:520px;text-align:center;border:1px dashed rgba(33,246,188,.4);border-radius:12px;background:rgba(33,246,188,.05);color:#21f6bc;font:600 11.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.5px;cursor:pointer}.sm-actgate:active{background:rgba(33,246,188,.14)}body:not(.story-only) .sm-actgate{display:none}</style><script id="fable-ux-js">
+</script><!--FABLE-DEFER-END--><!--SONGS-CSS-START--><style>#apple-sunomoment .sm-featured{margin:4px 0 24px}#apple-sunomoment .sm-feat-h{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#21f6bc;opacity:.9;margin:0 0 12px}#apple-sunomoment .sm-feat-row{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}#apple-sunomoment .sm-feat{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid rgba(33,246,188,.28);border-radius:13px;background:linear-gradient(180deg,rgba(33,246,188,.07),rgba(155,107,255,.05));cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease}#apple-sunomoment .sm-feat:hover{transform:translateY(-2px);border-color:rgba(33,246,188,.6);background:linear-gradient(180deg,rgba(33,246,188,.12),rgba(155,107,255,.08))}#apple-sunomoment .sm-feat-t{font-weight:600;font-size:15px;color:#eef0f2;letter-spacing:-.01em}#apple-sunomoment .sm-feat .sm-go{color:#21f6bc;font-size:12px;opacity:.85;flex:none}#apple-sunomoment .sm-feat.sm-playing{border-color:#21f6bc;background:linear-gradient(180deg,rgba(33,246,188,.16),rgba(155,107,255,.1))}#apple-sunomoment .sm-fullwork{border-top:1px solid rgba(124,128,140,.18);margin-top:2px}#apple-sunomoment .sm-fw-sum{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:12px;padding:16px 2px;outline:none}#apple-sunomoment .sm-fw-sum::-webkit-details-marker{display:none}#apple-sunomoment .sm-fw-label{font-family:'JetBrains Mono','SF Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#eef0f2}#apple-sunomoment .sm-fw-sub{font-size:12px;color:#9aa0aa;letter-spacing:.02em}#apple-sunomoment .sm-fw-caret{margin-left:auto;color:#9aa0aa;font-size:11px;transition:transform .2s ease}#apple-sunomoment .sm-fullwork[open] .sm-fw-caret{transform:rotate(180deg)}#apple-sunomoment .sm-mvmt{margin:8px 0 18px}#apple-sunomoment .sm-mv-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 9px;padding-bottom:7px;border-bottom:1px dashed rgba(124,128,140,.2)}#apple-sunomoment .sm-mv-label{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#21f6bc}#apple-sunomoment .sm-mv-note{font-size:12px;font-style:italic;color:#8b919b}#apple-sunomoment .sm-mv-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:4px 18px}#apple-sunomoment .sm-mv-list .sm-track{display:flex;align-items:center;gap:11px;padding:8px 6px;border-radius:9px;cursor:pointer;transition:background .15s ease}#apple-sunomoment .sm-mv-list .sm-track:hover{background:rgba(255,255,255,.04)}#apple-sunomoment .sm-mv-list .sm-n{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;color:#6b7280;flex:none;width:20px}#apple-sunomoment .sm-mv-list .sm-t{font-size:14px;color:#d6d9de;flex:1}#apple-sunomoment .sm-mv-list .sm-go{color:#21f6bc;font-size:11px;opacity:0;transition:opacity .15s ease;flex:none}#apple-sunomoment .sm-mv-list .sm-track:hover .sm-go{opacity:.8}#apple-sunomoment .sm-mv-list .sm-track.sm-playing{background:rgba(33,246,188,.1)}#apple-sunomoment .sm-mv-list .sm-track.sm-playing .sm-go{opacity:1}#apple-sunomoment .sm-mv-list .sm-track.sm-playing .sm-t{color:#21f6bc}@media(max-width:640px){#apple-sunomoment .sm-feat-row{grid-template-columns:1fr}#apple-sunomoment .sm-mv-list{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){#apple-sunomoment .sm-feat,#apple-sunomoment .sm-fw-caret,#apple-sunomoment .sm-mv-list .sm-track{transition:none}}</style><!--SONGS-CSS-END-->
+<!--FABLE-UX-START--><style id="fable-ux-css">#rfx-ilead-progress{display:none!important}@media (max-width:899.98px){#aux-audio{bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;left:10px!important;max-width:calc(100vw - 128px)!important}body{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))!important}#fable-back{bottom:calc(74px + env(safe-area-inset-bottom,0px))!important}}#spine-bar-m{left:auto!important;right:10px!important;width:auto!important;height:auto!important;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px)) 8px!important;border-radius:14px 14px 0 0;border-left:1px solid rgba(138,217,192,.18)}#spine-m-share{width:auto!important;padding:0 12px!important;display:inline-flex!important;gap:6px;align-items:center}.sbb-lab{font:600 11px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.4px;color:#cdeede}body.nav-open #aux-audio,body.nav-open #mobile-toggle,body.nav-open .mobile-toggle,body.nav-open #spine-bar-m,body.nav-open #fable-back{display:none!important}#mobile-toggle,.mobile-toggle{min-height:40px!important;display:inline-flex!important;align-items:center;gap:5px;left:auto!important;right:10px!important;top:calc(var(--nav-h,50px) + 8px)!important;max-width:calc(100vw - 24px);white-space:nowrap;font-family:'JetBrains Mono',ui-monospace,monospace!important;font-size:11px!important;letter-spacing:.4px;color:#21f6bc!important;background:rgba(6,16,13,.97)!important;border:1px solid rgba(33,246,188,.5)!important;border-radius:999px!important;padding:0 13px!important;cursor:pointer;box-shadow:0 4px 16px -8px rgba(0,0,0,.6);opacity:1!important;z-index:90!important}#mobile-toggle:active,.mobile-toggle:active{background:rgba(33,246,188,.16)!important;transform:scale(.97)}nav.cyber-nav #cyber-brand{min-height:44px;display:inline-flex;align-items:center}@media (max-width:600px){.pace-opt{padding:11px 12px!important}}.audit-board .ab-pill{min-height:40px}.fig-caption[data-fc] .fc-toggle{padding:10px 13px!important}.pc-tag,.oss-kicker,.rlhf-tag,.decontam-warn,.pd-kicker,.gt-strike-l{font-size:11px!important}@media (max-width:768px){.method-cmp .mc-scroll{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}.method-cmp::after{content:'swipe \2192';display:block;text-align:right;font:600 10px 'JetBrains Mono',monospace;color:rgba(33,246,188,.55);letter-spacing:.6px;margin-top:4px}}#cyber-sheet.sm-acc-on .fable-subtoggle{display:none!important}#cyber-sheet .cs-row[data-smacc]{position:relative}.sm-chev{margin-left:auto;color:#21f6bc;opacity:.85;transition:transform .18s ease;font-size:12px}.cs-row.sm-open .sm-chev{transform:rotate(180deg)}.fable-subwrap .cs-row{padding-left:34px!important;opacity:.94;min-height:44px}.sm-actgate{display:block;margin:2px auto 26px;padding:11px 18px;max-width:520px;text-align:center;border:1px dashed rgba(33,246,188,.4);border-radius:12px;background:rgba(33,246,188,.05);color:#21f6bc;font:600 11.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.5px;cursor:pointer}.sm-actgate:active{background:rgba(33,246,188,.14)}body:not(.story-only) .sm-actgate{display:none}@media (max-width:899.98px){#global-mute-pill{display:none!important}#share-card-btn{display:none!important}}@media (min-width:900px){#spine-mute{display:none!important}}.table-wrap td.dim{white-space:normal;max-width:150px}.table-wrap:not(.mi-table-wrap) th{white-space:normal;scroll-snap-align:start}@media (max-width:480px){#mobile-toggle span:last-child{display:none}#mobile-toggle{width:44px;justify-content:center;padding:0!important}}.sm-chev-zone{display:inline-flex;align-items:center;justify-content:center;min-width:48px;align-self:stretch;margin:-11px -13px -11px auto;padding:0 13px}</style><script id="fable-ux-js">
 (function(){if(window.__fableUX2)return;window.__fableUX2=1;
 function gates(){try{
  if(document.querySelector('.sm-actgate'))return;
@@ -17300,26 +18259,15 @@ function accordion(){try{
   if(!row||!wrap||!wrap.classList||!wrap.classList.contains('fable-subwrap'))return;
   if(row.dataset.smacc)return;
   row.dataset.smacc='1';
-  var ch=document.createElement('span');ch.className='sm-chev';ch.textContent='▾';row.appendChild(ch);
-  // first subrow: open the act itself (nav anchor matched by label text)
-  try{
-   var lab=(row.textContent||'').replace(/[▾\s]+/g,' ').trim().toLowerCase();
-   var anchors=Array.prototype.slice.call(document.querySelectorAll('nav.cyber-nav a[href^="#"]'));
-   var hit=anchors.filter(function(a){var t=(a.textContent||'').trim().toLowerCase();return t&&lab.indexOf(t.slice(0,10))!==-1&&!a.closest('.submenu');})[0];
-   if(hit&&!wrap.querySelector('.sm-actopen')){
-    var go=document.createElement('button');go.type='button';go.className='cs-row fable-subrow sm-actopen';
-    go.innerHTML='<span class="cs-glyph">↳</span><span class="cs-label">open this act</span>';
-    go.addEventListener('click',function(){
-     try{var b=document.getElementById('cyber-burger');if(b)b.click();}catch(e){}
-     var href=hit.getAttribute('href');
-     setTimeout(function(){if(window.fableGo)window.fableGo(href);else location.hash=href;},280);});
-    wrap.insertBefore(go,wrap.firstChild);}
-  }catch(e){}});
+  var z=document.createElement('span');z.className='sm-chev-zone';
+  var ch=document.createElement('span');ch.className='sm-chev';ch.textContent='▾';
+  z.appendChild(ch);row.appendChild(z);});
 }catch(e){}}
 document.addEventListener('click',function(ev){
  var t=ev.target;if(!t||!t.closest)return;
- var row=t.closest('#cyber-sheet .cs-row[data-smacc]');
- if(row){ev.preventDefault();ev.stopImmediatePropagation();
+ var zone=t.closest('#cyber-sheet .sm-chev-zone');
+ if(zone){ev.preventDefault();ev.stopImmediatePropagation();
+  var row=zone.closest('.cs-row');
   var tog=row.nextElementSibling,wrap=tog&&tog.nextElementSibling;
   if(wrap&&wrap.classList.contains('fable-subwrap')){wrap.hidden=!wrap.hidden;row.classList.toggle('sm-open',!wrap.hidden);}
   return;}
@@ -17336,966 +18284,7 @@ function boot(){gates();accordion();
   if(ev.target&&ev.target.closest&&ev.target.closest('#story-toggle,.pace-opt'))setTimeout(gates,900);},true);}
 if(document.readyState!=='loading'){setTimeout(boot,1200);}else{document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1200);});}
 })();
-</script><!--FABLE-UX-END-->
-<!--SELFHOSTED-AUDIO-START-->
-<style>#sh-bg{position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden}</style>
-<script id="sh-tracks" type="application/json">[{"src": "audio/bed/autotropic.mp3", "t": "Autotropic", "a": "astralcrest", "k": "11A", "bpm": 136.0, "b0": 0.209, "min": 0.23, "dur": 286.4}, {"src": "audio/bed/reach-back.mp3", "t": "Reach Back", "a": "astralcrest", "k": "8B", "bpm": 99.38, "b0": 0.209, "min": 0.19, "dur": 264.48}, {"src": "audio/bed/latent-dimension.mp3", "t": "Latent Dimension", "a": "astralcrest", "k": "5B", "bpm": 112.35, "b0": 0.0, "min": 0.28, "dur": 479.4}, {"src": "audio/bed/novelday.mp3", "t": "Novelday", "a": "astralcrest", "k": "1A", "bpm": 136.0, "b0": 1.44, "min": 1.58, "dur": 237.56}, {"src": "audio/bed/stochastic-rainbow.mp3", "t": "Stochastic Rainbow", "a": "astralcrest", "k": "12B", "bpm": 161.5, "b0": 0.07, "min": 0.05, "dur": 203.92}, {"src": "audio/bed/antares-v2.mp3", "t": "Antares Infinite Cut", "a": "astralcrest", "k": "2A", "g": "antares", "bpm": 129.2, "b0": 0.139, "min": 0.51, "dur": 479.4}, {"src": "audio/bed/save-her.mp3", "t": "Save Her", "a": "astralcrest", "k": "7A", "bpm": 143.55, "b0": 0.836, "min": 1.21, "dur": 218.0}, {"src": "audio/bed/brainstorm.mp3", "t": "Brainstorm", "a": "astralcrest", "k": "3A", "bpm": 129.2, "b0": 2.02, "min": 2.09, "dur": 215.36}, {"src": "audio/bed/lizard-in-the-sun.mp3", "t": "Lizard in the Sun", "a": "astralcrest", "k": "3B", "bpm": 112.35, "b0": 4.319, "min": 4.41, "dur": 196.24}, {"src": "audio/bed/no-masks-ad-infinitum.mp3", "t": "No Masks Ad Infinitum", "a": "astralcrest", "k": "4A", "bpm": 107.67, "b0": 0.673, "min": 0.65, "dur": 187.44}, {"src": "audio/bed/tryin.mp3", "t": "Tryin'", "a": "astralcrest", "k": "6A", "bpm": 172.27, "b0": 18.135, "min": 18.44, "dur": 207.04}, {"src": "audio/bed/what-the-helly.mp3", "t": "What the Helly", "a": "astralcrest", "k": "2A", "bpm": 129.2, "b0": 7.105, "min": 7.34, "dur": 195.4}, {"src": "audio/bed/choose-me-whole.mp3", "t": "Choose Me Whole", "a": "astralcrest", "k": "6A", "bpm": 123.05, "b0": 0.023, "min": 0.51, "dur": 258.44}, {"src": "audio/bed/hitting-the-infinite-derivative.mp3", "t": "Hitting the Infinite Derivative", "a": "astralcrest", "k": "11A", "bpm": 66.26, "b0": 0.0, "min": 0.05, "dur": 130.88}, {"src": "audio/bed/brain-rm-rf.mp3", "t": "Brain rm -rf", "a": "astralcrest", "k": "4A", "bpm": 129.2, "b0": 0.046, "min": 0.46, "dur": 83.4}, {"src": "audio/bed/edge-of-the-black-hole.mp3", "t": "Edge of the Black Hole", "a": "astralcrest", "k": "8A", "bpm": 129.2, "b0": 0.07, "min": 0.51, "dur": 181.56}, {"src": "audio/bed/anti-dimmable.mp3", "t": "Anti Dimmable", "a": "astralcrest", "k": "10A", "bpm": 112.35, "b0": 1.3, "min": 1.53, "dur": 166.08}, {"src": "audio/bed/too-fiery-hot.mp3", "t": "Too Fiery Hot", "a": "astralcrest", "k": "10B", "bpm": 117.45, "b0": 1.695, "min": 1.86, "dur": 479.4}, {"src": "audio/bed/cant-resist-the-bite.mp3", "t": "Can't Resist the Bite", "a": "astralcrest", "k": "4B", "bpm": 68.0, "b0": 0.906, "min": 0.65, "dur": 187.64}, {"src": "audio/bed/hooked-at-first-taste.mp3", "t": "Hooked at First Taste", "a": "astralcrest", "k": "10A", "bpm": 129.2, "b0": 1.881, "min": 2.28, "dur": 206.48}, {"src": "audio/bed/fruititarian.mp3", "t": "Fruititarian", "a": "astralcrest", "k": "12B", "bpm": 99.38, "b0": 0.046, "min": 0.33, "dur": 177.72}]</script>
-<div id="sh-bg" aria-hidden="true">
-  <audio id="sh-a" preload="auto"></audio>
-  <audio id="sh-b" preload="auto"></audio>
-</div>
-<script>
-(function () {
-  'use strict';
-  var tracks = [];
-  try { tracks = JSON.parse(document.getElementById('sh-tracks').textContent); } catch (e) {}
-  if (!Array.isArray(tracks) || !tracks.length) return;     // DORMANT unless tracks are listed
-  window.__preferSelfHosted = true;                          // SoundCloud player stands down
-  /* FABLE-DJ2-ORDER — ?order=b ear-test variant: slots 1-2 swapped (bite first, helly second; default is helly-first).
-     The DOM JSON is rewritten too, so every lazy consumer (featured bedIndexOf, Camelot hover
-     decoder, sonify rekey) shares the same index space as the engine. */
-  try {
-    if (/[?&]order=b(?:&|#|$)/i.test(location.search) && tracks.length > 1) {
-      var _sw = tracks[0]; tracks[0] = tracks[1]; tracks[1] = _sw;
-      try { document.getElementById('sh-tracks').textContent = JSON.stringify(tracks); } catch (e) {}
-      try { console.log('[dj2] ORDER B active (bite opener) — slots 1-2 swapped'); } catch (e) {}
-    }
-  } catch (e) {}
-  // PHONE: the heavy Web-Audio DJ graph (convolution reverb + 2 decks + echo) starves mobile
-  // -> "super slow" + buffer-underrun warble; the tape-stop playbackRate ramp (preservesPitch=false)
-  // is the audible pitch-drop. On phones use the light <audio> volume-crossfade path instead.
-  var isPhone = /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent||'') || (Math.min(screen.width||9999, screen.height||9999) <= 500);
-
-  // ---- tuning ------------------------------------------------------------
-  // GFULL = unity deck gain. The bed's BACKGROUND LEVEL is owned by the separate
-  // APPLE-AUDIOUX layer (it tweens #sh-a/#sh-b el.volume to ~0.5 and stands down
-  // during our crossfade via __bedCrossing). So we drive WA gain at UNITY and match
-  // both decks to that external el.volume — the equal-power blend never pumps.
-  var GFULL = 1.0;
-  var FADE_MS = 3800;                              // dissolve begins this long before a track's natural end
-  var XF_BASE = 3200, XF_CLASH = 3700, XF_SKIP = 2600;     // dissolve durations (ms)
-  var LP_FLOOR = 760, LP_CLASH = 460;              // outgoing lowpass dive target (Hz)
-  var HP_IN = 240;                                 // incoming highpass riser entry (Hz)
-  var BASS_KILL = -26, BASS_FULL = 0;              // lowshelf gain (dB)
-  /* FABLE-DJ2 tuning — key-adaptive dissolve + beat-quantized onset + synthesized riser */
-  var DJ2 = {
-    MATCH_DUR: 0.65, CLASH_DUR: 1.40,    // dissolve length vs base: same/adjacent key vs clash
-    MATCH_LP: 950,   CLASH_LP: 210,      // outgoing lowpass dive target (Hz): brighter vs deeper
-    MATCH_ECHO: 0.42, CLASH_ECHO: 0.74,  // echo-send ceilings (x bed level)
-    MATCH_VERB: 0.36, CLASH_VERB: 0.62,  // reverb-send ceilings
-    BASE_FB: 0.40,   CLASH_FB: 0.56,     // echo feedback (regen) — restored after every swap
-    BAR_MAX_S: 1.2,                      // onset quantize: next bar if this close, else next beat
-    RISER_MIN: 1.0,  RISER_MAX: 2.0      // riser length bounds (s); crest = the incoming's entry
-  };
-  /* FABLE-DJ4 tuning — stutter-roll · echo-throw · brake/spin-up (unchanged
-     from DJ3) + backspin · filter-flutter · chop-in · filter-bloom (new).
-     `DJ3` is aliased to this SAME object so every pre-existing DJ3.* read
-     below keeps working verbatim — nothing else in the file needed to change. */
-  var DJ4 = {
-    ROLL_BARS: 2, ROLL_BARS_SKIP: 1,     // natural end gates the final 2 bars; skip gates 1 (responsive)
-    ROLL_DUTY: 0.62, ROLL_HP: 950,       // chop on-fraction; rising-highpass sweep target (Hz)
-    ECHO_FB: 0.65, ECHO_DUCK_MS: 120, ECHO_TAIL_S: 1.7,
-    BRAKE_MS: 700, SPIN_MS: 280, SPIN_R0: 0.55, GAP_MS: 130,   // spin-up kept SHORT (<300 ms) per owner — no long pitch-up
-    END_PAD_S: 0.30,                     // roll ends this early so the cut beats the file running out
-    // -- new in DJ4 --
-    BACKSPIN_CAP_S: 1.1, BACKSPIN_LEAD_MS: 2000,               // target capture window + pre-anchor runway (best-effort; short skips get less)
-    BACKSPIN_FLOURISH_S: 0.65, BACKSPIN_HP_LO: 300, BACKSPIN_HP_HI: 2500,
-    BACKSPIN_SILENCE_RMS: 0.004, BACKSPIN_MIN_S: 0.15,         // below either -> degrade to brake
-    FLUTTER_LO: 350, FLUTTER_HI: 4000, FLUTTER_MAX_S: 2.2,     // LP wobble bounds + hard cap on the final-bar runway
-    CHOP_DUTY: 0.55,
-    BLOOM_LP_LO: 240, BLOOM_LP_HI: 16000
-  };
-  var DJ3 = DJ4;   // FABLE-DJ4: alias — keeps every existing DJ3.* reference working unchanged
-
-  // ---- elements / state --------------------------------------------------
-  var els = { a: document.getElementById('sh-a'), b: document.getElementById('sh-b') };
-  if (!els.a || !els.b) return;
-  ['a','b'].forEach(function (d) {
-    try { els[d].preservesPitch = false; els[d].mozPreservesPitch = false; els[d].webkitPreservesPitch = false; } catch (e) {}
-  });
-  var idx = { a: 0, b: 1 % tracks.length }, active = 'a', started = false, muted = false, crossing = false;
-  var volRamps = { a: null, b: null }, swapT = null, gen = 0, skipLock = false;
-  var fxT = null, curRiser = null;                 /* FABLE-DJ2: quantized-dissolve timer + live riser handle */
-  var dj3T = [], dj3Spin = null;                   /* FABLE-DJ3: per-character timers + varispeed interval */
-  var dj4Cap = null, dj4Flourish = null, dj4Flutter = null;   /* FABLE-DJ4: backspin capture tap / playback nodes + flutter LFO handle */
-  var dj4WorkletOK = false, dj4WorkletP = null;    /* FABLE-DJ4: lazy one-time AudioWorklet module registration */
-  var nowEl = document.getElementById('sc-now'), nowLabel = document.getElementById('sc-now-label'), nowSkip = document.getElementById('sc-now-skip');
-  function other(d) { return d === 'a' ? 'b' : 'a'; }
-  function T(qi) { return tracks[((qi % tracks.length) + tracks.length) % tracks.length]; }
-  // bed background level is owned by APPLE-AUDIOUX (el.volume ~0.5). Match it so both
-  // decks share one level during a blend → the equal-power WA crossfade never pumps.
-  function bgDefault() { return window.__appleAudioUX2 ? 0.62 : 0.85; }
-  function bgLvl() { var v = els[active] && els[active].volume; return (v > 0.02 && v <= 1) ? v : bgDefault(); }
-
-  // legacy non-adjacency guard (retained, unused — array order is intentional)
-  function groupOf(t) { return t.g || t.src; }
-  function adjOK(arr) { if (arr.length < 2) return true; for (var i = 0; i < arr.length; i++) { if (groupOf(arr[i]) === groupOf(arr[(i+1)%arr.length])) return false; } return true; }
-  void adjOK;
-
-  // ---- Camelot distance: 0 same · 1 compatible · 2 clash -----------------
-  function camDist(a, b) {
-    if (!a || !b) return 1;
-    if (a === b) return 0;
-    var na = parseInt(a, 10), nb = parseInt(b, 10), la = a.slice(-1), lb = b.slice(-1);
-    if (la === lb) { var d = Math.abs(na - nb); d = Math.min(d, 12 - d); return d <= 1 ? 1 : 2; }
-    if (na === nb) return 1;        // relative major/minor
-    return 2;
-  }
-
-  // ---- Web Audio DJ mixer ------------------------------------------------
-  var actx = null, waOK = false, master = null, echo = null, verb = null;
-  var deck = { a: null, b: null };  // {src,hp,lo,mid,lp,gain,echoSend,verbSend}
-
-  function makeIR(sec, decay) {
-    var rate = actx.sampleRate, len = Math.max(1, Math.floor(sec * rate));
-    var buf = actx.createBuffer(2, len, rate);
-    for (var ch = 0; ch < 2; ch++) {
-      var d = buf.getChannelData(ch);
-      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
-    }
-    return buf;
-  }
-  function buildDeck(d) {
-    var src = actx.createMediaElementSource(els[d]);
-    var hp  = actx.createBiquadFilter(); hp.type  = 'highpass'; hp.frequency.value = 20;    hp.Q.value = 0.5;
-    var lo  = actx.createBiquadFilter(); lo.type  = 'lowshelf'; lo.frequency.value = 135;   lo.gain.value = 0;
-    var mid = actx.createBiquadFilter(); mid.type = 'peaking';  mid.frequency.value = 950;  mid.Q.value = 0.8; mid.gain.value = 0;
-    var lp  = actx.createBiquadFilter(); lp.type  = 'lowpass';  lp.frequency.value = 20000; lp.Q.value = 0.6;
-    var gain = actx.createGain(); gain.gain.value = 0.0001;
-    src.connect(hp); hp.connect(lo); lo.connect(mid); mid.connect(lp); lp.connect(gain); gain.connect(master);
-    // sends tapped POST-filter, PRE-gain → echo/reverb throw is independent of the gain fade
-    var echoSend = actx.createGain(); echoSend.gain.value = 0; lp.connect(echoSend); echoSend.connect(echo.input);
-    var verbSend = actx.createGain(); verbSend.gain.value = 0; lp.connect(verbSend); verbSend.connect(verb.input);
-    return { src: src, hp: hp, lo: lo, mid: mid, lp: lp, gain: gain, echoSend: echoSend, verbSend: verbSend };
-  }
-  function ensureACtx() {
-    if (actx) return;
-    if (isPhone) { waOK = false; return; }   // phone: stay on the light <audio> volume-crossfade path
-    try {
-      actx = new (window.AudioContext || window.webkitAudioContext)();
-      master = actx.createGain(); master.gain.value = GFULL; master.connect(actx.destination);
-      // echo bus: in → delay → (lowpass) → feedback → delay; lowpass → master
-      var ein = actx.createGain();
-      var dl  = actx.createDelay(2.0); dl.delayTime.value = 0.34;
-      var fb  = actx.createGain(); fb.gain.value = 0.40;
-      var dlp = actx.createBiquadFilter(); dlp.type = 'lowpass'; dlp.frequency.value = 2400;
-      ein.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(master);
-      echo = { input: ein, delay: dl, fb: fb };
-      // reverb bus: in → convolver → lowpass → master
-      var vin = actx.createGain();
-      var conv = actx.createConvolver(); conv.buffer = makeIR(3.4, 2.6);
-      var vlp = actx.createBiquadFilter(); vlp.type = 'lowpass'; vlp.frequency.value = 4200;
-      vin.connect(conv); conv.connect(vlp); vlp.connect(master);
-      verb = { input: vin, conv: conv };
-      deck.a = buildDeck('a'); deck.b = buildDeck('b');
-      waOK = true;
-      dj4EnsureWorklet();                                     /* FABLE-DJ4: fire-and-forget module registration */
-    } catch (e) { actx = null; waOK = false; }
-  }
-  /* FABLE-DJ4 (a) — inline AudioWorklet: a small circular per-channel ring
-     buffer. 'start' arms continuous capture; 'stop' freezes it and posts back
-     the last `ms` of audio (transferable Float32Arrays) via postMessage. Ring
-     capacity is time-bounded (~1.5 s) so an armed tap can never grow unbounded
-     even if left running — bounding cost per rule 5 of the DJ4 spec. */
-  var DJ4_WORKLET_SRC = [
-    "class DJ4Ring extends AudioWorkletProcessor {",
-    "  constructor(opts) {",
-    "    super();",
-    "    var o = (opts && opts.processorOptions) || {};",
-    "    this.n = o.n || Math.round((o.rate || sampleRate) * 1.5);",
-    "    this.L = new Float32Array(this.n);",
-    "    this.R = new Float32Array(this.n);",
-    "    this.w = 0; this.filled = 0; this.on = false;",
-    "    var self = this;",
-    "    this.port.onmessage = function (e) {",
-    "      var d = e.data || {};",
-    "      if (d.cmd === 'start') { self.on = true; }",
-    "      else if (d.cmd === 'stop') { self.on = false; self.emit(d.ms || 1200); }",
-    "    };",
-    "  }",
-    "  emit(ms) {",
-    "    var n = Math.min(this.filled, Math.round(ms / 1000 * sampleRate), this.n);",
-    "    var o0 = new Float32Array(n), o1 = new Float32Array(n);",
-    "    for (var i = 0; i < n; i++) {",
-    "      var idx = (this.w - n + i) % this.n; if (idx < 0) idx += this.n;",
-    "      o0[i] = this.L[idx]; o1[i] = this.R[idx];",
-    "    }",
-    "    try { this.port.postMessage({ ch0: o0, ch1: o1, n: n, rate: sampleRate }, [o0.buffer, o1.buffer]); }",
-    "    catch (e) { this.port.postMessage({ ch0: o0, ch1: o1, n: n, rate: sampleRate }); }",
-    "  }",
-    "  process(inputs) {",
-    "    var inp = inputs[0];",
-    "    if (!this.on || !inp || !inp.length) return true;",
-    "    var L = inp[0], R = inp[1] || inp[0];",
-    "    for (var i = 0; i < L.length; i++) {",
-    "      this.L[this.w] = L[i]; this.R[this.w] = R ? R[i] : L[i];",
-    "      this.w = (this.w + 1) % this.n; if (this.filled < this.n) this.filled++;",
-    "    }",
-    "    return true;",
-    "  }",
-    "}",
-    "registerProcessor('dj4-ring', DJ4Ring);"
-  ].join('\n');
-  function dj4EnsureWorklet() {
-    if (dj4WorkletP) return dj4WorkletP;
-    if (!actx || !actx.audioWorklet) { dj4WorkletOK = false; dj4WorkletP = Promise.resolve(false); return dj4WorkletP; }
-    try {
-      var url = URL.createObjectURL(new Blob([DJ4_WORKLET_SRC], { type: 'application/javascript' }));
-      dj4WorkletP = actx.audioWorklet.addModule(url).then(function () {
-        dj4WorkletOK = true; try { URL.revokeObjectURL(url); } catch (e) {} return true;
-      }, function () {
-        dj4WorkletOK = false; try { URL.revokeObjectURL(url); } catch (e) {} return false;
-      });
-    } catch (e) { dj4WorkletOK = false; dj4WorkletP = Promise.resolve(false); }
-    return dj4WorkletP;
-  }
-  /* FABLE-DJ4 (a) — start/stop the ring-buffer tap on a deck's post-filter node
-     (same tap point as echoSend/verbSend). Idempotent: starting a new capture
-     tears down any stale one first (belt-and-suspenders alongside clearCross). */
-  function dj4TeardownCap() {
-    if (!dj4Cap) return;
-    try { dj4Cap.node.port.postMessage({ cmd: 'stop', ms: 0 }); } catch (e) {}
-    try { dj4Cap.node.port.onmessage = null; } catch (e) {}
-    try { dj4Cap.node.disconnect(); } catch (e) {}
-    try { dj4Cap.silent.disconnect(); } catch (e) {}
-    dj4Cap = null;
-  }
-  function dj4CaptureStart(d) {
-    if (!dj4WorkletOK || !actx || !deck[d]) return;
-    dj4TeardownCap();
-    try {
-      var node = new AudioWorkletNode(actx, 'dj4-ring', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2] });
-      var silent = actx.createGain(); silent.gain.value = 0;   // pulled into the render graph without being audible
-      deck[d].lp.connect(node); node.connect(silent); silent.connect(master);
-      node.port.postMessage({ cmd: 'start' });
-      dj4Cap = { node: node, silent: silent, deck: d };
-    } catch (e) { dj4Cap = null; }
-  }
-  function dj4TeardownFlourish() {
-    if (!dj4Flourish) return;
-    try { dj4Flourish.src.onended = null; dj4Flourish.src.stop(); } catch (e) {}
-    try { dj4Flourish.src.disconnect(); } catch (e) {}
-    try { dj4Flourish.hp.disconnect(); } catch (e) {}
-    try { dj4Flourish.g.disconnect(); } catch (e) {}
-    dj4Flourish = null;
-  }
-  function dj4TeardownFlutter() {
-    if (!dj4Flutter) return;
-    try { dj4Flutter.lfo.onended = null; dj4Flutter.lfo.stop(); } catch (e) {}
-    try { dj4Flutter.lfo.disconnect(); } catch (e) {}
-    try { dj4Flutter.lg.disconnect(); } catch (e) {}
-    dj4Flutter = null;
-  }
-  /* FABLE-DJ4 (b) — decelerating square gate for CHOP-IN: 16ths x2 beats ->
-     8ths x1 beat -> quarter x1 beat -> open. Mirrors dj3RollGate's shape
-     (same setValueAtTime/linearRamp curve style) but growing, not shrinking. */
-  function dj4ChopGate(param, t0, beatS, lvl) {
-    var segs = [[2 * beatS, 8], [beatS, 2], [beatS, 1]];
-    var t = t0, E = 0.006, FLOOR = 0.0001;
-    try {
-      param.cancelScheduledValues(t0);
-      param.setValueAtTime(FLOOR, t0);
-      for (var s = 0; s < segs.length; s++) {
-        var segLen = segs[s][0], n = segs[s][1], chop = segLen / n;
-        for (var c = 0; c < n; c++) {
-          var on = t + c * chop, off = on + chop * DJ4.CHOP_DUTY;
-          param.setValueAtTime(FLOOR, on);
-          param.linearRampToValueAtTime(lvl, on + E);
-          param.setValueAtTime(lvl, Math.max(on + E, off - E));
-          param.linearRampToValueAtTime(FLOOR, off);
-        }
-        t += segLen;
-      }
-      param.setValueAtTime(lvl, t);   // open — fully in
-    } catch (e) {}
-    return t;
-  }
-  function ct() { return actx ? actx.currentTime : 0; }
-  function ramp(param, to, ms, exp) {
-    if (!param) return;
-    var t0 = ct(), t1 = t0 + Math.max(0.01, ms / 1000);
-    try {
-      param.cancelScheduledValues(t0);
-      param.setValueAtTime(typeof param.value === 'number' ? param.value : to, t0);
-      if (exp) param.exponentialRampToValueAtTime(Math.max(1e-4, to), t1);
-      else param.linearRampToValueAtTime(to, t1);
-    } catch (e) {}
-  }
-  function fadeGain(param, to, ms, up) {   // equal-power gain curve
-    if (!param) return;
-    var t0 = ct(), from = (typeof param.value === 'number') ? param.value : 0, n = 48, a = new Float32Array(n);
-    // equal-power: rise = from→to via sin; fall = from→to via cos (both start AT `from`)
-    for (var i = 0; i < n; i++) { var x = i / (n - 1); a[i] = up ? (from + (to - from) * Math.sin(0.5 * Math.PI * x)) : (to + (from - to) * Math.cos(0.5 * Math.PI * x)); }
-    try { param.cancelScheduledValues(t0); param.setValueCurveAtTime(a, t0, Math.max(0.05, ms / 1000)); } catch (e) { ramp(param, to, ms); }
-  }
-  // delay (ms) until the outgoing's next beat near a target offset (graceful: time-based if no grid)
-  function beatAlign(meta, fromCt, targetOffsetS) {
-    if (!meta || !meta.bpm || meta.b0 == null) return targetOffsetS * 1000;
-    var per = 60 / meta.bpm, tt = fromCt + targetOffsetS, k = Math.round((tt - meta.b0) / per), off = (meta.b0 + k * per) - fromCt;
-    if (off < 0.05 || off > targetOffsetS * 2) off = targetOffsetS;
-    return off * 1000;
-  }
-  /* FABLE-DJ2 (b): delay (s) to the outgoing's next DOWNBEAT (bar = 4 beats from b0);
-     if the bar boundary is > 1.2 s out, the next beat instead — skips stay responsive. */
-  function dj2Quant(meta, nowS) {
-    if (!meta || !meta.bpm || meta.b0 == null) return { delayS: 0, grid: 'none' };
-    var per = 60 / meta.bpm;
-    function next(g) { var k = Math.ceil((nowS - meta.b0) / g - 1e-4), t = meta.b0 + Math.max(0, k) * g, d = t - nowS; return d < 0.02 ? d + g : d; }
-    var d = next(per * 4), grid = 'bar';
-    if (d > DJ2.BAR_MAX_S) { d = next(per); grid = 'beat'; }
-    if (d > DJ2.BAR_MAX_S + 0.2) { d = 0; grid = 'none'; }
-    return { delayS: d, grid: grid };
-  }
-  /* FABLE-DJ3 — deterministic per-pair character: the key relation picks the
-     move; the outgoing index rotates the hard-clash pairs (~1 in 3 -> brake). */
-  function camWheel(a, b) {
-    var na = parseInt(a, 10) || 0, nb = parseInt(b, 10) || 0;
-    var d = Math.abs(na - nb); return Math.min(d, 12 - d);
-  }
-  /* FABLE-DJ4 (a)(c) — same key-relation buckets as DJ3; the outgoing INDEX
-     now also picks a seed-alternate within two of them: mid-distance
-     echo/flutter, hard-clash brake/backspin/wash. Still deterministic. */
-  function dj3Char(foI, m1, m2) {
-    if (camDist(m1.k, m2.k) <= 1 || camWheel(m1.k, m2.k) <= 1) return 'roll';
-    if (camWheel(m1.k, m2.k) <= 2) return (foI % 2 === 1) ? 'flutter' : 'echo';
-    if (foI % 3 === 1) return 'brake';
-    if (foI % 3 === 2) return 'backspin';
-    return 'wash';
-  }
-  /* FABLE-DJ3 — delay (s) to the outgoing grid point at/just BEFORE targetS
-     (end-anchored starts: the move must finish before the file runs out). */
-  function dj3GridBefore(meta, nowS, targetS, useBar) {
-    if (!meta || !meta.bpm || meta.b0 == null) return Math.max(0, targetS - nowS);
-    var g = (60 / meta.bpm) * (useBar ? 4 : 1);
-    var t = meta.b0 + Math.floor((targetS - meta.b0) / g + 1e-4) * g;
-    while (t < nowS + 0.05) t += g;
-    return t - nowS;
-  }
-  function dj3GridErr(meta, tS, useBar) {
-    if (!meta || !meta.bpm || meta.b0 == null) return null;
-    var g = (60 / meta.bpm) * (useBar ? 4 : 1), r = (tS - meta.b0) % g;
-    if (r < 0) r += g;
-    return Math.round(Math.min(r, g - r) * 1000);
-  }
-  /* FABLE-DJ3 — natural-end trigger lead: a 2-bar roll needs more runway than
-     the stock FADE_MS; every other character keeps the v2 lead. */
-  function dj3Lead(d) {
-    if (!waOK) return FADE_MS;
-    try {
-      var m = T(idx[d]), n2 = T(idx[d] + 1);
-      if (dj3Char(idx[d], m, n2) === 'roll' && m.bpm) return Math.max(FADE_MS, DJ3.ROLL_BARS * (240000 / m.bpm) + 1800);
-    } catch (e) {}
-    return FADE_MS;
-  }
-  /* FABLE-DJ3 (roll) — square-ish gain-gate accelerando on the outgoing deck:
-     1/2-bar chops -> 1/4 -> 1/8, cutting to silence at the returned end time.
-     Pure WA gain automation on the existing deck node — no buffer capture. */
-  function dj3RollGate(param, t0, barS, bars, lvl) {
-    var segs = bars >= 2 ? [[1.0, 2], [0.5, 2], [0.5, 4]]      // 2 bars: 1/2-bar -> 1/4 -> 1/8 chops
-                         : [[0.5, 2], [0.25, 2], [0.25, 4]];   // 1 bar (skip): same shape, halved
-    var t = t0, E = 0.008, FLOOR = 0.0001;
-    try {
-      param.cancelScheduledValues(t0);
-      param.setValueAtTime(Math.max(FLOOR, param.value || lvl), t0);
-      for (var s = 0; s < segs.length; s++) {
-        var segLen = segs[s][0] * barS, n = segs[s][1], chop = segLen / n;
-        for (var c = 0; c < n; c++) {
-          var on = t + c * chop, off = on + chop * DJ3.ROLL_DUTY;
-          if (s || c) param.setValueAtTime(FLOOR, on);
-          param.linearRampToValueAtTime(lvl, on + E);
-          param.setValueAtTime(lvl, Math.max(on + E, off - E));
-          param.linearRampToValueAtTime(FLOOR, off);
-        }
-        t += segLen;
-      }
-      param.setValueAtTime(FLOOR, t);
-    } catch (e) {}
-    return t;
-  }
-  /* FABLE-DJ2 (c): Camelot key -> tonic frequency, C2-rooted. nB majors step a fifth
-     (+7 semitones) per hour from 8B = C; nA is the relative minor (tonic +9 semitones). */
-  function keyRootHz(k) {
-    var n = parseInt(k, 10);
-    if (!n || n < 1 || n > 12) return 110;
-    var s = (((n - 8) * 7) % 12 + 12) % 12;
-    if (/a$/i.test(String(k))) s = (s + 9) % 12;
-    return 65.406 * Math.pow(2, s / 12);
-  }
-  /* FABLE-DJ2 (c): quiet synthesized swell (key-rooted sine octave-climb + rising filtered
-     noise) on its OWN gain node into master — crests ~-18 dBFS exactly at crestT, then
-     releases. Deck gains are never touched. Returns a handle with cancel(). */
-  function riser(rootHz, durS, crestT) {
-    if (!waOK || !actx || !master) return null;
-    try {
-      var t1 = crestT, t0 = Math.max(ct() + 0.02, t1 - durS);
-      var g = actx.createGain();
-      g.gain.setValueAtTime(0.0008, t0);
-      g.gain.exponentialRampToValueAtTime(0.126, t1);           // -18 dB crest at the incoming's entry
-      g.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.16);   // fast release once the track lands
-      g.connect(master);
-      var o = actx.createOscillator(); o.type = 'sine';
-      o.frequency.setValueAtTime(Math.max(40, rootHz * 2), t0);
-      o.frequency.exponentialRampToValueAtTime(Math.max(80, rootHz * 4), t1);
-      var og = actx.createGain(); og.gain.value = 0.55; o.connect(og); og.connect(g);
-      var nz = actx.createBufferSource(); nz.buffer = makeIR(Math.min(2.6, durS + 0.4), 0);  // flat noise
-      var bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 2.4;
-      bp.frequency.setValueAtTime(Math.max(300, rootHz * 4), t0);
-      bp.frequency.exponentialRampToValueAtTime(Math.min(6000, rootHz * 16), t1);
-      var ng = actx.createGain(); ng.gain.value = 0.5;
-      nz.connect(bp); bp.connect(ng); ng.connect(g);
-      var done = false;
-      function release() {
-        if (done) return; done = true;
-        try { g.disconnect(); } catch (e) {}
-        try { og.disconnect(); ng.disconnect(); bp.disconnect(); } catch (e) {}
-        if (window.__dj2Riser) window.__dj2Riser.released++;
-      }
-      o.onended = release;
-      o.start(t0); o.stop(t1 + 0.2); nz.start(t0); nz.stop(t1 + 0.2);
-      window.__dj2Riser = window.__dj2Riser || { created: 0, released: 0 };
-      window.__dj2Riser.created++;
-      return { cancel: function () { try { o.stop(); } catch (e) {} try { nz.stop(); } catch (e) {} release(); } };
-    } catch (e) { return null; }
-  }
-
-  // ---- now-playing readout ----------------------------------------------
-  function setNow(qi) {
-    try { document.dispatchEvent(new CustomEvent('bed:track', { detail: { index: qi, title: T(qi) && T(qi).t, artist: T(qi) && T(qi).a } })); } catch (e) {}
-    if (!nowEl) return;
-    nowEl.classList.remove('sc-now-ambient'); nowEl.title = '';
-    if (nowLabel) nowLabel.textContent = T(qi).a + ' — ' + T(qi).t;
-    nowEl.classList.add('show');
-    clearTimeout(nowEl.__shT); nowEl.__shT = setTimeout(function () { nowEl.classList.remove('show'); }, 6000);
-  }
-  function load(d, qi, autoplay) {
-    idx[d] = qi; var el = els[d]; el.src = T(qi).src;
-    try { el.load(); } catch (e) {}
-    if (autoplay) { try { if (waOK) { el.volume = bgDefault(); deck[d].gain.gain.value = 0.0001; } else { el.volume = 0; } el.play().catch(function () {}); } catch (e) {} }
-  }
-  function volRamp(d, to, durMs) {   // fallback path only (no Web Audio)
-    if (volRamps[d]) clearInterval(volRamps[d]);
-    var el = els[d], from = el.volume || 0, steps = Math.max(1, Math.round((durMs || FADE_MS) / 50)), n = 0;
-    volRamps[d] = setInterval(function () {
-      n++; var q = n / steps, sm = q * q * (3 - 2 * q), v = Math.sqrt(Math.max(0, from * from * (1 - sm) + to * to * sm));
-      try { el.volume = muted ? 0 : Math.max(0, Math.min(1, v)); } catch (e) {}
-      if (n >= steps) { clearInterval(volRamps[d]); volRamps[d] = null; }
-    }, 50);
-  }
-
-  // ---- the cinematic blend ----------------------------------------------
-  function clearCross() {
-    if (swapT) { clearTimeout(swapT); swapT = null; }
-    if (fxT) { clearTimeout(fxT); fxT = null; }                                     /* FABLE-DJ2 */
-    if (curRiser) { try { curRiser.cancel(); } catch (e) {} curRiser = null; }      /* FABLE-DJ2 */
-    /* FABLE-DJ3 — flush character state: pending timers, varispeed interval,
-       scheduled gate automation, cranked echo regen, warped playback rates. */
-    while (dj3T.length) { clearTimeout(dj3T.pop()); }
-    if (dj3Spin) { clearInterval(dj3Spin); dj3Spin = null; }
-    dj4TeardownCap(); dj4TeardownFlourish(); dj4TeardownFlutter();      /* FABLE-DJ4: worklet tap, backspin playback, flutter LFO */
-    if (waOK) {
-      ['a', 'b'].forEach(function (d) {
-        try { var g = deck[d].gain.gain, v = g.value; g.cancelScheduledValues(ct()); g.setValueAtTime(Math.max(0.0001, v), ct()); } catch (e) {}
-      });
-      try { ramp(echo.fb.gain, DJ2.BASE_FB, 240); } catch (e) {}
-    }
-    try { els.a.playbackRate = 1; els.b.playbackRate = 1; } catch (e) {}            /* FABLE-DJ3 */
-    ['a', 'b'].forEach(function (d) { if (volRamps[d]) { clearInterval(volRamps[d]); volRamps[d] = null; } });
-    crossing = false;
-  }
-  // FX DISSOLVE — only ONE song's melody is ever audible. The outgoing track
-  // evaporates into a filtered echo/reverb wash; the incoming stays SILENT until
-  // it blooms in on a downbeat, by which point the outgoing's dry signal is gone
-  // (only its reverb tail — pure ambience, not a competing track — lingers under it).
-  function blend(durMs) {
-    if (crossing) return;
-    var fo = active, sb = other(active); crossing = true; var myGen = ++gen;
-    var foM = T(idx[fo]), inM = T(idx[sb]);
-    var foCt = 0; try { foCt = els[fo].currentTime || 0; } catch (e) {}
-
-    if (!waOK) {
-      // no Web Audio (phones + blocked WA): unchanged light path — fade out, then in
-      var durL = durMs || XF_BASE;
-      var inStartL = (inM.min != null ? inM.min : 0); if (inStartL > 8) inStartL = 0;
-      try { els[sb].currentTime = inStartL; } catch (e) {}
-      els[sb].volume = 0;
-      els[sb].play().catch(function () {});
-      volRamp(fo, 0, durL * 0.5);
-      setTimeout(function () { if (myGen === gen) { volRamp(sb, GFULL, durL * 0.42); setNow(idx[sb]); } }, durL * 0.52);
-      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, durL + 160);
-      return;
-    }
-
-    /* FABLE-DJ2 (a) — key-adaptive dissolve character */
-    var dist = camDist(foM.k, inM.k);
-    var dur   = Math.round((durMs || XF_BASE) * (dist === 2 ? DJ2.CLASH_DUR : DJ2.MATCH_DUR));
-    var lpT   = dist === 2 ? DJ2.CLASH_LP   : DJ2.MATCH_LP;
-    var echoT = dist === 2 ? DJ2.CLASH_ECHO : DJ2.MATCH_ECHO;
-    var verbT = dist === 2 ? DJ2.CLASH_VERB : DJ2.MATCH_VERB;
-
-    /* FABLE-DJ3 — deterministic per-pair character (seed = outgoing track index) */
-    var ch = dj3Char(idx[fo], foM, inM), isSkip = !!durMs;
-    if (ch === 'roll' && !(foM.bpm && foM.b0 != null)) ch = 'wash';       // no beat grid -> keep the v2 wash
-    if (ch === 'flutter' && !(foM.bpm && foM.b0 != null)) ch = 'wash';    /* FABLE-DJ4: LFO needs the outgoing's bpm */
-    if (ch === 'backspin' && !dj4WorkletOK) ch = 'brake';                 /* FABLE-DJ4: no AudioWorklet -> brake */
-    if (ch === 'backspin') dj4CaptureStart(fo);                           /* FABLE-DJ4: arm the ring-buffer tap NOW — runway is whatever's left before the anchor */
-    var foDur = 0; try { if (els[fo].duration && isFinite(els[fo].duration)) foDur = els[fo].duration; } catch (e) {}
-    try { console.log('[dj3] pair ' + idx[fo] + '->' + idx[sb] + ' char=' + ch + ' keys=' + (foM.k || '?') + '>' + (inM.k || '?') + ' seed=' + idx[fo] + (isSkip ? ' (skip)' : ' (end)')); } catch (e) {}
-
-    /* FABLE-DJ2 (b) — quantize the start to the outgoing's grid. v3: NATURAL ends
-       are END-ANCHORED (the move finishes as the file does — full length holds);
-       skips keep the <=1.2 s bar-else-beat rule so 'n' stays responsive. */
-    var q;
-    if (!isSkip && foDur && ch !== 'wash') {                          /* FABLE-DJ3 */
-      var barS0 = foM.bpm ? 240 / foM.bpm : 2;
-      var useBar = ch === 'roll' || ch === 'flutter';                  /* FABLE-DJ4: flutter also needs a bar-grid runway */
-      var tgt = ch === 'roll'     ? foDur - DJ3.ROLL_BARS * barS0 - DJ3.END_PAD_S
-              : ch === 'flutter'  ? foDur - barS0 - DJ3.END_PAD_S
-              : ch === 'brake'    ? foDur - (DJ3.BRAKE_MS / 1000 + 0.15)
-              : ch === 'backspin' ? foDur - (DJ4.BACKSPIN_FLOURISH_S + DJ3.GAP_MS / 1000 + 0.15)
-              :                     foDur - 0.35;
-      q = { delayS: dj3GridBefore(foM, foCt, tgt, useBar), grid: (useBar ? 'bar' : 'beat') + '@end' };
-    } else {
-      q = dj2Quant(foM, foCt);
-    }
-    fxT = setTimeout(function () { fxT = null; if (myGen === gen) fx(); }, Math.round(q.delayS * 1000));
-
-    /* FABLE-DJ3 — shared helpers for the character schedulers */
-    function primeIn(atS, hpHz, lpStartHz) {   // incoming: playing, gain-silent, EQ neutral
-      var Di = deck[sb];
-      try { els[sb].currentTime = atS; } catch (e) {}
-      els[sb].volume = bgLvl();
-      els[sb].play().catch(function () {});
-      Di.gain.gain.cancelScheduledValues(ct()); Di.gain.gain.setValueAtTime(0.0001, ct());
-      Di.lo.gain.value = 0; Di.mid.gain.value = 0;
-      Di.lp.frequency.cancelScheduledValues(ct()); Di.lp.frequency.setValueAtTime(lpStartHz || 20000, ct());  /* FABLE-DJ4 (b): filter-bloom starts closed when given */
-      Di.hp.frequency.cancelScheduledValues(ct()); Di.hp.frequency.setValueAtTime(hpHz, ct());
-      Di.verbSend.gain.value = 0; Di.echoSend.gain.value = 0;
-      return Di;
-    }
-    function inStart0() { var s = (inM.min != null ? inM.min : 0); return s > 8 ? 0 : s; }
-    function dj3Rec(extra) {
-      var foCt3 = 0; try { foCt3 = els[fo].currentTime || 0; } catch (e) {}
-      var rec = { ch: ch, pair: idx[fo] + '>' + idx[sb], from: foM.t || '', to: inM.t || '',
-                  keys: (foM.k || '?') + '>' + (inM.k || '?'), seed: idx[fo], skip: isSkip,
-                  quant: q.grid, quantMs: Math.round(q.delayS * 1000),
-                  gridErrMs: dj3GridErr(foM, foCt3, String(q.grid).slice(0, 3) === 'bar'), bpm: foM.bpm || 0 };
-      for (var k2 in extra) rec[k2] = extra[k2];
-      (window.__dj3Log = window.__dj3Log || []).push(rec);
-      try { console.log('[dj3] ' + JSON.stringify(rec)); } catch (e) {}
-      return rec;
-    }
-    /* FABLE-DJ3 (1) STUTTER-ROLL BUILD — same/adjacent keys: gate the outgoing's
-       final bars (1/2 -> 1/4 -> 1/8-bar chops) under a rising highpass + riser;
-       the incoming lands on ITS OWN first downbeat as the roll cuts to silence. */
-    function fxRoll() {
-      var Df = deck[fo];
-      var foCt2 = foCt; try { foCt2 = els[fo].currentTime || foCt; } catch (e) {}
-      var barS = 240 / foM.bpm, bars = isSkip ? DJ3.ROLL_BARS_SKIP : DJ3.ROLL_BARS;
-      var remainS = Infinity;
-      try { if (els[fo].duration && isFinite(els[fo].duration)) remainS = Math.max(0, els[fo].duration - foCt2); } catch (e) {}
-      while (bars > 1 && bars * barS + DJ3.END_PAD_S - 0.15 > remainS) bars--;   // 0.15 slack: the end-anchor lands EXACTLY at 2 bars + pad
-      if (bars * barS + 0.25 > remainS) { ch = 'wash'; try { console.log('[dj3] roll degraded -> wash (tail too short)'); } catch (e) {} return fx(); }
-      var t0 = ct() + 0.02;
-      var tEnd = dj3RollGate(Df.gain.gain, t0, barS, bars, GFULL);
-      var rollMs = Math.round((tEnd - t0) * 1000);
-      ramp(Df.hp.frequency, DJ3.ROLL_HP, rollMs, true);              // rising highpass under the roll
-      ramp(Df.echoSend.gain, 0, 120);                                // dry gate only — no leftover throw
-      ramp(Df.verbSend.gain, bgLvl() * 0.28, Math.round(rollMs * 0.8));
-      var dropMs = rollMs + 40;
-      /* incoming pre-rolled so its own first downbeat lands exactly at the cut */
-      var s0 = inStart0(), landed = 0;
-      if (inM.bpm && inM.b0 != null) {
-        var gIn = 240 / inM.bpm, tgt2 = s0 + dropMs / 1000;
-        var aligned = inM.b0 + Math.ceil((tgt2 - inM.b0) / gIn - 1e-4) * gIn;
-        if (aligned - dropMs / 1000 >= 0) { s0 = aligned - dropMs / 1000; landed = 1; }
-      }
-      primeIn(s0, 60);
-      /* FABLE-DJ3: no riser (retired per owner) — the gate accelerando + HP sweep IS the build */
-      dj3Rec({ rollMs: rollMs, bars: bars, dropMs: dropMs, inDownbeat: landed });
-      dj3T.push(setTimeout(function () {
-        if (myGen !== gen) return;
-        try { els[sb].volume = bgLvl(); } catch (e) {}
-        ramp(deck[sb].hp.frequency, 20, 240, true);
-        setNow(idx[sb]);
-        /* FABLE-DJ4 (b) CHOP-IN — decelerating gate on the incoming's OWN grid; no grid -> plain bloom (unchanged) */
-        if (inM.bpm && inM.b0 != null) {
-          var beatSIn = 60 / inM.bpm;
-          dj4ChopGate(deck[sb].gain.gain, ct() + 0.004, beatSIn, GFULL);
-          try { console.log('[dj4] char=chop-in beatS=' + beatSIn.toFixed(3)); } catch (e) {}
-        } else {
-          fadeGain(deck[sb].gain.gain, GFULL, 160, true);              // clean land — the roll already cut to silence
-        }
-      }, dropMs));
-      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dropMs + 460);
-    }
-    /* FABLE-DJ3 (2) ECHO-THROW — mid-distance keys: dry dies in ~120 ms into the
-       delay bus cranked (fb 0.65, dotted-eighth); the echoes ARE the transition
-       (FX tail over silence, same standing as the v2 wash's reverb tail). */
-    function fxEcho() {
-      var Df = deck[fo];
-      var foCt2 = foCt; try { foCt2 = els[fo].currentTime || foCt; } catch (e) {}
-      var beatS = foM.bpm ? 60 / foM.bpm : 0.44;
-      try { echo.delay.delayTime.setTargetAtTime(Math.min(1.9, beatS * 0.75), ct(), 0.03); } catch (e) {}
-      ramp(echo.fb.gain, DJ3.ECHO_FB, 140);
-      ramp(Df.echoSend.gain, bgLvl() * 0.95, 90);                    // the throw
-      ramp(Df.verbSend.gain, bgLvl() * 0.30, 240);
-      fadeGain(Df.gain.gain, 0.0001, DJ3.ECHO_DUCK_MS, false);       // dry gone fast — no-blend rule holds
-      var feedMs = Math.max(380, Math.round(beatS * 750) + 60);
-      dj3T.push(setTimeout(function () { if (myGen === gen) ramp(Df.echoSend.gain, 0, 90); }, feedMs));
-      var tailMs = Math.round(DJ3.ECHO_TAIL_S * 1000);
-      var dropMs = Math.round(beatAlign(foM, foCt2, (DJ3.ECHO_DUCK_MS + tailMs) / 1000));
-      if (dropMs < feedMs + 500) dropMs += Math.round(beatS * 1000) || 400;
-      primeIn(inStart0(), 140, DJ4.BLOOM_LP_LO);                        /* FABLE-DJ4 (b): filter-bloom starts closed */
-      /* FABLE-DJ3: no riser (retired per owner) — the decaying echoes carry the gap alone */
-      dj3Rec({ echoS: +(beatS * 0.75).toFixed(3), fb: DJ3.ECHO_FB, tailMs: tailMs, dropMs: dropMs });
-      dj3T.push(setTimeout(function () {
-        if (myGen !== gen) return;
-        try { els[sb].volume = bgLvl(); } catch (e) {}
-        fadeGain(deck[sb].gain.gain, GFULL, 420, true);
-        ramp(deck[sb].hp.frequency, 20, 340, true);
-        var barSIn = inM.bpm ? 240 / inM.bpm : 2;                      /* FABLE-DJ4 (b) FILTER-BLOOM */
-        ramp(deck[sb].lp.frequency, DJ4.BLOOM_LP_HI, Math.round(1.5 * barSIn * 1000), true);
-        try { console.log('[dj4] char=filter-bloom src=echo'); } catch (e) {}
-        setNow(idx[sb]);
-      }, dropMs));
-      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dropMs + 700);
-    }
-    /* FABLE-DJ3 (3) BRAKE & SPIN-UP — ~1 in 3 hard clashes (seeded): tape-stop
-       the outgoing on the beat, then the incoming spins up 0.55->1 gain-matched.
-       Desktop-only by construction: fx runs only when waOK (phones never enter). */
-    /* FABLE-DJ4 — shared incoming landing for brake AND backspin: the spin-up
-       slam, factored out unchanged so backspin reuses it verbatim (per spec,
-       brake/backspin landings stay identical). `pauseFo` only applies to
-       brake — its outgoing element was varispeed'd via playbackRate and needs
-       an immediate park; backspin never touches els[fo].playbackRate (only a
-       separate captured-buffer source was varispeed'd), so finishSwap()'s own
-       pause/reset at the end of the transition is enough. */
-    function dj4SpinUpSlam(dropMs, pauseFo) {
-      dj3T.push(setTimeout(function () {
-        if (myGen !== gen) return;
-        if (pauseFo) { try { els[fo].pause(); els[fo].playbackRate = 1; } catch (e) {} }   // brake done; park the deck
-        try { els[sb].volume = bgLvl(); els[sb].playbackRate = DJ3.SPIN_R0; } catch (e) {}
-        fadeGain(deck[sb].gain.gain, GFULL, DJ3.SPIN_MS, true);
-        ramp(deck[sb].hp.frequency, 20, DJ3.SPIN_MS, true);
-        var j = 0, st2 = 16;
-        dj3Spin = setInterval(function () {
-          j++; var y = j / st2;
-          try { els[sb].playbackRate = Math.min(1, DJ3.SPIN_R0 + (1 - DJ3.SPIN_R0) * (1 - (1 - y) * (1 - y))); } catch (e) {}
-          if (j >= st2 || myGen !== gen) { clearInterval(dj3Spin); dj3Spin = null; try { els[sb].playbackRate = 1; } catch (e) {} }
-        }, Math.round(DJ3.SPIN_MS / st2));
-        setNow(idx[sb]);
-      }, dropMs));
-      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dropMs + DJ3.SPIN_MS + 260);
-    }
-    function fxBrake() {
-      var Df = deck[fo];
-      ramp(Df.lp.frequency, 320, Math.round(DJ3.BRAKE_MS * 0.9), true);
-      ramp(Df.verbSend.gain, bgLvl() * 0.5, 300);
-      fadeGain(Df.gain.gain, 0.0001, Math.round(DJ3.BRAKE_MS * 0.98), false);
-      var steps = 24, i = 0;
-      dj3Spin = setInterval(function () {
-        i++; var x = i / steps;
-        try { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); } catch (e) {}
-        if (i >= steps || myGen !== gen) { clearInterval(dj3Spin); dj3Spin = null; }
-      }, Math.round(DJ3.BRAKE_MS / steps));
-      var dropMs = DJ3.BRAKE_MS + DJ3.GAP_MS;
-      primeIn(inStart0(), 40);
-      dj3Rec({ brakeMs: DJ3.BRAKE_MS, spinMs: DJ3.SPIN_MS, dropMs: dropMs });
-      dj4SpinUpSlam(dropMs, true);
-    }
-    /* FABLE-DJ4 (a) BACKSPIN — hard clash, seed%3===2: reverse + varispeed the
-       outgoing's OWN last ~1.0-1.2 s (the ring-buffer tap armed back in blend()
-       when the character was decided) through a rising highpass, cut hard,
-       gap, then the SAME spin-up slam as brake. Any failure at any point
-       (no worklet, no/short/silent capture, buffer-build throw) -> fxBrake(). */
-    function fxBackspin() {
-      var Df = deck[fo];
-      if (!dj4Cap || dj4Cap.deck !== fo) { try { console.log('[dj4] backspin -> brake (no capture)'); } catch (e) {} return fxBrake(); }
-      var node = dj4Cap.node, gotData = false;
-      try {
-        node.port.onmessage = function (e) {
-          if (gotData || myGen !== gen) return; gotData = true;
-          finishBackspin(e.data);
-        };
-        node.port.postMessage({ cmd: 'stop', ms: Math.round(DJ4.BACKSPIN_CAP_S * 1000) });
-      } catch (e) { dj4TeardownCap(); return fxBrake(); }
-      dj3T.push(setTimeout(function () {   // watchdog: the worklet should answer almost immediately
-        if (myGen !== gen || gotData) return;
-        try { console.log('[dj4] backspin -> brake (capture timeout)'); } catch (e) {}
-        dj4TeardownCap(); fxBrake();
-      }, 260));
-      function finishBackspin(data) {
-        dj4TeardownCap();
-        var n = (data && data.n) || 0, rate = (data && data.rate) || (actx ? actx.sampleRate : 44100);
-        var ok = n >= DJ4.BACKSPIN_MIN_S * rate;
-        if (ok) {
-          var ch0 = data.ch0, step = Math.max(1, Math.floor(n / 400)), sum = 0, cnt = 0;
-          for (var i = 0; i < n; i += step) { sum += ch0[i] * ch0[i]; cnt++; }
-          if (Math.sqrt(sum / Math.max(1, cnt)) < DJ4.BACKSPIN_SILENCE_RMS) ok = false;   // came back silent -> brake
-        }
-        if (!ok) { try { console.log('[dj4] backspin -> brake (silent/short capture)'); } catch (e) {} return fxBrake(); }
-        try {
-          var n2 = n, buf = actx.createBuffer(2, n2, rate), c0 = buf.getChannelData(0), c1 = buf.getChannelData(1), s0 = data.ch0, s1 = data.ch1 || data.ch0;
-          for (var j = 0; j < n2; j++) { c0[j] = s0[n2 - 1 - j]; c1[j] = s1[n2 - 1 - j]; }   // REVERSE
-          var t0 = ct() + 0.01;
-          var src = actx.createBufferSource(); src.buffer = buf;
-          var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.Q.value = 0.7;
-          hp.frequency.setValueAtTime(DJ4.BACKSPIN_HP_LO, t0);
-          hp.frequency.exponentialRampToValueAtTime(DJ4.BACKSPIN_HP_HI, t0 + DJ4.BACKSPIN_FLOURISH_S);
-          var g = actx.createGain(); g.gain.setValueAtTime(bgLvl(), t0);
-          g.gain.linearRampToValueAtTime(bgLvl() * 0.707, t0 + DJ4.BACKSPIN_FLOURISH_S);   // ~-3 dB tail fade
-          src.playbackRate.setValueAtTime(1.0, t0);
-          src.playbackRate.linearRampToValueAtTime(2.5, t0 + DJ4.BACKSPIN_FLOURISH_S);     // real varispeed — pitch rises with it, no synth tone
-          src.connect(hp); hp.connect(g); g.connect(master);
-          fadeGain(Df.gain.gain, 0.0001, 70, false);            // cut the outgoing dry to 0 — no-blend rule holds
-          src.start(t0); src.stop(t0 + DJ4.BACKSPIN_FLOURISH_S + 0.03);
-          dj4Flourish = { src: src, hp: hp, g: g };
-          src.onended = function () { try { src.disconnect(); hp.disconnect(); g.disconnect(); } catch (e) {} if (dj4Flourish && dj4Flourish.src === src) dj4Flourish = null; };
-        } catch (e) { try { console.log('[dj4] backspin -> brake (playback build failed)'); } catch (e2) {} return fxBrake(); }
-        var dropMs = Math.round(DJ4.BACKSPIN_FLOURISH_S * 1000) + DJ3.GAP_MS;   // flourish + >=120 ms gap
-        primeIn(inStart0(), 40);
-        dj3Rec({ backspinN: n2, rate: rate, flourishMs: Math.round(DJ4.BACKSPIN_FLOURISH_S * 1000), dropMs: dropMs });
-        try { console.log('[dj4] char=backspin n=' + n2 + ' dropMs=' + dropMs); } catch (e) {}
-        dj4SpinUpSlam(dropMs, false);
-      }
-    }
-    /* FABLE-DJ4 (c) FILTER-FLUTTER — mid-distance seed-alternate to echo: a
-       square LFO (8th-note rate, inaudible control signal into the lowpass
-       AudioParam — NOT a synth riser, it never reaches an audible bus) wobbles
-       the outgoing lowpass 350<->4000 Hz for the final bar, then a hard cut;
-       the incoming lands via FILTER-BLOOM (b). */
-    function fxFlutter() {
-      var Df = deck[fo];
-      var beatS = foM.bpm ? 60 / foM.bpm : 0.44, barS = beatS * 4;
-      var t0 = ct() + 0.02, dur = Math.min(barS, DJ4.FLUTTER_MAX_S), lfoHz = 1 / (beatS / 2);
-      var lfo = actx.createOscillator(); lfo.type = 'square'; lfo.frequency.setValueAtTime(lfoHz, t0);
-      var center = (DJ4.FLUTTER_LO + DJ4.FLUTTER_HI) / 2, depth = (DJ4.FLUTTER_HI - DJ4.FLUTTER_LO) / 2;
-      var lg = actx.createGain(); lg.gain.setValueAtTime(depth, t0);
-      Df.lp.frequency.cancelScheduledValues(t0); Df.lp.frequency.setValueAtTime(center, t0);
-      lfo.connect(lg); lg.connect(Df.lp.frequency);   // control-rate only — lg never connects to master
-      lfo.start(t0); lfo.stop(t0 + dur + 0.05);
-      dj4Flutter = { lfo: lfo, lg: lg };
-      lfo.onended = function () { try { lfo.disconnect(); lg.disconnect(); } catch (e) {} if (dj4Flutter && dj4Flutter.lfo === lfo) dj4Flutter = null; };
-      ramp(Df.verbSend.gain, bgLvl() * 0.35, Math.round(dur * 800));
-      var dropMs = Math.round(dur * 1000) + 20;
-      fadeGain(Df.gain.gain, 0.0001, Math.min(180, Math.round(dropMs * 0.3)), false);   // hard cut at the anchor
-      primeIn(inStart0(), 240, DJ4.BLOOM_LP_LO);
-      dj3Rec({ lfoHz: +lfoHz.toFixed(3), flutterS: +dur.toFixed(3), dropMs: dropMs });
-      try { console.log('[dj4] char=flutter lfoHz=' + lfoHz.toFixed(2) + ' dur=' + dur.toFixed(2)); } catch (e) {}
-      dj3T.push(setTimeout(function () {
-        if (myGen !== gen) return;
-        try { lfo.stop(); } catch (e) {}
-        try { els[sb].volume = bgLvl(); } catch (e) {}
-        fadeGain(deck[sb].gain.gain, GFULL, 420, true);
-        ramp(deck[sb].hp.frequency, 20, 340, true);
-        var barSIn = inM.bpm ? 240 / inM.bpm : 2;                      /* FABLE-DJ4 (b) FILTER-BLOOM */
-        ramp(deck[sb].lp.frequency, DJ4.BLOOM_LP_HI, Math.round(1.5 * barSIn * 1000), true);
-        try { console.log('[dj4] char=filter-bloom src=flutter'); } catch (e) {}
-        setNow(idx[sb]);
-      }, dropMs));
-      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dropMs + 700);
-    }
-
-    function fx() {
-      if (ch === 'roll')     return fxRoll();      /* FABLE-DJ3 */
-      if (ch === 'echo')     return fxEcho();       /* FABLE-DJ3 */
-      if (ch === 'brake')    return fxBrake();      /* FABLE-DJ3 */
-      if (ch === 'flutter')  return fxFlutter();    /* FABLE-DJ4 */
-      if (ch === 'backspin') return fxBackspin();   /* FABLE-DJ4 */
-      var Df = deck[fo], Di = deck[sb];
-      var foCt2 = foCt; try { foCt2 = els[fo].currentTime || foCt; } catch (e) {}
-      // incoming primed at its mix-in but held SILENT (gain 0) until the drop
-      var inStart = (inM.min != null ? inM.min : 0); if (inStart > 8) inStart = 0;
-      try { els[sb].currentTime = inStart; } catch (e) {}
-      els[sb].volume = bgLvl();
-      els[sb].play().catch(function () {});
-      if (foM.bpm) { try { echo.delay.delayTime.setTargetAtTime((60 / foM.bpm) * 0.75, ct(), 0.05); } catch (e) {} }
-      if (dist === 2) ramp(echo.fb.gain, DJ2.CLASH_FB, 320);   // clash: more regen in the wash
-      // hold incoming silent + pre-bloom (filtered) until the drop
-      Di.gain.gain.cancelScheduledValues(ct()); Di.gain.gain.setValueAtTime(0.0001, ct());
-      Di.lo.gain.value = 0; Di.mid.gain.value = 0;
-      Di.lp.frequency.cancelScheduledValues(ct()); Di.lp.frequency.setValueAtTime(DJ4.BLOOM_LP_LO, ct());  /* FABLE-DJ4 (b): filter-bloom starts closed */
-      Di.hp.frequency.cancelScheduledValues(ct()); Di.hp.frequency.setValueAtTime(320, ct());
-      Di.verbSend.gain.value = 0; Di.echoSend.gain.value = 0;
-      // OUTGOING DISSOLVES: lowpass sweep + echo throw + reverb wash; dry melody spent by outMs.
-      // Same/adjacent key -> shorter, brighter wash; clash -> longer, deeper, more feedback.
-      var outMs = Math.round(dur * 0.62);
-      var remainMs = Infinity;
-      try { if (els[fo].duration && isFinite(els[fo].duration)) remainMs = Math.max(0, (els[fo].duration - foCt2) * 1000); } catch (e) {}
-      if (remainMs < outMs + 260) outMs = Math.max(900, Math.round(remainMs - 260));  // natural end: fade completes before the file runs out
-      ramp(Df.lp.frequency, lpT, outMs * 1.1, true);
-      ramp(Df.echoSend.gain, bgLvl() * echoT, outMs * 0.7);
-      ramp(Df.verbSend.gain, bgLvl() * verbT, outMs * 0.7);
-      fadeGain(Df.gain.gain, 0.0001, outMs, false);
-      // ONE SONG AT A TIME (owner rule): the incoming blooms only after the outgoing's
-      // gain is fully spent — on the first beat past silence, never overlapping the dry out.
-      var per = foM.bpm ? 60000 / foM.bpm : 0;
-      var dropMs = beatAlign(foM, foCt2, (outMs + 140) / 1000), hop = 0;
-      while (per && dropMs < outMs + 60 && hop++ < 6) dropMs += per;
-      if (dropMs < outMs + 60) dropMs = outMs + 60;
-      dropMs = Math.round(dropMs);
-      /* FABLE-DJ3 — riser RETIRED per owner 2026-07-04 ("the weird zoooooop up
-         on dj transitions feels a little weird"): no default path synthesizes a
-         rising sweep anymore. riser() is kept inert below for possible one-off use. */
-      var rec = { from: foM.t || '', to: inM.t || '', keys: (foM.k || '?') + '>' + (inM.k || '?'), dist: dist,
-                  durMs: dur, outMs: outMs, lp: lpT, echoAmt: echoT, quant: q.grid, quantMs: Math.round(q.delayS * 1000),
-                  dropMs: dropMs, foCtAtFx: +foCt2.toFixed(3), bpm: foM.bpm || 0, b0: (foM.b0 == null ? null : foM.b0) };
-      (window.__dj2Log = window.__dj2Log || []).push(rec);
-      try { console.log('[dj2] ' + JSON.stringify(rec)); } catch (e) {}
-      setTimeout(function () {
-        if (myGen !== gen) return;
-        try { els[sb].volume = bgLvl(); } catch (e) {}
-        fadeGain(Di.gain.gain, GFULL, dur * 0.32, true);   // bloom up
-        ramp(Di.hp.frequency, 20, 780, true);              // filter opens — the track "arrives"
-        var barSIn2 = inM.bpm ? 240 / inM.bpm : 2;                      /* FABLE-DJ4 (b) FILTER-BLOOM */
-        ramp(Di.lp.frequency, DJ4.BLOOM_LP_HI, Math.round(1.5 * barSIn2 * 1000), true);
-        try { console.log('[dj4] char=filter-bloom src=wash'); } catch (e) {}
-        setNow(idx[sb]);
-      }, dropMs);
-      swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, Math.max(dur + 160, dropMs + dur * 0.32 + 160));
-    }
-  }
-  function goNext() { clearCross(); finishSwap(other(active)); }
-  function finishSwap(na) {
-    var oa = other(na); active = na; crossing = false;
-    if (waOK && deck[na]) {
-      var Dn = deck[na], Do = deck[oa];
-      ramp(Dn.gain.gain, GFULL, 140); ramp(Dn.lo.gain, 0, 220); ramp(Dn.mid.gain, 0, 220);
-      Dn.hp.frequency.cancelScheduledValues(ct()); ramp(Dn.hp.frequency, 20, 60, true);
-      ramp(Dn.lp.frequency, 20000, 220, true); ramp(Dn.verbSend.gain, 0, 900); ramp(Dn.echoSend.gain, 0, 500);
-      // hard-reset the outgoing deck to neutral (its echo/reverb tail rings out on its own)
-      Do.gain.gain.cancelScheduledValues(ct()); Do.gain.gain.setValueAtTime(0.0001, ct());
-      ramp(Do.echoSend.gain, 0, 1300); ramp(Do.verbSend.gain, 0, 1300);
-      Do.lo.gain.value = 0; Do.mid.gain.value = 0; Do.hp.frequency.value = 20; Do.lp.frequency.value = 20000;
-      try { ramp(echo.fb.gain, DJ2.BASE_FB, 800); } catch (e) {}   /* FABLE-DJ2: un-boost clash regen */
-      curRiser = null;                                             /* FABLE-DJ2: riser self-releases */
-    } else {
-      try { els[na].volume = muted ? 0 : GFULL; } catch (e) {}
-    }
-    try { els[na].playbackRate = 1; if (els[na].paused) els[na].play().catch(function () {}); els[oa].pause(); els[oa].currentTime = 0; els[oa].playbackRate = 1; } catch (e) {}
-    document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[na]);
-    load(oa, (idx[na] + 1) % tracks.length, false);
-  }
-
-  // ---- tape-stop brake → slam (used for 'My Album' jumps) ----------------
-  function brakeTo(n) {
-    if (!started) { try { open(); } catch (e) {} }
-    if (skipLock) return; skipLock = true; setTimeout(function () { skipLock = false; }, 900);
-    clearCross(); var myGen = ++gen;
-    var fo = active, sb = other(active); crossing = true;
-    if (idx[sb] !== n || !els[sb].src) load(sb, n, false); else idx[sb] = n;
-    if (waOK) {
-      try {
-        ramp(deck[fo].lp.frequency, 340, 620, true);
-        ramp(deck[fo].echoSend.gain, GFULL * 0.55, 380);
-        ramp(deck[fo].verbSend.gain, GFULL * 0.48, 380);
-      } catch (e) {}
-    }
-    var i = 0, steps = 22;
-    var br = setInterval(function () {
-      i++; var x = i / steps;
-      try {
-        if (isPhone) { els[fo].volume = Math.max(0, (muted ? 0 : GFULL) * (1 - x)); }   // phone: fade, no pitch-drop
-        else { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); }
-      } catch (e) {}
-      if (i >= steps || myGen !== gen) clearInterval(br);
-    }, 28);
-    setTimeout(function () {
-      if (myGen !== gen) return;
-      try { els[fo].pause(); els[fo].playbackRate = 1; } catch (e) {}
-      var inStart = (T(n).min != null ? T(n).min : 0); if (inStart > 8) inStart = 0;
-      try { els[sb].currentTime = inStart; els[sb].volume = (waOK ? bgLvl() : 0); els[sb].play().catch(function () {}); } catch (e) {}
-      if (waOK && deck[sb]) {
-        var Di = deck[sb]; Di.lo.gain.value = 0; Di.mid.gain.value = 0; Di.hp.frequency.value = 20; Di.lp.frequency.value = 20000;
-        Di.gain.gain.cancelScheduledValues(ct()); Di.gain.gain.setValueAtTime(0.0001, ct()); ramp(Di.gain.gain, GFULL, 240);
-      } else { els[sb].volume = 0; volRamp(sb, GFULL, 240); }
-      finishSwap(sb);
-    }, 660);
-  }
-
-  // ---- deck wiring -------------------------------------------------------
-  function bind(d) {
-    var el = els[d];
-    el.addEventListener('timeupdate', function () {
-      if (d !== active || crossing || muted) return;
-      if (!el.duration || !isFinite(el.duration)) return;
-      var endAt = el.duration - dj3Lead(d) / 1000;   /* FABLE-DJ3: char-aware lead (a 2-bar roll needs runway) */
-      if (endAt < 2) return;
-      if (el.currentTime >= endAt) blend();   // transition ONLY at the track's natural end — never a mid-song cut
-    });
-    el.addEventListener('ended', function () { if (d === active && !crossing && el.currentTime >= (el.duration || 0) - 0.5) goNext(); });
-    el.addEventListener('playing', function () { if (d === active) { document.body.classList.add('sc-open', 'sc-playing'); setNow(idx[d]); } });
-    el.addEventListener('error', function () { if (d === active && !crossing) goNext(); });
-  }
-
-  function open() {
-    if (started) return; started = true;
-    ensureACtx(); if (actx) actx.resume().catch(function () {});
-    document.body.classList.add('sc-open');
-    load('a', 0, true);
-    if (waOK) ramp(deck.a.gain.gain, GFULL, 1300); else volRamp('a', GFULL, 1300);
-    load('b', 1 % tracks.length, false);
-  }
-  function setMuted(m) {
-    muted = !!m;
-    if (m) {
-      if (waOK) { ramp(master.gain, 0.0001, 160); } else { ['a', 'b'].forEach(function (d) { try { els[d].volume = 0; } catch (e) {} }); }
-      setTimeout(function () { if (muted) { try { els[active].pause(); } catch (e) {} } }, waOK ? 180 : 0);
-      document.body.classList.remove('sc-playing');
-    } else if (started) {
-      try { if (actx && actx.state !== 'running') actx.resume().catch(function(){}); } catch (e) {}
-      try { els[active].play().catch(function () {}); } catch (e) {}
-      if (waOK) { master.gain.cancelScheduledValues(ct()); ramp(master.gain, GFULL, 180); } else { try { els[active].volume = GFULL; } catch (e) {} }
-      document.body.classList.add('sc-playing');
-    }
-  }
-  function skip() {
-    if (!started || skipLock) return;
-    skipLock = true; setTimeout(function () { skipLock = false; }, 1100);
-    if (crossing) clearCross();
-    // ensure standby holds the NEXT track, then run the full cinematic blend (fast)
-    var sb = other(active), ni = (idx[active] + 1) % tracks.length;
-    if (idx[sb] !== ni || !els[sb].src) load(sb, ni, false);
-    blend(XF_SKIP);
-  }
-
-  bind('a'); bind('b');
-  document.addEventListener('sonic:first-tap', open);
-  document.addEventListener('sonic:first-tap', function () { if (actx && actx.state !== 'running') actx.resume().catch(function () {}); });
-  // resume on tab-return: iOS suspends the ctx as 'interrupted' and OS-pauses the <audio>;
-  // without this the master gain sits at ~0 against a frozen clock = silent forever
-  document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState !== 'visible' || !started || muted) return;
-    try { if (actx && actx.state !== 'running') actx.resume().catch(function(){}); } catch (e) {}
-    try { var __rel = els[active]; if (__rel && __rel.paused) __rel.play().catch(function(){}); } catch (e) {}
-  });
-  if (nowSkip) nowSkip.addEventListener('click', skip);
-  document.addEventListener('keydown', function (e) {
-    if (!started) return;
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-    if (e.key === 'n') skip();
-  });
-
-  window.__bedCrossing = function () { return crossing; };
-  window.__selfHostedBed = {
-    open: open, setMuted: setMuted, next: skip, isOn: function () { return started && !muted; },
-    activeId: function () { return els[active] && els[active].id; },
-    currentIndex: function () { return idx[active]; },
-    _dbg: function () { return waOK ? { aG: +deck.a.gain.gain.value.toFixed(3), bG: +deck.b.gain.gain.value.toFixed(3), aLP: Math.round(deck.a.lp.frequency.value), bLP: Math.round(deck.b.lp.frequency.value), active: active, cross: crossing, rate: +((els[active] && els[active].playbackRate) || 1).toFixed(3), dj2: (window.__dj2Log || []).slice(-1)[0] || null, dj3: (window.__dj3Log || []).slice(-1)[0] || null, riser: window.__dj2Riser || null, dj4: { worklet: dj4WorkletOK, cap: !!dj4Cap, flourish: !!dj4Flourish, flutter: !!dj4Flutter } } : { waOK: false, rate: +((els[active] && els[active].playbackRate) || 1).toFixed(3) }; },
-    playIndex: function (n) {
-      if (!tracks.length) return;
-      n = ((n % tracks.length) + tracks.length) % tracks.length;
-      var go = function () { brakeTo(n); };
-      if (started) go(); else { try { open(); } catch (e) {} setTimeout(go, 180); }
-    }
-  };
-  console.log('[sonic-init] SELF-HOSTED bed armed ·', tracks.length, 'tracks · O4 DJ engine + FABLE-DJ2 + FABLE-DJ3 + FABLE-DJ4 (backspin · filter-flutter · chop-in · filter-bloom)');
-})();
-</script>
-<!--SELFHOSTED-AUDIO-END-->
-
-<!--SONGS-CSS-START--><style>#apple-sunomoment .sm-featured{margin:4px 0 24px}#apple-sunomoment .sm-feat-h{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#21f6bc;opacity:.9;margin:0 0 12px}#apple-sunomoment .sm-feat-row{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}#apple-sunomoment .sm-feat{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid rgba(33,246,188,.28);border-radius:13px;background:linear-gradient(180deg,rgba(33,246,188,.07),rgba(155,107,255,.05));cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease}#apple-sunomoment .sm-feat:hover{transform:translateY(-2px);border-color:rgba(33,246,188,.6);background:linear-gradient(180deg,rgba(33,246,188,.12),rgba(155,107,255,.08))}#apple-sunomoment .sm-feat-t{font-weight:600;font-size:15px;color:#eef0f2;letter-spacing:-.01em}#apple-sunomoment .sm-feat .sm-go{color:#21f6bc;font-size:12px;opacity:.85;flex:none}#apple-sunomoment .sm-feat.sm-playing{border-color:#21f6bc;background:linear-gradient(180deg,rgba(33,246,188,.16),rgba(155,107,255,.1))}#apple-sunomoment .sm-fullwork{border-top:1px solid rgba(124,128,140,.18);margin-top:2px}#apple-sunomoment .sm-fw-sum{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:12px;padding:16px 2px;outline:none}#apple-sunomoment .sm-fw-sum::-webkit-details-marker{display:none}#apple-sunomoment .sm-fw-label{font-family:'JetBrains Mono','SF Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#eef0f2}#apple-sunomoment .sm-fw-sub{font-size:12px;color:#9aa0aa;letter-spacing:.02em}#apple-sunomoment .sm-fw-caret{margin-left:auto;color:#9aa0aa;font-size:11px;transition:transform .2s ease}#apple-sunomoment .sm-fullwork[open] .sm-fw-caret{transform:rotate(180deg)}#apple-sunomoment .sm-mvmt{margin:8px 0 18px}#apple-sunomoment .sm-mv-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 9px;padding-bottom:7px;border-bottom:1px dashed rgba(124,128,140,.2)}#apple-sunomoment .sm-mv-label{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#21f6bc}#apple-sunomoment .sm-mv-note{font-size:12px;font-style:italic;color:#8b919b}#apple-sunomoment .sm-mv-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:4px 18px}#apple-sunomoment .sm-mv-list .sm-track{display:flex;align-items:center;gap:11px;padding:8px 6px;border-radius:9px;cursor:pointer;transition:background .15s ease}#apple-sunomoment .sm-mv-list .sm-track:hover{background:rgba(255,255,255,.04)}#apple-sunomoment .sm-mv-list .sm-n{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;color:#6b7280;flex:none;width:20px}#apple-sunomoment .sm-mv-list .sm-t{font-size:14px;color:#d6d9de;flex:1}#apple-sunomoment .sm-mv-list .sm-go{color:#21f6bc;font-size:11px;opacity:0;transition:opacity .15s ease;flex:none}#apple-sunomoment .sm-mv-list .sm-track:hover .sm-go{opacity:.8}#apple-sunomoment .sm-mv-list .sm-track.sm-playing{background:rgba(33,246,188,.1)}#apple-sunomoment .sm-mv-list .sm-track.sm-playing .sm-go{opacity:1}#apple-sunomoment .sm-mv-list .sm-track.sm-playing .sm-t{color:#21f6bc}@media(max-width:640px){#apple-sunomoment .sm-feat-row{grid-template-columns:1fr}#apple-sunomoment .sm-mv-list{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){#apple-sunomoment .sm-feat,#apple-sunomoment .sm-fw-caret,#apple-sunomoment .sm-mv-list .sm-track{transition:none}}</style><!--SONGS-CSS-END-->
-<!--FABLE-HOOKS-START--><style id="fable-hooks-css">.fh-strip{max-width:960px;margin:26px auto 6px;padding:0 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.fh-kick{grid-column:1/-1;font:600 10.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:1.6px;color:rgba(230,232,236,.55);text-transform:uppercase;margin-bottom:-2px}.fh-card{display:flex;align-items:center;gap:14px;padding:16px 18px;min-height:72px;border-radius:14px;background:rgba(10,14,20,.72);cursor:pointer;text-align:left;transition:transform .12s ease,background .15s ease}.fh-card:active{transform:scale(.98)}.fh-card.fh-pink{border:1px solid rgba(255,156,192,.5)}.fh-card.fh-pink .fh-num{color:#ff9cc0}.fh-card.fh-mint{border:1px solid rgba(33,246,188,.5)}.fh-card.fh-mint .fh-num{color:#21f6bc}.fh-card.fh-ice{border:1px solid rgba(134,203,254,.5)}.fh-card.fh-ice .fh-num{color:#86cbfe}.fh-num{font:800 30px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:-1px;flex-shrink:0}.fh-lab{font:500 12px/1.5 'JetBrains Mono',ui-monospace,monospace;color:#E6E8EC;opacity:.92}.fh-lab b{color:inherit;font-weight:700}.fh-card:hover{background:rgba(20,26,34,.9);transform:translateY(-2px)}.fh-card.fh-pink:hover{border-color:#ff9cc0}.fh-card.fh-mint:hover{border-color:#21f6bc}.fh-card.fh-ice:hover{border-color:#86cbfe}#global-zoom-hint{top:calc(var(--nav-h,56px) + 58px)!important}#mobile-toggle,.mobile-toggle{z-index:9995!important}@media (max-width:899.98px){#sv-nav-return{display:none!important}.hero-stage{padding-bottom:96px}}#aux-audio{background:rgba(8,12,18,.95)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}#spine-bar-m{background:rgba(8,12,18,.95)!important;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))!important}@media (min-width:1200px){body:not(.story-only) main{padding-left:76px}}</style><script id="fable-hooks-js">
+</script><!--FABLE-UX-END--><!--FABLE-HOOKS-START--><style id="fable-hooks-css">.fh-strip{max-width:960px;margin:26px auto 6px;padding:0 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.fh-kick{grid-column:1/-1;font:600 10.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:1.6px;color:rgba(230,232,236,.55);text-transform:uppercase;margin-bottom:-2px}.fh-card{display:flex;align-items:center;gap:14px;padding:16px 18px;min-height:72px;border-radius:14px;background:rgba(10,14,20,.72);cursor:pointer;text-align:left;transition:transform .12s ease,background .15s ease}.fh-card:active{transform:scale(.98)}.fh-card.fh-pink{border:1px solid rgba(255,156,192,.5)}.fh-card.fh-pink .fh-num{color:#ff9cc0}.fh-card.fh-mint{border:1px solid rgba(33,246,188,.5)}.fh-card.fh-mint .fh-num{color:#21f6bc}.fh-card.fh-ice{border:1px solid rgba(134,203,254,.5)}.fh-card.fh-ice .fh-num{color:#86cbfe}.fh-num{font:800 30px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:-1px;flex-shrink:0}.fh-lab{font:500 12px/1.5 'JetBrains Mono',ui-monospace,monospace;color:#E6E8EC;opacity:.92}.fh-lab b{color:inherit;font-weight:700}.fh-card:hover{background:rgba(20,26,34,.9);transform:translateY(-2px)}.fh-card.fh-pink:hover{border-color:#ff9cc0}.fh-card.fh-mint:hover{border-color:#21f6bc}.fh-card.fh-ice:hover{border-color:#86cbfe}#global-zoom-hint{top:calc(var(--nav-h,56px) + 58px)!important}#mobile-toggle,.mobile-toggle{z-index:9995!important}@media (max-width:899.98px){#sv-nav-return{display:none!important}.hero-stage{padding-bottom:96px}}#aux-audio{background:rgba(8,12,18,.95)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}#spine-bar-m{background:rgba(8,12,18,.95)!important;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))!important}@media (min-width:1200px){body:not(.story-only) main{padding-left:76px}}</style><script id="fable-hooks-js">
 (function(){if(window.__fableHooks)return;window.__fableHooks=1;
 var CARDS=[
  {cls:'fh-pink',num:'12',lab:'findings this page <b>killed</b> — walk the graveyard',href:'#graveyard'},
