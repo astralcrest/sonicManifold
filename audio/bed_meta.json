@@ -1,7 +1,7 @@
 {
   "antares-v2.mp3": {
     "bpm": 129.2,
-    "b0": 0.209,
+    "b0": 0.139,
     "dur": 479.4,
     "mixin": 0.51,
     "ein": 0.54,
@@ -55,6 +55,14 @@
     "ein": 0.23,
     "eout": 0.28
   },
+  "choose-me-whole.mp3": {
+    "bpm": 123.05,
+    "b0": 0.023,
+    "dur": 258.44,
+    "mixin": 0.51,
+    "ein": 0.3,
+    "eout": 0.22
+  },
   "edge-of-the-black-hole.mp3": {
     "bpm": 129.2,
     "b0": 0.07,
@@ -79,6 +87,14 @@
     "ein": 0.47,
     "eout": 0.4
   },
+  "hitting-the-infinite-derivative.mp3": {
+    "bpm": 66.26,
+    "b0": 0.0,
+    "dur": 130.88,
+    "mixin": 0.05,
+    "ein": 0.26,
+    "eout": 0.43
+  },
   "hooked-at-first-taste.mp3": {
     "bpm": 129.2,
     "b0": 1.881,
@@ -94,6 +110,14 @@
     "mixin": 0.28,
     "ein": 0.29,
     "eout": 0.52
+  },
+  "lizard-in-the-sun.mp3": {
+    "bpm": 112.35,
+    "b0": 4.319,
+    "dur": 196.24,
+    "mixin": 4.41,
+    "ein": 0.17,
+    "eout": 0.57
   },
   "no-masks-ad-infinitum.mp3": {
     "bpm": 107.67,
@@ -121,7 +145,7 @@
   },
   "save-her.mp3": {
     "bpm": 143.55,
-    "b0": 1.254,
+    "b0": 0.836,
     "dur": 218.0,
     "mixin": 1.21,
     "ein": 0.42,
@@ -137,7 +161,7 @@
   },
   "too-fiery-hot.mp3": {
     "bpm": 117.45,
-    "b0": 1.672,
+    "b0": 1.695,
     "dur": 479.4,
     "mixin": 1.86,
     "ein": 0.32,
@@ -156,15 +180,7 @@
     "b0": 7.105,
     "dur": 195.4,
     "mixin": 7.34,
-    "ein": 0.16,
-    "eout": 0.47
-  },
-  "lizard-in-the-sun.mp3": {
-    "bpm": 112.35,
-    "b0": 4.319,
-    "dur": 196.24,
-    "mixin": 4.41,
     "ein": 0.17,
-    "eout": 0.57
+    "eout": 0.47
   }
 }
