@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Streaming Logs Are Not Preference Logs — Technical Report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #0e1013;
+    --bg-raised: #15181c;
+    --border: #2a2e34;
+    --text: #d8dade;
+    --text-dim: #9a9fa8;
+    --text-faint: #6b7078;
+    --accent: #b8935f;
+    --mono-num: #c9a878;
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 6rem;
+  }
+  header.report-head {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.75rem;
+    margin-bottom: 2.5rem;
+  }
+  h1.title {
+    font-family: var(--serif);
+    font-size: 1.65rem;
+    line-height: 1.35;
+    font-weight: 600;
+    margin: 0 0 0.9rem;
+    color: #eceef0;
+  }
+  .byline {
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    margin: 0 0 1rem;
+  }
+  .byline .pseud { color: var(--text); font-weight: 600; }
+  .head-links {
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+  .head-links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(184,147,95,0.35); }
+  .head-links a:hover { border-bottom-color: var(--accent); }
+  .head-links .sep { color: var(--text-faint); margin: 0 0.55em; }
+  .head-links .pending { color: var(--text-faint); font-style: italic; }
+
+  section { margin-bottom: 2.75rem; }
+  h2.sec-title {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-weight: 600;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h3.sub-title {
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.5rem 0 0.6rem;
+  }
+  p { margin: 0 0 1rem; }
+  .abstract p { font-size: 0.98rem; color: var(--text); }
+
+  .lede {
+    font-family: var(--sans);
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+
+  num, .num { font-family: var(--mono); color: var(--mono-num); font-size: 0.95em; letter-spacing: -0.01em; }
+
+  a { color: var(--accent); }
+
+  code, .field {
+    font-family: var(--mono);
+    font-size: 0.87em;
+    color: var(--text-dim);
+    background: var(--bg-raised);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+
+  ul.plain, ol.plain { padding-left: 1.3rem; margin: 0.5rem 0 1rem; }
+  ul.plain li, ol.plain li { margin-bottom: 0.55rem; }
+
+  .method-block {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 1.1rem;
+  }
+  .method-block h3 { margin-top: 0; }
+  .method-block p:last-child { margin-bottom: 0; }
+
+  .gate-seq {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    margin: 0.7rem 0 1rem;
+  }
+  .gate-seq .gate {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.25rem 0.55rem;
+    background: var(--bg);
+    white-space: nowrap;
+  }
+  .gate-seq .gate .g-num { font-family: var(--mono); color: var(--mono-num); margin-right: 0.35em; }
+  .gate-seq .arrow { color: var(--text-faint); }
+
+  .disposition-key {
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--text-faint);
+    margin-top: 0.6rem;
+  }
+  .disposition-key strong { color: var(--text-dim); font-weight: 600; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--sans);
+    font-size: 0.86rem;
+    margin: 0.75rem 0 1.25rem;
+  }
+  caption {
+    text-align: left;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--text-faint);
+    margin-bottom: 0.5rem;
+    caption-side: top;
+    font-style: italic;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-weight: 600;
+    color: var(--text-dim);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--text-faint);
+  }
+  td.num-cell { font-family: var(--mono); color: var(--mono-num); white-space: nowrap; }
+  .tbl-wrap { overflow-x: auto; }
+
+  .disp {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 0.12em 0.5em;
+    border-radius: 3px;
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .disp-survived { color: #a9c9a0; border: 1px solid #3a4a36; }
+  .disp-caveated { color: #cdb877; border: 1px solid #4a4230; }
+  .disp-killed   { color: #8a8f96; border: 1px solid #33363b; text-decoration: line-through; text-decoration-color: #55585e; }
+
+  .scoreboard {
+    display: flex;
+    gap: 1.5rem;
+    font-family: var(--sans);
+    margin: 1rem 0 1.5rem;
+    flex-wrap: wrap;
+  }
+  .scoreboard .cell {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 1.1rem;
+    background: var(--bg-raised);
+    flex: 1 1 140px;
+  }
+  .scoreboard .cell .n { font-family: var(--mono); font-size: 1.5rem; color: var(--mono-num); display: block; }
+  .scoreboard .cell .lbl { font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .headline-list { display: grid; grid-template-columns: 1fr; gap: 0.7rem; margin: 1rem 0 1.5rem; }
+  .headline-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 220px) 1fr;
+    gap: 1rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: baseline;
+  }
+  .headline-row .hn { font-family: var(--mono); color: var(--mono-num); font-size: 1.02rem; }
+  .headline-row .hd { font-family: var(--sans); font-size: 0.87rem; color: var(--text-dim); }
+
+  .graveyard { list-style: none; margin: 0; padding: 0; counter-reset: gy; }
+  .graveyard li {
+    counter-increment: gy;
+    padding: 0.65rem 0 0.65rem 2.2rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    color: var(--text-dim);
+  }
+  .graveyard li::before {
+    content: counter(gy);
+    position: absolute;
+    left: 0;
+    top: 0.65rem;
+    font-family: var(--mono);
+    color: var(--text-faint);
+    font-size: 0.8rem;
+    width: 1.6rem;
+    text-align: right;
+  }
+  .graveyard li .claim { color: var(--text); }
+  .graveyard li .why { color: var(--text-faint); }
+
+  .limits dt {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-top: 1rem;
+  }
+  .limits dd { margin: 0.35rem 0 0; font-size: 0.95rem; }
+
+  footer.report-foot {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--text-faint);
+  }
+  footer.report-foot .pgp code { display: inline-block; margin-top: 0.3rem; word-break: break-all; }
+  footer.report-foot p { margin: 0 0 0.6rem; }
+
+  ::selection { background: rgba(184,147,95,0.25); }
+
+  @media (max-width: 560px) {
+    .page { padding: 2.25rem 1.1rem 4rem; }
+    h1.title { font-size: 1.35rem; }
+    .scoreboard { gap: 0.7rem; }
+    .headline-row { grid-template-columns: 1fr; gap: 0.15rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="report-head">
+  <h1 class="title">Streaming Logs Are Not Preference Logs: A Single-Subject Provenance Audit of Who Explores in the Human&ndash;Recommender Loop</h1>
+  <p class="byline"><span class="pseud">astralcrest</span> &middot; Independent Researcher &middot; astralcrestlab@proton.me</p>
+  <p class="head-links">
+    <a href="index.html">full dashboard</a>
+    <span class="sep">&middot;</span>
+    <a href="bridge-index.html">run the audit on your own export</a>
+    <span class="sep">&middot;</span>
+    <span class="pending">PDF/DOI forthcoming</span>
+  </p>
+</header>
+
+<section class="abstract" id="abstract">
+  <h2 class="sec-title">Abstract</h2>
+  <p>A streamed &ldquo;play&rdquo; is jointly produced by a listener and a recommender, yet streaming logs are routinely read as records of human preference. Spotify&rsquo;s export records each play&rsquo;s <em>provenance</em> (<code>reason_start</code>): a direct, per-play signal of listener <em>intent</em> among played items &mdash; not the item-exposure propensity the debiasing literature must estimate, which concerns unshown items no log sees; we do not recover it. We audit a 7-year, <num>97,427</num>-play single-subject log (only <num>19.1%</num> explicitly user-initiated), asking of every summary: does it survive conditioning on who initiated the play? Artist rankings and circadian profiles survive; genre composition does not; an in-sample predictability gap and a music&ndash;physiology coupling are retracted.</p>
+  <p>First, a finding: deliberate transitions cross communities more often than algorithmic ones (<num>47%</num> vs <num>37%</num> on a provenance-balanced partition; calibrated permutation <num>p=5&times;10&#8315;&#8308;</num>, the resolution floor at <num>B=2,000</num>). The asymmetry is first-order, at community boundaries &mdash; the level a recommender&rsquo;s next-step policy controls &mdash; not deep taste topology. We report its size as a band, <em>Bridge Index</em> &asymp;<num>1.2&ndash;1.3</num>, anchored by the leakage-checked genre-family partition (<num>1.20</num>: no embedding, no correction), corroborated by the CLAP audio partition (<num>1.25</num>, marginal over its floor).</p>
+  <p>Second, a catch: the first estimate was <num>1.61</num>, inflated by an embedding trained on the algorithm-heavy stream. A balanced re-training removed roughly half the excess, the bias is a monotone dose-response in training-corpus algorithmic share, and the correction procedure itself gate-tested as estimator-dependent (<num>1.14&ndash;1.47</num>) &mdash; hence the band. Every claim ran an ordered audit, kill conditions fixed in code before each result was seen; on our eight new positive findings the gates killed five, caveated three, passed none unqualified. The bridge direction survived every gate &mdash; what died were point estimates. The audit and Index run on any provenance-labeled log; cross-listener validation is the one untested step.</p>
+</section>
+
+<section id="positioning">
+  <h2 class="sec-title">Positioning vs. related work</h2>
+  <p>The algorithmic-confounding lineage (Chaney et al.) establishes that user-behavior claims are invalid without accounting for exposure &mdash; but demonstrates it on simulated or rating-matrix data with an <em>inferred or latent</em> exposure variable; propensity-scoring methods likewise <em>estimate</em> a click propensity from the interaction matrix itself. This setting differs in what is observed: Spotify&rsquo;s <code>reason_start</code> field <em>records</em> the initiation channel of each play directly. That is not the exposure variable the debiasing lineage estimates &mdash; their propensities concern which items were surfaced, including unshown items no listening log can see; this paper does not recover that counterfactual. What direct observation buys is narrower: for summaries of <em>played</em> items, deconfounding reduces to conditioning on an observed intent label rather than positing a latent exposure. Villermet et al. disentangle organic, algorithmic, and editorial curation across roughly nine thousand Deezer users and find the balance strongly user-dependent (&ldquo;filter niches,&rdquo; not a uniform bubble); Shakespeare et al. show that whether algorithmic curation reads as diversity-reducing depends on the scale of aggregation, so genre-level conclusions are inherently fragile to representation choices. This paper is the single-subject, epistemic-audit counterpart to that population work: rather than characterize the curation mix, it asks which downstream summaries survive conditioning on a directly-observed intent signal, and the genre-level fragility result reproduces the scale- and heterogeneity-driven findings of that literature at <em>n</em>=1.</p>
+</section>
+
+<section id="method">
+  <h2 class="sec-title">Method in one screen</h2>
+
+  <div class="method-block">
+    <h3 class="sub-title">Provenance classes</h3>
+    <p>Every play is stratified on <code>reason_start</code> into three tiers: <strong>direct tap</strong> (<num>19.1%</num> &mdash; <code>clickrow</code>/<code>playbtn</code>/<code>backbtn</code>/<code>fwdbtn</code>/<code>remote</code>; a <em>strict</em> deliberate-selection subset, <code>clickrow</code>/<code>playbtn</code>/<code>remote</code>, is <num>11.5%</num>), <strong>autoadvance</strong> (<num>80.2%</num> &mdash; <code>trackdone</code>, the platform selecting the next queue item), and <strong>ambiguous</strong> (<num>0.5%</num> &mdash; <code>appload</code>/null/unknown, excluded from intent-stratified analyses). Independently, <num>16.7%</num> of plays carry <code>shuffle=True</code>. Autoadvance and shuffle-driven plays together put the algorithmic-exposure share at roughly <num>95%</num> of the corpus.</p>
+  </div>
+
+  <div class="method-block">
+    <h3 class="sub-title">The gate sequence</h3>
+    <p>Every candidate claim runs an ordered sequence of pass/fail gates, kill condition fixed in code before the result is seen:</p>
+    <div class="gate-seq">
+      <span class="gate"><span class="g-num">0</span>pre-declared kill condition</span>
+      <span class="arrow">&rarr;</span>
+      <span class="gate"><span class="g-num">0b</span>measured-target precheck</span>
+      <span class="arrow">&rarr;</span>
+      <span class="gate"><span class="g-num">1</span>chronological held-out eval</span>
+      <span class="arrow">&rarr;</span>
+      <span class="gate"><span class="g-num">2</span>perturbation robustness</span>
+      <span class="arrow">&rarr;</span>
+      <span class="gate"><span class="g-num">3</span>power analysis (nulls)</span>
+      <span class="arrow">&rarr;</span>
+      <span class="gate"><span class="g-num">4</span>surrogate / permutation null</span>
+      <span class="arrow">&rarr;</span>
+      <span class="gate"><span class="g-num">5</span>E-value confounder bound</span>
+    </div>
+    <p class="disposition-key"><strong>killed</strong> at the first failed gate &middot; <strong>caveated</strong> if the core gates pass but a bounding gate flags a limit &middot; <strong>survived</strong> only if every applicable gate passes &mdash; skipped gates are not passes.</p>
+  </div>
+
+  <div class="method-block">
+    <h3 class="sub-title">The Bridge Index and the leakage correction</h3>
+    <p>Splitting the log by provenance yields two transition graphs over the same <num>804</num> artists: the listener&rsquo;s deliberate taps and the platform&rsquo;s autoadvance plays. On communities detected from an intent-independent artist-embedding <em>k</em>-NN graph (Louvain, <em>k</em>=10, resolution 1.0), deliberate transitions cross community boundaries <num>47.4%</num> of the time against autoadvance&rsquo;s <num>36.7%</num> (balanced-partition rates). The <strong>Bridge Index</strong> is the ratio of the listener&rsquo;s cross-community rate to the algorithm&rsquo;s.</p>
+    <p>The naive full-stream embedding gives <num>1.61</num> &mdash; inflated because the embedding is trained on a stream that is <num>6.4&times;</num> algorithm-dominated, so algorithm-adjacency shapes the communities themselves and deflates the algorithm&rsquo;s measured cross-rate. A provenance-balanced re-training yields <num>BI = 1.29</num>, removing roughly half the excess over 1. Retraining at seven algorithmic-share levels traces a monotone dose-response curve from <num>1.09</num> (tap-heavy) to <num>1.58</num> (algorithm-only). Perturbing the correction procedure itself &mdash; run-level downsampling, transition-level downsampling, inverse-propensity reweighting &mdash; then showed the corrected point estimate is itself estimator-dependent (<num>1.14&ndash;1.47</num>). The honest report is therefore a band, <num>&asymp;1.2&ndash;1.3</num>, anchored by two partitions that need no embedding and no correction at all: the external genre-family partition (<num>1.20</num>) and the CLAP audio partition (<num>1.25</num>, marginal over its own floor) &mdash; partitions sharing no substrate with the log or with each other (pairwise ARI <num>0.03&ndash;0.08</num>).</p>
+  </div>
+
+  <div class="method-block">
+    <h3 class="sub-title">The design-fact reading</h3>
+    <p>A skeptical reading holds that sequential recommenders are <em>engineered</em> to stay local &mdash; coherent, low-surprise continuation is the design objective &mdash; so the algorithm&rsquo;s lane-keeping is a product fact, not a discovery about listeners. The central claim does not depend on adjudicating this: whether the gap reflects listener agency, recommender design, or both, the two channels demonstrably differ, and a log that mixes them misrepresents each. What the audit adds is that the difference survives every measurement-artifact attack mounted against it (embedding leakage, acoustic step size, first-order sequence structure), so the channel difference is a property of the data rather than of the instruments. The psychological reading &mdash; <em>why</em> the human channel bridges &mdash; is left explicitly open; this log does not contain the experimental or context-conditioned data it would require.</p>
+  </div>
+</section>
+
+<section id="findings">
+  <h2 class="sec-title">Findings</h2>
+
+  <h3 class="sub-title">The prospective gauntlet</h3>
+  <p class="lede">Eight new positive candidates were generated while this paper was being written and gated as they arose &mdash; each a result the study wanted to keep.</p>
+  <div class="scoreboard">
+    <div class="cell"><span class="n">0 / 8</span><span class="lbl">survived unqualified</span></div>
+    <div class="cell"><span class="n">3 / 8</span><span class="lbl">caveated</span></div>
+    <div class="cell"><span class="n">5 / 8</span><span class="lbl">killed</span></div>
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <caption>The prospective gauntlet &mdash; candidates 7&ndash;8 are the headline magnitude&rsquo;s own inflation and its correction; candidates 1&ndash;6 are independent hypotheses.</caption>
+    <thead>
+      <tr><th>Candidate</th><th>Disposition</th><th>Killing gate</th><th>The number</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Reverse music&rarr;physiology transfer</td><td><span class="disp disp-killed">killed</span></td><td>measured-target precheck</td><td class="num-cell">80% forward-filled; gain &minus;0.77pp</td></tr>
+      <tr><td>Hawkes self-excitation of artist binges</td><td><span class="disp disp-killed">killed</span></td><td>surrogate null</td><td class="num-cell">excess +0.48 &rarr; &asymp;0</td></tr>
+      <tr><td>Listening&rarr;daytime stress (causal)</td><td><span class="disp disp-killed">killed</span></td><td>surrogate null</td><td class="num-cell">d=&minus;0.06, p=0.25</td></tr>
+      <tr><td>Persistent-homology &ldquo;taste loop&rdquo;</td><td><span class="disp disp-killed">killed</span></td><td>session-structure surrogate</td><td class="num-cell">H&#8321; below null mean, every cell</td></tr>
+      <tr><td>Release-year vintage gradient</td><td><span class="disp disp-caveated">caveated</span></td><td>borderline throughout</td><td class="num-cell">&rho;=+0.19, p=0.054, n=99</td></tr>
+      <tr><td>Genre exposure poles</td><td><span class="disp disp-caveated">caveated</span></td><td>unit of analysis</td><td class="num-cell">chosen pole B_track&lt;1 (hip-hop 0.93)</td></tr>
+      <tr><td>Bridge Index magnitude 1.61</td><td><span class="disp disp-caveated">caveated</span></td><td>perturbation (balanced retrain)</td><td class="num-cell">1.61 &rarr; band 1.2&ndash;1.3</td></tr>
+      <tr><td>The 1.29 correction itself</td><td><span class="disp disp-killed">killed</span></td><td>perturbation (procedure variants)</td><td class="num-cell">variants span 1.14&ndash;1.47</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p class="lede">Retrospectively, every killed claim in the study maps to the specific gate that killed it. Across four analysis passes, on the order of <num>70</num> distinct analyses were run (<num>66</num> catalogued individually in the research log): roughly a third survived their robustness checks cleanly, roughly a fifth survived with caveats, and the rest were killed. No family-wise correction is applied; this is reported as a filtered, exploratory sample, not a preregistered confirmatory battery.</p>
+
+  <h3 class="sub-title">Headline numbers, with qualifiers</h3>
+  <div class="headline-list">
+    <div class="headline-row"><span class="hn">47.4% vs 36.7%</span><span class="hd">deliberate vs. autoadvance cross-community transition rate, provenance-balanced partition &mdash; the raw Bridge finding.</span></div>
+    <div class="headline-row"><span class="hn">1.2&ndash;1.3</span><span class="hd">Bridge Index, reported as a band, not a point &mdash; anchored by the correction-free genre-family partition (1.20) and corroborated by the CLAP audio partition (1.25, marginal over its own floor).</span></div>
+    <div class="headline-row"><span class="hn">AUC 0.64&ndash;0.70</span><span class="hd">held-out accuracy of a portable intent-recoverability proxy using only session position, artist recency, and genre &mdash; no <code>reason_start</code> or <code>shuffle</code> field required.</span></div>
+    <div class="headline-row"><span class="hn">&rho; = 0.75</span><span class="hd">Spearman rank correlation between the true-intent and predicted-intent versions of the genre-exposure bias B(g) &mdash; the proxy reproduces the reversal.</span></div>
+    <div class="headline-row"><span class="hn">causal-null consolidation</span><span class="hd">every tested music&rarr;physiology coupling dissolves under control &mdash; a shuffle quasi-instrument gives a null under exogenous exposure, a Granger/surrogate audit finds no directed music&rarr;body link, and a second wearable (Oura) replicates the null on independent hardware.</span></div>
+    <div class="headline-row"><span class="hn">recall 1.0 vs 0</span><span class="hd">a changepoint detector run on <code>reason_start</code> code-composition (not on a downstream metric) recovers an injected logging change at 1% prevalence at recall 1.0; a naive tap-rate changepoint detector is structurally blind to the same injection (recall 0).</span></div>
+    <div class="headline-row"><span class="hn">r = 0.996</span><span class="hd">daily HRV&ndash;music cross-correlation, raw vs. intent-weighted &mdash; framed as robustness to the provenance confound, not as evidence the underlying coupling is causal (a later circadian-deconfounded re-analysis retracts causality; see Limitations).</span></div>
+  </div>
+</section>
+
+<section id="graveyard">
+  <h2 class="sec-title">The graveyard</h2>
+  <p class="lede">Twelve findings explicitly killed, retracted, or withdrawn over the course of the study, each mapped to the check that killed it.</p>
+  <ol class="graveyard">
+    <li><span class="claim">Reverse music&rarr;physiology transfer</span> &mdash; <span class="why">killed at the measured-target precheck: 80% of the target variable was forward-filled; deconfounded gain &minus;0.77pp.</span></li>
+    <li><span class="claim">Hawkes self-excitation of artist binges</span> &mdash; <span class="why">killed by a surrogate null: apparent excess +0.48 collapses to &asymp;0 against an envelope-preserving surrogate.</span></li>
+    <li><span class="claim">Listening&rarr;daytime stress, read as causal</span> &mdash; <span class="why">killed by a surrogate null: onset event-study d=&minus;0.06, p=0.25 (the descriptive &rho;=&minus;0.10 correlation stands on its own terms).</span></li>
+    <li><span class="claim">Persistent-homology &ldquo;taste loop&rdquo;</span> &mdash; <span class="why">killed by a session-structure surrogate: the observed H&#8321; lifetime sits below the null mean in every cell tested.</span></li>
+    <li><span class="claim">The 1.29 leakage-correction point estimate</span> &mdash; <span class="why">killed by perturbing the correction procedure itself: variants span 1.14&ndash;1.47, so only the band survives.</span></li>
+    <li><span class="claim">Multi-year &ldquo;rising deliberate choice&rdquo; trend</span> &mdash; <span class="why">retracted: a 2023 logging-code addition (<code>backbtn</code>) plus an iOS device-mix shift account for the entire apparent rise.</span></li>
+    <li><span class="claim">In-sample next-track predictability gap</span> &mdash; <span class="why">retracted: full-vocabulary Cohen&rsquo;s d falls from 0.50 in-sample to &minus;0.02 under temporal held-out evaluation, a null.</span></li>
+    <li><span class="claim">PAD contamination diagnostic</span> &mdash; <span class="why">killed by its own audit: algebraically a restatement of the two cross-rates whose ratio is the Bridge Index it was meant to guard.</span></li>
+    <li><span class="claim">Acoustic energy/brightness predicting heart-rate change</span> &mdash; <span class="why">does not survive once selection and regression-to-mean are controlled.</span></li>
+    <li><span class="claim">&ldquo;Effort&rdquo; (skipping through tracks) predicting future replay</span> &mdash; <span class="why">does not survive once skipping is recognized as itself active listening.</span></li>
+    <li><span class="claim">Comfort-replays tracking daily HRV</span> &mdash; <span class="why">does not survive once a seven-year secular accumulation of old favorites is removed.</span></li>
+    <li><span class="claim">Rolling &ldquo;surprising-residual rate&rdquo; over time</span> &mdash; <span class="why">withdrawn: a vocabulary-freeze control shows roughly 85% of it is catalog turnover, not a behavioral signal.</span></li>
+  </ol>
+</section>
+
+<section id="training-implications">
+  <h2 class="sec-title">Implications for training on behavioral logs</h2>
+  <p>A cross-lagged panel at the artist&ndash;month level asks who leads in the listener&ndash;recommender feedback loop. The raw monthly pair mixes a mechanical same-rotation carryover (autoplay keeps serving whatever a tap just put in rotation &mdash; <num>48%</num> of all algorithmic serves fall inside that window) with the slower adaptive channel of actual interest. Isolating the adaptive channel by excluding same-session and 7-day mechanical carryover <em>sharpens</em> the forward path: a surge in deliberate taps of an artist predicts the algorithm serving that artist more the following month at <num>&beta;=0.29</num>, against a reverse path of <num>&beta;&asymp;0.05</num>. At the resolution of which artists get amplified, this listener trains the recommender more than the recommender trains the listener, in the Granger sense that carryover-cleaned taps predict next-month serving several times more strongly than the reverse &mdash; not that the listener mechanically instructs the algorithm.</p>
+  <p>A companion analysis of autoplay streaks refines what a passive play is worth as training signal. Ratification (a strict deliberate tap of the same track within 30 days) <em>rises</em> with streak depth over already-ratified material (0.55&rarr;0.91) but <em>collapses</em> over never-tapped material (23.8%&rarr;1.5%): the deeper autoplay wanders into novel territory from the listener&rsquo;s last choice, the closer its plays come to preference-free. For training pipelines the implication is concrete &mdash; a play&rsquo;s evidential weight should decay with its depth into novel-material autoplay, while deep streaks over previously-ratified items can be up-weighted as delegated preference.</p>
+  <p>The broader point generalizes past this one dataset. Any preference corpus harvested from a recommender-mediated interface &mdash; including the interaction logs increasingly used to train and evaluate generative models &mdash; inherits the same confound a raw streaming log does: deployed outputs shape which interactions get logged, and that logged data retrains the model. The provenance audit is the individual-level, directly-measured counterpart to that feedback loop, which population-scale recommender literature otherwise treats theoretically. The frame this paper argues for is a shift from treating logs as preferences to treating them as jointly authored, with the authorship measurable rather than assumed.</p>
+</section>
+
+<section id="limitations">
+  <h2 class="sec-title">Limitations</h2>
+  <dl class="limits">
+    <dt>Single subject (n=1)</dt>
+    <dd>All quantitative results are from a single subject. Population claims are not licensed; the dataset is treated as a substrate for methodological development, not as evidence for population-level effects.</dd>
+
+    <dt>Life-event confounding</dt>
+    <dd>The seven-year window spans major life events (career, health, relocation) that plausibly co-drive mood, routine, device mix, and listening behavior. Detected change-points and era boundaries are descriptive segmentations of a lived history, not evidence of stable traits &mdash; the genre-provenance reversal, for example, cannot be distinguished on these data from a period effect in which context shifted both what was chosen and what was served.</dd>
+
+    <dt>Observer effect and instrument non-stationarity</dt>
+    <dd>Data collection concluded before any analysis began, so the analytic window contains no behavior the study could have altered &mdash; reactivity is ruled out by construction, not merely tested for. The deeper issue this surfaced independently is that <code>reason_start</code> itself is not stationary: Spotify added a new logging code in 2023 and began logging short skips it had previously dropped, so longitudinal comparisons of provenance shares across client-version eras are unsafe. Cross-sectional results (the provenance decomposition and the genre-exposure bias) pool across the whole window and are not threatened by this; only over-time claims were, and those have been withdrawn.</dd>
+
+    <dt>Randomization-inference scoping</dt>
+    <dd>The randomization-inference license for single-case designs applies where a quasi-random instrument exists &mdash; here, the shuffle-channel tests. The deliberate-versus-served split itself is not randomized; it is the behavior under study, and is treated throughout as observational stratification, not as an experiment. General methodological claims (that intent stratification recovers preference structure obscured by platform-initiated exposure) are separated from idiographic empirical ones (the specific coefficients and effect sizes), which are deliberately not generalized beyond this subject.</dd>
+  </dl>
+</section>
+
+<footer class="report-foot">
+  <p class="pgp">PGP fingerprint (for correspondence involving the non-public raw log):<br><code>3EAD CE97 F8CE C3BF 8E5B D727 B7F4 EEAB 1BB1 6E67</code></p>
+  <p>Contact: astralcrestlab@proton.me</p>
+</footer>
+
+</div>
+
+<script>
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    var target = document.querySelector(a.getAttribute('href'));
+    if (!target) return;
+    e.preventDefault();
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+</script>
+
+</body>
+</html>
