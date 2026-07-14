@@ -14,7 +14,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="build-stamp" content="2026-07-14 01:09Z">
+<meta name="build-stamp" content="2026-07-14 01:16Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -1237,11 +1237,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   function volRamp(d, to, durMs) {   // fallback path only (no Web Audio)
     if (volRamps[d]) clearInterval(volRamps[d]);
-    var el = els[d], from = el.volume || 0, steps = Math.max(1, Math.round((durMs || FADE_MS) / 50)), n = 0;
+    var el = els[d], from = el.volume || 0, dur = Math.max(50, durMs || FADE_MS), t0 = performance.now();
     volRamps[d] = setInterval(function () {
-      n++; var q = n / steps, sm = q * q * (3 - 2 * q), v = Math.sqrt(Math.max(0, from * from * (1 - sm) + to * to * sm));
+      var q = Math.min(1, (performance.now() - t0) / dur), sm = q * q * (3 - 2 * q), v = Math.sqrt(Math.max(0, from * from * (1 - sm) + to * to * sm));
       try { el.volume = muted ? 0 : Math.max(0, Math.min(1, v)); } catch (e) {}
-      if (n >= steps) { clearInterval(volRamps[d]); volRamps[d] = null; }
+      if (q >= 1) { clearInterval(volRamps[d]); volRamps[d] = null; }
     }, 50);
   }
 
@@ -1440,12 +1440,12 @@ document.addEventListener('DOMContentLoaded', function () {
         try { els[sb].volume = bgLvl(); els[sb].playbackRate = DJ3.SPIN_R0; } catch (e) {}
         fadeGain(deck[sb].gain.gain, GFULL, DJ3.SPIN_MS, true);
         ramp(deck[sb].hp.frequency, 20, DJ3.SPIN_MS, true);
-        var j = 0, st2 = 16;
+        var t0s = performance.now();
         dj3Spin = setInterval(function () {
-          j++; var y = j / st2;
+          var y = Math.min(1, (performance.now() - t0s) / DJ3.SPIN_MS);
           try { els[sb].playbackRate = Math.min(1, DJ3.SPIN_R0 + (1 - DJ3.SPIN_R0) * (1 - (1 - y) * (1 - y))); } catch (e) {}
-          if (j >= st2 || myGen !== gen) { clearInterval(dj3Spin); dj3Spin = null; try { els[sb].playbackRate = 1; } catch (e) {} }
-        }, Math.round(DJ3.SPIN_MS / st2));
+          if (y >= 1 || myGen !== gen) { clearInterval(dj3Spin); dj3Spin = null; try { els[sb].playbackRate = 1; } catch (e) {} }
+        }, Math.round(DJ3.SPIN_MS / 16));
         setNow(idx[sb]);
       }, dropMs));
       swapT = setTimeout(function () { if (myGen === gen) finishSwap(sb); }, dropMs + DJ3.SPIN_MS + 260);
@@ -1455,12 +1455,12 @@ document.addEventListener('DOMContentLoaded', function () {
       ramp(Df.lp.frequency, 320, Math.round(DJ3.BRAKE_MS * 0.9), true);
       ramp(Df.verbSend.gain, bgLvl() * 0.5, 300);
       fadeGain(Df.gain.gain, 0.0001, Math.round(DJ3.BRAKE_MS * 0.98), false);
-      var steps = 24, i = 0;
+      var t0b = performance.now();
       dj3Spin = setInterval(function () {
-        i++; var x = i / steps;
+        var x = Math.min(1, (performance.now() - t0b) / DJ3.BRAKE_MS);
         try { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); } catch (e) {}
-        if (i >= steps || myGen !== gen) { clearInterval(dj3Spin); dj3Spin = null; }
-      }, Math.round(DJ3.BRAKE_MS / steps));
+        if (x >= 1 || myGen !== gen) { clearInterval(dj3Spin); dj3Spin = null; }
+      }, Math.round(DJ3.BRAKE_MS / 24));
       var dropMs = DJ3.BRAKE_MS + DJ3.GAP_MS;
       primeIn(inStart0(), 40);
       dj3Rec({ brakeMs: DJ3.BRAKE_MS, spinMs: DJ3.SPIN_MS, dropMs: dropMs });
@@ -1654,14 +1654,14 @@ document.addEventListener('DOMContentLoaded', function () {
         ramp(deck[fo].verbSend.gain, GFULL * 0.48, 380);
       } catch (e) {}
     }
-    var i = 0, steps = 22;
+    var t0k = performance.now();
     var br = setInterval(function () {
-      i++; var x = i / steps;
+      var x = Math.min(1, (performance.now() - t0k) / 616);
       try {
         if (isPhone) { els[fo].volume = Math.max(0, (muted ? 0 : GFULL) * (1 - x)); }   // phone: fade, no pitch-drop
         else { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); }
       } catch (e) {}
-      if (i >= steps || myGen !== gen) clearInterval(br);
+      if (x >= 1 || myGen !== gen) clearInterval(br);
     }, 28);
     setTimeout(function () {
       if (myGen !== gen) return;
@@ -18421,5 +18421,32 @@ function boot(){stamp();setTimeout(stamp,3000);setTimeout(stamp,7000);
  try{document.addEventListener('sm-defer-done',function(){setTimeout(stamp,1000);});}catch(e){}}
 if(document.readyState!=='loading')setTimeout(boot,1500);else document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1500);});
 })();
-</script><!--FABLE-TIER-END--></body>
+</script><!--FABLE-TIER-END--><!--FABLE-PERMA-START--><style id="fable-perma-css">.sm-perma{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-left:8px;vertical-align:middle;border:none;border-radius:6px;background:none;color:rgba(33,246,188,.4);font:400 14px 'JetBrains Mono',ui-monospace,monospace;cursor:pointer;transition:color .15s}.sm-perma:hover{color:#21f6bc;background:rgba(33,246,188,.08)}#sm-perma-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(8px);z-index:10005;padding:8px 16px;border-radius:999px;border:1px solid rgba(33,246,188,.5);background:rgba(6,16,13,.95);color:#21f6bc;font:600 11.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.4px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}#sm-perma-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}</style><script id="fable-perma-js">
+(function(){if(window.__fablePerma)return;window.__fablePerma=1;
+var IDS=['act-1','act-2','act-3','act-4','act-5','act-6','act-7','act-8','graveyard','umap-wrap','ai-systems','apple-sunomoment','tldr'];
+var toast=null,toastT=null;
+function say(m){if(!toast){toast=document.createElement('div');toast.id='sm-perma-toast';document.body.appendChild(toast);}
+ toast.textContent=m;toast.classList.add('on');if(toastT)clearTimeout(toastT);
+ toastT=setTimeout(function(){toast.classList.remove('on');},1600);}
+function stamp(){try{
+ IDS.forEach(function(id){
+  var el=document.getElementById(id);if(!el||el.dataset.smPerma)return;
+  var head=el.matches('header,h1,h2,h3')?el:(el.querySelector('h1,h2,h3')||el);
+  var target=head.matches('h1,h2,h3')?head:(head.querySelector('.act-title,h1,h2,h3')||head);
+  el.dataset.smPerma='1';
+  var b=document.createElement('button');b.type='button';b.className='sm-perma';b.textContent='#';
+  b.setAttribute('aria-label','copy link to this section');b.title='copy link to this section';
+  b.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();
+   var url=location.origin+location.pathname+'#'+id;
+   function done(){say('link copied — opens right here');
+    try{history.replaceState(null,'','#'+id);}catch(e){}}
+   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(done,function(){say(url);});}
+   else say(url);});
+  target.appendChild(b);});
+}catch(e){}}
+function boot(){stamp();setTimeout(stamp,3500);
+ try{document.addEventListener('sm-defer-done',function(){setTimeout(stamp,1200);});}catch(e){}}
+if(document.readyState!=='loading')setTimeout(boot,1800);else document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1800);});
+})();
+</script><!--FABLE-PERMA-END--></body>
 </html>
