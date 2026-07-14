@@ -14,7 +14,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="build-stamp" content="2026-07-14 05:00Z">
+<meta name="build-stamp" content="2026-07-14 05:53Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -18687,5 +18687,23 @@ function boot(){
 }
 if(document.readyState!=='loading')boot();else document.addEventListener('DOMContentLoaded',boot);
 })();
-</script><!--FABLE-IA-END--></body>
+</script><!--FABLE-IA-END--><!--FABLE-TIDY-START--><style id="fable-tidy-css">.lazy-ph-text{position:relative;overflow:hidden;color:transparent!important;min-height:14px}.lazy-ph-text::after{content:'';position:absolute;inset:0;border-radius:6px;background:linear-gradient(100deg,rgba(124,128,140,.10) 30%,rgba(230,232,236,.18) 50%,rgba(124,128,140,.10) 70%);background-size:200% 100%;animation:smShimmer 1.3s linear infinite}@keyframes smShimmer{0%{background-position:120% 0}100%{background-position:-80% 0}}@media(prefers-reduced-motion:reduce){.lazy-ph-text::after{animation:none;background:rgba(124,128,140,.12)}}</style><script id="fable-tidy-js">
+(function(){if(window.__fableTidy)return;window.__fableTidy=1;
+/* nav act-highlight resync after hash/instant jumps */
+function resync(){setTimeout(function(){try{window.dispatchEvent(new Event('scroll'));}catch(e){}},450);
+ setTimeout(function(){try{window.dispatchEvent(new Event('scroll'));}catch(e){}},1200);}
+window.addEventListener('hashchange',resync);
+document.addEventListener('click',function(e){
+ if(e.target&&e.target.closest&&e.target.closest('a[href^="#"]'))resync();},true);
+/* shimmer on lazy placeholders that show literal LOADING text */
+function shimmer(){try{
+ var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,false),t,hits=[];
+ while((t=walker.nextNode())){var v=(t.nodeValue||'').trim();
+  if((v==='LOADING'||v==='LOADING…'||v==='loading…')&&t.parentElement&&!t.parentElement.classList.contains('lazy-ph-text'))hits.push(t.parentElement);}
+ hits.forEach(function(el){el.classList.add('lazy-ph-text');});
+}catch(e){}}
+if(document.readyState!=='loading')setTimeout(shimmer,1200);else document.addEventListener('DOMContentLoaded',function(){setTimeout(shimmer,1200);});
+setTimeout(shimmer,4000);
+})();
+</script><!--FABLE-TIDY-END--></body>
 </html>

@@ -3,7 +3,7 @@
    figdata/images/json: stale-while-revalidate (instant, refreshes in background).
    Audio is deliberately NOT handled: <audio> uses Range requests (206) which
    the Cache API can't store; the browser HTTP cache handles those fine. */
-var VERSION = 'sm-v3';
+var VERSION = 'sm-v4';
 
 self.addEventListener('install', function () { self.skipWaiting(); });
 
@@ -34,6 +34,23 @@ self.addEventListener('fetch', function (e) {
         }
         return r;
       }).catch(function () { return caches.match(req); })
+    );
+    return;
+  }
+
+  // versioned immutable assets (the trimmed Plotly bundle): cache-first, no
+  // background refetch — the filename carries the version and VERSION bumps
+  // whenever the bundle changes, so revalidation is pure duplicate bandwidth.
+  if (/plotly-sm-[\d.]+\.min\.js$/.test(url.pathname)) {
+    e.respondWith(
+      caches.open(VERSION).then(function (c) {
+        return c.match(req).then(function (hit) {
+          return hit || fetch(req).then(function (r) {
+            if (r && r.status === 200) c.put(req, r.clone());
+            return r;
+          });
+        });
+      })
     );
     return;
   }
