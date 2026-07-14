@@ -14,7 +14,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="build-stamp" content="2026-07-14 03:41Z">
+<meta name="build-stamp" content="2026-07-14 03:54Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -17954,11 +17954,11 @@ document.addEventListener('click',function(e){
         var anchor=vs.nextElementSibling;
         if(anchor){ moveBefore([suno, cl].filter(Boolean), anchor); window.__fableSuno=true; }
       } else if(a8 && suno && !window.__fableSuno){ moveBefore([suno, cl].filter(Boolean), a8); window.__fableSuno=true; }
-      // v2: catchy gradient — voice/maker cluster then body; where-this-goes closes the acts
-      if(a6 && a5 && a6.parentNode===a5.parentNode) moveBefore(clusterOf(a6,['act-7']), a5);
-      if(a7 && a6 && a7.parentNode===a6.parentNode) moveBefore(clusterOf(a7,['act-8']), a6);
-      // closer: WHERE THIS GOES (act-8) ends the acts; TOPOLOGY (act-5) precedes it.
-      if(a5 && a8 && a5.parentNode===a8.parentNode && (a8.compareDocumentPosition(a5) & 4)){ a8.parentNode.insertBefore(a5, a8); }
+      // v3: banners sit above their own content; science resolves INTO the album; album closes into WHERE THIS GOES.
+      var hc=document.getElementById('health-cross'), h1w=document.getElementById('h1loop-btn-wrap');
+      if(a6 && hc && a6.parentNode===hc.parentNode && (hc.compareDocumentPosition(a6) & 4)) hc.parentNode.insertBefore(a6, hc);
+      if(a5 && h1w && a5.parentNode===h1w.parentNode && (h1w.compareDocumentPosition(a5) & 4)) h1w.parentNode.insertBefore(a5, h1w);
+      if(a7 && a8 && a7.parentNode===a8.parentNode) moveBefore(clusterOf(a7,['act-8','act-6','act-5']), a8);
       // credits/PGP footer must end the page in every view
       // (glossary relocates to body-level after <main>, so append to BODY, re-assert on bounded timers)
       try{
@@ -18316,12 +18316,12 @@ function gates2(){try{
   if(d.dataset.smGate2)return;
   var n=d.nextElementSibling,content=0,lab=null;
   while(n&&!(n.matches&&n.matches('header.theme-divider'))){
-   if(n.offsetParent!==null&&!n.classList.contains('section-tldr')&&!n.classList.contains('sm-actgate')&&!n.classList.contains('sm-actgate2')){
+   if(n.offsetParent!==null&&!n.classList.contains('section-tldr')&&!n.classList.contains('sm-actgate')&&!n.classList.contains('sm-actgate2')&&!n.classList.contains('spine-fold')&&!(n.querySelector&&n.getBoundingClientRect().height<70&&n.querySelector('.spine-fold'))){
     content+=n.getBoundingClientRect().height;
     var lb=n.matches('.act-lab-btn')?n:(n.querySelector?n.querySelector('.act-lab-btn'):null);
     if(lb&&lb.offsetParent!==null)lab=lab||lb;}
    n=n.nextElementSibling;}
-  if(content>260)return;
+  if(content>340)return;
   d.dataset.smGate2='1';
   var act=(d.id||'').replace('act-','');var nm=actName(act)||'this act';
   var g=document.createElement('button');g.type='button';g.className='sm-actgate2';
@@ -18559,5 +18559,105 @@ setTimeout(mathPass,4500);
 try{document.addEventListener('sm-defer-done',function(){setTimeout(mathPass,1100);});}catch(e){}
 })();
 </script><!--FABLE-DESK3-END--><!--SONGS-CSS-START--><style>#apple-sunomoment .sm-album{width:100%}#apple-sunomoment .sm-album-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;max-width:760px;margin:0 auto 14px;padding:0 4px}#apple-sunomoment .sm-album-kicker{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#21f6bc;opacity:.85}#apple-sunomoment .sm-album-count{font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;letter-spacing:.04em;color:rgba(230,232,236,.5)}#apple-sunomoment .sm-rows{list-style:none;margin:0 auto;padding:0;max-width:760px;text-align:left;border-top:1px solid rgba(230,232,236,.1)}#apple-sunomoment .sm-row{display:flex;align-items:center;gap:16px;padding:13px 14px;border-bottom:1px solid rgba(230,232,236,.1);border-left:2px solid transparent;cursor:pointer;background:transparent;transition:background .16s ease,border-color .16s ease}#apple-sunomoment .sm-row:hover,#apple-sunomoment .sm-row:focus-visible{background:rgba(33,246,188,.08);outline:none}#apple-sunomoment .sm-row-n{flex:none;width:24px;font-family:'JetBrains Mono','SF Mono',monospace;font-size:12px;color:rgba(230,232,236,.5)}#apple-sunomoment .sm-row-t{flex:1;min-width:0;font-size:16px;font-weight:600;color:#E6E8EC;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#apple-sunomoment .sm-row-c{flex:none;display:flex;gap:6px}#apple-sunomoment .sm-chip{font-family:'JetBrains Mono','SF Mono',monospace;font-size:10.5px;letter-spacing:.03em;color:rgba(33,246,188,.55);border:1px solid rgba(33,246,188,.22);border-radius:999px;padding:3px 8px}#apple-sunomoment .sm-row-p{flex:none;width:18px;text-align:center;color:#21f6bc;font-size:11px;opacity:0;transition:opacity .16s ease}#apple-sunomoment .sm-row:hover .sm-row-p,#apple-sunomoment .sm-row:focus-visible .sm-row-p,#apple-sunomoment .sm-row.sm-playing .sm-row-p{opacity:1}#apple-sunomoment .sm-row.sm-playing{border-left-color:#21f6bc;background:rgba(33,246,188,.1)}#apple-sunomoment .sm-row.sm-playing .sm-row-t{color:#21f6bc}@media(max-width:640px){#apple-sunomoment .sm-row{min-height:44px;padding:10px 10px}#apple-sunomoment .sm-row-t{font-size:15px}#apple-sunomoment .sm-album-top{padding:0 2px}}@media(prefers-reduced-motion:reduce){#apple-sunomoment .sm-row{transition:none}}</style><!--SONGS-CSS-END-->
-</body>
+<!--FABLE-IA-START--><style id="fable-ia-css">details.sm-trail{max-width:860px;margin:10px auto 26px}details.sm-trail>summary{list-style:none;cursor:pointer;text-align:center;padding:13px 20px;border:1px dashed rgba(33,246,188,.4);border-radius:12px;background:rgba(33,246,188,.05);color:#21f6bc;font:600 12px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.5px}details.sm-trail>summary::-webkit-details-marker{display:none}details.sm-trail>summary:hover{background:rgba(33,246,188,.12)}details.sm-trail[open]>summary{margin-bottom:18px}.sm-gy-hide{display:none!important}.sm-gy-more,.sm-glos-sum{display:block;margin:14px auto 0;padding:11px 22px;border:1px dashed rgba(255,110,156,.45);border-radius:999px;background:rgba(255,110,156,.05);color:#ff8caf;font:600 12px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.5px;cursor:pointer}.sm-gy-more:hover{background:rgba(255,110,156,.12)}details.sm-glos>summary{list-style:none;cursor:pointer;text-align:center;padding:12px 20px;border:1px dashed rgba(134,203,254,.4);border-radius:12px;background:rgba(134,203,254,.05);color:#86cbfe;font:600 12px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.5px;max-width:560px;margin:0 auto}details.sm-glos>summary::-webkit-details-marker{display:none}details.sm-glos[open]>summary{margin-bottom:16px}</style><script id="fable-ia-js">
+(function(){if(window.__fableIA)return;window.__fableIA=1;
+var R=['I','II','III','IV','V','VI','VII','VIII','IX'];
+var ACTWORD={ 'act-1':'SHAPE OF ATTENTION','act-3':'DYNAMICS','act-2':'GEOMETRY','act-4':'RIGOR','act-7':'VOICE','act-6':'BODY','act-5':'TOPOLOGY','act-8':'WHERE THIS GOES' };
+function $(id){return document.getElementById(id);}
+function withTldr(el){var out=[el],n=el.nextElementSibling;
+ while(n&&n.classList&&n.classList.contains('section-tldr')){out.push(n);n=n.nextElementSibling;}
+ return out;}
+function moveBefore(ids,targetId){try{
+ var t=$(targetId);if(!t)return;
+ var par=t.parentNode;
+ ids.forEach(function(id){var e=$(id);if(!e||e===t)return;
+  if(e.parentNode!==par)return;
+  withTldr(e).forEach(function(nd){par.insertBefore(nd,t);});});
+}catch(e){}}
+function renumber(){try{
+ var divs=Array.prototype.slice.call(document.querySelectorAll('main>header.theme-divider'));
+ divs.forEach(function(d,i){
+  var g=d.querySelector('.act-ghost');
+  if(g&&/^[IVXLC]+$/.test(g.textContent.trim()))g.textContent=R[i];
+  Array.prototype.slice.call(d.querySelectorAll('*')).forEach(function(el){
+   if(el.children.length)return;
+   var t=(el.textContent||'').trim();
+   if(/^ACT\s+[IVXLC]+$/i.test(t))el.textContent='ACT '+R[i];});});
+ var order={};divs.forEach(function(d,i){order[d.id]=i;});
+ Array.prototype.slice.call(document.querySelectorAll('nav.cyber-nav ul a[href^="#act-"]')).forEach(function(a){
+  var id=a.getAttribute('href').slice(1);if(!(id in order))return;
+  var lab=a.querySelector('.label');if(!lab)return;
+  var word=ACTWORD[id];if(!word)return;
+  if(new RegExp('^[IVXLC]+\\s*'+word.split(' ')[0]).test(lab.textContent.trim()))
+   lab.textContent=R[order[id]]+' '+word;});
+}catch(e){}}
+function collapseTrail(){try{
+ if(document.querySelector('details.sm-trail'))return;
+ var ids=['stress-test','pass-decay','aversion','archetypes'];
+ var first=$(ids[0]);if(!first)return;
+ var par=first.parentNode;
+ var det=document.createElement('details');det.className='sm-trail';
+ var sum=document.createElement('summary');
+ sum.textContent='the audit trail continues — four more claims, each stress-tested ↓';
+ det.appendChild(sum);
+ par.insertBefore(det,first);
+ ids.forEach(function(id){var e=$(id);if(!e)return;withTldr(e).forEach(function(nd){det.appendChild(nd);});});
+}catch(e){}}
+function collapseGraveyard(){try{
+ var gy=$('graveyard');if(!gy||gy.dataset.smGyDone)return;
+ var cards=gy.querySelectorAll('.gy-card');if(cards.length<8)return;
+ gy.dataset.smGyDone='1';
+ for(var i=4;i<cards.length;i++)cards[i].classList.add('sm-gy-hide');
+ var list=cards[0].parentNode;
+ var b=document.createElement('button');b.type='button';b.className='sm-gy-more';
+ b.textContent='show all '+cards.length+' kills ↓';
+ b.addEventListener('click',function(){
+  for(var i=0;i<cards.length;i++)cards[i].classList.remove('sm-gy-hide');
+  b.remove();});
+ list.parentNode.insertBefore(b,list.nextSibling);
+ if(location.hash==='#graveyard')b.click();
+}catch(e){}}
+function collapseGlossary(){try{
+ var gs=$('glossary-sec');if(!gs||gs.dataset.smGlos)return;gs.dataset.smGlos='1';
+ var kids=Array.prototype.slice.call(gs.children);
+ if(kids.length<2)return;
+ var head=kids[0];
+ var det=document.createElement('details');det.className='sm-glos';
+ var sum=document.createElement('summary');sum.textContent='open the glossary — every borrowed word, defined ↓';
+ det.appendChild(sum);
+ gs.insertBefore(det,kids[1]);
+ kids.slice(1).forEach(function(k){det.appendChild(k);});
+}catch(e){}}
+function resizeMoved(){try{
+ ['vocalist-shelf','apple-sunomoment','creation-loop','audio-embed','ai-systems','fable-selftest'].forEach(function(id){
+  var e=$(id);if(!e||!window.Plotly)return;
+  Array.prototype.slice.call(e.querySelectorAll('.js-plotly-plot')).forEach(function(gd){
+   try{Plotly.Plots.resize(gd);}catch(err){}});});
+}catch(e){}}
+function regate(){try{
+ document.querySelectorAll('.sm-actgate2').forEach(function(g){g.remove();});
+ document.querySelectorAll('main>header.theme-divider').forEach(function(d){delete d.dataset.smGate2;});
+}catch(e){}}
+function run(){
+ /* section order is owned by FABLE-ORDER (v3 moves there); this block only collapses/moves prologue bits */
+ var st=$('fable-selftest'),oos=$('oos-star');
+ if(st&&oos&&oos.parentNode===st.parentNode&&oos.nextElementSibling!==st){
+  withTldr(st).forEach(function(nd){oos.parentNode.insertBefore(nd,oos.nextElementSibling);});}
+ var ai=$('ai-systems'),beat=$('apple-ailabbeat');
+ if(ai&&beat&&ai.parentNode===beat.parentNode){
+  withTldr(ai).forEach(function(nd){beat.parentNode.insertBefore(nd,beat);});}
+ collapseTrail();
+ collapseGraveyard();
+ collapseGlossary();
+ regate();
+ setTimeout(resizeMoved,600);
+}
+function boot(){
+ var go=function(){setTimeout(run,500);};
+ if(window.__smDeferDone){go();}
+ else document.addEventListener('sm-defer-done',go);
+}
+if(document.readyState!=='loading')boot();else document.addEventListener('DOMContentLoaded',boot);
+})();
+</script><!--FABLE-IA-END--></body>
 </html>
