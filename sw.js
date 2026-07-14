@@ -3,7 +3,7 @@
    figdata/images/json: stale-while-revalidate (instant, refreshes in background).
    Audio is deliberately NOT handled: <audio> uses Range requests (206) which
    the Cache API can't store; the browser HTTP cache handles those fine. */
-var VERSION = 'sm-v2';
+var VERSION = 'sm-v3';
 
 self.addEventListener('install', function () { self.skipWaiting(); });
 
