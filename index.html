@@ -14,7 +14,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="build-stamp" content="2026-07-14 20:15Z">
+<meta name="build-stamp" content="2026-07-17 01:02Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -6909,7 +6909,6 @@ try {
     if (!tid) return;
     markGesture();   // belt-and-braces: ensure gesture flag is set
     hideCta();       // user knows what to do; hide the CTA
-    if (contentBlockerDetected) { fallbackToBed(tid); return; }
     play(tid, label || tid, subLabel || '', Object.assign({ immediate: true }, opts || {}));
   }
 
@@ -18648,6 +18647,28 @@ if(document.readyState!=='loading')boot();else document.addEventListener('DOMCon
 })();
 </script><!--FABLE-IA-END--><!--FABLE-TIDY-START--><style id="fable-tidy-css">.lazy-ph-text{position:relative;overflow:hidden;color:transparent!important;min-height:14px}.lazy-ph-text::after{content:'';position:absolute;inset:0;border-radius:6px;background:linear-gradient(100deg,rgba(124,128,140,.10) 30%,rgba(230,232,236,.18) 50%,rgba(124,128,140,.10) 70%);background-size:200% 100%;animation:smShimmer 1.3s linear infinite}@keyframes smShimmer{0%{background-position:120% 0}100%{background-position:-80% 0}}@media(prefers-reduced-motion:reduce){.lazy-ph-text::after{animation:none;background:rgba(124,128,140,.12)}}</style><script id="fable-tidy-js">
 (function(){if(window.__fableTidy)return;window.__fableTidy=1;
+/* service-worker safety valve: ?swoff nukes SW+caches; self-heal auto-fires
+   ONCE if the page looks bricked (no Plotly 15s after load) — a poisoned SW
+   cache can otherwise blank the site forever. */
+(function(){
+ function nuke(cb){try{
+  var done=function(){try{caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}).then(cb,cb);}catch(e){cb();}};
+  if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
+   navigator.serviceWorker.getRegistrations().then(function(rs){
+    Promise.all(rs.map(function(r){return r.unregister();})).then(done,done);},done);}
+  else done();
+ }catch(e){try{cb();}catch(_){}}}
+ if(/[?&]swoff/.test(location.search)){
+  nuke(function(){var u=location.pathname+location.hash;history.replaceState(null,'',u);location.reload();});
+  return;}
+ setTimeout(function(){try{
+  if(typeof window.Plotly!=='undefined')return;
+  if(!document.querySelector('.js-plotly-plot,[id^=fig-]'))return;
+  if(sessionStorage.getItem('smSelfHealed'))return;
+  sessionStorage.setItem('smSelfHealed','1');
+  nuke(function(){location.reload();});
+ }catch(e){}},15000);
+})();
 /* nav act-highlight resync after hash/instant jumps */
 function resync(){setTimeout(function(){try{window.dispatchEvent(new Event('scroll'));}catch(e){}},450);
  setTimeout(function(){try{window.dispatchEvent(new Event('scroll'));}catch(e){}},1200);}
