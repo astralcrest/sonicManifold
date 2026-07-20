@@ -43,7 +43,7 @@
     padding:20px;margin:0 0 18px;
   }
   .drop{
-    border:1.5px dashed #2b3742;border-radius:12px;padding:26px 18px;text-align:center;
+    border:1.5px dashed rgba(138,151,163,.55);border-radius:12px;padding:26px 18px;text-align:center;
     background:var(--panel2);transition:border-color .15s,background .15s;cursor:pointer;
   }
   .drop.hot{border-color:var(--mint);background:rgba(33,246,188,.05)}
@@ -58,9 +58,9 @@
   button{
     font-family:var(--mono);font-size:13px;letter-spacing:.04em;
     background:var(--mint);color:#05100b;border:0;border-radius:8px;
-    padding:11px 20px;cursor:pointer;font-weight:600;text-transform:lowercase;
+    padding:11px 20px;min-height:44px;cursor:pointer;font-weight:600;text-transform:lowercase;
   }
-  button:disabled{background:#1c2a2a;color:var(--faint);cursor:not-allowed}
+  button:disabled{background:#1c2a2a;color:#8a97a3;cursor:not-allowed}
   button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
   .bx-share{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
   a.bx-btn{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:11px 16px;border-radius:8px;text-decoration:none;color:var(--mint);border:1px solid rgba(33,246,188,.45);background:rgba(33,246,188,.06)}
@@ -109,6 +109,7 @@
   details{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
   summary{font-family:var(--mono);font-size:12px;color:var(--dim);cursor:pointer}
   pre{font-family:var(--mono);font-size:11px;color:var(--faint);overflow:auto;background:#0a0e12;padding:12px;border-radius:8px}
+#bxMail{background:var(--mint,#39d98a);color:#08130f;font-weight:700;border:none}#bxMail:hover{filter:brightness(1.1)}#bxCopy{background:transparent;border:1px solid rgba(138,151,163,.4);color:#8a97a3}
 </style>
 </head>
 <body>
@@ -600,7 +601,8 @@
   // ---- main entry -----------------------------------------------------------
   // entries: flat array of raw export rows (Video files excluded upstream).
   // opts: { onProgress(msg), overrides... }. Returns { ok, result } or { ok:false, error }.
-  function computeBI(entries, opts) {
+  async function computeBI(entries, opts) {
+    var __tick=function(){return new Promise(function(r){setTimeout(r,0);});};
     opts = opts || {};
     var cfg = {};
     for (var k in DEFAULTS) cfg[k] = k in opts ? opts[k] : DEFAULTS[k];
@@ -650,7 +652,7 @@
     for (var r = 0; r < rows.length; r++) if (tapSet[rows[r][2]]) nTapPlays++;
     var pctDeliberate = nTapPlays / nPlays;
 
-    log("building sessions + transitions...");
+    log("building sessions + transitions..."); await __tick();
     var st = buildSessionsAndTransitions(rows, artistIds, cfg);
     var sessions = st.sessions;
     var trans = st.trans;
@@ -663,11 +665,11 @@
         " transitions (tap=" + nTapTrans + " algo=" + nAlgoTrans + ")"
     );
 
-    log("building co-occurrence graph...");
+    log("building co-occurrence graph..."); await __tick();
     var edges = buildCoocGraph(sessions, cfg, nArtists);
     log("  " + nArtists + " artists, " + edges.length + " weighted edges");
 
-    log("partitioning (seeded Louvain)...");
+    log("partitioning (seeded Louvain)..."); await __tick();
     var labels = louvain(nArtists, edges, rng, cfg.RESOLUTION, log);
     var qMod = modularity(labels, edges);
 
@@ -748,7 +750,7 @@
     var coverage = (tapA.length + algoA.length) / Math.max(nClass, 1);
 
     // ---- mechanical floor: size-preserving label shuffles -------------------
-    log("label-shuffle floor (" + cfg.N_SHUFFLES + " shuffles)...");
+    log("label-shuffle floor (" + cfg.N_SHUFFLES + " shuffles)..."); await __tick();
     // partitioned nodes, compact positions
     var partNodes = [];
     for (var pn = 0; pn < nArtists; pn++) if (labVec[pn] >= 0) partNodes.push(pn);
@@ -791,7 +793,7 @@
     var pPerm = (geq + 1) / (cfg.N_SHUFFLES + 1);
 
     // ---- 95% CI: session-block bootstrap ------------------------------------
-    log("session-block bootstrap (" + cfg.N_BOOT + " resamples)...");
+    log("session-block bootstrap (" + cfg.N_BOOT + " resamples)..."); await __tick();
     // unique session ids present in transitions
     var sidPos = new Map();
     var allSids = [];
@@ -917,7 +919,7 @@
   function addFiles(fileList){
     for(var i=0;i<fileList.length;i++){
       var f=fileList[i];
-      if(!/\.json$/i.test(f.name)) continue;
+      if(!/\.json$/i.test(f.name)){ try{ log("skipped "+f.name+" \u2014 not a .json file"); }catch(_e){} continue; }
       var key=f.name+"|"+f.size;
       var dup=false;
       for(var j=0;j<chosen.length;j++){ if(chosen[j].key===key){ dup=true; break; } }
@@ -929,7 +931,8 @@
 
   // accumulate across picks (mobile pickers often return one batch at a time)
   picker.addEventListener("change",function(e){ addFiles(e.target.files); });
-  ["dragenter","dragover"].forEach(function(ev){
+  window.addEventListener("dragover",function(e){e.preventDefault();});window.addEventListener("drop",function(e){if(e.target!==drop&&!drop.contains(e.target)){e.preventDefault();try{if(e.dataTransfer.files.length)addFiles(e.dataTransfer.files);}catch(_){}}});
+    ["dragenter","dragover"].forEach(function(ev){
     drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.add("hot"); });
   });
   ["dragleave","drop"].forEach(function(ev){
@@ -983,14 +986,14 @@
         }).catch(function(e){
           // one bad file must not kill the run — skip it, keep the rest
           failed.push(c.name);
-          log("skipped "+c.name+" — "+(e.message||e));
+          var __r=""+(e.message||e); (window.__bxFails=window.__bxFails||[]).push({n:c.name,r:__r}); log("skipped "+c.name+" — "+__r);
         });
       });
     });
 
     chain.then(function(){
       if(!entries.length){
-        throw new Error("none of the files could be read. most common cause: the files are cloud placeholders (iCloud / Google Drive) or still inside the zip — download them fully to the device, unzip, then re-add.");
+        throw new Error((function(){var F=window.__bxFails||[];var io=!F.length||F.every(function(f){return /could not read|notreadable|permission|read error/i.test(f.r)});if(io)return "none of the files could be read. most common cause: the files are cloud placeholders (iCloud / Google Drive) or still inside the zip — download them fully to the device, unzip, then re-add.";return "none of the files qualified — "+F.slice(0,2).map(function(f){return f.n+": "+f.r}).join(" · ")+(F.length>2?" · +"+(F.length-2)+" more in the log below":"");})());
       }
       if(failed.length){
         log(failed.length+" file(s) skipped — result covers the readable "+ (audio.length-failed.length) +" file(s) only.");
@@ -999,8 +1002,10 @@
       // defer so the status paints before the synchronous crunch
       return new Promise(function(res){ setTimeout(res,30); });
     }).then(function(){
-      var out=BITool.computeBI(entries,{ onProgress:log, N_SHUFFLES:200, N_BOOT:1000 });
+      var __p=BITool.computeBI(entries,{ onProgress:log, N_SHUFFLES:200, N_BOOT:1000 });
       entries=null;
+      return __p;
+    }).then(function(out){
       if(!out.ok){
         statusEl.textContent="";
         errEl.textContent="couldn't compute: "+out.error;
@@ -1030,8 +1035,8 @@
       : "your bridge index is <span class='bi'>"+r.BI.toFixed(2)+"×</span>, which does <b>not</b> clear its <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> shuffle floor — no bridge signal on this log.";
 
     document.getElementById("refline").innerHTML =
-      "the reference listener <b>astralcrest</b> sits at bi &asymp; <b>1.9</b>. "+
-      (r.BI>=1.8 ? "you steer about as hard." : r.BI>=1.3 ? "you steer, but a touch less." : r.BI>1 ? "you steer more than your algorithm, but gently." : "your algorithm bridges as much as you do.");
+      "the reference listener&rsquo;s own probe reads bi &asymp; <b>1.9</b> &mdash; same circular in-log method as yours, NOT the study&rsquo;s corrected 1.2&ndash;1.3 band (its audit flags this partition family as leakage-inflated; compare probe-to-probe only). "+
+      (r.BI>=2.85 ? "you steer noticeably harder than the reference listener." : r.BI>=1.8 ? "you steer about as hard." : r.BI>=1.3 ? "you steer, but a touch less." : r.BI>1 ? "you steer more than your algorithm, but gently." : "your algorithm bridges as much as you do.");
 
     var tapW=Math.min(100,r.tap_cross_rate*100), algoW=Math.min(100,r.algo_cross_rate*100);
     document.getElementById("tapBar").style.width=tapW+"%";
