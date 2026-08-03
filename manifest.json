@@ -1,0 +1,15 @@
+{
+  "name": "sonic manifold — a listening life, decoded",
+  "short_name": "sonic manifold",
+  "description": "seven years of personal listening, decoded with network science, information theory, and topology. n=1, on purpose.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0d18",
+  "theme_color": "#0a0d18",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
