@@ -14,7 +14,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="build-stamp" content="2026-07-23 01:46Z">
+<meta name="build-stamp" content="2026-08-03 01:51Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -12264,6 +12264,7 @@ try {
   // Our resize listener recomputes the width so it still adapts to orientation.
   var TALL = [];
   function colWidth(gd){
+    if (gd && gd.__cbWide) return 700;
     var w = 0;
     try{ w = (gd.parentElement && gd.parentElement.clientWidth) || gd.clientWidth || 0; }catch(e){}
     if (!w) w = Math.min(window.innerWidth - 24, 360);
@@ -12530,6 +12531,25 @@ try {
     R(gd, o);
   }
 
+  function tameColorbars(gd){
+    try{
+      if (!isMobile() || !gd.data || !gd.data.length) return;
+      var has=false;
+      gd.data.forEach(function(t){ if(t&&(t.colorbar||t.type==='heatmap'||t.type==='contour'||t.type==='histogram2d'||t.type==='histogram2dcontour'||(t.marker&&t.marker.colorbar))) has=true; });
+      if (!has) return;
+      // Reflow-fighting multi-axis heatmaps at 352px strands colorbar DOM.
+      // Instead: desktop-quality render at a fixed internal width, and the
+      // panel pans horizontally (standard wide-content pattern on this page).
+      var host=gd.parentElement;
+      if (host){ host.style.overflowX='auto'; host.style.webkitOverflowScrolling='touch'; host.style.setProperty('height','auto','important'); host.style.setProperty('min-height','0','important'); host.style.setProperty('contain-intrinsic-size','auto','important'); }
+      gd.style.setProperty('overflow-x','auto','important');
+      gd.style.setProperty('width','100%','important');
+      gd.style.setProperty('max-height','480px','important');
+      var svgc=gd.querySelector('.svg-container');
+      if (svgc){ svgc.style.setProperty('overflow','visible'); svgc.style.setProperty('max-height','480px','important'); svgc.style.setProperty('width','700px','important'); }
+      if (!gd.__cbWide){ gd.__cbWide=1; gd.__tallH=0; R(gd,{ 'autosize':false, 'width':700, 'height':440 }); }
+    }catch(e){}
+  }
   function applyMobile(gd){
     try{
       if (!gd || !window.Plotly) return;
@@ -12545,6 +12565,8 @@ try {
       gd.__mPatched = 1; gd.__mW = window.innerWidth;
       universal(gd, s);
       special(gd, s);
+      tameColorbars(gd);
+      setTimeout(function(){ if(gd && isMobile()) tameColorbars(gd); }, 200);
     }catch(e){}
   }
   function sweep(){
