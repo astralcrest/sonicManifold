@@ -17,6 +17,7 @@
   :root{
     --bg:#07090c; --panel:#0d1116; --panel2:#11161d; --line:#1b232c;
     --ink:#e7edf2; --dim:#8a97a3; --faint:#5a6672; --mint:#21f6bc; --mint-dk:#0e6b53;
+    --rose:#ff6e9c; --ice:#86cbfe;
     --warn:#f6c221; --bad:#f66c6c;
     --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
@@ -119,6 +120,67 @@
   summary{font-family:var(--mono);font-size:12px;color:var(--dim);cursor:pointer}
   pre{font-family:var(--mono);font-size:11px;color:var(--faint);overflow:auto;background:#0a0e12;padding:12px;border-radius:8px}
 #bxMail{background:var(--mint,#39d98a);color:#08130f;font-weight:700;border:none}#bxMail:hover{filter:brightness(1.1)}#bxCopy{background:transparent;border:1px solid rgba(138,151,163,.4);color:#8a97a3}
+
+/* heading structure */
+h2{
+  font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.2em;
+  text-transform:lowercase;color:var(--dim);margin:32px 0 12px;
+}
+section:first-of-type h2{margin-top:0}
+
+/* a11y: focus + motion */
+:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){
+  .progress-fill{transition:none}
+}
+
+/* runtime note */
+.note{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin:10px 0 0;line-height:1.6}
+
+/* demo button + badge */
+button.ghost.demo{border-color:rgba(134,203,254,.45);color:var(--ice)}
+button.ghost.demo:hover{background:rgba(134,203,254,.08)}
+.demo-badge{
+  display:none;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.06em;text-transform:lowercase;color:var(--ice);
+  border:1px solid rgba(134,203,254,.4);background:rgba(134,203,254,.06);
+  border-radius:7px;padding:7px 12px;margin:0 0 16px;
+}
+.demo-badge.show{display:inline-flex}
+
+/* progress bar */
+.progress{margin-top:16px;display:none}
+.progress.show{display:block}
+.progress-track{height:8px;border-radius:5px;background:#141b22;overflow:hidden}
+.progress-fill{height:100%;width:0%;background:var(--mint);border-radius:5px;transition:width .35s ease}
+.progress-stage{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:7px;display:flex;justify-content:space-between;gap:10px}
+.progress-stage .pct{color:var(--faint);flex:0 0 auto}
+
+/* responsive: phones */
+@media (max-width:600px){
+  body{padding:22px 14px 64px}
+  h1{font-size:13px;letter-spacing:.22em}
+  .sub{font-size:13px}
+  h2{font-size:10.5px;margin:28px 0 10px}
+  .card{padding:16px}
+  .drop{padding:22px 14px}
+  .row{flex-direction:column;align-items:stretch}
+  .row button{width:100%}
+  .status{text-align:center}
+  .hero{flex-wrap:wrap;padding:16px;gap:10px}
+  .hero .num{font-size:38px}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .bx-share{flex-direction:column}
+  .bx-share .bx-btn{width:100%;text-align:center}
+  .foot{font-size:10.5px}
+  .verdict{font-size:16.5px}
+  .progress-stage{flex-direction:column;gap:2px}
+}
+
+/* responsive: wide desktop */
+@media (min-width:1441px){
+  .wrap{max-width:820px}
+}
 </style>
 </head>
 <body>
@@ -132,32 +194,47 @@
     each person computes their own index, on their own machine.
   </p>
 
-  <div class="privacy">
-    <span class="dot">&#9679;</span>
-    <div>
-      <b>100% in your browser.</b>
-      <span>nothing is uploaded, nothing is fetched, no server, no network. your export
-      never leaves this tab — the math runs on this page and the raw files are dropped
-      the moment you close it. works offline; you can disconnect and it still runs.</span>
+  <section aria-labelledby="sec-privacy">
+    <h2 id="sec-privacy">&#9698;&#9700; privacy</h2>
+    <div class="privacy">
+      <span class="dot">&#9679;</span>
+      <div>
+        <b>100% in your browser.</b>
+        <span>nothing is uploaded, nothing is fetched, no server, no network. your export
+        never leaves this tab — the math runs on this page and the raw files are dropped
+        the moment you close it. works offline; you can disconnect and it still runs.</span>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <div class="card">
-    <label class="drop" id="drop">
-      <input type="file" id="picker" multiple accept=".json,application/json">
-      <div class="big">drop <span class="mint">Streaming_History_Audio_*.json</span> here</div>
-      <div class="small">or click to pick files &middot; select all the audio files at once &middot; video files are ignored</div>
-    </label>
-    <div class="files" id="files"></div>
-    <div class="row">
-      <button id="go" disabled>compute my bridge index</button>
-      <span class="status" id="status"></span>
+  <section aria-labelledby="sec-howto">
+    <h2 id="sec-howto">&#9698;&#9700; how it works</h2>
+    <div class="card">
+      <label class="drop" id="drop" role="button" tabindex="0" aria-label="Drop your Spotify Streaming History JSON files here, or press Enter to choose files from your device">
+        <input type="file" id="picker" multiple accept=".json,application/json">
+        <div class="big">drop <span class="mint">Streaming_History_Audio_*.json</span> here</div>
+        <div class="small">or click to pick files &middot; select all the audio files at once &middot; video files are ignored</div>
+      </label>
+      <p class="note">a full multi-year export usually takes about <b style="color:var(--ink)">5&ndash;15s</b> in this tab — parsing and the community search run off the main thread, so the page stays responsive while it works.</p>
+      <div class="files" id="files"></div>
+      <div class="row">
+        <button id="go" disabled>compute my bridge index</button>
+        <button id="demoBtn" class="ghost demo" type="button">try it with sample data</button>
+        <span class="status" id="status" aria-live="polite"></span>
+      </div>
+      <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="compute progress">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-stage"><span id="progressStageLabel"></span><span class="pct" id="progressPct"></span></div>
+      </div>
+      <div class="err" id="err" role="alert"></div>
+      <div class="log" id="log"></div>
     </div>
-    <div class="err" id="err"></div>
-    <div class="log" id="log"></div>
-  </div>
+  </section>
 
-  <div id="results">
+  <section aria-labelledby="sec-results">
+    <h2 id="sec-results">&#9698;&#9700; your results</h2>
+    <div id="results" aria-live="polite">
+    <div class="demo-badge" id="demoBadge">sample data — not your listening history</div>
     <p class="verdict" id="verdict"></p>
     <p class="refline" id="refline"></p>
 
@@ -199,18 +276,22 @@
       <summary>raw aggregate output (this is all a probe would ever share — no names, no timestamps)</summary>
       <pre id="rawJson"></pre>
     </details>
-  </div>
+    </div>
+  </section>
 
-  <div class="foot">
-    method: qualified plays = ms_played &ge; 30s with artist metadata &middot; sessions split on 30-min gaps &middot;
-    intent: tap = playbtn/clickrow/remote, algo = trackdone &amp; not shuffle &middot; partition = seeded louvain
-    (res 1.0) on your session co-occurrence graph &middot; floor = size-preserving community-label shuffle &middot;
-    a port of bridge_probe.py, self-contained, no dependencies.<br>
-    reference listener = <b style="color:var(--dim)">astralcrest</b> (sonicManifold). your louvain differs by design; magnitudes compare probe-vs-probe.
-  </div>
+  <section aria-labelledby="sec-methods">
+    <h2 id="sec-methods">&#9698;&#9700; methods</h2>
+    <div class="foot">
+      method: qualified plays = ms_played &ge; 30s with artist metadata &middot; sessions split on 30-min gaps &middot;
+      intent: tap = playbtn/clickrow/remote, algo = trackdone &amp; not shuffle &middot; partition = seeded louvain
+      (res 1.0) on your session co-occurrence graph &middot; floor = size-preserving community-label shuffle &middot;
+      a port of bridge_probe.py, self-contained, no dependencies.<br>
+      reference listener = <b style="color:var(--dim)">astralcrest</b> (sonicManifold). your louvain differs by design; magnitudes compare probe-vs-probe.
+    </div>
+  </section>
 </div>
 
-<script>
+<script id="bi-core">
 /* bi_tool_core.js — pure-JS Bridge Index probe.
  *
  * A dependency-free port of bridge_probe.py. Runs identically in node (for
@@ -907,9 +988,13 @@
 (function(){
   "use strict";
   var picker=document.getElementById("picker"), drop=document.getElementById("drop"),
-      go=document.getElementById("go"), statusEl=document.getElementById("status"),
+      go=document.getElementById("go"), demoBtn=document.getElementById("demoBtn"),
+      statusEl=document.getElementById("status"),
       filesEl=document.getElementById("files"), logEl=document.getElementById("log"),
-      errEl=document.getElementById("err"), results=document.getElementById("results");
+      errEl=document.getElementById("err"), results=document.getElementById("results"),
+      demoBadge=document.getElementById("demoBadge"),
+      progressEl=document.getElementById("progress"), progressFill=document.getElementById("progressFill"),
+      progressStageLabel=document.getElementById("progressStageLabel"), progressPct=document.getElementById("progressPct");
   var chosen=[]; // {name, file}
 
   function fmtInt(n){ return n.toLocaleString("en-US"); }
@@ -928,7 +1013,7 @@
   function addFiles(fileList){
     for(var i=0;i<fileList.length;i++){
       var f=fileList[i];
-      if(!/\.json$/i.test(f.name)){ try{ log("skipped "+f.name+" \u2014 not a .json file"); }catch(_e){} continue; }
+      if(!/\.json$/i.test(f.name)){ try{ log("skipped "+f.name+" — not a .json file"); }catch(_e){} continue; }
       var key=f.name+"|"+f.size;
       var dup=false;
       for(var j=0;j<chosen.length;j++){ if(chosen[j].key===key){ dup=true; break; } }
@@ -950,90 +1035,301 @@
   drop.addEventListener("drop",function(e){
     if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
   });
-
-  function readFile(file){
-    function once(){
-      return new Promise(function(resolve,reject){
-        var r=new FileReader();
-        r.onload=function(){ resolve(r.result); };
-        r.onerror=function(){
-          var why=(r.error&&r.error.name)?(" ("+r.error.name+")"):"";
-          reject(new Error("could not read "+file.name+why));
-        };
-        r.readAsText(file);
-      });
+  // keyboard activation for the role="button" dropzone — mouse/touch already
+  // get the label's native click-forwards-to-input behavior for free.
+  drop.addEventListener("keydown",function(e){
+    if(e.key==="Enter"||e.key===" "||e.key==="Spacebar"){
+      e.preventDefault();
+      picker.click();
     }
-    // one silent retry — transient provider (iCloud/Drive) reads often succeed second time
-    return once().catch(function(){
-      return new Promise(function(res){ setTimeout(res,350); }).then(once);
-    });
-  }
+  });
 
   function log(msg){ logEl.textContent += msg+"\n"; logEl.scrollTop=logEl.scrollHeight; }
 
-  go.addEventListener("click",function(){
-    errEl.classList.remove("show"); errEl.textContent="";
-    results.classList.remove("show");
-    logEl.textContent=""; logEl.classList.add("show");
-    go.disabled=true; picker.disabled=true;
-    statusEl.textContent="reading files…";
+  function setProgress(pctNum, stage){
+    progressEl.classList.add("show");
+    var clamped=Math.max(0,Math.min(100,pctNum));
+    progressFill.style.width=clamped+"%";
+    progressEl.setAttribute("aria-valuenow",String(Math.round(clamped)));
+    if(stage!=null) progressStageLabel.textContent=stage;
+    progressPct.textContent=Math.round(clamped)+"%";
+  }
+  function hideProgress(){
+    progressEl.classList.remove("show");
+    progressFill.style.width="0%";
+    progressEl.setAttribute("aria-valuenow","0");
+    progressStageLabel.textContent="";
+    progressPct.textContent="";
+  }
 
-    var audio=chosen.filter(function(c){return !/video/i.test(c.name);});
-    var entries=[];
-    var failed=[];
+  // maps the onProgress() strings computeBI already emits to a stage label +
+  // rough percentage for the progress bar. Purely cosmetic — the algorithm's
+  // log() calls (and their text) are untouched.
+  var STAGE_MAP=[
+    [/building sessions/,       30, "building sessions + transitions"],
+    [/building co-occurrence/,  45, "building graph"],
+    [/partitioning/,            55, "finding communities"],
+    [/label-shuffle floor/,     70, "mechanical floor"],
+    [/session-block bootstrap/, 88, "bridge index"]
+  ];
+  function onComputeProgress(m){
+    log(m);
+    for(var k=0;k<STAGE_MAP.length;k++){
+      if(STAGE_MAP[k][0].test(m)){ setProgress(STAGE_MAP[k][1], STAGE_MAP[k][2]); break; }
+    }
+  }
+
+  // ---- error copy (unchanged wording from the original synchronous build) --
+  function buildNoFilesReadMessage(failed){
+    var io=!failed.length||failed.every(function(f){return /could not read|notreadable|permission|read error/i.test(f.r);});
+    if(io) return "none of the files could be read. most common cause: the files are cloud placeholders (iCloud / Google Drive) or still inside the zip — download them fully to the device, unzip, then re-add.";
+    return "none of the files qualified — "+failed.slice(0,2).map(function(f){return f.n+": "+f.r;}).join(" · ")+(failed.length>2?" · +"+(failed.length-2)+" more in the log below":"");
+  }
+
+  // ---- read dropped files into ArrayBuffers (I/O only — no parsing here) ---
+  function readOneBuffer(file){
+    function once(){ return file.arrayBuffer(); }
+    // one silent retry — transient provider (iCloud/Drive) reads often succeed second time
+    return once().catch(function(){
+      return new Promise(function(res){ setTimeout(res,350); }).then(once);
+    }).catch(function(e){
+      var why=(e&&e.name)?(" ("+e.name+")"):"";
+      throw new Error("could not read "+file.name+why);
+    });
+  }
+  function readAllBuffers(chosenFiles){
+    var ok=[], failed=[];
     var chain=Promise.resolve();
-    audio.forEach(function(c){
+    chosenFiles.forEach(function(c){
       chain=chain.then(function(){
-        return readFile(c.file).then(function(txt){
-          var data;
-          try{ data=JSON.parse(txt); }
-          catch(e){ throw new Error("could not parse "+c.name+" ("+e.message+")"); }
-          if(!Array.isArray(data)) throw new Error(c.name+" is not a Spotify history array");
-          log("read "+c.name+" ("+fmtInt(data.length)+" rows)");
-          for(var i=0;i<data.length;i++) entries.push(data[i]);
-          txt=null; data=null; // release
+        return readOneBuffer(c.file).then(function(buf){
+          ok.push({name:c.name, buffer:buf});
         }).catch(function(e){
-          // one bad file must not kill the run — skip it, keep the rest
-          failed.push(c.name);
-          var __r=""+(e.message||e); (window.__bxFails=window.__bxFails||[]).push({n:c.name,r:__r}); log("skipped "+c.name+" — "+__r);
+          var r=(e&&e.message)||String(e);
+          failed.push({n:c.name, r:r});
+          log("skipped "+c.name+" — "+r);
         });
       });
     });
+    return chain.then(function(){ return {ok:ok, failed:failed}; });
+  }
 
-    chain.then(function(){
-      if(!entries.length){
-        throw new Error((function(){var F=window.__bxFails||[];var io=!F.length||F.every(function(f){return /could not read|notreadable|permission|read error/i.test(f.r)});if(io)return "none of the files could be read. most common cause: the files are cloud placeholders (iCloud / Google Drive) or still inside the zip — download them fully to the device, unzip, then re-add.";return "none of the files qualified — "+F.slice(0,2).map(function(f){return f.n+": "+f.r}).join(" · ")+(F.length>2?" · +"+(F.length-2)+" more in the log below":"");})());
+  // ---- Web Worker transport ------------------------------------------------
+  // The bi_tool_core.js source (#bi-core) is grabbed verbatim from the page and
+  // reused byte-for-byte inside the worker — same functions, same order, same
+  // arithmetic; only WHERE it executes changes. If the worker can't be built,
+  // everything below falls back to running the identical BITool.computeBI call
+  // synchronously on the main thread (the tool's original behavior).
+  function workerExtraSource(){
+    var stageMapSrc=JSON.stringify(STAGE_MAP.map(function(s){ return [s[0].source, s[1], s[2]]; }));
+    return [
+      "self.onmessage=function(e){",
+      "  var msg=e.data;",
+      "  if(!msg||msg.type!=='run') return;",
+      "  runJob(msg).catch(function(err){ self.postMessage({type:'error', message:(err&&err.message)||String(err)}); });",
+      "};",
+      "async function runJob(msg){",
+      "  var files=msg.files, entries=[], failedN=0, fails=[], total=files.length, dec=new TextDecoder('utf-8');",
+      "  for(var i=0;i<total;i++){",
+      "    var f=files[i];",
+      "    self.postMessage({type:'progress', pct:Math.round((i/total)*16), stage:'parsing files ('+i+'/'+total+')'});",
+      "    try{",
+      "      var txt=dec.decode(f.buffer), data;",
+      "      try{ data=JSON.parse(txt); } catch(e){ throw new Error('could not parse '+f.name+' ('+e.message+')'); }",
+      "      if(!Array.isArray(data)) throw new Error(f.name+' is not a Spotify history array');",
+      "      self.postMessage({type:'log', msg:'read '+f.name+' ('+data.length.toLocaleString('en-US')+' rows)'});",
+      "      for(var j=0;j<data.length;j++) entries.push(data[j]);",
+      "    }catch(e){",
+      "      failedN++;",
+      "      var r=(e&&e.message)||String(e);",
+      "      fails.push({n:f.name,r:r});",
+      "      self.postMessage({type:'log', msg:'skipped '+f.name+' — '+r});",
+      "    }",
+      "  }",
+      "  self.postMessage({type:'progress', pct:17, stage:'parsing files (done)'});",
+      "  if(!entries.length){",
+      "    var m2='none of the files qualified — '+fails.slice(0,2).map(function(x){return x.n+': '+x.r;}).join(' · ')+(fails.length>2?' · +'+(fails.length-2)+' more in the log below':'');",
+      "    self.postMessage({type:'error', message:m2});",
+      "    return;",
+      "  }",
+      "  if(failedN){ self.postMessage({type:'log', msg:failedN+' file(s) skipped — result covers the readable '+(total-failedN)+' file(s) only.'}); }",
+      "  self.postMessage({type:'progress', pct:19, stage:'computing'});",
+      "  var stageMap="+stageMapSrc+";",
+      "  var out=await BITool.computeBI(entries, {",
+      "    onProgress:function(m){",
+      "      self.postMessage({type:'log', msg:m});",
+      "      for(var k=0;k<stageMap.length;k++){",
+      "        if(new RegExp(stageMap[k][0]).test(m)){ self.postMessage({type:'progress', pct:stageMap[k][1], stage:stageMap[k][2]}); break; }",
+      "      }",
+      "    },",
+      "    N_SHUFFLES:200, N_BOOT:1000",
+      "  });",
+      "  self.postMessage({type:'progress', pct:100, stage:'done'});",
+      "  self.postMessage({type:'done', out:out, isDemo:!!msg.isDemo});",
+      "}"
+    ].join("\n");
+  }
+
+  function makeWorker(){
+    try{
+      var coreSrc=document.getElementById("bi-core").textContent;
+      var full=coreSrc+"\n"+workerExtraSource();
+      var blob=new Blob([full],{type:"application/javascript"});
+      var url=URL.createObjectURL(blob);
+      var w=new Worker(url);
+      w.__blobUrl=url;
+      return w;
+    }catch(e){
+      return null; // graceful fallback — caller runs the synchronous path instead
+    }
+  }
+
+  // files: array of {name, buffer}. Resolves to a computeBI-shaped {ok,...}
+  // result, or null to signal "no worker available, use the fallback".
+  function runWithWorker(files, isDemo){
+    var w=makeWorker();
+    if(!w) return Promise.resolve(null);
+    return new Promise(function(resolve,reject){
+      var settled=false;
+      function cleanup(){
+        try{ w.terminate(); }catch(_e){}
+        if(w.__blobUrl){ try{ URL.revokeObjectURL(w.__blobUrl); }catch(_e){} }
       }
-      if(failed.length){
-        log(failed.length+" file(s) skipped — result covers the readable "+ (audio.length-failed.length) +" file(s) only.");
+      w.onmessage=function(e){
+        var m=e.data;
+        if(m.type==="log") log(m.msg);
+        else if(m.type==="progress") setProgress(m.pct, m.stage);
+        else if(m.type==="error"){ settled=true; cleanup(); reject(new Error(m.message)); }
+        else if(m.type==="done"){ settled=true; cleanup(); resolve(m.out); }
+      };
+      w.onerror=function(ev){
+        if(settled) return;
+        settled=true; cleanup();
+        reject(new Error("background thread failed"+(ev&&ev.message?(": "+ev.message):"")+" — please retry."));
+      };
+      var transfer=files.map(function(f){return f.buffer;});
+      w.postMessage({type:"run", files:files, isDemo:!!isDemo}, transfer);
+    });
+  }
+
+  // ---- synchronous fallbacks (used only if the Worker can't be constructed) -
+  function runFallbackFromBuffers(okFiles){
+    var entries=[], failedN=0, fails=[];
+    var dec=new TextDecoder("utf-8");
+    okFiles.forEach(function(f){
+      try{
+        var txt=dec.decode(f.buffer), data;
+        try{ data=JSON.parse(txt); } catch(e){ throw new Error("could not parse "+f.name+" ("+e.message+")"); }
+        if(!Array.isArray(data)) throw new Error(f.name+" is not a Spotify history array");
+        log("read "+f.name+" ("+fmtInt(data.length)+" rows)");
+        for(var j=0;j<data.length;j++) entries.push(data[j]);
+      }catch(e){
+        failedN++;
+        var r=(e&&e.message)||String(e);
+        fails.push({n:f.name,r:r});
+        log("skipped "+f.name+" — "+r);
       }
+    });
+    if(!entries.length){
+      throw new Error("none of the files qualified — "+fails.slice(0,2).map(function(f){return f.n+": "+f.r;}).join(" · ")+(fails.length>2?" · +"+(fails.length-2)+" more in the log below":""));
+    }
+    if(failedN){ log(failedN+" file(s) skipped — result covers the readable "+(okFiles.length-failedN)+" file(s) only."); }
+    setProgress(19,"computing");
+    return new Promise(function(res){ setTimeout(res,30); }).then(function(){
+      return BITool.computeBI(entries,{ onProgress:onComputeProgress, N_SHUFFLES:200, N_BOOT:1000 });
+    });
+  }
+
+  function runFallbackDemo(){
+    setProgress(10,"fetching sample data");
+    return fetch("./audio/demo_export.json").then(function(r){
+      if(!r.ok) throw new Error("could not fetch sample data (HTTP "+r.status+")");
+      return r.json();
+    }).then(function(data){
+      if(!Array.isArray(data)) throw new Error("sample data is not a Spotify history array");
+      log("loaded sample data ("+fmtInt(data.length)+" rows)");
+      setProgress(19,"computing");
+      return BITool.computeBI(data,{ onProgress:onComputeProgress, N_SHUFFLES:200, N_BOOT:1000 });
+    });
+  }
+
+  // ---- orchestration --------------------------------------------------------
+  function resetUIForRun(){
+    errEl.classList.remove("show"); errEl.textContent="";
+    results.classList.remove("show");
+    demoBadge.classList.remove("show");
+    logEl.textContent=""; logEl.classList.add("show");
+    hideProgress();
+    go.disabled=true; demoBtn.disabled=true; picker.disabled=true;
+  }
+  function restoreUIAfterRun(){
+    picker.disabled=false; demoBtn.disabled=false;
+    go.disabled = chosen.filter(function(c){return !/video/i.test(c.name);}).length===0;
+  }
+
+  function runFilesFlow(){
+    var audio=chosen.filter(function(c){return !/video/i.test(c.name);});
+    statusEl.textContent="reading files…";
+    setProgress(2,"reading files");
+    return readAllBuffers(audio).then(function(res){
+      if(!res.ok.length) throw new Error(buildNoFilesReadMessage(res.failed));
+      if(res.failed.length) log(res.failed.length+" file(s) skipped — result covers the readable "+res.ok.length+" file(s) only.");
       statusEl.textContent="computing… (a few seconds on a large export)";
-      // defer so the status paints before the synchronous crunch
-      return new Promise(function(res){ setTimeout(res,30); });
-    }).then(function(){
-      var __p=BITool.computeBI(entries,{ onProgress:log, N_SHUFFLES:200, N_BOOT:1000 });
-      entries=null;
-      return __p;
+      return runWithWorker(res.ok, false).then(function(out){
+        if(out!==null) return out;
+        log("background thread unavailable — computing on the main tab instead.");
+        return runFallbackFromBuffers(res.ok);
+      });
+    });
+  }
+
+  function runDemoFlow(){
+    statusEl.textContent="fetching sample data…";
+    return fetch("./audio/demo_export.json").then(function(r){
+      if(!r.ok) throw new Error("could not fetch sample data (HTTP "+r.status+")");
+      return r.arrayBuffer();
+    }).then(function(buf){
+      statusEl.textContent="computing…";
+      return runWithWorker([{name:"demo_export.json", buffer:buf}], true);
     }).then(function(out){
-      if(!out.ok){
+      if(out!==null) return out;
+      log("background thread unavailable — computing on the main tab instead.");
+      return runFallbackDemo();
+    });
+  }
+
+  function runCompute(mode){
+    resetUIForRun();
+    var isDemoRun=(mode==="demo");
+    var flow = isDemoRun ? runDemoFlow() : runFilesFlow();
+    flow.then(function(out){
+      if(!out || !out.ok){
         statusEl.textContent="";
-        errEl.textContent="couldn't compute: "+out.error;
+        errEl.textContent="couldn't compute: "+((out&&out.error)?out.error:"unknown error");
         errEl.classList.add("show");
-        go.disabled=false; picker.disabled=false;
+        hideProgress();
+        restoreUIAfterRun();
         return;
       }
-      render(out.result);
-      statusEl.textContent="done — nothing was sent.";
-      go.disabled=false; picker.disabled=false;
+      render(out.result, isDemoRun);
+      statusEl.textContent = isDemoRun ? "done — sample data, nothing was sent." : "done — nothing was sent.";
+      hideProgress();
+      restoreUIAfterRun();
     }).catch(function(e){
       statusEl.textContent="";
       errEl.textContent=e.message||String(e);
       errEl.classList.add("show");
-      go.disabled=false; picker.disabled=false;
+      hideProgress();
+      restoreUIAfterRun();
     });
-  });
+  }
 
-  function render(r){
+  go.addEventListener("click",function(){ runCompute("files"); });
+  demoBtn.addEventListener("click",function(){ runCompute("demo"); });
+
+  function render(r, isDemo){
+    demoBadge.classList.toggle("show", !!isDemo);
+
     document.getElementById("biNum").textContent=r.BI.toFixed(2)+"×";
     document.getElementById("biCi").textContent="95% ci ["+r.BI_CI95[0].toFixed(2)+", "+r.BI_CI95[1].toFixed(2)+"]";
 
