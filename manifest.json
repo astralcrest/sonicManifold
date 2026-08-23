@@ -2,7 +2,7 @@
   "name": "sonic manifold — a listening life, decoded",
   "short_name": "sonic manifold",
   "description": "seven years of personal listening, decoded with network science, information theory, and topology. n=1, on purpose.",
-  "start_url": "./index.html",
+  "start_url": "./lab.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0a0d18",
