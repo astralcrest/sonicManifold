@@ -13,6 +13,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
+<link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a0d18">
 <meta property="og:type" content="website">
@@ -27,7 +28,8 @@
 <meta name="twitter:description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate taps. The audit killed 16 of my own findings — what survived is the point.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <style>
-:root{--bg:#0E0F12;--ink:#E6E8EC;--mute:#9CA0A8;--mint:#21f6bc;--rose:#ff6e9c;--ice:#86cbfe;--orchid:#df95ff;--line:rgba(124,128,140,.28);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("fonts/JetBrainsMono-var.woff2") format("woff2")}
+:root{color-scheme:dark;--bg:#0E0F12;--ink:#E6E8EC;--mute:#9CA0A8;--mint:#21f6bc;--rose:#ff6e9c;--ice:#86cbfe;--orchid:#df95ff;--line:rgba(124,128,140,.28);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font:400 16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
@@ -48,6 +50,7 @@ p{margin:0 0 14px;max-width:64ch;color:rgba(230,232,236,.92)}
 p.dim,li .why{color:var(--mute)}
 code{font:500 .92em var(--mono);color:var(--ice)}
 .fig{margin:22px 0 6px}
+@media (min-width:1120px){.fig{width:1040px;margin-left:calc(50% - 520px);margin-right:calc(50% - 520px)}}
 .fig svg{width:100%;height:auto;border-radius:10px}
 @media (max-width:700px){.fig{overflow-x:auto;-webkit-overflow-scrolling:touch}.fig svg{min-width:720px}}
 .panhint{display:none}
@@ -201,7 +204,7 @@ footer a{color:var(--mute)}
 
 <footer>
 built by one listener, on her own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a> &middot; <a href="lab.html">full lab</a> &middot; <a href="researcher.html">for researchers</a><br>
-<span style="opacity:.65">landing build 2026-08-23 &middot; the previous single-page site lives on, unchanged, at <a href="lab.html">lab.html</a> &mdash; old links redirect.</span>
+<span style="opacity:.82">landing build 2026-08-23 &middot; the previous single-page site lives on, unchanged, at <a href="lab.html">lab.html</a> &mdash; old links redirect.</span>
 </footer>
 
 </div>

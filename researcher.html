@@ -16,7 +16,12 @@
 <meta name="twitter:description" content="A single-subject provenance audit of the human–recommender loop.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og-card-researcher.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
+<link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <style>
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("fonts/JetBrainsMono-var.woff2") format("woff2")}
   :root {
     --bg: #0e1013;
     --bg-raised: #15181c;
@@ -26,9 +31,13 @@
     --text-faint: #6b7078;
     --accent: #b8935f;
     --mono-num: #c9a878;
+    --mint: #21f6bc;
+    --rose: #ff6e9c;
+    --ice: #86cbfe;
     --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html { background: var(--bg); }
@@ -94,7 +103,7 @@
     color: var(--text);
     margin: 1.5rem 0 0.6rem;
   }
-  p { margin: 0 0 1rem; }
+  p { margin: 0 0 1rem; max-width: 68ch; }
   .abstract p { font-size: 0.98rem; color: var(--text); }
 
   .lede {
@@ -287,6 +296,20 @@
     .scoreboard { gap: 0.7rem; }
     .headline-row { grid-template-columns: 1fr; gap: 0.15rem; }
   }
+  @media print {
+    body { background: #fff; color: #111; }
+    .page { max-width: none; padding: 0.4in 0.5in; }
+    a { color: #111; text-decoration: underline; }
+    .method-block, .method-cmp, table { background: #fff; border-color: #999; }
+    .disp-killed { color: #555; }
+    th { color: #111; border-bottom-color: #333; }
+    td, th { border-bottom-color: #ccc; }
+    .scoreboard .cell, .tile { background: #fff; border-color: #999; }
+  }
+  #findings table { min-width: 640px; }
+  .disp-survived { color: #9be8cf; border-color: rgba(33,246,188,.35); }
+  .disp-killed { color: var(--text-faint); border-color: rgba(255,110,156,.25); text-decoration-color: var(--rose); }
+  code { overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
@@ -296,6 +319,8 @@
   <h1 class="title">Streaming Logs Are Not Preference Logs: A Single-Subject Provenance Audit of the Human&ndash;Recommender Loop</h1>
   <p class="byline"><span class="pseud">astralcrest</span> &middot; Independent Researcher &middot; astralcrestlab@proton.me</p>
   <p class="head-links">
+    <a href="index.html">&larr; sonicManifold</a>
+    <span class="sep">&middot;</span>
     <a href="lab.html">full dashboard</a>
     <span class="sep">&middot;</span>
     <a href="bridge-index.html">run the audit on your own export</a>
@@ -305,19 +330,19 @@
 </header>
 
 <section class="abstract" id="abstract">
-  <h2 class="sec-title">Abstract</h2>
+  <h2 class="sec-title"><span style="color:var(--mint)">&#9698;&#9700;</span> Abstract</h2>
   <p>A streamed &ldquo;play&rdquo; is jointly produced by a listener and a recommender, yet streaming logs are routinely read as records of human preference. Spotify&rsquo;s export records each play&rsquo;s <em>provenance</em> (<code>reason_start</code>): a direct, per-play signal of listener <em>intent</em> among played items &mdash; not the item-exposure propensity the debiasing literature must estimate, which concerns unshown items no log sees; we do not recover it. We audit a 7-year, <num>97,427</num>-play single-subject log (only <num>19.1%</num> explicitly user-initiated), asking of every summary: does it survive conditioning on who initiated the play? Artist rankings and circadian profiles survive; genre composition does not; an in-sample predictability gap and a music&ndash;physiology coupling are retracted.</p>
   <p>First, a finding: deliberate transitions cross communities more often than algorithmic ones (<num>47%</num> vs <num>37%</num> on a provenance-balanced partition; calibrated permutation <num>p=5&times;10&#8315;&#8308;</num>, the resolution floor at <num>B=2,000</num>). The asymmetry is first-order, at community boundaries &mdash; the level a recommender&rsquo;s next-step policy controls &mdash; not deep taste topology. We report its size as a band, <em>Bridge Index</em> &asymp;<num>1.15&ndash;1.30</num>, anchored by the leakage-checked genre-family partition (<num>1.20</num>: no embedding, no correction), corroborated by the CLAP audio partition (<num>1.25</num>, marginal over its floor).</p>
   <p>Second, a catch: the first estimate was <num>1.61</num>, inflated by an embedding trained on the algorithm-heavy stream. A balanced re-training removed roughly half the excess, the bias is a monotone dose-response in training-corpus algorithmic share, and the correction procedure itself gate-tested as estimator-dependent (<num>1.14&ndash;1.47</num>) &mdash; hence the band. Every claim ran an ordered audit, kill conditions fixed in code before each result was seen; on our eight new positive findings the gates killed five, caveated three, passed none unqualified. The bridge direction survived every gate &mdash; what died were point estimates. The audit and Index run on any provenance-labeled log; cross-listener validation is the one untested step.</p>
 </section>
 
 <section id="positioning">
-  <h2 class="sec-title">Positioning vs. related work</h2>
+  <h2 class="sec-title"><span style="color:var(--mint)">&#9698;&#9700;</span> Positioning vs. related work</h2>
   <p>The algorithmic-confounding lineage (Chaney et al.) establishes that user-behavior claims are invalid without accounting for exposure &mdash; but demonstrates it on simulated or rating-matrix data with an <em>inferred or latent</em> exposure variable; propensity-scoring methods likewise <em>estimate</em> a click propensity from the interaction matrix itself. This setting differs in what is observed: Spotify&rsquo;s <code>reason_start</code> field <em>records</em> the initiation channel of each play directly. That is not the exposure variable the debiasing lineage estimates &mdash; their propensities concern which items were surfaced, including unshown items no listening log can see; this paper does not recover that counterfactual. What direct observation buys is narrower: for summaries of <em>played</em> items, deconfounding reduces to conditioning on an observed intent label rather than positing a latent exposure. Villermet et al. disentangle organic, algorithmic, and editorial curation across roughly nine thousand Deezer users and find the balance strongly user-dependent (&ldquo;filter niches,&rdquo; not a uniform bubble); Shakespeare et al. show that whether algorithmic curation reads as diversity-reducing depends on the scale of aggregation, so genre-level conclusions are inherently fragile to representation choices. Quantitatively their platform sits far to the organic side of this log: ~<num>80%</num> of Deezer plays are organically accessed platform-wide, the largest user class (<num>62%</num> of users) averages <num>94%</num> organic access, and even the most algorithm-leaning class (<num>11%</num> of users) averages <num>58%</num> algorithmic &mdash; against which this listener&rsquo;s <num>81%</num> machine-queued share sits deep in the algorithmic tail of that population. This paper is the single-subject, epistemic-audit counterpart to that population work: rather than characterize the curation mix, it asks which downstream summaries survive conditioning on a directly-observed intent signal, and the genre-level fragility result reproduces the scale- and heterogeneity-driven findings of that literature at <em>n</em>=1.</p>
 </section>
 
 <section id="method">
-  <h2 class="sec-title">Method in one screen</h2>
+  <h2 class="sec-title"><span style="color:var(--mint)">&#9698;&#9700;</span> Method in one screen</h2>
 
   <div class="method-block">
     <h3 class="sub-title">Provenance classes</h3>
@@ -368,7 +393,7 @@
 </section>
 
 <section id="findings">
-  <h2 class="sec-title">Findings</h2>
+  <h2 class="sec-title"><span style="color:var(--mint)">&#9698;&#9700;</span> Findings</h2>
 
   <h3 class="sub-title">The prospective gauntlet</h3>
   <p class="lede">Eight new positive candidates were generated while this paper was being written and gated as they arose &mdash; each a result the study wanted to keep.</p>
@@ -416,7 +441,7 @@
 </section>
 
 <section id="graveyard">
-  <h2 class="sec-title">The graveyard</h2>
+  <h2 class="sec-title"><span style="color:var(--mint)">&#9698;&#9700;</span> The graveyard</h2>
   <p class="lede">Fourteen findings explicitly killed, retracted, or withdrawn over the course of the study, each mapped to the check that killed it.</p>
   <ol class="graveyard">
     <li><span class="claim">Reverse music&rarr;physiology transfer</span> &mdash; <span class="why">killed at the measured-target precheck: 80% of the target variable was forward-filled; deconfounded gain &minus;0.77pp.</span></li>
@@ -439,18 +464,18 @@
 </section>
 
 <section id="training-implications">
-  <h2 class="sec-title">Implications for training on behavioral logs</h2>
+  <h2 class="sec-title"><span style="color:var(--mint)">&#9698;&#9700;</span> Implications for training on behavioral logs</h2>
   <p>A cross-lagged panel at the artist&ndash;month level asks who leads in the listener&ndash;recommender feedback loop. The raw monthly pair mixes a mechanical same-rotation carryover (autoplay keeps serving whatever a tap just put in rotation &mdash; <num>48%</num> of all algorithmic serves fall inside that window) with the slower adaptive channel of actual interest. Isolating the adaptive channel by excluding same-session and 7-day mechanical carryover <em>sharpens</em> the forward path: a surge in deliberate taps of an artist predicts the algorithm serving that artist more the following month at <num>&beta;=0.29</num>, against a reverse path of <num>&beta;&asymp;0.05</num>. At the resolution of which artists get amplified, this listener trains the recommender more than the recommender trains the listener, in the Granger sense that carryover-cleaned taps predict next-month serving several times more strongly than the reverse &mdash; not that the listener mechanically instructs the algorithm.</p>
   <p>A companion analysis of autoplay streaks refines what a passive play is worth as training signal &mdash; and its own depth story died in a later audit. Descriptively, ratification (a strict deliberate tap of the same track within 30 days) runs 0.55&rarr;0.91 with streak depth over already-ratified material and 23.8%&rarr;1.5% over never-tapped material. A pre-declared within-track re-analysis (track fixed effects; track-matched conditional logit) shows those curves are composition: holding the track fixed, the familiar-material rise vanishes (FE slope &minus;0.00008, CI straddling zero) and the never-tapped collapse keeps only ~8% of its pooled magnitude. Deep streaks reach less-ratifiable tracks; they barely change a given track&rsquo;s odds. What stands are the levels: never-tapped autoplay earns a later deliberate tap 7.2% of the time against 28.7% for self-found music. The training implication is level-based, not depth-based: weight autoplay by prior deliberate contact with the track, not by streak depth.</p>
   <p>The broader point generalizes past this one dataset. Any preference corpus harvested from a recommender-mediated interface &mdash; including the interaction logs increasingly used to train and evaluate generative models &mdash; inherits the same confound a raw streaming log does: deployed outputs shape which interactions get logged, and that logged data retrains the model. The provenance audit is the individual-level, directly-measured counterpart to that feedback loop, which population-scale recommender literature otherwise treats theoretically. The frame this paper argues for is a shift from treating logs as preferences to treating them as jointly authored, with the authorship measurable rather than assumed.</p>
 </section>
 
 <section id="methods-comparison">
-  <h2 class="sec-title">Methods comparison</h2>
+  <h2 class="sec-title"><span style="color:var(--mint)">&#9698;&#9700;</span> Methods comparison</h2>
   <p class="lede">The full tool-by-tool comparison previously embedded in the dashboard: what each method was asked to do, what it returned, and its disposition.</p>
 <style>.method-cmp .mc-scroll{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
 @media(max-width:768px){.method-cmp::after{content:'swipe \2192';display:block;text-align:right;font:600 10px ui-monospace,monospace;color:rgba(184,147,95,.6);margin-top:4px}}
-.method-cmp{max-width:100%;margin:36px auto 14px;padding:26px 22px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(124,128,140,.22);border-radius:16px;background:var(--bg-raised);border-radius:6px}.method-cmp .mc-kick{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint,var(--accent));margin-bottom:8px}.method-cmp .mc-h{font-size:clamp(17px,2.3vw,22px);line-height:1.32;margin:0 0 16px;color:#EEF0F3;font-weight:700}.method-cmp .mc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.method-cmp table{border-collapse:collapse;width:100%;min-width:760px;font-size:12.5px}.method-cmp thead th{text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(184,147,95,.72);font-weight:600;padding:0 14px 10px;border-bottom:1px solid rgba(124,128,140,.22)}.method-cmp tbody td{padding:13px 14px;vertical-align:top;line-height:1.5;color:rgba(240,234,255,.78);border-bottom:1px solid rgba(255,255,255,.06)}.method-cmp .mc-m{color:#fff;font-weight:700;white-space:nowrap}.method-cmp .mc-fam{display:block;font-weight:400;font-size:10.5px;color:rgba(240,234,255,.5);white-space:normal;margin-top:3px;max-width:160px}.method-cmp .mc-why{color:rgba(240,234,255,.62)}@media(max-width:768px){.method-cmp{margin:26px 12px;padding:20px 14px}}</style>
+.method-cmp{max-width:100%;margin:36px auto 14px;padding:26px 22px;font-family:'JetBrains Mono',ui-monospace,monospace;border:1px solid rgba(124,128,140,.22);border-radius:6px;background:var(--bg-raised)}.method-cmp .mc-kick{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint,var(--accent));margin-bottom:8px}.method-cmp .mc-h{font-size:clamp(17px,2.3vw,22px);line-height:1.32;margin:0 0 16px;color:#EEF0F3;font-weight:700}.method-cmp .mc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.method-cmp table{border-collapse:collapse;width:100%;min-width:760px;font-size:12.5px}.method-cmp thead th{text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(184,147,95,.72);font-weight:600;padding:0 14px 10px;border-bottom:1px solid rgba(124,128,140,.22)}.method-cmp tbody td{padding:13px 14px;vertical-align:top;line-height:1.5;color:var(--text-dim);border-bottom:1px solid rgba(255,255,255,.06)}.method-cmp .mc-m{color:#fff;font-weight:700;white-space:nowrap}.method-cmp .mc-fam{display:block;font-weight:400;font-size:10.5px;color:var(--text-faint);white-space:normal;margin-top:3px;max-width:160px}.method-cmp .mc-why{color:var(--text-dim)}@media(max-width:768px){.method-cmp{margin:26px 12px;padding:20px 14px}}</style>
 <section class="method-cmp" aria-label="Methods comparison table">
   <div class="mc-kick">the methods, and why they&rsquo;re unusual here</div>
   <h2 class="mc-h">Eight tools, where they come from, and why music analytics doesn&rsquo;t usually reach for them.</h2>
@@ -464,7 +489,7 @@
 </section>
 
 <section id="limitations">
-  <h2 class="sec-title">Limitations</h2>
+  <h2 class="sec-title"><span style="color:var(--mint)">&#9698;&#9700;</span> Limitations</h2>
   <dl class="limits">
     <dt>Single subject (n=1)</dt>
     <dd>All quantitative results are from a single subject. Population claims are not licensed; the dataset is treated as a substrate for methodological development, not as evidence for population-level effects.</dd>
@@ -498,7 +523,7 @@
     var target = document.querySelector(a.getAttribute('href'));
     if (!target) return;
     e.preventDefault();
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    target.scrollIntoView({ behavior: (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth', block: 'start' });
   });
 </script>
 
