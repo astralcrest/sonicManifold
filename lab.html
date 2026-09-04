@@ -389,7 +389,7 @@ if(document.readyState!=='loading')boot();else document.addEventListener('DOMCon
     try{ sessionStorage.setItem('sm-entered','1'); }catch(e){}
     if(withSound){
       try{ window.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){} try{ document.dispatchEvent(new CustomEvent('sonic:first-tap',{detail:{}})); }catch(e){}
-      var p=document.getElementById('aux-play'); if(p){ try{ p.click(); }catch(e){} }
+      var p=document.getElementById('aux-play'); if(p){ try{ p.click(); }catch(e){} } /* belt-and-braces: start the bed directly inside this gesture; if the engine hasn't initialised yet (slow device), arm it the moment it appears */ try{ var __bed=window.__selfHostedBed; if(__bed&&__bed.open){ __bed.open(); } else { var __n=0,__iv=setInterval(function(){ __n++; var b2=window.__selfHostedBed; if(b2&&b2.open){ clearInterval(__iv); try{ b2.open(); }catch(e){} var q=document.getElementById('aux-play'), w=document.getElementById('aux-audio'); if(q&&w&&!w.classList.contains('is-armed')){ try{ q.click(); }catch(e){} } } else if(__n>75){ clearInterval(__iv); } },200); } }catch(e){}
     }
     ov.classList.add('sme-out');
     setTimeout(function(){ try{ ov.remove(); }catch(e){} }, 900);
@@ -418,7 +418,7 @@ if(document.readyState!=='loading')boot();else document.addEventListener('DOMCon
   var sk=document.getElementById('sm-enter-skip'); if(sk) sk.addEventListener('click', function(e){ e.stopPropagation(); dismiss(false); });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !ov.classList.contains('sme-out')) dismiss(false); });
   // safety: never trap — auto-dismiss if ignored
-  (function(){function arm(){setTimeout(function(){if(!ov.classList.contains('sme-out'))dismiss(false);},3000);}if(document.readyState==='complete')arm();else window.addEventListener('load',arm,{once:true});setTimeout(function(){if(!ov.classList.contains('sme-out'))dismiss(false);},18000);})(); try{if(location.hash&&location.hash.length>1&&!sessionStorage.getItem('sm-entered')){var __dlid=location.hash.slice(1);dismiss(false);(function(){var id=__dlid,t0=Date.now();(function poll(){var t=document.getElementById(id);if(t&&t.offsetParent!==null&&window.__smDeferDone){setTimeout(function(){if(window.fableGo)window.fableGo('#'+id);else t.scrollIntoView();},350);return;}if(Date.now()-t0<20000)setTimeout(poll,400);})();})();}}catch(e){}
+  (function(){ /* 2026-09-04 root-cause fix: the old 3s-after-load / 18s auto-dismiss silently entered most real visitors before they could click (= no music). Only a long no-interaction safety remains, and it leaves sound one tap away. */ var __interacted=false; ['pointerdown','keydown','touchstart'].forEach(function(t){ try{ document.addEventListener(t,function(){__interacted=true;},{once:true,capture:true}); }catch(e){} }); setTimeout(function(){ if(!ov.classList.contains('sme-out') && !__interacted){ dismiss(false); var ft=document.getElementById('first-tap'); if(ft){ try{ ft.style.display=''; }catch(e){} } } },60000); })(); try{if(location.hash&&location.hash.length>1&&!sessionStorage.getItem('sm-entered')){var __dlid=location.hash.slice(1);dismiss(false);(function(){var id=__dlid,t0=Date.now();(function poll(){var t=document.getElementById(id);if(t&&t.offsetParent!==null&&window.__smDeferDone){setTimeout(function(){if(window.fableGo)window.fableGo('#'+id);else t.scrollIntoView();},350);return;}if(Date.now()-t0<20000)setTimeout(poll,400);})();})();}}catch(e){}
 })();
 </script>
 <!--APPLE-ENTER-END-->
