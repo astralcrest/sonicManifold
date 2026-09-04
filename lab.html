@@ -406,12 +406,7 @@ if(document.readyState!=='loading')boot();else document.addEventListener('DOMCon
   document.addEventListener('click', function(ev){
     try{
       var t=ev.target; if(!t||!t.closest) return;
-      var isSkip=t.closest('#sm-enter-skip'), isBtn=t.closest('#sm-enter-btn');
-      if(!isSkip && !isBtn) return;
-      var pill=document.getElementById('global-mute-pill'); if(!pill) return;
-      var m='0'; try{ m=localStorage.getItem('sonicManifoldMuted'); }catch(e){}
-      if(isSkip && m!=='1') pill.click();        // mute everything before first-tap arms the bed
-      else if(isBtn && m==='1') pill.click();     // clear a stale silent-entry mute so sound plays
+      var isSkip=t.closest('#sm-enter-skip'), isBtn=t.closest('#sm-enter-btn'), isPlay=t.closest('#aux-play'); if(!isSkip && !isBtn && !isPlay) return; var pill=document.getElementById('global-mute-pill'); if(!pill) return; var m='0'; try{ m=localStorage.getItem('sonicManifoldMuted'); }catch(e){} if(isSkip){ if(m!=='1') pill.click(); return; } /* enter silently: mute everything before first-tap arms the bed */ /* 2026-09-04: explicit sound intent (splash 'with sound' OR the playbar play button). Clear every persisted mute store BEFORE the engine's open() reads it, and raise a flag the pill's first-tap listener consumes deterministically (a pill.click() toggle was ambiguous across three mute stores and re-muted the bed on the very gesture meant to start it). */ window.__smWantSound=true; try{ localStorage.setItem('sonicManifoldMuted','0'); localStorage.setItem('sonicMuted','0'); }catch(e){}
     }catch(e){}
   }, true);
   var b=document.getElementById('sm-enter-btn'); if(b) b.addEventListener('click', function(e){ e.stopPropagation(); dismiss(true); });
@@ -10413,9 +10408,7 @@ try {
   pill.addEventListener('click', function () { applyMute(!muted); });
 
   // re-apply after first-tap arms audio (SC player may have started)
-  document.addEventListener('sonic:first-tap', function () {
-    if (muted) applyMute(true);
-  });
+  document.addEventListener('sonic:first-tap', function () { if (window.__smWantSound) { window.__smWantSound=false; if (muted) applyMute(false); } else if (muted) applyMute(true); });
 
   console.log('[sonic-init] MINIMAL-UI active — all chips hidden, mute pill armed');
 })();
