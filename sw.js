@@ -3,7 +3,7 @@
    figdata/images/json: stale-while-revalidate (instant, refreshes in background).
    Audio is deliberately NOT handled: <audio> uses Range requests (206) which
    the Cache API can't store; the browser HTTP cache handles those fine. */
-var VERSION = 'sm-v4';
+var VERSION = 'sm-v5';
 
 self.addEventListener('install', function () { self.skipWaiting(); });
 
@@ -26,15 +26,27 @@ self.addEventListener('fetch', function (e) {
 
   // navigations + .html: network-first
   if (req.mode === 'navigate' || /\.html$/.test(url.pathname) || url.pathname.endsWith('/')) {
-    e.respondWith(
+    // network-first, but a returning visitor on a very slow link gets the cached page after 3.5s
+    // without headers (fetch resolves at headers, so this only trips on a genuinely stalled network);
+    // the network copy still lands in the cache for the next load.
+    e.respondWith(new Promise(function (resolve) {
+      var done = false;
+      function finish(r) { if (!done) { done = true; resolve(r); } }
+      var timer = setTimeout(function () {
+        caches.match(req).then(function (hit) { if (hit) finish(hit); });
+      }, 3500);
       fetch(req).then(function (r) {
+        clearTimeout(timer);
         if (r && r.status === 200) {
           var copy = r.clone();
           caches.open(VERSION).then(function (c) { c.put(req, copy); });
         }
-        return r;
-      }).catch(function () { return caches.match(req); })
-    );
+        finish(r);
+      }).catch(function () {
+        clearTimeout(timer);
+        caches.match(req).then(function (hit) { finish(hit || Response.error()); });
+      });
+    }));
     return;
   }
 
