@@ -1352,7 +1352,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
       : "your bridge index is <span class='bi'>"+r.BI.toFixed(2)+"×</span>, which does <b>not</b> clear its <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> shuffle floor — no bridge signal on this log.";
 
     document.getElementById("refline").innerHTML =
-      "the reference listener&rsquo;s own probe reads bi &asymp; <b>1.9</b> &mdash; same circular in-log method as yours, NOT the study&rsquo;s corrected 1.2&ndash;1.3 band (its audit flags this partition family as leakage-inflated; compare probe-to-probe only). "+
+      "the reference listener&rsquo;s own probe reads bi &asymp; <b>1.9</b> &mdash; same circular in-log method as yours, NOT the study&rsquo;s headline, which is about 1.05 on a partition built without any embedding and with same-artist moves excluded (its audit flags this probe&rsquo;s partition family as leakage-inflated; compare probe-to-probe only). "+
       (r.BI>=2.85 ? "you steer noticeably harder than the reference listener." : r.BI>=1.8 ? "you steer about as hard." : r.BI>=1.3 ? "you steer, but a touch less." : r.BI>1 ? "you steer more than your algorithm, but gently." : "your algorithm bridges as much as you do.");
 
     var tapW=Math.min(100,r.tap_cross_rate*100), algoW=Math.min(100,r.algo_cross_rate*100);

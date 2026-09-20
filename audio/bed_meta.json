@@ -63,6 +63,14 @@
     "ein": 0.3,
     "eout": 0.22
   },
+  "dorian-manifold.mp3": {
+    "bpm": 136.0,
+    "b0": 6.618,
+    "dur": 215.92,
+    "mixin": 7.11,
+    "ein": 0.13,
+    "eout": 0.5
+  },
   "edge-of-the-black-hole.mp3": {
     "bpm": 129.2,
     "b0": 0.07,
