@@ -15,7 +15,7 @@
 */
 
 import { postCSS, post, stopAll } from './post.js?v=3';
-import { LABELS, HINTS } from './labels.js?v=3';
+import { LABELS, HINTS } from './labels.js?v=4';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
 const $ = (s, r = document) => r.querySelector(s);
