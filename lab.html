@@ -12,7 +12,7 @@
 <meta name="description" content="sonic manifold — seven years of personal listening, decoded with network science, information theory, and topology.">
 <meta name="theme-color" content="#0a0118">
 <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
-<meta name="build-stamp" content="2026-09-21 01:18Z">
+<meta name="build-stamp" content="2026-09-21 05:42Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -1155,7 +1155,20 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!dj5Mult(m1, m2)) return false;
     return camDist(m1.k, m2.k) <= 1 || camWheel(m1.k, m2.k) <= 1;
   }
+  /* 2026-09-21 CALM DEFAULT (owner: "the transitions are weird"). Measured on the old default: compatible pairs
+     got 'roll' = 8 gate chops >18 dB + a 650 ms near-silence with only 2.5 s of overlap; clashes got 'brake' =
+     playbackRate down to 0.12 (audible pitch dive) + ~950 ms of near-silence. And because the character was
+     seeded by track INDEX, inserting one song re-dealt every pair and switched off both approved blends.
+     Now: every transition is the key-adaptive filter+echo dissolve ('wash': the original FX-dissolve rule), plus
+     the beatmatched blend at the two owner-approved junctions, matched by SONG so the order can change safely.
+     The whole DJ3/DJ4 character set is still here behind ?dj=fx (or localStorage smDjFx=1). */
+  var DJ_FX = false; try { DJ_FX = /[?&]dj=fx(?:&|#|$)/i.test(location.search) || localStorage.getItem('smDjFx') === '1'; } catch (e) {}
+  function dj5Approved(m1, m2) {
+    var a = (m1 && m1.src) || '', b = (m2 && m2.src) || '';
+    return (a.indexOf('hitting-the-infinite-derivative') >= 0 && b.indexOf('autotropic') >= 0) || (a.indexOf('novelday') >= 0 && b.indexOf('antares-v2') >= 0);
+  }
   function dj3Char(foI, m1, m2) {
+    if (!DJ_FX) return (dj5BlendOK(m1, m2) && dj5Approved(m1, m2)) ? 'blend' : 'wash';
     if (dj5BlendOK(m1, m2) && foI % 2 === 0) return 'blend';    /* FABLE-DJ5 */
     if (camDist(m1.k, m2.k) <= 1 || camWheel(m1.k, m2.k) <= 1) return 'roll';
     if (camWheel(m1.k, m2.k) <= 2) return (foI % 2 === 1) ? 'flutter' : 'echo';
@@ -1753,6 +1766,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ramp(deck[fo].lp.frequency, 340, 620, true);
         ramp(deck[fo].echoSend.gain, GFULL * 0.55, 380);
         ramp(deck[fo].verbSend.gain, GFULL * 0.48, 380);
+        if (!DJ_FX) ramp(deck[fo].gain.gain, 0.0001, 600);   /* calm default: fade the outgoing deck under its own echo tail */
       } catch (e) {}
     }
     var t0k = performance.now();
@@ -1760,6 +1774,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var x = Math.min(1, (performance.now() - t0k) / 616);
       try {
         if (isPhone) { els[fo].volume = Math.max(0, (muted ? 0 : GFULL) * (1 - x)); }   // phone: fade, no pitch-drop
+        else if (!DJ_FX) { /* calm default: the filtered gain fade scheduled above does the work; no tape-stop pitch dive */ }
         else { els[fo].playbackRate = Math.max(0.06, 1 - (1 - 0.06) * x * x); }
       } catch (e) {}
       if (x >= 1 || myGen !== gen) clearInterval(br);
@@ -6766,7 +6781,7 @@ if('IntersectionObserver'in window){var io=new IntersectionObserver(function(es)
 </section>
 <!--APPLE-CREATION-END-->
 
-<footer class="smcv" style="--cv390:223px;--cv1600:142px;display:flex; flex-direction:column; align-items:center; gap:6px; padding:36px 0 48px; color:var(--mute); font-family:JetBrains Mono, monospace; font-size:10px; letter-spacing:1.2px; opacity:0.75"><span style="color:#86cbfe"><span style="color:#21f6bc">stack:</span> Python &middot; plotly &middot; uv &middot; Tone.js &middot; Spotify Embed iframes &middot; ripser &middot; umap-learn &middot; gensim &middot; statsmodels &middot; ruptures &middot; networkx &middot; kepler-mapper &middot; GitHub Pages</span><span><i>built as a personal project alongside a day job. 24,323 lines of Python across 59 scripts. ~28 methods, one listener.</i></span><span> &middot; <a href="./" style="color:inherit">overview</a></span><span style="opacity:0.6">build 2026-09-21 01:18Z</span></footer>
+<footer class="smcv" style="--cv390:223px;--cv1600:142px;display:flex; flex-direction:column; align-items:center; gap:6px; padding:36px 0 48px; color:var(--mute); font-family:JetBrains Mono, monospace; font-size:10px; letter-spacing:1.2px; opacity:0.75"><span style="color:#86cbfe"><span style="color:#21f6bc">stack:</span> Python &middot; plotly &middot; uv &middot; Tone.js &middot; Spotify Embed iframes &middot; ripser &middot; umap-learn &middot; gensim &middot; statsmodels &middot; ruptures &middot; networkx &middot; kepler-mapper &middot; GitHub Pages</span><span><i>built as a personal project alongside a day job. 24,323 lines of Python across 59 scripts. ~28 methods, one listener.</i></span><span> &middot; <a href="./" style="color:inherit">overview</a></span><span style="opacity:0.6">build 2026-09-21 05:42Z</span></footer>
 
 
 
