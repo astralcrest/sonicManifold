@@ -9,12 +9,12 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/exhibit.html">
-<link rel="modulepreload" href="exhibit/shell.js?v=20260922f">
+<link rel="modulepreload" href="exhibit/shell.js?v=20260922j">
 <link rel="modulepreload" href="exhibit/post.js?v=3">
-<link rel="modulepreload" href="exhibit/labels.js?v=1">
-<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260922f">
-<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260922f">
-<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260922f">
+<link rel="modulepreload" href="exhibit/labels.js?v=2">
+<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260922j">
+<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260922j">
+<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260922j">
 <meta name="theme-color" content="#0a0118">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/exhibit.html">
@@ -48,7 +48,7 @@ h2{font-size:clamp(34px,6.4vw,68px);color:var(--ink)}
 .say.dim{color:var(--mute);font-size:clamp(14px,1.7vw,16px)}
 .deeper{display:inline-block;margin-top:14px;font:600 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ice);text-decoration:none;padding:12px 0;border-bottom:1px dotted rgba(134,203,254,.5)}
 .deeper:hover{color:var(--mint)}
-.room-body{position:absolute;inset:0;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s linear .5s}
+.room-body{position:fixed;inset:0;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s linear .5s}
 section.is-active .room-body{opacity:1;visibility:visible;transition:opacity .7s ease .25s,visibility 0s}
 .room-body>*{pointer-events:auto}
 .cue{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font:600 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink);background:rgba(10,1,24,.55);border:1px solid var(--line);border-radius:999px;padding:14px 20px;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:cue 2.4s ease-in-out infinite}
@@ -94,9 +94,11 @@ body:not(.entered) #labelbtn{visibility:hidden}
 .lb-more{display:inline-block;margin-top:20px;font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#0b6a52;text-decoration:none;border-bottom:1px solid rgba(11,106,82,.4);padding:8px 0}
 .lb-x{position:sticky;top:6px;float:right;margin:6px 6px 0 0;width:40px;height:40px;border:0;background:none;color:#4b435c;font:400 24px/1 var(--mono);cursor:pointer}
 @media (max-width:560px){.lb-body{padding:24px 20px 20px}.lb-rows{grid-template-columns:1fr;gap:2px 0}.lb-rows dd{margin-bottom:10px}.lb-t{font-size:26px}#labelbtn{padding:9px 10px}}
-#hint{position:fixed;z-index:4;transform:translate(-50%,-100%);margin:0;max-width:min(30rem,calc(100vw - 40px));text-align:center;font:500 12px/1.4 var(--mono);letter-spacing:.06em;color:var(--mint2);background:rgba(10,1,24,.7);border:1px solid rgba(125,240,200,.25);border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .8s ease}
+#hint{position:fixed;z-index:4;transform:translate(-50%,0);margin:0;max-width:min(30rem,calc(100vw - 40px));text-align:center;font:500 12px/1.4 var(--mono);letter-spacing:.06em;color:var(--mint2);background:rgba(10,1,24,.7);border:1px solid rgba(125,240,200,.25);border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .8s ease}
 #hint.on{opacity:1}
 .kiosk,.kiosk *{cursor:none!important}.kiosk #top a,.kiosk .deeper,.kiosk #labelbtn{visibility:hidden}
+/* a phone held sideways: very little height. compact type, and the label button moves up beside the title bar so it never sits on the text */
+@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room]{padding-top:54px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}h1{font-size:34px;margin-bottom:6px}h2{font-size:26px;margin-bottom:6px}.no{margin-bottom:6px}.say{font-size:14px;line-height:1.4;margin-bottom:5px}.say.dim{font-size:12px}.deeper{margin-top:2px;padding:8px 0}.short-hide,.land-hide{display:none}.btn{min-height:44px;padding:12px 14px}#labelbtn{bottom:auto;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 10px;min-height:36px}}
 @view-transition{navigation:auto}
 </style>
 </head>
@@ -116,7 +118,7 @@ body:not(.entered) #labelbtn{visibility:hidden}
     <p class="no">an exhibit in six rooms &middot; n = 1</p>
     <h1>mostly the machine</h1>
     <p class="say">i logged every song i played for seven years and assumed the log was a record of me. four fifths of it was a machine advancing a queue.</p>
-    <p class="say dim">six rooms of finding that out: what i measured, what the measuring broke, what i had to bury. every dot behind this text is a play. all the music here is mine. sound on if you can.</p>
+    <p class="say dim land-hide">six rooms of finding that out: what i measured, what the measuring broke, what i had to bury. every dot behind this text is a play. all the music here is mine. sound on if you can.</p>
     <div class="row"><button class="btn" id="enter" type="button">enter with sound</button><button class="btn ghost" id="enter-quiet" type="button">enter quietly</button></div>
   </div>
   <div class="room-body"></div>
@@ -189,6 +191,6 @@ body:not(.entered) #labelbtn{visibility:hidden}
 
 </main>
 <noscript><p>this exhibit draws with javascript. the whole study, in text, is on the <a href="./">landing page</a> and in the <a href="lab.html">lab</a>.</p></noscript>
-<script type="module" src="exhibit/shell.js?v=20260922f"></script>
+<script type="module" src="exhibit/shell.js?v=20260922j"></script>
 </body>
 </html>

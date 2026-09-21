@@ -15,7 +15,7 @@
 */
 
 import { postCSS, post, stopAll } from './post.js?v=3';
-import { LABELS, HINTS } from './labels.js?v=1';
+import { LABELS, HINTS } from './labels.js?v=2';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
 const $ = (s, r = document) => r.querySelector(s);
@@ -318,7 +318,30 @@ const hintEl = $('#hint'); let hintT = 0, acted = new Set();
 function armHint() {
   clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on');
   const id = rooms[Math.max(0, active)].id; if (!hintEl || !HINTS[id] || acted.has(id) || KIOSK) return;
-  hintT = setTimeout(() => { if (rooms[active].id !== id || acted.has(id)) return; const s = stage(); hintEl.textContent = HINTS[id]; hintEl.style.left = (s.x + s.w / 2) + 'px'; hintEl.style.top = (s.y + s.h - 8) + 'px'; hintEl.classList.add('on'); }, 9000);
+  hintT = setTimeout(() => {
+    if (rooms[active].id !== id || acted.has(id)) return;
+    const s = stage();
+    hintEl.textContent = HINTS[id];
+    hintEl.style.left = (s.x + s.w / 2) + 'px'; hintEl.style.top = (s.y + 4) + 'px';
+    hintEl.classList.add('on'); /* top of the stage: the controls live at the bottom */
+    /* a couple of rooms (the graveyard's panel, in particular) fill the top of the stage too —
+       nudge below whatever is already on screen there rather than print two lines on top of each other */
+    requestAnimationFrame(() => {
+      if (!hintEl.classList.contains('on')) return;
+      const hr = hintEl.getBoundingClientRect();
+      const sec = rooms[active].el; let maxBottom = null;
+      sec.querySelectorAll('.room-body *, .wall *').forEach((el) => {
+        if (el === hintEl || el.contains(hintEl) || !el.textContent || !el.textContent.trim()) return;
+        const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none') return;
+        const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
+        if (r.left < hr.right && r.right > hr.left && r.top < hr.bottom && r.bottom > hr.top) maxBottom = maxBottom == null ? r.bottom : Math.max(maxBottom, r.bottom);
+      });
+      if (maxBottom != null) {
+        const shifted = maxBottom + 10;
+        if (shifted + hr.height < s.y + s.h - 8) hintEl.style.top = shifted + 'px'; else hintEl.classList.remove('on');
+      }
+    });
+  }, 9000);
 }
 const didAct = (e) => { if (active < 0 || !e.target.closest || !e.target.closest('section[data-room]') || e.target.closest('.wall a')) return; acted.add(rooms[active].id); clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on'); };
 addEventListener('pointerdown', didAct, { passive: true }); addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ' || /^[tqn]$/i.test(e.key) || /^Arrow(Left|Right)$/.test(e.key)) didAct(e); });
@@ -327,7 +350,7 @@ addEventListener('pointerdown', didAct, { passive: true }); addEventListener('ke
 const KIOSK = /[?&]kiosk=1\b/.test(location.search); let kioskT = 0, lastTouch = 0;
 function kioskStep() {
   clearTimeout(kioskT); if (!KIOSK) return;
-  const dwell = active === 0 ? 14000 : 30000;
+  const dwell = active === 0 ? 14000 : rooms[active].id === 'make' ? 44000 : 32000;
   kioskT = setTimeout(() => {
     if (performance.now() - lastTouch < 45000) return kioskStep(); /* someone is using it: wait */
     goK = -1; ctx.go(active + 1 >= rooms.length ? 0 : active + 1);
@@ -336,6 +359,9 @@ function kioskStep() {
 }
 if (KIOSK) {
   document.documentElement.classList.add('kiosk'); lastTouch = -1e9;
+  try { history.scrollRestoration = 'manual'; } catch (e) {} scrollTo(0, 0); /* a reload on a gallery screen starts at the threshold, not wherever the last loop was */
+  document.body.classList.add('entered'); /* no threshold to click through on a gallery screen. sound needs one touch: browsers do not let a page start audio by itself */
+  addEventListener('pointerdown', (e) => { if (e.isTrusted && !A.on) A.unlock(); }, { passive: true });
   ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach((ev) => addEventListener(ev, (e) => { if (e.isTrusted) lastTouch = performance.now(); }, { passive: true }));
 }
 

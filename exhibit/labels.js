@@ -29,7 +29,7 @@ export const LABELS = {
     rows: [
       ['deck', 'five rounds drawn at random from 80 real transitions in my log, balanced 40 tapped and 40 queued.'],
       ['chance', 'because the deck is balanced, always giving the same answer averages 2.5 of 5, the same as a coin.'],
-      ['labels', 'they come from the export’s reason_start field, not from my memory of what i did.'],
+      ['labels', 'they come from the export’s reason_start field, spotify’s own label for what started each play, not from my memory of what i did.'],
       ['caveat', 'the deck is not the population. in the real log about four plays in five were advanced by the app.'],
     ],
     more: ['lab.html#toy-whopressed', 'ten rounds, in the lab'],
@@ -67,6 +67,7 @@ export const LABELS = {
   make: {
     kicker: 'how this was measured', title: 'make your own',
     rows: [
+      ['the ending', 'the sorted wall from room 01 comes back, the 81% that the queue or shuffle started falls away, and the 19% i tapped becomes the wheel.'],
       ['the wheel', '22 tracks i made, placed by musical key. the glow when you tap one marks the keys that mix cleanly with it. that is music theory, not a finding.'],
       ['metadata', 'key and tempo are production notes i entered myself, not something derived from the log.'],
       ['your turn', 'the probe reads your own export in this browser tab and computes your split and your bridge index. nothing is uploaded.'],
@@ -79,8 +80,5 @@ export const LABELS = {
 export const HINTS = {
   wall: 'press and hold anywhere on the dots',
   game: 'pick one: did i tap it, or did the app queue it?',
-  map: 'drag the dial left. the map rearranges; my listening does not',
-  listeners: 'flip between my taps and autoplay. tap a cluster to hear that artist',
   graveyard: 'pick a finding and watch the null fall',
-  make: 'tap a dot on the wheel to play that track',
 };

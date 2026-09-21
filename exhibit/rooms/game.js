@@ -8,7 +8,7 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 export default {
   id: 'game', track: 'hooked-at-first-taste',
   pool: null, cluster: null, rounds: null, ri: 0, score: 0, answered: false, timer: 0, active: false, pulse: null,
-  lx: 0, lya: 0, lyb: 0,
+  lx: 0, lya: 0, lyb: 0, saidTap: 0, wallTapPct: null, demoOn: false, demoT: 0,
 
   async mount(root, ctx) {
     const wrap = document.createElement('div'); wrap.className = 'g-wrap';
@@ -24,11 +24,13 @@ export default {
           '<button type="button" class="btn g-tap">i tapped</button>' +
           '<button type="button" class="btn ghost g-queue">it queued</button>' +
         '</div>' +
+        '<p class="g-kbd dim" aria-hidden="true">t = i tapped &middot; q = it queued &middot; n = next</p>' +
       '</div>' +
       '<div class="g-end" hidden>' +
         '<p class="g-score say" aria-live="polite"></p>' +
+        '<p class="g-prior say dim" aria-live="polite" hidden></p>' +
         '<p class="g-note say dim">in the real log about 86% of these jumps were autoplay. this deck is balanced 50/50, so always guessing autoplay does not help.</p>' +
-        '<p class="g-caveat say dim">these are spotify’s own reason_start labels, not my memory of what i did.</p>' +
+        '<p class="g-caveat say dim">these are spotify’s own label for what started each play, not my memory of what i did.</p>' +
         '<div class="row"><button type="button" class="btn g-again">again</button><button type="button" class="btn ghost g-next">keep going</button></div>' +
       '</div>';
     root.appendChild(wrap); this.wrap = wrap;
@@ -38,12 +40,17 @@ export default {
     this.tapBtn = wrap.querySelector('.g-tap'); this.queueBtn = wrap.querySelector('.g-queue');
     this.row = wrap.querySelector('.g-row'); this.mid = wrap.querySelector('.g-mid');
     this.end = wrap.querySelector('.g-end'); this.scoreEl = wrap.querySelector('.g-score');
+    this.priorEl = wrap.querySelector('.g-prior');
+    const kbd = wrap.querySelector('.g-kbd'); if (ctx.coarse) kbd.hidden = true;
     this.tapBtn.addEventListener('click', () => this.answer(ctx, true));
     this.queueBtn.addEventListener('click', () => this.answer(ctx, false));
     wrap.querySelector('.g-again').addEventListener('click', () => this.deal(ctx, true));
     wrap.querySelector('.g-next').addEventListener('click', () => ctx.go(ctx.index + 1));
+    /* a real visitor's own pointer or key in this room ends any kiosk demo immediately: no timer outlives a real hand */
+    wrap.addEventListener('pointerdown', () => this.stopDemo());
     document.addEventListener('keydown', (e) => {
       if (!this.active) return;
+      this.stopDemo();
       const k = e.key.toLowerCase();
       if (k === 't' && !this.tapBtn.disabled) { e.stopPropagation(); this.answer(ctx, true, true); }
       else if (k === 'q' && !this.queueBtn.disabled) { e.stopPropagation(); this.answer(ctx, false, true); }
@@ -53,6 +60,8 @@ export default {
     const P = ctx.particles, n = P.n, frac = 240 / n;
     this.cluster = new Uint8Array(n);
     for (let i = 0; i < n; i++) { const u = ctx.hash(i * 31 + 11); this.cluster[i] = u < frac ? 1 : u < frac * 2 ? 2 : 0; }
+    /* the visitor's own five answers get spent on the end screen against this real split: exhibit/data/wall.json pct_rounded.tap */
+    ctx.data('wall').then((w) => { this.wallTapPct = w && w.pct_rounded && typeof w.pct_rounded.tap === 'number' ? w.pct_rounded.tap : null; }).catch(() => { this.wallTapPct = null; });
     try {
       const r = await fetch('whopressed.json' + ctx.V);
       if (!r.ok) throw 0;
@@ -86,7 +95,7 @@ export default {
     if (restart || !this.rounds) {
       const idx = []; for (let i = 0; i < this.pool.length; i++) idx.push(i);
       for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
-      this.rounds = idx.slice(0, Math.min(ROUNDS, idx.length)); this.ri = 0; this.score = 0;
+      this.rounds = idx.slice(0, Math.min(ROUNDS, idx.length)); this.ri = 0; this.score = 0; this.saidTap = 0;
       this.end.hidden = true; this.mid.hidden = false; this.bar.forEach((b) => { b.className = ''; });
     }
     this.showRound();
@@ -104,6 +113,7 @@ export default {
 
   answer(ctx, guessedTap, viaKey) {
     if (this.answered || !this.pool) return; this.answered = true;
+    if (guessedTap) this.saidTap++;
     const row = this.pool[this.rounds[this.ri]], truthTap = row[2] === 1, correct = guessedTap === truthTap;
     if (correct) this.score++;
     this.tapBtn.disabled = true; this.queueBtn.disabled = true;
@@ -133,6 +143,12 @@ export default {
     this.mid.hidden = true; this.end.hidden = false;
     const n = this.rounds.length;
     this.scoreEl.textContent = 'you got ' + this.score + ' of ' + n + '. a coin flip averages ' + (n / 2) + '.';
+    /* the visitor's own five answers, spent: their guessed-tap rate against the real one (wall.json pct_rounded.tap) */
+    if (this.wallTapPct != null) {
+      const yours = Math.round((this.saidTap / n) * 100);
+      this.priorEl.textContent = 'your guesses called it tapped ' + yours + ' in a hundred. across the real log, i tapped ' + this.wallTapPct + ' in a hundred.';
+      this.priorEl.hidden = false;
+    } else this.priorEl.hidden = true;
   },
 
   enter(ctx) {
@@ -142,7 +158,36 @@ export default {
     this.place(ctx);
     if (!this.rounds) this.deal(ctx, false);
   },
-  leave(ctx) { this.active = false; clearTimeout(this.timer); this.pulse = null; ctx.stopPosts(); },
+  leave(ctx) { this.active = false; this.stopDemo(); clearTimeout(this.timer); this.pulse = null; ctx.stopPosts(); },
+
+  stopDemo() { if (this.demoOn) { this.demoOn = false; clearTimeout(this.demoT); } },
+
+  /* kiosk mode only: plays one full round-by-round session by itself, stops at the score screen, restarts on the next call */
+  demo(ctx) {
+    if (!this.ready || !this.pool) return;
+    clearTimeout(this.demoT); this.demoOn = true;
+    this.deal(ctx, true);
+    this.demoStep(ctx);
+  },
+  demoStep(ctx) {
+    clearTimeout(this.demoT);
+    if (!this.demoOn || !this.active) return;
+    if (!this.end.hidden) { this.demoOn = false; return; } /* score screen: stop, wait for the next demo() call to restart */
+    if (!this.answered) {
+      this.demoT = setTimeout(() => {
+        if (!this.demoOn || !this.active || this.answered || !this.rounds) return;
+        const row = this.pool[this.rounds[this.ri]], truthTap = row[2] === 1;
+        this.answer(ctx, Math.random() < 0.5 ? truthTap : !truthTap); /* right half the time, same as a coin flip */
+        this.demoStep(ctx);
+      }, 2500);
+    } else {
+      this.demoT = setTimeout(() => {
+        if (!this.demoOn || !this.active) return;
+        this.advance(ctx);
+        this.demoStep(ctx);
+      }, 6000);
+    }
+  },
 
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;
@@ -187,6 +232,8 @@ css.textContent =
 'section[data-room="game"] .g-fwd{flex-basis:100%;max-width:220px;margin:4px auto 0;color:var(--ink)}' +
 'section[data-room="game"] .g-row{margin-top:4px;justify-content:center}' +
 'section[data-room="game"] .g-mid.answered .g-row{display:none}' +
+'section[data-room="game"] .g-kbd{font:400 11px/1.4 var(--mono);color:var(--mute);letter-spacing:.02em;margin:0}' +
+'section[data-room="game"] .g-prior{margin:0}' +
 'section[data-room="game"] .g-posts .post{margin:0;max-width:none}section[data-room="game"] .g-pnote{flex-basis:100%;text-align:center}section[data-room="game"] .g-pnote .post-note{margin:0}' +
 '@media (max-height:720px) and (max-aspect-ratio:115/100){section[data-room="game"] .g-mid.answered .g-name,section[data-room="game"] .g-mid.answered .g-arrow{display:none}section[data-room="game"] .g-name{font-size:20px}}' +
 '@media (max-width:640px){section[data-room="game"] .g-mid{gap:8px}section[data-room="game"] .g-pnote .post-note{font-size:10.5px;line-height:1.4}}' +
