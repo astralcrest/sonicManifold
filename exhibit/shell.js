@@ -35,6 +35,13 @@ const N = lowPower ? Math.round(TOTAL_PLAYS / 4) : TOTAL_PLAYS; /* phones draw o
 const field = $('#field');
 const over = $('#overlay');
 const fg = field.getContext('2d', { alpha: false });
+const glow = $('#glow'), gg = glow && !lowPower && !reduced ? glow.getContext('2d') : null; if (glow && !gg) glow.remove();
+/* pointer: dots part around it, a press leaves a ripple */
+const PT = { x: -999, y: -999, on: false, ripples: [] };
+addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' || PT.down) { PT.x = e.clientX; PT.y = e.clientY; PT.on = true; PT.last = performance.now(); } }, { passive: true });
+addEventListener('pointerdown', (e) => { PT.down = true; PT.x = e.clientX; PT.y = e.clientY; PT.on = true; PT.last = performance.now(); if (!reduced && PT.ripples.length < 6) PT.ripples.push({ x: e.clientX, y: e.clientY, t: performance.now() }); }, { passive: true });
+const ptOff = (e) => { PT.down = false; if (!e || e.pointerType !== 'mouse') PT.on = false; };
+addEventListener('pointerup', ptOff, { passive: true }); addEventListener('pointercancel', ptOff, { passive: true }); document.addEventListener('mouseleave', () => { PT.on = false; });
 const og = over.getContext('2d');
 let W = 0, H = 0, PW = 0, PH = 0, DPR = 1, img = null, buf32 = null;
 const BG = 0xff18010a; /* #0a0118 as little-endian ABGR */
@@ -48,6 +55,8 @@ const P = {
   prov: new Uint8Array(N),   /* 0 tapped · 1 shuffled · 2 served: assigned once, kept for the whole visit */
   artist: new Uint16Array(N), /* index into mapmorph.artists: where this play lives in rooms 3 and 4 */
   ease: 0.07, jitter: 0.6, big: false,
+  swirl: 0.4,  /* how much a dot arcs on its way to a new target (0 = straight). reset on every room change */
+  touch: true, /* dots part around the pointer */
   /* fn(i, n) -> [x, y] in stage-normalised 0..1 (or null to park the dot off-screen) */
   target(fn) {
     const s = stage();
@@ -95,6 +104,7 @@ function resize() {
   field.width = PW; field.height = PH; over.width = Math.round(W * (devicePixelRatio || 1)); over.height = Math.round(H * (devicePixelRatio || 1));
   og.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
   img = fg.createImageData(PW, PH); buf32 = new Uint32Array(img.data.buffer);
+  if (gg) { glow.width = Math.max(2, PW >> 2); glow.height = Math.max(2, PH >> 2); }
   if (active >= 0 && rooms[active] && rooms[active].mod && rooms[active].mod.enter) rooms[active].mod.enter(ctx);
 }
 
@@ -105,19 +115,30 @@ function blend(a, b, k) { /* per-channel lerp of two ABGR ints */
 
 function drawField(t, bands) {
   buf32.fill(BG);
+  const X = P.x, Y = P.y, TX = P.tx, TY = P.ty, C = P.c, TC = P.tc, SD = P.seed, buf = buf32, pw = PW, ph = PH, dpr = DPR;
   const e = P.ease, j = reduced ? 0 : P.jitter * (0.5 + bands.low * 2.2), two = DPR > 1 || P.big;
+  /* a moving pointer parts the dots; a resting one lets them close again (a held press keeps them open) */
+  const idle = PT.down ? 0 : performance.now() - (PT.last || 0), pk = idle < 500 ? 9 : idle > 1700 ? 0 : 9 * (1 - (idle - 500) / 1200);
+  const sw = reduced ? 0 : P.swirl, push = PT.on && P.touch && !reduced && pk > 0, mx = PT.x, my = PT.y, R = PT.down ? 130 : 84, R2 = R * R;
+  const spark = !reduced && bands.high > 0.16, tick = (((t * 0.06) | 0) * 7919) | 0, ta = t * 0.0011, tb = t * 0.0013;
   for (let i = 0; i < N; i++) {
-    const dx = P.tx[i] - P.x[i], dy = P.ty[i] - P.y[i];
-    P.x[i] += dx * e; P.y[i] += dy * e;
-    if (P.c[i] !== P.tc[i]) P.c[i] = (Math.abs(dx) + Math.abs(dy) < 0.5) ? P.tc[i] : blend(P.c[i], P.tc[i], 0.12);
-    const s = P.seed[i];
-    const px = ((P.x[i] + Math.sin(t * 0.0011 + s) * j) * DPR) | 0, py = ((P.y[i] + Math.cos(t * 0.0013 + s * 1.7) * j) * DPR) | 0;
-    if (px < 0 || py < 0 || px >= PW - 1 || py >= PH - 1) continue;
-    const o = py * PW + px, c = P.c[i];
-    buf32[o] = c;
-    if (two) { buf32[o + 1] = c; buf32[o + PW] = c; buf32[o + PW + 1] = c; }
+    const s = SD[i]; let x = X[i], y = Y[i];
+    const dx = TX[i] - x, dy = TY[i] - y;
+    /* every dot has its own pace and arcs in from one side, so a room change flows instead of sliding */
+    const ei = reduced ? e : e * (0.5 + s * 0.16), si = s > 3.1416 ? sw : -sw;
+    x += (dx - dy * si) * ei; y += (dy + dx * si) * ei;
+    if (push) { const qx = x - mx, qy = y - my, d2 = qx * qx + qy * qy; if (d2 < R2 && d2 > 0.5) { const f = (1 - d2 / R2) * pk / Math.sqrt(d2); x += (qx - qy * 0.5) * f; y += (qy + qx * 0.5) * f; } }
+    X[i] = x; Y[i] = y;
+    let c = C[i];
+    if (c !== TC[i]) c = C[i] = (dx < 0.5 && dx > -0.5 && dy < 0.5 && dy > -0.5) ? TC[i] : blend(c, TC[i], 0.12);
+    const px = ((x + Math.sin(ta + s) * j) * dpr) | 0, py = ((y + Math.cos(tb + s * 1.7) * j) * dpr) | 0;
+    if (px < 0 || py < 0 || px >= pw - 1 || py >= ph - 1) continue;
+    const o = py * pw + px; if (spark && ((i + tick) & 255) === 0) c = 0xffffffff; /* hi-hats make a few dots glint */
+    buf[o] = c;
+    if (two) { buf[o + 1] = c; buf[o + pw] = c; buf[o + pw + 1] = c; }
   }
   fg.putImageData(img, 0, 0);
+  if (gg) { gg.globalCompositeOperation = 'copy'; gg.filter = 'blur(2px)'; gg.drawImage(field, 0, 0, glow.width, glow.height); gg.filter = 'none'; gg.globalCompositeOperation = 'difference'; gg.fillStyle = '#0a0118'; gg.fillRect(0, 0, glow.width, glow.height); /* take the background back out, so only the dots bloom */ }
 }
 
 /* ------------------------------------------------------------------ audio */
@@ -150,6 +171,15 @@ const A = {
     this.cur = nx;
   },
   mute(m) { this.muted = m; this.level(); },
+  /* interface tones: D minor pentatonic, quiet, skipped when muted. step 0 = D4 */
+  note(step, o = {}) {
+    if (!this.ac || this.muted || !this.on) return;
+    const SC = [0, 3, 5, 7, 10], oct = Math.floor(step / 5), semi = SC[((step % 5) + 5) % 5] + 12 * oct;
+    const t = this.ac.currentTime + (o.at || 0), osc = this.ac.createOscillator(), g = this.ac.createGain(), dur = o.dur || 0.5;
+    osc.type = o.type || 'sine'; osc.frequency.value = 293.66 * Math.pow(2, semi / 12);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(o.vol || 0.07, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); g.connect(this.an); osc.start(t); osc.stop(t + dur + 0.05);
+  },
   duck(d) { this.ducked = d; this.level(); },
   /* 0 = open, 1 = distant (the graveyard plays its track from the next room over) */
   distant(k) { if (!this.lp) { this.wantDistant = k; return; } this.lp.frequency.setTargetAtTime(k > 0 ? 20000 * Math.pow(0.03, k) : 20000, this.ac.currentTime, 0.5); },
@@ -201,13 +231,14 @@ async function activate(i) {
   dots.forEach((d, k) => { d.classList.toggle('on', k === i); d.setAttribute('aria-current', k === i ? 'true' : 'false'); });
   og.clearRect(0, 0, W, H);
   const r = await load(i); if (active !== i) return;
+  P.swirl = 0.4; P.touch = true;
   if (r.mod) { if (r.mod.track) A.play(r.mod.track); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
   load(i + 1);
   try { history.replaceState(null, '', '#' + r.id); } catch (e) {}
 }
 
 /* nav dots */
-const nav = $('#dots'); const dots = rooms.map((r, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'dot'; b.setAttribute('aria-label', 'room ' + (i + 1) + ': ' + (r.el.dataset.title || r.id)); b.addEventListener('click', () => ctx.go(i)); nav.appendChild(b); return b; });
+const nav = $('#dots'); const dots = rooms.map((r, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'dot'; b.setAttribute('aria-label', 'room ' + (i + 1) + ': ' + (r.el.dataset.title || r.id)); b.dataset.t = r.el.dataset.title || r.id; b.addEventListener('click', () => ctx.go(i)); nav.appendChild(b); return b; });
 
 const io = new IntersectionObserver((es) => { let best = null; es.forEach((e) => { if (e.isIntersecting && (!best || e.intersectionRatio > best.intersectionRatio)) best = e; }); if (best && best.intersectionRatio > 0.55) activate(sections.indexOf(best.target)); }, { threshold: [0.55, 0.8] });
 sections.forEach((s) => io.observe(s));
@@ -233,7 +264,9 @@ function loop(t) {
   requestAnimationFrame(loop);
   if (document.hidden) return; if (reduced && t - last < 250) return; last = t;
   const bands = A.bands(); drawField(t, bands);
-  const r = rooms[active]; if (r && r.mod && r.mod.frame) { og.clearRect(0, 0, W, H); try { r.mod.frame(og, t, bands, W, H, ctx); } catch (e) {} }
+  og.clearRect(0, 0, W, H);
+  const r = rooms[active]; if (r && r.mod && r.mod.frame) { try { r.mod.frame(og, t, bands, W, H, ctx); } catch (e) {} }
+  for (let k = PT.ripples.length - 1; k >= 0; k--) { const rp = PT.ripples[k], a = (t - rp.t) / 900; if (a >= 1 || a < 0) { PT.ripples.splice(k, 1); continue; } og.strokeStyle = 'rgba(125,240,200,' + (0.5 * (1 - a) * (1 - a)) + ')'; og.lineWidth = 1.2; og.beginPath(); og.arc(rp.x, rp.y, 8 + a * 120, 0, 6.283); og.stroke(); }
 }
 addEventListener('resize', () => { clearTimeout(resize.t); resize.t = setTimeout(resize, 150); });
 resize(); P.scatter();

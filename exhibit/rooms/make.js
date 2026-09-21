@@ -112,7 +112,7 @@ export default {
     if (doPlay) ctx.audio.play(t.f);
   },
   enter(ctx) {
-    const P = ctx.particles; P.ease = 0.05; P.jitter = 0.5; P.big = false;
+    const P = ctx.particles; P.ease = 0.05; P.jitter = 0.5; P.big = false; P.touch = false; /* the clusters are buttons; the pointer should not push them away */
     if (!this.ready) { P.scatter(); P.color(() => ctx.PAL.fog); return; }
     this.layout(ctx); this.layoutParticles(ctx); this.select(this.playing, ctx, false);
   },

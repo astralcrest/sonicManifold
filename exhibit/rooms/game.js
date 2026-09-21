@@ -114,6 +114,7 @@ export default {
     this.verdict.style.color = correct ? 'var(--mint)' : 'var(--rose)';
     this.bar[this.ri].className = correct ? 'ok' : 'bad';
     this.pulse = { t0: performance.now(), ok: correct };
+    if (correct) { ctx.audio.note(3, { dur: 0.35 }); ctx.audio.note(5, { at: 0.09, dur: 0.6 }); } else ctx.audio.note(-5, { dur: 0.7, type: 'triangle' });
     const noteHost = document.createElement('div'); noteHost.className = 'g-pnote';
     post(this.posts, row[0], ctx, { noteHost }); post(this.posts, row[1], ctx, { noteHost }); this.posts.appendChild(noteHost);
     this.mid.classList.add('answered');

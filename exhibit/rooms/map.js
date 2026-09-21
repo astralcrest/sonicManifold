@@ -82,7 +82,7 @@ export default {
     this.tapBar = wrap.querySelector('.mtap'); this.autoBar = wrap.querySelector('.mauto');
     this.cap = wrap.querySelector('.mcap');
     this.dial = wrap.querySelector('.mdial');
-    this.dial.addEventListener('input', (e) => { e.stopPropagation(); this.setLevel(parseInt(this.dial.value, 10), ctx); });
+    this.dial.addEventListener('input', (e) => { e.stopPropagation(); const lv = parseInt(this.dial.value, 10); if (lv !== this.level) ctx.audio.note(6 - lv, { dur: 0.9 }); this.setLevel(lv, ctx); });
     this.dial.addEventListener('keydown', (e) => e.stopPropagation());
     this.ready = true;
     this.position(ctx);

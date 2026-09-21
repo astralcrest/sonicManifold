@@ -12,7 +12,7 @@ const CSS = `
 section[data-room="listeners"] .lst-cav{font:400 11px/1.55 var(--mono);color:var(--mute);opacity:.72;margin:6px 0 0;max-width:32rem}
 section[data-room="listeners"] .lst-fine summary{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);cursor:pointer;padding:12px 0 6px;width:max-content}
 section[data-room="listeners"] .lst-fine summary:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
-section[data-room="listeners"] .lst-hit{position:absolute;cursor:pointer}
+section[data-room="listeners"] .lst-hit{position:absolute}
 section[data-room="listeners"] .lst-toggle{position:absolute;transform:translate(-50%,-50%);display:flex;gap:6px;background:rgba(10,1,24,.6);border:1px solid var(--line);border-radius:999px;padding:5px}
 section[data-room="listeners"] .lst-toggle button{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:none;border:0;border-radius:999px;padding:13px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
 section[data-room="listeners"] .lst-toggle button.on{color:#06130f;background:linear-gradient(100deg,var(--mint),#62e7ff)}
@@ -55,6 +55,7 @@ export default {
 
     this.hit = root.appendChild(el('div', 'lst-hit'));
     this.hit.addEventListener('click', (e) => this.tapAt(e.clientX, e.clientY, ctx));
+    this.hit.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') this.hoverAt(e.clientX, e.clientY); });
 
     const tgl = el('div', 'lst-toggle'); tgl.setAttribute('role', 'radiogroup'); tgl.setAttribute('aria-label', 'which edges to show');
     const bTap = el('button', 'on', 'my taps'); bTap.type = 'button'; bTap.setAttribute('role', 'radio'); bTap.setAttribute('aria-checked', 'true');
@@ -110,11 +111,19 @@ export default {
     this.announce();
   },
 
+  hoverAt(x, y) {
+    if (!this.ready || this.pinned) return;
+    const px = this.px, n = this.d.nodes.length; let best = -1, bd = 24 * 24;
+    for (let i = 0; i < n; i++) { const dx = px[i * 2] - x, dy = px[i * 2 + 1] - y, dist = dx * dx + dy * dy; if (dist < bd) { bd = dist; best = i; } }
+    this.tag.hidden = best < 0; this.hit.style.cursor = best < 0 ? '' : 'pointer';
+    if (best >= 0) { this.tag.textContent = this.d.nodes[best].name; this.tag.style.left = px[best * 2] + 'px'; this.tag.style.top = (px[best * 2 + 1] - 16) + 'px'; }
+  },
   tapAt(x, y, ctx) {
     if (!this.ready) return;
     const px = this.px, n = this.d.nodes.length; let best = -1, bd = 28 * 28;
     for (let i = 0; i < n; i++) { const dx = px[i * 2] - x, dy = px[i * 2 + 1] - y, dist = dx * dx + dy * dy; if (dist < bd) { bd = dist; best = i; } }
-    if (best < 0) return;
+    if (best < 0) { this.pinned = false; return; }
+    this.pinned = true; ctx.audio.note(1 + (best % 5), { dur: 0.5, vol: 0.05 });
     const name = this.d.nodes[best].name;
     this.tag.hidden = false; this.tag.textContent = name; this.tag.style.left = px[best * 2] + 'px'; this.tag.style.top = (px[best * 2 + 1] - 16) + 'px';
     stopAll(ctx); this.postSlot.textContent = ''; post(this.postSlot, name, ctx, { label: 'hear' });
@@ -122,7 +131,7 @@ export default {
 
   enter(ctx) {
     const P = ctx.particles; this.reduced = ctx.reduced;
-    P.ease = 0.05; P.jitter = 0.5; P.big = false;
+    P.ease = 0.05; P.jitter = 0.5; P.big = false; P.touch = false; /* here the pointer names artists; it should not scatter them */
     if (!this.ready) { P.scatter(); P.color(() => 0x6b5a86); return; }
     const nodeColor = this.nodeColor, nodes = this.d.nodes, n = nodes.length;
     const gh = this.gh = Math.max(0.6, 1 - 84 / ctx.stage().h);

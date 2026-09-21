@@ -49,24 +49,26 @@ export default {
     this.legend.hidden = st === 0;
     if (this.pad) this.pad.style.touchAction = this.cue.style.touchAction = this.done ? 'auto' : 'none'; /* once it is sorted, swipes over the wall scroll again */
   },
-  reset(ctx) { this.r = 0; this.done = false; this.sorted = false; this.lit.fill(0); ctx.particles.ease = 0.06; this.layout(ctx); this.paint(ctx); this.copy(); this.cue.textContent = 'press and hold'; this.cue.style.opacity = '1'; },
+  reset(ctx) { ctx.audio.distant(0.5); this.r = 0; this.done = false; this.sorted = false; this.lit.fill(0); ctx.particles.ease = 0.06; this.layout(ctx); this.paint(ctx); this.copy(); this.cue.textContent = 'press and hold'; this.cue.style.opacity = '1'; },
   enter(ctx) {
     const P = ctx.particles; P.ease = 0.06; P.jitter = 0.22; P.big = false; if (!this.ready) return;
     this.grid(ctx); this.layout(ctx); this.paint(ctx); this.copy(); ctx.placeCue(this.cue);
+    ctx.audio.distant(this.done ? 0 : 0.5 * (1 - this.r / (this.maxR || 1)));
     { const s = ctx.stage(), p = this.pad.style; p.left = s.x + 'px'; p.top = s.y + 'px'; p.width = s.w + 'px'; p.height = s.h + 'px'; }
     if (ctx.reduced && !this.done) { this.lit.fill(1); this.done = true; this.sorted = true; this.layout(ctx); this.paint(ctx); this.copy(); this.cue.textContent = 'again'; }
   },
-  leave() { this.holding = false; },
+  leave(ctx) { this.holding = false; ctx.audio.distant(0); },
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready || !this.holding || this.done) return;
     this.r += 15; /* ~900 px/s at 60 fps */
+    ctx.audio.distant(Math.max(0, 0.5 * (1 - this.r / this.maxR))); /* the track opens up as the wall fills */
     const P = ctx.particles, n = P.n, lit = this.lit, r2 = this.r * this.r, cx = this.cx, cy = this.cy; let changed = false;
     for (let i = 0; i < n; i++) { if (lit[i]) continue; const dx = P.tx[i] - cx, dy = P.ty[i] - cy; if (dx * dx + dy * dy <= r2) { lit[i] = 1; changed = true; } }
     if (changed) this.paint(ctx);
     g.strokeStyle = 'rgba(125,240,200,' + (0.35 + bands.low * 0.4) + ')'; g.lineWidth = 1.5; g.beginPath(); g.arc(cx, cy, this.r, 0, 6.283); g.stroke();
     if (this.r === 15) this.copy();
     if (this.r > this.maxR) {
-      this.done = true; this.holding = false; this.copy();
+      this.done = true; this.holding = false; this.copy(); ctx.audio.distant(0); ctx.audio.note(0, { dur: 1.6, vol: 0.05 }); ctx.audio.note(4, { at: 0.05, dur: 1.6, vol: 0.04 });
       setTimeout(() => { if (!this.done) return; this.sorted = true; ctx.particles.ease = 0.04; this.layout(ctx); this.cue.textContent = 'again'; this.cue.style.opacity = '.6'; }, 900);
     }
   },

@@ -142,6 +142,7 @@ export default {
     const c = this.cases[this.curCase], k = c.v === 'k';
     this.ss.className = 'gv-status ' + (k ? 'k' : 's');
     this.ss.textContent = k ? V_K : V_S;
+    if (k) { ctx.audio.note(-3, { dur: 1.1, type: 'triangle' }); ctx.audio.note(-5, { at: 0.22, dur: 1.4, type: 'triangle' }); } else { ctx.audio.note(2, { dur: 0.7 }); ctx.audio.note(4, { at: 0.12, dur: 0.8 }); ctx.audio.note(7, { at: 0.24, dur: 1.2 }); }
     this.nm.textContent = 'observed ' + rnd2(c.o) + ' · ' + c.sz + ' redraws · ' + ord(c.pc) + ' percentile';
     this.xEl.textContent = c.x; this.ru.textContent = c.r;
     this.rs.hidden = false;
@@ -153,7 +154,7 @@ export default {
   enter(ctx) {
     if (!this.ready) return;
     this.layout(ctx);
-    const P = ctx.particles; P.ease = 0.06; P.jitter = 0.35; P.big = false;
+    const P = ctx.particles; P.ease = 0.06; P.jitter = 0.35; P.big = false; P.swirl = 0;
     if ((this.state === 'settled' || this.state === 'running') && this.cases[this.curCase]) {
       /* reflow the pile for the new viewport; if still falling, frame() finishes the fall on its own clock */
       this.pileRect = this.computePile(ctx, this.curCase);
