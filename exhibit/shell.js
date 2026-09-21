@@ -35,7 +35,10 @@ const N = lowPower ? Math.round(TOTAL_PLAYS / 4) : TOTAL_PLAYS; /* phones draw o
 const field = $('#field');
 const over = $('#overlay');
 const fg = field.getContext('2d', { alpha: false });
-const glow = $('#glow'), gg = glow && !lowPower && !reduced ? glow.getContext('2d') : null; if (glow && !gg) glow.remove();
+/* bloom: every device starts with it; the governor in loop() takes it away from any that cannot hold the frame rate */
+const glow = $('#glow'); let gg = glow && !reduced ? glow.getContext('2d') : null; if (glow && !gg) glow.remove();
+const GDIV = lowPower ? 6 : 4, canvasBlur = !!gg && 'filter' in gg; /* safari has no canvas filter: blur the element instead */
+if (gg && !canvasBlur) glow.style.filter = 'blur(' + (lowPower ? 5 : 7) + 'px)';
 /* pointer: dots part around it, a press leaves a ripple */
 const PT = { x: -999, y: -999, on: false, ripples: [] };
 addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' || PT.down) { PT.x = e.clientX; PT.y = e.clientY; PT.on = true; PT.last = performance.now(); } }, { passive: true });
@@ -104,7 +107,7 @@ function resize() {
   field.width = PW; field.height = PH; over.width = Math.round(W * (devicePixelRatio || 1)); over.height = Math.round(H * (devicePixelRatio || 1));
   og.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
   img = fg.createImageData(PW, PH); buf32 = new Uint32Array(img.data.buffer);
-  if (gg) { glow.width = Math.max(2, PW >> 2); glow.height = Math.max(2, PH >> 2); }
+  if (gg) { glow.width = Math.max(2, (PW / GDIV) | 0); glow.height = Math.max(2, (PH / GDIV) | 0); }
   if (active >= 0 && rooms[active] && rooms[active].mod && rooms[active].mod.enter) rooms[active].mod.enter(ctx);
 }
 
@@ -138,7 +141,7 @@ function drawField(t, bands) {
     if (two) { buf[o + 1] = c; buf[o + pw] = c; buf[o + pw + 1] = c; }
   }
   fg.putImageData(img, 0, 0);
-  if (gg) { gg.globalCompositeOperation = 'copy'; gg.filter = 'blur(2px)'; gg.drawImage(field, 0, 0, glow.width, glow.height); gg.filter = 'none'; gg.globalCompositeOperation = 'difference'; gg.fillStyle = '#0a0118'; gg.fillRect(0, 0, glow.width, glow.height); /* take the background back out, so only the dots bloom */ }
+  if (gg) { gg.globalCompositeOperation = 'copy'; if (canvasBlur) gg.filter = 'blur(2px)'; gg.drawImage(field, 0, 0, glow.width, glow.height); if (canvasBlur) gg.filter = 'none'; gg.globalCompositeOperation = 'difference'; gg.fillStyle = '#0a0118'; gg.fillRect(0, 0, glow.width, glow.height); /* take the background back out, so only the dots bloom */ }
 }
 
 /* ------------------------------------------------------------------ audio */
@@ -258,11 +261,21 @@ enterQuiet.addEventListener('click', () => begin(false));
 muteBtn.addEventListener('click', () => { const m = !A.muted; if (!m) A.unlock(); A.mute(m); muteBtn.setAttribute('aria-pressed', String(m)); muteBtn.textContent = m ? 'sound off' : 'sound on'; });
 document.addEventListener('visibilitychange', () => { if (A.ac) { if (document.hidden) A.ac.suspend(); else if (!A.muted) A.ac.resume(); } });
 
+/* exit: hand the link on. the native share sheet where there is one, the clipboard otherwise */
+const shareBtn = $('#share');
+if (shareBtn) shareBtn.addEventListener('click', async () => {
+  const url = location.origin + location.pathname, say = (m) => { const was = 'send this to someone'; shareBtn.textContent = m; setTimeout(() => { shareBtn.textContent = was; }, 2200); };
+  try { if (navigator.share) { await navigator.share({ title: document.title, url }); return; } await navigator.clipboard.writeText(url); say('link copied'); } catch (e) { if (e && e.name !== 'AbortError') say(url.replace(/^https?:\/\//, '')); }
+});
+
 /* loop */
-let last = 0;
+let last = 0, slow = 0, seen = 0;
 function loop(t) {
   requestAnimationFrame(loop);
-  if (document.hidden) return; if (reduced && t - last < 250) return; last = t;
+  if (document.hidden) { last = t; return; } if (reduced && t - last < 250) return;
+  /* governor: after a settling second, 45 frames slower than ~38 fps cost the device its bloom */
+  if (gg && last) { const dt = t - last; if (++seen > 60 && dt < 200) { slow = dt > 26 ? slow + 1 : Math.max(0, slow - 0.5); if (slow > 45) { gg = null; glow.remove(); } } }
+  last = t;
   const bands = A.bands(); drawField(t, bands);
   og.clearRect(0, 0, W, H);
   const r = rooms[active]; if (r && r.mod && r.mod.frame) { try { r.mod.frame(og, t, bands, W, H, ctx); } catch (e) {} }
