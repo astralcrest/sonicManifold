@@ -8,7 +8,7 @@ const rgb = (h) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
 const mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
 const css = (c, a) => 'rgba(' + c + ',' + a + ')';
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
-const CUE_TEXT = 'the bright lines are jumps between scenes. flip to autoplay and watch them thin';
+const CUE_TEXT = 'the bright lines are jumps between scenes. flip between my taps and autoplay';
 
 const CSS = `
 section[data-room="listeners"] .lst-cav{font:400 11px/1.55 var(--mono);color:var(--mute);opacity:.72;margin:6px 0 0;max-width:32rem}

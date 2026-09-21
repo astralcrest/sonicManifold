@@ -40,7 +40,7 @@ export const LABELS = {
       ['what the dial does', 'seven embeddings (learned maps of which artists sit near each other), each retrained on a different mix of plays, from 12% to 100% chosen by the algorithm. my listening is the same in all seven.'],
       ['bridge index', 'how often my taps cross between neighbourhoods of the map, divided by how often autoplay does. 1.00 means no difference.'],
       ['the curve', 'it rises with contamination, 0.99 at 12% to 1.46 at 100%, mean of 3 retrains per level. the picture places 300 artists; the number uses every transition.'],
-      ['killed', 'this arm later failed a harder test: 500 surrogate maps allowed to re-learn their own geometry put the observed value at their 1st percentile. my headline uses no map at all.'],
+      ['withdrawn, then killed', 'the first reading on a map like this, 1.61, was inflated by the map itself and withdrawn. a later version balanced for who chose the training plays read 1.15 and failed a harder test: 500 surrogate maps allowed to re-learn their own geometry put it at their 1st percentile. my headline uses no map at all.'],
     ],
     more: ['lab.html#toy-leakdial', 'the leakage dial, in the lab'],
   },

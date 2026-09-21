@@ -19,7 +19,7 @@ const CAP = [
 ];
 /* 1.61 is the withdrawn embedding-based reading, from researcher.html / index.html ("the finding,
    with its whole history"); it is the sentence the room is built to say out loud. */
-const NEG = 'this is the map my first number was measured on. it read 1.61. its own null killed it.';
+const NEG = 'this is the map my first number was measured on. it read 1.61. the map itself inflated it, so i withdrew it.';
 const CURVE_CAP = 'each column is one of the seven maps. the more of the training diet the algorithm chose, the higher the number came out.';
 const CURVE_CAP_S = 'each column is one of the seven maps. the more the algorithm chose, the higher it read.';
 const CURVE_SUB = 'the line at 1.00 is no difference at all.';

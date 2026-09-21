@@ -57,7 +57,7 @@ export default {
     const word = WORDS[this.tracks.length] || String(this.tracks.length);
     this.lines = [
       'the wall again. seven years, sorted.',
-      'everything the queue chose, leaving. ' + restPct + '% of the picture.',
+      'everything the queue or shuffle started, leaving. ' + restPct + '% of the picture.',
       'what is left is the ' + tapPct + '% i tapped. i made ' + word + ' tracks out of all of it anyway. tap one.',
     ];
     /* the short screens get the same sentence with the middle clause dropped, not a different claim */

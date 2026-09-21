@@ -30,7 +30,7 @@ export default {
         '<p class="g-score say" aria-live="polite"></p>' +
         '<p class="g-prior say dim" aria-live="polite" hidden></p>' +
         '<p class="g-note say dim">in the real log about 86% of these jumps were autoplay. this deck is balanced 50/50, so always guessing autoplay does not help.</p>' +
-        '<p class="g-caveat say dim">these are spotify’s own label for what started each play, not my memory of what i did.</p>' +
+        '<p class="g-caveat say dim">these labels are spotify’s own record of what started each play, not my memory of what i did.</p>' +
         '<div class="row"><button type="button" class="btn g-again">again</button><button type="button" class="btn ghost g-next">keep going</button></div>' +
       '</div>';
     root.appendChild(wrap); this.wrap = wrap;
