@@ -9,6 +9,12 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/exhibit.html">
+<link rel="modulepreload" href="exhibit/shell.js?v=20260922f">
+<link rel="modulepreload" href="exhibit/post.js?v=3">
+<link rel="modulepreload" href="exhibit/labels.js?v=1">
+<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260922f">
+<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260922f">
+<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260922f">
 <meta name="theme-color" content="#0a0118">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/exhibit.html">
@@ -73,6 +79,24 @@ noscript p{position:relative;z-index:4;padding:24px}
 @media (max-aspect-ratio:115/100){section[data-room]::before{content:"";position:absolute;left:0;right:0;bottom:0;height:52%;background:linear-gradient(180deg,rgba(10,1,24,0),rgba(10,1,24,.86) 38%,#0a0118 70%);pointer-events:none}.wall{position:relative}}
 @media (min-aspect-ratio:115/100){.wall{max-width:min(34rem,calc(40vw - 110px))}h1{font-size:clamp(40px,6.6vw,112px)}h2{font-size:clamp(30px,4.6vw,68px)}}
 @media (max-height:720px) and (max-aspect-ratio:115/100){section[data-room]{padding-bottom:calc(34px + env(safe-area-inset-bottom))}h1{font-size:38px;margin-bottom:8px}h2{font-size:28px;margin-bottom:8px}.no{margin-bottom:8px}.say{font-size:14.5px;line-height:1.42;margin-bottom:6px}.say.dim{font-size:12.5px}.deeper{margin-top:4px;padding:10px 0}.row{margin-top:8px}.btn{min-height:44px;padding:13px 12px;letter-spacing:.05em}.short-hide{display:none}}
+#labelbtn{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom));z-index:5;font:600 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);background:rgba(10,1,24,.55);border:1px solid var(--line);border-radius:3px;padding:10px 12px;min-height:40px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#labelbtn:hover{color:var(--ink);border-color:rgba(240,234,255,.45)}#labelbtn:focus-visible,.lb-x:focus-visible,.lb-more:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+body:not(.entered) #labelbtn{visibility:hidden}
+#label{border:0;padding:0;background:#efe9dc;color:#17131f;max-width:min(31rem,calc(100vw - 28px));max-height:min(86vh,44rem);border-radius:2px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.2);overflow:auto;overscroll-behavior:contain}
+#label::backdrop{background:rgba(5,0,14,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.lb-body{padding:30px 32px 26px}
+.lb-k{font:600 10px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:#6d6480;margin:0 0 12px}
+.lb-t{font:italic 500 30px/1.05 var(--serif);margin:0 0 4px;color:#17131f;letter-spacing:-.01em}
+.lb-by{font:500 12px/1.4 var(--mono);color:#4b435c;margin:0 0 4px}
+.lb-rows{margin:18px 0 0;display:grid;grid-template-columns:7.2rem 1fr;gap:11px 16px}
+.lb-rows dt{font:600 10px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#6d6480;padding-top:2px}
+.lb-rows dd{margin:0;font:400 14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#17131f}
+.lb-more{display:inline-block;margin-top:20px;font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#0b6a52;text-decoration:none;border-bottom:1px solid rgba(11,106,82,.4);padding:8px 0}
+.lb-x{position:sticky;top:6px;float:right;margin:6px 6px 0 0;width:40px;height:40px;border:0;background:none;color:#4b435c;font:400 24px/1 var(--mono);cursor:pointer}
+@media (max-width:560px){.lb-body{padding:24px 20px 20px}.lb-rows{grid-template-columns:1fr;gap:2px 0}.lb-rows dd{margin-bottom:10px}.lb-t{font-size:26px}#labelbtn{padding:9px 10px}}
+#hint{position:fixed;z-index:4;transform:translate(-50%,-100%);margin:0;max-width:min(30rem,calc(100vw - 40px));text-align:center;font:500 12px/1.4 var(--mono);letter-spacing:.06em;color:var(--mint2);background:rgba(10,1,24,.7);border:1px solid rgba(125,240,200,.25);border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .8s ease}
+#hint.on{opacity:1}
+.kiosk,.kiosk *{cursor:none!important}.kiosk #top a,.kiosk .deeper,.kiosk #labelbtn{visibility:hidden}
 @view-transition{navigation:auto}
 </style>
 </head>
@@ -82,10 +106,12 @@ noscript p{position:relative;z-index:4;padding:24px}
 <canvas id="overlay" class="layer" aria-hidden="true"></canvas>
 <header id="top"><a href="./">&larr; sonic manifold</a><button id="mute" type="button" aria-pressed="false">sound on</button></header>
 <nav id="dots" aria-label="rooms"></nav>
+<button id="labelbtn" type="button" aria-haspopup="dialog" aria-keyshortcuts="l"><span aria-hidden="true">&#9636;</span> wall label</button>
+<p id="hint" aria-live="polite"></p>
+<dialog id="label" aria-label="wall label"><button class="lb-x" type="button" aria-label="close the label">&times;</button><div class="lb-body"></div></dialog>
 <main>
 
 <section data-room="threshold" data-title="threshold">
-  <div class="room-body"></div>
   <div class="wall">
     <p class="no">an exhibit in six rooms &middot; n = 1</p>
     <h1>mostly the machine</h1>
@@ -93,10 +119,10 @@ noscript p{position:relative;z-index:4;padding:24px}
     <p class="say dim">six rooms of finding that out: what i measured, what the measuring broke, what i had to bury. every dot behind this text is a play. all the music here is mine. sound on if you can.</p>
     <div class="row"><button class="btn" id="enter" type="button">enter with sound</button><button class="btn ghost" id="enter-quiet" type="button">enter quietly</button></div>
   </div>
+  <div class="room-body"></div>
 </section>
 
 <section data-room="wall" data-title="97,427">
-  <div class="room-body"></div>
   <div class="wall">
     <p class="no"><b>01</b> &middot; the log</p>
     <h2>97,427</h2>
@@ -105,62 +131,64 @@ noscript p{position:relative;z-index:4;padding:24px}
     <div class="legend" id="wall-legend" hidden><span><i style="background:#21f6bc"></i>i tapped &middot; 19%</span><span><i style="background:#f5a623"></i>i shuffled &middot; 17%</span><span><i style="background:#6b5a86"></i>it was served &middot; 64%</span></div>
     <a class="deeper" href="lab.html#apple-leadhero">go deeper: the split &rarr;</a>
   </div>
+  <div class="room-body"></div>
 </section>
 
 <section data-room="game" data-title="who pressed play?">
-  <div class="room-body"></div>
   <div class="wall">
     <p class="no"><b>02</b> &middot; the test</p>
     <h2>who pressed play?</h2>
     <p class="say">one artist, then another. did i tap that second one, or did the app queue it?</p>
     <a class="deeper" href="lab.html#toy-whopressed">go deeper: ten rounds &rarr;</a>
   </div>
+  <div class="room-body"></div>
 </section>
 
 <section data-room="map" data-title="the map that lied">
-  <div class="room-body"></div>
   <div class="wall">
     <p class="no"><b>03</b> &middot; the catch</p>
     <h2>the map that lied</h2>
     <p class="say">i measured my taste on a map the algorithm helped draw. turn the dial and watch the map rearrange.</p>
     <a class="deeper" href="lab.html#toy-leakdial">go deeper: the leakage dial &rarr;</a>
   </div>
+  <div class="room-body"></div>
 </section>
 
 <section data-room="listeners" data-title="two listeners">
-  <div class="room-body"></div>
   <div class="wall">
     <p class="no"><b>04</b> &middot; the finding</p>
     <h2>two listeners</h2>
     <p class="say">the same seven years, drawn twice: the artists my taps connect, and the artists autoplay connects.</p>
     <a class="deeper" href="lab.html#fig-26">go deeper: the real network &rarr;</a>
   </div>
+  <div class="room-body"></div>
 </section>
 
 <section data-room="graveyard" data-title="the graveyard">
-  <div class="room-body"></div>
   <div class="wall">
     <p class="no"><b>05</b> &middot; the audit</p>
     <h2>the graveyard</h2>
     <p class="say">pick a finding of mine and try to kill it. the fake data falls first. mine drops in last.</p>
     <a class="deeper" href="lab.html#graveyard">go deeper: all sixteen &rarr;</a>
   </div>
+  <div class="room-body"></div>
 </section>
 
 <section data-room="make" data-title="make your own">
-  <div class="room-body"></div>
   <div class="wall">
     <p class="no"><b>06</b> &middot; the exit</p>
     <h2>make your own</h2>
     <p class="say">your log has the same field. drop it in and see who pressed play on you. nothing leaves your browser.</p>
     <div class="row"><a class="btn" href="bridge-index.html" style="text-decoration:none;display:inline-flex;align-items:center">try it on your data</a><a class="btn ghost" href="lab.html" style="text-decoration:none;display:inline-flex;align-items:center">the full lab</a></div>
     <a class="deeper" href="researcher.html">for researchers: the paper &rarr;</a>
+    <button class="deeper" id="again" type="button" style="background:none;border:0;border-bottom:1px dotted rgba(134,203,254,.5);margin-left:18px;cursor:pointer">walk it again &uarr;</button>
     <button class="deeper" id="share" type="button" style="background:none;border:0;border-bottom:1px dotted rgba(134,203,254,.5);margin-left:18px;cursor:pointer">send this to someone</button>
   </div>
+  <div class="room-body"></div>
 </section>
 
 </main>
 <noscript><p>this exhibit draws with javascript. the whole study, in text, is on the <a href="./">landing page</a> and in the <a href="lab.html">lab</a>.</p></noscript>
-<script type="module" src="exhibit/shell.js?v=20260922d"></script>
+<script type="module" src="exhibit/shell.js?v=20260922f"></script>
 </body>
 </html>

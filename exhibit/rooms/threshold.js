@@ -14,7 +14,7 @@ export default {
     this.X = X; this.Y = Y; this.Z = Z;
   },
   place(ctx, t, low) {
-    const P = ctx.particles, s = ctx.stage(), n = P.n, X = this.X, Y = this.Y, Z = this.Z;
+    const P = ctx.particles, s = this.s || (this.s = ctx.stage()), n = P.n, X = this.X, Y = this.Y, Z = this.Z; /* stage() reads layout: once per enter, never per frame */
     const R = Math.min(s.w, s.h) * 0.43 * (1 + low * 0.1), cx = s.x + s.w / 2, cy = s.y + s.h / 2;
     const a = t * 0.00011, ca = Math.cos(a), sa = Math.sin(a), ct = 0.94, stl = 0.34; /* tilted axis */
     for (let i = 0; i < n; i++) {
@@ -24,11 +24,12 @@ export default {
   },
   enter(ctx) {
     const P = ctx.particles; P.ease = 0.03; P.jitter = 0.5; P.big = false; P.swirl = 0;
+    this.s = ctx.stage(); this.t0 = 0;
     if (!this.X) return;
     P.color((i) => SHADES[(ctx.hash(i * 11 + 7) * 4) | 0]);
     this.place(ctx, 0, 0);
     if (ctx.reduced) { P.x.set(P.tx); P.y.set(P.ty); }
   },
-  frame(g, t, bands, w, h, ctx) { if (!this.X || ctx.reduced) return; const P = ctx.particles; if (P.ease < 0.16) P.ease += 0.0007; /* gather slowly, then keep up with the turn */ this.place(ctx, t, bands.low); },
+  frame(g, t, bands, w, h, ctx) { if (!this.X || ctx.reduced) return; const P = ctx.particles; const dt = this.t0 ? Math.min(50, t - this.t0) : 16; this.t0 = t; if (P.ease < 0.16) P.ease = Math.min(0.16, P.ease + dt * 0.000042); /* gather slowly, then keep up with the turn; by the clock, not by the frame rate */ this.place(ctx, t, bands.low); },
   leave() {},
 };

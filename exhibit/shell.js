@@ -14,7 +14,8 @@
    ctx = { reduced, coarse, particles, audio, data(name), go(i), stage() }
 */
 
-import { postCSS } from './post.js?v=2';
+import { postCSS, post, stopAll } from './post.js?v=3';
+import { LABELS, HINTS } from './labels.js?v=1';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
 const $ = (s, r = document) => r.querySelector(s);
@@ -38,7 +39,7 @@ const fg = field.getContext('2d', { alpha: false });
 /* bloom: every device starts with it; the governor in loop() takes it away from any that cannot hold the frame rate */
 const glow = $('#glow'); let gg = glow && !reduced ? glow.getContext('2d') : null; if (glow && !gg) glow.remove();
 const GDIV = lowPower ? 6 : 4, canvasBlur = !!gg && 'filter' in gg; /* safari has no canvas filter: blur the element instead */
-if (gg && !canvasBlur) glow.style.filter = 'blur(' + (lowPower ? 5 : 7) + 'px)';
+if (gg && !canvasBlur) { if (lowPower) { gg = null; glow.remove(); } else glow.style.filter = 'blur(7px)'; } /* css blur on a live canvas is a slow path on older webkit: phones without canvas filter get no bloom at all */
 /* pointer: dots part around it, a press leaves a ripple */
 const PT = { x: -999, y: -999, on: false, ripples: [] };
 addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' || PT.down) { PT.x = e.clientX; PT.y = e.clientY; PT.on = true; PT.last = performance.now(); } }, { passive: true });
@@ -141,7 +142,7 @@ function drawField(t, bands) {
     if (two) { buf[o + 1] = c; buf[o + pw] = c; buf[o + pw + 1] = c; }
   }
   fg.putImageData(img, 0, 0);
-  if (gg) { gg.globalCompositeOperation = 'copy'; if (canvasBlur) gg.filter = 'blur(2px)'; gg.drawImage(field, 0, 0, glow.width, glow.height); if (canvasBlur) gg.filter = 'none'; gg.globalCompositeOperation = 'difference'; gg.fillStyle = '#0a0118'; gg.fillRect(0, 0, glow.width, glow.height); /* take the background back out, so only the dots bloom */ }
+  if (gg) { glow.style.opacity = (0.72 + Math.min(0.28, bands.mid * 0.9)).toFixed(3); gg.globalCompositeOperation = 'copy'; if (canvasBlur) gg.filter = 'blur(2px)'; gg.drawImage(field, 0, 0, glow.width, glow.height); if (canvasBlur) gg.filter = 'none'; gg.globalCompositeOperation = 'difference'; gg.fillStyle = '#0a0118'; gg.fillRect(0, 0, glow.width, glow.height); /* take the background back out, so only the dots bloom */ }
 }
 
 /* ------------------------------------------------------------------ audio */
@@ -150,27 +151,36 @@ const A = {
   unlock() {
     if (this.ac) { this.ac.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-    this.ac = new AC(); this.gain = this.ac.createGain(); this.an = this.ac.createAnalyser();
+    this.ac = new AC(); try { this.ac.resume(); } catch (e) {} this.gain = this.ac.createGain(); this.an = this.ac.createAnalyser();
     this.an.fftSize = 512; this.an.smoothingTimeConstant = 0.82; this.fft = new Uint8Array(this.an.frequencyBinCount);
     this.lp = this.ac.createBiquadFilter(); this.lp.type = 'lowpass'; this.lp.frequency.value = 20000; this.lp.Q.value = 0.4;
-    this.gain.connect(this.lp); this.lp.connect(this.an); this.an.connect(this.ac.destination);
+    /* everything leaves through one limiter. interface tones have their own bus, which ducks under a listening post too */
+    this.lim = this.ac.createDynamicsCompressor(); this.lim.threshold.value = -6; this.lim.knee.value = 4; this.lim.ratio.value = 12; this.lim.attack.value = 0.003; this.lim.release.value = 0.2;
+    this.sfx = this.ac.createGain(); this.sfx.gain.value = 1;
+    this.gain.connect(this.lp); this.lp.connect(this.an); this.sfx.connect(this.an); this.an.connect(this.lim); this.lim.connect(this.ac.destination);
+    this.ac.addEventListener('statechange', () => { if (this.ac.state === 'running') this.rearm(); });
     for (let k = 0; k < 2; k++) {
-      const el = new Audio(); el.preload = 'auto'; el.loop = true; el.crossOrigin = 'anonymous';
+      const el = new Audio(); el.preload = 'auto'; el.loop = true;
       const src = this.ac.createMediaElementSource(el), g = this.ac.createGain(); g.gain.value = 0;
       src.connect(g); g.connect(this.gain); this.els.push(el); this.srcs.push(src); this.g.push(g);
     }
+    /* ios only lets an <audio> element start outside a tap if it has already been started inside one. rooms change on scroll, so
+       the second deck is started (silent: its gain is 0) and paused right here, inside the visitor's first tap */
+    try { const spare = this.els[1]; spare.src = 'audio/bed/' + (this.want || 'hitting-the-infinite-derivative') + '.mp3'; const pr = spare.play(); if (pr && pr.then) pr.then(() => { if (this.cur !== 1) spare.pause(); }).catch(() => {}); } catch (e) {}
     this.on = true; this.level(); if (this.wantDistant) this.distant(this.wantDistant); if (this.want) this.play(this.want);
   },
-  level() { if (!this.gain) return; const v = this.muted ? 0 : this.ducked ? 0.0001 : 0.85; this.gain.gain.setTargetAtTime(v, this.ac.currentTime, 0.25); },
-  play(track) {
+  level() { if (!this.gain) return; const v = this.muted ? 0 : this.ducked ? 0.0001 : 0.85; this.gain.gain.setTargetAtTime(v, this.ac.currentTime, 0.25); this.sfx.gain.setTargetAtTime(this.muted ? 0 : this.ducked ? 0.2 : 1, this.ac.currentTime, 0.1); },
+  /* a phone pauses <audio> when the tab goes to the background and does not start it again by itself */
+  rearm() { if (this.cur >= 0 && !this.muted && this.els[this.cur].paused) this.els[this.cur].play().catch(() => {}); },
+  play(track, xf = 0.9) {
     this.want = track; if (!this.on || !track) return;
     const url = 'audio/bed/' + track + '.mp3';
     if (this.cur >= 0 && this.els[this.cur].dataset.t === track) return;
     const nx = this.cur === 0 ? 1 : 0, el = this.els[nx], t = this.ac.currentTime;
     el.dataset.t = track; el.src = url; el.currentTime = 0;
-    el.play().catch(() => {});
-    this.g[nx].gain.cancelScheduledValues(t); this.g[nx].gain.setTargetAtTime(1, t, 0.9);
-    if (this.cur >= 0) { const old = this.cur; this.g[old].gain.cancelScheduledValues(t); this.g[old].gain.setTargetAtTime(0, t, 0.9); setTimeout(() => { if (this.cur !== old) this.els[old].pause(); }, 4200); }
+    el.play().catch(() => { const again = () => { removeEventListener('pointerdown', again); if (this.els[this.cur] === el) el.play().catch(() => {}); }; addEventListener('pointerdown', again, { once: true }); });
+    this.g[nx].gain.cancelScheduledValues(t); this.g[nx].gain.setTargetAtTime(1, t, xf);
+    if (this.cur >= 0) { const old = this.cur; this.g[old].gain.cancelScheduledValues(t); this.g[old].gain.setTargetAtTime(0, t, xf); setTimeout(() => { if (this.cur !== old) this.els[old].pause(); }, 1500 + xf * 3000); }
     this.cur = nx;
   },
   mute(m) { this.muted = m; this.level(); },
@@ -181,7 +191,7 @@ const A = {
     const t = this.ac.currentTime + (o.at || 0), osc = this.ac.createOscillator(), g = this.ac.createGain(), dur = o.dur || 0.5;
     osc.type = o.type || 'sine'; osc.frequency.value = 293.66 * Math.pow(2, semi / 12);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(o.vol || 0.07, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    osc.connect(g); g.connect(this.an); osc.start(t); osc.stop(t + dur + 0.05);
+    osc.connect(g); g.connect(this.sfx); osc.start(t); osc.stop(t + dur + 0.05);
   },
   duck(d) { this.ducked = d; this.level(); },
   /* 0 = open, 1 = distant (the graveyard plays its track from the next room over) */
@@ -201,8 +211,17 @@ const rooms = sections.map((el) => ({ el, id: el.dataset.room, mod: null, loadin
 let active = -1;
 const cache = {};
 let identityP = null;
+let goK = -1, goT = 0;
+/* camelot distance between two of my tracks decides how long the rooms dissolve into each other */
+let KEYS = null;
+function xfade(from, to) {
+  if (!KEYS || !from || !to || !KEYS[from] || !KEYS[to]) return 0.9;
+  const a = KEYS[from], b = KEYS[to], na = parseInt(a, 10), nb = parseInt(b, 10), same = a.slice(-1) === b.slice(-1), d = Math.min((na - nb + 12) % 12, (nb - na + 12) % 12);
+  return a === b ? 0.6 : (d === 0 || (same && d === 1)) ? 0.9 : 1.8;
+}
 const ctx = {
   reduced, coarse, particles: P, audio: A, stage, PAL, PROV, hash, V,
+  post: (host, artist, opts) => post(host, artist, ctx, opts), stopPosts: () => stopAll(ctx),
   /* resolves once every dot knows who pressed play on it and which artist it belongs to */
   identity() {
     if (!identityP) identityP = Promise.all([this.data('wall').catch(() => null), this.data('mapmorph').catch(() => null)]).then(([w, m]) => {
@@ -216,7 +235,7 @@ const ctx = {
   data(name) { return cache[name] || (cache[name] = fetch('exhibit/data/' + name + '.json' + V).then((r) => { if (!r.ok) throw new Error(name); return r.json(); })); },
   /* centre a room's single affordance on the stage */
   placeCue(el, fy = 0.5) { const st = stage(); el.style.left = (st.x + st.w / 2) + 'px'; el.style.top = (st.y + st.h * fy) + 'px'; },
-  go(i) { const r = rooms[clamp(i, 0, rooms.length - 1)]; r.el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); },
+  go(i) { const k = clamp(i, 0, rooms.length - 1), now = performance.now(); if (k === goK && now - goT < 700) return; goK = k; goT = now; const r = rooms[k]; r.el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); },
   get index() { return active; },
 };
 
@@ -235,22 +254,29 @@ async function activate(i) {
   og.clearRect(0, 0, W, H);
   const r = await load(i); if (active !== i) return;
   P.swirl = 0.4; P.touch = true;
-  if (r.mod) { if (r.mod.track) A.play(r.mod.track); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
+  if (r.mod) { if (r.mod.track) A.play(r.mod.track, xfade(prev && prev.mod && prev.mod.track, r.mod.track)); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
   load(i + 1);
+  if (labelDlg && labelDlg.open) renderLabel(); armHint(); kioskStep();
   try { history.replaceState(null, '', '#' + r.id); } catch (e) {}
 }
+
+ctx.data('tracks').then((d) => { KEYS = {}; (d.tracks || []).forEach((t) => { KEYS[t.f] = t.k; }); }).catch(() => {});
 
 /* nav dots */
 const nav = $('#dots'); const dots = rooms.map((r, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'dot'; b.setAttribute('aria-label', 'room ' + (i + 1) + ': ' + (r.el.dataset.title || r.id)); b.dataset.t = r.el.dataset.title || r.id; b.addEventListener('click', () => ctx.go(i)); nav.appendChild(b); return b; });
 
-const io = new IntersectionObserver((es) => { let best = null; es.forEach((e) => { if (e.isIntersecting && (!best || e.intersectionRatio > best.intersectionRatio)) best = e; }); if (best && best.intersectionRatio > 0.55) activate(sections.indexOf(best.target)); }, { threshold: [0.55, 0.8] });
+const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) activate(sections.indexOf(e.target)); }); }, { rootMargin: '-49% 0px -49% 0px', threshold: 0 });
 sections.forEach((s) => io.observe(s));
 
 addEventListener('keydown', (e) => {
   if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if (labelDlg && labelDlg.open && e.key !== 'l') return; /* the label is a modal: arrows and space belong to it while it is open */
   if (e.key === 'ArrowDown' || e.key === 'PageDown' || (e.key === ' ' && !e.target.closest('button,a,[role=button]'))) { e.preventDefault(); ctx.go(active + 1); }
   else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); ctx.go(active - 1); }
   else if (e.key === 'm') { $('#mute').click(); }
+  else if (e.key === 'l') { toggleLabel(); }
+  else if (e.key === 'Home') { e.preventDefault(); ctx.go(0); }
+  else if (e.key === 'End') { e.preventDefault(); ctx.go(rooms.length - 1); }
 });
 
 /* threshold */
@@ -259,7 +285,7 @@ function begin(sound) { document.body.classList.add('entered'); if (sound) { A.u
 enter.addEventListener('click', () => begin(true));
 enterQuiet.addEventListener('click', () => begin(false));
 muteBtn.addEventListener('click', () => { const m = !A.muted; if (!m) A.unlock(); A.mute(m); muteBtn.setAttribute('aria-pressed', String(m)); muteBtn.textContent = m ? 'sound off' : 'sound on'; });
-document.addEventListener('visibilitychange', () => { if (A.ac) { if (document.hidden) A.ac.suspend(); else if (!A.muted) A.ac.resume(); } });
+document.addEventListener('visibilitychange', () => { if (A.ac) { if (document.hidden) A.ac.suspend(); else if (!A.muted) { A.ac.resume(); A.rearm(); } } });
 
 /* exit: hand the link on. the native share sheet where there is one, the clipboard otherwise */
 const shareBtn = $('#share');
@@ -267,6 +293,53 @@ if (shareBtn) shareBtn.addEventListener('click', async () => {
   const url = location.origin + location.pathname, say = (m) => { const was = 'send this to someone'; shareBtn.textContent = m; setTimeout(() => { shareBtn.textContent = was; }, 2200); };
   try { if (navigator.share) { await navigator.share({ title: document.title, url }); return; } await navigator.clipboard.writeText(url); say('link copied'); } catch (e) { if (e && e.name !== 'AbortError') say(url.replace(/^https?:\/\//, '')); }
 });
+
+/* ------------------------------------------------------------------ wall labels */
+const labelBtn = $('#labelbtn'), labelDlg = $('#label');
+function renderLabel() {
+  const L = LABELS[rooms[Math.max(0, active)].id]; if (!L || !labelDlg) return;
+  const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
+  const box = $('.lb-body', labelDlg); box.textContent = '';
+  box.appendChild(el('p', 'lb-k', L.kicker)); box.appendChild(el('h3', 'lb-t', L.title)); if (L.by) box.appendChild(el('p', 'lb-by', L.by));
+  const dl = el('dl', 'lb-rows'); L.rows.forEach(([k, v]) => { dl.appendChild(el('dt', '', k)); dl.appendChild(el('dd', '', v)); }); box.appendChild(dl);
+  if (L.more) { const a = el('a', 'lb-more', L.more[1] + ' →'); a.href = L.more[0]; box.appendChild(a); }
+}
+function toggleLabel() { if (!labelDlg || !labelDlg.showModal) return; if (labelDlg.open) labelDlg.close(); else { renderLabel(); labelDlg.showModal(); } }
+if (labelBtn && labelDlg) {
+  if (!labelDlg.showModal) labelBtn.remove();
+  labelBtn.addEventListener('click', toggleLabel);
+  $('.lb-x', labelDlg).addEventListener('click', () => labelDlg.close());
+  labelDlg.addEventListener('click', (e) => { if (e.target === labelDlg) labelDlg.close(); });
+  labelDlg.addEventListener('close', () => { try { labelBtn.focus({ preventScroll: true }); } catch (e) {} });
+}
+
+/* ------------------------------------------------------------------ idle hints: one line, only after a visitor has done nothing in a room for a while */
+const hintEl = $('#hint'); let hintT = 0, acted = new Set();
+function armHint() {
+  clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on');
+  const id = rooms[Math.max(0, active)].id; if (!hintEl || !HINTS[id] || acted.has(id) || KIOSK) return;
+  hintT = setTimeout(() => { if (rooms[active].id !== id || acted.has(id)) return; const s = stage(); hintEl.textContent = HINTS[id]; hintEl.style.left = (s.x + s.w / 2) + 'px'; hintEl.style.top = (s.y + s.h - 8) + 'px'; hintEl.classList.add('on'); }, 9000);
+}
+const didAct = (e) => { if (active < 0 || !e.target.closest || !e.target.closest('section[data-room]') || e.target.closest('.wall a')) return; acted.add(rooms[active].id); clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on'); };
+addEventListener('pointerdown', didAct, { passive: true }); addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ' || /^[tqn]$/i.test(e.key) || /^Arrow(Left|Right)$/.test(e.key)) didAct(e); });
+
+/* ------------------------------------------------------------------ kiosk: exhibit.html?kiosk=1 runs unattended. it walks the rooms, lets each one demonstrate itself, and starts over */
+const KIOSK = /[?&]kiosk=1\b/.test(location.search); let kioskT = 0, lastTouch = 0;
+function kioskStep() {
+  clearTimeout(kioskT); if (!KIOSK) return;
+  const dwell = active === 0 ? 14000 : 30000;
+  kioskT = setTimeout(() => {
+    if (performance.now() - lastTouch < 45000) return kioskStep(); /* someone is using it: wait */
+    goK = -1; ctx.go(active + 1 >= rooms.length ? 0 : active + 1);
+  }, dwell);
+  const r = rooms[active]; if (r && r.mod && r.mod.demo && performance.now() - lastTouch > 45000) setTimeout(() => { if (rooms[active] === r && performance.now() - lastTouch > 45000) try { r.mod.demo(ctx); } catch (e) {} }, 3500);
+}
+if (KIOSK) {
+  document.documentElement.classList.add('kiosk'); lastTouch = -1e9;
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach((ev) => addEventListener(ev, (e) => { if (e.isTrusted) lastTouch = performance.now(); }, { passive: true }));
+}
+
+const againBtn = $('#again'); if (againBtn) againBtn.addEventListener('click', () => { goK = -1; ctx.go(0); });
 
 /* loop */
 let last = 0, slow = 0, seen = 0;

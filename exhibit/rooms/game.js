@@ -1,7 +1,6 @@
 /* room 2 — who pressed play? the wall dims to violet fog; two clusters of the same particles pull
    forward into a constellation, mint above, orchid below. guess which artist i tapped and which
    one the app queued. data: whopressed.json at the site root, spotify's own reason_start labels. */
-import { post, stopAll } from '../post.js?v=2';
 
 const ROUNDS = 5, AY = 0.18, BY = 0.82, DARK = 0x1a1030;
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -82,7 +81,7 @@ export default {
   },
 
   deal(ctx, restart) {
-    clearTimeout(this.timer); stopAll(ctx);
+    clearTimeout(this.timer); ctx.stopPosts();
     if (!this.pool || !this.pool.length) { this.verdict.textContent = 'the deck did not load. try again in a moment.'; this.row.hidden = true; return; }
     if (restart || !this.rounds) {
       const idx = []; for (let i = 0; i < this.pool.length; i++) idx.push(i);
@@ -116,7 +115,7 @@ export default {
     this.pulse = { t0: performance.now(), ok: correct };
     if (correct) { ctx.audio.note(3, { dur: 0.35 }); ctx.audio.note(5, { at: 0.09, dur: 0.6 }); } else ctx.audio.note(-5, { dur: 0.7, type: 'triangle' });
     const noteHost = document.createElement('div'); noteHost.className = 'g-pnote';
-    post(this.posts, row[0], ctx, { noteHost }); post(this.posts, row[1], ctx, { noteHost }); this.posts.appendChild(noteHost);
+    ctx.post(this.posts, row[0], { noteHost }); ctx.post(this.posts, row[1], { noteHost }); this.posts.appendChild(noteHost);
     this.mid.classList.add('answered');
     /* no timer: a listening post needs longer than any timeout i could pick, so the visitor moves the round on */
     const nx = document.createElement('button'); nx.type = 'button'; nx.className = 'btn ghost g-fwd';
@@ -126,7 +125,7 @@ export default {
   },
 
   advance(ctx) {
-    stopAll(ctx); this.ri++;
+    ctx.stopPosts(); this.ri++;
     if (this.ri >= this.rounds.length) this.showEnd(); else this.showRound();
   },
 
@@ -143,7 +142,7 @@ export default {
     this.place(ctx);
     if (!this.rounds) this.deal(ctx, false);
   },
-  leave(ctx) { this.active = false; clearTimeout(this.timer); this.pulse = null; stopAll(ctx); },
+  leave(ctx) { this.active = false; clearTimeout(this.timer); this.pulse = null; ctx.stopPosts(); },
 
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;

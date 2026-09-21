@@ -5,7 +5,7 @@
    - my own soundtrack ducks while the embed plays and returns when it pauses
    track ids come from audio/sonic-tid-to-artist.json, which this site already publishes. */
 
-let tidByArtist = null, apiPromise = null, noted = false;
+let tidByArtist = null, apiPromise = null; const notedHosts = new WeakSet();
 
 function loadIds() {
   if (!tidByArtist) tidByArtist = fetch('audio/sonic-tid-to-artist.json').then((r) => r.json()).then((m) => { const o = {}; for (const tid in m) { const a = m[tid]; if (!(a in o)) o[a] = tid; } return o; }).catch(() => ({}));
@@ -27,7 +27,7 @@ export function post(host, artist, ctx, opts = {}) {
   btn.querySelector('.post-t').textContent = (opts.label || 'hear') + ' ' + artist;
   btn.setAttribute('aria-label', 'load a spotify player for ' + artist);
   root.appendChild(btn);
-  if (!noted) { noted = true; const n = document.createElement('p'); n.className = 'post-note'; n.textContent = 'clicking this loads a small player from spotify. nothing plays or loads from them until you click.'; (opts.noteHost || root).appendChild(n); }
+  const nh = opts.noteHost || host; if (!notedHosts.has(nh)) { notedHosts.add(nh); const n = document.createElement('p'); n.className = 'post-note'; n.textContent = 'clicking this loads a small player from spotify. nothing plays or loads from them until you click.'; (opts.noteHost || root).appendChild(n); }
   host.appendChild(root);
   btn.addEventListener('click', async () => {
     btn.disabled = true; btn.querySelector('.post-t').textContent = 'loading ' + artist + '…';
@@ -35,7 +35,7 @@ export function post(host, artist, ctx, opts = {}) {
     const fail = () => { root.innerHTML = ''; const p = document.createElement('p'); p.className = 'post-note'; p.textContent = artist + ' (not available to play here)'; root.appendChild(p); ctx.audio.duck(false); };
     if (!tid) return fail();
     try {
-      const api = await loadApi(); const slot = document.createElement('div'); root.innerHTML = ''; root.appendChild(slot);
+      const api = await loadApi(); const slot = document.createElement('div'); slot.setAttribute('role', 'group'); slot.setAttribute('aria-label', 'spotify player: ' + artist); root.innerHTML = ''; root.appendChild(slot);
       api.createController(slot, { uri: 'spotify:track:' + tid, height: 80, width: '100%' }, (ctl) => {
         live.add(ctl);
         ctl.addListener('playback_update', (e) => { ctx.audio.duck(!(e && e.data && e.data.isPaused)); });

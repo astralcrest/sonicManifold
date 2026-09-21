@@ -1,6 +1,5 @@
 /* room 4 — two listeners. same 120 artists as the map; edges by who queued the next song. flip the
    toggle, edges cross-fade, nodes hold still. a bridge joins two different scenes. tap a node to hear it. */
-import { post, stopAll } from '../post.js?v=2';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const rgb = (h) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
@@ -126,7 +125,7 @@ export default {
     this.pinned = true; ctx.audio.note(1 + (best % 5), { dur: 0.5, vol: 0.05 });
     const name = this.d.nodes[best].name;
     this.tag.hidden = false; this.tag.textContent = name; this.tag.style.left = px[best * 2] + 'px'; this.tag.style.top = (px[best * 2 + 1] - 16) + 'px';
-    stopAll(ctx); this.postSlot.textContent = ''; post(this.postSlot, name, ctx, { label: 'hear' });
+    ctx.stopPosts(); this.postSlot.textContent = ''; ctx.post(this.postSlot, name, { label: 'hear' });
   },
 
   enter(ctx) {
@@ -140,7 +139,7 @@ export default {
     this.layoutEdges(ctx);
   },
 
-  leave(ctx) { stopAll(ctx); if (this.tag) this.tag.hidden = true; },
+  leave(ctx) { ctx.stopPosts(); if (this.tag) this.tag.hidden = true; },
 
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;
