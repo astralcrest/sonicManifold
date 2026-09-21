@@ -8,7 +8,7 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
 <title>sonic manifold — streaming logs are not preference logs</title>
-<meta name="description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate. What survives conditioning on who pressed play — and what died in the audit.">
+<meta name="description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate. What survives conditioning on who pressed play — and what died in the audit. The same confound sits under any log a recommender mediates.">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -53,7 +53,7 @@ code{font:500 .92em var(--mono);color:var(--ice)}
 .fig{margin:22px 0 6px}
 @media (min-width:1120px){.fig{width:1040px;margin-left:calc(50% - 520px);margin-right:calc(50% - 520px)}}
 .fig svg{width:100%;height:auto;border-radius:10px}
-@media (max-width:700px){.fig{overflow-x:auto;-webkit-overflow-scrolling:touch}.fig svg{min-width:720px}}
+@media (max-width:700px){.fig{overflow-x:auto;-webkit-overflow-scrolling:touch}.fig svg{min-width:900px}}
 .panhint{display:none}
 @media (max-width:700px){.panhint{display:inline}}
 .figcap{font:400 11.5px/1.6 var(--mono);color:var(--mute);max-width:66ch;margin:10px 0 0}
@@ -68,6 +68,11 @@ ul.kills .why{display:block;font-size:13px;margin-top:2px}
 .card .k{font:600 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mint);display:block;margin-bottom:7px}
 .card .d{font-size:13.5px;color:var(--mute);line-height:1.55}
 .card.big .k{color:var(--rose)}
+.chips .kill b{color:var(--rose)}
+.carry{font-size:16px;max-width:min(64ch,620px);margin:20px 0 0;padding:15px 18px;border:1px solid var(--line);border-left:2px solid var(--mint);border-radius:10px;background:rgba(33,246,188,.045)}
+.carry b{color:var(--mint);font-weight:600}
+.enter-x a.alt{color:var(--mint);background:none;border:1px solid rgba(33,246,188,.45)}
+.cta-sub{font:400 12px/1.6 var(--mono);color:var(--mute);margin:10px 0 0;max-width:64ch}
 .card.wide{grid-column:1/-1;border-color:rgba(33,246,188,.4)}
 .enter-x{margin:18px 0 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
 .enter-x a{font:600 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#06130f;background:linear-gradient(100deg,#21f6bc,#62e7ff);border-radius:999px;padding:15px 22px;text-decoration:none;display:inline-block}
@@ -85,9 +90,11 @@ footer a{color:var(--mute)}
 
 <p class="eyebrow">a listening life, decoded &middot; n=1 &middot; <b>astralcrest</b></p>
 <h1>I didn&rsquo;t choose most of my&nbsp;music.</h1>
-<div class="chips"><span><b>97,427</b> plays</span><span class="dot">&middot;</span><span><b>seven</b> years</span><span class="dot">&middot;</span><span><b>81%</b> machine-queued</span><span class="dot">&middot;</span><span><b>19%</b> deliberate taps</span></div>
+<div class="chips"><span><b>97,427</b> plays</span><span class="dot">&middot;</span><span><b>seven</b> years</span><span class="dot">&middot;</span><span><b>81%</b> machine-queued</span><span class="dot">&middot;</span><span><b>19%</b> deliberate taps</span><span class="dot">&middot;</span><span class="kill"><b>16</b> of my findings killed</span></div>
 <p class="thesis">a streamed &ldquo;play&rdquo; is produced jointly by a listener and a recommender, yet listening logs get read as records of taste. spotify&rsquo;s export records who initiated every play (<code>reason_start</code>: did i tap this song, or did it just come on next). condition on that one field and most of what my own log seemed to say about me changes. <b>streaming logs are not preference logs.</b></p>
-<p class="enter-x"><a href="exhibit.html">walk through it: the exhibit &rarr;</a><span>six rooms, about five minutes, better with sound.</span></p>
+<p class="carry"><b>the part that isn&rsquo;t about music.</b> i trained an artist embedding on this stream, which is 6.4&times; algorithm-dominated, and measured my own headline on it. it came back inflated at 1.61: the training stream&rsquo;s provenance had leaked into the geometry. retraining at seven algorithmic-share levels traces a dose-response, 0.99 to 1.46. any preference model fit to logs that a deployed system helped generate inherits this, music or not.</p>
+<p class="enter-x"><a href="exhibit.html">walk through it: the exhibit &rarr;</a><a class="alt" href="bridge-index.html">run it on your own export &rarr;</a></p>
+<p class="cta-sub">six rooms, about five minutes, better with sound &middot; the probe computes your split in this tab. nothing is uploaded, and it works offline.</p>
 
 <h2 id="argument"><span class="mark">◢◤</span> the contamination argument</h2>
 <p>only 19% of my plays started with a deliberate act (pooled over a changing logger; the strict definition is 11.5% and era-stable). the other 81% were the platform advancing a queue. some summaries survive conditioning on who pressed play &mdash; my circadian structure does. genre composition doesn&rsquo;t: the calm ambient wall that reads as &ldquo;my taste&rdquo; is mostly what the algorithm over-serves, and the ranking flips once exposure is separated from choice.</p>
@@ -255,7 +262,7 @@ footer a{color:var(--mute)}
 <p class="dim">whether the gap is listener agency or recommender design, one log can&rsquo;t adjudicate. the operative fact is narrower: the two channels are structurally different, so a log that pools them misrepresents both.</p>
 
 <h2 id="kills"><span class="mark">◢◤</span> the audit is the product</h2>
-<p>every claim ran a fixed, pre-declared audit with kill conditions written before the result was seen. most claims died. <b>28 methods ran; 16 of my own findings are dead on the page</b>, killed by the harness built to check them. a sample:</p>
+<p>every claim ran a fixed, pre-declared audit, with the kill condition written in code before the result was seen. then i put the dashboard&rsquo;s own back catalogue through the same gates: <b>11 of 25 headline claims survived</b>. <b>16 of my own findings are dead on this page</b>, each with a card naming the check that killed it. a sample:</p>
 <ul class="kills">
 <li><b>the predictability gap</b><span class="why">an in-sample mirage: d=0.50 collapses to &minus;0.02 out-of-sample.</span></li>
 <li><b>the 4-year reign &ldquo;p = 0.0000&rdquo;</b><span class="why">a straw-man null; a circular block bootstrap gives p = 0.49&ndash;0.78.</span></li>
@@ -267,17 +274,18 @@ footer a{color:var(--mute)}
 <p class="dim">all sixteen, with receipts: <a href="lab.html#graveyard">the graveyard</a>.</p>
 
 <h2 id="links"><span class="mark">◢◤</span> run it, read it, go deeper</h2>
+<p>all of this is hand-built. the exhibit is one canvas field carrying a dot for each of the 97,427 plays, retargeted room to room. the probe parses your own spotify export in your own tab. the headline figure is generated from one numbers file, not pasted in. the soundtrack is mine.</p>
 <div class="cards">
 <a class="card wide" href="exhibit.html"><span class="k">the exhibit: mostly the machine</span><span class="d">six rooms. every dot is one of my plays. hold the wall to see who pressed play, turn the dial that bends the map, try to kill a finding. the music is mine.</span></a>
-<a class="card" href="lab.html#toy-whopressed"><span class="k">play: who pressed play?</span><span class="d">ten real transitions from my log. guess whether i tapped the next artist or autoplay did. the point of the whole study in about a minute.</span></a>
 <a class="card" href="bridge-index.html"><span class="k">the probe</span><span class="d">drop your own spotify export &mdash; your split and your bridge index, computed in this tab. nothing is uploaded; it works offline.</span></a>
-<a class="card" href="researcher.html"><span class="k">the paper</span><span class="d">&ldquo;streaming logs are not preference logs&rdquo; &mdash; the preprint. technical summary here; DOI 10.5281/zenodo.21464544 activates on publish.</span></a>
+<a class="card" href="lab.html#toy-whopressed"><span class="k">play: who pressed play?</span><span class="d">ten real transitions from my log. guess whether i tapped the next artist or autoplay did. the point of the whole study in about a minute.</span></a>
+<a class="card" href="researcher.html"><span class="k">the technical report</span><span class="d">abstract, the gate sequence, every headline number with its qualifiers, all eighteen kills, and the limitations. the long write-up is unpublished; this is the citable version until it is.</span></a>
 <a class="card big" href="lab.html"><span class="k">the full lab</span><span class="d">the complete dashboard: every method, every null, the seven-year record, the soundtrack. long, loud, and audited.</span></a>
 </div>
 
 <footer>
 built by one listener, on her own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a> &middot; <a href="lab.html">full lab</a> &middot; <a href="researcher.html">for researchers</a><br>
-<span style="opacity:.82">landing build 2026-09-20 &middot; the previous single-page site lives on, unchanged, at <a href="lab.html">lab.html</a> &mdash; old links redirect.</span>
+<span style="opacity:.82">every number on this page comes from the audit ledger behind the report. if you find one that does not hold, write to me and i will kill it in public, the way i killed the other sixteen. &middot; the previous single-page site lives on at <a href="lab.html">lab.html</a>; old links redirect.</span>
 </footer>
 
 </div>
