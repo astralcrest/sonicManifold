@@ -112,7 +112,7 @@
   .hero .ci{color:var(--faint);font-size:12px;font-family:var(--mono)}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:4px 0}
   .tile{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:13px 14px}
-  .tile .k{font-size:11px;color:var(--faint);text-transform:lowercase;letter-spacing:.06em;font-family:var(--mono)}
+  .tile .k{font-size:11px;color:var(--dim);text-transform:lowercase;letter-spacing:.06em;font-family:var(--mono)}
   .tile .v{font-size:22px;font-weight:600;color:var(--ink);font-family:var(--mono);margin-top:3px}
   .tile .v.mint{color:var(--mint)}
   .tile .x{font-size:11px;color:var(--dim);margin-top:2px}
@@ -195,7 +195,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
 </head>
 <body>
 <div class="wrap">
-  <a href="./" style="display:inline-block;margin-bottom:14px;color:var(--dim,#7c808c);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none">&larr;&nbsp;sonicManifold</a>
+  <a href="./" style="display:inline-block;margin-bottom:6px;padding:14px 10px 14px 0;min-height:44px;box-sizing:border-box;color:var(--dim,#7c808c);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none">&larr;&nbsp;sonicManifold</a>
   <p class="eyebrow">bridge&nbsp;index</p>
   <h1>how much do <em style="font-style:italic;color:var(--mint)">you</em> steer the queue?</h1>
   <p class="sub">
@@ -225,6 +225,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
         <input type="file" id="picker" multiple accept=".json,application/json">
         <div class="big">drop <span class="mint">Streaming_History_Audio_*.json</span> here</div>
         <div class="small">or click to pick files &middot; select all the audio files at once &middot; video files are ignored</div>
+        <div class="small" style="margin-top:8px">no export yet? spotify.com &rarr; account &rarr; privacy &rarr; download your data &rarr; tick &ldquo;extended streaming history&rdquo;. it arrives by email, usually within days (spotify says up to 30). the short &ldquo;account data&rdquo; export is not enough: it has no <code>reason_start</code>.</div>
       </label>
       <p class="note">a full multi-year export usually takes about <b style="color:var(--ink)">5&ndash;15s</b> in this tab — parsing and the community search run off the main thread, so the page stays responsive while it works.</p>
       <div class="files" id="files"></div>
@@ -272,9 +273,9 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
       <div class="tile"><div class="k">sessions</div><div class="v" id="tSess"></div><div class="x">30-min gap splits</div></div>
       <div class="tile"><div class="k">tap cross-rate</div><div class="v mint" id="tTap"></div><div class="x" id="tTapN"></div></div>
       <div class="tile"><div class="k">algo cross-rate</div><div class="v" id="tAlgo"></div><div class="x" id="tAlgoN"></div></div>
-      <div class="tile" title="the bridge index you would get from pure chance, given your community sizes"><div class="k">mechanical floor</div><div class="v" id="tFloor"></div><div class="x">label-shuffle null</div></div>
-      <div class="tile" title="odds this result is a fluke — lower is stronger evidence"><div class="k">permutation p</div><div class="v" id="tP"></div><div class="x" id="tPx"></div></div>
-      <div class="tile" title="how many distinct listening clusters your library split into"><div class="k">communities</div><div class="v" id="tComm"></div><div class="x" id="tMod"></div></div>
+      <div class="tile" title="the bridge index you would get from pure chance, given your community sizes"><div class="k">mechanical floor</div><div class="v" id="tFloor"></div><div class="x">label-shuffle null &middot; what pure chance gives, for communities this size</div></div>
+      <div class="tile" title="odds this result is a fluke — lower is stronger evidence"><div class="k">permutation p</div><div class="v" id="tP"></div><div class="x" id="tPx"></div><div class="x">odds this is a fluke; lower is stronger</div></div>
+      <div class="tile" title="how many distinct listening clusters your library split into"><div class="k">communities</div><div class="v" id="tComm"></div><div class="x" id="tMod"></div><div class="x">clusters of artists your library split into</div></div>
       <div class="tile"><div class="k">years covered</div><div class="v" id="tYears"></div><div class="x">from your log</div></div>
     </div>
 
@@ -1025,7 +1026,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
   function addFiles(fileList){
     for(var i=0;i<fileList.length;i++){
       var f=fileList[i];
-      if(!/\.json$/i.test(f.name)){ try{ log("skipped "+f.name+" — not a .json file"); }catch(_e){} continue; }
+      if(!/\.json$/i.test(f.name)){ try{ log("skipped "+f.name+" — not a .json file"); }catch(_e){} try{ errEl.textContent="skipped "+f.name+": that is not a .json file. i need the Streaming_History_Audio_*.json files from the extended streaming history export. nothing was read or sent anywhere."; errEl.classList.add("show"); }catch(_e2){} continue; }
       var key=f.name+"|"+f.size;
       var dup=false;
       for(var j=0;j<chosen.length;j++){ if(chosen[j].key===key){ dup=true; break; } }
@@ -1348,11 +1349,11 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     var v=document.getElementById("verdict");
     var clears = r.BI > r.floor_CI95[1];
     v.innerHTML = clears
-      ? "you cross listening communities <span class='bi'>"+r.BI.toFixed(1)+"×</span> more when you steer than your algorithm does — clearing the <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> mechanical floor."
+      ? "you cross listening communities <span class='bi'>"+r.BI.toFixed(1)+"×</span> more when you steer than your algorithm does — clearing the <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> mechanical floor (what pure chance would give)."
       : "your bridge index is <span class='bi'>"+r.BI.toFixed(2)+"×</span>, which does <b>not</b> clear its <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> shuffle floor — no bridge signal on this log.";
 
     document.getElementById("refline").innerHTML =
-      "the reference listener&rsquo;s own probe reads bi &asymp; <b>1.9</b> &mdash; same circular in-log method as yours, NOT the study&rsquo;s headline, which is about 1.05 on a partition built without any embedding and with same-artist moves excluded (its audit flags this probe&rsquo;s partition family as leakage-inflated; compare probe-to-probe only). "+
+      "the reference listener&rsquo;s own probe reads bi &asymp; <b>1.9</b> &mdash; same circular in-log method as yours, NOT the study&rsquo;s headline, which is about 1.05 on a partition built without any embedding and with same-artist moves excluded, and which i report as a direction and not a size (depending on how untagged artists are treated it lands anywhere from 1.00 to 1.13) (its audit flags this probe&rsquo;s partition family as leakage-inflated; compare probe-to-probe only). "+
       (r.BI>=2.85 ? "you steer noticeably harder than the reference listener." : r.BI>=1.8 ? "you steer about as hard." : r.BI>=1.3 ? "you steer, but a touch less." : r.BI>1 ? "you steer more than your algorithm, but gently." : "your algorithm bridges as much as you do.");
 
     var tapW=Math.min(100,r.tap_cross_rate*100), algoW=Math.min(100,r.algo_cross_rate*100);
