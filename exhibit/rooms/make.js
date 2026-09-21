@@ -21,6 +21,9 @@ export default {
     const st = document.createElement('style');
     st.textContent = 'section[data-room="make"] .mk{position:absolute;inset:0}'
       + 'section[data-room="make"] .mk-text{position:absolute;display:flex;flex-direction:column;gap:6px;pointer-events:none;transition:top .5s ease}'
+      + 'section[data-room="make"] .mk-huge{margin:0 0 2px;font:600 clamp(40px,8vw,84px)/1 var(--mono);letter-spacing:-.03em;color:var(--mint2);opacity:0;transition:opacity .45s ease}'
+      + 'section[data-room="make"] .mk-huge.on{opacity:1}'
+      + '@media (prefers-reduced-motion:reduce){section[data-room="make"] .mk-huge{transition:none}}'
       + 'section[data-room="make"] .mk-intro{margin:0;font:400 13px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;color:var(--mute);max-width:30rem}'
       + 'section[data-room="make"] .mk-now{margin:0;font:600 12px/1.4 var(--mono);letter-spacing:.02em;color:var(--mint2)}'
       + 'section[data-room="make"] .mk-next{margin:0;font:400 12px/1.4 var(--mono);color:var(--mute)}'
@@ -41,6 +44,8 @@ export default {
     try { data = await ctx.data('tracks'); } catch (e) {}
     try { await ctx.identity(); } catch (e) {} /* every dot needs its prov before the finale can sort the wall */
     const wrap = document.createElement('div'); wrap.className = 'mk'; root.appendChild(wrap); this.wrap = wrap; this.root = root;
+    /* defined unconditionally, even on the load-failure path below, since enter() always registers it */
+    this._onDemoBreak = () => { if (this.active) this.stopDemo(); };
     const tracks = data && data.tracks ? data.tracks : [];
     if (!tracks.length) { const p = document.createElement('p'); p.className = 'mk-intro'; p.textContent = 'the track list did not load. reload to try again.'; wrap.appendChild(p); return; }
     this.tracks = tracks.map((t) => Object.assign({}, t, parseKey(t.k)));
@@ -54,18 +59,20 @@ export default {
     for (let i = 0; i < n; i++) order[i] = off[prov[i]]++;
     this.order = order; this.tapCount = cnt[0];
     const tapPct = Math.round(cnt[0] / n * 100), restPct = 100 - tapPct; /* 19 / 81 — matches wall.json pct_rounded.tap = 19 */
+    this.restPct = restPct;
     const word = WORDS[this.tracks.length] || String(this.tracks.length);
     this.lines = [
       'the wall again. seven years, sorted.',
-      'everything the queue or shuffle started, leaving. ' + restPct + '% of the picture.',
+      'the queue or shuffle started all of that. it is leaving.',
       'what is left is the ' + tapPct + '% i tapped. i made ' + word + ' tracks out of all of it anyway. tap one.',
     ];
     /* the short screens get the same sentence with the middle clause dropped, not a different claim */
-    this.short = ['the wall again. seven years, sorted.', restPct + '% of it, leaving.', 'what is left is the ' + tapPct + '% i tapped. ' + word + ' tracks. tap one.'];
+    this.short = ['the wall again. seven years, sorted.', 'the queue or shuffle started all of that.', 'what is left is the ' + tapPct + '% i tapped. ' + word + ' tracks. tap one.'];
     this.closings = ['that was the last of the six rooms. the wheel stays up for as long as you want it.', 'that was the last of the six rooms.'];
 
     const text = document.createElement('div'); text.className = 'mk-text'; wrap.appendChild(text); this.textEl = text;
     const intro = document.createElement('p'); intro.className = 'mk-intro'; text.appendChild(intro); /* filled by the first beat, so no line flashes before the finale starts */
+    const huge = document.createElement('p'); huge.className = 'mk-huge'; huge.setAttribute('aria-hidden', 'true'); text.insertBefore(huge, intro); this.hugeEl = huge; /* beat two's display number: decorative, the intro line still carries the sentence for AT */
     const now = document.createElement('p'); now.className = 'mk-now'; now.setAttribute('aria-live', 'polite'); text.appendChild(now);
     const next = document.createElement('p'); next.className = 'mk-next'; next.setAttribute('aria-live', 'polite'); text.appendChild(next);
     const end = document.createElement('p'); end.className = 'mk-end'; end.setAttribute('aria-live', 'polite'); text.appendChild(end);
@@ -103,6 +110,9 @@ export default {
     const cx = s.x + s.w / 2, cy = s.y + availH / 2;
     this.cx = cx; this.cy = cy; this.rIn = R * (this.tight ? 0.66 : 0.6); this.rOut = R;
     this.jit = Math.max(5, Math.min(15, R * 0.14)); /* cluster radius: on a small wheel the clusters have to shrink too, or they merge into one ring */
+    /* the outer ring's own radius always gives its 12 labels enough arc to stay legible (rOut >= rIn by construction);
+       the inner ring is the one that gets tight on a narrow phone, so it is gated on its own radius, separately */
+    this.showInner = this.rIn >= 64;
     const groups = {};
     this.tracks.forEach((t, i) => (groups[t.k] = groups[t.k] || []).push(i));
     /* two tracks in the same key sit either side of that key's angle, far enough apart that their clusters do not merge */
@@ -115,6 +125,7 @@ export default {
     this.labelEls.forEach(({ el, num, letter }) => {
       const a = rad(ang(num)), r = letter === 'A' ? this.rIn - this.jit - 11 : this.rOut + this.jit + 9;
       el.style.left = (cx + Math.cos(a) * r) + 'px'; el.style.top = (cy + Math.sin(a) * r) + 'px';
+      el.style.display = (letter === 'A' && !this.showInner) ? 'none' : '';
     });
     /* on a small phone the ring is tight: shrink the hit circles to the spacing between them (never under 28px) rather than let them cover each other's centres */
     const bs = Math.max(28, Math.min(44, Math.round(Math.min(R * 0.4, this.rIn * 0.52))));
@@ -131,18 +142,24 @@ export default {
   },
   /* measure the text block at its tallest, so it can never grow down into the .wall copy underneath */
   reserve(s) {
-    const t = this.textEl, keep = [this.introEl.textContent, this.nowEl.textContent, this.nextEl.textContent, this.endEl.textContent];
+    /* this runs on every layout() — including a debounced resize while the room just sits there — so the three
+       aria-live regions must not announce the throwaway candidate strings below; silence them for the measurement */
+    const t = this.textEl, liveEls = [this.nowEl, this.nextEl, this.endEl];
+    liveEls.forEach((e) => e.setAttribute('aria-live', 'off'));
+    const keep = [this.introEl.textContent, this.nowEl.textContent, this.nextEl.textContent, this.endEl.textContent, this.hugeEl.textContent];
     t.style.left = s.x + 'px'; t.style.width = s.w + 'px';
     let nx = '', nw = '';
     for (let i = 0; i < this.tracks.length; i++) { const a = this.nextLine(i), b = this.nowLine(i); if (a.length > nx.length) nx = a; if (b.length > nw.length) nw = b; }
     this.introEl.textContent = this.line(2); this.nowEl.textContent = nw;
     this.nextEl.textContent = nx; this.endEl.textContent = this.closingText();
+    this.hugeEl.textContent = this.restPct + '%'; /* .mk-huge stays hidden (no .on) throughout, but its reserved height must count */
     const h = t.offsetHeight;
     /* and again with the one beat line alone: that is all the copy the wall has to leave room for */
     let lg = ''; for (let i = 0; i < 3; i++) { const v = this.line(i); if (v.length > lg.length) lg = v; }
     this.nowEl.textContent = this.nextEl.textContent = this.endEl.textContent = ''; this.introEl.textContent = lg;
     this.lineH = t.offsetHeight;
-    this.introEl.textContent = keep[0]; this.nowEl.textContent = keep[1]; this.nextEl.textContent = keep[2]; this.endEl.textContent = keep[3];
+    this.introEl.textContent = keep[0]; this.nowEl.textContent = keep[1]; this.nextEl.textContent = keep[2]; this.endEl.textContent = keep[3]; this.hugeEl.textContent = keep[4];
+    requestAnimationFrame(() => liveEls.forEach((e) => e.setAttribute('aria-live', 'polite')));
     return h;
   },
   /* the wall grid from room 01, duplicated here on purpose (rooms do not import each other) so the
@@ -215,7 +232,7 @@ export default {
     const P = ctx.particles, prov = P.prov, PROV = ctx.PROV;
     this.beat = 1; this.t0 = -1; this.endAt = 0;
     this.arm(false); this.introEl.textContent = this.line(0); this.textEl.style.top = this.beatTop + 'px';
-    this.nowEl.textContent = ''; this.nextEl.textContent = ''; this.endEl.textContent = '';
+    this.nowEl.textContent = ''; this.nextEl.textContent = ''; this.endEl.textContent = ''; this.hugeEl.classList.remove('on');
     P.ease = 0.1; P.jitter = 0.28; P.big = false; P.swirl = 0.22;
     this.wallTargets(ctx);
     P.color((i) => PROV[prov[i]]);
@@ -234,6 +251,7 @@ export default {
     const rows = this.wrows, cell = this.wcell, ox = this.wox, oy = this.woy, order = this.order;
     const cap = this.wcap, n = P.n, keep = cap >= n ? 1 : cap / n, fy = this.vh + 170;
     this.beat = 2; this.introEl.textContent = this.line(1);
+    this.hugeEl.textContent = this.restPct + '%'; this.hugeEl.classList.add('on');
     P.swirl = 0; P.ease = 0.045; /* straight down: a fall, not an arc */
     P.targetPx((i) => {
       if (prov[i] === 0) { let k = order[i]; if (keep < 1) { const kk = floor(k * keep); if (floor((k + 1) * keep) === kk) return null; k = kk; } return [ox + floor(k / rows) * cell, oy + (k % rows) * cell]; }
@@ -247,7 +265,7 @@ export default {
   beatThree(ctx, t, quiet) {
     const P = ctx.particles;
     this.beat = 3; P.swirl = 0.3; P.ease = 0.05; P.jitter = 0.5; P.big = true; /* fewer dots left: draw each one bigger */
-    this.introEl.textContent = this.line(2); this.textEl.style.top = this.textTop + 'px';
+    this.introEl.textContent = this.line(2); this.textEl.style.top = this.textTop + 'px'; this.hugeEl.classList.remove('on');
     this.layoutParticles(ctx); this.select(this.playing, ctx, false);
     this.arm(true);
     this.endAt = (t || performance.now()) + SETTLE;
@@ -256,6 +274,13 @@ export default {
   settled() { this.endAt = 0; this.endEl.textContent = this.closingText(); },
   /* ---- lifecycle --------------------------------------------------------------- */
   enter(ctx) {
+    this.active = true;
+    /* a real visitor's own pointer, touch or key anywhere in the document ends a running kiosk demo immediately — the
+       same idiom game.js uses. the track-button click handler already covers one path; this covers everything else.
+       attached here, removed in leave(), so nothing is listening while this room is not the one on screen. */
+    document.addEventListener('pointerdown', this._onDemoBreak);
+    document.addEventListener('touchstart', this._onDemoBreak, { passive: true });
+    document.addEventListener('keydown', this._onDemoBreak);
     const P = ctx.particles; P.ease = 0.05; P.jitter = 0.5; P.big = false; P.touch = false; /* the clusters are buttons; the pointer should not push them away */
     if (!this.ready) { P.scatter(); P.color(() => ctx.PAL.fog); return; }
     const fresh = this.away; this.away = false;
@@ -271,7 +296,10 @@ export default {
   },
   /* left mid-finale (a fast scroll, or the shell settling on the room at startup): it did not happen, so it plays again next time */
   leave(ctx) {
-    this.stopDemo(); this.away = true;
+    this.active = false; this.stopDemo(); this.away = true;
+    document.removeEventListener('pointerdown', this._onDemoBreak);
+    document.removeEventListener('touchstart', this._onDemoBreak);
+    document.removeEventListener('keydown', this._onDemoBreak);
     if (ctx && ctx.particles) ctx.particles.big = false; /* this room is the only one that asks for fat dots: hand the field back as it was */
     if (this.beat > 0 && this.beat < 3) { this.beat = 0; this.t0 = -1; this.ran = false; }
   },

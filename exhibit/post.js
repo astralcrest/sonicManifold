@@ -5,14 +5,24 @@
    - my own soundtrack ducks while the embed plays and returns when it pauses
    track ids come from audio/sonic-tid-to-artist.json, which this site already publishes. */
 
-let tidByArtist = null, apiPromise = null; const notedHosts = new WeakSet();
+let tidByArtist = null, apiPromise = null, apiReady = null; const notedHosts = new WeakSet();
 
 function loadIds() {
   if (!tidByArtist) tidByArtist = fetch('audio/sonic-tid-to-artist.json').then((r) => r.json()).then((m) => { const o = {}; for (const tid in m) { const a = m[tid]; if (!(a in o)) o[a] = tid; } return o; }).catch(() => ({}));
   return tidByArtist;
 }
+/* one slow moment must not disable every post for the rest of the visit: a failed attempt is forgotten, so the next
+   click starts a fresh one, and an api that turns up after its own timeout is kept and answers that click at once. */
 function loadApi() {
-  if (!apiPromise) apiPromise = new Promise((res, rej) => { const prev = window.onSpotifyIframeApiReady; window.onSpotifyIframeApiReady = (api) => { if (prev) try { prev(api); } catch (e) {} res(api); }; const s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true; s.onerror = rej; document.head.appendChild(s); setTimeout(() => rej(new Error('timeout')), 9000); });
+  if (apiReady) return Promise.resolve(apiReady);
+  if (!apiPromise) apiPromise = new Promise((res, rej) => {
+    const prev = window.onSpotifyIframeApiReady; let to = 0;
+    window.onSpotifyIframeApiReady = (api) => { clearTimeout(to); apiReady = api; if (prev) try { prev(api); } catch (e) {} res(api); };
+    const s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true;
+    s.onerror = () => { clearTimeout(to); rej(new Error('script')); };
+    document.head.appendChild(s);
+    to = setTimeout(() => rej(new Error('timeout')), 9000);
+  }).catch((e) => { apiPromise = null; throw e; });
   return apiPromise;
 }
 

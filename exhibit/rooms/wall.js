@@ -29,10 +29,16 @@ export default {
     const pad = document.createElement('div'); pad.style.cssText = 'position:absolute;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none'; pad.addEventListener('contextmenu', (e) => e.preventDefault()); root.appendChild(pad); this.pad = pad;
     const cue = document.createElement('button'); cue.type = 'button'; cue.className = 'cue'; cue.textContent = 'press and hold'; cue.style.touchAction = 'none'; cue.addEventListener('contextmenu', (e) => e.preventDefault()); root.appendChild(cue); this.cue = cue;
     const down = (x, y) => { if (this.done) return this.reset(ctx); this.holding = true; if (this.r === 0) { this.cx = x; this.cy = y; } cue.style.opacity = '0'; this.startSwell(ctx); };
-    const up = () => { this.holding = false; this.releaseSwell(ctx); if (!this.done && this.r > 0) { cue.textContent = 'keep holding'; cue.style.opacity = '.7'; } };
+    const up = () => { this.holding = false; this._lt = 0; this.releaseSwell(ctx); if (!this.done && this.r > 0) { cue.textContent = 'keep holding'; cue.style.opacity = '.7'; } };
     this._down = down; this._up = up;
-    sec.addEventListener('pointerdown', (e) => { if (e.target.closest('a,button:not(.cue)')) return; down(e.clientX, e.clientY); });
-    addEventListener('pointerup', up); addEventListener('pointercancel', up);
+    /* bind only to this room's own surfaces, gated on the room being the one on screen: the shared full-viewport
+       <section> stays hit-testable during a scroll-snap transition, so a press landing there while another room
+       is active must not reset or re-target a wall that isn't showing */
+    const live = () => sec.classList.contains('is-active');
+    const onDown = (e) => { if (!live()) return; if (e.target.closest('a,button:not(.cue)')) return; down(e.clientX, e.clientY); };
+    const onUp = () => { if (this.holding || this.swellOn) up(); };
+    pad.addEventListener('pointerdown', onDown); cue.addEventListener('pointerdown', onDown);
+    addEventListener('pointerup', onUp); addEventListener('pointercancel', onUp);
     cue.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) { const s = ctx.stage(); down(s.x + s.w / 2, s.y + s.h / 2); } } });
     cue.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') up(); });
     this.note = P.perDot > 1.5 ? ' on this screen one dot is about ' + Math.round(P.perDot) + ' plays.' : '';
@@ -65,22 +71,32 @@ export default {
     }
   },
   paint(ctx) { const P = ctx.particles, lit = this.lit, W = ctx.PAL.white, C = ctx.PROV; P.color((i) => (lit[i] ? C[P.prov[i]] : W)); },
+  /* once sorted, the "again" pill moves off the photographed pile: top-left of the stage, low opacity. re-applied
+     in enter() too, so a return visit finds it already out of the way instead of re-centred */
+  positionCue(ctx) {
+    const s = ctx.stage();
+    this.cue.style.left = (s.x + 46) + 'px';
+    this.cue.style.top = (s.y - 4) + 'px';
+    this.cue.style.opacity = '.45';
+  },
   copy() {
     const st = this.done ? 2 : this.r > 0 ? 1 : 0;
     this.say.textContent = st === 0 ? 'this is what a streaming log says my taste is: one dot for every play, all of them the same colour.'
       : st === 1 ? 'the same wall, coloured by who pressed play. left to right is seven years.'
       : '19% i tapped. 17% i shuffled. 64% was served to me.';
-    this.dim.textContent = st === 0 ? 'press and hold the wall.' + this.note : st === 1 ? 'keep holding.' : 'sorted: a taste profile built from this log is mostly a profile of an algorithm. scroll on.';
+    this.dim.textContent = st === 0 ? 'press and hold the wall.' + this.note : st === 1 ? 'keep holding.' : 'sorted: a taste profile built from this log is mostly a profile of an algorithm. tap the wall to run it again, or scroll on.';
     this.legend.hidden = st === 0;
     if (this.pad) this.pad.style.touchAction = this.cue.style.touchAction = this.done ? 'auto' : 'none'; /* once it is sorted, swipes over the wall scroll again */
   },
-  reset(ctx) { this.teardownSwell(); ctx.audio.distant(0.5); this.r = 0; this.done = false; this.sorted = false; this.lit.fill(0); ctx.particles.ease = 0.06; this.layout(ctx); this.paint(ctx); this.copy(); this.cue.textContent = 'press and hold'; this.cue.style.opacity = '1'; },
+  reset(ctx) { this.teardownSwell(); ctx.audio.distant(0.5); this.r = 0; this._lt = 0; this._said = 0; this.done = false; this.sorted = false; this.lit.fill(0); ctx.particles.ease = 0.06; this.layout(ctx); this.paint(ctx); this.copy(); ctx.placeCue(this.cue); this.cue.textContent = 'press and hold'; this.cue.style.opacity = '1'; },
   enter(ctx) {
     const P = ctx.particles; P.ease = 0.06; P.jitter = 0.22; P.big = false; if (!this.ready) return;
     this.grid(ctx); this.layout(ctx); this.paint(ctx); this.copy(); ctx.placeCue(this.cue);
     ctx.audio.distant(this.done ? 0 : 0.5 * (1 - this.r / (this.maxR || 1)));
     { const s = ctx.stage(), p = this.pad.style; p.left = s.x + 'px'; p.top = s.y + 'px'; p.width = s.w + 'px'; p.height = s.h + 'px'; }
     if (ctx.reduced && !this.done) { this.lit.fill(1); this.done = true; this.sorted = true; this.layout(ctx); this.paint(ctx); this.copy(); this.cue.textContent = 'again'; }
+    if (this.done) this.positionCue(ctx); /* a return visit to an already-sorted wall must not re-centre the pill */
+    this._lt = 0;
   },
   leave(ctx) { this.holding = false; ctx.audio.distant(0); this.teardownSwell(); },
   /* --- the flood's own sound: a quiet rising filtered-noise swell under the visitor's hand, on top of the shared distant() sweep --- */
@@ -124,17 +140,26 @@ export default {
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;
     if (this.holding && !this.done) {
-      this.r += 15; /* ~900 px/s at 60 fps */
+      const dt = this._lt ? Math.min(64, t - this._lt) : 16.7; this._lt = t;
+      this.r += 0.9 * dt; /* px per second from the frame timestamp, not per frame, so 120 Hz doesn't double the speed */
       ctx.audio.distant(Math.max(0, 0.5 * (1 - this.r / this.maxR))); /* the track opens up as the wall fills */
-      const P = ctx.particles, n = P.n, lit = this.lit, r2 = this.r * this.r, cx = this.cx, cy = this.cy; let changed = false;
-      for (let i = 0; i < n; i++) { if (lit[i]) continue; const dx = P.tx[i] - cx, dy = P.ty[i] - cy; if (dx * dx + dy * dy <= r2) { lit[i] = 1; changed = true; } }
-      if (changed) this.paint(ctx);
+      const P = ctx.particles, n = P.n, lit = this.lit, TC = P.tc, C = ctx.PROV, prov = P.prov, r2 = this.r * this.r, cx = this.cx, cy = this.cy;
+      for (let i = 0; i < n; i++) {
+        if (lit[i]) continue;
+        const dx = P.tx[i] - cx, dy = P.ty[i] - cy;
+        if (dx * dx + dy * dy <= r2) {
+          lit[i] = 1;
+          /* write the packed colour directly (same expression as P.color/shell.js) instead of a full paint() pass over every dot */
+          const v = C[prov[i]] >>> 0;
+          TC[i] = 0xff000000 | ((v & 0xff) << 16) | (v & 0xff00) | ((v >> 16) & 0xff);
+        }
+      }
       this.updateSwell(ctx);
       g.strokeStyle = 'rgba(125,240,200,' + (0.35 + bands.low * 0.4) + ')'; g.lineWidth = 1.5; g.beginPath(); g.arc(cx, cy, this.r, 0, 6.283); g.stroke();
-      if (this.r === 15) this.copy();
+      if (!this._said) { this._said = 1; this.copy(); }
       if (this.r > this.maxR) {
         this.done = true; this.holding = false; this.copy(); ctx.audio.distant(0); this.releaseSwell(ctx); ctx.audio.note(0, { dur: 1.6, vol: 0.05 }); ctx.audio.note(4, { at: 0.05, dur: 1.6, vol: 0.04 });
-        setTimeout(() => { if (!this.done) return; this.sorted = true; ctx.particles.ease = 0.04; this.layout(ctx); this.cue.textContent = 'again'; this.cue.style.opacity = '.6'; }, 900);
+        setTimeout(() => { if (!this.done) return; this.sorted = true; ctx.particles.ease = 0.04; this.layout(ctx); this.cue.textContent = 'again'; this.positionCue(ctx); }, 900);
       }
     }
     if (this.sorted) this.drawLabels(g);

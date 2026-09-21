@@ -9,7 +9,7 @@ const SHORT = [
 ];
 const NULL_TXT = "a null is what the number looks like when the effect isn't there. i scramble the part that would carry the effect and recompute, hundreds of times.";
 const STONE_LINE = 'sixteen of my findings died this way.';
-const CAVEAT = 'four of my pre-declared tests are runnable here. two survived. the other twelve kills are in the lab — most of them are not this pretty.';
+const CAVEAT = 'four of my pre-declared tests are runnable here. two survived. the other twelve kills are in the lab, and most of them are not this pretty.';
 const V_K = "it's buried in the pile. this one died.";
 const V_S = 'it stands outside the pile. this one lived.';
 /* AX: the histogram + marker share one honest scale, but only fill this much of the stage width —
@@ -27,8 +27,11 @@ const TPL = `<div class="gv-pn">
 <p class="gv-rule"></p>
 <button type="button" class="btn ghost gv-again">run another</button>
 </div>
-<div class="gv-stones"></div>
+<div class="gv-buried">
 <p class="gv-stoneline"></p>
+<button type="button" class="gv-sixteen" aria-expanded="false">the sixteen</button>
+<ul class="gv-sixteen-list" hidden></ul>
+</div>
 <p class="gv-caveat"></p>
 <div class="gv-fade" aria-hidden="true"></div>
 </div>`;
@@ -50,8 +53,11 @@ section[data-room=graveyard] .gv-again{align-self:flex-start}
 section[data-room=graveyard] .gv-card.on{border-color:var(--mint)}
 section[data-room=graveyard] .gv-pn.ran .gv-null{display:none}
 section[data-room=graveyard] .gv-pn.ran .gv-card:not(.on){display:none}
-section[data-room=graveyard] .gv-stones{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
-section[data-room=graveyard] .gv-stone{width:9px;height:12px;border-radius:4px 4px 1px 1px;background:rgba(189,166,255,.4)}
+section[data-room=graveyard] .gv-buried{margin-top:4px}
+section[data-room=graveyard] .gv-sixteen{margin-top:2px;padding:0;border:0;background:none;color:var(--mint);font:500 11.5px/1.4 var(--mono);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+section[data-room=graveyard] .gv-sixteen:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+section[data-room=graveyard] .gv-sixteen-list{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:5px 16px}
+section[data-room=graveyard] .gv-sixteen-list li{font:400 11px/1.4 var(--mono);color:var(--mute)}
 section[data-room=graveyard] .gv-fade{position:sticky;left:0;right:0;bottom:0;height:22px;margin-top:-22px;background:linear-gradient(rgba(10,1,24,0),rgba(10,1,24,.92));pointer-events:none;opacity:0;transition:opacity .2s}
 section[data-room=graveyard] .gv-fade.show{opacity:1}
 @media (max-height:720px) and (max-aspect-ratio:115/100){
@@ -66,7 +72,7 @@ section[data-room=graveyard] .gv-result{gap:4px}
    and drop the aggregate graveyard (stones/line/caveat) so the direct result never has to compete
    with it for the little height a short phone has. */
 section[data-room=graveyard] .gv-pn.ran .gv-cards{display:flex}
-section[data-room=graveyard] .gv-pn.ran .gv-stones,section[data-room=graveyard] .gv-pn.ran .gv-stoneline,section[data-room=graveyard] .gv-pn.ran .gv-caveat{display:none}
+section[data-room=graveyard] .gv-pn.ran .gv-buried,section[data-room=graveyard] .gv-pn.ran .gv-caveat{display:none}
 }`;
 
 function rnd2(n) { return Math.round(n * 100) / 100; }
@@ -84,12 +90,18 @@ export default {
     this.root = root;
     const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     root.innerHTML = TPL;
-    const Q = { pn: '.gv-pn', cd: '.gv-cards', nl: '.gv-null', rs: '.gv-result', ss: '.gv-status', nm: '.gv-nums', xEl: '.gv-x', ru: '.gv-rule', ag: '.gv-again', so: '.gv-stones', sl: '.gv-stoneline', cv: '.gv-caveat', fd: '.gv-fade' };
+    const Q = { pn: '.gv-pn', cd: '.gv-cards', nl: '.gv-null', rs: '.gv-result', ss: '.gv-status', nm: '.gv-nums', xEl: '.gv-x', ru: '.gv-rule', ag: '.gv-again', sxBtn: '.gv-sixteen', sxList: '.gv-sixteen-list', sl: '.gv-stoneline', cv: '.gv-caveat', fd: '.gv-fade' };
     for (const k in Q) this[k] = root.querySelector(Q[k]);
     this.nl.textContent = NULL_TXT;
     this.sl.textContent = STONE_LINE;
     this.cv.textContent = CAVEAT;
     this.ag.addEventListener('click', () => this.again(ctx));
+    this.sxBtn.addEventListener('click', () => {
+      const open = this.sxList.hidden;
+      this.sxList.hidden = !open;
+      this.sxBtn.setAttribute('aria-expanded', String(open));
+      this.checkScroll();
+    });
     this.cum = new Float32Array(24);
     this.cases = [];
     try {
@@ -104,8 +116,8 @@ export default {
       });
       const buried = (d && d.buried) || [];
       buried.forEach((title) => {
-        const s = document.createElement('span'); s.className = 'gv-stone'; s.title = title; s.setAttribute('aria-hidden', 'true');
-        this.so.appendChild(s);
+        const li = document.createElement('li'); li.textContent = title;
+        this.sxList.appendChild(li);
       });
     } catch (e) {
       const p = document.createElement('p'); p.className = 'gv-null'; p.textContent = 'the graveyard data did not load.';
@@ -200,8 +212,13 @@ export default {
   },
   leave(ctx) {
     ctx.audio.distant(0);
+    this.stopDemo();
+  },
+  /* cancels any kiosk demo in flight and gives the cards back to whoever just touched the room */
+  stopDemo() {
     if (this._demoT1) { clearTimeout(this._demoT1); this._demoT1 = 0; }
     if (this._demoT2) { clearTimeout(this._demoT2); this._demoT2 = 0; }
+    if (this.cd) this.busy(false);
   },
   /* a 3-8ms bandpass-filtered noise burst, generated once and replayed — no new asset, no allocation
      in the per-frame path (only when a grain actually lands and the rate gate opens). */
@@ -234,15 +251,25 @@ export default {
       g.fillStyle = amber; g.beginPath(); g.moveTo(mx - 5, pr.y - 14); g.lineTo(mx + 5, pr.y - 14); g.lineTo(mx, pr.y - 4); g.closePath(); g.fill();
       const edgeX = pr.x + pr.w * AX;
       g.strokeStyle = 'rgba(245,166,35,.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(edgeX, pr.y - 14); g.lineTo(mx, pr.y - 14); g.stroke();
+      g.font = '600 10px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.textBaseline = 'bottom';
+      g.fillStyle = 'rgba(245,166,35,.85)'; g.fillText('mine · ' + rnd2(c.o), mx, pr.y - 16);
+      g.textAlign = 'left';
     } else {
       /* killed: the observed value sits inside the null's own bulk, so the line only rises as high
          as that column's own grains do (same maxC/colW as the pile itself) — it reads as buried,
-         not as a beacon poking out of the sand. drawn first, in frame(), before the pile's own
-         baseline stroke — the closest thing to "under the grains" this room draws for itself. */
+         not as a beacon poking out of the sand. the pile still covers the body of this line; a small
+         caret + value sits just below the baseline, outside the grains, so the verdict is findable
+         without unburying the number. */
       const bIdx = Math.min(bins - 1, Math.max(0, Math.floor(frac * bins)));
       const hb = (c.cn[bIdx] || 0) / (this.maxC || 1);
       const topY = pr.y + pr.h * (1 - hb);
-      g.strokeStyle = 'rgba(245,166,35,.55)'; g.lineWidth = 2; g.beginPath(); g.moveTo(mx, pr.y + pr.h); g.lineTo(mx, topY); g.stroke();
+      g.strokeStyle = 'rgba(245,166,35,.75)'; g.lineWidth = 2; g.beginPath(); g.moveTo(mx, pr.y + pr.h); g.lineTo(mx, topY); g.stroke();
+      const by = pr.y + pr.h + 4;
+      g.fillStyle = amber;
+      g.beginPath(); g.moveTo(mx, by); g.lineTo(mx - 4, by + 7); g.lineTo(mx + 4, by + 7); g.closePath(); g.fill();
+      g.font = '600 10px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.textBaseline = 'top';
+      g.fillStyle = 'rgba(245,166,35,.85)'; g.fillText('mine · ' + rnd2(c.o), mx, by + 9);
+      g.textAlign = 'left';
     }
   },
   frame(g, t, bands, w, h, ctx) {

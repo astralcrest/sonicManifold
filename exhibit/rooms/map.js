@@ -25,6 +25,7 @@ const CURVE_CAP_S = 'each column is one of the seven maps. the more the algorith
 const CURVE_SUB = 'the line at 1.00 is no difference at all.';
 
 const SIGMA = 0.012, TAU = 6.283185307;
+const RISE = 105;       /* ms between one column being released and the next */
 const AXMAX = 1.5;      /* columns are drawn from zero, so 1.00 sits two thirds of the way up */
 const NPIN = 4, TRN = 14, TRSTEP = 4; /* held artists, ghost-trail length, frames between samples */
 const F0 = 146.83;      /* D3. the drone is two sines this far apart, at most 31 cents */
@@ -104,7 +105,16 @@ const mixc = (a, b, k) => {
     'section[data-room="map"] .mapwrap.mtight .mdrag{display:none}' +
     'section[data-room="map"] .mapwrap.mmicro .mdef,section[data-room="map"] .mapwrap.mmicro .manch{display:none}' +
     'section[data-room="map"] .mapwrap.mmicro .mcap{font-size:12px}' +
-    'section[data-room="map"] .mapwrap.mcurve.mtight .mhud{visibility:hidden;height:0;overflow:hidden}';
+    /* the curve view on a short stage used to hide the whole readout, so a phone carried no number
+       at all. instead the readout collapses to one line that still holds both: what this map read
+       and what the headline reads without any map */
+    'section[data-room="map"] .mchead{display:none;align-items:baseline;gap:7px;white-space:nowrap;font:600 11px/1.25 var(--mono);letter-spacing:.05em;color:var(--mute)}' +
+    'section[data-room="map"] .mcheadv{font-size:15px;color:var(--ink);letter-spacing:0}' +
+    'section[data-room="map"] .mapwrap.mcurve.mtight .mhud{padding-bottom:0;background:none}' +
+    'section[data-room="map"] .mapwrap.mcurve.mtight .mbig,section[data-room="map"] .mapwrap.mcurve.mtight .mrow,' +
+    'section[data-room="map"] .mapwrap.mcurve.mtight .manch,section[data-room="map"] .mapwrap.mcurve.mtight .mheld,' +
+    'section[data-room="map"] .mapwrap.mcurve.mtight .mdef{display:none}' +
+    'section[data-room="map"] .mapwrap.mcurve.mtight .mchead{display:flex}';
   document.head.appendChild(st);
 }
 
@@ -182,6 +192,14 @@ export default {
     hud.appendChild(el('p', 'mdef mdefl', 'bridge index: how often my own picks cross into another neighbourhood of the map, divided by how often autoplay does. 1.00 means no difference.'));
     hud.appendChild(el('p', 'mdef mdefs', 'bridge index: my crossings between neighbourhoods, divided by autoplay’s. 1.00 means no difference.'));
     hud.appendChild(el('p', 'mring', 'ringed: four of my most-played artists. they keep their colour on every map.'));
+    /* the one-line form of the same two numbers, for a stage too short to stack the readout. the
+       value comes from mapmorph.json like every other reading here; 1.05 is the same published
+       embedding-free headline the .manch line above carries */
+    const chead = el('div', 'mchead');
+    chead.appendChild(el('span', '', 'on this map'));
+    chead.appendChild(el('span', 'mcheadv'));
+    chead.appendChild(el('span', '', '· without any map 1.05'));
+    hud.appendChild(chead);
     wrap.appendChild(hud);
 
     const ctl = el('div', 'mctl');
@@ -212,7 +230,19 @@ export default {
     this.tapv = hud.querySelector('.mtapv'); this.autov = hud.querySelector('.mautov');
     this.tapBar = hud.querySelector('.mtap'); this.autoBar = hud.querySelector('.mauto');
     this.capM = cap.querySelector('.mcapm'); this.capS = cap.querySelector('.mcaps');
+    this.chv = hud.querySelector('.mcheadv');
     this.dial = dial; this.bMap = bMap; this.bCur = bCur;
+
+    /* the rise: in the curve view the columns are built from the dots themselves, so growing them
+       means moving targets. grow is the step each column has been released to, gvis the smoothed
+       value the drawn chart follows, so line and label climb with the dots */
+    this.grow = new Float32Array(7).fill(1); this.gvis = new Float32Array(7).fill(1); this.ctDraw = new Float32Array(7);
+    this.riseAt = 0; this.riseK = 7;
+
+    /* a real visitor's own hand ends any kiosk demo at once: no timer outlives it. the dial and the
+       toggle both stop key events from reaching the document, so this listens on the way down */
+    wrap.addEventListener('pointerdown', () => { if (this.dt.length) this.stopDemo(); });
+    document.addEventListener('keydown', (e) => { if (e.isTrusted && this.dt.length && this.alive()) this.stopDemo(); }, true);
 
     dial.addEventListener('input', (e) => { e.stopPropagation(); this.pick(parseInt(dial.value, 10), ctx); });
     dial.addEventListener('keydown', (e) => e.stopPropagation());
@@ -237,16 +267,26 @@ export default {
     /* the readout sits above the map and the dial below it, so the artists get the middle band of
        the stage and nothing is ever drawn under text. if the two ends cannot both fit, the room
        sheds its own copy rather than letting anything spill over the wall text */
+    /* each shrink step is measured once and only re-measured when a class actually landed: the
+       thresholds descend, so a step that is not reached cannot be reached by a later one */
     this.wrap.classList.remove('mtight', 'mtiny', 'mmicro', 'mcurve');
-    if (this.hudEl.offsetHeight + this.ctlEl.offsetHeight + 120 > s.h) this.wrap.classList.add('mtight');
-    if (this.hudEl.offsetHeight + this.ctlEl.offsetHeight + 96 > s.h) this.wrap.classList.add('mtiny');
-    if (this.hudEl.offsetHeight + this.ctlEl.offsetHeight + 40 > s.h) this.wrap.classList.add('mmicro');
-    this.wrap.classList.toggle('mcurve', this.mode === 'curve');
+    let hud = this.hudEl.offsetHeight, ctl = this.ctlEl.offsetHeight;
+    if (hud + ctl + 120 > s.h) {
+      this.wrap.classList.add('mtight'); hud = this.hudEl.offsetHeight; ctl = this.ctlEl.offsetHeight;
+      if (hud + ctl + 96 > s.h) {
+        this.wrap.classList.add('mtiny'); hud = this.hudEl.offsetHeight; ctl = this.ctlEl.offsetHeight;
+        if (hud + ctl + 40 > s.h) this.wrap.classList.add('mmicro');
+      }
+    }
     const tight = this.tight = this.wrap.classList.contains('mtight');
-    const hud = this.hudEl.offsetHeight, ctl = this.ctlEl.offsetHeight;
+    this.subHidden = this.wrap.classList.contains('mtiny');
+    const micro = this.wrap.classList.contains('mmicro');
+    this.wrap.classList.toggle('mcurve', this.mode === 'curve');
+    /* the last step and the curve view both change the readout, so the band is measured once more */
+    if (micro || this.mode === 'curve') { hud = this.hudEl.offsetHeight; ctl = this.ctlEl.offsetHeight; }
     if (tight) { this.y0 = 0.03; this.yh = 0.94; }
     else { this.y0 = Math.min(0.5, (hud + 14) / s.h); this.yh = Math.max(0.18, 1 - (hud + ctl + 28) / s.h); }
-    const top = tight ? s.y + 14 : s.y + this.y0 * s.h + 20;
+    const top = tight ? s.y + (this.mode === 'curve' ? hud + 8 : 14) : s.y + this.y0 * s.h + 20;
     const base = (tight ? s.y + s.h - ctl - 8 : s.y + (this.y0 + this.yh) * s.h) - 30;
     const gut = s.w < 430 ? 34 : 50, cw = (s.w - gut - 8) / 7, bi = this.map.published.bridge_index;
     this.cBase = base; this.cTop = top; this.cLeft = s.x + gut; this.cFull = Math.max(24, base - top);
@@ -262,10 +302,10 @@ export default {
     const P = ctx.particles, s = this.s, q = this.nxy[this.level], na = this.na, ox = this.offX, oy = this.offY;
     const y0 = this.y0, yh = this.yh, art = P.artist;
     if (this.mode === 'curve') {
-      const sub = this.sub, col = this.col, rk = this.rank, cx = this.colX, ch = this.colH, cwv = this.colW, base = this.cBase;
+      const sub = this.sub, col = this.col, rk = this.rank, cx = this.colX, ch = this.colH, cwv = this.colW, base = this.cBase, gw = this.grow;
       const sx = s.x, sy = s.y, sw = s.w, sh = s.h, hash = ctx.hash;
       P.targetPx((i) => {
-        if (sub[i]) { const c = col[i]; return [cx[c] + (hash(i * 5 + 2) - 0.5) * cwv, base - rk[i] * ch[c]]; }
+        if (sub[i]) { const c = col[i]; return [cx[c] + (hash(i * 5 + 2) - 0.5) * cwv, base - rk[i] * ch[c] * gw[c]]; }
         const a = art[i] % na;
         return [sx + (q[a * 2] + ox[i]) * sw, sy + (y0 + (q[a * 2 + 1] + oy[i]) * yh) * sh];
       });
@@ -275,13 +315,23 @@ export default {
   },
 
   paint(ctx) {
-    const P = ctx.particles, C = ctx.PROV, na = this.na, pinMask = this.pinMask, sub = this.sub, art = P.artist, prov = P.prov;
-    const curve = this.mode === 'curve', k = curve ? (this.tight ? 0.88 : 0.85) : 0.3, fog = ctx.PAL.fog;
-    const D0 = mixc(C[0], fog, k), D1 = mixc(C[1], fog, k), D2 = mixc(C[2], fog, k), LIFT = ctx.PAL.ice;
+    const P = ctx.particles, C = ctx.PROV, na = this.na, pinMask = this.pinMask, sub = this.sub, col = this.col, art = P.artist, prov = P.prov;
+    const curve = this.mode === 'curve', lv = this.level;
+    /* the map view only dims the cloud. the curve view parks it: the dots that are not part of the
+       measurement fade most of the way into the background, so the seven columns are the brightest
+       thing on the stage and the chart's own labels can be read on a phone */
+    const sink = curve ? ctx.PAL.bg : ctx.PAL.fog, k = curve ? 0.88 : 0.3;
+    const D0 = mixc(C[0], sink, k), D1 = mixc(C[1], sink, k), D2 = mixc(C[2], sink, k);
+    const H0 = mixc(C[0], sink, 0.55), H1 = mixc(C[1], sink, 0.55), H2 = mixc(C[2], sink, 0.55);
+    const LIFT = ctx.PAL.ice, HERE = ctx.PAL.tap;
     P.color((i) => {
       const a = art[i] % na, p = prov[i];
+      if (curve) {
+        if (sub[i]) return col[i] === lv ? HERE : LIFT;  /* the level on the dial is the mint column */
+        if (pinMask[a]) return p === 0 ? H0 : p === 1 ? H1 : H2;
+        return p === 0 ? D0 : p === 1 ? D1 : D2;
+      }
       if (pinMask[a]) return C[p];              /* the held artists never dim: that is the point */
-      if (curve && sub[i]) return LIFT;
       return p === 0 ? D0 : p === 1 ? D1 : D2;
     });
   },
@@ -315,7 +365,15 @@ export default {
     if (m === this.mode || !this.ready) return;
     this.markMode(m);
     ctx.particles.ease = 0.05;
-    this.copy(); this.position(ctx); this.applyTargets(ctx); this.paint(ctx);
+    this.copy(); this.position(ctx); this.startRise(ctx); this.applyTargets(ctx); this.paint(ctx);
+  },
+
+  /* the columns are dots, so the reveal is a staggered release of their targets: they gather on the
+     axis and grow in level order, left to right. reduced motion gets the finished chart */
+  startRise(ctx) {
+    const on = this.mode === 'curve' && !ctx.reduced && this.alive();
+    this.grow.fill(on ? 0 : 1); this.gvis.fill(on ? 0 : 1);
+    this.riseAt = on ? performance.now() : 0; this.riseK = on ? 0 : 7;
   },
 
   copy() {
@@ -323,10 +381,13 @@ export default {
     const m = this.map, lv = this.level, pub = m.published, last = lv === 6;
     this.pct.textContent = String(m.levels[lv]);
     this.bi.textContent = this.biTxt[lv];
+    this.chv.textContent = this.biTxt[lv];
     const tap = Math.round(pub.tap_crossing_pct[lv]), auto = Math.round(pub.auto_crossing_pct[lv]);
     this.tapv.textContent = tap + '%'; this.autov.textContent = auto + '%';
     this.tapBar.style.width = tap + '%'; this.autoBar.style.width = auto + '%';
-    if (this.mode === 'curve') { this.capM.textContent = this.shortCap ? CURVE_CAP_S : CURVE_CAP; this.capS.textContent = last ? NEG : CURVE_SUB; }
+    /* on a stage too short for the sub-caption the withdrawal moves up into the main line: the
+       sentence the room exists to say is never the one that gets dropped */
+    if (this.mode === 'curve') { this.capM.textContent = last && this.subHidden ? NEG : (this.shortCap ? CURVE_CAP_S : CURVE_CAP); this.capS.textContent = last ? NEG : CURVE_SUB; }
     else { this.capM.textContent = last ? NEG : CAP[lv]; this.capS.textContent = last ? CAP[6] : ''; }
     this.dial.setAttribute('aria-valuetext', 'level ' + (lv + 1) + ' of 7: ' + m.levels[lv] + '% algorithmic, index ' + this.biTxt[lv] + '. my plays unchanged');
   },
@@ -391,44 +452,86 @@ export default {
     const red = ctx.reduced;
     this.fc++;
     if ((this.fc & 63) === 0) this.droneSet(ctx); /* picks the drone up if sound is enabled later, drops it on mute */
-    if (this.mode === 'curve') this.drawCurve(g, bands, red);
+    if (this.mode === 'curve') {
+      if (this.riseAt) {
+        let rel = 0;
+        while (this.riseK < 7 && t - this.riseAt >= this.riseK * RISE) { this.grow[this.riseK++] = 1; rel++; }
+        if (rel) this.applyTargets(ctx);   /* at most seven retargets, one per column */
+        if (this.riseK >= 7) this.riseAt = 0;
+      }
+      const gv = this.gvis, gw = this.grow, e = red ? 1 : 0.06;
+      for (let i = 0; i < 7; i++) gv[i] += (gw[i] - gv[i]) * e;
+      this.drawCurve(g, bands, red);
+    }
     this.drawPins(g, bands, red);
   },
 
   drawCurve(g, bands, red) {
-    const s = this.s, base = this.cBase, x0 = this.cLeft, x1 = s.x + s.w - 6, cx = this.colX, ct = this.colTop, cw = this.colW;
-    const lv = this.level, f = this.small ? 9 : 10;
+    const s = this.s, base = this.cBase, x0 = this.cLeft, x1 = s.x + s.w - 6, cx = this.colX, ch = this.colH, cw = this.colW;
+    const lv = this.level, sm = this.small, gv = this.gvis, ct = this.ctDraw, top = this.cTop, M = 'px ui-monospace, Menlo, monospace';
+    const f = sm ? 11 : 12;
+    for (let i = 0; i < 7; i++) ct[i] = base - ch[i] * gv[i];
+    /* the chart gets its own ground: the strip under the axis and the left gutter are painted out,
+       and every label carries a halo, so nothing the room is measuring is read through the cloud */
+    g.fillStyle = 'rgba(10,1,24,.88)';
+    g.fillRect(s.x, base + 1.5, s.w, sm ? 33 : 36);
+    g.fillRect(s.x, top - 12, x0 - s.x - 4, base - top + 13);
     g.lineWidth = 1;
-    g.strokeStyle = 'rgba(240,234,255,.22)';
+    g.strokeStyle = 'rgba(240,234,255,.34)';
     g.beginPath(); g.moveTo(x0, base); g.lineTo(x1, base); g.stroke();
     /* parity: 1.00 is no difference between my picks and autoplay's */
-    g.setLineDash([4, 5]); g.strokeStyle = 'rgba(245,166,35,.55)';
-    g.beginPath(); g.moveTo(x0, this.parY); g.lineTo(x1, this.parY); g.stroke(); g.setLineDash([]);
-    g.font = '600 ' + f + 'px ui-monospace, Menlo, monospace';
-    g.textAlign = 'left'; g.textBaseline = 'alphabetic';
-    g.fillStyle = 'rgba(245,166,35,.85)'; g.fillText('1.00 · no difference', x0 + 2, this.parY - 5);
+    g.setLineDash([5, 5]); g.lineWidth = 1.3; g.strokeStyle = 'rgba(245,166,35,.8)';
+    g.beginPath(); g.moveTo(x0 - 5, this.parY); g.lineTo(x1, this.parY); g.stroke(); g.setLineDash([]); g.lineWidth = 1;
+    g.shadowColor = '#0a0118'; g.shadowBlur = 7;
+    g.textBaseline = 'alphabetic';
+    /* where the reading for the current level will go, so the parity label can step out of its way */
+    const vf = sm ? 15 : 18, vRoom = this.colTop[lv] - 10 - vf > top - 12;
+    const vy = vRoom ? ct[lv] - 10 : ct[lv] + vf + 8;
+    g.font = '700 ' + vf + M; const vw = g.measureText(this.biTxt[lv]).width;
+    g.font = '600 ' + f + M;
+    const lw = g.measureText('no difference').width, ly = this.parY - 7;
+    let lx = x0 + 6;
+    if (gv[lv] > 0.35 && vy - vf < ly && vy + 3 > ly - f && cx[lv] - vw / 2 - 8 < lx + lw && cx[lv] + vw / 2 + 8 > lx) {
+      lx = cx[lv] + cw * 0.8 + 10;
+      if (lx + lw > x1) lx = Math.max(x0 + 6, cx[lv] - cw * 0.8 - 10 - lw);
+    }
+    g.fillStyle = 'rgba(245,166,35,.96)';
+    g.textAlign = 'right'; g.fillText('1.00', x0 - 8, this.parY + f * 0.36);   /* the tick, in the gutter */
+    g.textAlign = 'left'; g.fillText('no difference', lx, ly);
     /* the curve itself: one line through the seven column tops */
-    g.strokeStyle = 'rgba(134,203,254,' + (red ? 0.8 : 0.7 + bands.mid * 0.3) + ')'; g.lineWidth = 1.6;
+    g.strokeStyle = 'rgba(134,203,254,' + (red ? 0.85 : 0.75 + bands.mid * 0.25) + ')'; g.lineWidth = sm ? 1.8 : 2.2;
     g.beginPath(); for (let i = 0; i < 7; i++) { if (i) g.lineTo(cx[i], ct[i]); else g.moveTo(cx[i], ct[i]); } g.stroke();
     g.lineWidth = 1;
     g.textAlign = 'center';
     for (let i = 0; i < 7; i++) {
-      const on = i === lv;
-      if (on) { g.strokeStyle = 'rgba(33,246,188,.9)'; g.strokeRect(cx[i] - cw * 0.72, ct[i] - 3, cw * 1.44, base - ct[i] + 3); }
-      g.fillStyle = on ? 'rgba(240,234,255,.95)' : 'rgba(164,155,189,.75)';
-      g.fillText(this.lvTxt[i], cx[i], base + 13);
-      if (on) { g.fillStyle = 'rgba(33,246,188,.95)'; g.fillText(this.biTxt[i], cx[i], ct[i] - 7); }
+      const on = i === lv, h = base - ct[i];
+      if (on) {
+        g.fillStyle = 'rgba(33,246,188,.12)'; g.fillRect(cx[i] - cw * 0.8, ct[i] - 4, cw * 1.6, h + 4);
+        g.strokeStyle = 'rgba(33,246,188,.95)'; g.lineWidth = 1.8;
+        g.strokeRect(cx[i] - cw * 0.8, ct[i] - 4, cw * 1.6, h + 4); g.lineWidth = 1;
+      }
+      g.font = (on ? '700 ' : '600 ') + (on ? f + 1 : f) + M;
+      g.fillStyle = on ? 'rgba(33,246,188,.98)' : 'rgba(198,190,222,.92)';
+      g.fillText(this.lvTxt[i], cx[i], base + f + 5);
+      /* the reading for the level on the dial. the side was chosen from the column's finished
+         height, not its current one, so it does not jump when the rise lands */
+      if (on && gv[i] > 0.35) { g.font = '700 ' + vf + M; g.fillText(this.biTxt[i], cx[i], vy); }
     }
-    g.fillStyle = 'rgba(164,155,189,.8)';
-    g.fillText('% of training plays chosen by the algorithm', (x0 + x1) / 2, base + 26);
-    g.save(); g.translate(s.x + 11, (this.cTop + base) / 2); g.rotate(-Math.PI / 2);
-    g.textAlign = 'center'; g.fillText('bridge index', 0, 0); g.restore();
+    g.font = '600 ' + (sm ? 10.5 : 11.5) + M;
+    g.fillStyle = 'rgba(198,190,222,.9)';
+    g.fillText('% of training plays chosen by the algorithm', (x0 + x1) / 2, base + (sm ? 29 : 32));
+    if (!sm) {
+      /* the y title sits below parity, where the tick above it cannot reach */
+      g.save(); g.translate(s.x + 12, (this.parY + base) / 2); g.rotate(-Math.PI / 2);
+      g.textAlign = 'center'; g.fillText('bridge index', 0, 0); g.restore();
+    }
+    g.shadowBlur = 0;
     g.textAlign = 'left';
   },
 
   drawPins(g, bands, red) {
     const s = this.s, q = this.nxy[this.level], pin = this.pin, px = this.pinX, py = this.pinY, tr = this.tr;
-    const curve = this.mode === 'curve', al = curve ? 0.34 : 1;
+    const curve = this.mode === 'curve', al = curve ? 0.18 : 1; /* in the curve view the rings are only a reminder that the map is still behind the chart */
     const sx = s.x, sy = s.y, sw = s.w, sh = s.h, y0 = this.y0, yh = this.yh;
     let moved = false;
     for (let k = 0; k < NPIN; k++) {

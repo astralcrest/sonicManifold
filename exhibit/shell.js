@@ -14,7 +14,7 @@
    ctx = { reduced, coarse, particles, audio, data(name), go(i), stage() }
 */
 
-import { postCSS, post, stopAll } from './post.js?v=3';
+import { postCSS, post, stopAll } from './post.js?v=4';
 import { LABELS, HINTS } from './labels.js?v=4';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
@@ -47,7 +47,7 @@ addEventListener('pointerdown', (e) => { PT.down = true; PT.x = e.clientX; PT.y 
 const ptOff = (e) => { PT.down = false; if (!e || e.pointerType !== 'mouse') PT.on = false; };
 addEventListener('pointerup', ptOff, { passive: true }); addEventListener('pointercancel', ptOff, { passive: true }); document.addEventListener('mouseleave', () => { PT.on = false; });
 const og = over.getContext('2d');
-let W = 0, H = 0, PW = 0, PH = 0, DPR = 1, img = null, buf32 = null;
+let W = 0, H = 0, PW = 0, PH = 0, DPR = 1, ODPR = 1, img = null, buf32 = null;
 const BG = 0xff18010a; /* #0a0118 as little-endian ABGR */
 
 const P = {
@@ -106,10 +106,11 @@ function resize() {
   W = innerWidth; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, lowPower ? 1 : 1.5);
   PW = Math.round(W * DPR); PH = Math.round(H * DPR);
   field.width = PW; field.height = PH; over.width = Math.round(W * (devicePixelRatio || 1)); over.height = Math.round(H * (devicePixelRatio || 1));
-  og.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
+  ODPR = devicePixelRatio || 1; og.setTransform(ODPR, 0, 0, ODPR, 0, 0);
   img = fg.createImageData(PW, PH); buf32 = new Uint32Array(img.data.buffer);
   if (gg) { glow.width = Math.max(2, (PW / GDIV) | 0); glow.height = Math.max(2, (PH / GDIV) | 0); }
   if (active >= 0 && rooms[active] && rooms[active].mod && rooms[active].mod.enter) rooms[active].mod.enter(ctx);
+  sigPlace();
 }
 
 function blend(a, b, k) { /* per-channel lerp of two ABGR ints */
@@ -190,7 +191,7 @@ const A = {
     const SC = [0, 3, 5, 7, 10], oct = Math.floor(step / 5), semi = SC[((step % 5) + 5) % 5] + 12 * oct;
     const t = this.ac.currentTime + (o.at || 0), osc = this.ac.createOscillator(), g = this.ac.createGain(), dur = o.dur || 0.5;
     osc.type = o.type || 'sine'; osc.frequency.value = 293.66 * Math.pow(2, semi / 12);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(o.vol || 0.07, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(o.vol || 0.05, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(g); g.connect(this.sfx); osc.start(t); osc.stop(t + dur + 0.05);
   },
   duck(d) { this.ducked = d; this.level(); },
@@ -236,6 +237,8 @@ const ctx = {
   /* centre a room's single affordance on the stage */
   placeCue(el, fy = 0.5) { const st = stage(); el.style.left = (st.x + st.w / 2) + 'px'; el.style.top = (st.y + st.h * fy) + 'px'; },
   go(i) { const k = clamp(i, 0, rooms.length - 1), now = performance.now(); if (k === goK && now - goT < 700) return; goK = k; goT = now; const r = rooms[k]; r.el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); },
+  /* kiosk only: true the moment a real hand arrives. a room whose demo runs on timers polls this and stops */
+  demoStopped: true,
   get index() { return active; },
 };
 
@@ -247,6 +250,7 @@ async function load(i) {
 
 async function activate(i) {
   if (i === active) return;
+  ctx.demoStopped = true; /* whatever was demonstrating itself is not the active room any more */
   const prev = rooms[active]; active = i;
   if (prev && prev.mod && prev.mod.leave) try { prev.mod.leave(ctx); } catch (e) {}
   sections.forEach((s, k) => s.classList.toggle('is-active', k === i));
@@ -255,7 +259,7 @@ async function activate(i) {
   const r = await load(i); if (active !== i) return;
   P.swirl = 0.4; P.touch = true;
   if (r.mod) { if (r.mod.track) A.play(r.mod.track, xfade(prev && prev.mod && prev.mod.track, r.mod.track)); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
-  load(i + 1);
+  load(i + 1); sigPlace();
   if (labelDlg && labelDlg.open) renderLabel(); armHint(); kioskStep();
   try { history.replaceState(null, '', '#' + r.id); } catch (e) {}
 }
@@ -269,6 +273,7 @@ const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isInters
 sections.forEach((s) => io.observe(s));
 
 addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return; /* cmd+l, cmd+m, cmd+arrowdown belong to the browser */
   if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
   if (labelDlg && labelDlg.open && e.key !== 'l') return; /* the label is a modal: arrows and space belong to it while it is open */
   if (e.key === 'ArrowDown' || e.key === 'PageDown' || (e.key === ' ' && !e.target.closest('button,a,[role=button]'))) { e.preventDefault(); ctx.go(active + 1); }
@@ -330,7 +335,9 @@ function armHint() {
       if (!hintEl.classList.contains('on')) return;
       const hr = hintEl.getBoundingClientRect();
       const sec = rooms[active].el; let maxBottom = null;
-      sec.querySelectorAll('.room-body *, .wall *').forEach((el) => {
+      const near = [...sec.querySelectorAll('.room-body *, .wall *')];
+      if (labelBtn && labelBtn.isConnected) near.push(labelBtn); /* on a phone the placard sits under the title bar, where the hint wants to print */
+      near.forEach((el) => {
         if (el === hintEl || el.contains(hintEl) || !el.textContent || !el.textContent.trim()) return;
         const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none') return;
         const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
@@ -347,25 +354,72 @@ const didAct = (e) => { if (active < 0 || !e.target.closest || !e.target.closest
 addEventListener('pointerdown', didAct, { passive: true }); addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ' || /^[tqn]$/i.test(e.key) || /^Arrow(Left|Right)$/.test(e.key)) didAct(e); });
 
 /* ------------------------------------------------------------------ kiosk: exhibit.html?kiosk=1 runs unattended. it walks the rooms, lets each one demonstrate itself, and starts over */
-const KIOSK = /[?&]kiosk=1\b/.test(location.search); let kioskT = 0, lastTouch = 0;
+const KIOSK = /[?&]kiosk=1\b/.test(location.search); let kioskT = 0, demoT = 0, lastTouch = 0;
+const HANDSOFF = 45000; /* nothing demonstrates itself until the screen has been left alone this long */
+/* a demo is a sequence of timers. the moment a real hand arrives, stop the one that is running and do not start another */
+function stopDemo() {
+  clearTimeout(demoT); demoT = 0; ctx.demoStopped = true;
+  const r = rooms[active]; if (r && r.mod && r.mod.stopDemo) { try { r.mod.stopDemo(ctx); } catch (e) {} }
+}
 function kioskStep() {
-  clearTimeout(kioskT); if (!KIOSK) return;
+  clearTimeout(kioskT); clearTimeout(demoT); if (!KIOSK) return;
   const dwell = active === 0 ? 14000 : rooms[active].id === 'make' ? 44000 : 32000;
   kioskT = setTimeout(() => {
-    if (performance.now() - lastTouch < 45000) return kioskStep(); /* someone is using it: wait */
+    if (performance.now() - lastTouch < HANDSOFF) return kioskStep(); /* someone is using it: wait */
     goK = -1; ctx.go(active + 1 >= rooms.length ? 0 : active + 1);
   }, dwell);
-  const r = rooms[active]; if (r && r.mod && r.mod.demo && performance.now() - lastTouch > 45000) setTimeout(() => { if (rooms[active] === r && performance.now() - lastTouch > 45000) try { r.mod.demo(ctx); } catch (e) {} }, 3500);
+  const r = rooms[active];
+  if (r && r.mod && r.mod.demo && performance.now() - lastTouch > HANDSOFF) demoT = setTimeout(() => {
+    demoT = 0;
+    if (rooms[active] !== r || performance.now() - lastTouch <= HANDSOFF) return;
+    ctx.demoStopped = false; try { r.mod.demo(ctx); } catch (e) {}
+  }, 3500);
 }
 if (KIOSK) {
   document.documentElement.classList.add('kiosk'); lastTouch = -1e9;
   try { history.scrollRestoration = 'manual'; } catch (e) {} scrollTo(0, 0); /* a reload on a gallery screen starts at the threshold, not wherever the last loop was */
   document.body.classList.add('entered'); /* no threshold to click through on a gallery screen. sound needs one touch: browsers do not let a page start audio by itself */
   addEventListener('pointerdown', (e) => { if (e.isTrusted && !A.on) A.unlock(); }, { passive: true });
-  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach((ev) => addEventListener(ev, (e) => { if (e.isTrusted) lastTouch = performance.now(); }, { passive: true }));
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach((ev) => addEventListener(ev, (e) => { if (!e.isTrusted) return; lastTouch = performance.now(); stopDemo(); }, { passive: true }));
 }
 
 const againBtn = $('#again'); if (againBtn) againBtn.addEventListener('click', () => { goK = -1; ctx.go(0); });
+
+/* ------------------------------------------------------------------ signature: the title and the byline, quietly, in the corner of the stage,
+   so the frames a visitor photographs carry them. drawn on the overlay canvas, which is aria-hidden, so no screen reader has to hear it twice. */
+const SIG = 'mostly the machine · astralcrest', SIGFONT = '500 10px "JetBrains Mono", ui-monospace, Menlo, monospace';
+let sigOn = false, sigX = 0, sigY = 0, sigW = 0, sigT = -1e9;
+function sigPlace() {
+  sigOn = false;
+  if (active < 0 || !rooms[active] || H < 480) return; /* a phone held sideways has no height to spare */
+  const s = stage();
+  og.font = SIGFONT; sigW = og.measureText(SIG).width;
+  /* never over a room's controls or the wall text: just under the stage first, on the stage's own bottom edge if that band is taken */
+  const sec = rooms[active].el, els = [...sec.querySelectorAll('.room-body button,.room-body a,.room-body input,.room-body select,.room-body img,.room-body svg')];
+  sec.querySelectorAll('.room-body *,.wall *').forEach((el) => { if (!el.firstElementChild && el.textContent && el.textContent.trim()) els.push(el); });
+  const boxes = els.map((el) => {
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < 0.06) return null;
+    const r = el.getBoundingClientRect(); return r.width && r.height ? r : null;
+  }).filter(Boolean);
+  const nr = nav && nav.getBoundingClientRect(); /* the room dots own the right margin where they stand */
+  for (const y of [s.y + s.h + 11, s.y + s.h - 3]) {
+    let edge = s.x + s.w;
+    if (nr && nr.width && y > nr.top - 8 && y - 12 < nr.bottom + 8) edge = Math.min(edge, nr.left - 10);
+    const x = edge - sigW; if (x < s.x + 8) continue;
+    const L = x - 8, R = x + sigW + 8, T = y - 13, Bt = y + 5;
+    if (boxes.some((r) => r.left < R && r.right > L && r.top < Bt && r.bottom > T)) continue;
+    sigX = x; sigY = y; sigOn = true; return;
+  }
+}
+function drawSig() {
+  if (!sigOn) return;
+  og.setTransform(ODPR, 0, 0, ODPR, 0, 0);
+  og.globalAlpha = 1; og.globalCompositeOperation = 'source-over'; og.shadowBlur = 0; og.shadowColor = 'transparent';
+  if ('filter' in og) og.filter = 'none';
+  og.textAlign = 'left'; og.textBaseline = 'alphabetic'; og.font = SIGFONT; og.fillStyle = 'rgba(240,234,255,.26)';
+  og.fillText(SIG, sigX, sigY);
+}
 
 /* loop */
 let last = 0, slow = 0, seen = 0;
@@ -379,11 +433,25 @@ function loop(t) {
   og.clearRect(0, 0, W, H);
   const r = rooms[active]; if (r && r.mod && r.mod.frame) { try { r.mod.frame(og, t, bands, W, H, ctx); } catch (e) {} }
   for (let k = PT.ripples.length - 1; k >= 0; k--) { const rp = PT.ripples[k], a = (t - rp.t) / 900; if (a >= 1 || a < 0) { PT.ripples.splice(k, 1); continue; } og.strokeStyle = 'rgba(125,240,200,' + (0.5 * (1 - a) * (1 - a)) + ')'; og.lineWidth = 1.2; og.beginPath(); og.arc(rp.x, rp.y, 8 + a * 120, 0, 6.283); og.stroke(); }
+  if (t - sigT > 900) { sigT = t; sigPlace(); } /* rooms build their controls over a second or two: re-check the corner now and then */
+  drawSig();
 }
-addEventListener('resize', () => { clearTimeout(resize.t); resize.t = setTimeout(resize, 150); });
+/* turning a phone sideways shortens every 100vh section, so the scroll offset the visitor was standing at can land
+   inside a later section and the observer hands the exhibit a room they never asked for (webkit does this every time).
+   remember the room on the first raw resize event and put them back once the layout has settled. */
+let rotFrom = -1, rotT = 0;
+addEventListener('resize', () => {
+  if (rotFrom < 0) rotFrom = active;
+  clearTimeout(resize.t); resize.t = setTimeout(resize, 150);
+  clearTimeout(rotT); rotT = setTimeout(() => {
+    const want = rotFrom; rotFrom = -1;
+    if (want < 0 || want === active || !rooms[want]) return;
+    goK = -1; rooms[want].el.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }, 420);
+});
 resize(); P.scatter();
 const start = Math.max(0, rooms.findIndex((r) => '#' + r.id === location.hash));
 if (start > 0) { document.body.classList.add('entered'); A.muted = true; muteBtn.setAttribute('aria-pressed', 'true'); muteBtn.textContent = 'sound off'; rooms[start].el.scrollIntoView(); }
 activate(start);
 requestAnimationFrame(loop);
-window.__exhibit = { ctx, rooms, P, A };
+window.__exhibit = { ctx, rooms, P, A, sig: () => ({ on: sigOn, x: Math.round(sigX), y: Math.round(sigY), w: Math.round(sigW), text: SIG }) };

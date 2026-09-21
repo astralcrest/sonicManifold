@@ -20,17 +20,33 @@ section[data-room="listeners"] .lst-toggle button{font:600 11px/1 var(--mono);le
 section[data-room="listeners"] .lst-toggle button.on{color:#06130f;background:linear-gradient(100deg,var(--mint),#62e7ff)}
 section[data-room="listeners"] .lst-toggle button:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 section[data-room="listeners"] .lst-live{position:absolute;transform:translate(-50%,-50%);font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);opacity:.75;white-space:nowrap}
+/* on the shortest stages the open listening post reaches this line: clip it out of sight but keep it announced */
+section[data-room="listeners"] .lst-live.clip{width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 section[data-room="listeners"] .lst-tag{position:absolute;transform:translate(-50%,-100%);font:600 11px/1 var(--mono);color:var(--ink);background:rgba(10,1,24,.75);border:1px solid var(--line);border-radius:6px;padding:4px 8px;pointer-events:none;white-space:nowrap}
-section[data-room="listeners"] .lst-post{position:absolute;transform:translateX(-50%);width:min(320px,80vw)}
+section[data-room="listeners"] .lst-tag.below{transform:translate(-50%,0)}
+/* the listening post sits alone at the top of the stage, on its own ground: the graph runs under it */
+section[data-room="listeners"] .lst-post{position:absolute;transform:translateX(-50%);width:min(340px,calc(100vw - 30px));background:rgba(10,1,24,.86);border:1px solid var(--line);border-radius:14px;padding:6px 12px 10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+section[data-room="listeners"] .lst-post:empty{display:none}
 section[data-room="listeners"] .lst-listbox{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 section[data-room="listeners"] .lst-cue{position:absolute;transform:translate(-50%,-100%);font:600 11px/1.4 var(--mono);color:var(--mint2);background:rgba(10,1,24,.78);border:1px solid rgba(125,240,200,.25);border-radius:999px;padding:7px 14px;max-width:min(30rem,80vw);margin:0;text-align:center;pointer-events:none;transition:opacity .4s ease}
-section[data-room="listeners"] .lst-bars{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;gap:3px;font:600 9px/1 var(--mono);color:var(--mute);pointer-events:none}
-section[data-room="listeners"] .lst-bar-row{display:flex;align-items:center;gap:6px;white-space:nowrap}
-section[data-room="listeners"] .lst-bar-lb{width:34px;text-transform:uppercase;letter-spacing:.06em;text-align:right}
-section[data-room="listeners"] .lst-bar-track{width:60px;height:4px;background:rgba(200,190,220,.2);border-radius:2px;overflow:hidden}
-section[data-room="listeners"] .lst-bar-fill{display:block;height:100%;border-radius:2px}
-section[data-room="listeners"] .lst-bar-val{width:24px}
+/* the rate readout: two rows of a hundred dots, in the reading column where the claim is, always visible */
+section[data-room="listeners"] .lst-strip{margin:14px 0 12px;max-width:30rem}
+section[data-room="listeners"] .lst-strip-h{font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 9px}
+section[data-room="listeners"] .lst-line{display:flex;align-items:baseline;gap:7px;font:600 11.5px/1.4 var(--mono);color:var(--ink);margin:0 0 4px}
+section[data-room="listeners"] .lst-line .lst-k{font-weight:400;color:var(--mute)}
+section[data-room="listeners"] .lst-line .lst-v{margin-left:auto;font-size:13px}
+section[data-room="listeners"] .lst-dots{display:grid;grid-template-columns:repeat(50,1fr);gap:1.4px;margin:0 0 11px}
+section[data-room="listeners"] .lst-dots i{display:block;aspect-ratio:1;min-height:3px;border-radius:1px;background:rgba(200,190,220,.16)}
+section[data-room="listeners"] .lst-dots i.on{background:var(--c)}
+section[data-room="listeners"] .lst-post .post{margin:4px 0 0}
+section[data-room="listeners"] .lst-post .post-note{font-size:10.5px;line-height:1.45;margin-top:7px}
+/* phones: the readout keeps all 200 dots and both counts, on less paper, so the picture keeps its height */
+@media (max-width:640px){section[data-room="listeners"] .lst-wide-only{display:none}section[data-room="listeners"] .lst-why{font-size:14px;line-height:1.38}section[data-room="listeners"] .lst-strip{margin:10px 0 8px}section[data-room="listeners"] .lst-strip-h{margin-bottom:6px}section[data-room="listeners"] .lst-line{margin-bottom:2px}section[data-room="listeners"] .lst-dots{gap:1.2px;margin-bottom:8px}section[data-room="listeners"] .lst-dots i{aspect-ratio:auto;height:5px}}
+@media (max-height:720px){section[data-room="listeners"] .lst-why{font-size:12.5px;line-height:1.38}section[data-room="listeners"] .lst-strip{margin:8px 0 6px}section[data-room="listeners"] .lst-strip-h{font-size:9.5px;margin-bottom:5px}section[data-room="listeners"] .lst-line{font-size:10.5px;margin-bottom:2px}section[data-room="listeners"] .lst-line .lst-v{font-size:12px}section[data-room="listeners"] .lst-dots{gap:1.1px;margin-bottom:7px}section[data-room="listeners"] .lst-dots i{aspect-ratio:auto;height:4px}section[data-room="listeners"] .lst-post{padding:5px 10px 8px}section[data-room="listeners"] .lst-post .post-note{font-size:9.5px;margin-top:6px}}
+/* a phone held sideways: the reading column is ~190px wide and 270px tall, so every line of it is rationed */
+@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .lst-strip{margin:6px 0 4px}section[data-room="listeners"] .lst-strip-h{font-size:8.5px;letter-spacing:.12em;margin-bottom:4px}section[data-room="listeners"] .lst-line{font-size:9.5px;margin-bottom:2px}section[data-room="listeners"] .lst-line .lst-v{font-size:11px}section[data-room="listeners"] .lst-dots{gap:1px;margin-bottom:6px}section[data-room="listeners"] .lst-dots i{height:3px}section[data-room="listeners"] .lst-why{font-size:11px;line-height:1.32}section[data-room="listeners"] .lst-cav{font-size:10px;line-height:1.42;margin-top:4px}section[data-room="listeners"] .lst-fine summary{padding:7px 0 4px}}
 `;
+const fmt = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
 export default {
   id: 'listeners', track: 'dorian-manifold',
@@ -57,13 +73,31 @@ export default {
     /* keyboard listbox order: most-played first, then name — same 120 artists as the cloud, no new data */
     this.order = nodes.map((_, i) => i).sort((a, b) => (nodes[b].plays_bucket - nodes[a].plays_bucket) || nodes[a].name.localeCompare(nodes[b].name));
 
-    const tap = Math.round(d.full_transition_crossing.tap * 100), auto = Math.round(d.full_transition_crossing.auto * 100);
+    const fx = d.full_transition_crossing;
+    const tap = Math.round(fx.tap * 100), auto = Math.round(fx.auto * 100), nTap = fx.n_tap, nAuto = fx.n_auto;
     this.tapPct = tap; this.autoPct = auto;
-    extra.appendChild(el('p', 'say dim short-hide', 'the bridges are the edges that join two different scenes.'));
-    extra.appendChild(el('p', 'say', n + ' artists, drawn twice. of every 100 jumps to a different artist, mine cross scenes about ' + tap + ' times, autoplay’s about ' + auto + '.'));
+    extra.appendChild(el('p', 'say dim short-hide lst-wide-only', 'the bridges are the edges that join two different scenes.'));
+    /* the rate, in the exhibit's own material: a hundred dots per listener, filled to the crossing rate,
+       with the raw jump counts beside them. the drawn picture is counts; this is what the number compares. */
+    const strip = el('div', 'lst-strip');
+    strip.setAttribute('role', 'img');
+    strip.setAttribute('aria-label', 'of every 100 jumps to a new artist, mine cross between scenes about ' + tap + ' times and autoplay’s about ' + auto + '. i made ' + fmt(nTap) + ' of those jumps in seven years, autoplay made ' + fmt(nAuto) + '. autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.');
+    strip.appendChild(el('p', 'lst-strip-h', 'of every 100 jumps to a new artist'));
+    const strRow = (who, jumps, pct, colour) => {
+      const line = el('div', 'lst-line');
+      line.append(el('span', '', who), el('span', 'lst-k', '· ' + fmt(jumps) + ' jumps'), el('span', 'lst-v', String(pct)));
+      const dots = el('div', 'lst-dots'); dots.style.setProperty('--c', colour);
+      const frag = document.createDocumentFragment();
+      for (let q = 0; q < 100; q++) frag.appendChild(el('i', q < pct ? 'on' : ''));
+      dots.appendChild(frag); strip.append(line, dots);
+    };
+    strRow('my taps', nTap, tap, 'rgb(' + this.MINT + ')');
+    strRow('autoplay', nAuto, auto, 'rgb(' + this.AV + ')');
+    extra.appendChild(strip);
+    extra.appendChild(el('p', 'say lst-why', 'autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.'));
     extra.appendChild(el('p', 'lst-cav', 'this is a direction, not a size.'));
     const fine = extra.appendChild(el('details', 'lst-fine')); fine.appendChild(el('summary', '', 'why not a size'));
-    ['a third to two fifths of my jumps carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13.', 'the picture is my two habits, not the measurement: the drawn graph keeps only the busiest artists.'].forEach((t) => fine.appendChild(el('p', 'lst-cav', t)));
+    ['a third to two fifths of my jumps carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13.', 'the drawn graph keeps only the busiest ' + n + ' artists and their strongest edges, so it is a picture of my two habits, not the measurement.'].forEach((t) => fine.appendChild(el('p', 'lst-cav', t)));
     fine.open = innerWidth > innerHeight * 1.15 && innerHeight >= 480; /* closed on phones in either orientation */
     fine.addEventListener('toggle', () => { if (this.ready && root.parentElement.classList.contains('is-active')) this.enter(ctx); });
 
@@ -106,15 +140,9 @@ export default {
     this.live = root.appendChild(el('p', 'lst-live')); this.live.setAttribute('aria-live', 'polite');
     this.tag = root.appendChild(el('div', 'lst-tag')); this.tag.hidden = true;
     this.cue = root.appendChild(el('p', 'lst-cue', CUE_TEXT)); this.cue.hidden = true; this.cue.setAttribute('aria-hidden', 'true'); /* decorative echo of the always-present prose above */
-    this.bars = root.appendChild(el('div', 'lst-bars')); this.bars.hidden = true; this.bars.setAttribute('aria-hidden', 'true'); /* the same two numbers are already in the sentence above, in words */
-    const rowTap = el('div', 'lst-bar-row'), rowAuto = el('div', 'lst-bar-row');
-    rowTap.append(el('span', 'lst-bar-lb', 'taps'), el('span', 'lst-bar-track'), el('span', 'lst-bar-val', '~' + tap));
-    rowAuto.append(el('span', 'lst-bar-lb', 'auto'), el('span', 'lst-bar-track'), el('span', 'lst-bar-val', '~' + auto));
-    this.tapFill = el('span', 'lst-bar-fill'); this.tapFill.style.width = tap + '%'; this.tapFill.style.background = 'rgb(' + this.MINT + ')';
-    this.autoFill = el('span', 'lst-bar-fill'); this.autoFill.style.width = auto + '%'; this.autoFill.style.background = 'rgb(' + this.AV + ')';
-    rowTap.querySelector('.lst-bar-track').appendChild(this.tapFill); rowAuto.querySelector('.lst-bar-track').appendChild(this.autoFill);
-    this.bars.append(rowTap, rowAuto);
     this.postSlot = root.appendChild(el('div', 'lst-post'));
+    /* the post changes height when the player replaces the button: re-check what it now covers */
+    if (window.ResizeObserver) new ResizeObserver(() => { this.postRect = null; this.fitLive(); if (this.kbFocusIdx != null) this.showTag(this.kbFocusIdx); }).observe(this.postSlot);
 
     root.addEventListener('pointerdown', () => this.hideCue(), { once: true });
     root.addEventListener('keydown', () => this.hideCue(), { once: true });
@@ -145,16 +173,26 @@ export default {
     }
     this.tapPre = this.buildEdges(this.d.tap_edges); this.autoPre = this.buildEdges(this.d.auto_edges);
     this.hit.style.left = s.x + 'px'; this.hit.style.top = s.y + 'px'; this.hit.style.width = s.w + 'px'; this.hit.style.height = s.h + 'px';
-    const cx = s.x + s.w / 2, cy = s.y + s.h - 26, tall = innerWidth <= innerHeight * 1.15;
+    const cx = s.x + s.w / 2, cy = s.y + s.h - 26;
+    this.sx = s.x; this.sy = s.y; this.sw = s.w;
     this.tgl.style.left = cx + 'px'; this.tgl.style.top = cy + 'px';
     /* the listbox is clipped to 1px (visually hidden) but must sit at a real on-screen point — an unset/auto
        position here makes focus-follows-scrollIntoView jump the whole page to wherever "auto" resolved to */
     this.listbox.style.left = cx + 'px'; this.listbox.style.top = cy + 'px';
-    this.live.style.left = cx + 'px'; this.live.style.top = (cy - 48) + 'px';
+    this.live.style.left = cx + 'px'; this.live.style.top = (cy - 44) + 'px'; this.liveTop = cy - 49;
     const cueTop = cy - 82;
     this.cue.style.left = cx + 'px'; this.cue.style.top = cueTop + 'px'; this.cue.style.maxWidth = Math.max(140, Math.min(320, s.w - 24)) + 'px';
-    this.bars.style.left = cx + 'px'; this.bars.style.top = cueTop + 'px';
-    this.postSlot.style.left = cx + 'px'; this.postSlot.style.top = (tall ? s.y : cy + 42) + 'px';
+    /* the post lives at the top of the stage in both orientations: below the toggle it fell off the
+       bottom of the screen on desktop, and pinned to the tapped node it landed on the name tag on phones */
+    this.postSlot.style.left = cx + 'px'; this.postSlot.style.top = (s.y + 2) + 'px';
+    this.postRect = null; this.fitLive();
+    if (this.kbFocusIdx != null) this.showTag(this.kbFocusIdx);
+  },
+
+  fitLive() {
+    if (!this.postSlot.firstChild) { this.live.classList.remove('clip'); return; }
+    if (!this.postRect) this.postRect = this.postSlot.getBoundingClientRect();
+    this.live.classList.toggle('clip', this.postRect.bottom > this.liveTop - 4);
   },
 
   announce() { this.live.textContent = this.mode === 'tap' ? 'showing: my taps' : 'showing: autoplay'; },
@@ -168,13 +206,23 @@ export default {
     this.bAuto.className = mode === 'auto' ? 'on' : ''; this.bAuto.setAttribute('aria-checked', String(mode === 'auto')); this.bAuto.tabIndex = mode === 'auto' ? 0 : -1;
     this.fadeStart = this.reduced ? null : performance.now();
     if (ctx && ctx.audio) ctx.audio.note(mode === 'tap' ? 6 : 1, { dur: 0.4, vol: 0.06 }); /* taps = higher, autoplay = lower */
-    if (!this.barsShown) { this.barsShown = true; this.bars.hidden = false; }
     this.announce();
   },
 
   showTag(i) {
-    const px = this.px; this.tag.hidden = false; this.tag.textContent = this.d.nodes[i].name;
-    this.tag.style.left = px[i * 2] + 'px'; this.tag.style.top = (px[i * 2 + 1] - 16) + 'px';
+    this.tag.textContent = this.d.nodes[i].name;
+    this.placeTag(this.px[i * 2], this.px[i * 2 + 1]);
+  },
+
+  /* put the name tag on the node, flipping it under the node rather than off the top of the stage,
+     and yield to the listening post when the two would land on each other: the ring still marks the node */
+  placeTag(x, y) {
+    const t = this.tag, below = (y - 42) < (this.sy || 0);
+    t.hidden = false; t.classList.toggle('below', below);
+    t.style.left = x + 'px'; t.style.top = (below ? y + 18 : y - 16) + 'px';
+    if (!this.postSlot.firstChild) return;
+    const a = t.getBoundingClientRect(), b = this.postRect = this.postSlot.getBoundingClientRect();
+    if (a.right > b.left + 1 && a.left < b.right - 1 && a.bottom > b.top + 1 && a.top < b.bottom - 1) t.hidden = true;
   },
 
   selectNode(i, ctx, opts = {}) {
@@ -184,7 +232,10 @@ export default {
     if (this.lbIndex != null) { const cur = this.listbox.children[this.lbIndex]; if (cur) cur.setAttribute('aria-selected', 'false'); }
     const oi = this.order.indexOf(i);
     if (oi >= 0) { this.lbIndex = oi; const opt = this.listbox.children[oi]; if (opt) { opt.setAttribute('aria-selected', 'true'); this.listbox.setAttribute('aria-activedescendant', opt.id); } }
-    if (opts.loadPost !== false) { ctx.stopPosts(); this.postSlot.textContent = ''; ctx.post(this.postSlot, this.d.nodes[i].name, { label: 'hear' }); }
+    if (opts.loadPost !== false) {
+      ctx.stopPosts(); this.postSlot.textContent = ''; ctx.post(this.postSlot, this.d.nodes[i].name, { label: 'hear' });
+      this.postRect = this.postSlot.getBoundingClientRect(); this.fitLive(); this.placeTag(this.px[i * 2], this.px[i * 2 + 1]);
+    }
   },
 
   setListboxFocus(idx, ctx) {
@@ -212,8 +263,9 @@ export default {
     if (!this.ready || this.pinned) return;
     const px = this.px, n = this.d.nodes.length; let best = -1, bd = 24 * 24;
     for (let i = 0; i < n; i++) { const dx = px[i * 2] - x, dy = px[i * 2 + 1] - y, dist = dx * dx + dy * dy; if (dist < bd) { bd = dist; best = i; } }
-    this.tag.hidden = best < 0; this.hit.style.cursor = best < 0 ? '' : 'pointer';
-    if (best >= 0) { this.tag.textContent = this.d.nodes[best].name; this.tag.style.left = px[best * 2] + 'px'; this.tag.style.top = (px[best * 2 + 1] - 16) + 'px'; }
+    this.hit.style.cursor = best < 0 ? '' : 'pointer';
+    if (best < 0) { this.tag.hidden = true; return; }
+    this.showTag(best);
   },
   tapAt(x, y, ctx) {
     if (!this.ready) return;
@@ -239,7 +291,10 @@ export default {
     }
   },
 
-  leave(ctx) { ctx.stopPosts(); if (this.tag) this.tag.hidden = true; if (this._demoT) { this._demoT.forEach(clearTimeout); this._demoT = null; } },
+  leave(ctx) { ctx.stopPosts(); if (this.tag) this.tag.hidden = true; this.stopDemo(); },
+
+  /* a real hand arrived: the kiosk sequence stops walking the toggle */
+  stopDemo() { if (this._demoT) { this._demoT.forEach(clearTimeout); this._demoT = null; } },
 
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;

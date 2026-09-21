@@ -46,16 +46,20 @@ export default {
     this.queueBtn.addEventListener('click', () => this.answer(ctx, false));
     wrap.querySelector('.g-again').addEventListener('click', () => this.deal(ctx, true));
     wrap.querySelector('.g-next').addEventListener('click', () => ctx.go(ctx.index + 1));
-    /* a real visitor's own pointer or key in this room ends any kiosk demo immediately: no timer outlives a real hand */
-    wrap.addEventListener('pointerdown', () => this.stopDemo());
-    document.addEventListener('keydown', (e) => {
+    /* a real visitor's own pointer, touch or key anywhere in the document ends any kiosk demo immediately: no
+       timer outlives a real hand. attached in enter(), removed in leave(), so nothing is listening while this
+       room is not the one on screen. */
+    this._onDemoBreak = () => { if (this.active) this.stopDemo(); };
+    this._onKeydown = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const dlg = document.getElementById('label'); if (dlg && dlg.open) return; /* the wall label is modal: t / q / n must not answer a round behind it */
       if (!this.active) return;
       this.stopDemo();
       const k = e.key.toLowerCase();
       if (k === 't' && !this.tapBtn.disabled) { e.stopPropagation(); this.answer(ctx, true, true); }
       else if (k === 'q' && !this.queueBtn.disabled) { e.stopPropagation(); this.answer(ctx, false, true); }
       else if (k === 'n' && this.answered && this.fwd && this.fwd.isConnected) { e.stopPropagation(); this.advance(ctx); }
-    });
+    };
 
     const P = ctx.particles, n = P.n, frac = 240 / n;
     this.cluster = new Uint8Array(n);
@@ -97,11 +101,13 @@ export default {
       for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
       this.rounds = idx.slice(0, Math.min(ROUNDS, idx.length)); this.ri = 0; this.score = 0; this.saidTap = 0;
       this.end.hidden = true; this.mid.hidden = false; this.bar.forEach((b) => { b.className = ''; });
+      if (restart) this.place(ctx); /* re-forms the two clusters if the previous game's end screen parked them */
     }
     this.showRound();
   },
 
   showRound() {
+    const hadFocus = this.wrap.contains(document.activeElement);
     const row = this.pool[this.rounds[this.ri]];
     this.elA.textContent = row[0]; this.elB.textContent = row[1];
     this.verdict.textContent = ''; this.verdict.style.color = ''; this.posts.textContent = '';
@@ -109,6 +115,8 @@ export default {
     this.tapBtn.className = 'btn g-tap'; this.queueBtn.className = 'btn ghost g-queue';
     this.answered = false; this.pulse = null; this.mid.classList.remove('answered');
     this.bar.forEach((b, k) => { b.className = k < this.ri ? 'on' : ''; });
+    /* posts.textContent='' above just deleted the focused .g-fwd button; put focus back if it was ours to lose */
+    if (hadFocus) try { this.tapBtn.focus({ preventScroll: true }); } catch (e) {}
   },
 
   answer(ctx, guessedTap, viaKey) {
@@ -136,10 +144,11 @@ export default {
 
   advance(ctx) {
     ctx.stopPosts(); this.ri++;
-    if (this.ri >= this.rounds.length) this.showEnd(); else this.showRound();
+    if (this.ri >= this.rounds.length) this.showEnd(ctx); else this.showRound();
   },
 
-  showEnd() {
+  showEnd(ctx) {
+    const hadFocus = this.wrap.contains(document.activeElement);
     this.mid.hidden = true; this.end.hidden = false;
     const n = this.rounds.length;
     this.scoreEl.textContent = 'you got ' + this.score + ' of ' + n + '. a coin flip averages ' + (n / 2) + '.';
@@ -149,16 +158,35 @@ export default {
       this.priorEl.textContent = 'your guesses called it tapped ' + yours + ' in a hundred. across the real log, i tapped ' + this.wallTapPct + ' in a hundred.';
       this.priorEl.hidden = false;
     } else this.priorEl.hidden = true;
+    this.disperseClusters(ctx); /* the score screen's text now owns the stage; the connector is also gated off in frame() */
+    /* this.mid.hidden=true above can drop focus to <body> the same way showRound()'s posts clear does */
+    if (hadFocus) try { this.wrap.querySelector('.g-again').focus({ preventScroll: true }); } catch (e) {}
+  },
+
+  disperseClusters(ctx) {
+    /* scatters the mint/orchid clusters back into the plain field, same look as this room's own non-cluster dots;
+       place(ctx) (called from enter(), or from deal() on restart) re-forms them */
+    const P = ctx.particles;
+    P.target((i) => [ctx.hash(i * 13 + 1), ctx.hash(i * 13 + 2)]);
+    P.color(() => DARK);
   },
 
   enter(ctx) {
     this.active = true;
+    document.addEventListener('pointerdown', this._onDemoBreak);
+    document.addEventListener('touchstart', this._onDemoBreak, { passive: true });
+    document.addEventListener('keydown', this._onKeydown);
     const P = ctx.particles; P.ease = 0.05; P.jitter = 0.5;
     if (!this.ready) return;
     this.place(ctx);
     if (!this.rounds) this.deal(ctx, false);
   },
-  leave(ctx) { this.active = false; this.stopDemo(); clearTimeout(this.timer); this.pulse = null; ctx.stopPosts(); },
+  leave(ctx) {
+    this.active = false; this.stopDemo(); clearTimeout(this.timer); this.pulse = null; ctx.stopPosts();
+    document.removeEventListener('pointerdown', this._onDemoBreak);
+    document.removeEventListener('touchstart', this._onDemoBreak);
+    document.removeEventListener('keydown', this._onKeydown);
+  },
 
   stopDemo() { if (this.demoOn) { this.demoOn = false; clearTimeout(this.demoT); } },
 
@@ -191,6 +219,7 @@ export default {
 
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;
+    if (this.end && !this.end.hidden) return; /* score screen is up: don't draw the connector/pulse over its text */
     let col = 'rgba(134,203,254,' + (0.3 + bands.high * 0.25) + ')', shake = 0;
     if (this.pulse) {
       const el = (t - this.pulse.t0) / 900;
