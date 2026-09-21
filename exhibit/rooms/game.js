@@ -128,7 +128,7 @@ export default {
     const okBtn = truthTap ? this.tapBtn : this.queueBtn, badBtn = truthTap ? this.queueBtn : this.tapBtn;
     okBtn.classList.add('ok'); badBtn.classList.add('bad');
     this.verdict.textContent = (correct ? 'yes. ' : 'no. ') + (truthTap ? 'i tapped this one.' : 'it queued. nobody chose that.');
-    this.verdict.style.color = correct ? 'var(--mint)' : 'var(--rose)';
+    this.verdict.style.color = correct ? 'var(--ink)' : 'var(--mute)'; /* right and wrong are not provenance: mint, violet and rose stay reserved */
     this.bar[this.ri].className = correct ? 'ok' : 'bad';
     this.pulse = { t0: performance.now(), ok: correct };
     if (correct) { ctx.audio.note(3, { dur: 0.35 }); ctx.audio.note(5, { at: 0.09, dur: 0.6 }); } else ctx.audio.note(-5, { dur: 0.7, type: 'triangle' });
@@ -225,7 +225,7 @@ export default {
       const el = (t - this.pulse.t0) / 900;
       if (el >= 1) this.pulse = null;
       else {
-        const rgb = this.pulse.ok ? '33,246,188' : '255,110,156';
+        const rgb = this.pulse.ok ? '240,234,255' : '164,155,189';
         const a = ctx.reduced ? 0.85 : 0.9 - 0.5 * el;
         col = 'rgba(' + rgb + ',' + a + ')';
         if (!ctx.reduced) {
@@ -249,9 +249,9 @@ css.textContent =
 'section[data-room="game"] .g-wrap{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;text-align:center}' +
 'section[data-room="game"] .g-bar{display:flex;gap:6px}' +
 'section[data-room="game"] .g-bar i{width:26px;height:4px;border-radius:2px;background:rgba(189,166,255,.18);display:block}' +
-'section[data-room="game"] .g-bar i.on{background:var(--violet)}' +
-'section[data-room="game"] .g-bar i.ok{background:var(--mint)}' +
-'section[data-room="game"] .g-bar i.bad{background:var(--rose)}' +
+'section[data-room="game"] .g-bar i.on{background:var(--ice)}' +
+'section[data-room="game"] .g-bar i.ok{background:var(--ink)}' +
+'section[data-room="game"] .g-bar i.bad{background:none;box-shadow:inset 0 0 0 1px var(--mute)}' +
 'section[data-room="game"] .g-mid{display:flex;flex-direction:column;align-items:center;gap:12px;flex:1;justify-content:center;max-width:340px}' +
 'section[data-room="game"] .g-name{font:italic 500 clamp(21px,4.6vw,38px)/1.15 var(--serif)}' +
 'section[data-room="game"] .g-a{color:var(--mint2)}section[data-room="game"] .g-b{color:var(--orchid)}' +
@@ -266,8 +266,8 @@ css.textContent =
 'section[data-room="game"] .g-posts .post{margin:0;max-width:none}section[data-room="game"] .g-pnote{flex-basis:100%;text-align:center}section[data-room="game"] .g-pnote .post-note{margin:0}' +
 '@media (max-height:720px) and (max-aspect-ratio:115/100){section[data-room="game"] .g-mid.answered .g-name,section[data-room="game"] .g-mid.answered .g-arrow{display:none}section[data-room="game"] .g-name{font-size:20px}}' +
 '@media (max-width:640px){section[data-room="game"] .g-mid{gap:8px}section[data-room="game"] .g-pnote .post-note{font-size:10.5px;line-height:1.4}}' +
-'section[data-room="game"] .g-tap.ok,section[data-room="game"] .g-queue.ok{background:linear-gradient(100deg,var(--mint),#62e7ff);color:#06130f}' +
-'section[data-room="game"] .g-tap.bad,section[data-room="game"] .g-queue.bad{background:none;color:var(--rose);border:1px solid var(--rose)}' +
+'section[data-room="game"] .g-tap.ok,section[data-room="game"] .g-queue.ok{background:var(--ink);color:#0a0118}' +
+'section[data-room="game"] .g-tap.bad,section[data-room="game"] .g-queue.bad{background:none;color:var(--mute);border:1px dashed var(--mute)}' +
 'section[data-room="game"] .g-end{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:34ch}' +
 'section[data-room="game"] .g-score{font-weight:600}';
 document.head.appendChild(css);

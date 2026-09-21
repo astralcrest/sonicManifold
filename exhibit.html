@@ -4,29 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
 <title>mostly the machine — a sonic manifold exhibit</title>
-<meta name="description" content="Seven years of one person's streaming log as a six-room exhibit: 97,427 plays, who pressed play, a map that lied, two listeners, a graveyard of my own findings.">
+<meta name="description" content="Seven years of one person's streaming log as a nine-room exhibit: 97,427 plays, who pressed play, a ruler that changed, a map that lied, two listeners, a graveyard of my own findings.">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/exhibit.html">
-<link rel="modulepreload" href="exhibit/shell.js?v=20260923b">
-<link rel="modulepreload" href="exhibit/post.js?v=4">
-<link rel="modulepreload" href="exhibit/labels.js?v=5">
-<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260923b">
-<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260923b">
-<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260923b">
+<link rel="modulepreload" href="exhibit/shell.js?v=20260924e">
+<link rel="modulepreload" href="exhibit/post.js?v=5">
+<link rel="modulepreload" href="exhibit/labels.js?v=8">
+<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260924e">
+<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260924e">
+<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260924e">
 <meta name="theme-color" content="#0a0118">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/exhibit.html">
 <meta property="og:title" content="mostly the machine — a sonic manifold exhibit">
-<meta property="og:description" content="97,427 plays. 19% were mine. Six rooms, one idea each, with the soundtrack I made from it.">
+<meta property="og:description" content="97,427 plays. 19% were mine. Nine rooms, one idea each, with the soundtrack I made from it.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og-exhibit.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <style>
 @font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("fonts/JetBrainsMono-var.woff2") format("woff2")}
-:root{color-scheme:dark;--bg:#0a0118;--ink:#f0eaff;--mute:#a49bbd;--mint:#21f6bc;--mint2:#7df0c8;--orchid:#bda6ff;--ice:#86cbfe;--rose:#ff6e9c;--amber:#f5a623;--violet:#6b5a86;--line:rgba(189,166,255,.22);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;--serif:ui-serif,Georgia,"Times New Roman",serif}
+/* the colour code, once. mint = i tapped it. amber = chance, a shuffle. violet = the machine served it.
+   rose = killed or withdrawn. ice = the interface itself: links, axes, focus. nothing decorative touches those five.
+   --violet-dim is the same violet at the weight 62,000 dots want on a near-black wall. */
+:root{color-scheme:dark;--bg:#0a0118;--ink:#f0eaff;--mute:#a49bbd;--mint:#21f6bc;--mint2:#7df0c8;--orchid:#bda6ff;--ice:#86cbfe;--rose:#ff6e9c;--amber:#f5a623;--violet:#8b6fd6;--violet-dim:#6b5a86;--line:rgba(189,166,255,.22);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;--serif:ui-serif,Georgia,"Times New Roman",serif;--dockh:0px}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{background:var(--bg);scroll-snap-type:y mandatory;scroll-behavior:smooth;overscroll-behavior-y:none}
@@ -36,18 +39,18 @@ canvas.layer{position:fixed;inset:0;width:100vw;height:100vh;height:100svh;displ
 #field{z-index:0}#glow{z-index:0;mix-blend-mode:screen;opacity:.85}#overlay{z-index:1}
 body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E")}
 main{position:relative;z-index:3}
-section[data-room]{min-height:100vh;min-height:100svh;scroll-snap-align:start;scroll-snap-stop:always;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:max(72px,env(safe-area-inset-top)) clamp(18px,6vw,80px) calc(clamp(56px,9vh,96px) + env(safe-area-inset-bottom))}
+section[data-room]{min-height:100vh;min-height:100svh;scroll-snap-align:start;scroll-snap-stop:always;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:max(72px,env(safe-area-inset-top)) clamp(18px,6vw,80px) calc(env(safe-area-inset-bottom) + max(clamp(56px,9vh,96px),var(--dockh)))}
 .wall{max-width:min(34rem,100%);opacity:0;transform:translateY(10px);transition:opacity .9s ease .25s,transform .9s ease .25s}
 section.is-active .wall{opacity:1;transform:none}
 .no{font:600 11px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin:0 0 14px}
-.no b{color:var(--mint);font-weight:600}
+.no b{color:var(--ice);font-weight:600}
 h1,h2{font-family:var(--serif);font-style:italic;font-weight:500;letter-spacing:-.01em;margin:0 0 14px;line-height:1.02}
-h1{font-size:clamp(46px,11vw,112px);background:linear-gradient(92deg,#21f6bc,#7df0c8,#bda6ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1{font-size:clamp(46px,11vw,112px);background:linear-gradient(92deg,#21f6bc,#7df0c8 34%,#8b6fd6);-webkit-background-clip:text;background-clip:text;color:transparent}
 h2{font-size:clamp(34px,6.4vw,68px);color:var(--ink)}
 .say{font-size:clamp(16px,2.1vw,20px);line-height:1.5;margin:0 0 10px;max-width:30rem;color:var(--ink)}
 .say.dim{color:var(--mute);font-size:clamp(14px,1.7vw,16px)}
 .deeper{display:inline-block;margin-top:14px;font:600 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ice);text-decoration:none;padding:12px 0;border-bottom:1px dotted rgba(134,203,254,.5)}
-.deeper:hover{color:var(--mint)}
+@media (hover:hover){.deeper:hover{color:#b6e0ff;border-bottom-color:#b6e0ff}}
 .room-body{position:fixed;inset:0;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s linear .5s}
 section.is-active .room-body{opacity:1;visibility:visible;transition:opacity .7s ease .25s,visibility 0s}
 .room-body>*{pointer-events:auto}
@@ -70,7 +73,8 @@ section.is-active .room-body{opacity:1;visibility:visible;transition:opacity .7s
 #mute{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:11px 14px;min-height:40px;cursor:pointer}
 #mute[aria-pressed="false"]{color:var(--mint);border-color:rgba(33,246,188,.45)}
 body:not(.entered) #dots,body:not(.entered) #mute{visibility:hidden}
-.legend{display:flex;gap:16px;flex-wrap:wrap;font:600 11px/1.3 var(--mono);letter-spacing:.08em;color:var(--mute);margin:10px 0 0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font:600 11px/1.3 var(--mono);letter-spacing:.08em;color:var(--mute);margin:10px 0 0}
+.legend-slot:empty{display:none}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:-1px}
 .big{font:600 clamp(40px,9vw,84px)/1 var(--mono);letter-spacing:-.03em;margin:0 0 6px}
 noscript p{position:relative;z-index:4;padding:24px}
@@ -78,8 +82,8 @@ noscript p{position:relative;z-index:4;padding:24px}
 @media (max-width:640px){#dots{right:0}.dot{width:34px}.btn{padding:16px 18px;letter-spacing:.08em}.row{gap:8px;margin-top:12px}}
 @media (max-aspect-ratio:115/100){section[data-room]::before{content:"";position:absolute;left:0;right:0;bottom:0;height:52%;background:linear-gradient(180deg,rgba(10,1,24,0),rgba(10,1,24,.86) 38%,#0a0118 70%);pointer-events:none}.wall{position:relative}}
 @media (min-aspect-ratio:115/100){.wall{max-width:min(34rem,calc(40vw - 110px))}h1{font-size:clamp(40px,6.6vw,112px)}h2{font-size:clamp(30px,4.6vw,68px)}}
-@media (max-height:720px) and (max-aspect-ratio:115/100){section[data-room]{padding-bottom:calc(34px + env(safe-area-inset-bottom))}h1{font-size:38px;margin-bottom:8px}h2{font-size:28px;margin-bottom:8px}.no{margin-bottom:8px}.say{font-size:14.5px;line-height:1.42;margin-bottom:6px}.say.dim{font-size:12.5px}.deeper{margin-top:4px;padding:10px 0}.row{margin-top:8px}.btn{min-height:44px;padding:13px 12px;letter-spacing:.05em}.short-hide{display:none}}
-#labelbtn{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom));z-index:5;font:600 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);background:rgba(10,1,24,.55);border:1px solid var(--line);border-radius:3px;padding:10px 12px;min-height:40px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+@media (max-height:720px) and (max-aspect-ratio:115/100){section[data-room]{padding-bottom:calc(env(safe-area-inset-bottom) + max(34px,var(--dockh)))}h1{font-size:38px;margin-bottom:8px}h2{font-size:28px;margin-bottom:8px}.no{margin-bottom:8px}.say{font-size:14.5px;line-height:1.42;margin-bottom:6px}.say.dim{font-size:12.5px}.deeper{margin-top:4px;padding:10px 0}.row{margin-top:8px}.btn{min-height:44px;padding:13px 12px;letter-spacing:.05em}.short-hide{display:none}}
+#labelbtn{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom) + max(0px,var(--dockh) - clamp(56px,9vh,96px)));z-index:5;font:600 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);background:rgba(10,1,24,.55);border:1px solid var(--line);border-radius:3px;padding:10px 12px;min-height:40px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 #labelbtn:hover{color:var(--ink);border-color:rgba(240,234,255,.45)}#labelbtn:focus-visible,.lb-x:focus-visible,.lb-more:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 /* the placard is readable at the threshold too: in a gallery the label is how you decide whether to walk in */
 /* a phone held upright: the wall text runs to the bottom of the screen and the rooms fill the top of the stage, so the
@@ -102,8 +106,9 @@ noscript p{position:relative;z-index:4;padding:24px}
 #hint.on{opacity:1}
 .kiosk,.kiosk *{cursor:none!important}.kiosk #top a,.kiosk .deeper,.kiosk #labelbtn{visibility:hidden}
 /* a phone held sideways: very little height. compact type, and the label button moves up beside the title bar so it never sits on the text */
-@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room]{padding-top:54px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}h1{font-size:34px;margin-bottom:6px}h2{font-size:26px;margin-bottom:6px}.no{margin-bottom:6px}.say{font-size:14px;line-height:1.4;margin-bottom:5px}.say.dim{font-size:12px}.deeper{margin-top:2px;padding:8px 0}.short-hide,.land-hide{display:none}.btn{min-height:44px;padding:12px 14px}#labelbtn{bottom:auto;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 10px;min-height:36px}}
+@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room]{padding-top:54px;padding-bottom:calc(env(safe-area-inset-bottom) + max(16px,var(--dockh)))}h1{font-size:34px;margin-bottom:6px}h2{font-size:26px;margin-bottom:6px}.no{margin-bottom:6px}.say{font-size:14px;line-height:1.4;margin-bottom:5px}.say.dim{font-size:12px}.deeper{margin-top:2px;padding:8px 0}.short-hide,.land-hide{display:none}.btn{min-height:44px;padding:12px 14px}#labelbtn{bottom:auto;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 10px;min-height:36px}}
 @view-transition{navigation:auto}
+.exits{display:flex;flex-wrap:wrap;gap:4px 18px;margin:0 0 10px}.exits .deeper{margin:0}.exits button.deeper{background:none;border:0;border-bottom:1px dotted rgba(134,203,254,.5);cursor:pointer}.side-door{font-size:13.5px;line-height:1.5;max-width:30rem}@media (min-aspect-ratio:115/100){section[data-room="make"] .wall{padding-bottom:64px}}.side-door a{color:var(--ice);text-decoration:none;border-bottom:1px dotted rgba(134,203,254,.5)}.side-door a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 </style>
 </head>
 <body>
@@ -118,10 +123,10 @@ noscript p{position:relative;z-index:4;padding:24px}
 
 <section data-room="threshold" data-title="threshold">
   <div class="wall">
-    <p class="no">an exhibit in six rooms &middot; n = 1</p>
+    <p class="no">an exhibit in eight rooms &middot; n = 1</p>
     <h1>mostly the machine</h1>
     <p class="say">i logged every song i played for seven years and assumed the log was a record of me. four fifths of it was a machine advancing a queue.</p>
-    <p class="say dim land-hide">six rooms of finding that out: what i measured, what the measuring broke, what i had to bury. every dot behind this text is a play. all the music here is mine. sound on if you can.</p>
+    <p class="say dim land-hide">eight rooms of finding that out: what i measured, what the measuring broke, what i had to bury. every dot behind this text is a play. mint is a play i chose, violet is one the machine served. all the music here is mine. sound on if you can.</p>
     <div class="row"><button class="btn" id="enter" type="button">enter with sound</button><button class="btn ghost" id="enter-quiet" type="button">enter quietly</button></div>
   </div>
   <div class="room-body"></div>
@@ -133,15 +138,27 @@ noscript p{position:relative;z-index:4;padding:24px}
     <h2>97,427</h2>
     <p class="say" id="wall-say">this is what a streaming log says my taste is: one dot for every play, all of them the same colour.</p>
     <p class="say dim" id="wall-dim">press and hold the wall.</p>
-    <div class="legend" id="wall-legend" hidden><span><i style="background:#21f6bc"></i>i tapped &middot; 19%</span><span><i style="background:#f5a623"></i>i shuffled &middot; 17%</span><span><i style="background:#6b5a86"></i>it was served &middot; 64%</span></div>
+    <div class="legend" id="wall-legend" aria-hidden="true" hidden><span><i style="background:#21f6bc"></i>i tapped &middot; 19%</span><span><i style="background:#f5a623"></i>i shuffled &middot; 17%</span><span><i style="background:#8b6fd6"></i>it was served &middot; 64%</span></div>
     <a class="deeper" href="lab.html#apple-leadhero">go deeper: the split &rarr;</a>
+  </div>
+  <div class="room-body"></div>
+</section>
+
+<section data-room="calendar" data-title="the ruler changed">
+  <div class="wall">
+    <p class="no"><b>02</b> &middot; the ruler</p>
+    <h2>the ruler changed</h2>
+    <p class="say">the same plays again, now 81 months wide, each month stacked by who pressed play. the dotted line is october 2023, when the app changed how it records a start.</p>
+    <p class="say dim">my tapped share reads 11.8% before that line and 22.7% after it. nothing about me moved 10.9 points that month.</p>
+    <div class="legend-slot"></div>
+    <a class="deeper" href="researcher.html#graveyard">go deeper: the finding this killed &rarr;</a>
   </div>
   <div class="room-body"></div>
 </section>
 
 <section data-room="game" data-title="who pressed play?">
   <div class="wall">
-    <p class="no"><b>02</b> &middot; the test</p>
+    <p class="no"><b>03</b> &middot; the test</p>
     <h2>who pressed play?</h2>
     <p class="say">one artist, then another. did i tap that second one, or did the app queue it?</p>
     <a class="deeper" href="lab.html#toy-whopressed">go deeper: ten rounds &rarr;</a>
@@ -149,9 +166,21 @@ noscript p{position:relative;z-index:4;padding:24px}
   <div class="room-body"></div>
 </section>
 
+<section data-room="clock" data-title="what held">
+  <div class="wall">
+    <p class="no"><b>04</b> &middot; what held</p>
+    <h2>what held</h2>
+    <p class="say">seven years folded onto one day. what i tapped rides the outside of the dial, what the queue served sits underneath, and the shape of the day stays where it is.</p>
+    <p class="say dim">the hour is a fixed utc-7 approximation across all seven years, not a real local time, so the edges are soft.</p>
+    <div class="legend-slot"></div>
+    <a class="deeper" href="lab.html#fig-4">go deeper: the hour against the weekday &rarr;</a>
+  </div>
+  <div class="room-body"></div>
+</section>
+
 <section data-room="map" data-title="the map that lied">
   <div class="wall">
-    <p class="no"><b>03</b> &middot; the catch</p>
+    <p class="no"><b>05</b> &middot; the catch</p>
     <h2>the map that lied</h2>
     <p class="say">i measured my taste on a map the algorithm helped draw. turn the dial and watch the map rearrange.</p>
     <a class="deeper" href="lab.html#toy-leakdial">go deeper: the leakage dial &rarr;</a>
@@ -161,7 +190,7 @@ noscript p{position:relative;z-index:4;padding:24px}
 
 <section data-room="listeners" data-title="two listeners">
   <div class="wall">
-    <p class="no"><b>04</b> &middot; the finding</p>
+    <p class="no"><b>06</b> &middot; the finding</p>
     <h2>two listeners</h2>
     <p class="say">the same seven years, drawn twice: the artists my taps connect, and the artists autoplay connects.</p>
     <a class="deeper" href="lab.html#fig-26">go deeper: the real network &rarr;</a>
@@ -171,7 +200,7 @@ noscript p{position:relative;z-index:4;padding:24px}
 
 <section data-room="graveyard" data-title="the graveyard">
   <div class="wall">
-    <p class="no"><b>05</b> &middot; the audit</p>
+    <p class="no"><b>07</b> &middot; the audit</p>
     <h2>the graveyard</h2>
     <p class="say">pick a finding of mine and try to kill it. the fake data falls first. mine drops in last.</p>
     <a class="deeper" href="lab.html#graveyard">go deeper: all sixteen &rarr;</a>
@@ -181,19 +210,31 @@ noscript p{position:relative;z-index:4;padding:24px}
 
 <section data-room="make" data-title="make your own">
   <div class="wall">
-    <p class="no"><b>06</b> &middot; the exit</p>
+    <p class="no"><b>08</b> &middot; the exit</p>
     <h2>make your own</h2>
-    <p class="say">your log has the same field. drop it in and see who pressed play on you. nothing leaves your browser.</p>
-    <div class="row"><a class="btn" href="bridge-index.html" style="text-decoration:none;display:inline-flex;align-items:center">try it on your data</a><a class="btn ghost" href="lab.html" style="text-decoration:none;display:inline-flex;align-items:center">the full lab</a></div>
-    <a class="deeper" href="researcher.html">for researchers: the paper &rarr;</a>
-    <button class="deeper" id="again" type="button" style="background:none;border:0;border-bottom:1px dotted rgba(134,203,254,.5);margin-left:18px;cursor:pointer">walk it again &uarr;</button>
-    <button class="deeper" id="share" type="button" style="background:none;border:0;border-bottom:1px dotted rgba(134,203,254,.5);margin-left:18px;cursor:pointer">send this to someone</button>
+    <p class="say">the 81% the queue and shuffle started falls away, and the 19% i tapped becomes a wheel of the 22 tracks i wrote out of this. put two of them together and hear what the key does.</p>
+    <div class="legend-slot"></div>
+    <p class="exits"><a class="deeper" href="lab.html#apple-sunomoment">how the tracks were made &rarr;</a><a class="deeper" href="researcher.html">the technical summary &rarr;</a><button class="deeper" id="again" type="button">walk it again &uarr;</button><button class="deeper" id="share" type="button">send this to someone</button></p>
+    <p class="say dim side-door">already have your spotify export? <a href="#yours" id="yours-door">put your wall next to mine</a>. spotify takes a few days to send one, so this is a side room.</p>
+  </div>
+  <div class="room-body"></div>
+</section>
+
+<section data-room="yours" data-title="your turn" data-side="1" hidden>
+  <div class="wall">
+    <p class="no"><b>side room</b> &middot; your turn</p>
+    <h2>your turn</h2>
+    <p class="say">drop your own spotify export in. it is read here in this tab, sorted by the same field i sorted mine with, and your three shares stand up next to mine.</p>
+    <p class="say dim">nothing is uploaded and nothing is kept. close the tab and it is gone.</p>
+    <div class="legend-slot"></div>
+    <div class="row"><a class="btn ghost" href="bridge-index.html#sec-howto" style="text-decoration:none;display:inline-flex;align-items:center">the full probe</a><a class="btn ghost" href="lab.html" style="text-decoration:none;display:inline-flex;align-items:center">the full lab</a></div>
+    <a class="deeper" href="#make" id="yours-back">back to the exhibit &uarr;</a>
   </div>
   <div class="room-body"></div>
 </section>
 
 </main>
 <noscript><p>this exhibit draws with javascript. the whole study, in text, is on the <a href="./">landing page</a> and in the <a href="lab.html">lab</a>.</p></noscript>
-<script type="module" src="exhibit/shell.js?v=20260923b"></script>
+<script type="module" src="exhibit/shell.js?v=20260924e"></script>
 </body>
 </html>

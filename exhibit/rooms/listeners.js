@@ -5,7 +5,6 @@
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const rgb = (h) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
-const mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
 const css = (c, a) => 'rgba(' + c + ',' + a + ')';
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const CUE_TEXT = 'the bright lines are jumps between scenes. flip between my taps and autoplay';
@@ -64,12 +63,11 @@ export default {
     if (!d || !d.nodes || !d.nodes.length) { extra.appendChild(el('p', 'say dim', 'the network data did not load this time.')); return; }
     this.d = d;
     const nodes = d.nodes, n = nodes.length;
-    const ramp = [ctx.PAL.tap, ctx.PAL.ice, ctx.PAL.amber, ctx.PAL.mint2, ctx.PAL.rose, ctx.PAL.orchid, ctx.PAL.white, ctx.PAL.shuffle, ctx.PAL.fog];
-    const commColor = {}; let k = 0;
-    for (const c of d.communities) commColor[c] = c === 'untagged' ? ctx.PAL.served : ramp[k++ % ramp.length];
-    this.nodeColor = new Uint32Array(n); for (let i = 0; i < n; i++) this.nodeColor[i] = commColor[nodes[i].community] >>> 0;
+    /* clusters take the site-wide genre-family hue (ctx.FAM), not a private ramp: untagged falls back to grey inside famColor */
+    this.nodeColor = new Uint32Array(n); for (let i = 0; i < n; i++) this.nodeColor[i] = ctx.famColor(nodes[i].community) >>> 0;
     this.nodeComm = nodes.map((nd) => nd.community);
-    this.MINT = rgb(ctx.PAL.tap).join(); this.AV = mix(rgb(ctx.PAL.amber), rgb(ctx.PAL.orchid), 0.62).join(); this.DIM = '200,190,220';
+    /* edges follow PROVENANCE only: mint = my taps, violet = autoplay (shuffle + served, the toggle's other state) */
+    this.MINT = rgb(ctx.PAL.tap).join(); this.AV = rgb(ctx.PAL.violet).join(); this.DIM = '200,190,220';
     /* keyboard listbox order: most-played first, then name — same 120 artists as the cloud, no new data */
     this.order = nodes.map((_, i) => i).sort((a, b) => (nodes[b].plays_bucket - nodes[a].plays_bucket) || nodes[a].name.localeCompare(nodes[b].name));
 
@@ -100,6 +98,15 @@ export default {
     ['a third to two fifths of my jumps carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13.', 'the drawn graph keeps only the busiest ' + n + ' artists and their strongest edges, so it is a picture of my two habits, not the measurement.'].forEach((t) => fine.appendChild(el('p', 'lst-cav', t)));
     fine.open = innerWidth > innerHeight * 1.15 && innerHeight >= 480; /* closed on phones in either orientation */
     fine.addEventListener('toggle', () => { if (this.ready && root.parentElement.classList.contains('is-active')) this.enter(ctx); });
+
+    /* the colour code, in one more disclosure rather than new always-on lines: on a short phone stage the
+       graph already meets the wall text at its tightest point, so nothing here may add height unconditionally.
+       the sentence covers what a screen reader needs; the chips below it are aria-hidden decoration of the same fact. */
+    const clr = extra.appendChild(el('details', 'lst-fine')); clr.appendChild(el('summary', '', 'what the colours mean'));
+    clr.appendChild(el('p', 'lst-cav', 'each cluster is coloured by genre family, grey for no public tag. the bridge lines are coloured by who pressed play: mint for my taps, violet for autoplay.'));
+    ctx.legend(clr, 'prov'); ctx.legend(clr, 'fam', { items: d.communities });
+    clr.open = innerWidth > innerHeight * 1.15 && innerHeight >= 480; /* closed on phones in either orientation, same rule as "why not a size" above */
+    clr.addEventListener('toggle', () => { if (this.ready && root.parentElement.classList.contains('is-active')) this.enter(ctx); });
 
     this.hit = root.appendChild(el('div', 'lst-hit'));
     this.hit.setAttribute('aria-hidden', 'true'); /* pointer-only decoration; the listbox below is the real control */

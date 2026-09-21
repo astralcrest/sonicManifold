@@ -6,7 +6,17 @@
    is the instrument moving, not the listening. a second view re-targets a deterministic 15% of the
    dots into seven columns — the dose-response curve itself, with a parity line at 1.00.
    track latent-dimension.mp3 is the exhibit's one deliberate key break (10A -> 5B):
-   the room where the ruler bends is the room where the music goes out of key. do not fix that. */
+   the room where the ruler bends is the room where the music goes out of key. do not fix that.
+
+   colour code, round 4: checked exhibit/data/mapmorph.json for a genre-family tag per artist —
+   it has none. its `comm` field is a per-level Louvain cluster id, one Louvain run per retrained
+   embedding, matched back to the 12% level "by largest overlap" (its own notes). that is exactly
+   the kind of map-shaped structure this room exists to distrust, not a hand-tagged genre. painting
+   it with ctx.FAM would dress an artifact of the embedding up as a fact about the music, so the MAP
+   view keeps its original tap/shuffle/served provenance colouring. the CURVE view gets the new
+   code instead: its seven columns are a real, fixed axis (12% -> 100% algorithmic), so they run
+   mint -> violet along it, and the ringed artists' ring is now white so it reads as "marked", not
+   as a fourth provenance colour. */
 
 const CAP = [
   'trained almost entirely on my own picks. the advantage vanishes.',
@@ -59,6 +69,10 @@ const mixc = (a, b, k) => {
     'section[data-room="map"] .mdef{margin:9px 0 0;font:400 11px/1.5 var(--mono);color:var(--mute);max-width:30rem}' +
     'section[data-room="map"] .mdefl{display:none}' + /* one short definition everywhere; the long form is in the wall label */
     'section[data-room="map"] .mring{margin:5px 0 0;font:400 10.5px/1.45 var(--mono);color:var(--mute);opacity:.8;max-width:30rem}' +
+    'section[data-room="map"] .mheldposts{display:flex;flex-wrap:wrap;align-items:flex-start;gap:7px;margin:9px 0 0}' +
+    'section[data-room="map"] .mheldposts .mheldlbl{flex:0 0 100%;margin:0 0 1px;font:600 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--mute)}' +
+    'section[data-room="map"] .mheldposts .post{margin:0}' +
+    'section[data-room="map"] .mheldposts .mheldnote{flex:0 0 100%}' +
     'section[data-room="map"] .mctl{pointer-events:auto;display:flex;flex-direction:column;gap:7px;max-width:440px}' +
     'section[data-room="map"] .mcap{margin:0;font:400 clamp(14px,1.8vw,16px)/1.4;color:var(--ink);min-height:1.4em}' +
     'section[data-room="map"] .mcaps{display:block;font:400 12px/1.45 var(--mono);color:var(--mute);margin-top:3px}' +
@@ -75,7 +89,7 @@ const mixc = (a, b, k) => {
     'section[data-room="map"] .mdial::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--ink);border:3px solid var(--mint)}' +
     'section[data-room="map"] .mdial:focus-visible{outline:2px solid var(--mint);outline-offset:6px;border-radius:8px}' +
     'section[data-room="map"] .mnote{margin:2px 0 0;font:400 11px/1.5 var(--mono);color:var(--mute);max-width:34rem}' +
-    '@media (max-aspect-ratio:115/100){section[data-room="map"] .mline,section[data-room="map"] .mdrag,section[data-room="map"] .mring{display:none}' +
+    '@media (max-aspect-ratio:115/100){section[data-room="map"] .mline,section[data-room="map"] .mdrag,section[data-room="map"] .mring,section[data-room="map"] .mheldposts{display:none}' +
     'section[data-room="map"] .mbig{font-size:clamp(26px,7.4vw,34px)}section[data-room="map"] .mrow{margin:6px 0 3px}' +
     'section[data-room="map"] .manch{margin-bottom:7px}section[data-room="map"] .mdef{margin-top:7px;font-size:10.5px;line-height:1.45}' +
     'section[data-room="map"] .mcap{font-size:14px}section[data-room="map"] .mcaps{font-size:11px}' +
@@ -83,7 +97,7 @@ const mixc = (a, b, k) => {
     'section[data-room="map"] .mdefl{display:none}section[data-room="map"] .mdefs{display:block}}' +
     /* two measured fallbacks: on a stage too short for the whole readout the room drops its own
        trimmings first, and only then the definition line */
-    'section[data-room="map"] .mapwrap.mtight .mline,section[data-room="map"] .mapwrap.mtight .mring{display:none}' +
+    'section[data-room="map"] .mapwrap.mtight .mline,section[data-room="map"] .mapwrap.mtight .mring,section[data-room="map"] .mapwrap.mtight .mheldposts{display:none}' +
     'section[data-room="map"] .mapwrap.mtight .mbig{font-size:26px}section[data-room="map"] .mapwrap.mtight .mdef{font-size:10px;line-height:1.4;margin-top:6px}' +
     'section[data-room="map"] .mapwrap.mtight .mcross{gap:5px}section[data-room="map"] .mapwrap.mtight .manch{margin-bottom:4px}' +
     'section[data-room="map"] .mapwrap.mtight .mheld{margin-top:5px;padding-top:5px}section[data-room="map"] .mapwrap.mtight .mctl{gap:5px}' +
@@ -99,7 +113,7 @@ const mixc = (a, b, k) => {
     'section[data-room="map"] .mapwrap.mtight .mcap{font-size:12.5px;line-height:1.35}' +
     'section[data-room="map"] .mapwrap.mtight .mtog button{min-height:38px;padding:10px 13px}' +
     'section[data-room="map"] .mapwrap.mtight .mdial{height:34px}' +
-    'section[data-room="map"] .mapwrap.mcurve .mline,section[data-room="map"] .mapwrap.mcurve .mcross,section[data-room="map"] .mapwrap.mcurve .mring{display:none}' +
+    'section[data-room="map"] .mapwrap.mcurve .mline,section[data-room="map"] .mapwrap.mcurve .mcross,section[data-room="map"] .mapwrap.mcurve .mring,section[data-room="map"] .mapwrap.mcurve .mheldposts{display:none}' +
     '@media (max-aspect-ratio:115/100){section[data-room="map"] .mapwrap.mcurve .mdef{display:none}}' +
     /* a landscape phone has almost no stage left: keep the number, the held readout and the dial */
     'section[data-room="map"] .mapwrap.mtight .mdrag{display:none}' +
@@ -175,6 +189,13 @@ export default {
     this.biTxt = []; this.lvTxt = [];
     for (let i = 0; i < 7; i++) { this.biTxt.push(pub.bridge_index[i].toFixed(2)); this.lvTxt.push(String(map.levels[i])); }
 
+    /* CURVE colour axis: "how much of the map's training diet the algorithm chose", literally — column
+       0 (12% algorithmic) reads mint, column 6 (100%) reads violet, the same two reserved hues that mean
+       "i chose it" and "the machine served it" everywhere else on this site. computed once, off ctx.PAL,
+       so it can never drift from the reserved hues if they're ever retuned. */
+    this.colColor = new Uint32Array(7);
+    for (let i = 0; i < 7; i++) this.colColor[i] = mixc(ctx.PAL.tap, ctx.PAL.violet, i / 6);
+
     const wrap = el('div', 'mapwrap');
     const hud = el('div', 'mhud');
     const big = el('div', 'mbig'); big.appendChild(el('span', 'mpct')); big.appendChild(el('span', 'munit', '% algorithmic')); hud.appendChild(big);
@@ -192,6 +213,10 @@ export default {
     hud.appendChild(el('p', 'mdef mdefl', 'bridge index: how often my own picks cross into another neighbourhood of the map, divided by how often autoplay does. 1.00 means no difference.'));
     hud.appendChild(el('p', 'mdef mdefs', 'bridge index: my crossings between neighbourhoods, divided by autoplay’s. 1.00 means no difference.'));
     hud.appendChild(el('p', 'mring', 'ringed: four of my most-played artists. they keep their colour on every map.'));
+    /* the matching legend: mapmorph.json carries no genre-family tag to colour the map view by (see the
+       comment at the top of this file), so the map view keeps its provenance colouring and this is that
+       legend — tap / shuffle / served, the same three colours the dots have always used here. */
+    ctx.legend(hud, 'prov');
     /* the one-line form of the same two numbers, for a stage too short to stack the readout. the
        value comes from mapmorph.json like every other reading here; 1.05 is the same published
        embedding-free headline the .manch line above carries */
@@ -218,6 +243,18 @@ export default {
     dial.setAttribute('list', 'map-mticks'); dial.setAttribute('aria-label', 'training data, percent algorithmic');
     ctl.appendChild(dial);
     const dl = el('datalist'); dl.id = 'map-mticks'; for (let i = 0; i < 7; i++) { const o = el('option'); o.value = String(i); dl.appendChild(o); } ctl.appendChild(dl);
+
+    /* one listening post per ringed artist, docked: a visitor can hear who is being held still while
+       the map warps around them. the four names are the same this.pinName built above from the biggest
+       12%-to-100% travel; ctx.post is the shell's own single shared player, so a second click never
+       opens a second one. */
+    const heldWrap = el('div', 'mheldposts');
+    heldWrap.appendChild(el('p', 'mheldlbl', 'hear who is held still:'));
+    const heldNote = el('div', 'mheldnote');
+    for (let k = 0; k < NPIN; k++) ctx.post(heldWrap, this.pinName[k], { label: 'hear', noteHost: heldNote });
+    heldWrap.appendChild(heldNote);
+    ctl.appendChild(heldWrap);
+
     wrap.appendChild(ctl);
     root.appendChild(wrap);
 
@@ -323,15 +360,17 @@ export default {
     const sink = curve ? ctx.PAL.bg : ctx.PAL.fog, k = curve ? 0.88 : 0.3;
     const D0 = mixc(C[0], sink, k), D1 = mixc(C[1], sink, k), D2 = mixc(C[2], sink, k);
     const H0 = mixc(C[0], sink, 0.55), H1 = mixc(C[1], sink, 0.55), H2 = mixc(C[2], sink, 0.55);
-    const LIFT = ctx.PAL.ice, HERE = ctx.PAL.tap;
+    const colColor = this.colColor;
     P.color((i) => {
       const a = art[i] % na, p = prov[i];
       if (curve) {
-        if (sub[i]) return col[i] === lv ? HERE : LIFT;  /* the level on the dial is the mint column */
+        if (sub[i]) return colColor[col[i]];      /* the axis itself: mint (12%) through violet (100%) */
         if (pinMask[a]) return p === 0 ? H0 : p === 1 ? H1 : H2;
         return p === 0 ? D0 : p === 1 ? D1 : D2;
       }
-      if (pinMask[a]) return C[p];              /* the held artists never dim: that is the point */
+      /* no genre-family tag to colour by here (see the file's top comment), so the map view keeps its
+         original provenance colouring; the held artists never dim, which is the whole point of ringing them */
+      if (pinMask[a]) return C[p];
       return p === 0 ? D0 : p === 1 ? D1 : D2;
     });
   },
@@ -479,8 +518,9 @@ export default {
     g.lineWidth = 1;
     g.strokeStyle = 'rgba(240,234,255,.34)';
     g.beginPath(); g.moveTo(x0, base); g.lineTo(x1, base); g.stroke();
-    /* parity: 1.00 is no difference between my picks and autoplay's */
-    g.setLineDash([5, 5]); g.lineWidth = 1.3; g.strokeStyle = 'rgba(245,166,35,.8)';
+    /* parity: 1.00 is no difference between my picks and autoplay's. drawn in ice — this is an axis
+       line, the one reserved use ice is for */
+    g.setLineDash([5, 5]); g.lineWidth = 1.3; g.strokeStyle = 'rgba(134,203,254,.8)';
     g.beginPath(); g.moveTo(x0 - 5, this.parY); g.lineTo(x1, this.parY); g.stroke(); g.setLineDash([]); g.lineWidth = 1;
     g.shadowColor = '#0a0118'; g.shadowBlur = 7;
     g.textBaseline = 'alphabetic';
@@ -495,7 +535,7 @@ export default {
       lx = cx[lv] + cw * 0.8 + 10;
       if (lx + lw > x1) lx = Math.max(x0 + 6, cx[lv] - cw * 0.8 - 10 - lw);
     }
-    g.fillStyle = 'rgba(245,166,35,.96)';
+    g.fillStyle = 'rgba(134,203,254,.96)';
     g.textAlign = 'right'; g.fillText('1.00', x0 - 8, this.parY + f * 0.36);   /* the tick, in the gutter */
     g.textAlign = 'left'; g.fillText('no difference', lx, ly);
     /* the curve itself: one line through the seven column tops */
@@ -506,12 +546,15 @@ export default {
     for (let i = 0; i < 7; i++) {
       const on = i === lv, h = base - ct[i];
       if (on) {
-        g.fillStyle = 'rgba(33,246,188,.12)'; g.fillRect(cx[i] - cw * 0.8, ct[i] - 4, cw * 1.6, h + 4);
-        g.strokeStyle = 'rgba(33,246,188,.95)'; g.lineWidth = 1.8;
+        /* the selected column outlined in white: the gradient dot colour already says where it sits on
+           the mint->violet axis, so the marker that says "this one" has to be a colour that means
+           neither end of that axis */
+        g.fillStyle = 'rgba(216,210,234,.12)'; g.fillRect(cx[i] - cw * 0.8, ct[i] - 4, cw * 1.6, h + 4);
+        g.strokeStyle = 'rgba(216,210,234,.95)'; g.lineWidth = 1.8;
         g.strokeRect(cx[i] - cw * 0.8, ct[i] - 4, cw * 1.6, h + 4); g.lineWidth = 1;
       }
       g.font = (on ? '700 ' : '600 ') + (on ? f + 1 : f) + M;
-      g.fillStyle = on ? 'rgba(33,246,188,.98)' : 'rgba(198,190,222,.92)';
+      g.fillStyle = on ? 'rgba(216,210,234,.98)' : 'rgba(198,190,222,.92)';
       g.fillText(this.lvTxt[i], cx[i], base + f + 5);
       /* the reading for the level on the dial. the side was chosen from the column's finished
          height, not its current one, so it does not jump when the rise lands */
@@ -558,7 +601,9 @@ export default {
     const r = red ? 7 : 7 + bands.low * 2.2;
     g.lineWidth = 1.4;
     for (let k = 0; k < NPIN; k++) {
-      g.strokeStyle = 'rgba(33,246,188,' + 0.85 * al + ')';
+      /* held-still ring in white, not a provenance colour: it marks "this artist is being watched",
+         which is a different fact from who pressed play on them */
+      g.strokeStyle = 'rgba(216,210,234,' + 0.85 * al + ')';
       g.beginPath(); g.arc(px[k], py[k], r, 0, TAU); g.stroke();
       if (curve || k >= this.nLabel) continue;
       const sm = this.small, wdt = sm ? this.pinW[k] * 0.88 : this.pinW[k], leftSide = px[k] + 11 + wdt > sx + sw;

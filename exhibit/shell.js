@@ -14,8 +14,8 @@
    ctx = { reduced, coarse, particles, audio, data(name), go(i), stage() }
 */
 
-import { postCSS, post, stopAll } from './post.js?v=4';
-import { LABELS, HINTS } from './labels.js?v=5';
+import { postCSS, post, stopAll, playClip, clipsAllowed } from './post.js?v=5';
+import { LABELS, HINTS } from './labels.js?v=8';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
 const $ = (s, r = document) => r.querySelector(s);
@@ -24,8 +24,47 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
 export const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const coarse = matchMedia('(pointer: coarse)').matches;
-export const PAL = { bg: 0x0a0118, white: 0xd8d2ea, tap: 0x21f6bc, shuffle: 0xf5a623, served: 0x6b5a86, mint2: 0x7df0c8, orchid: 0xbda6ff, ice: 0x86cbfe, rose: 0xff6e9c, amber: 0xf5a623, fog: 0x57507a };
+/* THE COLOUR CODE. two questions, and a colour on screen answers one of them or it does not appear.
+   1. PROVENANCE — who pressed play. mint = i tapped it. amber = chance, a shuffle. violet = the machine served it.
+      rose = killed or withdrawn. ice = neutral interface: links, axes, focus rings. these five are reserved:
+      nothing decorative may use them. `violet` is the hue; `served` is the same hue dimmed, which is what 62,000
+      dots want on a near-black wall — the chip in a legend uses the bright one so a 9px square still reads.
+   2. GENRE FAMILY — what kind of music. one fixed hue per family in FAM below. */
+export const PAL = { bg: 0x0a0118, white: 0xd8d2ea, tap: 0x21f6bc, shuffle: 0xf5a623, served: 0x6b5a86, violet: 0x8b6fd6, mint2: 0x7df0c8, orchid: 0xbda6ff, ice: 0x86cbfe, rose: 0xff6e9c, amber: 0xf5a623, fog: 0x57507a };
 export const PROV = [PAL.tap, PAL.shuffle, PAL.served];
+/* the three provenance chips, in the order the log splits: tapped, shuffled, served */
+export const PROV_CHIP = [PAL.tap, PAL.shuffle, PAL.violet];
+/* the 13 families of the hand-curated taxonomy this study labels artists into (audio/sonic-maps.json carries the
+   same 13 keys; exhibit/data/twolisteners.json uses the 10 of them that its 120 artists touch, plus "untagged").
+   chosen so that every pair is at least ΔE 20 apart in CIELAB and every one of them is at least ΔE 23 from the five
+   reserved hues above — pastel, lower chroma, so a family never reads as a provenance. */
+export const FAM = {
+  'ambient/lofi': 0xadced7, classical: 0xdfd086, electronic: 0x8698df, experimental: 0xc3add7,
+  'folk/country': 0xb8d86e, 'funk/disco': 0xd86ed5, 'hip-hop · r&b': 0xdf868f, jazz: 0xd7b4ad,
+  other: 0xb8d7ad, pop: 0xdf86c4, 'rock/metal': 0x7fd489, soundtrack: 0x6fd6c0, 'world/desi': 0xd89c6e,
+  untagged: 0x9a9aa2, unknown: 0x9a9aa2, /* no public tag: grey, and grey means nothing is known */
+};
+export function famColor(name) { const k = String(name == null ? '' : name).toLowerCase(); return Object.prototype.hasOwnProperty.call(FAM, k) ? FAM[k] : FAM.untagged; }
+const hex = (v) => '#' + (v >>> 0).toString(16).padStart(6, '0');
+const PROV_ROWS = [[PAL.tap, 'i tapped'], [PAL.shuffle, 'i shuffled'], [PAL.violet, 'it was served']];
+/* the one legend every room uses. kind = 'prov' (who pressed play) or 'fam' (genre families, opts.items names them).
+   it is aria-hidden and holds nothing focusable: a screen reader gets the same information in the room's wall
+   label, which is a full sentence rather than a row of coloured squares. */
+export function legend(host, kind, opts = {}) {
+  if (!host) return null;
+  const old = host.querySelector(':scope > .legend[data-legend="' + kind + '"]'); if (old) old.remove(); /* re-mounting a room replaces its legend, it does not stack another one */
+  const el = document.createElement('p');
+  el.className = 'legend'; el.dataset.legend = kind; el.setAttribute('aria-hidden', 'true');
+  const rows = kind === 'fam'
+    ? (opts.items && opts.items.length ? opts.items : Object.keys(FAM).filter((k) => k !== 'unknown')).map((n) => [famColor(n), n])
+    : PROV_ROWS.map(([c, t], i) => [c, opts.labels && opts.labels[i] ? opts.labels[i] : t]);
+  rows.forEach(([c, t]) => {
+    const s = document.createElement('span'), i = document.createElement('i');
+    i.style.background = hex(c); s.appendChild(i); s.appendChild(document.createTextNode(t)); el.appendChild(s);
+  });
+  host.appendChild(el);
+  return el;
+}
 export function hash(i) { let x = (i + 1) * 2654435761 >>> 0; x ^= x >>> 15; x = Math.imul(x, 2246822519) >>> 0; x ^= x >>> 13; return (x >>> 0) / 4294967296; }
 
 /* ------------------------------------------------------------------ particles */
@@ -89,12 +128,17 @@ const P = {
 };
 for (let i = 0; i < N; i++) { P.seed[i] = Math.random() * 6.283; P.x[i] = Math.random() * innerWidth; P.y[i] = Math.random() * innerHeight; P.c[i] = P.tc[i] = 0xff8c8ca0; }
 
+/* how much of the bottom of the viewport the listening-post dock is using, 0 when it is closed.
+   the wall text is lifted by the same amount in css, so in portrait the stage (which ends where the wall text
+   begins) gets out of the way by itself; in landscape the wall text is bottom-left and the stage has to be told. */
+let dockPx = 0;
+
 /* the part of the viewport rooms may draw into: leaves room for wall text at the bottom on phones */
 export function stage() {
   const top = Math.max(64, H * 0.1);
   if (W > H * 1.15) { /* landscape: wall text lives bottom-left, the stage takes the right-hand side */
     const x = Math.max(W * 0.4, 430), w = W - x - Math.max(64, W * 0.06);
-    return { x, y: top, w, h: H - top - Math.max(56, H * 0.09) };
+    return { x, y: top, w, h: H - top - Math.max(56, H * 0.09, dockPx) };
   }
   const padX = Math.max(16, W * 0.05); /* portrait: stage on top, text underneath. the stage ends where the active room's text begins */
   let h = H * 0.46; const sec = sections[Math.max(0, active)], wl = sec && sec.querySelector('.wall');
@@ -110,6 +154,12 @@ function resize() {
   img = fg.createImageData(PW, PH); buf32 = new Uint32Array(img.data.buffer);
   if (gg) { glow.width = Math.max(2, (PW / GDIV) | 0); glow.height = Math.max(2, (PH / GDIV) | 0); }
   if (active >= 0 && rooms[active] && rooms[active].mod && rooms[active].mod.enter) rooms[active].mod.enter(ctx);
+  sigPlace();
+}
+
+/* the layout changed without the viewport changing (the dock opened or closed): let the room re-place itself */
+function relayout() {
+  if (active >= 0 && rooms[active] && rooms[active].mod && rooms[active].mod.enter) { try { rooms[active].mod.enter(ctx); } catch (e) {} }
   sigPlace();
 }
 
@@ -221,8 +271,18 @@ function xfade(from, to) {
   return a === b ? 0.6 : (d === 0 || (same && d === 1)) ? 0.9 : 1.8;
 }
 const ctx = {
-  reduced, coarse, particles: P, audio: A, stage, PAL, PROV, hash, V,
+  reduced, coarse, particles: P, audio: A, stage, PAL, PROV, PROV_CHIP, FAM, famColor, hash, V,
+  legend: (host, kind, opts) => legend(host, kind, opts),
   post: (host, artist, opts) => post(host, artist, ctx, opts), stopPosts: () => stopAll(ctx),
+  /* true only once a visitor has clicked one listening post. kiosk demos check it before starting a clip. */
+  get clipsAllowed() { return clipsAllowed(); },
+  playClip: (artist) => playClip(artist, ctx),
+  /* the dock tells the shell how much of the bottom edge it is using; the rooms are re-laid-out around it */
+  reserveBottom(px) {
+    px = Math.max(0, Math.round(px || 0)); if (px === dockPx) return;
+    dockPx = px; document.documentElement.style.setProperty('--dockh', px + 'px');
+    relayout();
+  },
   /* resolves once every dot knows who pressed play on it and which artist it belongs to */
   identity() {
     if (!identityP) identityP = Promise.all([this.data('wall').catch(() => null), this.data('mapmorph').catch(() => null)]).then(([w, m]) => {
@@ -236,7 +296,7 @@ const ctx = {
   data(name) { return cache[name] || (cache[name] = fetch('exhibit/data/' + name + '.json' + V).then((r) => { if (!r.ok) throw new Error(name); return r.json(); })); },
   /* centre a room's single affordance on the stage */
   placeCue(el, fy = 0.5) { const st = stage(); el.style.left = (st.x + st.w / 2) + 'px'; el.style.top = (st.y + st.h * fy) + 'px'; },
-  go(i) { const k = clamp(i, 0, rooms.length - 1), now = performance.now(); if (k === goK && now - goT < 700) return; goK = k; goT = now; const r = rooms[k]; r.el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); },
+  go(i) { const k = clamp(i, 0, rooms.length - 1), now = performance.now(); if (rooms[k].el.hidden) return; /* the side room is not part of the walk until someone opens it */ if (k === goK && now - goT < 700) return; goK = k; goT = now; const r = rooms[k]; r.el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); },
   /* kiosk only: true the moment a real hand arrives. a room whose demo runs on timers polls this and stops */
   demoStopped: true,
   get index() { return active; },
@@ -267,7 +327,7 @@ async function activate(i) {
 ctx.data('tracks').then((d) => { KEYS = {}; (d.tracks || []).forEach((t) => { KEYS[t.f] = t.k; }); }).catch(() => {});
 
 /* nav dots */
-const nav = $('#dots'); const dots = rooms.map((r, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'dot'; b.setAttribute('aria-label', 'room ' + (i + 1) + ': ' + (r.el.dataset.title || r.id)); b.dataset.t = r.el.dataset.title || r.id; b.addEventListener('click', () => ctx.go(i)); nav.appendChild(b); return b; });
+const nav = $('#dots'); const dots = rooms.map((r, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'dot'; b.setAttribute('aria-label', 'room ' + (i + 1) + ': ' + (r.el.dataset.title || r.id)); b.dataset.t = r.el.dataset.title || r.id; b.addEventListener('click', () => ctx.go(i)); if (!r.el.dataset.side) nav.appendChild(b); return b; /* side rooms get no dot */ });
 
 const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) activate(sections.indexOf(e.target)); }); }, { rootMargin: '-49% 0px -49% 0px', threshold: 0 });
 sections.forEach((s) => io.observe(s));
@@ -366,7 +426,7 @@ function kioskStep() {
   const dwell = active === 0 ? 14000 : rooms[active].id === 'make' ? 44000 : 32000;
   kioskT = setTimeout(() => {
     if (performance.now() - lastTouch < HANDSOFF) return kioskStep(); /* someone is using it: wait */
-    goK = -1; ctx.go(active + 1 >= rooms.length ? 0 : active + 1);
+    goK = -1; const nx = active + 1; ctx.go(nx >= rooms.length || rooms[nx].el.hidden || rooms[nx].el.dataset.side ? 0 : nx);
   }, dwell);
   const r = rooms[active];
   if (r && r.mod && r.mod.demo && performance.now() - lastTouch > HANDSOFF) demoT = setTimeout(() => {
@@ -450,8 +510,12 @@ addEventListener('resize', () => {
   }, 420);
 });
 resize(); P.scatter();
+/* the side room (your own export) stays out of the walk: one quiet link in the finale opens it, or a direct #yours link */
+function openSide(id) { const k = rooms.findIndex((r) => r.id === id && r.el.dataset.side); if (k < 0) return false; rooms[k].el.hidden = false; goK = -1; requestAnimationFrame(() => ctx.go(k)); return true; }
+document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a) return; const id = a.getAttribute('href').slice(1); if (openSide(id)) { e.preventDefault(); return; } const k = rooms.findIndex((r) => r.id === id); if (k >= 0) { e.preventDefault(); goK = -1; ctx.go(k); } });
+if (location.hash && rooms.some((r) => '#' + r.id === location.hash && r.el.dataset.side)) rooms.find((r) => '#' + r.id === location.hash).el.hidden = false;
 const start = Math.max(0, rooms.findIndex((r) => '#' + r.id === location.hash));
 if (start > 0) { document.body.classList.add('entered'); A.muted = true; muteBtn.setAttribute('aria-pressed', 'true'); muteBtn.textContent = 'sound off'; rooms[start].el.scrollIntoView(); }
 activate(start);
 requestAnimationFrame(loop);
-window.__exhibit = { ctx, rooms, P, A, sig: () => ({ on: sigOn, x: Math.round(sigX), y: Math.round(sigY), w: Math.round(sigW), text: SIG }) };
+window.__exhibit = { ctx, rooms, P, A, PAL, PROV, FAM, legend, sig: () => ({ on: sigOn, x: Math.round(sigX), y: Math.round(sigY), w: Math.round(sigW), text: SIG }) };

@@ -12,7 +12,7 @@
 <meta name="description" content="sonic manifold — seven years of personal listening, decoded with network science, information theory, and topology.">
 <meta name="theme-color" content="#0a0118">
 <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
-<meta name="build-stamp" content="2026-09-21 19:07Z">
+<meta name="build-stamp" content="2026-09-21 21:50Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -6794,7 +6794,7 @@ if('IntersectionObserver'in window){var io=new IntersectionObserver(function(es)
 </section>
 <!--APPLE-CREATION-END-->
 
-<footer class="smcv" style="--cv390:223px;--cv1600:142px;display:flex; flex-direction:column; align-items:center; gap:6px; padding:36px 0 48px; color:var(--mute); font-family:JetBrains Mono, monospace; font-size:10px; letter-spacing:1.2px; opacity:0.75"><span style="color:#86cbfe"><span style="color:#21f6bc">stack:</span> Python &middot; plotly &middot; uv &middot; Tone.js &middot; Spotify Embed iframes &middot; ripser &middot; umap-learn &middot; gensim &middot; statsmodels &middot; ruptures &middot; networkx &middot; kepler-mapper &middot; GitHub Pages</span><span><i>built as a personal project alongside a day job. 24,323 lines of Python across 59 scripts. ~28 methods, one listener.</i></span><span> &middot; <a href="./" style="color:inherit">overview</a></span><span style="opacity:0.6">build 2026-09-21 19:07Z</span></footer>
+<footer class="smcv" style="--cv390:223px;--cv1600:142px;display:flex; flex-direction:column; align-items:center; gap:6px; padding:36px 0 48px; color:var(--mute); font-family:JetBrains Mono, monospace; font-size:10px; letter-spacing:1.2px; opacity:0.75"><span style="color:#86cbfe"><span style="color:#21f6bc">stack:</span> Python &middot; plotly &middot; uv &middot; Tone.js &middot; Spotify Embed iframes &middot; ripser &middot; umap-learn &middot; gensim &middot; statsmodels &middot; ruptures &middot; networkx &middot; kepler-mapper &middot; GitHub Pages</span><span><i>built as a personal project alongside a day job. 24,323 lines of Python across 59 scripts. ~28 methods, one listener.</i></span><span> &middot; <a href="./" style="color:inherit">overview</a></span><span style="opacity:0.6">build 2026-09-21 21:50Z</span></footer>
 
 
 
@@ -18375,7 +18375,7 @@ document.addEventListener('click',function(e){
           a8=document.getElementById('act-8');
       // v1 moves
       // graveyard coda retired 2026-08-22 (teardown: the kill ledger reads before the claims)
-      if(a3 && a2 && a4 && a3.parentNode===a2.parentNode) moveBefore(clusterOf(a3,['act-4']), a2);
+      if(a3 && a2 && a4 && a3.parentNode===a2.parentNode && (a3.compareDocumentPosition(a2) & 2)) moveBefore(clusterOf(a3,['act-4']), a2);
       if(g && a3 && g.parentNode===a3.parentNode) moveBefore([g], a3); // graveyard = Act II slot (2026-08-22)
       if(vs && suno && !window.__fableSuno && vs.parentNode===suno.parentNode){
         var anchor=vs.nextElementSibling;
@@ -19475,5 +19475,353 @@ Array.prototype.forEach.call(document.querySelectorAll('.gy-grid > .gy-card'),fu
 })();
 </script>
 <!--FABLE-MOTION-END-->
+<!--FABLE-CHAPTERS-START-->
+<style id="fable-chapters-css">body.smch-on .smch-hide{display:none !important}.smch-card{display:none}body.smch-on .smch-card{display:block;box-sizing:border-box;width:calc(100% - 36px);max-width:1180px;margin:-10px auto 44px;padding:17px 22px 19px;text-align:left;font:inherit;color:var(--ink,#E6E8EC);cursor:pointer;background:linear-gradient(180deg,rgba(134,203,254,.055),rgba(14,15,18,.34));border:1px solid rgba(134,203,254,.22);border-radius:14px;transition:border-color .18s ease,background .18s ease}body.smch-on .smch-card:hover{border-color:rgba(134,203,254,.52);background:linear-gradient(180deg,rgba(134,203,254,.10),rgba(14,15,18,.40))}.smch-card:focus-visible{outline:2px solid var(--ice,#86cbfe);outline-offset:3px}.smch-row{display:flex;align-items:center;gap:13px;flex-wrap:wrap}.smch-num{flex:none;font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:12px;letter-spacing:2px;color:var(--ice,#86cbfe);border:1px solid rgba(134,203,254,.40);border-radius:4px;padding:3px 9px;background:rgba(134,203,254,.08)}.smch-name{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:12.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink,#E6E8EC)}.smch-count{margin-left:auto;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11.5px;letter-spacing:.10em;color:var(--mute,#9CA0A8);white-space:nowrap}.smch-do{flex:none;display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ice,#86cbfe);border:1px solid rgba(134,203,254,.32);border-radius:999px;padding:6px 11px;background:rgba(134,203,254,.07)}.smch-card:hover .smch-do{background:rgba(134,203,254,.18);border-color:rgba(134,203,254,.55)}.smch-chev{flex:none;font-size:10px;line-height:1;opacity:.95;transition:transform .2s ease}.smch-card.is-open .smch-chev{transform:rotate(180deg)}.smch-take{display:block;margin:12px 0 0;max-width:66ch;font-family:'Inter','IBM Plex Sans',system-ui,sans-serif;font-size:15.5px;line-height:1.62;letter-spacing:.1px;color:rgba(240,234,255,.80)}body.smch-on .smch-card.is-open{margin:-10px auto 20px;padding:10px 18px;background:none;border-color:rgba(134,203,254,.14)}body.smch-on .smch-card.is-open:hover{background:rgba(134,203,254,.05)}.smch-card.is-open .smch-take{display:none}.smch-all{display:none}body.smch-on .smch-all{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:-18px auto 38px;padding:0 16px}.smch-all-lab{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:var(--mute,#9CA0A8)}.smch-all button{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11.5px;letter-spacing:.10em;color:var(--ice,#86cbfe);background:rgba(134,203,254,.07);border:1px solid rgba(134,203,254,.30);border-radius:999px;padding:9px 15px;min-height:40px;cursor:pointer;transition:background .15s ease}.smch-all button:hover{background:rgba(134,203,254,.17)}.smch-all button:focus-visible{outline:2px solid var(--ice,#86cbfe);outline-offset:2px}body.smch-on .sm-actgate2,body.smch-on .sm-actgate{display:none !important}@media (max-width:768px){body.smch-on .smch-card{width:calc(100% - 24px);padding:14px 16px 16px;margin:-6px auto 30px;border-radius:12px}body.smch-on .smch-card.is-open{margin:-6px auto 16px;padding:9px 14px}.smch-row{display:grid;grid-template-columns:auto 1fr;grid-template-areas:'num name' 'count do';align-items:center;gap:11px 12px}.smch-num{grid-area:num}.smch-name{grid-area:name;font-size:11px;letter-spacing:.12em}.smch-count{grid-area:count;margin-left:0}.smch-do{grid-area:do;justify-self:end}.smch-take{font-size:14.5px;margin-top:10px}body.smch-on .smch-all{margin:-10px auto 28px}}@media (prefers-reduced-motion:reduce){.smch-card,.smch-chev,.smch-all button{transition:none !important}}@media print{.smch-card,.smch-all{display:none !important}}</style>
+<script id="fable-chapters-js">
+(function(){
+'use strict';
+if(window.__fableChapters) return; window.__fableChapters=1;
+
+/* one plain first-person sentence per chapter; every number in it is already
+   printed inside that chapter. keyed by act id, so the runtime renumbering
+   done by FABLE-ORDER never puts a sentence on the wrong chapter. */
+var TAKE={
+ 'act-1':'97,427 plays across 6,288 artists, and 93% of an average session is artists i had already heard.',
+ 'act-3':'a changepoint algorithm cut the seven years into 9 eras without being told which ones mattered, and the self-exciting reading of the same stream, n = 0.793, fails its own null.',
+ 'act-2':'no genre label goes into this map: 1,986 artists placed only by which ones i played in the same session, and the scenes show up anyway.',
+ 'act-4':'track features predict my next skip at 0.496, a coin flip, and the session i am already in predicts it at 0.815.',
+ 'act-5':'across 1,424 decoded days, 64% of the repetition is me stuck in one mode rather than moving through it.',
+ 'act-6':'the strongest coupling i found between my physiology and my music, 0.361, fell to 0.067 once i removed the 24-hour clock both signals were already following.',
+ 'act-7':'the training that shaped my ear is 4.3 hours of this log and punjabi pop is 214.3, so the ear is wider than the training.',
+ 'act-8':'28 methods are indexed here, and the three studies i would run next are written as designs, because one subject cannot close them.'
+};
+
+var KEY='sm-chapters-open-v1';
+var PANEL_SEL='.panel,.table-panel';
+var NOCOUNT='.section-tldr,.sect-tldr,.act-lab-btn,.sm-actgate,.sm-actgate2,.smch-card';
+/* parked global chrome lives at the tail of the last chapter; it must never be
+   hidden with the chapter body (toasts, overlays, audio hosts, data islands). */
+var SKIP_ID=/^(sonic-|lr-|ambient-|generative-|idle-|conduct-|touch-synth|h1loop-(host|panel|data))/;
+
+function heads(){
+ var a=[];
+ try{ a=[].slice.call(document.querySelectorAll('header[id^="act-"]')); }catch(e){ return []; }
+ a=a.filter(function(h){ return /^act-\d+$/.test(h.id) && h.parentNode; });
+ a.sort(function(x,y){ return (x.compareDocumentPosition(y)&4)?-1:1; });
+ return a;
+}
+function isHead(n){ return !!(n && n.matches && n.matches('header[id^="act-"]')); }
+function skip(el){
+ if(el.__smchS!==undefined) return el.__smchS;
+ var t=el.tagName, s=false;
+ if(t==='SCRIPT'||t==='STYLE'||t==='LINK'||t==='TEMPLATE'||t==='FOOTER') s=true;
+ else if(el.classList && el.classList.contains('smch-card')) s=true;
+ else if(el.id && SKIP_ID.test(el.id)) s=true;
+ else { try{ if(getComputedStyle(el).position==='fixed') s=true; }catch(e){} }
+ el.__smchS=s; return s;
+}
+function members(h){
+ var out=[], n=h.nextElementSibling;
+ while(n && !isHead(n)){ if(!skip(n)) out.push(n); n=n.nextElementSibling; }
+ return out;
+}
+/* count what the markup actually calls a panel; a chapter built out of
+   full-bleed sections instead of panels gets its sections counted, and says
+   so, rather than being dressed up as panels. */
+function countPanels(mem){
+ var panels=0, secs=0;
+ for(var i=0;i<mem.length;i++){
+  var el=mem[i], c=0;
+  try{ c=(el.matches(PANEL_SEL)?1:0)+el.querySelectorAll(PANEL_SEL).length; }catch(e){}
+  if(c){ panels+=c; continue; }
+  try{ if(el.matches(NOCOUNT)) continue; }catch(e){}
+  if((el.querySelector && el.querySelector('h1,h2,h3,h4,table,img,iframe,svg')) ||
+     (el.textContent||'').trim().length>140) secs++;
+ }
+ if(panels) return panels+(panels===1?' panel':' panels');
+ return secs+(secs===1?' section':' sections');
+}
+function state(){ try{ return JSON.parse(sessionStorage.getItem(KEY)||'{}')||{}; }catch(e){ return {}; } }
+function save(s){ try{ sessionStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} }
+function full(){ return !document.body.classList.contains('story-only'); }
+function navOff(){ var n=document.querySelector('nav.cyber-nav'); return ((n&&n.offsetHeight)?n.offsetHeight:56)+16; }
+
+function kick(){
+ try{ window.dispatchEvent(new Event('scroll')); }catch(e){}
+ [60,420,900].forEach(function(t){ setTimeout(function(){
+  try{ if(window.__smResizeAll) window.__smResizeAll(); }catch(e){}
+ },t); });
+}
+
+function card(h){
+ var c=h.__smchCard;
+ if(c && c.parentNode===h.parentNode){
+  if(h.nextElementSibling!==c) h.parentNode.insertBefore(c,h.nextElementSibling);
+  return c;
+ }
+ c=document.createElement('button');
+ c.type='button'; c.className='smch-card'; c.setAttribute('aria-expanded','false');
+ c.setAttribute('data-smch',h.id);
+ c.innerHTML='<span class="smch-row"><span class="smch-num"></span><span class="smch-name"></span><span class="smch-count"></span><span class="smch-do"><span class="smch-verb">open</span><span class="smch-chev" aria-hidden="true">▾</span></span></span><span class="smch-take"></span>';
+ c.addEventListener('click',function(){ toggle(h); });
+ h.__smchCard=c;
+ h.parentNode.insertBefore(c,h.nextElementSibling);
+ return c;
+}
+function label(h,c,count){
+ var num=((h.querySelector('.act-numeral')||{}).textContent||'').replace(/ACT/i,'').replace(/ /g,' ').trim();
+ var name=((h.querySelector('.act-name')||{}).textContent||'').trim();
+ c.querySelector('.smch-num').textContent=num||'';
+ c.querySelector('.smch-name').textContent=name||'';
+ c.querySelector('.smch-count').textContent=count;
+ var tk=c.querySelector('.smch-take');
+ if(tk.textContent!==(TAKE[h.id]||'')) tk.textContent=TAKE[h.id]||'';
+}
+function verb(c,open){ var v=c&&c.querySelector('.smch-verb'); if(v) v.textContent=open?'close':'open'; }
+function paint(h,open){
+ var mem=members(h);
+ for(var i=0;i<mem.length;i++) mem[i].classList.toggle('smch-hide',!open);
+ var c=h.__smchCard;
+ if(c){ c.classList.toggle('is-open',open); c.setAttribute('aria-expanded',open?'true':'false'); verb(c,open); }
+}
+function setOpen(h,open,quiet){
+ var st=state();
+ if(open) st[h.id]=1; else delete st[h.id];
+ save(st);
+ paint(h,open);
+ if(open && !quiet) kick();
+}
+function isOpen(h){ return !!state()[h.id]; }
+function toggle(h){
+ var open=!isOpen(h);
+ if(!open){
+  var c=h.__smchCard, r=c?c.getBoundingClientRect():null;
+  setOpen(h,false);
+  if(r && r.top<navOff()){
+   try{ window.scrollTo({top:Math.max(0,c.getBoundingClientRect().top+window.pageYOffset-navOff()),behavior:'auto'}); }catch(e){}
+  }
+  return;
+ }
+ setOpen(h,true);
+}
+function allOpen(open){
+ var H=heads();
+ H.forEach(function(h){ setOpen(h,open,true); });
+ if(open) kick();
+}
+
+/* ---- which chapter owns an element ------------------------------------- */
+function ownerHead(el,allowHead){
+ var H=heads(); if(!H.length || !el) return null;
+ var root=H[0].parentNode, n=el;
+ while(n && n.parentNode!==root) n=n.parentNode;
+ if(!n) return null;
+ /* a chip aimed at the divider itself opens that chapter; j/k, which only walks
+    the dividers, must not, or every chapter opens as you pass it. */
+ if(isHead(n)) return allowHead?n:null;
+ var p=n;
+ while(p){ if(isHead(p)) return p; p=p.previousElementSibling; }
+ return null;
+}
+/* mode-agnostic on purpose: fableGo reveals first and only then leaves story
+   mode, so the state has to be set before the mode flips. */
+function reveal(el,allowHead){
+ /* the card is a sibling of its own chapter: scrolling it into view must not
+    count as aiming at the chapter, or a click right after it would toggle back. */
+ try{ if(el.closest && el.closest('.smch-card,.smch-all')) return null; }catch(e){}
+ var h=ownerHead(el,allowHead!==false);
+ if(!h) return null;
+ if(!isOpen(h)) setOpen(h,true);
+ return h;
+}
+function byHash(hash){
+ if(!hash || hash.length<2) return null;
+ var id=hash.replace(/^#/,''); var el=null;
+ try{ el=document.getElementById(id); }catch(e){}
+ if(!el){ try{ el=document.querySelector('#'+CSS.escape(id)); }catch(e){} }
+ return el;
+}
+function revealHash(hash){ var el=byHash(hash); return el?reveal(el):null; }
+function goTo(el,smooth){
+ if(!el) return;
+ try{ if(window.fableGo){ window.fableGo(el,{behavior:smooth?'smooth':'auto',hash:false}); return; } }catch(e){}
+ try{
+  var y=el.getBoundingClientRect().top+window.pageYOffset-navOff();
+  window.scrollTo({top:Math.max(0,y),behavior:smooth?'smooth':'auto'});
+ }catch(e){}
+}
+
+/* ---- open-all / close-all, parked next to the pace toggle ---------------- */
+function allBar(){
+ var pace=document.querySelector('.pace-pick'); if(!pace||!pace.parentNode) return;
+ var bar=document.getElementById('smch-all');
+ if(!bar){
+  bar=document.createElement('div');
+  bar.id='smch-all'; bar.className='smch-all';
+  bar.setAttribute('role','group'); bar.setAttribute('aria-label','all chapters');
+  var lab=document.createElement('span'); lab.className='smch-all-lab'; lab.textContent='eight chapters';
+  var b1=document.createElement('button'); b1.type='button'; b1.textContent='open all';
+  var b2=document.createElement('button'); b2.type='button'; b2.textContent='close all';
+  b1.addEventListener('click',function(){ allOpen(true); });
+  b2.addEventListener('click',function(){ allOpen(false); });
+  bar.appendChild(lab); bar.appendChild(b1); bar.appendChild(b2);
+ }
+ if(pace.nextElementSibling!==bar) pace.parentNode.insertBefore(bar,pace.nextElementSibling);
+}
+
+/* ---- the one pass that puts everything where it belongs ------------------ */
+var built=false;
+function sync(){
+ var H=heads(); if(!H.length) return;
+ var on=full();
+ document.body.classList.toggle('smch-on',on);
+ var st=state();
+ H.forEach(function(h){
+  var c=card(h);
+  var mem=members(h);
+  label(h,c,countPanels(mem));
+  /* in story mode the cards are display:none and the hide rule is scoped to
+     body.smch-on, so leave the page exactly as the spine left it. */
+  if(on){
+   var open=!!st[h.id];
+   for(var i=0;i<mem.length;i++) mem[i].classList.toggle('smch-hide',!open);
+   c.classList.toggle('is-open',open);
+   c.setAttribute('aria-expanded',open?'true':'false');
+   verb(c,open);
+   /* while the chapters are cards, the story-mode "all lab material" gate would
+      measure a collapsed act and fire on every one of them. */
+   h.dataset.smGate2='1';
+  } else if(h.dataset.smGate2==='1') delete h.dataset.smGate2;
+ });
+ allBar();
+ if(on && !built){ built=true; firstHash(); }
+ if(!on) unGate();
+}
+/* story mode: drop the gates that were created against a collapsed act */
+function unGate(){
+ setTimeout(function(){ try{
+  heads().forEach(function(h){
+   var n=h.nextElementSibling, seen=0, g=null;
+   while(n && !isHead(n)){
+    if(n.classList && n.classList.contains('sm-actgate2')) g=n;
+    else if(n.offsetParent!==null && !(n.classList&&n.classList.contains('smch-card'))) seen+=n.getBoundingClientRect().height;
+    n=n.nextElementSibling;
+   }
+   if(g && seen>340 && g.parentNode) g.parentNode.removeChild(g);
+  });
+ }catch(e){} },600);
+}
+
+var userScrolled=false;
+['wheel','touchstart','keydown'].forEach(function(ev){
+ window.addEventListener(ev,function(){ userScrolled=true; },{passive:true,capture:true});
+});
+/* the splash strips the incoming hash off the url before this block parses
+   (APPLE-ENTER's dismiss()), so read the navigation entry, which keeps it. */
+function wantedHash(){
+ var h=location.hash;
+ if(h && h.length>1) return h;
+ try{
+  var n=(performance.getEntriesByType('navigation')[0]||{}).name||'';
+  var i=n.indexOf('#');
+  if(i>=0 && n.length-i>1) return n.slice(i);
+ }catch(e){}
+ return '';
+}
+function firstHash(){
+ var h=wantedHash(); if(!h) return;
+ if(!byHash(h)) return;
+ /* wait out FABLE-ORDER's first pass: #graveyard and the act-3 cluster change
+    chapter between parse and 700ms, and opening the pre-move owner would leave
+    a second chapter hanging open. APPLE-ENTER's own deep-link poll runs for
+    20s and only fires once the target has a box, so revealing here feeds it. */
+ var mine=null;
+ function land(aim){
+  var el=byHash(h); if(!el) return;
+  var h2=reveal(el);
+  if(h2 && mine && mine!==h2 && isOpen(mine)) setOpen(mine,false,true);
+  if(h2) mine=h2;
+  if(aim && !userScrolled) goTo(el,false);
+ }
+ [850,1400,2600].forEach(function(t,i){ setTimeout(function(){ land(i>0); },t); });
+}
+
+/* ---- every way a visitor can aim at something inside a closed chapter ---- */
+function sameDoc(href){
+ var i=href.indexOf('#'); if(i<0) return -1;
+ if(i===0) return i;
+ var base=href.slice(0,i);
+ var here=location.pathname.split('/').pop()||'lab.html';
+ return (base===here||base==='./'+here||base==='') ? i : -1;
+}
+function onPoint(e){
+ var t=e.target; if(!t||!t.closest) return;
+ var a=t.closest('a[href]'); if(!a) return;
+ var href=a.getAttribute('href')||'';
+ var i=sameDoc(href); if(i<0) return;
+ revealHash(href.slice(i));
+}
+document.addEventListener('pointerdown',onPoint,true);
+document.addEventListener('click',onPoint,true);
+window.addEventListener('hashchange',function(){
+ if(revealHash(location.hash)) setTimeout(function(){ goTo(byHash(location.hash),false); },60);
+});
+
+/* the nav primitive every in-page jump already routes through */
+(function(){
+ var n=0;
+ function wrap(){
+  if(!window.fableGo || window.fableGo.__smch) return !!window.fableGo;
+  var orig=window.fableGo;
+  var w=function(target){
+   try{
+    var el=(target&&target.nodeType===1)?target:null;
+    if(!el&&typeof target==='string') el=byHash(String(target));
+    if(el) reveal(el);
+   }catch(e){}
+   return orig.apply(this,arguments);
+  };
+  w.__smch=1; window.fableGo=w; return true;
+ }
+ if(!wrap()){ var iv=setInterval(function(){ if(wrap()||++n>40) clearInterval(iv); },150); }
+})();
+
+/* safety net for the jumps that do not go through an anchor or fableGo */
+try{
+ var siv=Element.prototype.scrollIntoView;
+ if(siv && !siv.__smch){
+  var patched=function(){ try{ if(this&&this.nodeType===1) reveal(this,false); }catch(e){} return siv.apply(this,arguments); };
+  patched.__smch=1;
+  Element.prototype.scrollIntoView=patched;
+ }
+}catch(e){}
+
+/* print the whole thing, not the cards */
+try{
+ window.addEventListener('beforeprint',function(){ heads().forEach(function(h){ paint(h,true); }); });
+ window.addEventListener('afterprint',function(){ sync(); });
+}catch(e){}
+
+/* the pace toggle, the nav story switch and fableGo's leaveStory() all just
+   flip body.story-only, so watch the class instead of every control. */
+try{
+ var mo=new MutationObserver(function(){
+  var on=full();
+  if(on!==document.body.classList.contains('smch-on')){ try{ sync(); }catch(e){} }
+ });
+ mo.observe(document.body,{attributes:true,attributeFilter:['class']});
+}catch(e){}
+
+function run(){ try{ sync(); }catch(e){ /* chapters are non-fatal */ } }
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run);
+else run();
+/* FABLE-ORDER re-runs its moves at 700/1600/3200/6000ms; re-pass after each so
+   a section that changed chapters carries the right state. */
+[900,1800,3400,6400].forEach(function(t){ setTimeout(run,t); });
+try{ document.addEventListener('sm-defer-done',function(){ setTimeout(run,900); }); }catch(e){}
+})();
+</script>
+<!--FABLE-CHAPTERS-END-->
+
 </body>
 </html>

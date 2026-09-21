@@ -6,11 +6,12 @@ export const LABELS = {
     title: 'mostly the machine',
     by: 'astralcrest, 2026',
     rows: [
-      ['medium', 'a browser exhibit in seven screens: a threshold and six rooms. one particle field, web audio, no frameworks. one dot per play; on a small screen, one dot per four.'],
+      ['medium', 'a browser exhibit in nine screens: a threshold and eight rooms, with one side room for your own export. one particle field, web audio, no frameworks. one dot per play; on a small screen, one dot per four.'],
       ['materials', '97,427 logged plays, september 2019 to may 2026. one recommender. 22 original tracks. 120 artists drawn twice. 300 artists on seven retrained maps.'],
       ['method', 'spotify’s export records who started every play. split on that one field, 19 in every 100 i tapped, 17 arrived shuffled, 64 the queue served. every claim was run against a kill condition written down before the number was seen. sixteen died and have a card in the graveyard.'],
       ['the finding', 'when i pick the next track it crosses into another genre family more often than when autoplay picks: bridge index 1.05, 95% interval 1.03 to 1.08. a third to two fifths of my jumps carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13. with the loosest definitions of a tap and of autoplay it reads 1.01, interval 0.99 to 1.03, and when both sides are held to artists with at least 50 plays it reads 1.01, interval 0.98 to 1.04. neither separates from 1. it holds across partitions, by device and by era. a direction, not a size.'],
-      ['withdrawn', 'the same measurement taken on a map the algorithm helped draw first read 1.61. that map was trained mostly on plays the algorithm chose. room 03 is that map.'],
+      ['withdrawn', 'the same measurement taken on a map the algorithm helped draw first read 1.61. that map was trained mostly on plays the algorithm chose. room 05 is that map.'],
+      ['what the colours mean', 'two codes, used the same way in every room. who pressed play: mint is a play i tapped, amber is one that arrived on shuffle, violet is one the queue served, rose is a finding of mine that was killed or withdrawn. ice is the interface and nothing else: links, axes, the ring around whatever you have selected. the second code is the genre family, one fixed pastel hue for each of the thirteen families the artists are labelled into, grey for an artist with no public tag. no colour here is decoration: if it is on screen it is answering one of those two questions.'],
     ],
     more: ['researcher.html', 'the technical summary'],
   },
@@ -24,6 +25,17 @@ export const LABELS = {
     ],
     more: ['lab.html#apple-leadhero', 'the split, in the lab'],
   },
+  calendar: {
+    kicker: 'how this was measured', title: 'the ruler changed',
+    rows: [
+      ['the ribbon', '81 months, september 2019 to may 2026, left to right. one column per month, stacked by who pressed play, at the real monthly counts from exhibit/data/wall.json.'],
+      ['the line', 'october 2023, a changepoint the logger shows in its own vocabulary. the app began recording what started a play differently around it.'],
+      ['the swing', 'the bundled tapped rate reads 11.8% before that line and 22.7% after: 10.9 points, against a stability bar of 3 points written down before the split was run. the claim that my tap rate was flat across seven years died there.'],
+      ['what survived', 'the strict reading of a tap, clickrow, playbtn and remote only, is 11.5% and swings 1.87 points. that is the arm the bridge index uses, which is why the headline is not built on the bundled rate.'],
+      ['caveat', 'this room is why no claim here compares provenance shares across eras. the cross-sectional split pools the whole window instead.'],
+    ],
+    more: ['researcher.html#graveyard', 'the era-stability kill'],
+  },
   game: {
     kicker: 'how this was measured', title: 'who pressed play?',
     rows: [
@@ -33,6 +45,16 @@ export const LABELS = {
       ['caveat', 'the deck is not the population. in the real log about four plays in five were advanced by the app.'],
     ],
     more: ['lab.html#toy-whopressed', 'ten rounds, in the lab'],
+  },
+  clock: {
+    kicker: 'how this was measured', title: 'what held',
+    rows: [
+      ['the dial', 'all 97,427 plays placed on the hour they started and folded across the seven years. what i tapped rides the outer band, shuffle under it, the served queue under that. counts from exhibit/data/clock.json.'],
+      ['the hour', 'a fixed utc-7 approximation applied to the whole record. no per-play timezone or daylight-saving information was kept in the export, so this is an approximation of local time and not local time.'],
+      ['why this room is calm', 'the shape of the day is a count, not a contested claim, and nothing in the audit ever came for it. where the hour does enter a test it goes in as a control: split the headline into six-hour bins and the bins do not separate from one another, though that contrast is underpowered rather than reassuring.'],
+      ['caveat', 'a histogram over seven years hides drift. what counted as night for me early on is not what it counted as later, and the fixed offset is wrong for however much of this was not lived in that timezone.'],
+    ],
+    more: ['lab.html#fig-4', 'the hour against the weekday, in the lab'],
   },
   map: {
     kicker: 'how this was measured', title: 'the map that lied',
@@ -70,15 +92,28 @@ export const LABELS = {
       ['the ending', 'the sorted wall from room 01 comes back, the 81% that the queue or shuffle started falls away, and the 19% i tapped becomes the wheel.'],
       ['the wheel', '22 tracks i made, placed by musical key. the glow when you tap one marks the keys that mix cleanly with it. that is music theory, not a finding.'],
       ['metadata', 'key and tempo are production notes i entered myself, not something derived from the log.'],
-      ['your turn', 'the probe reads your own export in this browser tab and computes your split and your bridge index. nothing is uploaded.'],
+      ['next door', 'the last room reads your own export in this tab and puts your three shares next to mine.'],
     ],
     more: ['bridge-index.html', 'run it on your data'],
+  },
+  yours: {
+    kicker: 'how this was measured', title: 'your turn',
+    rows: [
+      ['what it does', 'your extended streaming history json is parsed in this browser tab and sorted on the same field mine was. a tap here is the same bundled reading my 19% is drawn on: track row, play button, remote, or a skip forward or back. the stricter set the bridge index uses (track row, play button, remote only) is printed next to it. served means the track ended and the next one arrived with shuffle off. the categories are copied from the probe, not reinvented here.'],
+      ['privacy', 'nothing is uploaded and nothing is stored. no request carries your file anywhere. closing the tab ends it.'],
+      ['the comparison', 'your three shares are drawn beside mine, which are 19% tapped, 17% shuffled and 64% served over 97,427 plays and seven years.'],
+      ['limits', 'one listener is one listener. your split describes your log and is not evidence about recommenders in general, and the untagged tail that widens my interval will widen yours.'],
+    ],
+    more: ['bridge-index.html#sec-howto', 'the full probe, with its method'],
   },
 };
 
 /* one line per room, shown only if a visitor has done nothing for a while */
 export const HINTS = {
   wall: 'press and hold anywhere on the dots',
+  calendar: 'the dotted line is where the logger changed, not where i did',
   game: 'pick one: did i tap it, or did the app queue it?',
+  clock: 'midnight at the top, noon at the bottom',
   graveyard: 'pick a finding and watch the null fall',
+  yours: 'your file is read here and never sent anywhere',
 };
