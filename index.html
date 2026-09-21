@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0a0d18">
+<meta name="theme-color" content="#0a0118">
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/">
@@ -30,81 +30,307 @@
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <style>
 @font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("fonts/JetBrainsMono-var.woff2") format("woff2")}
-:root{color-scheme:dark;--bg:#0E0F12;--ink:#E6E8EC;--mute:#9CA0A8;--mint:#21f6bc;--rose:#ff6e9c;--ice:#86cbfe;--orchid:#df95ff;--line:rgba(124,128,140,.28);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace}
+:root{color-scheme:dark;--bg:#0a0118;--ink:#f0eaff;--body:rgba(240,234,255,.88);--mute:#a49bbd;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff6e9c;--ice:#86cbfe;--line:rgba(189,166,255,.19);--line2:rgba(189,166,255,.34);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font:400 16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-.wrap{max-width:760px;margin:0 auto;padding:0 22px}
-a{color:var(--ice)}
-a:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:3px}
-.eyebrow{font:600 11px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:56px 0 18px}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--body);font:400 17px/1.68 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(900px 620px at 78% -8%,rgba(107,90,134,.30),transparent 62%),radial-gradient(700px 560px at 4% 6%,rgba(33,246,188,.055),transparent 60%)}
+.page{max-width:1160px;margin:0 auto;padding:0 clamp(16px,4.4vw,48px)}
+.prose{max-width:min(64ch,616px)}
+p{margin:0 0 16px}
+a{color:var(--ice);text-underline-offset:3px}
+a:hover{color:var(--mint)}
+:focus-visible{outline:2px solid var(--mint);outline-offset:3px;border-radius:3px}
+code{font:500 .9em var(--mono);color:var(--ice)}
+b,strong{font-weight:600;color:var(--ink)}
+
+/* ---------- hero ---------- */
+.hero{display:grid;grid-template-columns:minmax(0,1fr);gap:30px;padding:clamp(36px,6vh,76px) 0 clamp(30px,5vh,52px)}
+@media (min-width:980px){.hero{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);column-gap:clamp(36px,4.6vw,66px);row-gap:26px;grid-template-areas:"a b" "c b";align-items:start;padding-top:clamp(52px,9vh,104px)}.herotext{grid-area:a}.wall{grid-area:b;align-self:center}.herobody{grid-area:c}}
+.hero>*{min-width:0}
+.eyebrow{font:600 10.5px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin:0 0 20px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .eyebrow b{color:var(--mint);font-weight:600}
-h1{font:italic 700 clamp(34px,7.2vw,58px)/1.12 Georgia,"Times New Roman",serif;letter-spacing:-.01em;margin:0 0 22px;background:linear-gradient(100deg,#bff3df 10%,#cfd8ff 55%,#e9c8ff 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.chips{display:flex;flex-wrap:wrap;gap:8px 18px;font:500 12.5px/1.5 var(--mono);color:var(--mute);margin:0 0 26px}
-.chips b{color:var(--ink);font-weight:600}
-.chips .dot{color:var(--line)}
-.thesis{font-size:17.5px;max-width:min(60ch,600px);text-wrap:pretty}
+.eyebrow i{width:5px;height:5px;border-radius:50%;background:var(--line2);display:inline-block;flex:0 0 auto}
+h1{font:italic 600 clamp(36px,7.1vw,74px)/1.06 var(--serif);letter-spacing:-.022em;margin:0 0 24px;background:linear-gradient(104deg,#bff3df 4%,#cfd8ff 48%,#e9c8ff 88%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tot{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0;background:rgba(189,166,255,.035)}
+.tot div{padding:12px 14px;border-right:1px solid var(--line);font:600 20px/1.15 var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.tot div:last-child{border-right:0}
+.tot div span{display:block;margin-top:4px;font:500 10px/1.35 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-variant-numeric:normal}
+.tot div.kill{color:var(--rose)}
+@media (max-width:560px){.tot{grid-template-columns:repeat(2,minmax(0,1fr))}.tot div{border-bottom:1px solid var(--line)}.tot div:nth-child(2n){border-right:0}.tot div:last-child{grid-column:1/-1;border-bottom:0}}
+.thesis{font-size:17px;max-width:56ch;text-wrap:pretty;color:var(--body);margin-top:0}
 .thesis b{color:var(--mint);font-weight:600}
-h2{font:600 13px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);margin:64px 0 16px;padding-top:26px;border-top:1px solid var(--line)}
-h2 .mark{color:var(--mint)}
-p{margin:0 0 14px;max-width:min(64ch,620px);color:rgba(230,232,236,.92)}
-p.dim,li .why{color:var(--mute)}
-code{font:500 .92em var(--mono);color:var(--ice)}
-.fig{margin:22px 0 6px}
-@media (min-width:1120px){.fig{width:1040px;margin-left:calc(50% - 520px);margin-right:calc(50% - 520px)}}
-.fig svg{width:100%;height:auto;border-radius:10px}
-@media (max-width:700px){.fig{overflow-x:auto;-webkit-overflow-scrolling:touch}.fig svg{min-width:900px}}
-.panhint{display:none}
-@media (max-width:700px){.panhint{display:inline}}
-.figcap{font:400 11.5px/1.6 var(--mono);color:var(--mute);max-width:66ch;margin:10px 0 0}
-ul.kills{list-style:none;margin:14px 0 10px;padding:0}
-ul.kills li{position:relative;padding:9px 0 9px 26px;border-bottom:1px dashed rgba(255,110,156,.22);font-size:15px}
-ul.kills li::before{content:"✕";position:absolute;left:2px;top:9px;color:var(--rose);font:600 13px var(--mono)}
-ul.kills b{color:var(--ink);font-weight:600}
-ul.kills .why{display:block;font-size:13px;margin-top:2px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:20px 0 8px}
-.card{display:block;border:1px solid var(--line);border-radius:12px;padding:16px 17px;text-decoration:none;color:var(--ink);background:rgba(21,8,45,.28);transition:border-color .15s}
-.card:hover{border-color:var(--mint)}
-.card .k{font:600 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mint);display:block;margin-bottom:7px}
-.card .d{font-size:13.5px;color:var(--mute);line-height:1.55}
-.card.big .k{color:var(--rose)}
-.chips .kill b{color:var(--rose)}
-.carry{font-size:16px;max-width:min(64ch,620px);margin:20px 0 0;padding:15px 18px;border:1px solid var(--line);border-left:2px solid var(--mint);border-radius:10px;background:rgba(33,246,188,.045)}
-.carry b{color:var(--mint);font-weight:600}
-.enter-x a.alt{color:var(--mint);background:none;border:1px solid rgba(33,246,188,.45)}
-.cta-sub{font:400 12px/1.6 var(--mono);color:var(--mute);margin:10px 0 0;max-width:64ch}
-.card.wide{grid-column:1/-1;border-color:rgba(33,246,188,.4)}
-.enter-x{margin:18px 0 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
-.enter-x a{font:600 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#06130f;background:linear-gradient(100deg,#21f6bc,#62e7ff);border-radius:999px;padding:15px 22px;text-decoration:none;display:inline-block}
-.enter-x a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
-.enter-x span{font:400 12px/1.5 var(--mono);color:var(--mute)}
-footer{margin:70px 0 46px;padding-top:22px;border-top:1px solid var(--line);font:400 11.5px/1.7 var(--mono);color:var(--mute)}
-footer a{color:var(--mute)}
-@media (max-width:480px){.eyebrow{margin-top:40px}h2{margin-top:52px}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-@media print{body{background:#fff;color:#111}p,li{color:#111}h1{color:#111;background:none;-webkit-text-fill-color:#111}}
+.cta{margin:24px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
+.cta a{font:600 11.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;text-decoration:none;border-radius:999px;padding:16px 18px;display:inline-block;white-space:nowrap}
+.cta a.go{color:#04130e;background:linear-gradient(100deg,#21f6bc,#62e7ff)}
+.cta a.alt{color:var(--mint);border:1px solid rgba(33,246,188,.42)}
+.cta a.alt:hover{border-color:var(--mint);background:rgba(33,246,188,.07)}
+.cta-sub{font:400 12px/1.65 var(--mono);color:var(--mute);margin:14px 0 0;max-width:60ch}
+.wall{margin:0;position:relative}
+.wall canvas{display:block;width:100%;aspect-ratio:10/8;height:auto;border-radius:12px;background:rgba(189,166,255,.035);box-shadow:inset 0 0 0 1px var(--line)}
+@media (max-width:979px){.wall canvas{aspect-ratio:10/5.4}}
+.wallhd{font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+.readout{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:9px}
+.readout li{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline;gap:0 11px;font:500 12.5px/1.4 var(--mono);color:var(--mute);border-top:1px solid var(--line);padding-top:9px}
+.readout li:first-child{border-top:0;padding-top:0}
+.readout s{width:10px;height:10px;border-radius:2px;align-self:center}
+.readout b{font:600 15px/1 var(--mono);letter-spacing:-.01em;min-width:3.2em}
+.r-mint s{background:var(--mint)}.r-mint b{color:var(--mint)}
+.r-amber s{background:var(--amber)}.r-amber b{color:var(--amber)}
+.r-violet s{background:var(--violet)}.r-violet b{color:var(--violet)}
+.wallcap{font:400 11px/1.6 var(--mono);color:var(--mute);margin:16px 0 0;max-width:46ch}
+
 </style>
+<noscript><style>.wall canvas{display:none}</style></noscript>
 </head>
 <body id="top">
-<div class="wrap" role="main">
+<div class="page" role="main">
 
-<p class="eyebrow">a listening life, decoded &middot; n=1 &middot; <b>astralcrest</b></p>
-<h1>I didn&rsquo;t choose most of my&nbsp;music.</h1>
-<div class="chips"><span><b>97,427</b> plays</span><span class="dot">&middot;</span><span><b>seven</b> years</span><span class="dot">&middot;</span><span><b>81%</b> machine-queued</span><span class="dot">&middot;</span><span><b>19%</b> deliberate taps</span><span class="dot">&middot;</span><span class="kill"><b>16</b> of my findings killed</span></div>
-<p class="thesis">a streamed &ldquo;play&rdquo; is produced jointly by a listener and a recommender, yet listening logs get read as records of taste. spotify&rsquo;s export records who initiated every play (<code>reason_start</code>: did i tap this song, or did it just come on next). condition on that one field and most of what my own log seemed to say about me changes. <b>streaming logs are not preference logs.</b></p>
-<p class="carry"><b>the part that isn&rsquo;t about music.</b> i trained an artist embedding on this stream, which is 6.6&times; algorithm-dominated, and measured my own headline on it. it came back inflated at 1.61: the training stream&rsquo;s provenance had leaked into the geometry. retraining at seven algorithmic-share levels traces a dose-response, 0.99 to 1.46. on a simulated stream where both channels cross communities at exactly the same rate, the same pipeline still read 1.11 at an 80% algorithmic share, and the curve stays where it is when i hold the number of communities fixed. any preference model fit to logs that a deployed system helped generate inherits this, music or not.</p>
-<p class="enter-x"><a href="exhibit.html">walk through it: the exhibit &rarr;</a><a class="alt" href="bridge-index.html">run it on your own export &rarr;</a></p>
-<p class="cta-sub">six rooms, about five minutes, better with sound &middot; the probe computes your split in this tab. nothing is uploaded, and it works offline.</p>
+<div class="hero">
+ <div class="herotext">
+  <p class="eyebrow">a listening life, decoded <i></i> n=1 <i></i> <b>astralcrest</b></p>
+  <h1>I didn&rsquo;t choose most of my&nbsp;music.</h1>
+  <div class="tot">
+   <div>97,427<span>plays</span></div>
+   <div>seven<span>years</span></div>
+   <div>81%<span>machine-queued</span></div>
+   <div>19%<span>deliberate taps</span></div>
+   <div class="kill">16<span>of my findings killed</span></div>
+  </div>
+ </div>
 
-<h2 id="argument"><span class="mark">◢◤</span> the contamination argument</h2>
-<p>only 19% of my plays started with a deliberate act (pooled over a changing logger; the strict definition is 11.5% and era-stable). the other 81% were the platform advancing a queue. some summaries survive conditioning on who pressed play &mdash; my circadian structure does. genre composition doesn&rsquo;t: the calm ambient wall that reads as &ldquo;my taste&rdquo; is mostly what the algorithm over-serves, and the ranking flips once exposure is separated from choice.</p>
+ <figure class="wall">
+  <p class="wallhd">who pressed play &middot; one dot per forty plays</p>
+  <canvas id="wallc" aria-hidden="true"></canvas>
+  <ul class="readout">
+   <li class="r-mint"><s aria-hidden="true"></s><b>19%</b><span>i tapped it</span></li>
+   <li class="r-amber"><s aria-hidden="true"></s><b>17%</b><span>shuffle picked it</span></li>
+   <li class="r-violet"><s aria-hidden="true"></s><b>64%</b><span>the app played it next</span></li>
+  </ul>
+  <figcaption class="wallcap">2,436 dots, sorted by who started the play. the exhibit draws all 97,427 of them.</figcaption>
+ </figure>
+
+ <div class="herobody">
+  <p class="thesis">a streamed &ldquo;play&rdquo; is produced jointly by a listener and a recommender, yet listening logs get read as records of taste. spotify&rsquo;s export records who initiated every play (<code>reason_start</code>: did i tap this song, or did it just come on next). condition on that one field and most of what my own log seemed to say about me changes. <b>streaming logs are not preference logs.</b></p>
+  <p class="cta"><a class="go" href="exhibit.html">walk through it: the exhibit &rarr;</a><a class="alt" href="researcher.html">read the technical report &rarr;</a></p>
+  <p class="cta-sub">six rooms, about five minutes, better with sound.</p>
+ </div>
+</div>
+
+<style>/* the rest of the sheet: everything below the first screen, kept out of the first paint */
+/* ---------- body grid + sticky rail ---------- */
+.body{display:grid;grid-template-columns:minmax(0,1fr)}
+.body>*{min-width:0}
+.rail{display:none}
+@media (min-width:1120px){
+.body{grid-template-columns:minmax(0,1fr) 216px;column-gap:clamp(30px,3.4vw,52px)}
+.rail{display:block;position:sticky;top:26px;align-self:start;padding-top:clamp(56px,9vh,104px)}
+}
+.rail-h{font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+.routes{display:grid;gap:8px}
+.route{display:block;border:1px solid var(--line);border-radius:10px;padding:11px 12px;text-decoration:none;background:rgba(189,166,255,.03);transition:border-color .16s,background .16s}
+.route:hover{border-color:rgba(33,246,188,.45);background:rgba(33,246,188,.05)}
+.rt-k{display:block;font:600 10.5px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mint)}
+.rt-d{display:block;font:400 11.5px/1.5 var(--mono);color:var(--mute);margin-top:4px}
+.route.big .rt-k{color:var(--ice)}
+.rail .leg{font:400 10.5px/1.7 var(--mono);color:var(--mute);margin:16px 0 0;display:grid;gap:3px}
+.rail .leg i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:7px;vertical-align:1px}
+
+/* ---------- sections ---------- */
+section{padding:clamp(56px,9vh,104px) 0 0;border-top:1px solid var(--line);margin-top:clamp(44px,7vh,76px)}
+/* below the fold: skip layout and paint until scrolled to */
+#argument,#carry,#finding,#kills,#links{content-visibility:auto}
+#argument{contain-intrinsic-size:800px;contain-intrinsic-size:auto 800px}
+#carry{contain-intrinsic-size:750px;contain-intrinsic-size:auto 750px}
+#finding{contain-intrinsic-size:2500px;contain-intrinsic-size:auto 2500px}
+#kills{contain-intrinsic-size:1100px;contain-intrinsic-size:auto 1100px}
+#links{contain-intrinsic-size:800px;contain-intrinsic-size:auto 800px}
+.sec{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.sec>*{min-width:0}
+@media (min-width:900px){.sec{grid-template-columns:110px minmax(0,1fr);gap:0 34px}}
+.num{font:600 11px/1.6 var(--mono);letter-spacing:.15em;color:var(--mute);margin:0 0 14px}
+.num span{color:var(--mint)}
+h2{font:italic 500 clamp(26px,3.7vw,42px)/1.14 var(--serif);letter-spacing:-.018em;color:var(--ink);margin:0 0 22px;max-width:21ch;text-wrap:pretty}
+h3{font:600 11px/1.5 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:34px 0 12px}
+.lede{font-size:19px;line-height:1.6;color:var(--ink);max-width:56ch;margin-bottom:20px;text-wrap:pretty}
+.dim{color:var(--mute)}
+.small{font-size:15.5px;line-height:1.7}
+.transfer{border-left:2px solid var(--ice);padding:2px 0 2px 22px;margin:0 0 22px;max-width:62ch}
+.dose{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:24px 0 8px;font:600 13px/1.5 var(--mono);color:var(--mute)}
+.dose em{font-style:normal;font-size:24px;letter-spacing:-.02em;color:var(--ink)}
+.dose .to{color:var(--line2)}
+.dose .hi{color:var(--violet)}
+
+/* ---------- verdict stamps ---------- */
+.stamp{display:inline-flex;align-items:center;gap:5px;font:700 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 9px;border-radius:4px;white-space:nowrap;flex:0 0 auto;vertical-align:2px}
+.stamp::before{content:"";width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+/* verdicts are not provenance: survived = plain ink, caveated = ice and dashed, killed = rose. mint and amber stay reserved for who pressed play */
+.stamp.mint{color:var(--ink);border:1px solid rgba(240,234,255,.55);background:rgba(240,234,255,.06)}
+.stamp.mint::before{background:var(--ink)}
+.stamp.amber{color:var(--ice);border:1px dashed rgba(134,203,254,.6);background:rgba(134,203,254,.06)}
+.stamp.amber::before{background:none;box-shadow:inset 0 0 0 1.5px var(--ice)}
+.stamp.rose{color:var(--rose);border:1px solid rgba(255,110,156,.4);background:rgba(255,110,156,.08)}
+.stamp.rose::before{background:var(--rose)}
+.legend-key{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font:500 10.5px/1.5 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 16px}
+
+.stat{margin:6px 0 26px;padding:22px 24px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(33,246,188,.05),rgba(33,246,188,0));max-width:46ch}
+.stat .top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 6px}
+.stat .v{font:600 clamp(40px,6.4vw,58px)/1 var(--mono);letter-spacing:-.04em;color:var(--mint);margin:0}
+.stat .ci{font:500 12.5px/1.5 var(--mono);color:var(--mute);margin:0 0 10px}
+.stat .k{font:400 14.5px/1.55 var(--sans);color:var(--body);margin:0}
+
+/* ---------- shrink timeline ---------- */
+.tlfig{margin:26px 0 0;border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:rgba(189,166,255,.025)}
+.tlfig svg{display:block;width:100%;height:auto}
+@media (max-width:760px){.tlfig{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:14px}.tlfig svg{min-width:660px}}
+.tl-cap{font:400 11.5px/1.65 var(--mono);color:var(--mute);max-width:66ch;margin:12px 0 26px}
+
+/* ---------- drawers + forest ---------- */
+details.drawer{margin:20px 0 6px;border:1px solid var(--line);border-radius:12px;padding:0 17px}
+details.drawer[open]{padding-bottom:6px;background:rgba(189,166,255,.025)}
+details.drawer>summary{cursor:pointer;font:600 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ice);padding:15px 0;list-style:none;display:flex;align-items:center;gap:10px}
+details.drawer>summary::-webkit-details-marker{display:none}
+details.drawer>summary::before{content:"+";font-size:15px;line-height:1;color:var(--mint)}
+details.drawer[open]>summary::before{content:"\2212"}
+details.drawer>summary:hover{color:var(--mint)}
+details.forest{margin:22px 0 8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+details.forest>summary{list-style:none;cursor:pointer;padding:16px 2px;display:flex;align-items:center;gap:10px;font:600 11px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ice)}
+details.forest>summary::-webkit-details-marker{display:none}
+details.forest>summary::before{content:"+";font-size:15px;line-height:1;color:var(--mint)}
+details.forest[open]>summary::before{content:"\2212"}
+.fig{margin:6px 0 6px;background:#0E0F12;border:1px solid var(--line);border-radius:14px;padding:8px;max-width:100%}
+.fig svg{width:100%;height:auto;border-radius:8px;display:block}
+@media (max-width:760px){.fig{overflow-x:auto;-webkit-overflow-scrolling:touch}.fig svg{width:900px;min-width:900px;max-width:none}}
+.panhint{display:none}
+@media (max-width:760px){.panhint{display:inline}}
+.figcap{font:400 11.5px/1.65 var(--mono);color:var(--mute);max-width:66ch;margin:12px 0 18px}
+
+/* ---------- parity cards, kills, cards ---------- */
+.fails{list-style:none;margin:8px 0 26px;padding:0;display:grid;gap:12px;max-width:880px}
+.fails li{border:1px solid var(--line);border-radius:12px;padding:15px 17px;font-size:14.5px;line-height:1.62;color:var(--mute);background:rgba(245,166,35,.03)}
+.fails b{display:block;font:600 11px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ice);margin-bottom:5px}
+@media (min-width:860px){.fails{grid-template-columns:repeat(3,minmax(0,1fr))}}
+ul.kills{list-style:none;margin:18px 0 12px;padding:0}
+ul.kills li{position:relative;padding:12px 0 12px 28px;border-bottom:1px dashed rgba(255,110,156,.2);font-size:15.5px}
+ul.kills li::before{content:"\2715";position:absolute;left:2px;top:13px;color:var(--rose);font:600 12px var(--mono)}
+ul.kills b{color:var(--ink);font-weight:600}
+ul.kills .why{display:block;font-size:13.5px;margin-top:3px;color:var(--mute)}
+.score{display:grid;gap:14px 28px;margin:4px 0 22px;padding:0;list-style:none;grid-template-columns:repeat(auto-fit,minmax(150px,max-content))}
+.score li{font:400 12px/1.5 var(--mono);color:var(--mute)}
+.score .hd{display:flex;align-items:baseline;gap:10px;margin-bottom:3px}
+.score b{font:600 30px/1.1 var(--mono);letter-spacing:-.03em;color:var(--ink)}
+.score .r b{color:var(--rose)}
+.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin:24px 0 8px}
+@media (min-width:660px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.card{display:block;border:1px solid var(--line);border-radius:14px;padding:18px 19px;text-decoration:none;color:var(--ink);background:rgba(189,166,255,.035);transition:border-color .16s,background .16s,transform .16s}
+.card:hover{border-color:rgba(33,246,188,.5);background:rgba(33,246,188,.05);transform:translateY(-2px)}
+.card .k{font:600 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mint);display:block;margin-bottom:8px}
+.card .d{font-size:13.5px;color:var(--mute);line-height:1.6;display:block}
+.card.wide{grid-column:1/-1;border-color:rgba(33,246,188,.36);background:linear-gradient(120deg,rgba(33,246,188,.07),rgba(139,111,214,.07))}
+.card.wide .d{font-size:14.5px;max-width:62ch}
+.card.big .k{color:var(--ice)}
+footer{margin:74px 0 52px;padding-top:24px;border-top:1px solid var(--line);font:400 11.5px/1.8 var(--mono);color:var(--mute)}
+footer a{color:var(--mute)}
+footer a:hover{color:var(--ink)}
+.fnote{display:block;margin-top:8px;opacity:.84;max-width:78ch}
+@media (max-width:430px){.eyebrow{letter-spacing:.13em;font-size:10px;gap:5px 8px}}
+@media (max-width:520px){body{font-size:16px}.cta a{padding:15px 18px;letter-spacing:.08em}.stat{padding:18px 18px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media print{body{background:#fff;color:#111}body::before{display:none}p,li,.dim{color:#111}h1,h2{color:#111;background:none;-webkit-text-fill-color:#111}.wall,.cta,.rail{display:none}}
+@media (min-width:900px){.sec .bleed{margin-left:-144px}}
+</style>
+<div class="body">
+<div class="flow">
+
+<section id="argument"><div class="sec">
+<p class="num"><span>01</span><br>the contamination argument</p>
+<div>
+<h2>streaming logs are not preference logs.</h2>
+<p class="lede">only 19% of my plays started with a deliberate act (pooled over a changing logger; the strict definition is 11.5% and era-stable). the other 81% were the platform advancing a queue.</p>
+<div class="prose">
+<p>some summaries survive conditioning on who pressed play &mdash; my circadian structure does. genre composition doesn&rsquo;t: the calm ambient wall that reads as &ldquo;my taste&rdquo; is mostly what the algorithm over-serves, and the ranking flips once exposure is separated from choice.</p>
 <p>the sharpest result is a catch, and it travels: an embedding trained on an algorithm-dominated stream leaks its provenance into any statistic computed on its partitions. in normal words &mdash; an embedding is a learned map of which artists sit near each other. mine was learned mostly from plays the algorithm picked, so the map already drew its borders the algorithm&rsquo;s way, and anything measured on that map made the algorithm look tidier than it is. my own headline number arrived inflated at 1.61. the audit caught it &mdash; and retraining at seven algorithmic-share levels traces a monotone dose-response between how contaminated the training stream is and how big the inflation gets. any pipeline that fits &ldquo;preference&rdquo; models to raw streaming logs inherits this.</p>
+</div>
+</div>
+</div></section>
 
-<h2 id="finding"><span class="mark">◢◤</span> the claim my own audit shrank</h2>
-<p class="dim">this section is here for the trail more than the number. it started at 1.61, the audit took it down to a direction, and the loosest definitions take the direction to parity. the shape of the correction is what i want read.</p>
-<p>when i pick the next track, it crosses into another listening community (a cluster of artists that belong together; here, a genre family from public tags) more often than when autoplay picks. the <b>bridge index</b> is that ratio, with same-artist repeats removed from both channels: <b>1.05</b> (95% CI 1.03&ndash;1.08) on communities built only from external genre tags &mdash; no embedding anywhere &mdash; and 1.10 (1.08&ndash;1.13) on the higher-coverage tag partition where 39% of labels were filled in through my own listening embedding. same leakage channel, smaller dose, so i lead with the smaller number. every provenance-clean estimate lands between <b>1.03 and 1.14</b> &mdash; a partition-sensitivity range, not an interval estimate; fold shuffle into the algorithm&rsquo;s side and it reads 1.03, which doesn&rsquo;t survive multiplicity correction (the penalty for testing many things: try enough cuts and one will look real by luck) &mdash; that is the floor of the comparator axis, not the floor of the study. the 1.15&ndash;1.30 band i reported earlier is withdrawn. here is every number we ever quoted for it, on one axis, including the dead ones:</p>
-<p class="dim"><b>how to read 1.05 (1.03&ndash;1.08)</b> &mdash; my picks cross about 5% more often than autoplay&rsquo;s: roughly 70 of every 100 jumps against 66. the bracket is the range the true value plausibly sits in, given how much data there is. it stays above 1 on the transitions i can score, so the direction is clear. the size is not: a third to two fifths of my transitions have no public genre tag on this partition, and depending on how i treat that untagged tail the index lands anywhere from 1.00 to 1.13. so i report the direction and not the size. there is a second way it goes to parity: take the loosest reading of both definitions &mdash; count skip-presses as my taps, count shuffle as the algorithm&rsquo;s &mdash; and it reads 1.01 (0.99&ndash;1.03), which no longer separates from 1. there is a third: match the two channels on how well they are tagged. restrict both sides to artists above 50 plays, where the gap in tag coverage between them closes to a fifth of a point, and it reads 1.01 (0.98&ndash;1.04), and no higher cut-off gives a bracket that clears 1 either. what it did hold up to: clustering the error bars on artist instead of session, splitting by device, splitting by logging era, and a label-permutation test that reshuffles who pressed play inside each session and never once reaches the observed value in 20,000 draws. a partition is just one way of sorting artists into communities; i tried eight.</p>
-<div class="fig"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1262" width="100%" style="height:auto" role="img" aria-labelledby="bi-forest-title bi-forest-desc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">
+<section id="carry"><div class="sec">
+<p class="num"><span>02</span><br>the transfer</p>
+<div>
+<h2>the part that isn&rsquo;t about music</h2>
+<div class="prose">
+<p class="transfer">i trained an artist embedding on this stream, which is 6.6&times; algorithm-dominated, and measured my own headline on it. it came back inflated at 1.61: the training stream&rsquo;s provenance had leaked into the geometry. <span class="stamp rose">withdrawn</span></p>
+<p class="dose"><em>0.99</em><span class="to">&rarr;</span><em class="hi">1.46</em><span>dose-response across seven retrained embeddings, by algorithmic share</span></p>
+<p>retraining at seven algorithmic-share levels traces that dose-response, 0.99 to 1.46. on a simulated stream where both channels cross communities at exactly the same rate, the same pipeline still read 1.11 at an 80% algorithmic share, and the curve stays where it is when i hold the number of communities fixed. any preference model fit to logs that a deployed system helped generate inherits this, music or not.</p>
+<p class="dim small">a recommender writes most of the log. a model trained on that log learns the recommender as well as the listener, and there is no field in the data that tells you how much of which you got. that is a measurement problem before it is a music problem.</p>
+</div>
+</div>
+</div></section>
+
+<section id="finding"><div class="sec">
+<p class="num"><span>03</span><br>the number</p>
+<div>
+<h2>the claim my own audit shrank</h2>
+<p class="dim lede">this section is here for the trail more than the number. it started at 1.61, the audit took it down to a direction, and the loosest definitions take the direction to parity. the shape of the correction is what i want read.</p>
+
+<p class="legend-key">verdict key <span class="stamp mint">survived</span><span class="stamp amber">caveated</span><span class="stamp rose">killed</span></p>
+
+<div class="stat">
+<p class="top"><span class="v">1.05</span><span class="stamp amber">caveated</span></p>
+<p class="ci">95% ci 1.03 &ndash; 1.08 &middot; embedding-free</p>
+<p class="k">the bridge index: how much more often my own pick crosses into another listening community than autoplay&rsquo;s does. a direction, not a size.</p>
+</div>
+
+<div class="prose">
+<p>when i pick the next track, it crosses into another listening community (a cluster of artists that belong together; here, a genre family from public tags) more often than when autoplay picks. the <b>bridge index</b> is that ratio, with same-artist repeats removed from both channels: <b>1.05</b> (95% CI 1.03&ndash;1.08) on communities built only from external genre tags &mdash; no embedding anywhere &mdash; and 1.10 (1.08&ndash;1.13) on the higher-coverage tag partition where 39% of labels were filled in through my own listening embedding. same leakage channel, smaller dose, so i lead with the smaller number. every provenance-clean estimate lands between <b>1.03 and 1.14</b> &mdash; a partition-sensitivity range, not an interval estimate; fold shuffle into the algorithm&rsquo;s side and it reads 1.03, which doesn&rsquo;t survive multiplicity correction (the penalty for testing many things: try enough cuts and one will look real by luck) &mdash; that is the floor of the comparator axis, not the floor of the study. the 1.15&ndash;1.30 band i reported earlier is withdrawn.</p>
+</div>
+
+<div class="tlfig bleed" tabindex="0" role="region" aria-label="how the headline shrank, scrollable">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 220" width="100%" style="height:auto" role="img" aria-labelledby="tl-title tl-desc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">
+<title id="tl-title">How the headline shrank, in the order the audit worked through it</title>
+<desc id="tl-desc">A schematic timeline, left to right by order of discovery, not a value scale. Naive canonical estimate 1.61, killed by an embedding-leakage check. Balanced-embedding retrain, the 1.15 to 1.30 band, killed by a geometry-adaptive null. Headline 1.05, 95% confidence interval 1.03 to 1.08, embedding-free, caveated as a direction rather than a fixed size. Two dashed branches show where the loosest readings drift toward parity: 1.03, which fails Bonferroni correction across eight partitions, and 1.01, which brackets 1.</desc>
+<line x1="140" y1="55" x2="350" y2="100" stroke="#948bb2" stroke-width="1.3"/>
+<line x1="350" y1="100" x2="560" y2="145" stroke="#948bb2" stroke-width="1.3"/>
+<line x1="560" y1="145" x2="490" y2="185" stroke="#86cbfe" stroke-width="1.3" stroke-dasharray="3,3"/>
+<line x1="560" y1="145" x2="710" y2="185" stroke="#86cbfe" stroke-width="1.3" stroke-dasharray="3,3"/>
+<g><circle cx="140" cy="55" r="7" fill="#0a0118" stroke="#ff6e9c" stroke-width="2"/><line x1="135" y1="50" x2="145" y2="60" stroke="#ff6e9c" stroke-width="1.6"/><line x1="135" y1="60" x2="145" y2="50" stroke="#ff6e9c" stroke-width="1.6"/></g>
+<text x="140" y="30" font-size="13" font-weight="700" fill="#ff6e9c" text-anchor="middle">1.61 &middot; killed</text>
+<text x="140" y="16" font-size="9.5" fill="#a49bbd" text-anchor="middle">naive estimate, embedding leakage</text>
+<g><circle cx="350" cy="100" r="6.5" fill="#0a0118" stroke="#ff6e9c" stroke-width="2"/><line x1="345.5" y1="95.5" x2="354.5" y2="104.5" stroke="#ff6e9c" stroke-width="1.5"/><line x1="345.5" y1="104.5" x2="354.5" y2="95.5" stroke="#ff6e9c" stroke-width="1.5"/></g>
+<text x="350" y="75" font-size="13" font-weight="700" fill="#ff6e9c" text-anchor="middle">1.15&ndash;1.30 &middot; killed</text>
+<text x="350" y="61" font-size="9.5" fill="#a49bbd" text-anchor="middle">balanced retrain, geometry-adaptive null</text>
+<circle cx="560" cy="145" r="9" fill="#f0eaff"/>
+<text x="560" y="118" font-size="15" font-weight="700" fill="#f0eaff" text-anchor="middle">1.05 [1.03, 1.08]</text>
+<text x="560" y="104" font-size="10" fill="#f0eaff" text-anchor="middle">headline, embedding-free</text>
+<text x="578" y="138" font-size="10.5" fill="#86cbfe" font-style="italic">caveated: a direction, not a size</text>
+<circle cx="490" cy="185" r="5" fill="#0a0118" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="490" y="203" font-size="10.5" fill="#86cbfe" text-anchor="middle">1.03, fails &times;8</text>
+<circle cx="710" cy="185" r="5" fill="#0a0118" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="710" y="203" font-size="10.5" fill="#86cbfe" text-anchor="middle">1.01, brackets 1</text>
+<text x="10" y="216" font-size="9.5" fill="#a49bbd" font-style="italic">left to right: the order the audit worked through it, not a scale</text>
+</svg>
+</div>
+<p class="tl-cap bleed">three numbers i published and then took down or trimmed, in the order it happened. the dashed blue branches are readings that drift to parity; the three ways that happens are below.<span class="panhint"> pan sideways on phones.</span></p>
+
+<h3>three ways it goes to parity</h3>
+<ul class="fails bleed">
+<li><b>the untagged tail</b>depending on how i treat the transitions with no public genre tag, the index lands anywhere from 1.00 to 1.13.</li>
+<li><b>the loosest definitions</b>count skip-presses as my taps, count shuffle as the algorithm&rsquo;s, and it reads 1.01 (0.99&ndash;1.03), which no longer separates from 1.</li>
+<li><b>matched tag coverage</b>restrict both sides to artists above 50 plays, where the gap in tag coverage closes to a fifth of a point, and it reads 1.01 (0.98&ndash;1.04). no higher cut-off gives a bracket that clears 1 either.</li>
+</ul>
+
+<details class="drawer">
+<summary>read the working: how to read 1.05, and what it held up to</summary>
+<div class="prose">
+<p class="dim small"><b>how to read 1.05 (1.03&ndash;1.08)</b> &mdash; my picks cross about 5% more often than autoplay&rsquo;s: roughly 70 of every 100 jumps against 66. the bracket is the range the true value plausibly sits in, given how much data there is. it stays above 1 on the transitions i can score, so the direction is clear. the size is not: a third to two fifths of my transitions have no public genre tag on this partition, and depending on how i treat that untagged tail the index lands anywhere from 1.00 to 1.13. so i report the direction and not the size. there is a second way it goes to parity: take the loosest reading of both definitions &mdash; count skip-presses as my taps, count shuffle as the algorithm&rsquo;s &mdash; and it reads 1.01 (0.99&ndash;1.03), which no longer separates from 1. there is a third: match the two channels on how well they are tagged. restrict both sides to artists above 50 plays, where the gap in tag coverage between them closes to a fifth of a point, and it reads 1.01 (0.98&ndash;1.04), and no higher cut-off gives a bracket that clears 1 either.</p>
+<p class="dim small"><span class="stamp mint">survived</span> what it did hold up to: clustering the error bars on artist instead of session, splitting by device, splitting by logging era, and a label-permutation test that reshuffles who pressed play inside each session and never once reaches the observed value in 20,000 draws. a partition is just one way of sorting artists into communities; i tried eight.</p>
+</div>
+</details>
+
+<details class="forest bleed" open>
+<summary>every number we ever quoted, on one axis, including the dead ones</summary>
+<div class="fig" tabindex="0" role="region" aria-label="bridge index forest plot, scrollable"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1262" width="100%" style="height:auto" role="img" aria-labelledby="bi-forest-title bi-forest-desc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">
 <title id="bi-forest-title">Bridge Index forest plot across estimators, partitions, and robustness checks</title>
 <desc id="bi-forest-desc">Horizontal forest plot, same-artist-controlled, rows ordered by embedding exposure. The headline Bridge Index, embedding-free (pure-Last.fm genre-family partition) crossed with strict autoadvance, is 1.05, 95% CI [1.03, 1.08]. A higher-coverage tag partition whose labels are 39% embedding-propagated gives 1.10 [1.08, 1.13] and is shown separately, labelled as such. Folding shuffle into the algorithmic arm, a disclosed lower bound on the comparator axis rather than the primary estimand, gives 1.03 [1.00, 1.05] on the embedding-free partition, which does not survive Bonferroni correction across eight partitions. The naive uncorrected estimate 1.61 is killed by an embedding-leakage check; its same-artist-controlled counterpart is 1.48, still not the reported value. Splitting BOTH the deliberate and the autoplay arm by how the destination artist was first introduced, on the headline partition itself, gives a matched menu-authorship effect that is present on every destination class and weakest on self-introduced destinations. The earlier balanced-embedding version of this split is withdrawn. A coverage bracket for the untagged tail spans 1.13 [1.11, 1.16] (untagged artists pooled into one community) down to 1.00 [0.98, 1.02] (untagged artists each their own community), which straddles 1: magnitude is partition- and coverage-relative, not a fixed number. The two bundled-deliberate-arm cells of the 2x2 definitional grid are shown as a post hoc sub-block, 1.04 [1.01, 1.06] against strict autoadvance and 1.01 [0.99, 1.03] against the shuffle-included comparator, the second of which brackets 1. Two mechanical floors for the underlying tap crossing rate are shown separately on their own 0 to 1 scale, since they are rates, not Bridge Index ratios.</desc>
 <rect x="0" y="0" width="900" height="1262" fill="#0E0F12"/>
@@ -272,10 +498,24 @@ footer a{color:var(--mute)}
 <text x="485.0" y="1248" font-size="10" fill="#94b6d6" text-anchor="middle" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">tap crossing rate (0-1 scale) . solid line = controlled observed 0.59</text>
 </svg></div>
 <p class="figcap">killed and demoted estimates struck; mechanical floors bracketed. single source: <code>bi_single_source.json</code> in the repro kit.<span class="panhint"> pan sideways on phones.</span></p>
-<p class="dim">whether the gap is listener agency or recommender design, one log can&rsquo;t adjudicate. the operative fact is narrower: the two channels are structurally different, so a log that pools them misrepresents both.</p>
+</details>
 
-<h2 id="kills"><span class="mark">◢◤</span> the audit is the product</h2>
+<p class="dim small prose">whether the gap is listener agency or recommender design, one log can&rsquo;t adjudicate. the operative fact is narrower: the two channels are structurally different, so a log that pools them misrepresents both.</p>
+</div>
+</div></section>
+
+<section id="kills"><div class="sec">
+<p class="num"><span>04</span><br>the audit is the product</p>
+<div>
+<h2>every kill condition was written into code before i saw the result.</h2>
+<ul class="score">
+<li><span class="hd"><b>11 / 25</b><span class="stamp mint">survived</span></span>back-catalogue claims survived</li>
+<li class="r"><span class="hd"><b>16</b><span class="stamp rose">killed</span></span>of my own findings dead on this page</li>
+<li><span class="hd"><b>18</b></span>kills and retractions in all</li>
+</ul>
+<div class="prose">
 <p>every claim ran a fixed, pre-declared audit, with the kill condition written in code before the result was seen. then i put the dashboard&rsquo;s own back catalogue through the same gates: <b>11 of 25 headline claims survived</b>. <b>16 of my own findings are dead on this page</b>, each with a card naming the check that killed it. a sample:</p>
+</div>
 <ul class="kills">
 <li><b>the predictability gap</b><span class="why">an in-sample mirage: d=0.50 collapses to &minus;0.02 out-of-sample.</span></li>
 <li><b>the 4-year reign &ldquo;p = 0.0000&rdquo;</b><span class="why">a straw-man null; a circular block bootstrap gives p = 0.49&ndash;0.78.</span></li>
@@ -284,43 +524,155 @@ footer a{color:var(--mute)}
 <li><b>genre trends over time</b><span class="why">mostly what was served, wearing the costume of what was wanted.</span></li>
 <li><b>the portability demo</b><span class="why">confidently wrong about 696 strangers &mdash; the proxy doesn&rsquo;t transfer.</span></li>
 </ul>
-<p class="dim">all sixteen, with receipts: <a href="lab.html#graveyard">the graveyard</a>.</p>
+<p class="dim small">all sixteen, with receipts: <a href="lab.html#graveyard">the graveyard</a>.</p>
+</div>
+</div></section>
 
-<h2 id="links"><span class="mark">◢◤</span> run it, read it, go deeper</h2>
-<p>all of this is hand-built. the exhibit is one canvas field carrying a dot for each of the 97,427 plays, retargeted room to room. the probe parses your own spotify export in your own tab. the headline figure is generated from one numbers file, not pasted in. the soundtrack is mine.</p>
+
+
+</div>
+
+<nav class="rail" aria-label="go here next">
+<p class="rail-h">go here next</p>
+<div class="routes">
+<a class="route" href="exhibit.html"><span class="rt-k">the exhibit</span><span class="rt-d">six rooms. every dot is one of my plays.</span></a>
+<a class="route" href="lab.html#toy-whopressed"><span class="rt-k">who pressed play?</span><span class="rt-d">ten real transitions. guess which.</span></a>
+<a class="route" href="researcher.html"><span class="rt-k">the report</span><span class="rt-d">every number, every qualifier, all eighteen kills.</span></a>
+<a class="route big" href="lab.html"><span class="rt-k">the full lab</span><span class="rt-d">every method, every null, seven years.</span></a>
+<a class="route" href="bridge-index.html"><span class="rt-k">the probe</span><span class="rt-d">already have your spotify export? it runs on yours.</span></a>
+</div>
+<p class="leg"><span><i style="background:var(--mint)"></i>i chose it</span><span><i style="background:var(--amber)"></i>chance</span><span><i style="background:var(--violet)"></i>the machine served it</span><span><i style="background:var(--rose)"></i>killed</span></p>
+</nav>
+</div>
+<section id="links"><div class="sec">
+<p class="num"><span>05</span><br>the routes</p>
+<div>
+<h2>run it, read it, go deeper</h2>
+<div class="prose">
+<p class="small dim">all of this is hand-built. the exhibit is one canvas field carrying a dot for each of the 97,427 plays, retargeted room to room. the probe parses your own spotify export in your own tab. the headline figure is generated from one numbers file, not pasted in. the soundtrack is mine.</p>
+</div>
 <div class="cards">
 <a class="card wide" href="exhibit.html"><span class="k">the exhibit: mostly the machine</span><span class="d">six rooms. every dot is one of my plays. hold the wall to see who pressed play, turn the dial that bends the map, try to kill a finding. the music is mine.</span></a>
-<a class="card" href="bridge-index.html"><span class="k">the probe</span><span class="d">drop your own spotify export &mdash; your split and your bridge index, computed in this tab. nothing is uploaded; it works offline.</span></a>
 <a class="card" href="lab.html#toy-whopressed"><span class="k">play: who pressed play?</span><span class="d">ten real transitions from my log. guess whether i tapped the next artist or autoplay did. the point of the whole study in about a minute.</span></a>
 <a class="card" href="researcher.html"><span class="k">the technical report</span><span class="d">abstract, the gate sequence, every headline number with its qualifiers, all eighteen kills, and the limitations. the long write-up is unpublished; this is the citable version until it is.</span></a>
 <a class="card big" href="lab.html"><span class="k">the full lab</span><span class="d">the complete dashboard: every method, every null, the seven-year record, the soundtrack. long, loud, and audited.</span></a>
+<a class="card" href="bridge-index.html"><span class="k">the probe</span><span class="d">if you already have your spotify export, this computes your split and your bridge index in this tab. nothing is uploaded, and it works offline. spotify takes a few days to send an export, so there is a demo button too.</span></a>
 </div>
+</div>
+</div></section>
 
 <footer role="presentation">
-built by one listener, on her own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a> &middot; <a href="lab.html">full lab</a> &middot; <a href="researcher.html">for researchers</a><br>
-<span style="opacity:.82">every number on this page comes from the audit ledger behind the report. if you find one that does not hold, write to me and i will kill it in public, the way i killed the other sixteen. &middot; the previous single-page site lives on at <a href="lab.html">lab.html</a>; old links redirect.</span>
+built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a> &middot; <a href="lab.html">full lab</a> &middot; <a href="researcher.html">for researchers</a>
+<span class="fnote">every number on this page comes from the audit ledger behind the report. if you find one that does not hold, write to me and i will kill it in public, the way i killed the other sixteen. &middot; the previous single-page site lives on at <a href="lab.html">lab.html</a>; old links redirect.</span>
 </footer>
 
 </div>
-<!--FABLE-MOTION-START-->
-<style>
-@media (prefers-reduced-motion:no-preference){
-.mark{display:inline-block}
-h2.is-in .mark{animation:smMS .5s cubic-bezier(.2,.8,.3,1) both}
-@keyframes smMS{from{transform:rotate(-25deg) translateX(-6px);opacity:0}to{transform:rotate(0) translateX(0);opacity:1}}
-@view-transition{navigation:auto}
-.eyebrow{view-transition-name:sm-eyebrow}
-}
-</style>
 <script>
 (function(){
-if(window.__smMotion)return;window.__smMotion=1;
-if(!window.matchMedia||!matchMedia('(prefers-reduced-motion: no-preference)').matches)return;
-if(!('IntersectionObserver' in window))return;
-var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-in');io.unobserve(e.target);}})});
-document.querySelectorAll('#argument, #finding, #kills, #links').forEach(function(h){io.observe(h);});
+var cv=document.getElementById('wallc');
+if(!cv||!cv.getContext)return;
+var g=cv.getContext('2d');
+var N=2436,LV=8,DUR=2500;
+var NEU=[76,70,99],COL=[[33,246,188],[245,166,35],[139,111,214]],SH=[0.19,0.17];
+var PAL=[],i,b,l,f;
+for(b=0;b<3;b++)for(l=0;l<LV;l++){f=l/(LV-1);
+PAL.push('rgb('+Math.round(NEU[0]+(COL[b][0]-NEU[0])*f)+','+Math.round(NEU[1]+(COL[b][1]-NEU[1])*f)+','+Math.round(NEU[2]+(COL[b][2]-NEU[2])*f)+')');}
+var BK=[];for(i=0;i<3*LV;i++)BK.push([]);
+var ux=new Float32Array(N),uy=new Float32Array(N),dl=new Float32Array(N),jx=new Float32Array(N),jy=new Float32Array(N),
+tx=new Float32Array(N),ty=new Float32Array(N),bd=new Uint8Array(N);
+var n0=Math.round(N*SH[0]),n1=Math.round(N*SH[1]);
+function seed(){for(i=0;i<N;i++){
+ux[i]=0.5+(Math.random()-0.5)*0.97;
+uy[i]=0.5+(Math.random()-0.5)*0.97;
+dl[i]=Math.min(0.999,(i/N)*0.62+Math.random()*0.3);
+jx[i]=Math.random()-0.5;jy[i]=Math.random()-0.5;
+bd[i]=i<n0?0:(i<n0+n1?1:2);
+}}
+var W=0,H=0,R=3,reduce=false,settled=false,raf=0,t0=0,el=0,vis=true;
+try{reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+function layout(){
+var r=cv.getBoundingClientRect();
+if(!r.width||!r.height)return false;
+W=r.width;H=r.height;
+var dpr=Math.min(window.devicePixelRatio||1,2);
+cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+g.setTransform(dpr,0,0,dpr,0,0);
+var pad=Math.max(6,Math.min(W,H)*0.035),gap=Math.max(4,H*0.022);
+var iw=W-pad*2,ih=H-pad*2-gap*2;
+var cols=Math.max(14,Math.round(Math.sqrt(N*iw/ih)));
+var n2=N-n0-n1;
+var r0=Math.ceil(n0/cols),r1=Math.ceil(n1/cols),r2=Math.ceil(n2/cols);
+var ch=ih/(r0+r1+r2),cw=iw/cols;
+R=Math.max(1.3,Math.min(cw,ch)*0.56);
+var off=[pad,pad+r0*ch+gap,pad+(r0+r1)*ch+gap*2],base=[0,n0,n0+n1];
+for(b=0;b<3;b++){
+var st=base[b],en=b===2?N:base[b+1];
+for(i=st;i<en;i++){
+var k=i-st;
+tx[i]=pad+(k%cols)*cw+cw/2-R/2+jx[i]*cw*0.16;
+ty[i]=off[b]+Math.floor(k/cols)*ch+ch/2-R/2+jy[i]*ch*0.16;
+}
+}
+return true;
+}
+function draw(p){
+var k,u,e,x,y,lv,arr,j;
+for(k=0;k<BK.length;k++)BK[k].length=0;
+g.clearRect(0,0,W,H);
+for(i=0;i<N;i++){
+u=(p-dl[i]*0.5)/0.5;
+u=u<0?0:(u>1?1:u);
+e=u<0.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+x=ux[i]*W+(tx[i]-ux[i]*W)*e;
+y=uy[i]*H+(ty[i]-uy[i]*H)*e;
+lv=(u*(LV-1)+0.5)|0;
+arr=BK[bd[i]*LV+lv];arr.push(x,y);
+}
+for(k=0;k<BK.length;k++){
+arr=BK[k];if(!arr.length)continue;
+g.fillStyle=PAL[k];
+for(j=0;j<arr.length;j+=2)g.fillRect(arr[j],arr[j+1],R,R);
+}
+}
+function tick(now){
+raf=0;
+if(!vis)return;
+if(!t0)t0=now-el;
+el=now-t0;
+var p=el/DUR;
+if(p>=1){p=1;settled=true;}
+draw(p);
+if(!settled)raf=requestAnimationFrame(tick);
+}
+function kick(){
+if(raf||settled||!vis)return;
+t0=0;raf=requestAnimationFrame(tick);
+}
+function boot(){
+seed();
+if(!layout())return;
+if(reduce){settled=true;draw(1);return;}
+draw(0);
+kick();
+}
+var rt=0;
+addEventListener('resize',function(){
+clearTimeout(rt);
+rt=setTimeout(function(){
+if(!layout())return;
+if(settled)draw(1);else{if(raf){cancelAnimationFrame(raf);raf=0;}t0=0;kick();}
+},160);
+},{passive:true});
+if('IntersectionObserver' in window){
+new IntersectionObserver(function(es){
+vis=es[0].isIntersecting;
+if(vis)kick();
+else if(raf){cancelAnimationFrame(raf);raf=0;t0=0;}
+},{threshold:0}).observe(cv);
+}
+requestAnimationFrame(function(){requestAnimationFrame(boot);});
 })();
+(function(){try{if(innerWidth<900){var d=document.querySelector('details.forest');if(d)d.removeAttribute('open');}}catch(e){}})();
 </script>
-<!--FABLE-MOTION-END-->
 </body>
 </html>
