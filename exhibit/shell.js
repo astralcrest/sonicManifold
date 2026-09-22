@@ -15,7 +15,7 @@
 */
 
 import { postCSS, post, stopAll, playClip, clipsAllowed } from './post.js?v=5';
-import { LABELS, HINTS } from './labels.js?v=8';
+import { LABELS, HINTS } from './labels.js?v=9';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
 const $ = (s, r = document) => r.querySelector(s);

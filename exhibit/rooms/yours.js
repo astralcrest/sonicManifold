@@ -141,6 +141,10 @@ const DEMOTAG = 'demo data. i invented these plays in this tab just now, so they
 const DEMOTAG_S = 'demo data. i invented these plays just now.';
 const NOTBI = 'this is not a bridge index. that one needs the jumps between artists and a map to score them against, and it lives in the full probe.';
 const PROBE = 'the full probe: your own bridge index';
+const SAVE = 'save this as a picture';
+const CARD_TITLE = 'who pressed play, in two logs';
+const CARD_URL = 'astralcrest.github.io/sonicManifold/exhibit.html';
+const CARD_FILE = 'who-pressed-play.png';
 
 const ERRS = {
   notjson: (n) => 'i could not read ' + n + ' as json. the files you want are the ones named streaming_history_audio_*.json.',
@@ -165,6 +169,7 @@ const TPL = `<div class="y-pn">
 <p class="y-line y-mine"></p>
 <p class="y-say"></p>
 <div class="y-row"><button type="button" class="btn ghost y-again">read another file</button><a class="y-probe" href="bridge-index.html#sec-howto"></a></div>
+<button type="button" class="y-save"></button>
 <button type="button" class="y-more" aria-expanded="true"></button>
 <div class="y-fine"><p class="y-rule"></p><p class="y-not"></p></div>
 </div>
@@ -180,7 +185,8 @@ section[data-room=yours] .y-ask{margin:0;font:500 13px/1.45 var(--mono);color:va
 section[data-room=yours] .y-wait,section[data-room=yours] .y-priv,section[data-room=yours] .y-rule,section[data-room=yours] .y-not,section[data-room=yours] .y-tag{margin:0;font:400 11px/1.5 var(--mono);color:var(--mute)}
 /* the privacy line is pinned to the bottom of the panel: whatever else scrolls, that sentence does not leave */
 section[data-room=yours] .y-priv{position:sticky;bottom:0;z-index:2;border-top:1px dotted rgba(189,166,255,.22);padding:8px 0 2px;background:#0a0118}
-section[data-room=yours] .y-more{align-self:flex-start;margin:0;padding:6px 0;border:0;background:none;color:var(--ice);font:500 11px/1.4 var(--mono);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+section[data-room=yours] .y-more,section[data-room=yours] .y-save{align-self:flex-start;margin:0;padding:6px 0;border:0;background:none;color:var(--ice);font:500 11px/1.4 var(--mono);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+section[data-room=yours] .y-save:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 section[data-room=yours] .y-fine{display:flex;flex-direction:column;gap:6px}
 section[data-room=yours] .y-fine[hidden]{display:none}
 section[data-room=yours] .y-tag{color:var(--amber)}
@@ -208,7 +214,7 @@ section[data-room=yours] .y-pn.scrolls .y-priv{box-shadow:0 -12px 16px 4px rgba(
 section[data-room=yours] .y-pn.squeeze .y-row{gap:8px;margin-top:0}
 section[data-room=yours] .y-pn.squeeze .y-again{padding:10px 12px;min-height:40px;font-size:10px;letter-spacing:.06em}
 section[data-room=yours] .y-pn.squeeze .y-probe{padding:7px 0;font-size:10px;letter-spacing:.06em}
-section[data-room=yours] .y-pn.squeeze .y-more{padding:3px 0;font-size:10px}
+section[data-room=yours] .y-pn.squeeze .y-more,section[data-room=yours] .y-pn.squeeze .y-save{padding:3px 0;font-size:10px}
 section[data-room=yours] .y-pn.squeeze .y-priv{padding-top:6px}
 /* once there is a result, the invitation has done its job and gets out of the way of the numbers */
 section[data-room=yours] .y-pn.has .y-intro{display:none}
@@ -238,13 +244,15 @@ export default {
     this.root = root; this.ctx = ctx;
     if (!document.getElementById('y-css')) { const st = document.createElement('style'); st.id = 'y-css'; st.textContent = CSS; document.head.appendChild(st); }
     root.innerHTML = TPL;
-    const Q = { pn: '.y-pn', intro: '.y-intro', ask: '.y-ask', pick: '.y-pick', dem: '.y-demo', wait: '.y-wait', live: '.y-live', errEl: '.y-err', res: '.y-res', tag: '.y-tag', them: '.y-them', mineEl: '.y-mine', say: '.y-say', more: '.y-more', fine: '.y-fine', ruleEl: '.y-rule', notEl: '.y-not', again: '.y-again', probe: '.y-probe', priv: '.y-priv', file: '.y-file' };
+    const Q = { pn: '.y-pn', intro: '.y-intro', ask: '.y-ask', pick: '.y-pick', dem: '.y-demo', wait: '.y-wait', live: '.y-live', errEl: '.y-err', res: '.y-res', tag: '.y-tag', them: '.y-them', mineEl: '.y-mine', say: '.y-say', more: '.y-more', fine: '.y-fine', ruleEl: '.y-rule', notEl: '.y-not', again: '.y-again', probe: '.y-probe', save: '.y-save', priv: '.y-priv', file: '.y-file' };
     for (const k in Q) this[k] = root.querySelector(Q[k]);
 
     this.ask.textContent = ASK; this.pick.textContent = 'choose files'; this.dem.textContent = 'use demo data';
     this.wait.textContent = WAIT; this.priv.textContent = PRIVACY; this.notEl.textContent = NOTBI;
     this.probe.textContent = PROBE + ' →';
+    this.save.textContent = SAVE;
 
+    this.save.addEventListener('click', () => this.saveCard());
     this.pick.addEventListener('click', () => { this.file.value = ''; this.file.click(); });
     this.file.addEventListener('change', () => { if (this.file.files && this.file.files.length) this.read(this.file.files); });
     this.dem.addEventListener('click', () => this.runDemo());
@@ -505,6 +513,82 @@ export default {
     this.more.setAttribute('aria-expanded', String(open));
     this.more.textContent = open ? 'hide how the two numbers are counted' : 'how the two numbers are counted';
     if (byHand) { this.fineByHand = true; this.repaint(); }
+  },
+
+  /* ---------------- the share card ----------------
+     one 1200x630 png, drawn on a canvas that never joins the page. it carries the two sets of three shares,
+     the two names, the visitor's play count rounded to the nearest hundred, and the url. no file name, no
+     dates, no artists: nothing a stranger could use to pick the visitor out of a crowd. and nothing is sent:
+     the bytes go from the canvas to a blob to the visitor's own downloads folder. */
+  drawCard() {
+    const W = 1200, H = 630, PADX = 64;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const g = cv.getContext('2d'); if (!g) return null;
+    const mono = '"JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace';
+    const HEX = ['#21f6bc', '#f5a623', '#8b6fd6'], ICE = '#86cbfe', MUTE = '#a49bbd', INK = '#f0eaff';
+    g.fillStyle = '#0a0118'; g.fillRect(0, 0, W, H);
+
+    g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+    g.fillStyle = INK; g.font = '600 34px ' + mono; g.fillText(CARD_TITLE, PADX, 92);
+    g.fillStyle = ICE; g.font = '500 17px ' + mono; g.fillText(CARD_URL, PADX, 586);
+
+    const theirN = Math.max(100, Math.round(this.theirs.n / 100) * 100);
+    const panels = [
+      { who: this.demo ? 'demo' : 'you', tail: 'about ' + int(theirN) + ' plays', p: this.theirs.p },
+      { who: 'astralcrest', tail: int(this.mineN) + ' plays', p: this.mineP },
+    ];
+    /* 280 not 300: a 100% bar plus its label must still clear the name line at 156 */
+    const GAP = 64, PW = (W - PADX * 2 - GAP) / 2, BASE = 500, MAXH = 280, PITCH = 7, R = 2.6;
+    const NAMES = ['tapped', 'shuffled', 'served'];
+    for (let k = 0; k < 2; k++) {
+      const x0 = PADX + k * (PW + GAP), pn = panels[k];
+      g.textAlign = 'left'; g.font = '600 20px ' + mono; g.fillStyle = ICE; g.fillText(pn.who, x0, 156);
+      const tailX = x0 + g.measureText(pn.who).width + 18;
+      g.fillStyle = MUTE; g.font = '400 16px ' + mono; g.fillText(pn.tail, tailX, 156);
+      g.strokeStyle = 'rgba(134,203,254,.3)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(x0, BASE + 0.5); g.lineTo(x0 + PW, BASE + 0.5); g.stroke();
+      const colW = PW / 3, per = 16, barW = (per - 1) * PITCH, pad = (colW - barW) / 2;
+      for (let c = 0; c < 3; c++) {
+        const cx = x0 + c * colW, rows = Math.round((pn.p[c] / 100) * MAXH / PITCH);
+        g.fillStyle = HEX[c];
+        for (let r = 0; r < rows; r++) for (let i = 0; i < per; i++) {
+          g.beginPath(); g.arc(cx + pad + i * PITCH, BASE - 4 - r * PITCH, R, 0, Math.PI * 2); g.fill();
+        }
+        g.textAlign = 'center';
+        g.font = '600 30px ' + mono; g.fillStyle = HEX[c];
+        g.fillText(pn.p[c] + '%', cx + colW / 2, BASE - 4 - rows * PITCH - 12);
+        g.font = '400 15px ' + mono; g.fillStyle = MUTE;
+        g.fillText(NAMES[c], cx + colW / 2, BASE + 30);
+      }
+    }
+    return cv;
+  },
+
+  /* a.download is the normal road. ios safari treats a blob download as a page to show rather than a file
+     to keep, so there the picture opens in a tab of its own and the visitor holds it to save. the tab has to
+     be opened inside the click, before toBlob returns, or safari's popup rule closes the door. */
+  saveCard() {
+    if (!this.theirs) return;
+    const cv = this.drawCard(); if (!cv) return;
+    const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    let tab = null;
+    if (ios) { try { tab = window.open('', '_blank'); } catch (e) { tab = null; } }
+    const hand = (blob) => {
+      if (!blob) { if (tab) { try { tab.close(); } catch (e) {} } return; }
+      const url = URL.createObjectURL(blob);
+      if (tab) { try { tab.location.href = url; } catch (e) { tab = null; } }
+      if (!tab) {
+        const a = document.createElement('a'); a.href = url; a.download = CARD_FILE; a.rel = 'noopener';
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    };
+    if (cv.toBlob) { cv.toBlob(hand, 'image/png'); return; }
+    try {
+      const b64 = cv.toDataURL('image/png').split(',')[1], bin = atob(b64), u8 = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      hand(new Blob([u8], { type: 'image/png' }));
+    } catch (e) { hand(null); }
   },
 
   /* the panel may scroll as a last resort, but the result and its controls should fit without it:

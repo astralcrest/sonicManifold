@@ -21,6 +21,8 @@ export const LABELS = {
       ['count', '97,427 logged plays, seven years, one listener.'],
       ['split', 'by the export’s own reason_start field, which says what started each play: 19% i tapped, 17% i shuffled, 64% were served.'],
       ['caveat', 'the tapped share moves with the logging code and not only with me: 11.8% before october 2023, 22.7% after the app changed how it records a start.'],
+      ['the guess', 'the slider before you press asks for your number. it is kept in this tab only and is never sent anywhere. the line after the sort compares it to 19 and says nothing about anyone else, because nobody else’s guess is collected.'],
+      ['sound', 'when the piles land you hear the split once: 100 ticks in 2.4 seconds, 19 high for the plays i tapped, 17 in the middle for shuffle, 64 low for the ones served to me.'],
       ['test', 'none here. this room is a count. the claims built on it are in the next rooms.'],
     ],
     more: ['lab.html#apple-leadhero', 'the split, in the lab'],
