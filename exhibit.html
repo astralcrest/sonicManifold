@@ -3,22 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
-<title>mostly the machine — a sonic manifold exhibit</title>
+<title>mostly the machine, a sonic manifold exhibit</title>
 <meta name="description" content="Seven years of one person's streaming log as a nine-room exhibit: 97,427 plays, who pressed play, a ruler that changed, a map that lied, two listeners, a graveyard of my own findings.">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/exhibit.html">
-<link rel="modulepreload" href="exhibit/shell.js?v=20260924f">
+<link rel="modulepreload" href="exhibit/shell.js?v=20260924i">
 <link rel="modulepreload" href="exhibit/post.js?v=5">
 <link rel="modulepreload" href="exhibit/labels.js?v=9">
-<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260924f">
-<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260924f">
-<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260924f">
+<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260924i">
+<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260924i">
+<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260924i">
 <meta name="theme-color" content="#0a0118">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/exhibit.html">
-<meta property="og:title" content="mostly the machine — a sonic manifold exhibit">
+<meta property="og:title" content="mostly the machine, a sonic manifold exhibit">
 <meta property="og:description" content="97,427 plays. 19% were mine. Nine rooms, one idea each, with the soundtrack I made from it.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og-exhibit.jpg">
 <meta property="og:image:width" content="1200">
@@ -106,7 +106,7 @@ noscript p{position:relative;z-index:4;padding:24px}
 #hint.on{opacity:1}
 .kiosk,.kiosk *{cursor:none!important}.kiosk #top a,.kiosk .deeper,.kiosk #labelbtn{visibility:hidden}
 /* a phone held sideways: very little height. compact type, and the label button moves up beside the title bar so it never sits on the text */
-@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room]{padding-top:54px;padding-bottom:calc(env(safe-area-inset-bottom) + max(16px,var(--dockh)))}h1{font-size:34px;margin-bottom:6px}h2{font-size:26px;margin-bottom:6px}.no{margin-bottom:6px}.say{font-size:14px;line-height:1.4;margin-bottom:5px}.say.dim{font-size:12px}.deeper{margin-top:2px;padding:8px 0}.short-hide,.land-hide{display:none}.btn{min-height:44px;padding:12px 14px}#labelbtn{bottom:auto;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 10px;min-height:36px}}
+@media (max-height:480px) and (min-aspect-ratio:115/100){.wall{max-height:calc(100dvh - 62px);overflow-y:auto;padding-right:6px;scrollbar-width:thin;-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent)}section[data-room]{padding-top:54px;padding-bottom:calc(env(safe-area-inset-bottom) + max(16px,var(--dockh)))}h1{font-size:34px;margin-bottom:6px}h2{font-size:26px;margin-bottom:6px}.no{margin-bottom:6px}.say{font-size:14px;line-height:1.4;margin-bottom:5px}.say.dim{font-size:12px}.deeper{margin-top:2px;padding:8px 0}.short-hide,.land-hide{display:none}.btn{min-height:44px;padding:12px 14px}#labelbtn{bottom:auto;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 10px;min-height:36px}}
 @view-transition{navigation:auto}
 .exits{display:flex;flex-wrap:wrap;gap:4px 18px;margin:0 0 10px}.exits .deeper{margin:0}.exits button.deeper{background:none;border:0;border-bottom:1px dotted rgba(134,203,254,.5);cursor:pointer}.side-door{font-size:13.5px;line-height:1.5;max-width:30rem}@media (min-aspect-ratio:115/100){section[data-room="make"] .wall{padding-bottom:64px}}.side-door a{color:var(--ice);text-decoration:none;border-bottom:1px dotted rgba(134,203,254,.5)}.side-door a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 </style>
@@ -235,6 +235,6 @@ noscript p{position:relative;z-index:4;padding:24px}
 
 </main>
 <noscript><p>this exhibit draws with javascript. the whole study, in text, is on the <a href="./">landing page</a> and in the <a href="lab.html">lab</a>.</p></noscript>
-<script type="module" src="exhibit/shell.js?v=20260924f"></script>
+<script type="module" src="exhibit/shell.js?v=20260924i"></script>
 </body>
 </html>

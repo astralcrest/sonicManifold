@@ -41,7 +41,7 @@ export const PROV_CHIP = [PAL.tap, PAL.shuffle, PAL.violet];
 export const FAM = {
   'ambient/lofi': 0xadced7, classical: 0xdfd086, electronic: 0x8698df, experimental: 0xc3add7,
   'folk/country': 0xb8d86e, 'funk/disco': 0xd86ed5, 'hip-hop · r&b': 0xdf868f, jazz: 0xd7b4ad,
-  other: 0xb8d7ad, pop: 0xdf86c4, 'rock/metal': 0x7fd489, soundtrack: 0x6fd6c0, 'world/desi': 0xd89c6e,
+  other: 0xb8d7ad, pop: 0xdf86c4, 'rock/metal': 0x7fd489, soundtrack: 0x41dfec, /* moved off the tap mint (was 0x6fd6c0, dE 13 from it): a genre must never read as provenance */ 'world/desi': 0xd89c6e,
   untagged: 0x9a9aa2, unknown: 0x9a9aa2, /* no public tag: grey, and grey means nothing is known */
 };
 export function famColor(name) { const k = String(name == null ? '' : name).toLowerCase(); return Object.prototype.hasOwnProperty.call(FAM, k) ? FAM[k] : FAM.untagged; }

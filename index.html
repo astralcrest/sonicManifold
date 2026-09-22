@@ -7,8 +7,8 @@
 (function(){var h=location.hash;if(!h)return;var own={'#argument':1,'#finding':1,'#kills':1,'#links':1,'#top':1};if(!own[h.split('?')[0]])location.replace('lab.html'+h);})();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>sonic manifold — streaming logs are not preference logs</title>
-<meta name="description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate. What survives conditioning on who pressed play — and what died in the audit. The same confound sits under any log a recommender mediates.">
+<title>sonic manifold: streaming logs are not preference logs</title>
+<meta name="description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate. What survives conditioning on who pressed play, and what died in the audit. The same confound sits under any log a recommender mediates.">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -19,14 +19,14 @@
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/">
-<meta property="og:title" content="sonic manifold — streaming logs are not preference logs">
-<meta property="og:description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate taps. The audit killed 16 of my own findings — what survived is the point.">
+<meta property="og:title" content="sonic manifold: streaming logs are not preference logs">
+<meta property="og:description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate taps. The audit killed 16 of my own findings: what survived is the point.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="sonic manifold — streaming logs are not preference logs">
-<meta name="twitter:description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate taps. The audit killed 16 of my own findings — what survived is the point.">
+<meta name="twitter:title" content="sonic manifold: streaming logs are not preference logs">
+<meta name="twitter:description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate taps. The audit killed 16 of my own findings: what survived is the point.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <style>
 @font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("fonts/JetBrainsMono-var.woff2") format("woff2")}
@@ -249,8 +249,8 @@ footer a:hover{color:var(--ink)}
 <h2>streaming logs are not preference logs.</h2>
 <p class="lede">only 19% of my plays started with a deliberate act (pooled over a changing logger; the strict definition is 11.5% and era-stable). the other 81% were the platform advancing a queue.</p>
 <div class="prose">
-<p>some summaries survive conditioning on who pressed play &mdash; my circadian structure does. genre composition doesn&rsquo;t: the calm ambient wall that reads as &ldquo;my taste&rdquo; is mostly what the algorithm over-serves, and the ranking flips once exposure is separated from choice.</p>
-<p>the sharpest result is a catch, and it travels: an embedding trained on an algorithm-dominated stream leaks its provenance into any statistic computed on its partitions. in normal words &mdash; an embedding is a learned map of which artists sit near each other. mine was learned mostly from plays the algorithm picked, so the map already drew its borders the algorithm&rsquo;s way, and anything measured on that map made the algorithm look tidier than it is. my own headline number arrived inflated at 1.61. the audit caught it &mdash; and retraining at seven algorithmic-share levels traces a monotone dose-response between how contaminated the training stream is and how big the inflation gets. any pipeline that fits &ldquo;preference&rdquo; models to raw streaming logs inherits this.</p>
+<p>some summaries survive conditioning on who pressed play: my circadian structure does. genre composition doesn&rsquo;t: the calm ambient wall that reads as &ldquo;my taste&rdquo; is mostly what the algorithm over-serves, and the ranking flips once exposure is separated from choice.</p>
+<p>the sharpest result is a catch, and it travels: an embedding trained on an algorithm-dominated stream leaks its provenance into any statistic computed on its partitions. in normal words: an embedding is a learned map of which artists sit near each other. mine was learned mostly from plays the algorithm picked, so the map already drew its borders the algorithm&rsquo;s way, and anything measured on that map made the algorithm look tidier than it is. my own headline number arrived inflated at 1.61. the audit caught it, and retraining at seven algorithmic-share levels traces a monotone dose-response between how contaminated the training stream is and how big the inflation gets. any pipeline that fits &ldquo;preference&rdquo; models to raw streaming logs inherits this.</p>
 </div>
 </div>
 </div></section>
@@ -283,7 +283,7 @@ footer a:hover{color:var(--ink)}
 </div>
 
 <div class="prose">
-<p>when i pick the next track, it crosses into another listening community (a cluster of artists that belong together; here, a genre family from public tags) more often than when autoplay picks. the <b>bridge index</b> is that ratio, with same-artist repeats removed from both channels: <b>1.05</b> (95% CI 1.03&ndash;1.08) on communities built only from external genre tags &mdash; no embedding anywhere &mdash; and 1.10 (1.08&ndash;1.13) on the higher-coverage tag partition where 39% of labels were filled in through my own listening embedding. same leakage channel, smaller dose, so i lead with the smaller number. every provenance-clean estimate lands between <b>1.03 and 1.14</b> &mdash; a partition-sensitivity range, not an interval estimate; fold shuffle into the algorithm&rsquo;s side and it reads 1.03, which doesn&rsquo;t survive multiplicity correction (the penalty for testing many things: try enough cuts and one will look real by luck) &mdash; that is the floor of the comparator axis, not the floor of the study. the 1.15&ndash;1.30 band i reported earlier is withdrawn.</p>
+<p>when i pick the next track, it crosses into another listening community (a cluster of artists that belong together; here, a genre family from public tags) more often than when autoplay picks. the <b>bridge index</b> is that ratio, with same-artist repeats removed from both channels: <b>1.05</b> (95% CI 1.03&ndash;1.08) on communities built only from external genre tags (no embedding anywhere) and 1.10 (1.08&ndash;1.13) on the higher-coverage tag partition where 39% of labels were filled in through my own listening embedding. same leakage channel, smaller dose, so i lead with the smaller number. every provenance-clean estimate lands between <b>1.03 and 1.14</b>, a partition-sensitivity range, not an interval estimate; fold shuffle into the algorithm&rsquo;s side and it reads 1.03, which doesn&rsquo;t survive multiplicity correction (the penalty for testing many things: try enough cuts and one will look real by luck). that is the floor of the comparator axis, not the floor of the study. the 1.15&ndash;1.30 band i reported earlier is withdrawn.</p>
 </div>
 
 <div class="tlfig bleed" tabindex="0" role="region" aria-label="how the headline shrank, scrollable">
@@ -323,7 +323,7 @@ footer a:hover{color:var(--ink)}
 <details class="drawer">
 <summary>read the working: how to read 1.05, and what it held up to</summary>
 <div class="prose">
-<p class="dim small"><b>how to read 1.05 (1.03&ndash;1.08)</b> &mdash; my picks cross about 5% more often than autoplay&rsquo;s: roughly 70 of every 100 jumps against 66. the bracket is the range the true value plausibly sits in, given how much data there is. it stays above 1 on the transitions i can score, so the direction is clear. the size is not: a third to two fifths of my transitions have no public genre tag on this partition, and depending on how i treat that untagged tail the index lands anywhere from 1.00 to 1.13. so i report the direction and not the size. there is a second way it goes to parity: take the loosest reading of both definitions &mdash; count skip-presses as my taps, count shuffle as the algorithm&rsquo;s &mdash; and it reads 1.01 (0.99&ndash;1.03), which no longer separates from 1. there is a third: match the two channels on how well they are tagged. restrict both sides to artists above 50 plays, where the gap in tag coverage between them closes to a fifth of a point, and it reads 1.01 (0.98&ndash;1.04), and no higher cut-off gives a bracket that clears 1 either.</p>
+<p class="dim small"><b>how to read 1.05 (1.03&ndash;1.08)</b>: my picks cross about 5% more often than autoplay&rsquo;s: roughly 70 of every 100 jumps against 66. the bracket is the range the true value plausibly sits in, given how much data there is. it stays above 1 on the transitions i can score, so the direction is clear. the size is not: a third to two fifths of my transitions have no public genre tag on this partition, and depending on how i treat that untagged tail the index lands anywhere from 1.00 to 1.13. so i report the direction and not the size. there is a second way it goes to parity: take the loosest reading of both definitions (count skip-presses as my taps, count shuffle as the algorithm&rsquo;s) and it reads 1.01 (0.99&ndash;1.03), which no longer separates from 1. there is a third: match the two channels on how well they are tagged. restrict both sides to artists above 50 plays, where the gap in tag coverage between them closes to a fifth of a point, and it reads 1.01 (0.98&ndash;1.04), and no higher cut-off gives a bracket that clears 1 either.</p>
 <p class="dim small"><span class="stamp mint">survived</span> what it did hold up to: clustering the error bars on artist instead of session, splitting by device, splitting by logging era, and a label-permutation test that reshuffles who pressed play inside each session and never once reaches the observed value in 20,000 draws. a partition is just one way of sorting artists into communities; i tried eight.</p>
 </div>
 </details>
@@ -520,9 +520,9 @@ footer a:hover{color:var(--ink)}
 <li><b>the predictability gap</b><span class="why">an in-sample mirage: d=0.50 collapses to &minus;0.02 out-of-sample.</span></li>
 <li><b>the 4-year reign &ldquo;p = 0.0000&rdquo;</b><span class="why">a straw-man null; a circular block bootstrap gives p = 0.49&ndash;0.78.</span></li>
 <li><b>music &rarr; heart rate</b><span class="why">fails a shuffle-instrument test of exogeneity. null, twice.</span></li>
-<li><b>&ldquo;i&rsquo;m choosing more over time&rdquo;</b><span class="why">a logging artifact &mdash; the instrument changed, i didn&rsquo;t.</span></li>
+<li><b>&ldquo;i&rsquo;m choosing more over time&rdquo;</b><span class="why">a logging artifact: the instrument changed, i didn&rsquo;t.</span></li>
 <li><b>genre trends over time</b><span class="why">mostly what was served, wearing the costume of what was wanted.</span></li>
-<li><b>the portability demo</b><span class="why">confidently wrong about 696 strangers &mdash; the proxy doesn&rsquo;t transfer.</span></li>
+<li><b>the portability demo</b><span class="why">confidently wrong about 696 strangers: the proxy doesn&rsquo;t transfer.</span></li>
 </ul>
 <p class="dim small">all sixteen, with receipts: <a href="lab.html#graveyard">the graveyard</a>.</p>
 </div>

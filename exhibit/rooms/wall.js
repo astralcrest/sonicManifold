@@ -154,7 +154,7 @@ export default {
   positionCue(ctx) {
     const s = ctx.stage();
     this.cue.style.left = (s.x + 46) + 'px';
-    this.cue.style.top = (s.y - 4) + 'px';
+    this.cue.style.top = (s.y - 4 - (s.w > s.h ? 22 : 0)) + 'px'; /* wide screens have headroom above the wall; on a phone the header is right there */
     this.cue.style.opacity = '.45';
   },
   copy() {

@@ -211,6 +211,7 @@ section[data-room=yours] .y-pn.has .y-live{position:absolute;width:1px;height:1p
    they stay in the accessibility tree and come off the glass, so the sentence and the controls fit. */
 section[data-room=yours] .y-pn.squeeze.has .y-them,section[data-room=yours] .y-pn.squeeze.has .y-mine{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 section[data-room=yours] .y-pn.scrolls .y-priv{box-shadow:0 -12px 16px 4px rgba(10,1,24,.92)}
+section[data-room=yours] .y-pn.squeeze .y-priv,section[data-room=yours] .y-pn.scrolls .y-priv{position:static;box-shadow:none} /* sticky over a scrolling panel hid the line above it on phones */
 section[data-room=yours] .y-pn.squeeze .y-row{gap:8px;margin-top:0}
 section[data-room=yours] .y-pn.squeeze .y-again{padding:10px 12px;min-height:40px;font-size:10px;letter-spacing:.06em}
 section[data-room=yours] .y-pn.squeeze .y-probe{padding:7px 0;font-size:10px;letter-spacing:.06em}
