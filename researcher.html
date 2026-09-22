@@ -359,6 +359,8 @@
   .disp-survived { color: #9be8cf; border-color: rgba(33,246,188,.35); }
   .disp-killed { color: var(--text-faint); border-color: rgba(255,110,156,.25); text-decoration-color: var(--rose); }
   code { overflow-wrap: anywhere; }
+  pre.bib { margin: 12px 0 0; padding: 12px 14px; overflow-x: auto; border: 1px solid rgba(124,128,140,.22); border-radius: 6px; font: 12px/1.5 var(--mono); white-space: pre; }
+  pre.bib code { overflow-wrap: normal; }
 </style>
 </head>
 <body>
@@ -385,7 +387,7 @@
   <p class="cl"><strong>Holds under</strong> partition, seed, resolution, era, device, artist-level clustering.</p>
   <p class="cl"><strong>Fails under</strong> the untagged tail <num>1.00&ndash;1.13</num> &middot; the loosest arm definitions <num>1.012 [0.991, 1.033]</num> &middot; coverage matching <num>1.008 [0.977, 1.038]</num>.</p>
   <p class="cl"><strong><num>18</num></strong> kills and retractions &middot; <strong><num>0/11</num></strong> prospective candidates survived unqualified.</p>
-  <p class="jump"><a href="#graveyard">graveyard</a><span class="sep">&middot;</span><a href="#limitations">limitations</a><span class="sep">&middot;</span><a href="#cite">cite</a></p>
+  <p class="jump"><a href="#graveyard">graveyard</a><span class="sep">&middot;</span><a href="#limitations">limitations</a><span class="sep">&middot;</span><a href="#reproduce">cite and reproduce</a></p>
 </div>
 <div class="claim-limits" role="note" aria-label="limitations, short">
   <ul>
@@ -633,6 +635,29 @@
 
     <dt>Randomization-inference scoping</dt>
     <dd>The randomization-inference license for single-case designs applies where a quasi-random instrument exists: here, the shuffle-channel tests. The deliberate-versus-served split itself is not randomized; it is the behavior under study, and is treated throughout as observational stratification, not as an experiment. General methodological claims (that intent stratification recovers preference structure obscured by platform-initiated exposure) are separated from idiographic empirical ones (the specific coefficients and effect sizes), which are deliberately not generalized beyond this subject.</dd>
+  </dl>
+</section>
+
+<section id="reproduce">
+  <h2 class="sec-title"><span style="color:var(--mint)">&#9698;&#9700;</span> Cite, check, reproduce</h2>
+  <dl class="limits">
+    <dt>Check it on your own log</dt>
+    <dd>The <a href="bridge-index.html">bridge probe</a> computes the Bridge Index from your own Spotify extended streaming history, entirely in the browser tab; nothing is uploaded. It uses the same split on <code>reason_start</code> as this study, so the portability claim can be tested directly rather than taken on trust.</dd>
+    <dt>What will be public</dt>
+    <dd>The analysis code and the derived, non-identifying summary statistics named in the audit ledger, released with the paper as an anonymized archive: fixed seeds, a pinned <code>requirements.txt</code>, one standalone script per quantitative result, and the hashed pre-declarations. The audit ledger maps every claim to its script, data input and parameters.</dd>
+    <dt>What stays private, and why</dt>
+    <dd>The raw Spotify export and the Apple Health and Oura records. They belong to a single identifiable person, so they cannot be shared. Correspondence that needs the raw log can use the PGP key below.</dd>
+    <dt>How to cite</dt>
+    <dd>astralcrest (2026). <em>Streaming Logs Are Not Preference Logs: A Single-Subject Provenance Audit of the Human&ndash;Recommender Loop.</em> Zenodo. The DOI <code>10.5281/zenodo.21464544</code> is reserved and resolves once the record is published; until then, cite this page.
+<pre class="bib"><code>@misc{astralcrest2026streaming,
+  author    = {astralcrest},
+  title     = {Streaming Logs Are Not Preference Logs: A Single-Subject
+               Provenance Audit of the Human--Recommender Loop},
+  year      = {2026},
+  publisher = {Zenodo},
+  note      = {DOI 10.5281/zenodo.21464544 (reserved)},
+  url       = {https://astralcrest.github.io/sonicManifold/researcher.html}
+}</code></pre></dd>
   </dl>
 </section>
 

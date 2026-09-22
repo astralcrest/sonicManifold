@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite the companion paper below. Until its Zenodo record is published, cite the technical summary page."
+title: "sonicManifold: mostly the machine"
+authors:
+  - alias: astralcrest
+url: "https://astralcrest.github.io/sonicManifold/"
+type: software
+preferred-citation:
+  type: report
+  title: "Streaming Logs Are Not Preference Logs: A Single-Subject Provenance Audit of the Human-Recommender Loop"
+  authors:
+    - alias: astralcrest
+  year: 2026
+  publisher:
+    name: Zenodo
+  url: "https://astralcrest.github.io/sonicManifold/researcher.html"
+  notes: "DOI 10.5281/zenodo.21464544 is reserved and resolves once the record is published."
