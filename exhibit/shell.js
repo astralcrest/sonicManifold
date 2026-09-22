@@ -263,6 +263,9 @@ let active = -1;
 const cache = {};
 let identityP = null;
 let goK = -1, goT = 0;
+/* a jump of more than one room (a dot, home, end, walk it again): the scroll passes every room in between, and none of them
+   should wake, fetch its track and go back to sleep in the same half second. only the destination is let in. */
+let jumpTo = -1, jumpT = 0, jumpTimer = 0, lastScroll = 0;
 /* camelot distance between two of my tracks decides how long the rooms dissolve into each other */
 let KEYS = null;
 function xfade(from, to) {
@@ -271,6 +274,8 @@ function xfade(from, to) {
   return a === b ? 0.6 : (d === 0 || (same && d === 1)) ? 0.9 : 1.8;
 }
 const ctx = {
+  /* a room that demonstrates itself has shown the visitor what to do: no idle hint after that */
+  acted(id) { acted.add(id); clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on'); },
   reduced, coarse, particles: P, audio: A, stage, PAL, PROV, PROV_CHIP, FAM, famColor, hash, V,
   legend: (host, kind, opts) => legend(host, kind, opts),
   post: (host, artist, opts) => post(host, artist, ctx, opts), stopPosts: () => stopAll(ctx),
@@ -296,11 +301,23 @@ const ctx = {
   data(name) { return cache[name] || (cache[name] = fetch('exhibit/data/' + name + '.json' + V).then((r) => { if (!r.ok) throw new Error(name); return r.json(); })); },
   /* centre a room's single affordance on the stage */
   placeCue(el, fy = 0.5) { const st = stage(); el.style.left = (st.x + st.w / 2) + 'px'; el.style.top = (st.y + st.h * fy) + 'px'; },
-  go(i) { const k = clamp(i, 0, rooms.length - 1), now = performance.now(); if (rooms[k].el.hidden) return; /* the side room is not part of the walk until someone opens it */ if (k === goK && now - goT < 700) return; goK = k; goT = now; const r = rooms[k]; r.el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); },
+  go(i) { const k = clamp(i, 0, rooms.length - 1), now = performance.now(); if (rooms[k].el.hidden) return; /* the side room is not part of the walk until someone opens it */ if (k === goK && now - goT < 700) return; goK = k; goT = now; const r = rooms[k];
+    if (Math.abs(k - active) > 1) { jumpTo = k; jumpT = now; clearTimeout(jumpTimer); jumpTimer = setTimeout(jumpSettle, 1500); load(k); }
+    r.el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); },
   /* kiosk only: true the moment a real hand arrives. a room whose demo runs on timers polls this and stops */
   demoStopped: true,
   get index() { return active; },
 };
+
+/* the jump did not arrive (the visitor grabbed the scroll, or it is still travelling): once it has stopped, the room in the middle of the screen wins */
+function jumpSettle() {
+  if (jumpTo < 0) return;
+  if (performance.now() - lastScroll < 150 && performance.now() - jumpT < 4000) { jumpTimer = setTimeout(jumpSettle, 200); return; }
+  jumpTo = -1; const mid = innerHeight / 2;
+  const k = sections.findIndex((s) => { if (s.hidden) return false; const r = s.getBoundingClientRect(); return r.top <= mid && r.bottom > mid; });
+  if (k >= 0) activate(k);
+}
+addEventListener('scroll', () => { lastScroll = performance.now(); }, { passive: true });
 
 async function load(i) {
   const r = rooms[i]; if (!r || r.mounted) return r;
@@ -313,13 +330,17 @@ async function activate(i) {
   ctx.demoStopped = true; /* whatever was demonstrating itself is not the active room any more */
   const prev = rooms[active]; active = i;
   if (prev && prev.mod && prev.mod.leave) try { prev.mod.leave(ctx); } catch (e) {}
-  sections.forEach((s, k) => s.classList.toggle('is-active', k === i));
+  const fa = document.activeElement, strand = !!fa && fa !== document.body && ((prev && prev.el.contains(fa)) || fa === enter || fa === enterQuiet);
+  /* a room off screen keeps nothing in the tab order: its text is transparent and its controls are not there to press */
+  sections.forEach((s, k) => { s.classList.toggle('is-active', k === i); s.inert = k !== i; });
+  if (strand) { const h = sections[i].querySelector('h1,h2'); if (h) try { h.focus({ preventScroll: true }); } catch (e) {} }
   dots.forEach((d, k) => { d.classList.toggle('on', k === i); d.setAttribute('aria-current', k === i ? 'true' : 'false'); });
   og.clearRect(0, 0, W, H);
   const r = await load(i); if (active !== i) return;
   P.swirl = 0.4; P.touch = true;
   if (r.mod) { if (r.mod.track) A.play(r.mod.track, xfade(prev && prev.mod && prev.mod.track, r.mod.track)); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
-  load(i + 1); sigPlace();
+  const nx = rooms[i + 1]; if (nx && !nx.el.hidden && !nx.el.dataset.side) load(i + 1); /* never warm the side room: it only opens from its own door */
+  sigPlace();
   if (labelDlg && labelDlg.open) renderLabel(); armHint(); kioskStep();
   try { history.replaceState(null, '', '#' + r.id); } catch (e) {}
 }
@@ -329,7 +350,13 @@ ctx.data('tracks').then((d) => { KEYS = {}; (d.tracks || []).forEach((t) => { KE
 /* nav dots */
 const nav = $('#dots'); const dots = rooms.map((r, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'dot'; b.setAttribute('aria-label', 'room ' + (i + 1) + ': ' + (r.el.dataset.title || r.id)); b.dataset.t = r.el.dataset.title || r.id; b.addEventListener('click', () => ctx.go(i)); if (!r.el.dataset.side) nav.appendChild(b); return b; /* side rooms get no dot */ });
 
-const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) activate(sections.indexOf(e.target)); }); }, { rootMargin: '-49% 0px -49% 0px', threshold: 0 });
+const io = new IntersectionObserver((es) => {
+  es.forEach((e) => {
+    if (!e.isIntersecting) return; const k = sections.indexOf(e.target);
+    if (jumpTo >= 0) { if (performance.now() - jumpT < 1500 && k !== jumpTo) return; jumpTo = -1; clearTimeout(jumpTimer); }
+    activate(k);
+  });
+}, { rootMargin: '-49% 0px -49% 0px', threshold: 0 });
 sections.forEach((s) => io.observe(s));
 
 addEventListener('keydown', (e) => {
@@ -341,7 +368,7 @@ addEventListener('keydown', (e) => {
   else if (e.key === 'm') { $('#mute').click(); }
   else if (e.key === 'l') { toggleLabel(); }
   else if (e.key === 'Home') { e.preventDefault(); ctx.go(0); }
-  else if (e.key === 'End') { e.preventDefault(); ctx.go(rooms.length - 1); }
+  else if (e.key === 'End') { e.preventDefault(); let k = rooms.length - 1; while (k > 0 && (rooms[k].el.hidden || rooms[k].el.dataset.side)) k--; ctx.go(k); } /* the end of the walk, not the side room */
 });
 
 /* threshold */
@@ -518,4 +545,11 @@ const start = Math.max(0, rooms.findIndex((r) => '#' + r.id === location.hash));
 if (start > 0) { document.body.classList.add('entered'); A.muted = true; muteBtn.setAttribute('aria-pressed', 'true'); muteBtn.textContent = 'sound off'; rooms[start].el.scrollIntoView(); }
 activate(start);
 requestAnimationFrame(loop);
+/* a tap on the way in that landed before this script had loaded (a slow phone): honour it once */
+if (window.__pendingEnter && start === 0) {
+  const s = window.__pendingEnter === 'sound'; window.__pendingEnter = null; begin(s);
+  /* that tap is gone, and some browsers (ios) only start audio inside a gesture: the next real touch finishes the unlock */
+  if (s) { const re = (e) => { if (!e.isTrusted) return; removeEventListener('pointerdown', re); if (!A.muted) { A.unlock(); A.rearm(); } }; addEventListener('pointerdown', re, { passive: true }); }
+}
+window.__pendingEnter = null;
 window.__exhibit = { ctx, rooms, P, A, PAL, PROV, FAM, legend, sig: () => ({ on: sigOn, x: Math.round(sigX), y: Math.round(sigY), w: Math.round(sigW), text: SIG }) };

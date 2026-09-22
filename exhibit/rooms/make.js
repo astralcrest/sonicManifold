@@ -89,7 +89,7 @@ export default {
     this.lines = [
       'the wall again. seven years, sorted.',
       'the queue or shuffle started all of that. it is leaving.',
-      'what is left is the ' + tapPct + '% i tapped. i made ' + word + ' tracks out of all of it anyway. tap one, then tap a second one and blend them.',
+      'what is left is the ' + tapPct + '% i tapped. i made ' + word + ' tracks out of the whole log anyway.',
     ];
     /* the short screens get the same sentence with the middle clause dropped, not a different claim */
     this.short = ['the wall again. seven years, sorted.', 'the queue or shuffle started all of that.', 'what is left is the ' + tapPct + '% i tapped. ' + word + ' tracks. tap one, then a second.'];
@@ -270,13 +270,12 @@ export default {
       return [p.x + cos(ja) * jr, p.y + sin(ja) * jr];
     });
   },
-  /* every colour here answers one question. mint = this is the one sounding (the tapped share these 22 tracks
-     came out of), mint2 = harmonic neighbour of it, ice = the deck you have queued and the control that moves it.
-     everything else is plain orchid: the ring a cluster sits in already says whether its key is minor or major,
-     so the two rims get the same hue at half weight rather than a second colour that would mean nothing. */
+  /* every dot on the wheel is a play i tapped, so the whole wheel is mint: dimmed at rest, full for the one
+     sounding, mint2 for its harmonic neighbours, ice for the deck you have queued. the ring a cluster sits in
+     already says whether its key is minor or major, so the two rims are the same mint at lower weight. */
   paint(ctx) {
     const P = ctx.particles, prov = P.prov, PAL = ctx.PAL, playing = this.playing, cued = this.cued, nb = this.neighborSet;
-    const rim = mix(PAL.bg, PAL.orchid, 0.55);
+    const rim = mix(PAL.bg, PAL.tap, 0.3), rest = mix(PAL.bg, PAL.tap, 0.55);
     P.color((i) => {
       if (prov[i] !== 0) return PAL.bg;
       const s = this.slot(i, ctx);
@@ -284,7 +283,7 @@ export default {
       if (s === playing) return PAL.tap;
       if (s === cued) return PAL.ice;
       if (nb && nb.has(s)) return PAL.mint2;
-      return PAL.orchid;
+      return rest;
     });
   },
   line(k) { return (this.tight ? this.short : this.lines)[k]; },
@@ -337,7 +336,7 @@ export default {
     if (bl) return 'blending ' + (this.tight ? '' : T[bl.a].t + ' ') + 'into ' + T[bl.b].t + '. ' + (this.tight ? bl.rel.words + '.' : bl.rel.full) + (bl.silent ? ' sound is off.' : '');
     const a = T[this.playing];
     /* the wide screen already has the title on the line above, so this one says what to do rather than repeat it */
-    if (this.cued < 0) return this.tight ? 'a: ' + a.t + ' · ' + a.k + ' · ' + a.bpm + ' bpm. tap a second.' : 'that one is deck a. tap a second cluster for deck b, then blend them.';
+    if (this.cued < 0) return this.tight ? 'a: ' + a.t + ' · ' + a.k + ' · ' + a.bpm + ' bpm. tap a second.' : 'deck a. pick another.';
     const b = T[this.cued], rel = this.relation(this.playing, this.cued), bpm = this.bpmLine(this.playing, this.cued);
     return this.tight ? 'b: ' + b.t + ' · ' + b.k + '. ' + rel.words + ', ' + bpm : 'deck b: ' + b.t + ' (' + b.k + '). ' + rel.full + ' ' + bpm;
   },

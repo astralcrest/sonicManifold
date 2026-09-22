@@ -1,5 +1,5 @@
 /* room 2 — who pressed play? the wall dims to violet fog; two clusters of the same particles pull
-   forward into a constellation, mint above, orchid below. guess which artist i tapped and which
+   forward into a constellation, one above, one below, both in ink. guess which artist i tapped and which
    one the app queued. data: whopressed.json at the site root, spotify's own reason_start labels. */
 
 const ROUNDS = 5, AY = 0.18, BY = 0.82, DARK = 0x1a1030;
@@ -21,7 +21,7 @@ export default {
         '<p class="g-verdict say dim" aria-live="polite"></p>' +
         '<div class="g-posts"></div>' +
         '<div class="row g-row">' +
-          '<button type="button" class="btn g-tap">i tapped</button>' +
+          '<button type="button" class="btn ghost g-tap">i tapped</button>' +
           '<button type="button" class="btn ghost g-queue">it queued</button>' +
         '</div>' +
         '<p class="g-kbd dim" aria-hidden="true">t = i tapped &middot; q = it queued &middot; n = next</p>' +
@@ -89,8 +89,8 @@ export default {
       const rad = Math.sqrt(-2 * Math.log(u));
       return [clamp01(fx + rad * Math.cos(6.283 * v) * 0.045), clamp01(cy + rad * Math.sin(6.283 * v) * 0.04)];
     });
-    const MINT = ctx.PAL.tap, ORCHID = ctx.PAL.orchid;
-    P.color((i) => (cl[i] === 1 ? MINT : cl[i] === 2 ? ORCHID : DARK));
+    const INK = ctx.PAL.white; /* both artists in ink: a provenance hue here would answer the question before the visitor does */
+    P.color((i) => (cl[i] ? INK : DARK));
   },
 
   deal(ctx, restart) {
@@ -112,7 +112,7 @@ export default {
     this.elA.textContent = row[0]; this.elB.textContent = row[1];
     this.verdict.textContent = ''; this.verdict.style.color = ''; this.posts.textContent = '';
     this.tapBtn.disabled = false; this.queueBtn.disabled = false;
-    this.tapBtn.className = 'btn g-tap'; this.queueBtn.className = 'btn ghost g-queue';
+    this.tapBtn.className = 'btn ghost g-tap'; this.queueBtn.className = 'btn ghost g-queue';
     this.answered = false; this.pulse = null; this.mid.classList.remove('answered');
     this.bar.forEach((b, k) => { b.className = k < this.ri ? 'on' : ''; });
     /* posts.textContent='' above just deleted the focused .g-fwd button; put focus back if it was ours to lose */
@@ -164,7 +164,7 @@ export default {
   },
 
   disperseClusters(ctx) {
-    /* scatters the mint/orchid clusters back into the plain field, same look as this room's own non-cluster dots;
+    /* scatters the two clusters back into the plain field, same look as this room's own non-cluster dots;
        place(ctx) (called from enter(), or from deal() on restart) re-forms them */
     const P = ctx.particles;
     P.target((i) => [ctx.hash(i * 13 + 1), ctx.hash(i * 13 + 2)]);
@@ -254,7 +254,7 @@ css.textContent =
 'section[data-room="game"] .g-bar i.bad{background:none;box-shadow:inset 0 0 0 1px var(--mute)}' +
 'section[data-room="game"] .g-mid{display:flex;flex-direction:column;align-items:center;gap:12px;flex:1;justify-content:center;max-width:340px}' +
 'section[data-room="game"] .g-name{font:italic 500 clamp(21px,4.6vw,38px)/1.15 var(--serif)}' +
-'section[data-room="game"] .g-a{color:var(--mint2)}section[data-room="game"] .g-b{color:var(--orchid)}' +
+'section[data-room="game"] .g-a,section[data-room="game"] .g-b{color:var(--ink)}' + /* no provenance hint before the answer */
 'section[data-room="game"] .g-arrow{font:600 18px/1 var(--mono);color:var(--mute)}' +
 'section[data-room="game"] .g-verdict{min-height:1.3em;margin:0}' +
 'section[data-room="game"] .g-posts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:flex-start}' +
@@ -266,6 +266,7 @@ css.textContent =
 'section[data-room="game"] .g-posts .post{margin:0;max-width:none}section[data-room="game"] .g-pnote{flex-basis:100%;text-align:center}section[data-room="game"] .g-pnote .post-note{margin:0}' +
 '@media (max-height:720px) and (max-aspect-ratio:115/100){section[data-room="game"] .g-mid.answered .g-name,section[data-room="game"] .g-mid.answered .g-arrow{display:none}section[data-room="game"] .g-name{font-size:20px}}' +
 '@media (max-width:640px){section[data-room="game"] .g-mid{gap:8px}section[data-room="game"] .g-pnote .post-note{font-size:10.5px;line-height:1.4}}' +
+'section[data-room="game"] .g-tap,section[data-room="game"] .g-queue{color:var(--ink);border-color:rgba(216,210,234,.42)}' +
 'section[data-room="game"] .g-tap.ok,section[data-room="game"] .g-queue.ok{background:var(--ink);color:#0a0118}' +
 'section[data-room="game"] .g-tap.bad,section[data-room="game"] .g-queue.bad{background:none;color:var(--mute);border:1px dashed var(--mute)}' +
 'section[data-room="game"] .g-end{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:34ch}' +

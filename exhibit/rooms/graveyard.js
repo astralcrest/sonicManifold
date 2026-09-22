@@ -1,5 +1,6 @@
-/* room 5 — tap a claim: the field falls into a null histogram, an amber line marks the real
-   number. buried = killed, outside = survived. data: exhibit/data/killit.json. */
+/* room 7: tap a claim. the field falls into a null histogram (amber: a null is chance), then my
+   real number drops in last as one ink mark. buried = killed, outside = survived.
+   data: exhibit/data/killit.json. */
 
 const SHORT = [
   'even on a relearned map, my picks bridge more than autoplay does',
@@ -33,14 +34,14 @@ const TPL = `<div class="gv-pn">
 <ul class="gv-sixteen-list" hidden></ul>
 </div>
 <p class="gv-caveat"></p>
-<div class="gv-fade" aria-hidden="true"></div>
 </div>`;
 
 const CSS = `section[data-room=graveyard] .gv-pn{position:absolute;display:flex;flex-direction:column;gap:12px;overflow-y:auto;-webkit-overflow-scrolling:touch}
-section[data-room=graveyard] .gv-cards{display:flex;flex-direction:column;gap:8px}
+section[data-room=graveyard] .gv-pn.more{-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),transparent);mask-image:linear-gradient(#000 calc(100% - 28px),transparent)}
+section[data-room=graveyard] .gv-cards{display:flex;flex-direction:column;gap:8px;margin-top:auto}
 section[data-room=graveyard] .gv-card{display:flex;align-items:center;gap:10px;min-height:44px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(10,1,24,.55);color:var(--ink);font:500 12.5px/1.35 var(--mono);text-align:left;cursor:pointer}
-section[data-room=graveyard] .gv-card:hover,section[data-room=graveyard] .gv-card:focus-visible{border-color:var(--mint)}
-section[data-room=graveyard] .gv-card:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+section[data-room=graveyard] .gv-card:hover,section[data-room=graveyard] .gv-card:focus-visible{border-color:var(--ice)}
+section[data-room=graveyard] .gv-card:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
 section[data-room=graveyard] .gv-card[disabled]{opacity:.3;cursor:default}
 section[data-room=graveyard] .gv-card span{flex:1}
 section[data-room=graveyard] .gv-null,section[data-room=graveyard] .gv-x,section[data-room=graveyard] .gv-rule,section[data-room=graveyard] .gv-stoneline,section[data-room=graveyard] .gv-caveat{margin:0;font:400 11.5px/1.55 var(--mono);color:var(--mute)}
@@ -50,16 +51,14 @@ section[data-room=graveyard] .gv-status.k{color:var(--rose)}
 section[data-room=graveyard] .gv-status.s{color:var(--mint)}
 section[data-room=graveyard] .gv-nums{margin:0;font:500 12px/1.4 var(--mono);color:var(--ink)}
 section[data-room=graveyard] .gv-again{align-self:flex-start}
-section[data-room=graveyard] .gv-card.on{border-color:var(--mint)}
+section[data-room=graveyard] .gv-card.on{border-color:var(--ice)}
 section[data-room=graveyard] .gv-pn.ran .gv-null{display:none}
 section[data-room=graveyard] .gv-pn.ran .gv-card:not(.on){display:none}
 section[data-room=graveyard] .gv-buried{margin-top:4px}
-section[data-room=graveyard] .gv-sixteen{margin-top:2px;padding:0;border:0;background:none;color:var(--mint);font:500 11.5px/1.4 var(--mono);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
-section[data-room=graveyard] .gv-sixteen:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+section[data-room=graveyard] .gv-sixteen{margin-top:2px;padding:0;border:0;background:none;color:var(--ice);font:500 11.5px/1.4 var(--mono);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+section[data-room=graveyard] .gv-sixteen:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
 section[data-room=graveyard] .gv-sixteen-list{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:5px 16px}
 section[data-room=graveyard] .gv-sixteen-list li{font:400 11px/1.4 var(--mono);color:var(--mute)}
-section[data-room=graveyard] .gv-fade{position:sticky;left:0;right:0;bottom:0;height:22px;margin-top:-22px;background:linear-gradient(rgba(10,1,24,0),rgba(10,1,24,.92));pointer-events:none;opacity:0;transition:opacity .2s}
-section[data-room=graveyard] .gv-fade.show{opacity:1}
 @media (max-height:720px) and (max-aspect-ratio:115/100){
 section[data-room=graveyard] .gv-pn{gap:5px}
 section[data-room=graveyard] .gv-cards{display:grid;grid-template-columns:1fr 1fr;gap:5px}
@@ -75,6 +74,12 @@ section[data-room=graveyard] .gv-pn.ran .gv-cards{display:flex}
 section[data-room=graveyard] .gv-pn.ran .gv-buried,section[data-room=graveyard] .gv-pn.ran .gv-caveat{display:none}
 }`;
 
+const KIOSK = /[?&]kiosk=1\b/.test(location.search);
+const INK = '#d8d2ea', INK_RGB = '216,210,234';
+function mix(a, b, t) {
+  const c = (s) => Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t);
+  return (c(16) << 16) | (c(8) << 8) | c(0);
+}
 function rnd2(n) { return Math.round(n * 100) / 100; }
 function ord(n) {
   n = Math.round(n * 10) / 10;
@@ -90,12 +95,17 @@ export default {
     this.root = root;
     const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     root.innerHTML = TPL;
-    const Q = { pn: '.gv-pn', cd: '.gv-cards', nl: '.gv-null', rs: '.gv-result', ss: '.gv-status', nm: '.gv-nums', xEl: '.gv-x', ru: '.gv-rule', ag: '.gv-again', sxBtn: '.gv-sixteen', sxList: '.gv-sixteen-list', sl: '.gv-stoneline', cv: '.gv-caveat', fd: '.gv-fade' };
+    const Q = { pn: '.gv-pn', cd: '.gv-cards', nl: '.gv-null', rs: '.gv-result', ss: '.gv-status', nm: '.gv-nums', xEl: '.gv-x', ru: '.gv-rule', ag: '.gv-again', sxBtn: '.gv-sixteen', sxList: '.gv-sixteen-list', sl: '.gv-stoneline', cv: '.gv-caveat' };
     for (const k in Q) this[k] = root.querySelector(Q[k]);
     this.nl.textContent = NULL_TXT;
     this.sl.textContent = STONE_LINE;
     this.cv.textContent = CAVEAT;
     this.ag.addEventListener('click', () => this.again(ctx));
+    this.pn.addEventListener('scroll', () => this.checkScroll(), { passive: true });
+    /* any hand in the room during the first-visit run takes over: the run stops and the cards come back */
+    this._onHand = (e) => { if (e.isTrusted) { this._autoDone = true; this.cancelAuto(ctx); } };
+    /* deep-linked straight here: a hand that arrives before the room has finished entering counts too */
+    if (location.hash === '#' + this.id && !KIOSK) { addEventListener('pointerdown', this._onHand, { passive: true }); addEventListener('keydown', this._onHand); }
     this.sxBtn.addEventListener('click', () => {
       const open = this.sxList.hidden;
       this.sxList.hidden = !open;
@@ -126,10 +136,18 @@ export default {
     this.ready = true;
     this.checkScroll();
   },
+  /* the panel's content is bottom-aligned (margin-top:auto on the cards), so its bottom edge is where the
+     text meets the grains: at rest just above the horizon line, while a card runs just above the pile's top. */
   layout(ctx) {
-    const s = ctx.stage();
-    this.pn.style.left = s.x + 'px'; this.pn.style.top = s.y + 'px';
-    this.pn.style.width = s.w + 'px'; this.pn.style.height = (s.h * (s.h < 420 ? 0.7 : 0.5)) + 'px';
+    const s = ctx.stage(), f = s.h < 420 ? 0.3 : 0.46, base = s.y + s.h * 0.98;
+    this.pn.style.left = s.x + 'px'; this.pn.style.top = s.y + 'px'; this.pn.style.width = s.w + 'px';
+    this._restH = Math.max(120, base - 22 - s.y);
+    this._runH = Math.max(120, base - s.h * f - 14 - s.y);
+    this.fit();
+  },
+  fit() {
+    if (!this._restH) return;
+    this.pn.style.height = (this.pn.classList.contains('ran') ? this._runH : this._restH) + 'px';
     this.checkScroll();
   },
   /* the panel is allowed to scroll as a last resort (some device/content combo we didn't anticipate),
@@ -137,9 +155,9 @@ export default {
      top/bottom keeps going and scrolls the page), and a bottom fade only appears when there is in fact
      more to see, as an honest affordance rather than a decoration. */
   checkScroll() {
-    if (!this.pn || !this.fd) return;
-    const has = this.pn.scrollHeight > this.pn.clientHeight + 1;
-    this.fd.classList.toggle('show', has);
+    if (!this.pn) return;
+    const pn = this.pn, more = pn.scrollHeight > pn.clientHeight + 1 && pn.scrollTop + pn.clientHeight < pn.scrollHeight - 2;
+    pn.classList.toggle('more', more);
   },
   busy(b) {
     const btns = this.cd.querySelectorAll('button'); for (let i = 0; i < btns.length; i++) btns[i].disabled = b;
@@ -167,12 +185,12 @@ export default {
     P.targetPx((k) => [pr.x + ctx.hash(k * 3 + 1) * pr.w, pr.y + pr.h - ctx.hash(k * 17 + 9) * 5]); P.color(() => fog);
   },
   run(ctx, i) {
-    if (!this.cases[i] || this.state === 'running') return;
-    this.curCase = i;
-    const P = ctx.particles, N = P.n, orch = ctx.PAL.orchid;
+    if (!this.cases[i] || this.state === 'running' || this.state === 'dropping') return;
+    this.curCase = i; this._auto = false; /* a run by hand is the visitor's; only the first-visit timer marks its own */
+    const P = ctx.particles, N = P.n, nul = this.nullHue(ctx);
     this.pileRect = this.computePile(ctx, i);
-    this.pn.classList.add('ran'); this.markCard(i); this.checkScroll();
-    P.color(() => orch);
+    this.pn.classList.add('ran'); this.markCard(i); this.fit();
+    P.color(() => nul);
     if (ctx.reduced) { const gx = this.gx, gy = this.gy; P.targetPx((k) => [gx[k], gy[k]]); this.out.fill(1); }
     else { /* park every grain above the top of the screen, then let them go a few at a time */
       P.ease = 0.13; this.out.fill(0);
@@ -182,13 +200,16 @@ export default {
     this.nextTick = 0; /* granular-tick rate gate, reset per run */
     if (ctx.reduced) { this.state = 'settled'; this.settle(ctx); } else { this.state = 'running'; this.runStart = performance.now(); }
   },
+  /* a null is chance, so the pile is amber, pulled a quarter of the way to the background so the
+     whole pile never shouts louder than the one mark that decides it */
+  nullHue(ctx) { return mix(ctx.PAL.amber, ctx.PAL.bg, 0.25); },
   markCard(i) { const bs = this.cd.querySelectorAll('button'); for (let k = 0; k < bs.length; k++) bs[k].classList.toggle('on', k === i); },
   settle(ctx) {
     this.state = 'settled'; this.settleAt = 0; this.busy(false);
     const c = this.cases[this.curCase], k = c.v === 'k';
     this.ss.className = 'gv-status ' + (k ? 'k' : 's');
     this.ss.textContent = k ? V_K : V_S;
-    if (k) { ctx.audio.note(-3, { dur: 1.1, type: 'triangle' }); ctx.audio.note(-5, { at: 0.22, dur: 1.4, type: 'triangle' }); } else { ctx.audio.note(2, { dur: 0.7 }); ctx.audio.note(4, { at: 0.12, dur: 0.8 }); ctx.audio.note(7, { at: 0.24, dur: 1.2 }); }
+    if (k) ctx.audio.note(-7, { dur: 1.6, type: 'triangle', vol: 0.05 }); else { ctx.audio.note(2, { dur: 0.7 }); ctx.audio.note(4, { at: 0.12, dur: 0.8 }); ctx.audio.note(7, { at: 0.24, dur: 1.2 }); }
     this.nm.textContent = 'observed ' + rnd2(c.o) + ' · ' + c.sz + ' redraws · ' + ord(c.pc) + ' percentile';
     this.xEl.textContent = c.x; this.ru.textContent = c.r;
     this.rs.hidden = false;
@@ -196,28 +217,49 @@ export default {
   },
   again(ctx) {
     this.state = 'idle'; this.curCase = -1; this.pileRect = null; this.rs.hidden = true; this.pn.classList.remove('ran'); this.markCard(-1);
-    ctx.particles.ease = 0.06; this.ground(ctx); this.busy(false); this.checkScroll();
+    this._auto = false;
+    ctx.particles.ease = 0.06; this.ground(ctx); this.busy(false); this.fit();
   },
   enter(ctx) {
     if (!this.ready) return;
     this.layout(ctx);
     const P = ctx.particles; P.ease = 0.06; P.jitter = 0.35; P.big = false; P.swirl = 0;
-    if ((this.state === 'settled' || this.state === 'running') && this.cases[this.curCase]) {
+    if (this.state !== 'idle' && this.cases[this.curCase]) {
       /* reflow the pile for the new viewport; if still falling, frame() finishes the fall on its own clock */
       this.pileRect = this.computePile(ctx, this.curCase);
-      const gx = this.gx, gy = this.gy, orch = ctx.PAL.orchid;
-      P.targetPx((k) => [gx[k], gy[k]]); P.color(() => orch);
+      const gx = this.gx, gy = this.gy, nul = this.nullHue(ctx);
+      P.targetPx((k) => [gx[k], gy[k]]); P.color(() => nul);
     } else { this.state = 'idle'; this.ground(ctx); }
     ctx.audio.distant(0.85);
+    /* first visit only, and never in kiosk (demo() covers that): after a breath, run the card that dies */
+    /* spent only once it actually starts: a pass-through (or webkit settling a deep link through a second activate) must not use it up */
+    if (!this._autoDone && !this._autoT && !KIOSK && this.state === 'idle') {
+      const kIdx = this.cases.findIndex((c) => /relearned/.test(c.c) && c.v === 'k');
+      if (kIdx >= 0) {
+        addEventListener('pointerdown', this._onHand, { passive: true });
+        addEventListener('keydown', this._onHand);
+        this._autoT = setTimeout(() => { this._autoT = 0; if (this.state === 'idle' && !this._autoDone) { this._autoDone = true; if (ctx.acted) ctx.acted('graveyard'); this.run(ctx, kIdx); this._auto = true; if (this.state === 'settled') this.unhook(); } }, 1200);
+      }
+    }
+  },
+  unhook() {
+    removeEventListener('pointerdown', this._onHand);
+    removeEventListener('keydown', this._onHand);
+  },
+  cancelAuto(ctx) {
+    if (this._autoT) { clearTimeout(this._autoT); this._autoT = 0; }
+    this.unhook();
+    if (this._auto) { this._auto = false; if (ctx && this.state !== 'idle') this.again(ctx); }
   },
   leave(ctx) {
     ctx.audio.distant(0);
-    this.stopDemo();
+    this.stopDemo(ctx);
   },
-  /* cancels any kiosk demo in flight and gives the cards back to whoever just touched the room */
-  stopDemo() {
+  /* cancels any kiosk demo or first-visit run in flight and gives the cards back to whoever just touched the room */
+  stopDemo(ctx) {
     if (this._demoT1) { clearTimeout(this._demoT1); this._demoT1 = 0; }
     if (this._demoT2) { clearTimeout(this._demoT2); this._demoT2 = 0; }
+    this.cancelAuto(ctx);
     if (this.cd) this.busy(false);
   },
   /* a 3-8ms bandpass-filtered noise burst, generated once and replayed — no new asset, no allocation
@@ -239,20 +281,25 @@ export default {
     gn.connect(ctx.audio.sfx);
     src.start(t); src.stop(t + dur + 0.01);
   },
-  drawMarker(g, ctx) {
+  drawMarker(g, ctx, drop) {
     const c = this.cases[this.curCase], pr = this.pileRect; if (!c || !pr) return;
     const bins = c.cn.length, frac = Math.min(1, Math.max(0, (c.o - c.lo) / (c.w * bins)));
     const mx = pr.x + frac * pr.w * AX;
-    const amber = '#' + ctx.PAL.amber.toString(16).padStart(6, '0');
+    if (drop != null) { /* mine, on its way down: one ink grain falling onto the axis at the observed value */
+      const y = pr.y - 70 + (pr.h + 70) * drop * drop;
+      g.fillStyle = INK; g.beginPath(); g.arc(mx, y, 3.5, 0, 6.2832); g.fill();
+      return;
+    }
+    const ink = INK;
     if (c.v !== 'k') {
       /* survives: stands past almost all of the pile's mass, out in the empty margin AX leaves —
          a full flagpole, plus a faint tick back to the pile's edge so the eye can measure the gap */
-      g.strokeStyle = amber; g.lineWidth = 2; g.beginPath(); g.moveTo(mx, pr.y - 14); g.lineTo(mx, pr.y + pr.h + 6); g.stroke();
-      g.fillStyle = amber; g.beginPath(); g.moveTo(mx - 5, pr.y - 14); g.lineTo(mx + 5, pr.y - 14); g.lineTo(mx, pr.y - 4); g.closePath(); g.fill();
+      g.strokeStyle = ink; g.lineWidth = 2; g.beginPath(); g.moveTo(mx, pr.y - 14); g.lineTo(mx, pr.y + pr.h + 6); g.stroke();
+      g.fillStyle = ink; g.beginPath(); g.moveTo(mx - 5, pr.y - 14); g.lineTo(mx + 5, pr.y - 14); g.lineTo(mx, pr.y - 4); g.closePath(); g.fill();
       const edgeX = pr.x + pr.w * AX;
-      g.strokeStyle = 'rgba(245,166,35,.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(edgeX, pr.y - 14); g.lineTo(mx, pr.y - 14); g.stroke();
+      g.strokeStyle = 'rgba(' + INK_RGB + ',.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(edgeX, pr.y - 14); g.lineTo(mx, pr.y - 14); g.stroke();
       g.font = '600 10px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.textBaseline = 'bottom';
-      g.fillStyle = 'rgba(245,166,35,.85)'; g.fillText('mine · ' + rnd2(c.o), mx, pr.y - 16);
+      g.fillStyle = ink; g.fillText('mine · ' + rnd2(c.o), mx, pr.y - 16);
       g.textAlign = 'left';
     } else {
       /* killed: the observed value sits inside the null's own bulk, so the line only rises as high
@@ -263,12 +310,12 @@ export default {
       const bIdx = Math.min(bins - 1, Math.max(0, Math.floor(frac * bins)));
       const hb = (c.cn[bIdx] || 0) / (this.maxC || 1);
       const topY = pr.y + pr.h * (1 - hb);
-      g.strokeStyle = 'rgba(245,166,35,.75)'; g.lineWidth = 2; g.beginPath(); g.moveTo(mx, pr.y + pr.h); g.lineTo(mx, topY); g.stroke();
+      g.strokeStyle = 'rgba(' + INK_RGB + ',.8)'; g.lineWidth = 2; g.beginPath(); g.moveTo(mx, pr.y + pr.h); g.lineTo(mx, topY); g.stroke();
       const by = pr.y + pr.h + 4;
-      g.fillStyle = amber;
+      g.fillStyle = ink;
       g.beginPath(); g.moveTo(mx, by); g.lineTo(mx - 4, by + 7); g.lineTo(mx + 4, by + 7); g.closePath(); g.fill();
       g.font = '600 10px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.textBaseline = 'top';
-      g.fillStyle = 'rgba(245,166,35,.85)'; g.fillText('mine · ' + rnd2(c.o), mx, by + 9);
+      g.fillText('mine · ' + rnd2(c.o), mx, by + 9);
       g.textAlign = 'left';
     }
   },
@@ -285,13 +332,21 @@ export default {
         this.grain(ctx, 480 + heightFrac * 3300, colFrac * 2 - 1, 0.008 + Math.random() * 0.012, 3 + Math.random() * 5);
         this.nextTick = t + 40 + Math.random() * 40;
       }
-      if (prog >= 1) { if (!this.settleAt) this.settleAt = t + 900; else if (t >= this.settleAt) this.settle(ctx); }
+      if (prog >= 1) { if (!this.settleAt) this.settleAt = t + 900; else if (t >= this.settleAt) { this.state = 'dropping'; this.dropStart = t; } }
     }
+    if (this.state === 'dropping' && t - this.dropStart >= 650) { this.settle(ctx); if (this._auto) this.unhook(); }
     if (this.pileRect && this.state !== 'idle') {
       const pr = this.pileRect, killed = this.state === 'settled' && this.cases[this.curCase] && this.cases[this.curCase].v === 'k';
       if (killed) this.drawMarker(g, ctx);
-      g.strokeStyle = 'rgba(189,166,255,.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(pr.x, pr.y + pr.h + 1.5); g.lineTo(pr.x + pr.w, pr.y + pr.h + 1.5); g.stroke();
+      g.strokeStyle = 'rgba(134,203,254,.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(pr.x, pr.y + pr.h + 1.5); g.lineTo(pr.x + pr.w, pr.y + pr.h + 1.5); g.stroke();
       if (this.state === 'settled' && !killed) this.drawMarker(g, ctx);
+      if (this.state === 'dropping') this.drawMarker(g, ctx, Math.min(1, (t - this.dropStart) / 650));
+      if (killed) { /* the grain that landed: bright, on the axis, on top of everything */
+        const c = this.cases[this.curCase], fr = Math.min(1, Math.max(0, (c.o - c.lo) / (c.w * c.cn.length)));
+        const lx = pr.x + fr * pr.w * AX, ly = pr.y + pr.h;
+        g.fillStyle = 'rgba(' + INK_RGB + ',.18)'; g.beginPath(); g.arc(lx, ly, 9, 0, 6.2832); g.fill();
+        g.fillStyle = INK; g.beginPath(); g.arc(lx, ly, 4, 0, 6.2832); g.fill();
+      }
     }
   },
   /* kiosk: nobody's here. show one kill, then one survivor, twelve seconds apart, then reset. */

@@ -4,22 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
 <title>mostly the machine, a sonic manifold exhibit</title>
-<meta name="description" content="Seven years of one person's streaming log as a nine-room exhibit: 97,427 plays, who pressed play, a ruler that changed, a map that lied, two listeners, a graveyard of my own findings.">
+<meta name="description" content="Seven years of one person's streaming log as an eight-room exhibit: 97,427 plays, who pressed play, a ruler that changed, a map that lied, two listeners, a graveyard of my own findings.">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/exhibit.html">
-<link rel="modulepreload" href="exhibit/shell.js?v=20260924i">
+<link rel="modulepreload" href="exhibit/shell.js?v=20260925b">
 <link rel="modulepreload" href="exhibit/post.js?v=5">
 <link rel="modulepreload" href="exhibit/labels.js?v=9">
-<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260924i">
-<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260924i">
-<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260924i">
+<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260925b">
+<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260925b">
+<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260925b">
 <meta name="theme-color" content="#0a0118">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/exhibit.html">
 <meta property="og:title" content="mostly the machine, a sonic manifold exhibit">
-<meta property="og:description" content="97,427 plays. 19% were mine. Nine rooms, one idea each, with the soundtrack I made from it.">
+<meta property="og:description" content="97,427 plays. 19% were mine. Eight rooms, one idea each, with the soundtrack I made from it.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og-exhibit.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -47,6 +47,7 @@ section.is-active .wall{opacity:1;transform:none}
 h1,h2{font-family:var(--serif);font-style:italic;font-weight:500;letter-spacing:-.01em;margin:0 0 14px;line-height:1.02}
 h1{font-size:clamp(46px,11vw,112px);background:linear-gradient(92deg,#21f6bc,#7df0c8 34%,#8b6fd6);-webkit-background-clip:text;background-clip:text;color:transparent}
 h2{font-size:clamp(34px,6.4vw,68px);color:var(--ink)}
+h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none} /* focus lands on a room's title when the room changes under it; a ring round a heading reads as a bug */
 .say{font-size:clamp(16px,2.1vw,20px);line-height:1.5;margin:0 0 10px;max-width:30rem;color:var(--ink)}
 .say.dim{color:var(--mute);font-size:clamp(14px,1.7vw,16px)}
 .deeper{display:inline-block;margin-top:14px;font:600 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ice);text-decoration:none;padding:12px 0;border-bottom:1px dotted rgba(134,203,254,.5)}
@@ -102,7 +103,7 @@ noscript p{position:relative;z-index:4;padding:24px}
 .lb-more{display:inline-block;margin-top:20px;font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#0b6a52;text-decoration:none;border-bottom:1px solid rgba(11,106,82,.4);padding:8px 0}
 .lb-x{position:sticky;top:6px;float:right;margin:6px 6px 0 0;width:40px;height:40px;border:0;background:none;color:#4b435c;font:400 24px/1 var(--mono);cursor:pointer}
 @media (max-width:560px){.lb-body{padding:24px 20px 20px}.lb-rows{grid-template-columns:1fr;gap:2px 0}.lb-rows dd{margin-bottom:10px}.lb-t{font-size:26px}#labelbtn{padding:9px 10px}}
-#hint{position:fixed;z-index:4;transform:translate(-50%,0);margin:0;max-width:min(30rem,calc(100vw - 40px));text-align:center;font:500 12px/1.4 var(--mono);letter-spacing:.06em;color:var(--mint2);background:rgba(10,1,24,.7);border:1px solid rgba(125,240,200,.25);border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .8s ease}
+#hint{position:fixed;z-index:4;transform:translate(-50%,0);margin:0;max-width:min(30rem,calc(100vw - 40px));text-align:center;font:500 12px/1.4 var(--mono);letter-spacing:.06em;color:var(--ice);background:rgba(10,1,24,.7);border:1px solid rgba(134,203,254,.25);border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .8s ease}
 #hint.on{opacity:1}
 .kiosk,.kiosk *{cursor:none!important}.kiosk #top a,.kiosk .deeper,.kiosk #labelbtn{visibility:hidden}
 /* a phone held sideways: very little height. compact type, and the label button moves up beside the title bar so it never sits on the text */
@@ -121,21 +122,21 @@ noscript p{position:relative;z-index:4;padding:24px}
 <dialog id="label" aria-label="wall label"><button class="lb-x" type="button" aria-label="close the label">&times;</button><div class="lb-body"></div></dialog>
 <main>
 
-<section data-room="threshold" data-title="threshold">
+<section data-room="threshold" data-title="threshold" class="is-active">
   <div class="wall">
     <p class="no">an exhibit in eight rooms &middot; n = 1</p>
-    <h1>mostly the machine</h1>
+    <h1 tabindex="-1">mostly the machine</h1>
     <p class="say">i logged every song i played for seven years and assumed the log was a record of me. four fifths of it was a machine advancing a queue.</p>
     <p class="say dim land-hide">eight rooms of finding that out: what i measured, what the measuring broke, what i had to bury. every dot behind this text is a play. mint is a play i chose, violet is one the machine served. all the music here is mine. sound on if you can.</p>
-    <div class="row"><button class="btn" id="enter" type="button">enter with sound</button><button class="btn ghost" id="enter-quiet" type="button">enter quietly</button></div>
+    <div class="row"><button class="btn" id="enter" type="button" onclick="if(!window.__exhibit)window.__pendingEnter='sound'">enter with sound</button><button class="btn ghost" id="enter-quiet" type="button" onclick="if(!window.__exhibit)window.__pendingEnter='quiet'">enter quietly</button></div>
   </div>
   <div class="room-body"></div>
 </section>
 
-<section data-room="wall" data-title="97,427">
+<section data-room="wall" data-title="97,427" inert>
   <div class="wall">
     <p class="no"><b>01</b> &middot; the log</p>
-    <h2>97,427</h2>
+    <h2 tabindex="-1">97,427</h2>
     <p class="say" id="wall-say">this is what a streaming log says my taste is: one dot for every play, all of them the same colour.</p>
     <p class="say dim" id="wall-dim">press and hold the wall.</p>
     <div class="legend" id="wall-legend" aria-hidden="true" hidden><span><i style="background:#21f6bc"></i>i tapped &middot; 19%</span><span><i style="background:#f5a623"></i>i shuffled &middot; 17%</span><span><i style="background:#8b6fd6"></i>it was served &middot; 64%</span></div>
@@ -144,10 +145,10 @@ noscript p{position:relative;z-index:4;padding:24px}
   <div class="room-body"></div>
 </section>
 
-<section data-room="calendar" data-title="the ruler changed">
+<section data-room="calendar" data-title="the ruler changed" inert>
   <div class="wall">
     <p class="no"><b>02</b> &middot; the ruler</p>
-    <h2>the ruler changed</h2>
+    <h2 tabindex="-1">the ruler changed</h2>
     <p class="say">the same plays again, now 81 months wide, each month stacked by who pressed play. the dotted line is october 2023, when the app changed how it records a start.</p>
     <p class="say dim">my tapped share reads 11.8% before that line and 22.7% after it. nothing about me moved 10.9 points that month.</p>
     <div class="legend-slot"></div>
@@ -156,20 +157,20 @@ noscript p{position:relative;z-index:4;padding:24px}
   <div class="room-body"></div>
 </section>
 
-<section data-room="game" data-title="who pressed play?">
+<section data-room="game" data-title="who pressed play?" inert>
   <div class="wall">
     <p class="no"><b>03</b> &middot; the test</p>
-    <h2>who pressed play?</h2>
+    <h2 tabindex="-1">who pressed play?</h2>
     <p class="say">one artist, then another. did i tap that second one, or did the app queue it?</p>
     <a class="deeper" href="lab.html#toy-whopressed">go deeper: ten rounds &rarr;</a>
   </div>
   <div class="room-body"></div>
 </section>
 
-<section data-room="clock" data-title="what held">
+<section data-room="clock" data-title="what held" inert>
   <div class="wall">
     <p class="no"><b>04</b> &middot; what held</p>
-    <h2>what held</h2>
+    <h2 tabindex="-1">what held</h2>
     <p class="say">seven years folded onto one day. what i tapped rides the outside of the dial, what the queue served sits underneath, and the shape of the day stays where it is.</p>
     <p class="say dim">the hour is a fixed utc-7 approximation across all seven years, not a real local time, so the edges are soft.</p>
     <div class="legend-slot"></div>
@@ -178,41 +179,41 @@ noscript p{position:relative;z-index:4;padding:24px}
   <div class="room-body"></div>
 </section>
 
-<section data-room="map" data-title="the map that lied">
+<section data-room="map" data-title="the map that lied" inert>
   <div class="wall">
     <p class="no"><b>05</b> &middot; the catch</p>
-    <h2>the map that lied</h2>
+    <h2 tabindex="-1">the map that lied</h2>
     <p class="say">i measured my taste on a map the algorithm helped draw. turn the dial and watch the map rearrange.</p>
     <a class="deeper" href="lab.html#toy-leakdial">go deeper: the leakage dial &rarr;</a>
   </div>
   <div class="room-body"></div>
 </section>
 
-<section data-room="listeners" data-title="two listeners">
+<section data-room="listeners" data-title="two listeners" inert>
   <div class="wall">
     <p class="no"><b>06</b> &middot; the finding</p>
-    <h2>two listeners</h2>
+    <h2 tabindex="-1">two listeners</h2>
     <p class="say">the same seven years, drawn twice: the artists my taps connect, and the artists autoplay connects.</p>
     <a class="deeper" href="lab.html#fig-26">go deeper: the real network &rarr;</a>
   </div>
   <div class="room-body"></div>
 </section>
 
-<section data-room="graveyard" data-title="the graveyard">
+<section data-room="graveyard" data-title="the graveyard" inert>
   <div class="wall">
     <p class="no"><b>07</b> &middot; the audit</p>
-    <h2>the graveyard</h2>
+    <h2 tabindex="-1">the graveyard</h2>
     <p class="say">pick a finding of mine and try to kill it. the fake data falls first. mine drops in last.</p>
     <a class="deeper" href="lab.html#graveyard">go deeper: all sixteen &rarr;</a>
   </div>
   <div class="room-body"></div>
 </section>
 
-<section data-room="make" data-title="make your own">
+<section data-room="make" data-title="make your own" inert>
   <div class="wall">
     <p class="no"><b>08</b> &middot; the exit</p>
-    <h2>make your own</h2>
-    <p class="say">the 81% the queue and shuffle started falls away, and the 19% i tapped becomes a wheel of the 22 tracks i wrote out of this. put two of them together and hear what the key does.</p>
+    <h2 tabindex="-1">make your own</h2>
+    <p class="say">the 81% the queue and shuffle started falls away, and the 19% i tapped becomes a wheel. i made twenty-two tracks from this log; put two of them together and hear what the key does.</p>
     <div class="legend-slot"></div>
     <p class="exits"><a class="deeper" href="lab.html#apple-sunomoment">how the tracks were made &rarr;</a><a class="deeper" href="researcher.html">the technical summary &rarr;</a><button class="deeper" id="again" type="button">walk it again &uarr;</button><button class="deeper" id="share" type="button">send this to someone</button></p>
     <p class="say dim side-door">already have your spotify export? <a href="#yours" id="yours-door">put your wall next to mine</a>. spotify takes a few days to send one, so this is a side room.</p>
@@ -220,10 +221,10 @@ noscript p{position:relative;z-index:4;padding:24px}
   <div class="room-body"></div>
 </section>
 
-<section data-room="yours" data-title="your turn" data-side="1" hidden>
+<section data-room="yours" data-title="your turn" data-side="1" hidden inert>
   <div class="wall">
     <p class="no"><b>side room</b> &middot; your turn</p>
-    <h2>your turn</h2>
+    <h2 tabindex="-1">your turn</h2>
     <p class="say">drop your own spotify export in. it is read here in this tab, sorted by the same field i sorted mine with, and your three shares stand up next to mine.</p>
     <p class="say dim">nothing is uploaded and nothing is kept. close the tab and it is gone.</p>
     <div class="legend-slot"></div>
@@ -235,6 +236,6 @@ noscript p{position:relative;z-index:4;padding:24px}
 
 </main>
 <noscript><p>this exhibit draws with javascript. the whole study, in text, is on the <a href="./">landing page</a> and in the <a href="lab.html">lab</a>.</p></noscript>
-<script type="module" src="exhibit/shell.js?v=20260924i"></script>
+<script type="module" src="exhibit/shell.js?v=20260925b"></script>
 </body>
 </html>
