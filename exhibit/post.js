@@ -38,7 +38,7 @@ function loadApi() {
 /* ------------------------------------------------------------------ the dock */
 const D = {
   el: null, slot: null, who: null, attr: null, x: null, msg: null,
-  ctl: null, wantTid: '', artist: '', open: false, lastFocus: null, ctx: null, playT: 0, h: 0,
+  ctl: null, wantTid: '', artist: '', open: false, lastFocus: null, ctx: null, playT: 0, h: 0, armT: 0, started: false, armTo: 0,
   build(ctx) {
     if (this.el) return this.el;
     this.ctx = ctx;
@@ -81,6 +81,7 @@ const D = {
     requestAnimationFrame(() => this.measure());
   },
   fail(artist, tid) {
+    clearTimeout(this.armTo); this.started = false;
     this.slot.textContent = ''; this.ctl = null; this.el.classList.add('is-msg');
     this.msg.hidden = false;
     this.msg.textContent = 'spotify did not load. it may be blocked on this network, or you may be offline.';
@@ -89,7 +90,16 @@ const D = {
     if (this.ctx) this.ctx.audio.duck(false);
     requestAnimationFrame(() => this.measure());
   },
+  /* the bed goes down the moment a clip is asked for, so the clip never starts over it at full level. if the clip has
+     not started six seconds later (a browser that wants a tap inside the player), the bed comes back */
+  arm(t0) {
+    this.armT = t0 || Date.now(); this.started = false; clearTimeout(this.armTo);
+    if (this.ctx) this.ctx.audio.duck(true);
+    this.armTo = setTimeout(() => { if (!this.started && this.ctx) this.ctx.audio.duck(false); }, 6000);
+  },
+  pending() { return this.open && !this.started && Date.now() - this.armT < 6000; },
   close(restoreFocus) {
+    clearTimeout(this.armTo); this.started = false;
     if (this.ctl) { try { this.ctl.pause(); } catch (e) {} }
     if (this.ctx) this.ctx.audio.duck(false);
     if (!this.el) return;
@@ -102,14 +112,17 @@ const D = {
 
 /* resolve an artist to a controller playing them. `trigger` is the control that was clicked, for focus return. */
 async function playArtist(artist, ctx, trigger) {
+  /* the bed starts down before anything else happens, so it is at -24 dB by the time any clip can begin */
+  const t0 = Date.now(); ctx.audio.duck(true);
   const ids = await loadIds(), tid = ids[artist];
-  if (!tid) return 'notid';
+  if (!tid) { ctx.audio.duck(false); return 'notid'; }
   grantConsent();
   D.build(ctx); D.ctx = ctx;
   D.msg.hidden = true; D.msg.textContent = '';
   const wasOpen = D.open;
   D.lastFocus = trigger && trigger.isConnected ? trigger : D.lastFocus;
   D.show(artist, tid);
+  D.arm(t0);
   /* a visitor who arrived by keyboard lands on the player, so escape and the stop button are one key away.
      a kiosk demo passes no trigger and never steals the focus. */
   if (trigger && !wasOpen) { try { D.x.focus({ preventScroll: true }); } catch (e) {} }
@@ -130,9 +143,11 @@ async function playArtist(artist, ctx, trigger) {
       ctl.addListener('playback_update', (e) => {
         const dat = e && e.data; if (!dat) return;
         const playing = D.open && !dat.isPaused;
-        ctx.audio.duck(playing);
+        if (playing) D.started = true;
+        /* the embed reports paused while it loads: that must not bring the bed back up before the clip has begun */
+        if (playing || !D.pending()) ctx.audio.duck(playing);
         /* the embed loads paused; one nudge per uri, never a loop */
-        if (D.open && dat.isPaused && D.playT && Date.now() - D.playT < 4000 && (dat.position || 0) === 0) { D.playT = 0; try { ctl.play(); } catch (err) {} }
+        if (D.open && dat.isPaused && D.playT && Date.now() - D.playT < 4000 && (dat.position || 0) === 0) { D.playT = 0; setTimeout(() => { if (D.open) try { ctl.play(); } catch (err) {} }, Math.max(0, D.armT + 320 - Date.now())); }
       });
     });
   } catch (e) { D.fail(artist, tid); return 'apifail'; }

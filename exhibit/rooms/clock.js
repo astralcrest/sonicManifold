@@ -263,8 +263,9 @@ export default {
     const now = performance.now();
     if (ctx && now - this.lastTick > 55) {
       this.lastTick = now;
-      /* a soft tick as the hand crosses into an hour, climbing through the day. note() is silent when muted. */
-      ctx.audio.note(Math.round((h / 24) * 10) - 2, { dur: 0.13, vol: 0.022, type: 'sine' });
+      /* a soft tick as the hand crosses into an hour: it climbs to midday and comes back down, so a full turn never
+         leaps two octaves at midnight. note() keeps it in the bed's key and is silent when muted. */
+      ctx.audio.note(Math.round(7 * (1 - Math.abs(h - 12) / 12)) - 2, { dur: 0.13, vol: 0.022, type: 'sine' });
     }
   },
 

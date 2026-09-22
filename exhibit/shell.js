@@ -14,8 +14,8 @@
    ctx = { reduced, coarse, particles, audio, data(name), go(i), stage() }
 */
 
-import { postCSS, post, stopAll, playClip, clipsAllowed } from './post.js?v=5';
-import { LABELS, HINTS } from './labels.js?v=10';
+import { postCSS, post, stopAll, playClip, clipsAllowed } from './post.js?v=6';
+import { LABELS, HINTS } from './labels.js?v=11';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
 const $ = (s, r = document) => r.querySelector(s);
@@ -155,6 +155,7 @@ function resize() {
   if (gg) { glow.width = Math.max(2, (PW / GDIV) | 0); glow.height = Math.max(2, (PH / GDIV) | 0); }
   if (active >= 0 && rooms[active] && rooms[active].mod && rooms[active].mod.enter) rooms[active].mod.enter(ctx);
   sigPlace();
+  if (hintEl && hintEl.classList.contains('on')) { hintEl.classList.remove('on'); armHint(); } /* its spot was measured on the old layout */
 }
 
 /* the layout changed without the viewport changing (the dock opened or closed): let the room re-place itself */
@@ -220,7 +221,16 @@ const A = {
     try { const spare = this.els[1]; spare.src = 'audio/bed/' + (this.want || 'hitting-the-infinite-derivative') + '.mp3'; const sg = this.gen[1], pr = spare.play(); if (pr && pr.then) pr.then(() => { if (this.cur !== 1 && this.gen[1] === sg) spare.pause(); }).catch(() => {}); } catch (e) {}
     this.on = true; this.level(); if (this.wantDistant) this.distant(this.wantDistant); if (this.want) this.play(this.want);
   },
-  level() { if (!this.gain) return; const v = this.muted ? 0 : this.ducked ? 0.0001 : 0.85; this.gain.gain.setTargetAtTime(v, this.ac.currentTime, 0.25); this.sfx.gain.setTargetAtTime(this.muted ? 0 : this.ducked ? 0.2 : 1, this.ac.currentTime, 0.1); },
+  /* master level. a listening post ducks the bed to -24 dB over 0.3 s (in the next room, not gone) and lets it back
+     over 1.5 s; both ramps are linear in dB, so neither end is heard as a step */
+  level() {
+    if (!this.gain) return;
+    const t = this.ac.currentTime, gp = this.gain.gain, want = this.muted ? 0 : this.ducked ? BED * DUCK : BED, v = gp.value;
+    gp.cancelScheduledValues(t); gp.setValueAtTime(v, t);
+    if (!this.muted && v > 1e-4 && Math.abs(v - want) > 1e-4) gp.exponentialRampToValueAtTime(want, t + (want < v ? 0.3 : 1.5));
+    else gp.setTargetAtTime(want, t, 0.25);
+    this.sfx.gain.setTargetAtTime(this.muted ? 0 : this.ducked ? 0.2 : 1, t, 0.1);
+  },
   /* a phone pauses <audio> when the tab goes to the background and does not start it again by itself */
   rearm() { if (this.cur >= 0 && !this.muted && this.els[this.cur].paused) this.els[this.cur].play().catch(() => {}); },
   /* gen[k] goes up every time deck k is handed a new track, so a timer or event from an older request can tell it lost */
@@ -231,17 +241,19 @@ const A = {
     const now = performance.now(), busy = now - this.reqT < 350 || this.coT; this.reqT = now;
     /* a burst of room changes (held keys, a dot, a kiosk handover) starts only the bed it ends on */
     if (busy) { clearTimeout(this.coT); this.coT = setTimeout(() => { this.coT = 0; this.commit(this.want, this.wantXf); }, 350); return; }
-    this.commit(track, xf);
+    return this.commit(track, xf) || fadeLen(xf);
   },
   commit(track, xf) {
     if (!track || (this.cur >= 0 && this.els[this.cur].dataset.t === track)) return;
-    let nx = this.cur === 0 ? 1 : 0, old = this.cur;
-    /* the current deck's bed has not arrived yet: give it the new track and let the one still sounding stay the outgoing bed */
-    if (old >= 0 && this.g[old].gain.value <= 0.001 && this.g[nx].gain.value > 0.001) { nx = old; old = 1 - old; }
-    const el = this.els[nx], g = this.g[nx].gain, gen = ++this.gen[nx], t = this.ac.currentTime;
-    /* the spare deck may still be fading out: swapping its src while audible is a click, so take it to silence first */
-    const hot = g.value > 0.001;
-    g.cancelScheduledValues(t); g.setValueAtTime(hot ? g.value : 0, t); if (hot) g.linearRampToValueAtTime(0, t + 0.04);
+    /* the new bed goes on whichever deck is quieter; the louder one holds where it is and becomes the outgoing bed */
+    let nx = 0, old = -1;
+    if (this.cur >= 0) { const a = this.cur, b = 1 - a; nx = this.g[a].gain.value < this.g[b].gain.value ? a : b; old = 1 - nx; }
+    const el = this.els[nx], g = this.g[nx].gain, gen = ++this.gen[nx], t = this.ac.currentTime, L = fadeLen(xf);
+    if (old >= 0) hold(this.g[old].gain, t);
+    /* the deck being reused may still be sounding: swapping its src while audible is a click, so take it to silence
+       first, no steeper than 0.0125 of full level per 10 ms */
+    const hv = g.value, hot = hv > 0.001, out = hot ? Math.max(0.04, hv * 0.8) : 0;
+    g.cancelScheduledValues(t); g.setValueAtTime(hot ? hv : 0, t); if (hot) g.linearRampToValueAtTime(0, t + out);
     el.dataset.t = track; this.cur = nx;
     const start = () => {
       if (this.gen[nx] !== gen) return;
@@ -250,14 +262,18 @@ const A = {
       const fade = () => {
         if (done) return; done = true; clearTimeout(fb); el.removeEventListener('playing', fade);
         if (this.gen[nx] !== gen || this.cur !== nx) return;
-        const t2 = this.ac.currentTime; g.cancelScheduledValues(t2); g.setValueAtTime(g.value, t2); g.setTargetAtTime(1, t2, xf);
-        if (old >= 0) { const og = this.g[old].gain; og.cancelScheduledValues(t2); og.setValueAtTime(og.value, t2); og.setTargetAtTime(0, t2, xf); this.park(old, this.gen[old], 1500 + xf * 3000); }
+        /* equal power: in = sin, out = cos over the same span, so the two beds sum to constant loudness with no dip in
+           the middle, and the outgoing one ends at exactly zero before it is paused */
+        const t2 = this.ac.currentTime + 0.01;
+        curve(g, t2, L, true);
+        if (old >= 0) { curve(this.g[old].gain, t2, L, false); this.park(old, this.gen[old], L * 1000 + 250); }
       };
       el.addEventListener('playing', fade); fb = setTimeout(fade, 1500);
       el.src = 'audio/bed/' + track + '.mp3'; el.currentTime = 0;
       el.play().catch(() => { const again = () => { removeEventListener('pointerdown', again); if (this.cur === nx && this.gen[nx] === gen) el.play().catch(() => {}); }; addEventListener('pointerdown', again, { once: true }); });
     };
-    if (hot) setTimeout(start, 50); else start();
+    if (hot) setTimeout(start, out * 1000 + 30); else start();
+    return L;
   },
   /* pause a deck once it is silent, and only if nobody has handed it a new track since */
   park(k, gen, ms) {
@@ -268,16 +284,21 @@ const A = {
     }, ms);
   },
   mute(m) { this.muted = m; this.level(); },
-  /* interface tones: D minor pentatonic, quiet, skipped when muted. step 0 = D4 */
+  /* interface tones: D minor pentatonic, quiet, skipped when muted. step 0 = D4, five steps an octave.
+     each tone is moved to the nearest one that is also in the key of the bed that is playing (see inKey below) */
   note(step, o = {}) {
     if (!this.ac || this.muted || !this.on) return;
-    const SC = [0, 3, 5, 7, 10], oct = Math.floor(step / 5), semi = SC[((step % 5) + 5) % 5] + 12 * oct;
+    const SC = [0, 3, 5, 7, 10], oct = Math.floor(step / 5), semi = snap(SC[((step % 5) + 5) % 5] + 12 * oct, this.bedKey());
     const t = this.ac.currentTime + (o.at || 0), osc = this.ac.createOscillator(), g = this.ac.createGain(), dur = o.dur || 0.5;
     osc.type = o.type || 'sine'; osc.frequency.value = 293.66 * Math.pow(2, semi / 12);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(o.vol || 0.05, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(g); g.connect(this.sfx); osc.start(t); osc.stop(t + dur + 0.05);
   },
-  duck(d) { this.ducked = d; this.level(); },
+  /* the pitch classes interface tones may use over the bed that is playing now (0 = C) */
+  pitches() { return inKey(this.bedKey()); },
+  bedKey() { return this.cur >= 0 && KEYS ? KEYS[this.els[this.cur].dataset.t] || null : null; },
+  /* the embed repeats its state several times a second: only a change restarts the ramp, so a return is never stretched */
+  duck(d) { d = !!d; if (d === this.ducked) return; this.ducked = d; this.level(); },
   /* 0 = open, 1 = distant (the graveyard plays its track from the next room over) */
   distant(k) { if (!this.lp) { this.wantDistant = k; return; } this.lp.frequency.setTargetAtTime(k > 0 ? 20000 * Math.pow(0.03, k) : 20000, this.ac.currentTime, 0.5); },
   bands() {
@@ -288,6 +309,42 @@ const A = {
   },
 };
 const ZERO = { low: 0, mid: 0, high: 0 }, B = { low: 0, mid: 0, high: 0 };
+const BED = 0.85, DUCK = 0.063; /* -24 dB */
+/* a crossfade's length follows the room change: same key 1.3 s, a neighbour 2 s, a long way round 4 s. make.js draws its
+   blend line for xf * 2200 ms, so the two stay in step */
+function fadeLen(xf) { return Math.max(0.5, (xf || 0.9) * 2.2); }
+function hold(p, t) { const v = p.value; p.cancelScheduledValues(t); p.setValueAtTime(v, t); }
+/* a quarter sine from the param's current value, up to 1 or down to 0. 100 points a second: never more than 0.012 of
+   full level between neighbours, and the last point is an exact zero */
+function curve(p, t, L, up) {
+  const v = p.value, n = Math.max(64, Math.ceil(L * 100)), c = new Float32Array(n);
+  const a0 = up ? Math.asin(clamp(v, 0, 1)) : 0;
+  for (let i = 0; i < n; i++) { const u = i / (n - 1); c[i] = up ? Math.sin(a0 + (Math.PI / 2 - a0) * u) : v * Math.cos((Math.PI / 2) * u); }
+  c[n - 1] = up ? 1 : 0;
+  p.cancelScheduledValues(t - 0.01); p.setValueAtTime(v, t - 0.01);
+  /* firefox cannot cancel a value curve once it has begun (the next room change would throw), so there the same curve
+     goes in as short straight ramps, which it can cancel */
+  if (CURVE_OK) { try { p.setValueCurveAtTime(c, t, L); return; } catch (e) {} }
+  for (let i = 0; i < n; i += 2) p.linearRampToValueAtTime(c[i], t + (L * i) / (n - 1));
+  p.linearRampToValueAtTime(c[n - 1], t + L);
+}
+const CURVE_OK = typeof AudioParam !== 'undefined' && 'cancelAndHoldAtTime' in AudioParam.prototype;
+/* the owner's palette is D minor pentatonic (D F G A C), D dorian when a bed shares too little of it. a camelot key
+   names a major scale (nB) or its relative minor (nA), which hold the same seven tones */
+const DMP = [2, 5, 7, 9, 0], DOR = [2, 4, 5, 7, 9, 11, 0], KEYCACHE = {};
+function inKey(k) {
+  if (!k) return DMP;
+  if (KEYCACHE[k]) return KEYCACHE[k];
+  const n = parseInt(k, 10), root = (((n - 8) * 7) % 12 + 12) % 12, maj = [0, 2, 4, 5, 7, 9, 11].map((d) => (root + d) % 12);
+  const a = DMP.filter((p) => maj.includes(p)), b = DOR.filter((p) => maj.includes(p));
+  return (KEYCACHE[k] = a.length >= 2 ? a : b.length >= 2 ? b : DMP);
+}
+/* semitones above D4, moved to the nearest allowed tone (a tie goes down, which is the darker choice) */
+function snap(semi, k) {
+  const ok = inKey(k);
+  for (let d = 0; d < 7; d++) { if (ok.includes((((semi - d + 2) % 12) + 12) % 12)) return semi - d; if (ok.includes((((semi + d + 2) % 12) + 12) % 12)) return semi + d; }
+  return semi;
+}
 
 /* ------------------------------------------------------------------ rooms */
 const sections = [...document.querySelectorAll('section[data-room]')];
@@ -376,6 +433,9 @@ async function activate(i) {
   /* a room off screen keeps nothing in the tab order: its text is transparent and its controls are not there to press */
   sections.forEach((s, k) => { s.classList.toggle('is-active', k === i); s.inert = k !== i; });
   if (strand) { const h = sections[i].querySelector('h1,h2'); if (h) try { h.focus({ preventScroll: true }); } catch (e) {} }
+  document.title = i === 0 ? BASE_TITLE : (rooms[i].el.dataset.side ? '' : roomNo(i) + ' · ') + roomName(i) + ' · mostly the machine';
+  announce(i, !!prev);
+  clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on'); /* the last room's hint must not sit over this one while it loads */
   dots.forEach((d, k) => { d.classList.toggle('on', k === i); d.setAttribute('aria-current', k === i ? 'true' : 'false'); });
   og.clearRect(0, 0, W, H);
   const r = await load(i); if (active !== i) return;
@@ -389,8 +449,22 @@ async function activate(i) {
 
 ctx.data('tracks').then((d) => { KEYS = {}; (d.tracks || []).forEach((t) => { KEYS[t.f] = t.k; }); }).catch(() => {});
 
+/* a room is called what its placard calls it, numbered the way the page numbers it: the threshold is not a room */
+const BASE_TITLE = document.title;
+const WALK = rooms.filter((r) => !r.el.dataset.side).length - 1;
+const two = (n) => String(n).padStart(2, '0');
+function roomName(i) { const r = rooms[i]; return r.el.dataset.title || r.id; }
+function roomNo(i) { return two(rooms.slice(0, i + 1).filter((r) => !r.el.dataset.side).length - 1); }
+function roomSay(i) { return i === 0 ? 'threshold' : rooms[i].el.dataset.side ? 'side room, ' + roomName(i) : 'room ' + roomNo(i) + ' of ' + two(WALK) + ', ' + roomName(i); }
+/* one polite line per arrival, said once the scroll has settled on a room: a flick through five rooms says one thing, not five */
+const sayEl = $('#roomsay'); let sayT = 0;
+function announce(i, arrived) {
+  clearTimeout(sayT); if (!sayEl || !arrived || KIOSK) return;
+  sayT = setTimeout(() => { if (active !== i) return; sayEl.textContent = ''; sayT = setTimeout(() => { if (active === i) sayEl.textContent = roomSay(i); }, 60); }, 800);
+}
+
 /* nav dots */
-const nav = $('#dots'); const dots = rooms.map((r, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'dot'; b.setAttribute('aria-label', 'room ' + (i + 1) + ': ' + (r.el.dataset.title || r.id)); b.dataset.t = r.el.dataset.title || r.id; b.addEventListener('click', () => ctx.go(i)); if (!r.el.dataset.side) nav.appendChild(b); return b; /* side rooms get no dot */ });
+const nav = $('#dots'); const dots = rooms.map((r, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'dot'; b.setAttribute('aria-label', roomSay(i)); b.dataset.t = i === 0 ? 'threshold' : roomNo(i) + ' · ' + roomName(i); b.addEventListener('click', () => ctx.go(i)); if (!r.el.dataset.side) nav.appendChild(b); return b; /* side rooms get no dot */ });
 
 const io = new IntersectionObserver((es) => {
   es.forEach((e) => {
@@ -425,7 +499,7 @@ document.addEventListener('visibilitychange', () => { if (A.ac) { if (document.h
 const shareBtn = $('#share');
 if (shareBtn) shareBtn.addEventListener('click', async () => {
   const url = location.origin + location.pathname, say = (m) => { const was = 'send this to someone'; shareBtn.textContent = m; setTimeout(() => { shareBtn.textContent = was; }, 2200); };
-  try { if (navigator.share) { await navigator.share({ title: document.title, url }); return; } await navigator.clipboard.writeText(url); say('link copied'); } catch (e) { if (e && e.name !== 'AbortError') say(url.replace(/^https?:\/\//, '')); }
+  try { if (navigator.share) { await navigator.share({ title: BASE_TITLE, url }); return; } await navigator.clipboard.writeText(url); say('link copied'); } catch (e) { if (e && e.name !== 'AbortError') say(url.replace(/^https?:\/\//, '')); }
 });
 
 /* ------------------------------------------------------------------ wall labels */
@@ -456,28 +530,68 @@ function armHint() {
     if (rooms[active].id !== id || acted.has(id)) return;
     const s = stage();
     hintEl.textContent = HINTS[id];
-    hintEl.style.left = (s.x + s.w / 2) + 'px'; hintEl.style.top = (s.y + 4) + 'px';
-    hintEl.classList.add('on'); /* top of the stage: the controls live at the bottom */
-    /* a couple of rooms (the graveyard's panel, in particular) fill the top of the stage too —
-       nudge below whatever is already on screen there rather than print two lines on top of each other */
-    requestAnimationFrame(() => {
-      if (!hintEl.classList.contains('on')) return;
-      const hr = hintEl.getBoundingClientRect();
-      const sec = rooms[active].el; let maxBottom = null;
-      const near = [...sec.querySelectorAll('.room-body *, .wall *')];
-      if (labelBtn && labelBtn.isConnected) near.push(labelBtn); /* on a phone the placard sits under the title bar, where the hint wants to print */
-      near.forEach((el) => {
-        if (el === hintEl || el.contains(hintEl) || !el.textContent || !el.textContent.trim()) return;
-        const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none') return;
-        const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
-        if (r.left < hr.right && r.right > hr.left && r.top < hr.bottom && r.bottom > hr.top) maxBottom = maxBottom == null ? r.bottom : Math.max(maxBottom, r.bottom);
-      });
-      if (maxBottom != null) {
-        const shifted = maxBottom + 10;
-        if (shifted + hr.height < s.y + s.h - 8) hintEl.style.top = shifted + 'px'; else hintEl.classList.remove('on');
-      }
-    });
+    hintEl.style.maxWidth = Math.min(480, s.w, W - 32) + 'px';
+    hintEl.style.width = ''; hintEl.style.left = '0px'; hintEl.style.top = '-9999px';
+    requestAnimationFrame(() => placeHint(id, s));
   }, 9000);
+}
+/* the hint goes where nothing else is: not on the room's text or controls, not on the title bar, the dots, the placard
+   button or the dock, not on any box a room marks [data-keepout] or returns from keepout(ctx), and not on what the room
+   has drawn on the overlay canvas (the calendar's 11.8% and 22.7% are drawn there, not in the DOM). top of the stage
+   first, since the controls live at the bottom; if no spot is clear the hint stays away. */
+function placeHint(id, s) {
+  if (rooms[active].id !== id || acted.has(id)) return;
+  const hw = Math.ceil(hintEl.getBoundingClientRect().width) + 1; if (hw < 2) return; /* measured off screen at its natural width; it is pinned to a width below so it never re-wraps against the right edge */
+  const sec = rooms[active].el, boxes = [], pad = 8;
+  const add = (r) => { if (r && r.width > 0 && r.height > 0) boxes.push(r); };
+  sec.querySelectorAll('.room-body *, .wall *').forEach((el) => {
+    const ctl = /^(BUTTON|A|INPUT|SELECT|SUMMARY|LABEL)$/i.test(el.tagName);
+    if (!ctl && ![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) return;
+    const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < 0.06) return;
+    add(el.getBoundingClientRect());
+  });
+  document.querySelectorAll('[data-keepout], #top > *, #dots, #exdock').forEach((el) => { if (el.offsetParent !== null || getComputedStyle(el).position === 'fixed') add(el.getBoundingClientRect()); });
+  const mod = rooms[active].mod; if (mod && mod.keepout) { try { (mod.keepout(ctx) || []).forEach((r) => add({ left: r.x, top: r.y, right: r.x + r.w, bottom: r.y + r.h, width: r.w, height: r.h })); } catch (e) {} }
+  if (sigOn) add({ left: sigX, top: sigY - 12, right: sigX + sigW, bottom: sigY + 4, width: sigW, height: 16 });
+  /* what the room drew on the overlay: one read of the stage into a summed table of solid pixels, so each candidate costs four lookups */
+  let sat = null, ix = 0, iy = 0, sw = 0, sh = 0;
+  try {
+    ix = Math.max(0, Math.floor(s.x - 40)); iy = Math.max(0, Math.floor(s.y));
+    const iw = Math.min(W, Math.ceil(s.x + s.w + 40)) - ix, ih = Math.min(H, Math.ceil(s.y + s.h)) - iy;
+    if (iw > 0 && ih > 0) {
+      const d = og.getImageData(ix * ODPR, iy * ODPR, iw * ODPR, ih * ODPR), a = d.data; sw = d.width; sh = d.height;
+      sat = new Uint32Array((sw + 1) * (sh + 1));
+      for (let y = 0; y < sh; y++) { let row = 0; for (let x = 0; x < sw; x++) { if (a[(y * sw + x) * 4 + 3] > 110) row++; sat[(y + 1) * (sw + 1) + x + 1] = sat[y * (sw + 1) + x + 1] + row; } }
+    }
+  } catch (e) { sat = null; }
+  const inkAt = (L, T, R, Bt) => {
+    if (!sat) return 0;
+    const x0 = clamp(Math.floor((L - ix) * ODPR), 0, sw), x1 = clamp(Math.ceil((R - ix) * ODPR), 0, sw), y0 = clamp(Math.floor((T - iy) * ODPR), 0, sh), y1 = clamp(Math.ceil((Bt - iy) * ODPR), 0, sh), S = sw + 1;
+    return sat[y1 * S + x1] - sat[y0 * S + x1] - sat[y1 * S + x0] + sat[y0 * S + x0];
+  };
+  /* try it at its natural width first, then narrower (more lines), which fits between things more often */
+  const nat = hw; let best = null;
+  for (const wid of [nat, Math.max(200, Math.round(nat * 0.62))]) {
+    if (wid > nat || (best && best.n === 0)) break;
+    hintEl.style.width = wid + 'px'; const ht = hintEl.offsetHeight;
+    const cxs = [0.5, 0, 1, 0.25, 0.75].map((f) => clamp(s.x + wid / 2 + (s.w - wid) * f, wid / 2 + 12, W - wid / 2 - 12));
+    for (let y = s.y + 4; y + ht <= s.y + s.h - 4; y += 4) {
+      for (const cx of cxs) {
+        const L = cx - wid / 2 - pad, R = cx + wid / 2 + pad, T = y - pad, Bt = y + ht + pad;
+        if (boxes.some((r) => r.left < R && r.right > L && r.top < Bt && r.bottom > T)) continue;
+        const n = inkAt(L, T, R, Bt);
+        if (!best || n < best.n) best = { x: cx, y, n, w: wid, lim: (Bt - T) * ODPR };
+        if (n === 0) break;
+      }
+      if (best && best.n === 0) break;
+    }
+  }
+  if (best) hintEl.style.width = best.w + 'px';
+  /* a clear spot, or one that only crosses a hairline (the calendar's dotted line on a short screen). anything more is
+     a label or a number, and saying nothing beats covering the thing the room is showing */
+  if (!best || best.n > best.lim) return;
+  hintEl.style.left = best.x + 'px'; hintEl.style.top = best.y + 'px';
+  hintEl.classList.add('on');
 }
 const didAct = (e) => { if (active < 0 || !e.target.closest || !e.target.closest('section[data-room]') || e.target.closest('.wall a')) return; acted.add(rooms[active].id); clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on'); };
 addEventListener('pointerdown', didAct, { passive: true }); addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ' || /^[tqn]$/i.test(e.key) || /^Arrow(Left|Right)$/.test(e.key)) didAct(e); });

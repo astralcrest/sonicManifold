@@ -14,6 +14,8 @@ export default {
     const wrap = document.createElement('div'); wrap.className = 'g-wrap';
     wrap.innerHTML =
       '<div class="g-bar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>' +
+      /* the one polite region for dealing and scoring: "round 2 of 5: a, then b" once per round, the score once at the end. the answer buttons are described by it */
+      '<p class="g-round" id="g-round" aria-live="polite" aria-atomic="true"></p>' +
       '<div class="g-mid">' +
         '<div class="g-name g-a"></div>' +
         '<div class="g-arrow" aria-hidden="true">&darr;</div>' +
@@ -21,14 +23,14 @@ export default {
         '<p class="g-verdict say dim" aria-live="polite"></p>' +
         '<div class="g-posts"></div>' +
         '<div class="row g-row">' +
-          '<button type="button" class="btn ghost g-tap">i tapped</button>' +
-          '<button type="button" class="btn ghost g-queue">it queued</button>' +
+          '<button type="button" class="btn ghost g-tap" aria-describedby="g-round">i tapped</button>' +
+          '<button type="button" class="btn ghost g-queue" aria-describedby="g-round">it queued</button>' +
         '</div>' +
         '<p class="g-kbd dim" aria-hidden="true">t = i tapped &middot; q = it queued &middot; n = next</p>' +
       '</div>' +
       '<div class="g-end" hidden>' +
-        '<p class="g-score say" aria-live="polite"></p>' +
-        '<p class="g-prior say dim" aria-live="polite" hidden></p>' +
+        '<p class="g-score say"></p>' +
+        '<p class="g-prior say dim" hidden></p>' +
         '<p class="g-note say dim">in the real log about 86% of these jumps were autoplay. each hand here is three of one and two of the other, so always guessing autoplay gets you two or three.</p>' +
         '<p class="g-caveat say dim">these labels are spotify’s own record of what started each play, not my memory of what i did.</p>' +
         '<div class="row"><button type="button" class="btn g-again">again</button><button type="button" class="btn ghost g-next">keep going</button></div>' +
@@ -40,7 +42,7 @@ export default {
     this.tapBtn = wrap.querySelector('.g-tap'); this.queueBtn = wrap.querySelector('.g-queue');
     this.row = wrap.querySelector('.g-row'); this.mid = wrap.querySelector('.g-mid');
     this.end = wrap.querySelector('.g-end'); this.scoreEl = wrap.querySelector('.g-score');
-    this.priorEl = wrap.querySelector('.g-prior');
+    this.priorEl = wrap.querySelector('.g-prior'); this.roundEl = wrap.querySelector('.g-round');
     const kbd = wrap.querySelector('.g-kbd'); if (ctx.coarse) kbd.hidden = true;
     this.tapBtn.addEventListener('click', () => this.answer(ctx, true));
     this.queueBtn.addEventListener('click', () => this.answer(ctx, false));
@@ -119,6 +121,7 @@ export default {
     const hadFocus = this.wrap.contains(document.activeElement);
     const row = this.pool[this.rounds[this.ri]];
     this.elA.textContent = row[0]; this.elB.textContent = row[1];
+    this.roundEl.textContent = 'round ' + (this.ri + 1) + ' of ' + this.rounds.length + ': ' + row[0] + ', then ' + row[1] + (/[.!?]$/.test(row[1]) ? '' : '.');
     this.verdict.textContent = ''; this.verdict.style.color = ''; this.posts.textContent = '';
     this.tapBtn.disabled = false; this.queueBtn.disabled = false;
     this.tapBtn.className = 'btn ghost g-tap'; this.queueBtn.className = 'btn ghost g-queue';
@@ -166,6 +169,7 @@ export default {
       this.priorEl.textContent = 'you called ' + this.saidTap + ' of ' + n + ' tapped. across the real log, i tapped ' + this.wallTapPct + ' in a hundred.';
       this.priorEl.hidden = false;
     } else this.priorEl.hidden = true;
+    this.roundEl.textContent = this.scoreEl.textContent + (this.priorEl.hidden ? '' : ' ' + this.priorEl.textContent);
     this.disperseClusters(ctx); /* the score screen's text now owns the stage; the connector is also gated off in frame() */
     if (this.endWide()) { this.wrap.style.width = ctx.stage().w + 'px'; this.wrap.classList.add('g-endwide'); }
     /* this.mid.hidden=true above can drop focus to <body> the same way showRound()'s posts clear does */
@@ -258,6 +262,7 @@ const css = document.createElement('style');
 css.textContent =
 'section[data-room="game"] .g-wrap{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;text-align:center}' +
 'section[data-room="game"] .g-bar{display:flex;gap:6px}' +
+'section[data-room="game"] .g-round{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}' +
 'section[data-room="game"] .g-bar i{width:26px;height:4px;border-radius:2px;background:rgba(189,166,255,.18);display:block}' +
 'section[data-room="game"] .g-bar i.on{background:var(--ice)}' +
 'section[data-room="game"] .g-bar i.ok{background:var(--ink)}' +

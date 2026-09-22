@@ -220,7 +220,7 @@ export default {
     const c = this.cases[this.curCase], k = c.v === 'k';
     this.ss.className = 'gv-status ' + (k ? 'k' : 's');
     this.ss.textContent = k ? V_K : V_S;
-    if (k) ctx.audio.note(-7, { dur: 1.6, type: 'triangle', vol: 0.05 }); else { ctx.audio.note(2, { dur: 0.7 }); ctx.audio.note(4, { at: 0.12, dur: 0.8 }); ctx.audio.note(7, { at: 0.24, dur: 1.2 }); }
+    if (k) ctx.audio.note(-9, { dur: 1.6, type: 'triangle', vol: 0.05 }); /* F2: the tonic of the room's F minor bed, low and dark. A2 was a bright major third over it */ else { ctx.audio.note(2, { dur: 0.7 }); ctx.audio.note(4, { at: 0.12, dur: 0.8 }); ctx.audio.note(7, { at: 0.24, dur: 1.2 }); }
     this.nm.textContent = 'observed ' + rnd2(c.o) + ' · ' + c.sz + ' redraws · ' + ord(c.pc) + ' percentile';
     this.xEl.textContent = c.x; this.ru.textContent = c.r;
     this.rs.hidden = false;

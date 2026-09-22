@@ -38,7 +38,7 @@ const SIGMA = 0.012, TAU = 6.283185307;
 const RISE = 105;       /* ms between one column being released and the next */
 const AXMAX = 1.5;      /* columns are drawn from zero, so 1.00 sits two thirds of the way up */
 const NPIN = 4, TRN = 14, TRSTEP = 4; /* held artists, ghost-trail length, frames between samples */
-const F0 = 146.83;      /* D3. the drone is two sines this far apart, at most 31 cents */
+const F0 = 196.00;      /* G3: in D minor pentatonic and the third of this room's Eb bed (D3 sat a semitone under its tonic). two sines this far apart, at most 31 cents */
 const GV = 0.015;       /* per voice: two voices, 0.03 total, the ceiling the sound brief sets */
 
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
@@ -403,13 +403,15 @@ export default {
     this.dial.setAttribute('aria-valuetext', 'level ' + (lv + 1) + ' of 7: ' + m.levels[lv] + '% algorithmic, index ' + this.biTxt[lv] + '. my plays unchanged');
   },
 
-  /* a held two-voice drone instead of seven disconnected pings: one sine at D3, one drifting up to
+  /* a held two-voice drone instead of seven disconnected pings: one sine at G3, one drifting up to
      31 cents above it, so the beat quickens as the algorithmic share rises and the two voices
      resolve into a unison at the lowest level. two voices at 0.015 = 0.03 total. */
   droneSet(ctx) {
     const A = ctx.audio;
     if (!A.ac) return;
-    if (A.muted || !this.alive()) { if (this.dr) { const t0 = A.ac.currentTime; this.dr.ga.gain.setTargetAtTime(0, t0, 0.2); this.dr.gb.gain.setTargetAtTime(0, t0, 0.2); } return; }
+    this.drDuck = !!A.ducked;
+    /* a listening post is playing: a held tone under someone else's record is a rub, so the drone goes quiet until it stops */
+    if (A.muted || A.ducked || !this.alive()) { if (this.dr) { const t0 = A.ac.currentTime; this.dr.ga.gain.setTargetAtTime(0, t0, 0.2); this.dr.gb.gain.setTargetAtTime(0, t0, 0.2); } return; }
     if (!this.dr) {
       const ac = A.ac, a = ac.createOscillator(), b = ac.createOscillator(), ga = ac.createGain(), gb = ac.createGain();
       a.type = 'sine'; b.type = 'sine'; a.frequency.value = F0; b.frequency.value = F0;
@@ -462,7 +464,7 @@ export default {
     if (!this.ready || !this.s) return;
     const red = ctx.reduced;
     this.fc++;
-    if ((this.fc & 63) === 0) this.droneSet(ctx); /* picks the drone up if sound is enabled later, drops it on mute */
+    if ((this.fc & 63) === 0 || (this.dr && !!ctx.audio.ducked !== this.drDuck)) this.droneSet(ctx); /* picks the drone up if sound is enabled later, drops it on mute or under a clip */
     if (this.mode === 'curve') {
       if (this.riseAt) {
         let rel = 0;

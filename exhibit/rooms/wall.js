@@ -108,7 +108,7 @@ export default {
         + '.wg input[type=range]::-moz-range-track{height:2px;background:rgba(134,203,254,.38);border-radius:1px}'
         + '.wg input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--ice);border:0}'
         + '.wg input[type=range]:focus-visible{outline:2px solid var(--ice);outline-offset:2px;border-radius:4px}'
-        + '.wg output{display:block;margin-top:2px;font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ice)}';
+        + '.wg .wg-out{display:block;margin-top:2px;font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ice)}';
       document.head.appendChild(st);
     }
     const wg = document.createElement('div'); wg.className = 'wg'; wg.hidden = true;
@@ -116,7 +116,8 @@ export default {
     const lab = document.createElement('label'); lab.htmlFor = 'wall-guess'; lab.textContent = 'before you press: of every 100 of my plays, how many do you think i chose myself?';
     const inp = document.createElement('input'); inp.type = 'range'; inp.id = 'wall-guess'; inp.min = '0'; inp.max = '100'; inp.step = '1'; inp.value = '50';
     inp.setAttribute('aria-label', 'your guess: of every 100 of my plays, how many i chose myself'); inp.setAttribute('aria-valuetext', 'you say 50');
-    const out = document.createElement('output'); out.htmlFor = 'wall-guess'; out.id = 'wall-guess-out'; out.textContent = 'you say 50';
+    /* the number in print only: the slider's own aria-valuetext already says it, so this is not a live region (it used to be an <output>, role=status, and every arrow was read twice) */
+    const out = document.createElement('span'); out.className = 'wg-out'; out.id = 'wall-guess-out'; out.setAttribute('aria-hidden', 'true'); out.textContent = 'you say 50';
     inp.addEventListener('input', () => { out.textContent = 'you say ' + inp.value; inp.setAttribute('aria-valuetext', 'you say ' + inp.value); });
     wg.append(lab, inp, out); root.appendChild(wg); this.wg = wg; this.wgIn = inp;
   },
@@ -178,12 +179,15 @@ export default {
   },
   copy() {
     const st = this.done ? 2 : this.r > 0 ? 1 : 0;
-    this.say.textContent = st === 0 ? 'this is what a streaming log says my taste is: one dot for every play, all of them the same colour.'
+    /* write only on a real change: #wall-say and #wall-verdict are live, and a same-text rewrite (every enter()) is read out again */
+    const put = (el, s) => { if (el.textContent !== s) el.textContent = s; };
+    put(this.say, st === 0 ? 'this is what a streaming log says my taste is: one dot for every play, all of them the same colour.'
       : st === 1 ? 'the same wall, coloured by who pressed play. left to right is seven years.'
-      : '19% i tapped. 17% i shuffled. 64% was served to me.';
-    this.dim.textContent = st === 0 ? 'press and hold the wall.' + this.note : st === 1 ? 'keep holding.' : 'sorted: a taste profile built from this log is mostly a profile of an algorithm. tap the wall to run it again, or scroll on.';
+      : '19% i tapped. 17% i shuffled. 64% was served to me.');
+    put(this.dim, st === 0 ? 'press and hold the wall.' + this.note : st === 1 ? 'keep holding.' : 'sorted: a taste profile built from this log is mostly a profile of an algorithm. tap the wall to run it again, or scroll on.');
     this.legend.hidden = st === 0;
-    if (this.verdict) { const vt = st === 2 ? this.verdictText() : ''; this.verdict.textContent = vt; this.verdict.hidden = !vt; }
+    /* the verdict waits for the piles to land, then is said once; hidden before it is emptied so the clear is never read */
+    if (this.verdict) { const vt = this.sorted ? this.verdictText() : ''; if (!vt) this.verdict.hidden = true; put(this.verdict, vt); if (vt) this.verdict.hidden = false; }
     this.syncGuess();
     if (this.pad) this.pad.style.touchAction = this.cue.style.touchAction = this.done ? 'auto' : 'none'; /* once it is sorted, swipes over the wall scroll again */
   },
@@ -258,7 +262,8 @@ export default {
       if (!this._said) { this._said = 1; this.copy(); }
       if (this.r > this.maxR) {
         this.done = true; this.holding = false; this.copy(); ctx.audio.distant(0); this.releaseSwell(ctx); ctx.audio.note(0, { dur: 1.6, vol: 0.05 }); ctx.audio.note(4, { at: 0.05, dur: 1.6, vol: 0.04 });
-        setTimeout(() => { if (!this.done) return; this.sorted = true; ctx.particles.ease = 0.04; this.layout(ctx); this.cue.textContent = 'again'; this.positionCue(ctx); this.playSplit(ctx); }, 900);
+        /* left the room inside these 900 ms: only mark it sorted. the dots belong to the next room now, and enter() sorts and says the verdict on return */
+        setTimeout(() => { if (!this.done) return; this.sorted = true; this.cue.textContent = 'again'; if (!this.root.parentElement.classList.contains('is-active')) return; ctx.particles.ease = 0.04; this.copy(); this.layout(ctx); this.positionCue(ctx); this.playSplit(ctx); }, 900);
       }
     }
     if (this.sorted) this.drawLabels(g);

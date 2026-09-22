@@ -95,7 +95,7 @@ export const LABELS = {
       ['the ending', 'the sorted wall from room 01 comes back, the 81% that the queue or shuffle started falls away, and the 19% i tapped becomes the wheel.'],
       ['the wheel', '22 tracks i made, placed by musical key. the glow when you tap one marks the keys that mix cleanly with it. that is music theory, not a finding.'],
       ['metadata', 'key and tempo are production notes i entered myself, not something derived from the log.'],
-      ['next door', 'the last room reads your own export in this tab and puts your three shares next to mine.'],
+      ['side room', 'if you already have your own spotify export, the line at the end of this wall opens a quiet side room that reads it in this tab and puts your three shares next to mine.'],
     ],
     more: ['bridge-index.html', 'run it on your data'],
   },
