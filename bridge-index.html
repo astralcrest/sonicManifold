@@ -792,7 +792,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     if (kept.size < 2) {
       return {
         ok: false,
-        error: "the co-occurrence graph collapsed into a single community — cross-community rates are undefined on this log.",
+        error: "the co-occurrence graph collapsed into a single community: cross-community rates are undefined on this log.",
       };
     }
 
@@ -829,7 +829,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
       return { ok: false, error: "no usable tap and/or autoplay transitions after partitioning." };
     }
     if (tapA.length < 500)
-      warnings.push("fewer than 500 deliberate (tap) transitions — expect a wide confidence interval");
+      warnings.push("fewer than 500 deliberate (tap) transitions: expect a wide confidence interval");
 
     // cross indicators
     var tapCross = new Float64Array(tapA.length);
@@ -848,7 +848,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     }
     var tapRate = tapCrossSum / tapA.length;
     var algoRate = algoCrossSum / algoA.length;
-    if (algoRate <= 0) return { ok: false, error: "autoplay cross-community rate is zero — BI undefined." };
+    if (algoRate <= 0) return { ok: false, error: "autoplay cross-community rate is zero, so BI is undefined." };
     var biObs = tapRate / algoRate;
     var coverage = (tapA.length + algoA.length) / Math.max(nClass, 1);
 
@@ -889,7 +889,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     var floorMean = nanmean(nullBi);
     var floorCi = nanPercentiles(nullBi, [2.5, 97.5]);
     var nullStd = nanstd(nullBi);
-    if (!(nullStd > 0)) warnings.push("degenerate permutation null (std=0) — p_perm unreliable");
+    if (!(nullStd > 0)) warnings.push("degenerate permutation null (std=0): p_perm unreliable");
     // one-sided permutation p: fraction of shuffles with BI >= observed
     var geq = 0;
     for (var g = 0; g < nullBi.length; g++) if (nullBi[g] >= biObs) geq++;
@@ -1026,7 +1026,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
   function addFiles(fileList){
     for(var i=0;i<fileList.length;i++){
       var f=fileList[i];
-      if(!/\.json$/i.test(f.name)){ try{ log("skipped "+f.name+" — not a .json file"); }catch(_e){} try{ errEl.textContent="skipped "+f.name+": that is not a .json file. i need the Streaming_History_Audio_*.json files from the extended streaming history export. nothing was read or sent anywhere."; errEl.classList.add("show"); }catch(_e2){} continue; }
+      if(!/\.json$/i.test(f.name)){ try{ log("skipped "+f.name+": not a .json file"); }catch(_e){} try{ errEl.textContent="skipped "+f.name+": that is not a .json file. i need the Streaming_History_Audio_*.json files from the extended streaming history export. nothing was read or sent anywhere."; errEl.classList.add("show"); }catch(_e2){} continue; }
       var key=f.name+"|"+f.size;
       var dup=false;
       for(var j=0;j<chosen.length;j++){ if(chosen[j].key===key){ dup=true; break; } }
@@ -1095,8 +1095,8 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
   // ---- error copy (unchanged wording from the original synchronous build) --
   function buildNoFilesReadMessage(failed){
     var io=!failed.length||failed.every(function(f){return /could not read|notreadable|permission|read error/i.test(f.r);});
-    if(io) return "none of the files could be read. most common cause: the files are cloud placeholders (iCloud / Google Drive) or still inside the zip — download them fully to the device, unzip, then re-add.";
-    return "none of the files qualified — "+failed.slice(0,2).map(function(f){return f.n+": "+f.r;}).join(" · ")+(failed.length>2?" · +"+(failed.length-2)+" more in the log below":"");
+    if(io) return "none of the files could be read. most common cause: the files are cloud placeholders (iCloud / Google Drive) or still inside the zip. download them fully to the device, unzip, then re-add.";
+    return "none of the files qualified: "+failed.slice(0,2).map(function(f){return f.n+": "+f.r;}).join(" · ")+(failed.length>2?" · +"+(failed.length-2)+" more in the log below":"");
   }
 
   // ---- read dropped files into ArrayBuffers (I/O only — no parsing here) ---
@@ -1120,7 +1120,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
         }).catch(function(e){
           var r=(e&&e.message)||String(e);
           failed.push({n:c.name, r:r});
-          log("skipped "+c.name+" — "+r);
+          log("skipped "+c.name+": "+r);
         });
       });
     });
@@ -1156,16 +1156,16 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
       "      failedN++;",
       "      var r=(e&&e.message)||String(e);",
       "      fails.push({n:f.name,r:r});",
-      "      self.postMessage({type:'log', msg:'skipped '+f.name+' — '+r});",
+      "      self.postMessage({type:'log', msg:'skipped '+f.name+': '+r});",
       "    }",
       "  }",
       "  self.postMessage({type:'progress', pct:17, stage:'parsing files (done)'});",
       "  if(!entries.length){",
-      "    var m2='none of the files qualified — '+fails.slice(0,2).map(function(x){return x.n+': '+x.r;}).join(' · ')+(fails.length>2?' · +'+(fails.length-2)+' more in the log below':'');",
+      "    var m2='none of the files qualified: '+fails.slice(0,2).map(function(x){return x.n+': '+x.r;}).join(' · ')+(fails.length>2?' · +'+(fails.length-2)+' more in the log below':'');",
       "    self.postMessage({type:'error', message:m2});",
       "    return;",
       "  }",
-      "  if(failedN){ self.postMessage({type:'log', msg:failedN+' file(s) skipped — result covers the readable '+(total-failedN)+' file(s) only.'}); }",
+      "  if(failedN){ self.postMessage({type:'log', msg:failedN+' file(s) skipped; result covers the readable '+(total-failedN)+' file(s) only.'}); }",
       "  self.postMessage({type:'progress', pct:19, stage:'computing'});",
       "  var stageMap="+stageMapSrc+";",
       "  var out=await BITool.computeBI(entries, {",
@@ -1218,7 +1218,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
       w.onerror=function(ev){
         if(settled) return;
         settled=true; cleanup();
-        reject(new Error("background thread failed"+(ev&&ev.message?(": "+ev.message):"")+" — please retry."));
+        reject(new Error("background thread failed"+(ev&&ev.message?(": "+ev.message):"")+". please retry."));
       };
       var transfer=files.map(function(f){return f.buffer;});
       w.postMessage({type:"run", files:files, isDemo:!!isDemo}, transfer);
@@ -1240,13 +1240,13 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
         failedN++;
         var r=(e&&e.message)||String(e);
         fails.push({n:f.name,r:r});
-        log("skipped "+f.name+" — "+r);
+        log("skipped "+f.name+": "+r);
       }
     });
     if(!entries.length){
-      throw new Error("none of the files qualified — "+fails.slice(0,2).map(function(f){return f.n+": "+f.r;}).join(" · ")+(fails.length>2?" · +"+(fails.length-2)+" more in the log below":""));
+      throw new Error("none of the files qualified: "+fails.slice(0,2).map(function(f){return f.n+": "+f.r;}).join(" · ")+(fails.length>2?" · +"+(fails.length-2)+" more in the log below":""));
     }
-    if(failedN){ log(failedN+" file(s) skipped — result covers the readable "+(okFiles.length-failedN)+" file(s) only."); }
+    if(failedN){ log(failedN+" file(s) skipped; result covers the readable "+(okFiles.length-failedN)+" file(s) only."); }
     setProgress(19,"computing");
     return new Promise(function(res){ setTimeout(res,30); }).then(function(){
       return BITool.computeBI(entries,{ onProgress:onComputeProgress, N_SHUFFLES:200, N_BOOT:1000 });
@@ -1286,11 +1286,11 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     setProgress(2,"reading files");
     return readAllBuffers(audio).then(function(res){
       if(!res.ok.length) throw new Error(buildNoFilesReadMessage(res.failed));
-      if(res.failed.length) log(res.failed.length+" file(s) skipped — result covers the readable "+res.ok.length+" file(s) only.");
+      if(res.failed.length) log(res.failed.length+" file(s) skipped; result covers the readable "+res.ok.length+" file(s) only.");
       statusEl.textContent="computing… (a few seconds on a large export)";
       return runWithWorker(res.ok, false).then(function(out){
         if(out!==null) return out;
-        log("background thread unavailable — computing on the main tab instead.");
+        log("background thread unavailable, computing on the main tab instead.");
         return runFallbackFromBuffers(res.ok);
       });
     });
@@ -1306,7 +1306,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
       return runWithWorker([{name:"demo_export.json", buffer:buf}], true);
     }).then(function(out){
       if(out!==null) return out;
-      log("background thread unavailable — computing on the main tab instead.");
+      log("background thread unavailable, computing on the main tab instead.");
       return runFallbackDemo();
     });
   }
@@ -1325,7 +1325,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
         return;
       }
       render(out.result, isDemoRun);
-      statusEl.textContent = isDemoRun ? "done — sample data, nothing was sent." : "done — nothing was sent.";
+      statusEl.textContent = isDemoRun ? "done. sample data, nothing was sent." : "done. nothing was sent.";
       hideProgress();
       restoreUIAfterRun();
     }).catch(function(e){
@@ -1349,18 +1349,18 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     var v=document.getElementById("verdict");
     var clears = r.BI > r.floor_CI95[1];
     v.innerHTML = clears
-      ? "you cross listening communities <span class='bi'>"+r.BI.toFixed(1)+"×</span> more when you steer than your algorithm does — clearing the <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> mechanical floor (what pure chance would give)."
-      : "your bridge index is <span class='bi'>"+r.BI.toFixed(2)+"×</span>, which does <b>not</b> clear its <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> shuffle floor — no bridge signal on this log.";
+      ? "you cross listening communities <span class='bi'>"+r.BI.toFixed(1)+"×</span> more when you steer than your algorithm does, clearing the <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> mechanical floor (what pure chance would give)."
+      : "your bridge index is <span class='bi'>"+r.BI.toFixed(2)+"×</span>, which does <b>not</b> clear its <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> shuffle floor: no bridge signal on this log.";
 
     document.getElementById("refline").innerHTML =
-      "the reference listener&rsquo;s own probe reads bi &asymp; <b>1.9</b> &mdash; same circular in-log method as yours, NOT the study&rsquo;s headline, which is about 1.05 on a partition built without any embedding and with same-artist moves excluded, and which i report as a direction and not a size (depending on how untagged artists are treated it lands anywhere from 1.00 to 1.13) (its audit flags this probe&rsquo;s partition family as leakage-inflated; compare probe-to-probe only). "+
+      "the reference listener&rsquo;s own probe reads bi &asymp; <b>1.9</b>, the same circular in-log method as yours, NOT the study&rsquo;s headline, which is about 1.05 on a partition built without any embedding and with same-artist moves excluded, and which i report as a direction and not a size (depending on how untagged artists are treated it lands anywhere from 1.00 to 1.13) (its audit flags this probe&rsquo;s partition family as leakage-inflated; compare probe-to-probe only). "+
       (r.BI>=2.85 ? "you steer noticeably harder than the reference listener." : r.BI>=1.8 ? "you steer about as hard." : r.BI>=1.3 ? "you steer, but a touch less." : r.BI>1 ? "you steer more than your algorithm, but gently." : "your algorithm bridges as much as you do.");
 
     var tapW=Math.min(100,r.tap_cross_rate*100), algoW=Math.min(100,r.algo_cross_rate*100);
     document.getElementById("tapBar").style.width=tapW+"%";
     document.getElementById("algoBar").style.width=algoW+"%";
-    document.getElementById("tapPct").textContent="— "+pct(r.tap_cross_rate)+" cross communities";
-    document.getElementById("algoPct").textContent="— "+pct(r.algo_cross_rate)+" cross communities";
+    document.getElementById("tapPct").textContent="· "+pct(r.tap_cross_rate)+" cross communities";
+    document.getElementById("algoPct").textContent="· "+pct(r.algo_cross_rate)+" cross communities";
 
     document.getElementById("tPlays").textContent=fmtInt(r.n_plays);
     document.getElementById("tSess").textContent=fmtInt(r.n_sessions);
@@ -1381,10 +1381,10 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     // cross-subject funnel: aggregates only, mirrors the in-tab probe's ask
     document.getElementById("bxMail").href="mailto:astralcrestlab@proton.me?subject="
       +encodeURIComponent("bridge index result (browser tool)")
-      +"&body="+encodeURIComponent(json+"\n\n(sent from the sonicManifold bridge-index tool — aggregates only, no names, no timestamps)");
+      +"&body="+encodeURIComponent(json+"\n\n(sent from the sonicManifold bridge-index tool: aggregates only, no names, no timestamps)");
     var cbtn=document.getElementById("bxCopy");
     cbtn.onclick=function(){
-      function done(ok){ cbtn.textContent=ok?"copied.":"copy failed — use the json below"; setTimeout(function(){cbtn.textContent="copy aggregates";},1800); }
+      function done(ok){ cbtn.textContent=ok?"copied.":"copy failed. use the json below"; setTimeout(function(){cbtn.textContent="copy aggregates";},1800); }
       if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(json).then(function(){done(true);},function(){done(false);}); }
       else{ try{ var ta=document.createElement("textarea"); ta.value=json; document.body.appendChild(ta); ta.select(); done(document.execCommand("copy")); ta.remove(); }catch(e){ done(false); } }
     };
