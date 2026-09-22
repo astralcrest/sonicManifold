@@ -191,17 +191,19 @@ details.drawer{margin:20px 0 6px;border:1px solid var(--line);border-radius:12px
 details.drawer[open]{padding-bottom:6px;background:rgba(189,166,255,.025)}
 details.drawer>summary{cursor:pointer;font:600 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ice);padding:15px 0;list-style:none;display:flex;align-items:center;gap:10px}
 details.drawer>summary::-webkit-details-marker{display:none}
-details.drawer>summary::before{content:"+";font-size:15px;line-height:1;color:var(--mint)}
+details.drawer>summary::before{content:"+";font-size:15px;line-height:1;color:var(--ice)}
 details.drawer[open]>summary::before{content:"\2212"}
-details.drawer>summary:hover{color:var(--mint)}
+details.drawer>summary:hover{color:var(--ink)}
 details.forest{margin:22px 0 8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 details.forest>summary{list-style:none;cursor:pointer;padding:16px 2px;display:flex;align-items:center;gap:10px;font:600 11px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ice)}
 details.forest>summary::-webkit-details-marker{display:none}
-details.forest>summary::before{content:"+";font-size:15px;line-height:1;color:var(--mint)}
+details.forest>summary::before{content:"+";font-size:15px;line-height:1;color:var(--ice)}
 details.forest[open]>summary::before{content:"\2212"}
 .fig{margin:6px 0 6px;background:#0E0F12;border:1px solid var(--line);border-radius:14px;padding:8px;max-width:100%}
 .fig svg{width:100%;height:auto;border-radius:8px;display:block}
-@media (max-width:760px){.fig{overflow-x:auto;-webkit-overflow-scrolling:touch}.fig svg{width:900px;min-width:900px;max-width:none}}
+.fig .fig-n{display:none}
+@media (max-width:760px){.fig{padding:4px}}
+@media (max-width:900px){.fig .fig-w{display:none}.fig .fig-n{display:block;max-width:480px;margin:0 auto}}
 .panhint{display:none}
 @media (max-width:760px){.panhint{display:inline}}
 .figcap{font:400 11.5px/1.65 var(--mono);color:var(--mute);max-width:66ch;margin:12px 0 18px}
@@ -330,177 +332,362 @@ footer a:hover{color:var(--ink)}
 
 <details class="forest bleed" open>
 <summary>every number i ever quoted, on one axis, including the dead ones</summary>
-<div class="fig" tabindex="0" role="region" aria-label="bridge index forest plot, scrollable"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1262" width="100%" style="height:auto" role="img" aria-labelledby="bi-forest-title bi-forest-desc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">
+<div class="fig" tabindex="0" role="region" aria-label="bridge index forest plot"><div class="fig-w"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1460" width="100%" style="height:auto" role="img" aria-labelledby="bi-forest-title bi-forest-desc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">
 <title id="bi-forest-title">Bridge Index forest plot across estimators, partitions, and robustness checks</title>
 <desc id="bi-forest-desc">Horizontal forest plot, same-artist-controlled, rows ordered by embedding exposure. The headline Bridge Index, embedding-free (pure-Last.fm genre-family partition) crossed with strict autoadvance, is 1.05, 95% CI [1.03, 1.08]. A higher-coverage tag partition whose labels are 39% embedding-propagated gives 1.10 [1.08, 1.13] and is shown separately, labelled as such. Folding shuffle into the algorithmic arm, a disclosed lower bound on the comparator axis rather than the primary estimand, gives 1.03 [1.00, 1.05] on the embedding-free partition, which does not survive Bonferroni correction across eight partitions. The naive uncorrected estimate 1.61 is withdrawn after an embedding-leakage check; its same-artist-controlled counterpart is 1.48, still not the reported value. Splitting BOTH the deliberate and the autoplay arm by how the destination artist was first introduced, on the headline partition itself, gives a matched menu-authorship effect that is present on every destination class and weakest on self-introduced destinations. The earlier balanced-embedding version of this split is withdrawn. A coverage bracket for the untagged tail spans 1.13 [1.11, 1.16] (untagged artists pooled into one community) down to 1.00 [0.98, 1.02] (untagged artists each their own community), which straddles 1: magnitude is partition- and coverage-relative, not a fixed number. The two bundled-deliberate-arm cells of the 2x2 definitional grid are shown as a post hoc sub-block, 1.04 [1.01, 1.06] against strict autoadvance and 1.01 [0.99, 1.03] against the shuffle-included comparator, the second of which brackets 1. Two mechanical floors for the underlying tap crossing rate are shown separately on their own 0 to 1 scale, since they are rates, not Bridge Index ratios.</desc>
-<rect x="0" y="0" width="900" height="1262" fill="#0E0F12"/>
-<text x="300" y="30" font-size="11" fill="#21f6bc" letter-spacing="2" text-transform="uppercase" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">BRIDGE INDEX: WHERE THE NUMBER COMES FROM</text>
-<text x="300" y="48" font-size="12" fill="#94b6d6" font-family="ui-serif,Georgia,'Times New Roman',serif">deliberate cross-community rate &#247; autoplay cross-community rate, same-artist-controlled</text>
-<text x="300" y="66" font-size="11" fill="#21f6bc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" font-weight="700">headline: 1.05 [1.03, 1.08] (embedding-free)</text>
-<line x1="375.0" y1="90" x2="375.0" y2="1070" stroke="#94b6d6" stroke-width="1" stroke-dasharray="5,3" opacity="0.7"/>
-<text x="375.0" y="84" font-size="10" fill="#94b6d6" text-anchor="middle" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">no advantage (1.0)</text>
-<line x1="308" y1="141.0" x2="650" y2="141.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="393.3" y1="141.0" x2="422.3" y2="141.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="407.7" cy="141.0" r="4.5" fill="#86cbfe"/>
-<text x="432.3" y="145.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.09 [1.05, 1.13]</text>
-<text x="300" y="145.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: super-5</text>
-<line x1="308" y1="171.0" x2="650" y2="171.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="384.8" y1="171.0" x2="404.4" y2="171.0" stroke="#21f6bc" stroke-width="2.2"/>
-<circle cx="394.5" cy="171.0" r="6.5" fill="#21f6bc"/>
-<text x="414.4" y="175.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.03, 1.08]</text>
-<text x="300" y="175.0" font-size="11" fill="#21f6bc" text-anchor="end" font-weight="700" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: genre-family</text>
-<line x1="308" y1="201.0" x2="650" y2="201.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="384.7" y1="201.0" x2="400.0" y2="201.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="392.2" cy="201.0" r="4.5" fill="#86cbfe"/>
-<text x="410.0" y="205.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.03, 1.07]</text>
-<text x="300" y="205.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: CLAP audio-content (KMeans)</text>
-<line x1="308" y1="231.0" x2="650" y2="231.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="383.5" y1="231.0" x2="393.2" y2="231.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="388.3" cy="231.0" r="4.5" fill="#86cbfe"/>
-<text x="403.2" y="235.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.02, 1.05]</text>
-<text x="300" y="235.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: top-tag</text>
-<line x1="308" y1="261.0" x2="650" y2="261.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="376.8" y1="261.0" x2="391.9" y2="261.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="384.5" cy="261.0" r="4.5" fill="#86cbfe"/>
-<text x="401.9" y="265.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.03 [1.00, 1.05]</text>
-<text x="300" y="265.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: MERT audio-content (KMeans)</text>
-<line x1="308" y1="327.0" x2="650" y2="327.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="411.0" y1="327.0" x2="438.0" y2="327.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="424.7" cy="327.0" r="4.5" fill="#86cbfe"/>
-<text x="448.0" y="331.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.14 [1.10, 1.17]</text>
-<text x="300" y="331.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: super-5 family</text>
-<line x1="308" y1="357.0" x2="650" y2="357.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="402.8" y1="357.0" x2="421.2" y2="357.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="412.0" cy="357.0" r="4.5" fill="#86cbfe"/>
-<text x="431.2" y="361.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.10 [1.08, 1.13], 86% coverage</text>
-<text x="300" y="361.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage variant (39% propagated labels)</text>
-<line x1="308" y1="387.0" x2="650" y2="387.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="395.6" y1="387.0" x2="404.6" y2="387.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="400.1" cy="387.0" r="4.5" fill="#86cbfe"/>
-<text x="414.6" y="391.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.06, 1.08]</text>
-<text x="300" y="391.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: raw top-tag</text>
-<line x1="308" y1="453.0" x2="650" y2="453.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="417.5" y1="453.0" x2="444.2" y2="453.0" stroke="#ff6e9c" stroke-width="2"/>
-<circle cx="430.6" cy="453.0" r="5.5" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/>
-<line x1="426.1" y1="448.5" x2="435.1" y2="457.5" stroke="#ff6e9c" stroke-width="1.5"/>
-<line x1="426.1" y1="457.5" x2="435.1" y2="448.5" stroke="#ff6e9c" stroke-width="1.5"/>
-<text x="454.2" y="457.0" font-size="10" fill="#ff6e9c" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.15 [1.12, 1.19], killed</text>
-<text x="300" y="457.0" font-size="11" fill="#ff6e9c" text-anchor="end" font-weight="400" font-style="italic" font-family="ui-serif,Georgia,'Times New Roman',serif" textLength="183" lengthAdjust="spacingAndGlyphs">balanced embedding, one frozen seed</text>
-<line id="bi-strike-115" x1="117" y1="453.5" x2="300" y2="453.5" stroke="#ff6e9c" stroke-width="1" opacity="0.8"/>
-<line x1="308" y1="483.0" x2="650" y2="483.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<rect x="441.9" y="478.0" width="10" height="10" transform="rotate(45 446.9 483.0)" fill="#94b6d6"/>
-<text x="458.9" y="487.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.20 [1.156, 1.244] (upper bound)</text>
-<text x="300" y="487.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">leakage-corrected (balanced 50/50 retrain)</text>
-<line x1="308" y1="513.0" x2="650" y2="513.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="487.5" y1="513.0" x2="525.4" y2="513.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="505.6" cy="513.0" r="4.5" fill="#86cbfe"/>
-<text x="535.4" y="517.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.36 [1.31, 1.41]</text>
-<text x="300" y="517.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: spectral (artist2vec affinity)</text>
-<line x1="308" y1="543.0" x2="650" y2="543.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="502.3" y1="543.0" x2="530.4" y2="543.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="515.8" cy="543.0" r="4.5" fill="#86cbfe"/>
-<text x="540.4" y="547.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.38 [1.35, 1.42]</text>
-<text x="300" y="547.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: label-propagation (artist2vec)</text>
-<line x1="308" y1="573.0" x2="650" y2="573.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="502.1" y1="573.0" x2="536.1" y2="573.0" stroke="#D6A84E" stroke-width="1.6"/>
-<circle cx="518.1" cy="573.0" r="5.5" fill="#0E0F12" stroke="#D6A84E" stroke-width="2"/>
-<line x1="513.1" y1="568.0" x2="523.1" y2="578.0" stroke="#D6A84E" stroke-width="1.4"/>
-<text x="546.1" y="577.0" font-size="10" fill="#D6A84E" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">not leakage-immune</text>
-<text x="300" y="577.0" font-size="11" fill="#D6A84E" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: KMeans / artist2vec</text>
-<line x1="308" y1="603.0" x2="650" y2="603.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="533.3" y1="603.0" x2="569.4" y2="603.0" stroke="#ff6e9c" stroke-width="2"/>
-<circle cx="551.1" cy="603.0" r="6" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/>
-<line x1="546.1" y1="598.0" x2="556.1" y2="608.0" stroke="#ff6e9c" stroke-width="1.6"/>
-<line x1="546.1" y1="608.0" x2="556.1" y2="598.0" stroke="#ff6e9c" stroke-width="1.6"/>
-<text x="579.4" y="601.0" font-size="10" fill="#ff6e9c" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">WITHDRAWN, embedding leakage</text>
-<text x="579.4" y="615.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" opacity="0.75">1.61 same-artist included (uncontrolled)</text>
-<line x1="579.4" y1="612.0" x2="827.4" y2="612.0" stroke="#94b6d6" stroke-width="1" opacity="0.75"/>
-<text x="300" y="607.0" font-size="11" fill="#ff6e9c" text-anchor="end" font-weight="400" font-style="italic" font-family="ui-serif,Georgia,'Times New Roman',serif">naive canonical partition</text>
-<line x1="308" y1="669.0" x2="650" y2="669.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="364.2" y1="669.0" x2="399.0" y2="669.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="380.9" cy="669.0" r="4.5" fill="#86cbfe"/>
-<text x="409.0" y="673.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.02 [0.97, 1.07]</text>
-<text x="300" y="673.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">self-introduced destinations</text>
-<line x1="308" y1="699.0" x2="650" y2="699.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="391.9" y1="699.0" x2="419.7" y2="699.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="405.8" cy="699.0" r="4.5" fill="#86cbfe"/>
-<text x="429.7" y="703.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.08 [1.05, 1.12]</text>
-<text x="300" y="703.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">algorithm-introduced destinations</text>
-<line x1="308" y1="729.0" x2="650" y2="729.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="394.6" y1="729.0" x2="426.8" y2="729.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="410.7" cy="729.0" r="4.5" fill="#86cbfe"/>
-<text x="436.8" y="733.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.10 [1.05, 1.14]</text>
-<text x="300" y="733.0" font-size="11" fill="#f4eefb" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">shuffle-introduced destinations</text>
-<line x1="308" y1="795.0" x2="650" y2="795.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="376.2" y1="795.0" x2="394.4" y2="795.0" stroke="#D6A84E" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="380.3" y="790.0" width="10" height="10" fill="#0E0F12" stroke="#D6A84E" stroke-width="1.8"/>
-<text x="404.4" y="799.0" font-size="10" fill="#D6A84E" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.03 [1.00, 1.05], fails Bonferroni x8</text>
-<text x="300" y="799.0" font-size="11" fill="#D6A84E" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">embedding-free partition</text>
-<line x1="308" y1="825.0" x2="650" y2="825.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="391.4" y1="825.0" x2="409.0" y2="825.0" stroke="#D6A84E" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="395.2" y="820.0" width="10" height="10" fill="#0E0F12" stroke="#D6A84E" stroke-width="1.8"/>
-<text x="419.0" y="829.0" font-size="10" fill="#D6A84E" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.04, 1.09]</text>
-<text x="300" y="829.0" font-size="11" fill="#D6A84E" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage partition (39% propagated)</text>
-<line x1="308" y1="855.0" x2="650" y2="855.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="383.6" y1="855.0" x2="405.6" y2="855.0" stroke="#D6A84E" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="389.5" y="850.0" width="10" height="10" fill="#0E0F12" stroke="#D6A84E" stroke-width="1.8"/>
-<text x="415.6" y="859.0" font-size="10" fill="#D6A84E" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.02, 1.08]</text>
-<text x="300" y="859.0" font-size="11" fill="#D6A84E" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">balanced canonical partition</text>
-<line x1="308" y1="921.0" x2="650" y2="921.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="380.1" y1="921.0" x2="397.0" y2="921.0" stroke="#94b6d6" stroke-width="1.4"/>
-<circle cx="388.5" cy="921.0" r="4.5" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.6"/>
-<text x="407.0" y="925.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.01, 1.06]</text>
-<text x="300" y="925.0" font-size="11" fill="#94b6d6" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x strict autoadvance</text>
-<line x1="308" y1="951.0" x2="650" y2="951.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="371.7" y1="951.0" x2="387.1" y2="951.0" stroke="#94b6d6" stroke-width="1.4" stroke-dasharray="4,2"/>
-<circle cx="379.5" cy="951.0" r="4.5" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.6"/>
-<text x="397.1" y="955.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.01 [0.99, 1.03], brackets 1</text>
-<text x="300" y="955.0" font-size="11" fill="#94b6d6" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x shuffle-included</text>
-<line x1="308" y1="1017.0" x2="650" y2="1017.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="415.3" y1="1017.0" x2="434.0" y2="1017.0" stroke="#D6A84E" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="419.4" y="1012.0" width="10" height="10" fill="#0E0F12" stroke="#D6A84E" stroke-width="1.8"/>
-<text x="444.0" y="1021.0" font-size="10" fill="#D6A84E" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.13 [1.11, 1.16]</text>
-<text x="300" y="1021.0" font-size="11" fill="#D6A84E" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists pooled into one community</text>
-<line x1="308" y1="1047.0" x2="650" y2="1047.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="368.8" y1="1047.0" x2="380.6" y2="1047.0" stroke="#D6A84E" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="369.7" y="1042.0" width="10" height="10" fill="#0E0F12" stroke="#D6A84E" stroke-width="1.8"/>
-<text x="390.6" y="1051.0" font-size="10" fill="#D6A84E" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.00 [0.98, 1.02], brackets 1</text>
-<text x="300" y="1051.0" font-size="11" fill="#D6A84E" text-anchor="end" font-weight="400" font-style="normal" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists each their own community</text>
-<text x="308" y="114.0" font-size="10" fill="#94b6d6" font-style="italic" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" letter-spacing="0.5" opacity="0.85">EMBEDDING-FREE (EXTERNAL TAGS / AUDIO)</text>
-<line x1="308" y1="120.0" x2="650" y2="120.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="308" y="300.0" font-size="10" fill="#94b6d6" font-style="italic" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" letter-spacing="0.5" opacity="0.85">TAG PARTITIONS, 39% EMBEDDING-PROPAGATED LABELS</text>
-<line x1="308" y1="306.0" x2="650" y2="306.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="308" y="426.0" font-size="10" fill="#94b6d6" font-style="italic" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" letter-spacing="0.5" opacity="0.85">STREAM-TRAINED EMBEDDING PARTITIONS</text>
-<line x1="308" y1="432.0" x2="650" y2="432.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="308" y="642.0" font-size="10" fill="#94b6d6" font-style="italic" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" letter-spacing="0.5" opacity="0.85">MENU AUTHORSHIP, HEADLINE PARTITION, BOTH ARMS SPLIT</text>
-<line x1="308" y1="648.0" x2="650" y2="648.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="308" y="768.0" font-size="10" fill="#94b6d6" font-style="italic" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" letter-spacing="0.5" opacity="0.85">SHUFFLE FOLDED INTO THE ALGORITHMIC ARM (LOWER BOUND ON THE COMPARATOR AXIS)</text>
-<line x1="308" y1="774.0" x2="650" y2="774.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="308" y="894.0" font-size="10" fill="#94b6d6" font-style="italic" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" letter-spacing="0.5" opacity="0.85">BUNDLED DELIBERATE ARM, 2X2 CORNER OF THE HEADLINE PARTITION (POST HOC, LEDGER 234)</text>
-<line x1="308" y1="900.0" x2="650" y2="900.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="308" y="990.0" font-size="10" fill="#94b6d6" font-style="italic" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" letter-spacing="0.5" opacity="0.85">COVERAGE BRACKET (UNTAGGED TAIL)</text>
-<line x1="308" y1="996.0" x2="650" y2="996.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="485.0" y="1088" font-size="10" fill="#94b6d6" text-anchor="middle" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">Bridge Index (ratio)</text>
-<text x="300" y="1128" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">mechanical floors for the tap crossing RATE (same-artist-controlled), not Bridge Index ratios</text>
-<rect x="413.9" y="1158" width="18.4" height="70" fill="#f4eefb" opacity="0.07"/>
-<line x1="423.2" y1="1158" x2="423.2" y2="1228" stroke="#f4eefb" stroke-width="1" opacity="0.55"/>
-<line x1="308" y1="1177.0" x2="650" y2="1177.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="572.3" y1="1177.0" x2="574.8" y2="1177.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="572.3" y1="1171.0" x2="572.3" y2="1183.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="574.8" y1="1171.0" x2="574.8" y2="1183.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="573.5" y1="1169.0" x2="573.5" y2="1185.0" stroke="#f4eefb" stroke-width="2"/>
-<text x="584.8" y="1181.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.86 [0.86, 0.86]</text>
-<text x="300" y="1181.0" font-size="11" fill="#f4eefb" text-anchor="end" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: composition-null (sequence-free)</text>
-<line x1="308" y1="1207.0" x2="650" y2="1207.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="475.7" y1="1207.0" x2="482.9" y2="1207.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="475.7" y1="1201.0" x2="475.7" y2="1213.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="482.9" y1="1201.0" x2="482.9" y2="1213.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="479.2" y1="1199.0" x2="479.2" y2="1215.0" stroke="#f4eefb" stroke-width="2"/>
-<text x="492.9" y="1211.0" font-size="10" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.69 [0.68, 0.70]</text>
-<text x="300" y="1211.0" font-size="11" fill="#f4eefb" text-anchor="end" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: first-order Markov (tap-only)</text>
-<text x="485.0" y="1248" font-size="10" fill="#94b6d6" text-anchor="middle" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">tap crossing rate (0-1 scale) . solid line = controlled observed 0.59</text>
-</svg></div>
-<p class="figcap">killed and demoted estimates struck; mechanical floors bracketed. single source: <code>bi_single_source.json</code> in the repro kit.<span class="panhint"> pan sideways on phones.</span></p>
+<rect x="0" y="0" width="900" height="1460" fill="#0E0F12"/>
+<text x="20" y="32" font-size="13" fill="#86cbfe" letter-spacing="2">BRIDGE INDEX: WHERE THE NUMBER COMES FROM</text>
+<text x="20" y="54" font-size="15" fill="#94b6d6" font-family="ui-serif,Georgia,'Times New Roman',serif">deliberate cross-community rate &#247; autoplay cross-community rate, same-artist-controlled</text>
+<text x="20" y="78" font-size="14" fill="#f4eefb" font-weight="700">headline: 1.05 [1.03, 1.08] (embedding-free)</text>
+<circle cx="31.0" cy="108.0" r="4.1" fill="#86cbfe"/>
+<text x="48" y="112.5" font-size="13" fill="#94b6d6">estimate and interval</text>
+<circle cx="246.8" cy="108.0" r="8.5" fill="none" stroke="#86cbfe" stroke-width="1.2" opacity="0.8"/><circle cx="246.8" cy="108.0" r="5.5" fill="#f4eefb"/>
+<text x="263.79999999999995" y="112.5" font-size="13" fill="#94b6d6">headline</text>
+<rect x="356.9" y="103.8" width="8.5" height="8.5" transform="rotate(45 361.2 108.0)" fill="#94b6d6"/>
+<text x="378.2" y="112.5" font-size="13" fill="#94b6d6">upper bound, seed spread only</text>
+<circle cx="639.4" cy="108.0" r="4.7" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.8"/><line x1="634.7" y1="112.7" x2="644.1" y2="103.3" stroke="#94b6d6" stroke-width="1.6"/>
+<text x="656.4" y="112.5" font-size="13" fill="#94b6d6">not leakage-immune</text>
+<rect x="26.8" y="129.8" width="8.5" height="8.5" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="48" y="138.5" font-size="13" fill="#94b6d6">lower bound or coverage bracket</text>
+<line x1="313.8" y1="134.0" x2="335.8" y2="134.0" stroke="#94b6d6" stroke-width="1.4" stroke-dasharray="4,2"/><circle cx="324.8" cy="134.0" r="4.1" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
+<text x="341.79999999999995" y="138.5" font-size="13" fill="#94b6d6">dashed: includes no advantage</text>
+<circle cx="603.0" cy="134.0" r="5.1" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="599.2" y1="130.2" x2="606.8" y2="137.8" stroke="#ff6e9c" stroke-width="1.6"/><line x1="599.2" y1="137.8" x2="606.8" y2="130.2" stroke="#ff6e9c" stroke-width="1.6"/>
+<text x="620.0" y="138.5" font-size="13" fill="#94b6d6">killed or withdrawn</text>
+<line x1="386.7" y1="180" x2="386.7" y2="1234" stroke="#94b6d6" stroke-width="1" stroke-dasharray="5,3" opacity="0.7"/>
+<text x="386.7" y="174" font-size="13" fill="#94b6d6" text-anchor="middle">no advantage (1.0)</text>
+<text x="20" y="205.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">EMBEDDING-FREE (EXTERNAL TAGS / AUDIO)</text>
+<line x1="20" y1="212.0" x2="880" y2="212.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="330" y1="234.0" x2="610" y2="234.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="401.5" y1="234.0" x2="425.1" y2="234.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="413.2" cy="234.0" r="4.8" fill="#86cbfe"/>
+<text x="437.1" y="238.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.09 [1.05, 1.13]</text>
+<text x="322" y="239.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: super-5</text>
+<line x1="330" y1="266.0" x2="610" y2="266.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="394.6" y1="266.0" x2="410.5" y2="266.0" stroke="#f4eefb" stroke-width="2.6"/>
+<circle cx="402.5" cy="266.0" r="10.0" fill="none" stroke="#86cbfe" stroke-width="1.2" opacity="0.8"/><circle cx="402.5" cy="266.0" r="6.5" fill="#f4eefb"/>
+<text x="422.5" y="270.5" font-size="13" fill="#f4eefb" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" font-weight="700">1.05 [1.03, 1.08]</text>
+<text x="322" y="271.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="700" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: genre-family</text>
+<line x1="330" y1="298.0" x2="610" y2="298.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="394.5" y1="298.0" x2="407.0" y2="298.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="400.6" cy="298.0" r="4.8" fill="#86cbfe"/>
+<text x="419.0" y="302.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.03, 1.07]</text>
+<text x="322" y="303.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: CLAP audio-content (KMeans)</text>
+<line x1="330" y1="330.0" x2="610" y2="330.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="393.5" y1="330.0" x2="401.4" y2="330.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="397.4" cy="330.0" r="4.8" fill="#86cbfe"/>
+<text x="413.4" y="334.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.02, 1.05]</text>
+<text x="322" y="335.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: top-tag</text>
+<line x1="330" y1="362.0" x2="610" y2="362.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="388.1" y1="362.0" x2="400.4" y2="362.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="394.4" cy="362.0" r="4.8" fill="#86cbfe"/>
+<text x="412.4" y="366.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.03 [1.00, 1.05]</text>
+<text x="322" y="367.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: MERT audio-content (KMeans)</text>
+<text x="20" y="405.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">TAG PARTITIONS, 39% EMBEDDING-PROPAGATED LABELS</text>
+<line x1="20" y1="412.0" x2="880" y2="412.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="330" y1="434.0" x2="610" y2="434.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="415.9" y1="434.0" x2="437.8" y2="434.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="427.0" cy="434.0" r="4.8" fill="#86cbfe"/>
+<text x="449.8" y="438.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.14 [1.10, 1.17]</text>
+<text x="322" y="439.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: super-5 family</text>
+<line x1="330" y1="466.0" x2="610" y2="466.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="409.2" y1="466.0" x2="424.2" y2="466.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="416.7" cy="466.0" r="4.8" fill="#86cbfe"/>
+<text x="436.2" y="470.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.10 [1.08, 1.13], 86% coverage</text>
+<text x="322" y="471.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage variant (39% propagated labels)</text>
+<line x1="330" y1="498.0" x2="610" y2="498.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="403.4" y1="498.0" x2="410.7" y2="498.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="407.1" cy="498.0" r="4.8" fill="#86cbfe"/>
+<text x="422.7" y="502.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.06, 1.08]</text>
+<text x="322" y="503.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: raw top-tag</text>
+<text x="20" y="541.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">STREAM-TRAINED EMBEDDING PARTITIONS</text>
+<line x1="20" y1="548.0" x2="880" y2="548.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="330" y1="570.0" x2="610" y2="570.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="421.2" y1="570.0" x2="442.9" y2="570.0" stroke="#ff6e9c" stroke-width="2"/>
+<circle cx="431.8" cy="570.0" r="6.0" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="427.3" y1="565.5" x2="436.3" y2="574.5" stroke="#ff6e9c" stroke-width="1.6"/><line x1="427.3" y1="574.5" x2="436.3" y2="565.5" stroke="#ff6e9c" stroke-width="1.6"/>
+<text x="454.9" y="574.5" font-size="13" fill="#ff6e9c" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.15 [1.12, 1.19], killed</text>
+<text x="322" y="575.0" font-size="14" fill="#ff6e9c" text-anchor="end" font-weight="400" font-style="italic" textLength="232" lengthAdjust="spacingAndGlyphs" font-family="ui-serif,Georgia,'Times New Roman',serif">balanced embedding, one frozen seed</text>
+<line x1="90" y1="570.0" x2="322" y2="570.0" stroke="#ff6e9c" stroke-width="1" opacity="0.8"/>
+<line x1="330" y1="602.0" x2="610" y2="602.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<rect x="440.1" y="597.0" width="10.0" height="10.0" transform="rotate(45 445.1 602.0)" fill="#94b6d6"/>
+<text x="461.1" y="606.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.20 [1.156, 1.244] (upper bound)</text>
+<text x="322" y="607.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">leakage-corrected (balanced 50/50 retrain)</text>
+<line x1="330" y1="634.0" x2="610" y2="634.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="478.1" y1="634.0" x2="508.8" y2="634.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="492.7" cy="634.0" r="4.8" fill="#86cbfe"/>
+<text x="520.8" y="638.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.36 [1.31, 1.41]</text>
+<text x="322" y="639.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: spectral (artist2vec affinity)</text>
+<line x1="330" y1="666.0" x2="610" y2="666.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="490.0" y1="666.0" x2="512.8" y2="666.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="501.0" cy="666.0" r="4.8" fill="#86cbfe"/>
+<text x="524.8" y="670.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.38 [1.35, 1.42]</text>
+<text x="322" y="671.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: label-propagation (artist2vec)</text>
+<line x1="330" y1="698.0" x2="610" y2="698.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="489.8" y1="698.0" x2="517.5" y2="698.0" stroke="#94b6d6" stroke-width="1.6" stroke-dasharray="1.5,3"/>
+<circle cx="502.9" cy="698.0" r="5.5" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.8"/><line x1="497.4" y1="703.5" x2="508.4" y2="692.5" stroke="#94b6d6" stroke-width="1.6"/>
+<text x="529.5" y="702.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">not leakage-immune</text>
+<text x="322" y="703.0" font-size="14" fill="#94b6d6" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: KMeans / artist2vec</text>
+<line x1="330" y1="730.0" x2="610" y2="730.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="515.2" y1="730.0" x2="544.5" y2="730.0" stroke="#ff6e9c" stroke-width="2"/>
+<circle cx="529.7" cy="730.0" r="6.0" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="525.2" y1="725.5" x2="534.2" y2="734.5" stroke="#ff6e9c" stroke-width="1.6"/><line x1="525.2" y1="734.5" x2="534.2" y2="725.5" stroke="#ff6e9c" stroke-width="1.6"/>
+<text x="556.5" y="728.0" font-size="13" fill="#ff6e9c" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">WITHDRAWN, embedding leakage</text>
+<text x="556.5" y="744.0" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" opacity="0.8">1.61 same-artist included (uncontrolled)</text><line x1="556.5" y1="740.1" x2="868.5" y2="740.1" stroke="#94b6d6" stroke-width="1" opacity="0.8"/>
+<text x="322" y="735.0" font-size="14" fill="#ff6e9c" text-anchor="end" font-weight="400" font-style="italic" font-family="ui-serif,Georgia,'Times New Roman',serif">naive canonical partition</text>
+<text x="20" y="773.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">MENU AUTHORSHIP, HEADLINE PARTITION, BOTH ARMS SPLIT</text>
+<line x1="20" y1="780.0" x2="880" y2="780.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="330" y1="802.0" x2="610" y2="802.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="377.9" y1="802.0" x2="406.1" y2="802.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="391.4" cy="802.0" r="4.8" fill="#86cbfe"/>
+<text x="418.1" y="806.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.02 [0.97, 1.07]</text>
+<text x="322" y="807.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">self-introduced destinations</text>
+<line x1="330" y1="834.0" x2="610" y2="834.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="400.4" y1="834.0" x2="423.0" y2="834.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="411.7" cy="834.0" r="4.8" fill="#86cbfe"/>
+<text x="435.0" y="838.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.08 [1.05, 1.12]</text>
+<text x="322" y="839.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">algorithm-introduced destinations</text>
+<line x1="330" y1="866.0" x2="610" y2="866.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="402.6" y1="866.0" x2="428.7" y2="866.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="415.7" cy="866.0" r="4.8" fill="#86cbfe"/>
+<text x="440.7" y="870.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.10 [1.05, 1.14]</text>
+<text x="322" y="871.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">shuffle-introduced destinations</text>
+<text x="20" y="909.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">SHUFFLE FOLDED INTO THE ALGORITHMIC ARM (LOWER BOUND ON THE COMPARATOR AXIS)</text>
+<line x1="20" y1="916.0" x2="880" y2="916.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="330" y1="938.0" x2="610" y2="938.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="387.6" y1="938.0" x2="402.4" y2="938.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="390.0" y="933.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="414.4" y="942.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.03 [1.00, 1.05], fails Bonferroni x8</text>
+<text x="322" y="943.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">embedding-free partition</text>
+<line x1="330" y1="970.0" x2="610" y2="970.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="399.9" y1="970.0" x2="414.3" y2="970.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="402.2" y="965.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="426.3" y="974.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.04, 1.09]</text>
+<text x="322" y="975.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage partition (39% propagated)</text>
+<line x1="330" y1="1002.0" x2="610" y2="1002.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="393.7" y1="1002.0" x2="411.5" y2="1002.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="397.5" y="997.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="423.5" y="1006.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.02, 1.08]</text>
+<text x="322" y="1007.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">balanced canonical partition</text>
+<text x="20" y="1045.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">BUNDLED DELIBERATE ARM, 2X2 CORNER OF THE HEADLINE PARTITION (POST HOC, LEDGER 234)</text>
+<line x1="20" y1="1052.0" x2="880" y2="1052.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="330" y1="1074.0" x2="610" y2="1074.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="390.8" y1="1074.0" x2="404.5" y2="1074.0" stroke="#94b6d6" stroke-width="1.4"/>
+<circle cx="397.7" cy="1074.0" r="4.8" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
+<text x="416.5" y="1078.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.01, 1.06]</text>
+<text x="322" y="1079.0" font-size="14" fill="#94b6d6" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x strict autoadvance</text>
+<line x1="330" y1="1106.0" x2="610" y2="1106.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="384.0" y1="1106.0" x2="396.5" y2="1106.0" stroke="#94b6d6" stroke-width="1.4" stroke-dasharray="4,2"/>
+<circle cx="390.3" cy="1106.0" r="4.8" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
+<text x="408.5" y="1110.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.01 [0.99, 1.03], brackets 1</text>
+<text x="322" y="1111.0" font-size="14" fill="#94b6d6" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x shuffle-included</text>
+<text x="20" y="1149.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">COVERAGE BRACKET (UNTAGGED TAIL)</text>
+<line x1="20" y1="1156.0" x2="880" y2="1156.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="330" y1="1178.0" x2="610" y2="1178.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="419.4" y1="1178.0" x2="434.5" y2="1178.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="421.8" y="1173.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="446.5" y="1182.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.13 [1.11, 1.16]</text>
+<text x="322" y="1183.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists pooled into one community</text>
+<line x1="330" y1="1210.0" x2="610" y2="1210.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="381.7" y1="1210.0" x2="391.3" y2="1210.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="381.5" y="1205.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="403.3" y="1214.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.00 [0.98, 1.02], brackets 1</text>
+<text x="322" y="1215.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists each their own community</text>
+<text x="476.0" y="1256" font-size="13" fill="#94b6d6" text-anchor="middle">Bridge Index (ratio)</text>
+<text x="20" y="1318" font-size="13" fill="#94b6d6">mechanical floors for the tap crossing RATE (same-artist-controlled), not Bridge Index ratios</text>
+<rect x="418.3" y="1340" width="14.9" height="74" fill="#f4eefb" opacity="0.07"/>
+<line x1="425.8" y1="1340" x2="425.8" y2="1414" stroke="#f4eefb" stroke-width="1" opacity="0.55"/>
+<line x1="330" y1="1360.0" x2="610" y2="1360.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="546.9" y1="1360.0" x2="548.9" y2="1360.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="546.9" y1="1354.0" x2="546.9" y2="1366.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="548.9" y1="1354.0" x2="548.9" y2="1366.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="547.9" y1="1352.0" x2="547.9" y2="1368.0" stroke="#f4eefb" stroke-width="2"/>
+<text x="560.9" y="1364.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.86 [0.86, 0.86]</text>
+<text x="322" y="1365.0" font-size="14" fill="#f4eefb" text-anchor="end" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: composition-null (sequence-free)</text>
+<line x1="330" y1="1392.0" x2="610" y2="1392.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="468.4" y1="1392.0" x2="474.3" y2="1392.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="468.4" y1="1386.0" x2="468.4" y2="1398.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="474.3" y1="1386.0" x2="474.3" y2="1398.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="471.3" y1="1384.0" x2="471.3" y2="1400.0" stroke="#f4eefb" stroke-width="2"/>
+<text x="486.3" y="1396.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.69 [0.68, 0.70]</text>
+<text x="322" y="1397.0" font-size="14" fill="#f4eefb" text-anchor="end" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: first-order Markov (tap-only)</text>
+<text x="476.0" y="1438" font-size="13" fill="#94b6d6" text-anchor="middle">tap crossing rate (0-1 scale) . solid line = controlled observed 0.59</text>
+</svg></div><div class="fig-n"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 2281" width="100%" style="height:auto" role="img" aria-labelledby="bi-forest-n-title bi-forest-n-desc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">
+<title id="bi-forest-n-title">Bridge Index forest plot across estimators, partitions, and robustness checks</title>
+<desc id="bi-forest-n-desc">Horizontal forest plot, same-artist-controlled, rows ordered by embedding exposure. The headline Bridge Index, embedding-free (pure-Last.fm genre-family partition) crossed with strict autoadvance, is 1.05, 95% CI [1.03, 1.08]. A higher-coverage tag partition whose labels are 39% embedding-propagated gives 1.10 [1.08, 1.13] and is shown separately, labelled as such. Folding shuffle into the algorithmic arm, a disclosed lower bound on the comparator axis rather than the primary estimand, gives 1.03 [1.00, 1.05] on the embedding-free partition, which does not survive Bonferroni correction across eight partitions. The naive uncorrected estimate 1.61 is withdrawn after an embedding-leakage check; its same-artist-controlled counterpart is 1.48, still not the reported value. Splitting BOTH the deliberate and the autoplay arm by how the destination artist was first introduced, on the headline partition itself, gives a matched menu-authorship effect that is present on every destination class and weakest on self-introduced destinations. The earlier balanced-embedding version of this split is withdrawn. A coverage bracket for the untagged tail spans 1.13 [1.11, 1.16] (untagged artists pooled into one community) down to 1.00 [0.98, 1.02] (untagged artists each their own community), which straddles 1: magnitude is partition- and coverage-relative, not a fixed number. The two bundled-deliberate-arm cells of the 2x2 definitional grid are shown as a post hoc sub-block, 1.04 [1.01, 1.06] against strict autoadvance and 1.01 [0.99, 1.03] against the shuffle-included comparator, the second of which brackets 1. Two mechanical floors for the underlying tap crossing rate are shown separately on their own 0 to 1 scale, since they are rates, not Bridge Index ratios.</desc>
+<rect x="0" y="0" width="360" height="2281" fill="#0E0F12"/>
+<line x1="26.9" y1="363" x2="26.9" y2="2011" stroke="#94b6d6" stroke-width="1" stroke-dasharray="5,3" opacity="0.7"/>
+<text x="14" y="30" font-size="14" fill="#86cbfe" letter-spacing="1"><tspan x="14" dy="0">BRIDGE INDEX: WHERE THE </tspan><tspan x="14" dy="18">NUMBER COMES FROM</tspan></text>
+<text x="14" y="70" font-size="15" fill="#94b6d6" font-family="ui-serif,Georgia,'Times New Roman',serif"><tspan x="14" dy="0">deliberate cross-community rate &#247; </tspan><tspan x="14" dy="19">autoplay cross-community rate, </tspan><tspan x="14" dy="19">same-artist-controlled</tspan></text>
+<text x="14" y="132" font-size="15" fill="#f4eefb" font-weight="700">headline: 1.05 [1.03, 1.08] <tspan x="14" dy="19">(embedding-free)</tspan></text>
+<circle cx="25.0" cy="175.0" r="4.1" fill="#86cbfe"/>
+<text x="44" y="179.5" font-size="14" fill="#94b6d6">estimate and interval</text>
+<circle cx="25.0" cy="197.0" r="8.5" fill="none" stroke="#86cbfe" stroke-width="1.2" opacity="0.8"/><circle cx="25.0" cy="197.0" r="5.5" fill="#f4eefb"/>
+<text x="44" y="201.5" font-size="14" fill="#94b6d6">headline</text>
+<rect x="20.8" y="214.8" width="8.5" height="8.5" transform="rotate(45 25.0 219.0)" fill="#94b6d6"/>
+<text x="44" y="223.5" font-size="14" fill="#94b6d6">upper bound, seed spread only</text>
+<circle cx="25.0" cy="241.0" r="4.7" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.8"/><line x1="20.3" y1="245.7" x2="29.7" y2="236.3" stroke="#94b6d6" stroke-width="1.6"/>
+<text x="44" y="245.5" font-size="14" fill="#94b6d6">not leakage-immune</text>
+<rect x="20.8" y="258.8" width="8.5" height="8.5" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="44" y="267.5" font-size="14" fill="#94b6d6">lower bound or coverage bracket</text>
+<line x1="14.0" y1="285.0" x2="36.0" y2="285.0" stroke="#94b6d6" stroke-width="1.4" stroke-dasharray="4,2"/><circle cx="25.0" cy="285.0" r="4.1" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
+<text x="44" y="289.5" font-size="14" fill="#94b6d6">dashed: includes no advantage</text>
+<circle cx="25.0" cy="307.0" r="5.1" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="21.2" y1="303.2" x2="28.8" y2="310.8" stroke="#ff6e9c" stroke-width="1.6"/><line x1="21.2" y1="310.8" x2="28.8" y2="303.2" stroke="#ff6e9c" stroke-width="1.6"/>
+<text x="44" y="311.5" font-size="14" fill="#94b6d6">killed or withdrawn</text>
+<text x="26.9" y="355" font-size="14" fill="#94b6d6" text-anchor="start">no advantage (1.0)</text>
+<text x="14" y="369" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">EMBEDDING-FREE (EXTERNAL TAGS / AUDIO)</tspan></text>
+<line x1="14" y1="377" x2="346" y2="377" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<text x="14" y="401" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: super-5</text>
+<line x1="14" y1="419" x2="182" y2="419" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="39.8" y1="419.0" x2="60.3" y2="419.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="50.0" cy="419.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="423.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.09 [1.05, 1.13]</text>
+<text x="14" y="449" font-size="15" fill="#f4eefb" font-weight="700" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: genre-family</text>
+<line x1="14" y1="467" x2="182" y2="467" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="33.8" y1="467.0" x2="47.6" y2="467.0" stroke="#f4eefb" stroke-width="2.6"/>
+<circle cx="40.7" cy="467.0" r="10.0" fill="none" stroke="#86cbfe" stroke-width="1.2" opacity="0.8"/><circle cx="40.7" cy="467.0" r="6.5" fill="#f4eefb"/>
+<text x="192.0" y="471.5" font-size="14" fill="#f4eefb" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" font-weight="700">1.05 [1.03, 1.08]</text>
+<text x="14" y="497" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: CLAP audio-content (KMeans)</text>
+<line x1="14" y1="515" x2="182" y2="515" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="33.7" y1="515.0" x2="44.6" y2="515.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="39.0" cy="515.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="519.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.03, 1.07]</text>
+<text x="14" y="545" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: top-tag</text>
+<line x1="14" y1="563" x2="182" y2="563" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="32.9" y1="563.0" x2="39.7" y2="563.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="36.3" cy="563.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="567.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.02, 1.05]</text>
+<text x="14" y="593" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: MERT audio-content (KMeans)</text>
+<line x1="14" y1="611" x2="182" y2="611" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="28.2" y1="611.0" x2="38.8" y2="611.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="33.6" cy="611.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="615.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.03 [1.00, 1.05]</text>
+<text x="14" y="647" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">TAG PARTITIONS, 39% </tspan><tspan x="14" dy="18">EMBEDDING-PROPAGATED LABELS</tspan></text>
+<line x1="14" y1="673" x2="346" y2="673" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<text x="14" y="697" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: super-5 family</text>
+<line x1="14" y1="715" x2="182" y2="715" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="52.3" y1="715.0" x2="71.3" y2="715.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="62.0" cy="715.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="719.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.14 [1.10, 1.17]</text>
+<text x="14" y="745" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage variant (39% propagated labels)</text>
+<line x1="14" y1="763" x2="182" y2="763" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="46.5" y1="763.0" x2="59.5" y2="763.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="53.0" cy="763.0" r="4.8" fill="#86cbfe"/>
+<text x="192" y="767.5" font-size="14" fill="#94b6d6">1.10 [1.08, 1.13], <tspan x="14" dy="20">86% coverage</tspan></text>
+<text x="14" y="813" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: raw top-tag</text>
+<line x1="14" y1="831" x2="182" y2="831" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="41.5" y1="831.0" x2="47.8" y2="831.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="44.6" cy="831.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="835.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.06, 1.08]</text>
+<text x="14" y="867" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">STREAM-TRAINED EMBEDDING PARTITIONS</tspan></text>
+<line x1="14" y1="875" x2="346" y2="875" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<text x="14" y="899" font-size="15" fill="#ff6e9c" font-weight="400" font-style="italic" textLength="232" lengthAdjust="spacingAndGlyphs" font-family="ui-serif,Georgia,'Times New Roman',serif">balanced embedding, one frozen seed</text>
+<line x1="14" y1="894" x2="246" y2="894" stroke="#ff6e9c" stroke-width="1" opacity="0.8"/>
+<line x1="14" y1="917" x2="182" y2="917" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="56.9" y1="917.0" x2="75.7" y2="917.0" stroke="#ff6e9c" stroke-width="2"/>
+<circle cx="66.1" cy="917.0" r="6.0" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="61.6" y1="912.5" x2="70.6" y2="921.5" stroke="#ff6e9c" stroke-width="1.6"/><line x1="61.6" y1="921.5" x2="70.6" y2="912.5" stroke="#ff6e9c" stroke-width="1.6"/>
+<text x="192" y="921.5" font-size="14" fill="#ff6e9c">1.15 [1.12, 1.19], <tspan x="14" dy="20">killed</tspan></text>
+<text x="14" y="967" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">leakage-corrected (balanced 50/50 retrain)</text>
+<line x1="14" y1="985" x2="182" y2="985" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<rect x="72.6" y="980.0" width="10.0" height="10.0" transform="rotate(45 77.6 985.0)" fill="#94b6d6"/>
+<text x="192" y="989.5" font-size="14" fill="#94b6d6">1.20 [1.156, 1.244] <tspan x="14" dy="20">(upper bound)</tspan></text>
+<text x="14" y="1035" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: spectral (artist2vec affinity)</text>
+<line x1="14" y1="1053" x2="182" y2="1053" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="106.2" y1="1053.0" x2="132.9" y2="1053.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="119.0" cy="1053.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="1057.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.36 [1.31, 1.41]</text>
+<text x="14" y="1083" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: label-propagation (artist2vec)</text>
+<line x1="14" y1="1101" x2="182" y2="1101" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="116.6" y1="1101.0" x2="136.4" y2="1101.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="126.1" cy="1101.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="1105.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.38 [1.35, 1.42]</text>
+<text x="14" y="1131" font-size="15" fill="#94b6d6" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: KMeans / artist2vec</text>
+<line x1="14" y1="1149" x2="182" y2="1149" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="116.5" y1="1149.0" x2="140.5" y2="1149.0" stroke="#94b6d6" stroke-width="1.6" stroke-dasharray="1.5,3"/>
+<circle cx="127.8" cy="1149.0" r="5.5" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.8"/><line x1="122.3" y1="1154.5" x2="133.3" y2="1143.5" stroke="#94b6d6" stroke-width="1.6"/>
+<text x="192.0" y="1153.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">not leakage-immune</text>
+<text x="14" y="1179" font-size="15" fill="#ff6e9c" font-weight="400" font-style="italic" font-family="ui-serif,Georgia,'Times New Roman',serif">naive canonical partition</text>
+<line x1="14" y1="1197" x2="182" y2="1197" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="138.5" y1="1197.0" x2="164.0" y2="1197.0" stroke="#ff6e9c" stroke-width="2"/>
+<circle cx="151.1" cy="1197.0" r="6.0" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="146.6" y1="1192.5" x2="155.6" y2="1201.5" stroke="#ff6e9c" stroke-width="1.6"/><line x1="146.6" y1="1201.5" x2="155.6" y2="1192.5" stroke="#ff6e9c" stroke-width="1.6"/>
+<text x="14.0" y="1221.5" font-size="14" fill="#ff6e9c" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">WITHDRAWN, embedding leakage</text>
+<text x="14.0" y="1241.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" opacity="0.8">1.61 same-artist included (uncontrolled)</text><line x1="14.0" y1="1237.3" x2="350.0" y2="1237.3" stroke="#94b6d6" stroke-width="1" opacity="0.8"/>
+<text x="14" y="1273" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">MENU AUTHORSHIP, HEADLINE PARTITION, </tspan><tspan x="14" dy="18">BOTH ARMS SPLIT</tspan></text>
+<line x1="14" y1="1299" x2="346" y2="1299" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<text x="14" y="1323" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">self-introduced destinations</text>
+<line x1="14" y1="1341" x2="182" y2="1341" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="19.3" y1="1341.0" x2="43.8" y2="1341.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="31.1" cy="1341.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="1345.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.02 [0.97, 1.07]</text>
+<text x="14" y="1371" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">algorithm-introduced destinations</text>
+<line x1="14" y1="1389" x2="182" y2="1389" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="38.8" y1="1389.0" x2="58.4" y2="1389.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="48.6" cy="1389.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="1393.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.08 [1.05, 1.12]</text>
+<text x="14" y="1419" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">shuffle-introduced destinations</text>
+<line x1="14" y1="1437" x2="182" y2="1437" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="40.7" y1="1437.0" x2="63.4" y2="1437.0" stroke="#86cbfe" stroke-width="1.4"/>
+<circle cx="52.1" cy="1437.0" r="4.8" fill="#86cbfe"/>
+<text x="192.0" y="1441.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.10 [1.05, 1.14]</text>
+<text x="14" y="1473" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">SHUFFLE FOLDED INTO THE ALGORITHMIC ARM </tspan><tspan x="14" dy="18">(LOWER BOUND ON THE COMPARATOR AXIS)</tspan></text>
+<line x1="14" y1="1499" x2="346" y2="1499" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<text x="14" y="1523" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">embedding-free partition</text>
+<line x1="14" y1="1541" x2="182" y2="1541" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="27.8" y1="1541.0" x2="40.6" y2="1541.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="29.2" y="1536.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="192" y="1545.5" font-size="14" fill="#94b6d6">1.03 [1.00, 1.05], <tspan x="14" dy="20">fails Bonferroni x8</tspan></text>
+<text x="14" y="1591" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage partition (39% propagated)</text>
+<line x1="14" y1="1609" x2="182" y2="1609" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="38.5" y1="1609.0" x2="50.9" y2="1609.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="39.7" y="1604.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="192.0" y="1613.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.04, 1.09]</text>
+<text x="14" y="1639" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">balanced canonical partition</text>
+<line x1="14" y1="1657" x2="182" y2="1657" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="33.0" y1="1657.0" x2="48.5" y2="1657.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="35.7" y="1652.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="192.0" y="1661.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.02, 1.08]</text>
+<text x="14" y="1693" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">BUNDLED DELIBERATE ARM, 2X2 CORNER OF </tspan><tspan x="14" dy="18">THE HEADLINE PARTITION (POST HOC, </tspan><tspan x="14" dy="18">LEDGER 234)</tspan></text>
+<line x1="14" y1="1737" x2="346" y2="1737" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<text x="14" y="1761" font-size="15" fill="#94b6d6" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x strict autoadvance</text>
+<line x1="14" y1="1779" x2="182" y2="1779" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="30.5" y1="1779.0" x2="42.4" y2="1779.0" stroke="#94b6d6" stroke-width="1.4"/>
+<circle cx="36.5" cy="1779.0" r="4.8" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
+<text x="192.0" y="1783.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.01, 1.06]</text>
+<text x="14" y="1809" font-size="15" fill="#94b6d6" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x shuffle-included</text>
+<line x1="14" y1="1827" x2="182" y2="1827" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="24.6" y1="1827.0" x2="35.4" y2="1827.0" stroke="#94b6d6" stroke-width="1.4" stroke-dasharray="4,2"/>
+<circle cx="30.1" cy="1827.0" r="4.8" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
+<text x="192" y="1831.5" font-size="14" fill="#94b6d6">1.01 [0.99, 1.03], <tspan x="14" dy="20">brackets 1</tspan></text>
+<text x="14" y="1883" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">COVERAGE BRACKET (UNTAGGED TAIL)</tspan></text>
+<line x1="14" y1="1891" x2="346" y2="1891" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<text x="14" y="1915" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists pooled into one community</text>
+<line x1="14" y1="1933" x2="182" y2="1933" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="55.3" y1="1933.0" x2="68.5" y2="1933.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="56.8" y="1928.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="192.0" y="1937.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.13 [1.11, 1.16]</text>
+<text x="14" y="1963" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists each their own community</text>
+<line x1="14" y1="1981" x2="182" y2="1981" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="22.6" y1="1981.0" x2="30.9" y2="1981.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
+<rect x="21.7" y="1976.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
+<text x="192" y="1985.5" font-size="14" fill="#94b6d6">1.00 [0.98, 1.02], <tspan x="14" dy="20">brackets 1</tspan></text>
+<text x="98.0" y="2033" font-size="14" fill="#94b6d6" text-anchor="middle">Bridge Index (ratio)</text>
+<text x="14" y="2077" font-size="14" fill="#94b6d6"><tspan x="14" dy="0">mechanical floors for the tap crossing </tspan><tspan x="14" dy="18">RATE (same-artist-controlled), not </tspan><tspan x="14" dy="18">Bridge Index ratios</tspan></text>
+<rect x="61.8" y="2151" width="9.4" height="70" fill="#f4eefb" opacity="0.07"/>
+<line x1="66.6" y1="2151" x2="66.6" y2="2221" stroke="#f4eefb" stroke-width="1" opacity="0.55"/>
+<text x="14" y="2145" font-size="15" fill="#f4eefb" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: composition-null (sequence-free)</text>
+<line x1="14" y1="2163" x2="182" y2="2163" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="142.4" y1="2163.0" x2="143.7" y2="2163.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="142.4" y1="2157.0" x2="142.4" y2="2169.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="143.7" y1="2157.0" x2="143.7" y2="2169.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="143.1" y1="2155.0" x2="143.1" y2="2171.0" stroke="#f4eefb" stroke-width="2"/>
+<text x="192.0" y="2167.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.86 [0.86, 0.86]</text>
+<text x="14" y="2193" font-size="15" fill="#f4eefb" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: first-order Markov (tap-only)</text>
+<line x1="14" y1="2211" x2="182" y2="2211" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
+<line x1="93.2" y1="2211.0" x2="96.9" y2="2211.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="93.2" y1="2205.0" x2="93.2" y2="2217.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="96.9" y1="2205.0" x2="96.9" y2="2217.0" stroke="#94b6d6" stroke-width="1.6"/>
+<line x1="95.0" y1="2203.0" x2="95.0" y2="2219.0" stroke="#f4eefb" stroke-width="2"/>
+<text x="192.0" y="2215.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.69 [0.68, 0.70]</text>
+<text x="14" y="2241" font-size="14" fill="#94b6d6"><tspan x="14" dy="0">tap crossing rate (0-1 scale) . solid </tspan><tspan x="14" dy="18">line = controlled observed 0.59</tspan></text>
+</svg></div></div>
+<p class="figcap">killed and demoted estimates struck; mechanical floors bracketed. single source: <code>bi_single_source.json</code> in the repro kit.</p>
 </details>
 
 <p class="dim small prose">whether the gap is listener agency or recommender design, one log can&rsquo;t adjudicate. the operative fact is narrower: the two channels are structurally different, so a log that pools them misrepresents both.</p>
