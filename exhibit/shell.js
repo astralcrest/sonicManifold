@@ -96,7 +96,7 @@ const P = {
   c: new Uint32Array(N), tc: new Uint32Array(N),
   seed: new Float32Array(N),
   prov: new Uint8Array(N),   /* 0 tapped · 1 shuffled · 2 served: assigned once, kept for the whole visit */
-  artist: new Uint16Array(N), /* index into mapmorph.artists: where this play lives in rooms 3 and 4 */
+  artist: new Uint16Array(N), /* index into mapmorph.artists: where this play lives in rooms 05 and 06 */
   ease: 0.07, jitter: 0.6, big: false,
   swirl: 0.4,  /* how much a dot arcs on its way to a new target (0 = straight). reset on every room change */
   touch: true, /* dots part around the pointer */
@@ -261,7 +261,9 @@ const sections = [...document.querySelectorAll('section[data-room]')];
 const rooms = sections.map((el) => ({ el, id: el.dataset.room, mod: null, loading: null, mounted: false }));
 let active = -1;
 const cache = {};
-let identityP = null;
+let identityP = null, mapP = null;
+let NA = 300; /* exhibit/data/mapmorph.json artists.length */
+function assignArtists(na) { for (let i = 0; i < N; i++) P.artist[i] = Math.floor(hash(i * 7 + 3) * na); }
 let goK = -1, goT = 0;
 /* a jump of more than one room (a dot, home, end, walk it again): the scroll passes every room in between, and none of them
    should wake, fetch its track and go back to sleep in the same half second. only the destination is let in. */
@@ -290,13 +292,20 @@ const ctx = {
   },
   /* resolves once every dot knows who pressed play on it and which artist it belongs to */
   identity() {
-    if (!identityP) identityP = Promise.all([this.data('wall').catch(() => null), this.data('mapmorph').catch(() => null)]).then(([w, m]) => {
+    if (!identityP) identityP = this.data('wall').catch(() => null).then((w) => {
       if (w && w.tap) { const edges = []; let acc = 0; for (let k = 0; k < w.tap.length; k++) { const t = w.tap[k], sh = w.shuffle[k], v = w.served[k], tot = t + sh + v; edges.push([acc + tot, t / (tot || 1), (t + sh) / (tot || 1)]); acc += tot; } let k = 0; for (let i = 0; i < N; i++) { const play = (i + 0.5) * (acc / N); while (k < edges.length - 1 && play >= edges[k][0]) k++; const u = hash(i); P.prov[i] = u < edges[k][1] ? 0 : u < edges[k][2] ? 1 : 2; } }
       else for (let i = 0; i < N; i++) { const u = hash(i); P.prov[i] = u < 0.19 ? 0 : u < 0.36 ? 1 : 2; }
-      const na = m && m.artists ? m.artists.length : 300; for (let i = 0; i < N; i++) P.artist[i] = Math.floor(hash(i * 7 + 3) * na);
-      return { wall: w, map: m };
+      assignArtists(NA);
+      return { wall: w };
     });
     return identityP;
+  },
+  /* mapmorph.json is 38 KB and only the map room reads it, so it is fetched when the map room mounts (the shell warms the
+     next room, so that is the moment the visitor reaches room 04, or a jump or #map link lands on 05). P.artist does not
+     wait for it: NA already matches its artist count, and a file with a different count re-deals the dots when it lands. */
+  artistMap() {
+    if (!mapP) mapP = this.data('mapmorph').catch(() => null).then((m) => { if (m && m.artists && m.artists.length !== NA) { NA = m.artists.length; assignArtists(NA); } return m; });
+    return mapP;
   },
   data(name) { return cache[name] || (cache[name] = fetch('exhibit/data/' + name + '.json' + V).then((r) => { if (!r.ok) throw new Error(name); return r.json(); })); },
   /* centre a room's single affordance on the stage */

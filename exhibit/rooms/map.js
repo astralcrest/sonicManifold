@@ -107,7 +107,7 @@ export default {
   id: 'map', track: 'latent-dimension', level: 5, mode: 'map', map: null, ready: false, dr: null, fc: 0, dt: [],
 
   async mount(root, ctx) {
-    const id = await ctx.identity(); const map = id && id.map;
+    await ctx.identity(); const map = await ctx.artistMap();
     if (!map || !map.xy || !map.levels) { root.textContent = 'the map did not load.'; return; }
     this.map = map; this.rootEl = root;
     const P = ctx.particles, n = P.n, na = this.na = map.artists.length;
