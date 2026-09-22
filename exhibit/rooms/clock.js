@@ -19,7 +19,7 @@ const TPL = '<div class="ck-wrap">'
   + ' aria-valuemin="0" aria-valuemax="23" aria-valuenow="14" aria-valuetext="">'
   + '<div class="ck-read" aria-hidden="true"><span class="ck-hr"></span><span class="ck-n"></span><span class="ck-t"></span></div>'
   + '</div></div>'
-  + '<p class="ck-note"><span class="ck-lead"></span><span class="ck-more short-hide"></span></p>';
+  + '<p class="ck-note"><span class="ck-lead"></span><span class="ck-cav"></span><span class="ck-more short-hide"></span></p>';
 
 const CSS = 'section[data-room=clock] .ck-wrap{position:absolute;pointer-events:none}'
   + 'section[data-room=clock] .ck-dial{position:absolute;inset:0;pointer-events:auto;border-radius:50%;cursor:grab;touch-action:pan-y;-webkit-tap-highlight-color:transparent}'
@@ -31,8 +31,8 @@ const CSS = 'section[data-room=clock] .ck-wrap{position:absolute;pointer-events:
   + 'section[data-room=clock] .ck-t{color:var(--mint)}'
   + 'section[data-room=clock] .ck-note{position:absolute;margin:0;pointer-events:none;font:400 clamp(10px,1.05vw,12px)/1.45 var(--mono);color:var(--mute);text-align:center}'
   + 'section[data-room=clock] .ck-more{opacity:.78}'
-  /* a phone has one line of room under the dial. the caveat it drops is the same sentence the wall text
-     carries two inches below, so nothing is lost by holding it back here. */
+  /* a phone has two lines of room under the dial: it keeps the busy-hours range and the utc-7 caveat and
+     drops the thin-hour aside, which is a footnote to the range and not a finding. */
   + '@media (max-width:700px){section[data-room=clock] .ck-more{display:none}}'
   + '@media (prefers-reduced-motion:reduce){section[data-room=clock] .ck-dial{cursor:default}}';
 
@@ -57,6 +57,11 @@ export default {
     this.elT = root.querySelector('.ck-t');
     this.lead = root.querySelector('.ck-lead');
     this.more = root.querySelector('.ck-more');
+    this.cav = root.querySelector('.ck-cav');
+    /* the caveat is said once, here under the dial where the hours are read. an older wall line repeats it:
+       hide that copy if it is still in the page (a no-op once exhibit.html drops it). */
+    const dup = root.parentElement && root.parentElement.querySelector('.wall .say.dim');
+    if (dup && /utc-7/.test(dup.textContent)) dup.hidden = true;
     this.note = root.querySelector('.ck-note');
 
     const slot = root.parentElement && root.parentElement.querySelector('.legend-slot');
@@ -85,9 +90,9 @@ export default {
         if (hi === null || s > c2.tap_share_by_hour[hi]) hi = h;
       }
       if (lo !== null) {
-        this.lead.textContent = 'across the ' + (NUMWORD[nBusy] || nBusy) + ' hours that carry more than '
-          + group(BUSY) + ' plays each, the tapped share runs ' + c2.tap_share_by_hour[lo].toFixed(1)
-          + '% at ' + hh(lo) + ' to ' + c2.tap_share_by_hour[hi].toFixed(1) + '% at ' + hh(hi) + '.';
+        this.lead.textContent = 'the ' + (NUMWORD[nBusy] || nBusy) + ' hours over ' + group(BUSY)
+          + ' plays run ' + c2.tap_share_by_hour[lo].toFixed(1) + '% tapped at ' + hh(lo)
+          + ' to ' + c2.tap_share_by_hour[hi].toFixed(1) + '% at ' + hh(hi) + '.';
       }
       /* name the thin hours by their own numbers so nobody reads the widest swing on the dial as a finding */
       let thin = 0, thinH = 0, thinBest = -1;
@@ -96,14 +101,14 @@ export default {
         thin++;
         if (c2.tap_share_by_hour[h] > thinBest) { thinBest = c2.tap_share_by_hour[h]; thinH = h; }
       }
-      this.more.textContent = ' the thin side of the dial swings further on far less: ' + hh(thinH) + ' reads '
-        + thinBest.toFixed(1) + '% on ' + group(tot[thinH]) + ' plays. the hour is a fixed utc-7 approximation'
-        + ' across all seven years, not a real local time.';
+      this.more.textContent = ' quiet hours swing wider on less: ' + hh(thinH) + ' is '
+        + thinBest.toFixed(1) + '% on ' + group(tot[thinH]) + ' plays.';
       this.assign(ctx);
     } else {
       this.lead.textContent = 'the hourly counts did not load, so this dial is holding an even ring and claiming nothing.';
       this.more.textContent = '';
     }
+    this.cav.textContent = ' hours are read at a fixed utc-7 for all seven years, so only roughly local.';
 
     this.dial.addEventListener('pointerdown', (e) => {
       if (!this.d) return;

@@ -48,87 +48,58 @@ const mixc = (a, b, k) => {
 };
 
 {
+  const S = 'section[data-room="map"] ';
   const st = document.createElement('style');
-  st.textContent = 'section[data-room="map"] .mapwrap{position:absolute;display:flex;flex-direction:column;justify-content:space-between}' +
-    'section[data-room="map"] .mhud{pointer-events:none}' +
-    'section[data-room="map"] .mbig{font:600 clamp(30px,6.4vw,52px)/1 var(--mono);letter-spacing:-.02em;color:var(--ink)}' +
-    'section[data-room="map"] .munit{font:600 12px/1 var(--mono);letter-spacing:.08em;color:var(--mute);margin-left:6px}' +
-    'section[data-room="map"] .mline{margin:8px 0 10px;max-width:26rem}' +
-    'section[data-room="map"] .mrow{display:flex;gap:8px;align-items:baseline;font:600 12px/1 var(--mono);letter-spacing:.06em;color:var(--mute);margin-bottom:4px}' +
-    'section[data-room="map"] .mbi{color:var(--ink);font-size:15px}' +
-    'section[data-room="map"] .manch{margin:0 0 9px;font:400 10.5px/1.4 var(--mono);color:var(--mute);opacity:.85}' +
-    'section[data-room="map"] .mcross{display:flex;flex-direction:column;gap:6px;max-width:250px}' +
-    'section[data-room="map"] .mcrow{display:flex;align-items:center;gap:8px;font:600 11px/1 var(--mono);color:var(--mute)}' +
-    'section[data-room="map"] .mclbl{width:58px;flex:none}' +
-    'section[data-room="map"] .mbar{flex:1;height:6px;border-radius:3px;background:rgba(189,166,255,.14);overflow:hidden}' +
-    'section[data-room="map"] .mbar i{display:block;height:100%;width:0;border-radius:3px;transition:width .5s cubic-bezier(.22,.61,.36,1)}' +
-    'section[data-room="map"] .mtap{background:var(--mint)}section[data-room="map"] .mauto{background:var(--orchid)}' +
-    'section[data-room="map"] .mcv{width:36px;text-align:right;flex:none;color:var(--ink)}' +
-    'section[data-room="map"] .mheld{gap:8px;color:var(--mint2);border-top:1px solid var(--line);padding-top:7px;margin-top:7px}' +
-    'section[data-room="map"] .mheldv{color:var(--mint2);letter-spacing:.04em}' +
-    'section[data-room="map"] .mdef{margin:9px 0 0;font:400 11px/1.5 var(--mono);color:var(--mute);max-width:30rem}' +
-    'section[data-room="map"] .mdefl{display:none}' + /* one short definition everywhere; the long form is in the wall label */
-    'section[data-room="map"] .mring{margin:5px 0 0;font:400 10.5px/1.45 var(--mono);color:var(--mute);opacity:.8;max-width:30rem}' +
-    'section[data-room="map"] .mheldposts{display:flex;flex-wrap:wrap;align-items:flex-start;gap:7px;margin:9px 0 0}' +
-    'section[data-room="map"] .mheldposts .mheldlbl{flex:0 0 100%;margin:0 0 1px;font:600 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--mute)}' +
-    'section[data-room="map"] .mheldposts .post{margin:0}' +
-    'section[data-room="map"] .mheldposts .mheldnote{flex:0 0 100%}' +
-    'section[data-room="map"] .mctl{pointer-events:auto;display:flex;flex-direction:column;gap:7px;max-width:440px}' +
-    'section[data-room="map"] .mcap{margin:0;font:400 clamp(14px,1.8vw,16px)/1.4;color:var(--ink);min-height:1.4em}' +
-    'section[data-room="map"] .mcaps{display:block;font:400 12px/1.45 var(--mono);color:var(--mute);margin-top:3px}' +
-    'section[data-room="map"] .mtogrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}' +
-    'section[data-room="map"] .mtog{display:flex;gap:5px;background:rgba(10,1,24,.6);border:1px solid var(--line);border-radius:999px;padding:4px;flex:none}' +
-    'section[data-room="map"] .mtog button{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:none;border:0;border-radius:999px;padding:12px 15px;min-height:40px;cursor:pointer;white-space:nowrap}' +
-    'section[data-room="map"] .mtog button.on{color:#06130f;background:linear-gradient(100deg,var(--mint),#62e7ff)}' +
-    'section[data-room="map"] .mtog button:focus-visible{outline:2px solid var(--mint);outline-offset:3px}' +
-    'section[data-room="map"] .mdrag{margin:0;font:600 11px/1.35 var(--mono);letter-spacing:.05em;color:var(--mute)}' +
-    'section[data-room="map"] .mdial{-webkit-appearance:none;appearance:none;width:100%;height:40px;background:transparent;margin:0;touch-action:pan-x}' +
-    'section[data-room="map"] .mdial::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--mint),var(--orchid))}' +
-    'section[data-room="map"] .mdial::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--ink);border:3px solid var(--mint);margin-top:-8.5px;box-shadow:0 0 0 4px rgba(33,246,188,.15)}' +
-    'section[data-room="map"] .mdial::-moz-range-track{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--mint),var(--orchid))}' +
-    'section[data-room="map"] .mdial::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--ink);border:3px solid var(--mint)}' +
-    'section[data-room="map"] .mdial:focus-visible{outline:2px solid var(--mint);outline-offset:6px;border-radius:8px}' +
-    'section[data-room="map"] .mnote{margin:2px 0 0;font:400 11px/1.5 var(--mono);color:var(--mute);max-width:34rem}' +
-    '@media (max-aspect-ratio:115/100){section[data-room="map"] .mline,section[data-room="map"] .mdrag,section[data-room="map"] .mring,section[data-room="map"] .mheldposts{display:none}' +
-    'section[data-room="map"] .mbig{font-size:clamp(26px,7.4vw,34px)}section[data-room="map"] .mrow{margin:6px 0 3px}' +
-    'section[data-room="map"] .manch{margin-bottom:7px}section[data-room="map"] .mdef{margin-top:7px;font-size:10.5px;line-height:1.45}' +
-    'section[data-room="map"] .mcap{font-size:14px}section[data-room="map"] .mcaps{font-size:11px}' +
-    'section[data-room="map"] .mctl{gap:6px}section[data-room="map"] .mtog button{padding:11px 13px}' +
-    'section[data-room="map"] .mdefl{display:none}section[data-room="map"] .mdefs{display:block}}' +
-    /* two measured fallbacks: on a stage too short for the whole readout the room drops its own
-       trimmings first, and only then the definition line */
-    'section[data-room="map"] .mapwrap.mtight .mline,section[data-room="map"] .mapwrap.mtight .mring,section[data-room="map"] .mapwrap.mtight .mheldposts{display:none}' +
-    'section[data-room="map"] .mapwrap.mtight .mbig{font-size:26px}section[data-room="map"] .mapwrap.mtight .mdef{font-size:10px;line-height:1.4;margin-top:6px}' +
-    'section[data-room="map"] .mapwrap.mtight .mcross{gap:5px}section[data-room="map"] .mapwrap.mtight .manch{margin-bottom:4px}' +
-    'section[data-room="map"] .mapwrap.mtight .mheld{margin-top:5px;padding-top:5px}section[data-room="map"] .mapwrap.mtight .mctl{gap:5px}' +
-    /* last resort, and the last things to go: the bars and the sub-caption. the definition of the
-       number and the held-plays readout stay on every screen the room runs on */
-    'section[data-room="map"] .mapwrap.mtiny .mcross,section[data-room="map"] .mapwrap.mtiny .mcaps{display:none}' +
-    'section[data-room="map"] .mapwrap.mtiny .mbig{font-size:23px}' +
-    /* on a short stage there is no room to stack a readout, a picture and a dial, so the dots take
-       the whole stage and the type floats over them; in the curve view the chart takes it instead */
-    'section[data-room="map"] .mapwrap.mtight .mhud,section[data-room="map"] .mapwrap.mtight .mcap{text-shadow:0 1px 10px #0a0118,0 0 22px rgba(10,1,24,.95)}' +
-    'section[data-room="map"] .mapwrap.mtight .mhud{padding-bottom:14px;background:linear-gradient(180deg,rgba(10,1,24,.86) 62%,rgba(10,1,24,0))}' +
-    'section[data-room="map"] .mapwrap.mtight .mcap{padding:12px 0 2px;background:linear-gradient(0deg,rgba(10,1,24,.88) 42%,rgba(10,1,24,0))}' +
-    'section[data-room="map"] .mapwrap.mtight .mcap{font-size:12.5px;line-height:1.35}' +
-    'section[data-room="map"] .mapwrap.mtight .mtog button{min-height:38px;padding:10px 13px}' +
-    'section[data-room="map"] .mapwrap.mtight .mdial{height:34px}' +
-    'section[data-room="map"] .mapwrap.mcurve .mline,section[data-room="map"] .mapwrap.mcurve .mcross,section[data-room="map"] .mapwrap.mcurve .mring,section[data-room="map"] .mapwrap.mcurve .mheldposts{display:none}' +
-    '@media (max-aspect-ratio:115/100){section[data-room="map"] .mapwrap.mcurve .mdef{display:none}}' +
-    /* a landscape phone has almost no stage left: keep the number, the held readout and the dial */
-    'section[data-room="map"] .mapwrap.mtight .mdrag{display:none}' +
-    'section[data-room="map"] .mapwrap.mmicro .mdef,section[data-room="map"] .mapwrap.mmicro .manch{display:none}' +
-    'section[data-room="map"] .mapwrap.mmicro .mcap{font-size:12px}' +
-    /* the curve view on a short stage used to hide the whole readout, so a phone carried no number
-       at all. instead the readout collapses to one line that still holds both: what this map read
-       and what the headline reads without any map */
-    'section[data-room="map"] .mchead{display:none;align-items:baseline;gap:7px;white-space:nowrap;font:600 11px/1.25 var(--mono);letter-spacing:.05em;color:var(--mute)}' +
-    'section[data-room="map"] .mcheadv{font-size:15px;color:var(--ink);letter-spacing:0}' +
-    'section[data-room="map"] .mapwrap.mcurve.mtight .mhud{padding-bottom:0;background:none}' +
-    'section[data-room="map"] .mapwrap.mcurve.mtight .mbig,section[data-room="map"] .mapwrap.mcurve.mtight .mrow,' +
-    'section[data-room="map"] .mapwrap.mcurve.mtight .manch,section[data-room="map"] .mapwrap.mcurve.mtight .mheld,' +
-    'section[data-room="map"] .mapwrap.mcurve.mtight .mdef{display:none}' +
-    'section[data-room="map"] .mapwrap.mcurve.mtight .mchead{display:flex}';
+  st.textContent = [
+    '.mapwrap{position:absolute;display:flex;flex-direction:column;justify-content:space-between}',
+    '.mhud{pointer-events:none}',
+    '.mtop{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px 20px}',
+    '.mbig{font:600 clamp(30px,6.4vw,52px)/1 var(--mono);letter-spacing:-.02em;color:var(--ink)}',
+    '.munit{font:600 12px/1 var(--mono);letter-spacing:.08em;color:var(--mute);margin-left:6px}',
+    '.mnums{padding-bottom:2px}',
+    '.mrow{display:flex;gap:8px;align-items:baseline;font:600 12px/1 var(--mono);letter-spacing:.06em;color:var(--mute);margin-bottom:5px}',
+    '.mbi{color:var(--ink);font-size:15px}',
+    '.manch{margin:0;font:400 10.5px/1.4 var(--mono);color:var(--mute)}',
+    '.mkey{display:flex;flex-wrap:wrap;align-items:center;gap:4px 22px;margin:9px 0 0}',
+    '.mkey .legend{margin:0}',
+    '.mcross{margin:0;font:600 11px/1.4 var(--mono);color:var(--mute);letter-spacing:.03em}',
+    '.mcross b{color:var(--ink);font-weight:600}',
+    '.mctl{pointer-events:auto;display:flex;flex-direction:column;gap:8px}',
+    '.mcap{margin:0;font:400 clamp(14px,1.8vw,16px)/1.4;color:var(--ink);min-height:1.4em;max-width:40rem}',
+    '.mcaps{display:block;font:400 12px/1.45 var(--mono);color:var(--mute);margin-top:3px}',
+    '.mtogrow{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}',
+    '.mtog{display:flex;gap:5px;background:rgba(10,1,24,.6);border:1px solid var(--line);border-radius:999px;padding:4px;flex:none}',
+    '.mtog button{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:none;border:0;border-radius:999px;padding:12px 15px;min-height:40px;cursor:pointer;white-space:nowrap}',
+    '.mtog button.on{color:var(--ink);background:rgba(134,203,254,.16);box-shadow:inset 0 0 0 1px var(--ice)}',
+    '.mtog button:focus-visible{outline:2px solid var(--ice);outline-offset:3px}',
+    '.mdrag{margin:0;font:600 11px/1.35 var(--mono);letter-spacing:.05em;color:var(--mute)}',
+    '.mdrag b{color:var(--ink);font-weight:600}',
+    '.mdial{-webkit-appearance:none;appearance:none;flex:1 1 200px;min-width:160px;max-width:460px;height:40px;background:transparent;margin:0;touch-action:pan-x}',
+    '.mdial::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--mint),var(--violet))}',
+    '.mdial::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--ink);border:3px solid var(--ice);margin-top:-8.5px;box-shadow:0 0 0 4px rgba(134,203,254,.18)}',
+    '.mdial::-moz-range-track{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--mint),var(--violet))}',
+    '.mdial::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--ink);border:3px solid var(--ice)}',
+    '.mdial:focus-visible{outline:2px solid var(--ice);outline-offset:6px;border-radius:8px}',
+    '.mheldposts{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:2px 0 0}',
+    '.mheldposts .mheldlbl{flex:0 0 100%;margin:0 0 1px;font:600 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--mute)}',
+    '.mheldposts .post{margin:0}',
+    '.mheldposts .mheldnote{flex:0 0 100%}',
+    '.mheldposts .post-note{margin-top:2px}',
+    '.mnote{margin:2px 0 0;font:400 11px/1.55 var(--mono);color:var(--mute);max-width:34rem}',
+    '.mnote+.mnote{margin-top:6px}',
+  ].map((r) => S + r).join('') +
+    '@media (max-aspect-ratio:115/100){' + S + '.mheldposts{display:none}' + S + '.mbig{font-size:clamp(26px,7.4vw,34px)}' + S + '.mkey{margin-top:7px}' + S + '.mcap{font-size:14px}' + S + '.mcaps{font-size:11px}' + S + '.mctl{gap:6px}' + S + '.mtog button{padding:11px 13px}' + S + '.mdial{max-width:none}' + S + '.mdrag{font-size:10.5px;letter-spacing:0}}' +
+    S + '.mapwrap.mtight .mheldposts{display:none}' + S + '.mapwrap.mtight .mbig{font-size:26px}' + S + '.mapwrap.mtight .mkey{margin-top:5px}' + S + '.mapwrap.mtight .mctl{gap:5px}' +
+    S + '.mapwrap.mtight .mhud,' + S + '.mapwrap.mtight .mcap{text-shadow:0 1px 10px #0a0118,0 0 22px rgba(10,1,24,.95)}' +
+    S + '.mapwrap.mtight .mhud{padding-bottom:14px;background:linear-gradient(180deg,rgba(10,1,24,.86) 62%,rgba(10,1,24,0))}' +
+    S + '.mapwrap.mtight .mcap{padding:12px 0 2px;background:linear-gradient(0deg,rgba(10,1,24,.88) 42%,rgba(10,1,24,0));font-size:12.5px;line-height:1.35}' +
+    S + '.mapwrap.mtight .mtog button{min-height:38px;padding:10px 13px}' + S + '.mapwrap.mtight .mdial{height:34px}' +
+    S + '.mapwrap.mtiny .mcross,' + S + '.mapwrap.mtiny .mcaps{display:none}' + S + '.mapwrap.mtiny .mbig{font-size:23px}' +
+    S + '.mapwrap.mmicro .manchl{display:none}' + S + '.mapwrap.mmicro .mcap{font-size:12px}' +
+    '@media (max-height:480px) and (min-aspect-ratio:115/100){' + S + '.wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}' + /* sideways phone with the dock open */
+    S + '.mapwrap.mcurve .mcross,' + S + '.mapwrap.mcurve .mheldposts{display:none}' +
+    S + '.mchead{display:none;align-items:baseline;gap:7px;white-space:nowrap;font:600 11px/1.25 var(--mono);letter-spacing:.05em;color:var(--mute)}' + S + '.mcheadv{font-size:15px;color:var(--ink);letter-spacing:0}' +
+    S + '.mapwrap.mcurve.mtight .mhud{padding-bottom:0;background:none}' + S + '.mapwrap.mcurve.mtight .mtop,' + S + '.mapwrap.mcurve.mtight .mkey{display:none}' + S + '.mapwrap.mcurve.mtight .mchead{display:flex}';
   document.head.appendChild(st);
 }
 
@@ -198,25 +169,26 @@ export default {
 
     const wrap = el('div', 'mapwrap');
     const hud = el('div', 'mhud');
-    const big = el('div', 'mbig'); big.appendChild(el('span', 'mpct')); big.appendChild(el('span', 'munit', '% algorithmic')); hud.appendChild(big);
-    const row = el('div', 'mrow'); row.appendChild(el('span', '', 'bridge index')); row.appendChild(el('span', 'mbi')); hud.appendChild(row);
+    /* the readout is cut to what the dial changes and the one number it cannot touch: the definition and
+       the ringed note moved to the wall text and the wall label, so the map gets the stage */
+    const top = el('div', 'mtop');
+    const big = el('div', 'mbig'); big.appendChild(el('span', 'mpct')); big.appendChild(el('span', 'munit', '% algorithmic')); top.appendChild(big);
+    const nums = el('div', 'mnums');
+    const row = el('div', 'mrow'); row.appendChild(el('span', '', 'bridge index')); row.appendChild(el('span', 'mbi')); nums.appendChild(row);
     /* 1.05 is the published embedding-free headline: researcher.html, abstract + method
        ("the Bridge Index and the leakage correction"). */
-    hud.appendChild(el('p', 'manch', 'headline, measured without any map: 1.05'));
-    const cross = el('div', 'mcross');
-    const bar = (lbl, cls) => { const r = el('div', 'mcrow'); r.appendChild(el('span', 'mclbl', lbl)); const b = el('div', 'mbar'); b.appendChild(el('i', cls)); r.appendChild(b); r.appendChild(el('span', 'mcv ' + cls + 'v')); cross.appendChild(r); };
-    bar('my taps', 'mtap'); bar('autoplay', 'mauto');
-    hud.appendChild(cross);
-    const held = el('div', 'mcrow mheld'); held.appendChild(el('span', 'mclbl', 'my plays'));
-    /* 97,427 is exhibit/data/wall.json (total). it is the one number in this room that never moves. */
-    held.appendChild(el('span', 'mheldv', '97,427 · unchanged')); hud.appendChild(held);
-    hud.appendChild(el('p', 'mdef mdefl', 'bridge index: how often my own picks cross into another neighbourhood of the map, divided by how often autoplay does. 1.00 means no difference.'));
-    hud.appendChild(el('p', 'mdef mdefs', 'bridge index: my crossings between neighbourhoods, divided by autoplay’s. 1.00 means no difference.'));
-    hud.appendChild(el('p', 'mring', 'ringed: four of my most-played artists. they keep their colour on every map.'));
+    const anch = el('p', 'manch'); anch.append(el('span', 'manchl', 'headline, measured '), el('span', '', 'without any map: 1.05')); nums.appendChild(anch); /* the shortest stage drops the first half, never the number */
+    top.appendChild(nums); hud.appendChild(top);
+    /* the two crossing rates the index divides, as one line of type instead of two bars */
+    const key = el('div', 'mkey');
+    const cross = el('p', 'mcross');
+    cross.append(el('span', '', 'crossings: my taps '), el('b', 'mtapv'), el('span', '', ', autoplay '), el('b', 'mautov')); /* every piece is its own element so the shell's watermark sees all of the line */
+    key.appendChild(cross);
     /* the matching legend: mapmorph.json carries no genre-family tag to colour the map view by (see the
        comment at the top of this file), so the map view keeps its provenance colouring and this is that
-       legend — tap / shuffle / served, the same three colours the dots have always used here. */
-    ctx.legend(hud, 'prov');
+       legend: tap / shuffle / served, the same three colours the dots have always used here. */
+    ctx.legend(key, 'prov');
+    hud.appendChild(key);
     /* the one-line form of the same two numbers, for a stage too short to stack the readout. the
        value comes from mapmorph.json like every other reading here; 1.05 is the same published
        embedding-free headline the .manch line above carries */
@@ -237,11 +209,12 @@ export default {
     bMap.setAttribute('aria-checked', 'true'); bMap.tabIndex = 0;
     bCur.setAttribute('aria-checked', 'false'); bCur.tabIndex = -1;
     togrow.appendChild(tog);
-    togrow.appendChild(el('p', 'mdrag', 'the plays never change. only the map does.'));
     ctl.appendChild(togrow);
     const dial = el('input', 'mdial'); dial.type = 'range'; dial.min = '0'; dial.max = '6'; dial.step = '1'; dial.value = '5';
     dial.setAttribute('list', 'map-mticks'); dial.setAttribute('aria-label', 'training data, percent algorithmic');
-    ctl.appendChild(dial);
+    togrow.appendChild(dial);
+    /* 97,427 is exhibit/data/wall.json (total). it is the one number in this room that never moves. */
+    const drag = el('p', 'mdrag'); drag.append(el('span', '', 'my '), el('b', '', '97,427'), el('span', '', ' plays never change. only the map does.')); ctl.appendChild(drag);
     const dl = el('datalist'); dl.id = 'map-mticks'; for (let i = 0; i < 7; i++) { const o = el('option'); o.value = String(i); dl.appendChild(o); } ctl.appendChild(dl);
 
     /* one listening post per ringed artist, docked: a visitor can hear who is being held still while
@@ -259,13 +232,13 @@ export default {
     root.appendChild(wrap);
 
     const wall = root.parentElement.querySelector('.wall'), deeper = wall.querySelector('.deeper');
-    const note = el('p', 'mnote short-hide', 'a 2-d picture of a retrained embedding shows the mechanism. the measurement is the dial’s numbers, not the picture.');
-    wall.insertBefore(note, deeper);
+    /* the definition sits with the wall text, beside the room's claim, instead of on the map */
+    wall.insertBefore(el('p', 'mnote short-hide', 'bridge index: how often my taps cross between neighbourhoods of the map, divided by how often autoplay does. 1.00 means no difference.'), deeper);
+    wall.insertBefore(el('p', 'mnote short-hide', 'the picture shows the mechanism. the measurement is the dial’s numbers, not the picture.'), deeper);
 
     this.wrap = wrap; this.hudEl = hud; this.ctlEl = ctl;
     this.pct = hud.querySelector('.mpct'); this.bi = hud.querySelector('.mbi');
     this.tapv = hud.querySelector('.mtapv'); this.autov = hud.querySelector('.mautov');
-    this.tapBar = hud.querySelector('.mtap'); this.autoBar = hud.querySelector('.mauto');
     this.capM = cap.querySelector('.mcapm'); this.capS = cap.querySelector('.mcaps');
     this.chv = hud.querySelector('.mcheadv');
     this.dial = dial; this.bMap = bMap; this.bCur = bCur;
@@ -423,7 +396,6 @@ export default {
     this.chv.textContent = this.biTxt[lv];
     const tap = Math.round(pub.tap_crossing_pct[lv]), auto = Math.round(pub.auto_crossing_pct[lv]);
     this.tapv.textContent = tap + '%'; this.autov.textContent = auto + '%';
-    this.tapBar.style.width = tap + '%'; this.autoBar.style.width = auto + '%';
     /* on a stage too short for the sub-caption the withdrawal moves up into the main line: the
        sentence the room exists to say is never the one that gets dropped */
     if (this.mode === 'curve') { this.capM.textContent = last && this.subHidden ? NEG : (this.shortCap ? CURVE_CAP_S : CURVE_CAP); this.capS.textContent = last ? NEG : CURVE_SUB; }
@@ -593,7 +565,7 @@ export default {
       for (let k = 0; k < NPIN; k++) {
         for (let j = 0; j < nT; j++) {
           const idx = (this.trH - nT + j + TRN * 2) % TRN, o = (k * TRN + idx) * 2, f = (j + 1) / nT;
-          g.fillStyle = 'rgba(125,240,200,' + (0.05 + f * 0.2) * al + ')';
+          g.fillStyle = 'rgba(216,210,234,' + (0.05 + f * 0.2) * al + ')'; /* same neutral as the ring: a trail is a mark, not a provenance */
           g.beginPath(); g.arc(tr[o], tr[o + 1], 1 + f * 1.4, 0, TAU); g.fill();
         }
       }

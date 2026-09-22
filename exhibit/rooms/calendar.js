@@ -38,13 +38,13 @@ section[data-room=calendar] .cal-v{color:var(--violet)}
 section[data-room=calendar] .cal-pad{position:absolute;pointer-events:none;background:none}
 section[data-room=calendar] .cal-scrub{position:absolute;display:flex;align-items:center}
 section[data-room=calendar] .cal-bk{position:absolute;top:50%;width:2px;height:13px;margin-top:-6px;background:rgba(134,203,254,.75);border-radius:1px;pointer-events:none}
-section[data-room=calendar] .cal-range{-webkit-appearance:none;appearance:none;width:100%;height:44px;margin:0;padding:0;background:none;border:0;cursor:ew-resize;touch-action:pan-y}
+section[data-room=calendar] .cal-range{-webkit-appearance:none;appearance:none;width:100%;height:44px;margin:0;padding:0;background:none;border:0;cursor:ew-resize;touch-action:pan-y;color:var(--ice)}
 section[data-room=calendar] .cal-range:focus{outline:none}
-section[data-room=calendar] .cal-range:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:999px}
+section[data-room=calendar] .cal-range:focus-visible{outline:2px solid var(--ice);outline-offset:2px;border-radius:999px}
 section[data-room=calendar] .cal-range::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:rgba(134,203,254,.24)}
-section[data-room=calendar] .cal-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;margin-top:-6px;border-radius:50%;background:var(--mint);border:2px solid #0a0118;box-shadow:0 0 10px rgba(33,246,188,.45)}
+section[data-room=calendar] .cal-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;margin-top:-6px;border-radius:50%;background:currentColor;border:2px solid #0a0118;box-shadow:0 0 10px rgba(134,203,254,.45)}
 section[data-room=calendar] .cal-range::-moz-range-track{height:3px;border-radius:2px;background:rgba(134,203,254,.24);border:0}
-section[data-room=calendar] .cal-range::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--mint);border:2px solid #0a0118;box-shadow:0 0 10px rgba(33,246,188,.45)}
+section[data-room=calendar] .cal-range::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:currentColor;border:2px solid #0a0118;box-shadow:0 0 10px rgba(134,203,254,.45)}
 @media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room=calendar] .cal-m b{font-size:13.5px}section[data-room=calendar] .cal-c,section[data-room=calendar] .cal-n{font-size:10.5px}}
 @media (max-width:420px){section[data-room=calendar] .cal-split{gap:9px}section[data-room=calendar] .cal-c{font-size:10.5px}section[data-room=calendar] .cal-c::before{width:7px;height:7px;margin-right:5px}}`;
 

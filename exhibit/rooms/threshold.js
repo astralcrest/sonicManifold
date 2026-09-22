@@ -9,7 +9,7 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const KIOSK = /[?&]kiosk=1\b/.test(location.search); /* a gallery screen is mounted, not held: never raise the os motion sheet there */
 export default {
   id: 'threshold', track: 'hitting-the-infinite-derivative',
-  rx: 0, ry: 0, px: 0, py: 0, base: null, last: null, granted: false, denied: false, pending: false,
+  rx: 0, ry: 0, px: 0, py: 0, fit: 0.43, live: false, base: null, last: null, granted: false, denied: false, pending: false,
   mount(root, ctx) {
     const n = ctx.particles.n, X = new Float32Array(n), Y = new Float32Array(n), Z = new Float32Array(n);
     for (let i = 0; i < n; i++) {
@@ -23,7 +23,7 @@ export default {
   place(ctx, t, low) {
     const P = ctx.particles, s = this.s || (this.s = ctx.stage()), n = P.n, X = this.X, Y = this.Y, Z = this.Z; /* stage() reads layout: once per enter, never per frame */
     const m = Math.min(s.w, s.h), px = this.px, py = this.py;
-    const R = m * 0.43 * (1 + low * 0.1), cx = s.x + s.w / 2 - px * SHIFT * m, cy = s.y + s.h / 2 - py * SHIFT * m;
+    const R = m * this.fit * (1 + low * 0.1 + Math.sin(t * 0.0009) * 0.018), cx = s.x + s.w / 2 - px * SHIFT * m, cy = s.y + s.h / 2 - py * SHIFT * m;
     const a = t * 0.00011 + px * ROT, ca = Math.cos(a), sa = Math.sin(a), th = TILT0 + py * ROT, ct = Math.cos(th), stl = Math.sin(th); /* tilted axis, leaned by the phone */
     for (let i = 0; i < n; i++) {
       const x = X[i] * ca + Z[i] * sa, z = Z[i] * ca - X[i] * sa;
@@ -39,7 +39,7 @@ export default {
     const land = innerWidth > innerHeight, so = screen.orientation, wo = typeof window.orientation === 'number' ? window.orientation : (so && typeof so.angle === 'number' ? so.angle : 0);
     let u, v; /* u: leaning left/right on the screen's own axes, v: leaning forward/back */
     if (land) { if (wo === -90 || wo === 270) { u = -b; v = g; } else { u = b; v = -g; } } else if (wo === 180) { u = -g; v = -b; } else { u = g; v = b; }
-    const L = this.last; this.last = [u, v];
+    const L = this.last; this.last = [u, v]; this.live = true;
     /* a jump of 40 degrees between two readings is the sensor wrapping past vertical, not a hand: re-centre instead of lurching */
     if (!this.base || (L && (Math.abs(u - L[0]) > 40 || Math.abs(v - L[1]) > 40))) { this.base = [u, v]; this.rx = this.ry = 0; return; }
     const B = this.base; B[0] += (u - B[0]) * 0.004; B[1] += (v - B[1]) * 0.004;
@@ -47,7 +47,7 @@ export default {
   },
   /* desktop: the pointer's place on the stage leans the view a little less than a phone would */
   onPtr(e) {
-    const s = this.s; if (!s) return;
+    const s = this.s; if (!s) return; this.live = true;
     this.rx = clamp((e.clientX - s.x - s.w / 2) / (s.w / 2), -1, 1) * 0.4; this.ry = clamp((e.clientY - s.y - s.h / 2) / (s.h / 2), -1, 1) * 0.4;
   },
   listen() { if (this.oriOn) return; this.oriOn = (e) => this.onOri(e); addEventListener('deviceorientation', this.oriOn, { passive: true }); },
@@ -81,11 +81,14 @@ export default {
     this.armed = false; this.unask();
     if (this.oriOn) { removeEventListener('deviceorientation', this.oriOn); this.oriOn = null; }
     if (this.ptrOn) { removeEventListener('pointermove', this.ptrOn); this.ptrOn = null; }
-    this.rx = this.ry = this.px = this.py = 0; this.base = null; this.last = null;
+    this.rx = this.ry = this.px = this.py = 0; this.base = null; this.last = null; this.live = false;
   },
   enter(ctx) {
     const P = ctx.particles; P.ease = 0.03; P.jitter = 0.5; P.big = false; P.swirl = 0;
     this.s = ctx.stage(); this.t0 = 0;
+    /* a phone held upright puts the sphere above the text: its outer shell has to stay clear of the kicker
+       under it, so the core is drawn a little smaller there (1.23 shell x 1.02 breath still inside the stage) */
+    this.fit = innerWidth > innerHeight * 1.15 ? 0.43 : 0.385;
     if (!this.X) return;
     P.color((i) => SHADES[(ctx.hash(i * 11 + 7) * 4) | 0]);
     this.arm(ctx);
@@ -95,6 +98,9 @@ export default {
   frame(g, t, bands, w, h, ctx) {
     if (!this.X || ctx.reduced) return; const P = ctx.particles; const dt = this.t0 ? Math.min(50, t - this.t0) : 16; this.t0 = t;
     if (P.ease < 0.16) P.ease = Math.min(0.16, P.ease + dt * 0.000042); /* gather slowly, then keep up with the turn; by the clock, not by the frame rate */
+    /* until a hand or a tilt arrives, the view leans on its own, slowly, so a phone that never grants the
+       sensor still sees the sphere as a thing in space and not a still picture. the first real reading ends it. */
+    if (!this.live) { this.rx = Math.sin(t * 0.00037) * 0.45; this.ry = Math.sin(t * 0.00023 + 1.1) * 0.35; }
     const k = Math.min(1, dt * 0.005); this.px += (this.rx - this.px) * k; this.py += (this.ry - this.py) * k; /* ~200 ms lag: the view leans, it never snaps */
     this.place(ctx, t, bands.low);
   },

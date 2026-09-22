@@ -8,16 +8,23 @@ const rgb = (h) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
 const css = (c, a) => 'rgba(' + c + ',' + a + ')';
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const CUE_TEXT = 'the bright lines are jumps between scenes. flip between my taps and autoplay';
+const CUE_TEXT_S = 'the bright lines are jumps between scenes'; /* a narrow stage: the toggle right under it says the rest */
 
 const CSS = `
 section[data-room="listeners"] .lst-cav{font:400 11px/1.55 var(--mono);color:var(--mute);opacity:.72;margin:6px 0 0;max-width:32rem}
 section[data-room="listeners"] .lst-fine summary{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);cursor:pointer;padding:12px 0 6px;width:max-content}
-section[data-room="listeners"] .lst-fine summary:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+section[data-room="listeners"] .lst-fine summary:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+/* the two disclosures share one row while closed; an open one takes the full width */
+section[data-room="listeners"] .lst-fines{display:flex;flex-wrap:wrap;column-gap:22px}
+section[data-room="listeners"] .lst-fines details[open]{flex:0 0 100%}
+section[data-room="listeners"] .lst-fine .legend{margin:8px 0 0}
 section[data-room="listeners"] .lst-hit{position:absolute}
 section[data-room="listeners"] .lst-toggle{position:absolute;transform:translate(-50%,-50%);display:flex;gap:6px;background:rgba(10,1,24,.6);border:1px solid var(--line);border-radius:999px;padding:5px}
-section[data-room="listeners"] .lst-toggle button{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:none;border:0;border-radius:999px;padding:13px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
-section[data-room="listeners"] .lst-toggle button.on{color:#06130f;background:linear-gradient(100deg,var(--mint),#62e7ff)}
-section[data-room="listeners"] .lst-toggle button:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+section[data-room="listeners"] .lst-toggle button{display:flex;align-items:center;gap:8px;font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:none;border:0;border-radius:999px;padding:13px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
+/* each button carries the line colour it draws, so the toggle is the edge legend */
+section[data-room="listeners"] .lst-toggle .lst-sw{display:block;width:14px;height:3px;border-radius:2px;flex:none}
+section[data-room="listeners"] .lst-toggle button.on{color:var(--ink);background:rgba(134,203,254,.16);box-shadow:inset 0 0 0 1px var(--ice)}
+section[data-room="listeners"] .lst-toggle button:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
 section[data-room="listeners"] .lst-live{position:absolute;transform:translate(-50%,-50%);font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);opacity:.75;white-space:nowrap}
 /* on the shortest stages the open listening post reaches this line: clip it out of sight but keep it announced */
 section[data-room="listeners"] .lst-live.clip{width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
@@ -27,7 +34,7 @@ section[data-room="listeners"] .lst-tag.below{transform:translate(-50%,0)}
 section[data-room="listeners"] .lst-post{position:absolute;transform:translateX(-50%);width:min(340px,calc(100vw - 30px));background:rgba(10,1,24,.86);border:1px solid var(--line);border-radius:14px;padding:6px 12px 10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 section[data-room="listeners"] .lst-post:empty{display:none}
 section[data-room="listeners"] .lst-listbox{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-section[data-room="listeners"] .lst-cue{position:absolute;transform:translate(-50%,-100%);font:600 11px/1.4 var(--mono);color:var(--mint2);background:rgba(10,1,24,.78);border:1px solid rgba(125,240,200,.25);border-radius:999px;padding:7px 14px;max-width:min(30rem,80vw);margin:0;text-align:center;pointer-events:none;transition:opacity .4s ease}
+section[data-room="listeners"] .lst-cue{position:absolute;transform:translate(-50%,-100%);font:600 11px/1.3 var(--mono);color:var(--ice);background:rgba(10,1,24,.86);border:1px solid rgba(134,203,254,.3);border-radius:999px;padding:5px 13px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;pointer-events:none;transition:opacity .4s ease}
 /* the rate readout: two rows of a hundred dots, in the reading column where the claim is, always visible */
 section[data-room="listeners"] .lst-strip{margin:14px 0 12px;max-width:30rem}
 section[data-room="listeners"] .lst-strip-h{font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 9px}
@@ -43,7 +50,9 @@ section[data-room="listeners"] .lst-post .post-note{font-size:10.5px;line-height
 @media (max-width:640px){section[data-room="listeners"] .lst-wide-only{display:none}section[data-room="listeners"] .lst-why{font-size:14px;line-height:1.38}section[data-room="listeners"] .lst-strip{margin:10px 0 8px}section[data-room="listeners"] .lst-strip-h{margin-bottom:6px}section[data-room="listeners"] .lst-line{margin-bottom:2px}section[data-room="listeners"] .lst-dots{gap:1.2px;margin-bottom:8px}section[data-room="listeners"] .lst-dots i{aspect-ratio:auto;height:5px}}
 @media (max-height:720px){section[data-room="listeners"] .lst-why{font-size:12.5px;line-height:1.38}section[data-room="listeners"] .lst-strip{margin:8px 0 6px}section[data-room="listeners"] .lst-strip-h{font-size:9.5px;margin-bottom:5px}section[data-room="listeners"] .lst-line{font-size:10.5px;margin-bottom:2px}section[data-room="listeners"] .lst-line .lst-v{font-size:12px}section[data-room="listeners"] .lst-dots{gap:1.1px;margin-bottom:7px}section[data-room="listeners"] .lst-dots i{aspect-ratio:auto;height:4px}section[data-room="listeners"] .lst-post{padding:5px 10px 8px}section[data-room="listeners"] .lst-post .post-note{font-size:9.5px;margin-top:6px}}
 /* a phone held sideways: the reading column is ~190px wide and 270px tall, so every line of it is rationed */
-@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .lst-strip{margin:6px 0 4px}section[data-room="listeners"] .lst-strip-h{font-size:8.5px;letter-spacing:.12em;margin-bottom:4px}section[data-room="listeners"] .lst-line{font-size:9.5px;margin-bottom:2px}section[data-room="listeners"] .lst-line .lst-v{font-size:11px}section[data-room="listeners"] .lst-dots{gap:1px;margin-bottom:6px}section[data-room="listeners"] .lst-dots i{height:3px}section[data-room="listeners"] .lst-why{font-size:11px;line-height:1.32}section[data-room="listeners"] .lst-cav{font-size:10px;line-height:1.42;margin-top:4px}section[data-room="listeners"] .lst-fine summary{padding:7px 0 4px}}
+@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .lst-strip{margin:5px 0 3px}section[data-room="listeners"] .lst-strip-h{font-size:8.5px;letter-spacing:.12em;margin-bottom:4px}section[data-room="listeners"] .lst-line{font-size:9.5px;margin-bottom:2px}section[data-room="listeners"] .lst-line .lst-v{font-size:11px}section[data-room="listeners"] .lst-dots{gap:1px;margin-bottom:4px}section[data-room="listeners"] .lst-dots i{height:3px}section[data-room="listeners"] .lst-why{font-size:11px;line-height:1.32}section[data-room="listeners"] .lst-cav{font-size:10px;line-height:1.42;margin-top:4px}section[data-room="listeners"] .lst-fine summary{padding:7px 0 4px;font-size:10px;letter-spacing:.05em}section[data-room="listeners"] .lst-fines{column-gap:14px}}
+/* sideways phone with the dock open: the scrolling wall ends above the dock instead of under it */
+@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}
 `;
 const fmt = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
@@ -92,21 +101,24 @@ export default {
     strRow('my taps', nTap, tap, 'rgb(' + this.MINT + ')');
     strRow('autoplay', nAuto, auto, 'rgb(' + this.AV + ')');
     extra.appendChild(strip);
-    extra.appendChild(el('p', 'say lst-why', 'autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.'));
-    extra.appendChild(el('p', 'lst-cav', 'this is a direction, not a size.'));
-    const fine = extra.appendChild(el('details', 'lst-fine')); fine.appendChild(el('summary', '', 'why not a size'));
+    extra.appendChild(el('p', 'say lst-why', 'autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares. it gives a direction, not a size.'));
+    const fines = extra.appendChild(el('div', 'lst-fines'));
+    const fine = fines.appendChild(el('details', 'lst-fine')); fine.appendChild(el('summary', '', 'why not a size'));
     ['a third to two fifths of my jumps carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13.', 'the drawn graph keeps only the busiest ' + n + ' artists and their strongest edges, so it is a picture of my two habits, not the measurement.'].forEach((t) => fine.appendChild(el('p', 'lst-cav', t)));
     fine.open = innerWidth > innerHeight * 1.15 && innerHeight >= 480; /* closed on phones in either orientation */
     fine.addEventListener('toggle', () => { if (this.ready && root.parentElement.classList.contains('is-active')) this.enter(ctx); });
 
-    /* the colour code, in one more disclosure rather than new always-on lines: on a short phone stage the
+    /* the colour code, in one more disclosure ("the colours") rather than new always-on lines: on a short phone stage the
        graph already meets the wall text at its tightest point, so nothing here may add height unconditionally.
        the sentence covers what a screen reader needs; the chips below it are aria-hidden decoration of the same fact. */
-    const clr = extra.appendChild(el('details', 'lst-fine')); clr.appendChild(el('summary', '', 'what the colours mean'));
+    const clr = fines.appendChild(el('details', 'lst-fine')); clr.appendChild(el('summary', '', 'the colours'));
     clr.appendChild(el('p', 'lst-cav', 'each cluster is coloured by genre family, grey for no public tag. the bridge lines are coloured by who pressed play: mint for my taps, violet for autoplay.'));
-    ctx.legend(clr, 'prov'); ctx.legend(clr, 'fam', { items: d.communities });
-    clr.open = innerWidth > innerHeight * 1.15 && innerHeight >= 480; /* closed on phones in either orientation, same rule as "why not a size" above */
-    clr.addEventListener('toggle', () => { if (this.ready && root.parentElement.classList.contains('is-active')) this.enter(ctx); });
+    /* no provenance chips here: only two line colours appear and the toggle buttons carry them */
+    ctx.legend(clr, 'fam', { items: d.communities });
+    clr.open = false; /* closed everywhere: open, the ten family chips pushed the wall into the label button */
+    this.wallEl = wall; this.fines = [fine, clr];
+    clr.addEventListener('toggle', () => { if (clr.open && fine.open) fine.open = false; if (this.ready && root.parentElement.classList.contains('is-active')) this.enter(ctx); });
+    fine.addEventListener('toggle', () => { if (fine.open && clr.open) clr.open = false; });
 
     this.hit = root.appendChild(el('div', 'lst-hit'));
     this.hit.setAttribute('aria-hidden', 'true'); /* pointer-only decoration; the listbox below is the real control */
@@ -114,8 +126,8 @@ export default {
     this.hit.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') this.hoverAt(e.clientX, e.clientY); });
 
     const tgl = el('div', 'lst-toggle'); tgl.setAttribute('role', 'radiogroup'); tgl.setAttribute('aria-label', 'which edges to show');
-    const bTap = el('button', 'on', 'my taps'); bTap.type = 'button'; bTap.setAttribute('role', 'radio'); bTap.setAttribute('aria-checked', 'true'); bTap.tabIndex = 0;
-    const bAuto = el('button', '', 'autoplay'); bAuto.type = 'button'; bAuto.setAttribute('role', 'radio'); bAuto.setAttribute('aria-checked', 'false'); bAuto.tabIndex = -1;
+    const bTap = el('button', 'on', 'my taps'); bTap.prepend(this.swatch(this.MINT)); bTap.type = 'button'; bTap.setAttribute('role', 'radio'); bTap.setAttribute('aria-checked', 'true'); bTap.tabIndex = 0;
+    const bAuto = el('button', '', 'autoplay'); bAuto.prepend(this.swatch(this.AV)); bAuto.type = 'button'; bAuto.setAttribute('role', 'radio'); bAuto.setAttribute('aria-checked', 'false'); bAuto.tabIndex = -1;
     tgl.append(bTap, bAuto); root.appendChild(tgl); this.tgl = tgl; this.bTap = bTap; this.bAuto = bAuto;
     bTap.addEventListener('click', () => this.flip('tap', ctx)); bAuto.addEventListener('click', () => this.flip('auto', ctx));
     tgl.addEventListener('keydown', (e) => {
@@ -157,6 +169,21 @@ export default {
     this.announce(); this.ready = true;
   },
 
+  /* portrait, a disclosure open: the wall would grow up past the stage's 26% floor and run under the
+     toggle, so it becomes a scroll box that ends where that floor does, scrolled to the opened text */
+  capWall() {
+    const w = this.wallEl, H = innerHeight, open = this.fines.some((f) => f.open);
+    const fade = 'linear-gradient(180deg,transparent,#000 24px)';
+    if (!open || innerWidth > H * 1.15) { w.style.maxHeight = w.style.overflowY = w.style.overscrollBehavior = w.style.webkitMaskImage = w.style.maskImage = ''; return; }
+    const pb = parseFloat(getComputedStyle(w.parentElement).paddingBottom) || 0;
+    w.style.maxHeight = Math.floor(H - pb - (Math.max(64, H * 0.1) + H * 0.26 + 18)) + 'px';
+    w.style.overflowY = 'auto'; w.style.overscrollBehavior = 'contain';
+    w.style.webkitMaskImage = w.style.maskImage = w.scrollHeight > w.clientHeight + 1 ? fade : '';
+    w.scrollTop = w.scrollHeight;
+  },
+
+  swatch(c) { const i = el('i', 'lst-sw'); i.style.background = 'rgb(' + c + ')'; i.setAttribute('aria-hidden', 'true'); return i; },
+
   buildEdges(list) {
     const n = list.length, x1 = new Float32Array(n), y1 = new Float32Array(n), x2 = new Float32Array(n), y2 = new Float32Array(n), a0 = new Float32Array(n), br = new Uint8Array(n);
     const px = this.px, comm = this.nodeComm;
@@ -180,15 +207,17 @@ export default {
     }
     this.tapPre = this.buildEdges(this.d.tap_edges); this.autoPre = this.buildEdges(this.d.auto_edges);
     this.hit.style.left = s.x + 'px'; this.hit.style.top = s.y + 'px'; this.hit.style.width = s.w + 'px'; this.hit.style.height = s.h + 'px';
-    const cx = s.x + s.w / 2, cy = s.y + s.h - 26;
+    const cx = s.x + s.w / 2, cy = s.y + s.h - 29; /* the toggle is ~56px tall: its lower edge stays on the stage, clear of the dock */
     this.sx = s.x; this.sy = s.y; this.sw = s.w;
     this.tgl.style.left = cx + 'px'; this.tgl.style.top = cy + 'px';
     /* the listbox is clipped to 1px (visually hidden) but must sit at a real on-screen point — an unset/auto
        position here makes focus-follows-scrollIntoView jump the whole page to wherever "auto" resolved to */
     this.listbox.style.left = cx + 'px'; this.listbox.style.top = cy + 'px';
     this.live.style.left = cx + 'px'; this.live.style.top = (cy - 44) + 'px'; this.liveTop = cy - 49;
-    const cueTop = cy - 82;
-    this.cue.style.left = cx + 'px'; this.cue.style.top = cueTop + 'px'; this.cue.style.maxWidth = Math.max(140, Math.min(320, s.w - 24)) + 'px';
+    /* the cue sits in the gap between the graph's lower edge and the toggle, on one line, so it never
+       lies across the clusters; a narrow stage gets the short form */
+    this.cue.textContent = s.w >= 600 ? CUE_TEXT : CUE_TEXT_S;
+    this.cue.style.left = cx + 'px'; this.cue.style.top = (cy - 31) + 'px'; this.cue.style.maxWidth = Math.max(140, s.w - 16) + 'px';
     /* the post lives at the top of the stage in both orientations: below the toggle it fell off the
        bottom of the screen on desktop, and pinned to the tapped node it landed on the name tag on phones */
     this.postSlot.style.left = cx + 'px'; this.postSlot.style.top = (s.y + 2) + 'px';
@@ -197,6 +226,7 @@ export default {
   },
 
   fitLive() {
+    if (this.cue && !this.cue.hidden) { this.live.classList.add('clip'); return; } /* the cue is using its line */
     if (!this.postSlot.firstChild) { this.live.classList.remove('clip'); return; }
     if (!this.postRect) this.postRect = this.postSlot.getBoundingClientRect();
     this.live.classList.toggle('clip', this.postRect.bottom > this.liveTop - 4);
@@ -252,8 +282,8 @@ export default {
     const ni = this.order[idx]; this.kbFocusIdx = ni; this.showTag(ni);
   },
 
-  showCue() { if (this.cue && !this.interacted) this.cue.hidden = false; },
-  hideCue() { this.interacted = true; if (this.cue && !this.cue.hidden) this.cue.hidden = true; this.pulseSet = null; },
+  showCue() { if (this.cue && !this.interacted) { this.cue.hidden = false; this.fitLive(); } },
+  hideCue() { this.interacted = true; if (this.cue && !this.cue.hidden) { this.cue.hidden = true; this.fitLive(); } this.pulseSet = null; },
 
   showIntro() {
     if (!this.root || !this.root.parentElement.classList.contains('is-active') || this.interacted) return;
@@ -286,6 +316,7 @@ export default {
     const P = ctx.particles; this.reduced = ctx.reduced;
     P.ease = 0.05; P.jitter = 0.5; P.big = false; P.touch = false; /* here the pointer names artists; it should not scatter them */
     if (!this.ready) { P.scatter(); P.color(() => 0x6b5a86); return; }
+    this.capWall();
     const nodeColor = this.nodeColor, nodes = this.d.nodes, n = nodes.length;
     const gh = this.gh = Math.max(0.6, 1 - 84 / ctx.stage().h);
     P.target((i) => { const nd = nodes[P.artist[i] % n]; const r = Math.sqrt(ctx.hash(i)) * (0.008 + nd.plays_bucket * 0.009), a = ctx.hash(i * 97 + 13) * 6.283; return [clamp(nd.xy[0] + Math.cos(a) * r, 0, 1), clamp(nd.xy[1] + Math.sin(a) * r, 0, 1) * gh]; });
@@ -327,7 +358,7 @@ export default {
     if (p < 1) { draw(this.fromPre, 1 - p, this.fromCol, null); draw(curPre, p, curCol, pulse); } else draw(curPre, 1, curCol, pulse);
     if (this.kbFocusIdx != null && this.px) {
       const i = this.kbFocusIdx, px = this.px, base = this.clusterR ? this.clusterR[i] : 20, r = base + (this.reduced ? 0 : Math.sin(t * 0.005) * 2);
-      g.globalAlpha = 0.85; g.strokeStyle = 'rgb(' + this.MINT + ')'; g.lineWidth = 2;
+      g.globalAlpha = 0.85; g.strokeStyle = '#86cbfe'; g.lineWidth = 2; /* a selection ring is interface: ice */
       g.beginPath(); g.arc(px[i * 2], px[i * 2 + 1], Math.max(10, r), 0, 6.283); g.stroke();
     }
     g.globalAlpha = 1;
