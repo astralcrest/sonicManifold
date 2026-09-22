@@ -81,7 +81,9 @@
     background:var(--mint);color:#05100b;border:0;border-radius:8px;
     padding:11px 20px;min-height:44px;cursor:pointer;font-weight:600;text-transform:lowercase;
   }
-  button:disabled{background:#1c2a2a;color:#8a97a3;cursor:not-allowed}
+  button:disabled,button[aria-disabled=true]{background:#1c2a2a;color:#8a97a3;cursor:not-allowed}
+  button.ghost.demo[aria-disabled=true]{background:transparent;border-color:var(--line);color:#8a97a3}
+  #sec-results:focus{outline:none}#sec-results:focus-visible{outline:2px solid var(--mint);outline-offset:4px}
   button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
   .bx-share{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
   a.bx-btn{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:11px 16px;border-radius:8px;text-decoration:none;color:var(--mint);border:1px solid rgba(33,246,188,.45);background:rgba(33,246,188,.06)}
@@ -245,8 +247,8 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
   </section>
 
   <section aria-labelledby="sec-results">
-    <h2 id="sec-results">&#9698;&#9700; your results</h2>
-    <div id="results" aria-live="polite">
+    <h2 id="sec-results" tabindex="-1">&#9698;&#9700; your results</h2>
+    <div id="results">
     <div class="demo-badge" id="demoBadge">sample data, not your listening history</div>
     <p class="verdict" id="verdict"></p>
     <p class="refline" id="refline"></p>
@@ -1010,6 +1012,9 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
       progressEl=document.getElementById("progress"), progressFill=document.getElementById("progressFill"),
       progressStageLabel=document.getElementById("progressStageLabel"), progressPct=document.getElementById("progressPct");
   var chosen=[]; // {name, file}
+  var running=false;
+  // aria-disabled rather than disabled while a run is going: a disabled button that holds focus drops it to <body>
+  function lock(b,on){ b.setAttribute("aria-disabled", on?"true":"false"); }
 
   function fmtInt(n){ return n.toLocaleString("en-US"); }
   function pct(x){ return (x*100).toFixed(1)+"%"; }
@@ -1274,10 +1279,10 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     demoBadge.classList.remove("show");
     logEl.textContent=""; logEl.classList.add("show");
     hideProgress();
-    go.disabled=true; demoBtn.disabled=true; picker.disabled=true;
+    running=true; lock(go,true); lock(demoBtn,true); picker.disabled=true;
   }
   function restoreUIAfterRun(){
-    picker.disabled=false; demoBtn.disabled=false;
+    running=false; lock(go,false); lock(demoBtn,false); picker.disabled=false;
     go.disabled = chosen.filter(function(c){return !/video/i.test(c.name);}).length===0;
   }
 
@@ -1326,9 +1331,10 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
         return;
       }
       render(out.result, isDemoRun);
-      statusEl.textContent = isDemoRun ? "done. sample data, nothing was sent." : "done. nothing was sent.";
+      statusEl.textContent = isDemoRun ? "done. sample data, nothing was sent. the results are below." : "done. nothing was sent. your results are below.";
       hideProgress();
       restoreUIAfterRun();
+      try{ document.getElementById("sec-results").focus({preventScroll:true}); }catch(_e){}
     }).catch(function(e){
       statusEl.textContent="";
       errEl.textContent=e.message||String(e);
@@ -1338,8 +1344,8 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     });
   }
 
-  go.addEventListener("click",function(){ runCompute("files"); });
-  demoBtn.addEventListener("click",function(){ runCompute("demo"); });
+  go.addEventListener("click",function(){ if(running) return; runCompute("files"); });
+  demoBtn.addEventListener("click",function(){ if(running) return; runCompute("demo"); });
 
   function render(r, isDemo){
     demoBadge.classList.toggle("show", !!isDemo);

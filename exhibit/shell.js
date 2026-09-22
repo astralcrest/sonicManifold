@@ -217,22 +217,55 @@ const A = {
     }
     /* ios only lets an <audio> element start outside a tap if it has already been started inside one. rooms change on scroll, so
        the second deck is started (silent: its gain is 0) and paused right here, inside the visitor's first tap */
-    try { const spare = this.els[1]; spare.src = 'audio/bed/' + (this.want || 'hitting-the-infinite-derivative') + '.mp3'; const pr = spare.play(); if (pr && pr.then) pr.then(() => { if (this.cur !== 1) spare.pause(); }).catch(() => {}); } catch (e) {}
+    try { const spare = this.els[1]; spare.src = 'audio/bed/' + (this.want || 'hitting-the-infinite-derivative') + '.mp3'; const sg = this.gen[1], pr = spare.play(); if (pr && pr.then) pr.then(() => { if (this.cur !== 1 && this.gen[1] === sg) spare.pause(); }).catch(() => {}); } catch (e) {}
     this.on = true; this.level(); if (this.wantDistant) this.distant(this.wantDistant); if (this.want) this.play(this.want);
   },
   level() { if (!this.gain) return; const v = this.muted ? 0 : this.ducked ? 0.0001 : 0.85; this.gain.gain.setTargetAtTime(v, this.ac.currentTime, 0.25); this.sfx.gain.setTargetAtTime(this.muted ? 0 : this.ducked ? 0.2 : 1, this.ac.currentTime, 0.1); },
   /* a phone pauses <audio> when the tab goes to the background and does not start it again by itself */
   rearm() { if (this.cur >= 0 && !this.muted && this.els[this.cur].paused) this.els[this.cur].play().catch(() => {}); },
+  /* gen[k] goes up every time deck k is handed a new track, so a timer or event from an older request can tell it lost */
+  gen: [0, 0], reqT: -1e9, coT: 0,
   play(track, xf = 0.9) {
-    this.want = track; if (!this.on || !track) return;
-    const url = 'audio/bed/' + track + '.mp3';
+    this.want = track; this.wantXf = xf; if (!this.on || !track) return;
     if (this.cur >= 0 && this.els[this.cur].dataset.t === track) return;
-    const nx = this.cur === 0 ? 1 : 0, el = this.els[nx], t = this.ac.currentTime;
-    el.dataset.t = track; el.src = url; el.currentTime = 0;
-    el.play().catch(() => { const again = () => { removeEventListener('pointerdown', again); if (this.els[this.cur] === el) el.play().catch(() => {}); }; addEventListener('pointerdown', again, { once: true }); });
-    this.g[nx].gain.cancelScheduledValues(t); this.g[nx].gain.setTargetAtTime(1, t, xf);
-    if (this.cur >= 0) { const old = this.cur; this.g[old].gain.cancelScheduledValues(t); this.g[old].gain.setTargetAtTime(0, t, xf); setTimeout(() => { if (this.cur !== old) this.els[old].pause(); }, 1500 + xf * 3000); }
-    this.cur = nx;
+    const now = performance.now(), busy = now - this.reqT < 350 || this.coT; this.reqT = now;
+    /* a burst of room changes (held keys, a dot, a kiosk handover) starts only the bed it ends on */
+    if (busy) { clearTimeout(this.coT); this.coT = setTimeout(() => { this.coT = 0; this.commit(this.want, this.wantXf); }, 350); return; }
+    this.commit(track, xf);
+  },
+  commit(track, xf) {
+    if (!track || (this.cur >= 0 && this.els[this.cur].dataset.t === track)) return;
+    let nx = this.cur === 0 ? 1 : 0, old = this.cur;
+    /* the current deck's bed has not arrived yet: give it the new track and let the one still sounding stay the outgoing bed */
+    if (old >= 0 && this.g[old].gain.value <= 0.001 && this.g[nx].gain.value > 0.001) { nx = old; old = 1 - old; }
+    const el = this.els[nx], g = this.g[nx].gain, gen = ++this.gen[nx], t = this.ac.currentTime;
+    /* the spare deck may still be fading out: swapping its src while audible is a click, so take it to silence first */
+    const hot = g.value > 0.001;
+    g.cancelScheduledValues(t); g.setValueAtTime(hot ? g.value : 0, t); if (hot) g.linearRampToValueAtTime(0, t + 0.04);
+    el.dataset.t = track; this.cur = nx;
+    const start = () => {
+      if (this.gen[nx] !== gen) return;
+      let fb = 0, done = false;
+      /* the fade waits for sound: a bed can take 200-650 ms to arrive, and a ramp started at play() would have it enter half-loud */
+      const fade = () => {
+        if (done) return; done = true; clearTimeout(fb); el.removeEventListener('playing', fade);
+        if (this.gen[nx] !== gen || this.cur !== nx) return;
+        const t2 = this.ac.currentTime; g.cancelScheduledValues(t2); g.setValueAtTime(g.value, t2); g.setTargetAtTime(1, t2, xf);
+        if (old >= 0) { const og = this.g[old].gain; og.cancelScheduledValues(t2); og.setValueAtTime(og.value, t2); og.setTargetAtTime(0, t2, xf); this.park(old, this.gen[old], 1500 + xf * 3000); }
+      };
+      el.addEventListener('playing', fade); fb = setTimeout(fade, 1500);
+      el.src = 'audio/bed/' + track + '.mp3'; el.currentTime = 0;
+      el.play().catch(() => { const again = () => { removeEventListener('pointerdown', again); if (this.cur === nx && this.gen[nx] === gen) el.play().catch(() => {}); }; addEventListener('pointerdown', again, { once: true }); });
+    };
+    if (hot) setTimeout(start, 50); else start();
+  },
+  /* pause a deck once it is silent, and only if nobody has handed it a new track since */
+  park(k, gen, ms) {
+    setTimeout(() => {
+      if (this.gen[k] !== gen || this.cur === k) return;
+      if (this.g[k].gain.value > 0.001) { this.park(k, gen, 300); return; }
+      this.els[k].pause();
+    }, ms);
   },
   mute(m) { this.muted = m; this.level(); },
   /* interface tones: D minor pentatonic, quiet, skipped when muted. step 0 = D4 */

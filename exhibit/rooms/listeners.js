@@ -11,7 +11,7 @@ const CUE_TEXT = 'the bright lines are jumps between scenes. flip between my tap
 const CUE_TEXT_S = 'the bright lines are jumps between scenes'; /* a narrow stage: the toggle right under it says the rest */
 
 const CSS = `
-section[data-room="listeners"] .lst-cav{font:400 11px/1.55 var(--mono);color:var(--mute);opacity:.72;margin:6px 0 0;max-width:32rem}
+section[data-room="listeners"] .lst-cav{font:400 12px/1.55 var(--mono);color:var(--mute);margin:6px 0 0;max-width:32rem}
 section[data-room="listeners"] .lst-fine summary{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);cursor:pointer;padding:12px 0 6px;width:max-content}
 section[data-room="listeners"] .lst-fine summary:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
 /* the two disclosures share one row while closed; an open one takes the full width */
@@ -25,7 +25,7 @@ section[data-room="listeners"] .lst-toggle button{display:flex;align-items:cente
 section[data-room="listeners"] .lst-toggle .lst-sw{display:block;width:14px;height:3px;border-radius:2px;flex:none}
 section[data-room="listeners"] .lst-toggle button.on{color:var(--ink);background:rgba(134,203,254,.16);box-shadow:inset 0 0 0 1px var(--ice)}
 section[data-room="listeners"] .lst-toggle button:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
-section[data-room="listeners"] .lst-live{position:absolute;transform:translate(-50%,-50%);font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);opacity:.75;white-space:nowrap}
+section[data-room="listeners"] .lst-live{position:absolute;transform:translate(-50%,-50%);font:600 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
 /* on the shortest stages the open listening post reaches this line: clip it out of sight but keep it announced */
 section[data-room="listeners"] .lst-live.clip{width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 section[data-room="listeners"] .lst-tag{position:absolute;transform:translate(-50%,-100%);font:600 11px/1 var(--mono);color:var(--ink);background:rgba(10,1,24,.75);border:1px solid var(--line);border-radius:6px;padding:4px 8px;pointer-events:none;white-space:nowrap}
@@ -37,10 +37,11 @@ section[data-room="listeners"] .lst-listbox{position:absolute;width:1px;height:1
 section[data-room="listeners"] .lst-cue{position:absolute;transform:translate(-50%,-100%);font:600 11px/1.3 var(--mono);color:var(--ice);background:rgba(10,1,24,.86);border:1px solid rgba(134,203,254,.3);border-radius:999px;padding:5px 13px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;pointer-events:none;transition:opacity .4s ease}
 /* the rate readout: two rows of a hundred dots, in the reading column where the claim is, always visible */
 section[data-room="listeners"] .lst-strip{margin:14px 0 12px;max-width:30rem}
-section[data-room="listeners"] .lst-strip-h{font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 9px}
+section[data-room="listeners"] .lst-strip-h{font:600 10px/1.35 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 9px}
 section[data-room="listeners"] .lst-line{display:flex;align-items:baseline;gap:7px;font:600 11.5px/1.4 var(--mono);color:var(--ink);margin:0 0 4px}
 section[data-room="listeners"] .lst-line .lst-k{font-weight:400;color:var(--mute)}
 section[data-room="listeners"] .lst-line .lst-v{margin-left:auto;font-size:13px}
+section[data-room="listeners"] .lst-ratio{font:400 12px/1.45 var(--mono);color:var(--mute);margin:-3px 0 0}
 section[data-room="listeners"] .lst-dots{display:grid;grid-template-columns:repeat(50,1fr);gap:1.4px;margin:0 0 11px}
 section[data-room="listeners"] .lst-dots i{display:block;aspect-ratio:1;min-height:3px;border-radius:1px;background:rgba(200,190,220,.16)}
 section[data-room="listeners"] .lst-dots i.on{background:var(--c)}
@@ -81,6 +82,8 @@ export default {
     this.order = nodes.map((_, i) => i).sort((a, b) => (nodes[b].plays_bucket - nodes[a].plays_bucket) || nodes[a].name.localeCompare(nodes[b].name));
 
     const fx = d.full_transition_crossing;
+    /* one decimal on screen (69.9 / 66.3) so the two printed rates divide to the 1.05 headline; whole numbers gave 70 / 66 = 1.06 */
+    const r1 = (v) => (Math.round(v * 1000) / 10).toFixed(1), tap1 = r1(fx.tap), auto1 = r1(fx.auto), /* half-up: toFixed alone gives 69.8 for 69.85 */ ratio = (fx.tap / fx.auto).toFixed(2);
     const tap = Math.round(fx.tap * 100), auto = Math.round(fx.auto * 100), nTap = fx.n_tap, nAuto = fx.n_auto;
     this.tapPct = tap; this.autoPct = auto;
     extra.appendChild(el('p', 'say dim short-hide lst-wide-only', 'the bridges are the edges that join two different scenes.'));
@@ -88,24 +91,25 @@ export default {
        with the raw jump counts beside them. the drawn picture is counts; this is what the number compares. */
     const strip = el('div', 'lst-strip');
     strip.setAttribute('role', 'img');
-    strip.setAttribute('aria-label', 'of every 100 jumps to a new artist, mine cross between scenes about ' + tap + ' times and autoplay’s about ' + auto + '. i made ' + fmt(nTap) + ' of those jumps in seven years, autoplay made ' + fmt(nAuto) + '. autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.');
-    strip.appendChild(el('p', 'lst-strip-h', 'of every 100 jumps to a new artist'));
-    const strRow = (who, jumps, pct, colour) => {
+    strip.setAttribute('aria-label', 'of every 100 jumps to a new artist, mine cross into another scene ' + tap1 + ' times and autoplay’s ' + auto1 + '. ' + tap1 + ' against ' + auto1 + ' is the bridge index: ' + ratio + ', a direction, not a size. i made ' + fmt(nTap) + ' of those jumps in seven years, autoplay made ' + fmt(nAuto) + '. autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.');
+    strip.appendChild(el('p', 'lst-strip-h', 'of every 100 jumps to a new artist, how many cross into another scene'));
+    const strRow = (who, jumps, pct, shown, colour) => {
       const line = el('div', 'lst-line');
-      line.append(el('span', '', who), el('span', 'lst-k', '· ' + fmt(jumps) + ' jumps'), el('span', 'lst-v', String(pct)));
+      line.append(el('span', '', who), el('span', 'lst-k', '· ' + fmt(jumps) + ' jumps'), el('span', 'lst-v', shown));
       const dots = el('div', 'lst-dots'); dots.style.setProperty('--c', colour);
       const frag = document.createDocumentFragment();
       for (let q = 0; q < 100; q++) frag.appendChild(el('i', q < pct ? 'on' : ''));
       dots.appendChild(frag); strip.append(line, dots);
     };
-    strRow('my taps', nTap, tap, 'rgb(' + this.MINT + ')');
-    strRow('autoplay', nAuto, auto, 'rgb(' + this.AV + ')');
+    strRow('my taps', nTap, tap, tap1, 'rgb(' + this.MINT + ')');
+    strRow('autoplay', nAuto, auto, auto1, 'rgb(' + this.AV + ')');
+    strip.appendChild(el('p', 'lst-ratio', tap1 + ' against ' + auto1 + ' is the bridge index: ' + ratio + ', a direction, not a size.')).setAttribute('aria-hidden', 'true'); /* the strip's aria-label already says it */
     extra.appendChild(strip);
-    extra.appendChild(el('p', 'say lst-why', 'autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares. it gives a direction, not a size.'));
+    extra.appendChild(el('p', 'say lst-why', 'autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.'));
     const fines = extra.appendChild(el('div', 'lst-fines'));
     const fine = fines.appendChild(el('details', 'lst-fine')); fine.appendChild(el('summary', '', 'why not a size'));
     ['a third to two fifths of my jumps carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13.', 'the drawn graph keeps only the busiest ' + n + ' artists and their strongest edges, so it is a picture of my two habits, not the measurement.'].forEach((t) => fine.appendChild(el('p', 'lst-cav', t)));
-    fine.open = innerWidth > innerHeight * 1.15 && innerHeight >= 480; /* closed on phones in either orientation */
+    fine.open = innerWidth > innerHeight * 1.15 && innerHeight >= 860; /* closed on phones and on laptop-height screens, where open it ran into the wall label button */
     fine.addEventListener('toggle', () => { if (this.ready && root.parentElement.classList.contains('is-active')) this.enter(ctx); });
 
     /* the colour code, in one more disclosure ("the colours") rather than new always-on lines: on a short phone stage the

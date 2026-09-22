@@ -149,13 +149,32 @@ export default {
     if (A.gain && A.ac && !A.ducked) { A.gain.gain.setTargetAtTime(0.5, A.ac.currentTime, 0.2); setTimeout(() => { try { A.level(); } catch (e) {} }, 2900); }
     for (let i = 0; i < 100; i++) A.note(TICK_STEP[seq[i]], { at: 0.05 + i * 0.024, dur: 0.05, vol: 0.03, type: 'triangle' });
   },
-  /* once sorted, the "again" pill moves off the photographed pile: top-left of the stage, low opacity. re-applied
+  /* once sorted, the "again" pill moves off the photographed pile: above the stage on wide screens, inside it on a phone. re-applied
      in enter() too, so a return visit finds it already out of the way instead of re-centred */
   positionCue(ctx) {
-    const s = ctx.stage();
-    this.cue.style.left = (s.x + 46) + 'px';
-    this.cue.style.top = (s.y - 4 - (s.w > s.h ? 22 : 0)) + 'px'; /* wide screens have headroom above the wall; on a phone the header is right there */
-    this.cue.style.opacity = '.45';
+    const s = ctx.stage(), cs = this.cue.style;
+    cs.opacity = '.75';
+    /* wide screens have headroom above the wall: the pill sits there, top-left of the stage */
+    cs.transform = ''; cs.left = (s.x + 46) + 'px'; cs.top = (s.y - 26) + 'px';
+    const hdr = [document.querySelector('#top a'), document.getElementById('labelbtn'), document.getElementById('mute')].filter((el) => el && !el.hidden).map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height);
+    const hit = (a, b) => a.left < b.right + 4 && a.right > b.left - 4 && a.top < b.bottom + 4 && a.bottom > b.top - 4;
+    const rw = this.cue.getBoundingClientRect(); if (!hdr.some((b) => hit(rw, b))) return;
+    /* on a phone the header is right there, and a tap on the pill landed on the back link. so the pill goes inside the
+       stage, bottom-left, clear of the pile labels and the wall text; failing that, under the lowest label; failing that,
+       just above the label row */
+    cs.transform = 'none'; cs.left = '0px'; cs.top = '0px';
+    const r0 = this.cue.getBoundingClientRect(), w = r0.width, h = r0.height, L = s.x + 12;
+    const boxes = hdr.slice(), sec = this.root.parentElement;
+    const add = (el) => { if (!el || el.hidden) return; const r = el.getBoundingClientRect(); if (r.width && r.height) boxes.push(r); };
+    sec.querySelectorAll('.wall *').forEach((el) => { if (!el.firstElementChild && el.textContent.trim()) add(el); });
+    add(this.verdict);
+    const hasLab = this.sorted && this.pileX && this.pileY >= 0;
+    if (hasLab) for (const x of this.pileX) boxes.push({ left: x - 16, right: x + 16, top: this.pileY - 3, bottom: this.pileY + 14 });
+    const free = (T) => !boxes.some((b) => hit({ left: L, right: L + w, top: T, bottom: T + h }, b));
+    const cands = [s.y + s.h - 48];
+    if (hasLab) cands.push(this.pileY + 16, this.pileY - 7 - h);
+    let T = cands.find(free); if (T == null) T = cands[cands.length - 1];
+    cs.left = (L - r0.left) + 'px'; cs.top = (T - r0.top) + 'px';
   },
   copy() {
     const st = this.done ? 2 : this.r > 0 ? 1 : 0;
@@ -168,7 +187,7 @@ export default {
     this.syncGuess();
     if (this.pad) this.pad.style.touchAction = this.cue.style.touchAction = this.done ? 'auto' : 'none'; /* once it is sorted, swipes over the wall scroll again */
   },
-  reset(ctx) { this.teardownSwell(); ctx.audio.distant(0.5); this.r = 0; this._lt = 0; this._said = 0; this.done = false; this.sorted = false; this.lit.fill(0); ctx.particles.ease = 0.06; this.layout(ctx); this.paint(ctx); this.copy(); ctx.placeCue(this.cue); this.placeGuess(ctx); this.cue.textContent = 'press and hold'; this.cue.style.opacity = '1'; },
+  reset(ctx) { this.teardownSwell(); ctx.audio.distant(0.5); this.r = 0; this._lt = 0; this._said = 0; this.done = false; this.sorted = false; this.lit.fill(0); ctx.particles.ease = 0.06; this.layout(ctx); this.paint(ctx); this.copy(); this.cue.style.transform = ''; ctx.placeCue(this.cue); this.placeGuess(ctx); this.cue.textContent = 'press and hold'; this.cue.style.opacity = '1'; },
   enter(ctx) {
     const P = ctx.particles; P.ease = 0.06; P.jitter = 0.22; P.big = false; if (!this.ready) return;
     this.grid(ctx); this.layout(ctx); this.paint(ctx); this.copy(); ctx.placeCue(this.cue); this.placeGuess(ctx);

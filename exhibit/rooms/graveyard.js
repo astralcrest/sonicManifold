@@ -22,7 +22,7 @@ const TPL = `<div class="gv-pn">
 <div class="gv-cards"></div>
 <p class="gv-null"></p>
 <div class="gv-result" hidden>
-<p class="gv-status" aria-live="polite"></p>
+<p class="gv-status" aria-live="polite" tabindex="-1"></p>
 <p class="gv-nums"></p>
 <p class="gv-x"></p>
 <p class="gv-rule"></p>
@@ -42,7 +42,9 @@ section[data-room=graveyard] .gv-cards{display:flex;flex-direction:column;gap:8p
 section[data-room=graveyard] .gv-card{display:flex;align-items:center;gap:10px;min-height:44px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(10,1,24,.55);color:var(--ink);font:500 12.5px/1.35 var(--mono);text-align:left;cursor:pointer}
 section[data-room=graveyard] .gv-card:hover,section[data-room=graveyard] .gv-card:focus-visible{border-color:var(--ice)}
 section[data-room=graveyard] .gv-card:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
-section[data-room=graveyard] .gv-card[disabled]{opacity:.3;cursor:default}
+section[data-room=graveyard] .gv-card[disabled],section[data-room=graveyard] .gv-card[aria-disabled=true]{opacity:.3;cursor:default}
+section[data-room=graveyard] .gv-status:focus{outline:none}
+section[data-room=graveyard] .gv-status:focus-visible{outline:2px solid var(--ice);outline-offset:3px;border-radius:2px}
 section[data-room=graveyard] .gv-card span{flex:1}
 section[data-room=graveyard] .gv-null,section[data-room=graveyard] .gv-x,section[data-room=graveyard] .gv-rule,section[data-room=graveyard] .gv-stoneline,section[data-room=graveyard] .gv-caveat{margin:0;font:400 11.5px/1.55 var(--mono);color:var(--mute)}
 section[data-room=graveyard] .gv-result{display:flex;flex-direction:column;gap:6px}
@@ -100,7 +102,9 @@ export default {
     this.nl.textContent = NULL_TXT;
     this.sl.textContent = STONE_LINE;
     this.cv.textContent = CAVEAT;
-    this.ag.addEventListener('click', () => this.again(ctx));
+    this.ag.addEventListener('click', () => this.again(ctx, true));
+    /* the verdict takes focus after a run; space there would otherwise reach the shell as 'next room' */
+    this.ss.addEventListener('keydown', (e) => { if (e.key === ' ') { e.preventDefault(); e.stopPropagation(); } });
     this.pn.addEventListener('scroll', () => this.checkScroll(), { passive: true });
     /* any hand in the room during the first-visit run takes over: the run stops and the cards come back */
     this._onHand = (e) => { if (e.isTrusted) { this._autoDone = true; this.cancelAuto(ctx); } };
@@ -121,7 +125,7 @@ export default {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'gv-card';
         const claim = document.createElement('span'); claim.textContent = SHORT[i] || c.c;
         b.appendChild(claim);
-        b.addEventListener('click', () => this.run(ctx, i));
+        b.addEventListener('click', () => { if (!this._busy) this.run(ctx, i, true); });
         this.cd.appendChild(b);
       });
       const buried = (d && d.buried) || [];
@@ -159,8 +163,15 @@ export default {
     const pn = this.pn, more = pn.scrollHeight > pn.clientHeight + 1 && pn.scrollTop + pn.clientHeight < pn.scrollHeight - 2;
     pn.classList.toggle('more', more);
   },
+  /* aria-disabled, not disabled: a disabled button drops keyboard focus to <body>, and the next space there is the shell's 'next room' */
   busy(b) {
-    const btns = this.cd.querySelectorAll('button'); for (let i = 0; i < btns.length; i++) btns[i].disabled = b;
+    this._busy = b;
+    const btns = this.cd.querySelectorAll('button'); for (let i = 0; i < btns.length; i++) btns[i].setAttribute('aria-disabled', b ? 'true' : 'false');
+  },
+  /* focus moves only for a run the visitor started, and only if focus is still in this room (or dropped to <body>) */
+  mayFocus() {
+    const sec = this.root && this.root.parentElement, a = document.activeElement;
+    return !!sec && sec.classList.contains('is-active') && (!a || a === document.body || sec.contains(a));
   },
   /* every dot in the field is a grain. the pile fills the lower half of the stage; cards and verdict sit above it. */
   pile(ctx) { const s = ctx.stage(), f = s.h < 420 ? 0.3 : 0.46; return { x: s.x, y: s.y + s.h * (0.98 - f), w: s.w, h: s.h * f }; },
@@ -184,9 +195,9 @@ export default {
     const P = ctx.particles, pr = this.pile(ctx), fog = ctx.PAL.fog;
     P.targetPx((k) => [pr.x + ctx.hash(k * 3 + 1) * pr.w, pr.y + pr.h - ctx.hash(k * 17 + 9) * 5]); P.color(() => fog);
   },
-  run(ctx, i) {
+  run(ctx, i, user) {
     if (!this.cases[i] || this.state === 'running' || this.state === 'dropping') return;
-    this.curCase = i; this._auto = false; /* a run by hand is the visitor's; only the first-visit timer marks its own */
+    this.curCase = i; this._auto = false; this._userRun = !!user; /* a run by hand is the visitor's; only the first-visit timer marks its own */
     const P = ctx.particles, N = P.n, nul = this.nullHue(ctx);
     this.pileRect = this.computePile(ctx, i);
     this.pn.classList.add('ran'); this.markCard(i); this.fit();
@@ -214,11 +225,15 @@ export default {
     this.xEl.textContent = c.x; this.ru.textContent = c.r;
     this.rs.hidden = false;
     this.checkScroll();
+    if (this._userRun) { this._userRun = false; if (this.mayFocus()) this.ss.focus({ preventScroll: true }); }
   },
-  again(ctx) {
+  again(ctx, user) {
+    const refocus = user && this.mayFocus();
+    this._userRun = false;
     this.state = 'idle'; this.curCase = -1; this.pileRect = null; this.rs.hidden = true; this.pn.classList.remove('ran'); this.markCard(-1);
     this._auto = false;
     ctx.particles.ease = 0.06; this.ground(ctx); this.busy(false); this.fit();
+    if (refocus) { const b = this.cd.querySelector('button'); if (b) b.focus({ preventScroll: true }); }
   },
   enter(ctx) {
     if (!this.ready) return;

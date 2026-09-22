@@ -29,7 +29,7 @@ export default {
       '<div class="g-end" hidden>' +
         '<p class="g-score say" aria-live="polite"></p>' +
         '<p class="g-prior say dim" aria-live="polite" hidden></p>' +
-        '<p class="g-note say dim">in the real log about 86% of these jumps were autoplay. this deck is balanced 50/50, so always guessing autoplay does not help.</p>' +
+        '<p class="g-note say dim">in the real log about 86% of these jumps were autoplay. each hand here is three of one and two of the other, so always guessing autoplay gets you two or three.</p>' +
         '<p class="g-caveat say dim">these labels are spotify’s own record of what started each play, not my memory of what i did.</p>' +
         '<div class="row"><button type="button" class="btn g-again">again</button><button type="button" class="btn ghost g-next">keep going</button></div>' +
       '</div>';
@@ -53,7 +53,7 @@ export default {
     this._onKeydown = (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const dlg = document.getElementById('label'); if (dlg && dlg.open) return; /* the wall label is modal: t / q / n must not answer a round behind it */
-      if (!this.active) return;
+      if (!this.active || !this.end.hidden) return; /* score screen: t / q / n have nothing left to answer */
       this.stopDemo();
       const k = e.key.toLowerCase();
       if (k === 't' && !this.tapBtn.disabled) { e.stopPropagation(); this.answer(ctx, true, true); }
@@ -79,7 +79,7 @@ export default {
     /* the panel lives inside the stage, never over the wall text. on a wide screen the two clusters stand to its right; on a phone they sit behind it */
     const s = ctx.stage(), land = innerWidth > innerHeight * 1.15, fx = land ? 0.8 : 0.5;
     this.lx = s.x + s.w * fx; this.lya = s.y + s.h * AY; this.lyb = s.y + s.h * BY;
-    const ws = this.wrap.style; ws.left = s.x + 'px'; ws.top = s.y + 'px'; ws.width = (land ? s.w * 0.6 : s.w) + 'px'; ws.height = s.h + 'px';
+    const ws = this.wrap.style; ws.left = s.x + 'px'; ws.top = s.y + 'px'; ws.width = (land && !this.endWide() ? s.w * 0.6 : s.w) + 'px'; ws.height = s.h + 'px'; this.wrap.classList.toggle('g-endwide', this.endWide());
     const P = ctx.particles, cl = this.cluster;
     P.target((i) => {
       const t = cl[i];
@@ -93,13 +93,22 @@ export default {
     P.color((i) => (cl[i] ? INK : DARK));
   },
 
+  /* a landscape phone's score screen: the clusters are gone, so the text takes the whole stage width instead of a 100-200px column */
+  endWide() { return this.end && !this.end.hidden && innerHeight <= 480; },
+
   deal(ctx, restart) {
     clearTimeout(this.timer); ctx.stopPosts();
     if (!this.pool || !this.pool.length) { this.verdict.textContent = 'the deck did not load. try again in a moment.'; this.row.hidden = true; return; }
     if (restart || !this.rounds) {
-      const idx = []; for (let i = 0; i < this.pool.length; i++) idx.push(i);
-      for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
-      this.rounds = idx.slice(0, Math.min(ROUNDS, idx.length)); this.ri = 0; this.score = 0; this.saidTap = 0;
+      const shuf = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+      const tapI = [], autoI = [], all = [];
+      for (let i = 0; i < this.pool.length; i++) { all.push(i); (this.pool[i][2] === 1 ? tapI : autoI).push(i); }
+      /* three of one kind and two of the other, so a visitor who always answers "it queued" scores two or three, never five */
+      const hiT = Math.random() < 0.5, nT = hiT ? 3 : 2, nA = ROUNDS - nT;
+      this.rounds = tapI.length >= nT && autoI.length >= nA
+        ? shuf(shuf(tapI).slice(0, nT).concat(shuf(autoI).slice(0, nA)))
+        : shuf(all).slice(0, Math.min(ROUNDS, all.length));
+      this.ri = 0; this.score = 0; this.saidTap = 0;
       this.end.hidden = true; this.mid.hidden = false; this.bar.forEach((b) => { b.className = ''; });
       if (restart) this.place(ctx); /* re-forms the two clusters if the previous game's end screen parked them */
     }
@@ -154,11 +163,11 @@ export default {
     this.scoreEl.textContent = 'you got ' + this.score + ' of ' + n + '. a coin flip averages ' + (n / 2) + '.';
     /* the visitor's own five answers, spent: their guessed-tap rate against the real one (wall.json pct_rounded.tap) */
     if (this.wallTapPct != null) {
-      const yours = Math.round((this.saidTap / n) * 100);
-      this.priorEl.textContent = 'your guesses called it tapped ' + yours + ' in a hundred. across the real log, i tapped ' + this.wallTapPct + ' in a hundred.';
+      this.priorEl.textContent = 'you called ' + this.saidTap + ' of ' + n + ' tapped. across the real log, i tapped ' + this.wallTapPct + ' in a hundred.';
       this.priorEl.hidden = false;
     } else this.priorEl.hidden = true;
     this.disperseClusters(ctx); /* the score screen's text now owns the stage; the connector is also gated off in frame() */
+    if (this.endWide()) { this.wrap.style.width = ctx.stage().w + 'px'; this.wrap.classList.add('g-endwide'); }
     /* this.mid.hidden=true above can drop focus to <body> the same way showRound()'s posts clear does */
     if (hadFocus) try { this.wrap.querySelector('.g-again').focus({ preventScroll: true }); } catch (e) {}
   },
@@ -179,6 +188,7 @@ export default {
     const P = ctx.particles; P.ease = 0.05; P.jitter = 0.5;
     if (!this.ready) return;
     this.place(ctx);
+    if (!this.end.hidden) this.disperseClusters(ctx); /* back on the score screen (or a resize there): keep the clusters parked */
     if (!this.rounds) this.deal(ctx, false);
   },
   leave(ctx) {
@@ -270,5 +280,6 @@ css.textContent =
 'section[data-room="game"] .g-tap.ok,section[data-room="game"] .g-queue.ok{background:var(--ink);color:#0a0118}' +
 'section[data-room="game"] .g-tap.bad,section[data-room="game"] .g-queue.bad{background:none;color:var(--mute);border:1px dashed var(--mute)}' +
 'section[data-room="game"] .g-end{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:34ch}' +
-'section[data-room="game"] .g-score{font-weight:600}';
+'section[data-room="game"] .g-score{font-weight:600}' +
+'@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="game"] .g-wrap.g-endwide{overflow-y:auto;overscroll-behavior:contain}section[data-room="game"] .g-end{gap:2px;max-width:none}section[data-room="game"] .g-mid{gap:8px}section[data-room="game"] .g-name{font-size:24px}section[data-room="game"] .g-mid.answered .g-name,section[data-room="game"] .g-mid.answered .g-arrow{display:none}}';
 document.head.appendChild(css);
