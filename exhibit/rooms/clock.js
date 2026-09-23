@@ -201,7 +201,7 @@ export default {
        sideways leaves a small dial, and a viewport-sized 14:00 would sit straight across the annulus. */
     if (this.elHr) {
       this.elHr.style.fontSize = Math.max(14, Math.min(34, R * 0.21)).toFixed(1) + 'px';
-      const sub = Math.max(8.2, Math.min(12, R * 0.088)).toFixed(1) + 'px';
+      const sub = Math.max(10.5, Math.min(12, R * 0.088)).toFixed(1) + 'px'; /* the floor was 8.2px: too small to read on the two narrowest phones, and the scrim behind the readout can carry the extra width */
       this.elN.style.fontSize = sub; this.elT.style.fontSize = sub;
     }
     return this.geo;

@@ -142,8 +142,11 @@ export function stage() {
   }
   const padX = Math.max(16, W * 0.05); /* portrait: stage on top, text underneath. the stage ends where the active room's text begins */
   let h = H * 0.46; const sec = sections[Math.max(0, active)], wl = sec && sec.querySelector('.wall');
-  if (wl && wl.offsetTop > 0) h = Math.max(H * 0.26, Math.min(h, wl.offsetTop - top - 16));
-  return { x: padX, y: top, w: W - padX * 2, h };
+  /* the clearance is a ceiling, never a floor: a 568px phone gave the old H*0.26 floor priority and the stage
+     bottom landed inside the wall text. 96 is only there so a room never gets a degenerate band to lay out in;
+     the css cap on .wall under 600px of height keeps it from ever being the binding constraint. */
+  if (wl && wl.offsetTop > 0) h = Math.min(h, wl.offsetTop - top - 16);
+  return { x: padX, y: top, w: W - padX * 2, h: Math.max(96, h) };
 }
 
 function resize() {
@@ -631,6 +634,7 @@ const againBtn = $('#again'); if (againBtn) againBtn.addEventListener('click', (
 /* ------------------------------------------------------------------ signature: the title and the byline, quietly, in the corner of the stage,
    so the frames a visitor photographs carry them. drawn on the overlay canvas, which is aria-hidden, so no screen reader has to hear it twice. */
 const SIG = 'mostly the machine · astralcrest', SIGFONT = '500 10px "JetBrains Mono", ui-monospace, Menlo, monospace';
+const forcedColors = matchMedia('(forced-colors: active)'); /* the field keeps its own palette there, so the signature has to carry its own contrast */
 let sigOn = false, sigX = 0, sigY = 0, sigW = 0, sigT = -1e9;
 function sigPlace() {
   sigOn = false;
@@ -660,7 +664,7 @@ function drawSig() {
   og.setTransform(ODPR, 0, 0, ODPR, 0, 0);
   og.globalAlpha = 1; og.globalCompositeOperation = 'source-over'; og.shadowBlur = 0; og.shadowColor = 'transparent';
   if ('filter' in og) og.filter = 'none';
-  og.textAlign = 'left'; og.textBaseline = 'alphabetic'; og.font = SIGFONT; og.fillStyle = 'rgba(240,234,255,.26)';
+  og.textAlign = 'left'; og.textBaseline = 'alphabetic'; og.font = SIGFONT; og.fillStyle = forcedColors.matches ? '#ffffff' : 'rgba(240,234,255,.26)';
   og.fillText(SIG, sigX, sigY);
 }
 

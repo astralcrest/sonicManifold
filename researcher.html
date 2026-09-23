@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>Streaming Logs Are Not Preference Logs: Technical Report</title>
 <meta name="description" content="Streaming Logs Are Not Preference Logs: a single-subject provenance audit of the human–recommender loop. Technical report: method, gauntlet, graveyard.">
+<meta name="robots" content="index, follow, noai, noimageai">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/researcher.html">
 <meta property="og:title" content="Streaming Logs Are Not Preference Logs: technical report">
@@ -82,8 +83,13 @@
     font-size: 0.85rem;
     color: var(--text-dim);
   }
-  .head-links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(184,147,95,0.35); }
-  .head-links a:hover { border-bottom-color: var(--accent); }
+  /* these six were 17px tall, the height of a line box, and two of them are the only way off this page.
+     inline-block plus vertical padding gives them a real target without changing the run of text. */
+  .head-links a, .claim-card .jump a { display: inline-block; padding-block: 15px; line-height: 1.2; min-height: 44px; }
+  .head-links .pending { white-space: nowrap; }
+  .head-links { margin-block: -0.55rem 0; }
+  .head-links a { color: var(--accent); text-decoration: underline; text-decoration-color: rgba(184,147,95,0.45); text-underline-offset: 3px; border-bottom: 0; }
+  .head-links a:hover { text-decoration-color: var(--accent); }
   .head-links .sep { color: var(--text-faint); margin: 0 0.55em; }
   .head-links .pending { color: var(--text-faint); font-style: italic; }
 
@@ -330,15 +336,36 @@
     .scoreboard { gap: 0.7rem; }
     .headline-row { grid-template-columns: 1fr; gap: 0.15rem; }
   }
+  /* on paper the palette inverts at the source: every rule downstream reads these tokens, so re-pointing them
+     turns the whole page over at once instead of chasing 800 elements. dark card fills become a rule. */
   @media print {
-    body { background: #fff; color: #111; }
+    :root {
+      --bg: #fff; --bg-raised: #fff; --border: #999;
+      --text: #111; --text-dim: #333; --text-faint: #444;
+      --accent: #5a4526; --mono-num: #111; --mint: #0a6a54; --rose: #9c1c4a; --ice: #0b4e7d;
+      color-scheme: light;
+    }
+    html, body { background: #fff !important; color: #111; }
+    body::before, body::after { display: none !important; }
     .page { max-width: none; padding: 0.4in 0.5in; }
     a { color: #111; text-decoration: underline; }
     .method-block, .method-cmp, table { background: #fff; border-color: #999; }
     .disp-killed { color: #555; }
     th { color: #111; border-bottom-color: #333; }
     td, th { border-bottom-color: #ccc; }
-    .scoreboard .cell, .tile { background: #fff; border-color: #999; }
+    .scoreboard .cell, .tile, .claim-card, .cav-card, .caveat, .note, .callout, details, summary, pre, code, blockquote {
+      background: #fff !important; color: #111; border-color: #999;
+    }
+    h1, h2, h3, h4, .title, .claim-card .cv, .claim-card .cl, .claim-card .ck, .tbl-cap { color: #111; -webkit-text-fill-color: #111; background: none; }
+    p, li, dd, dt, td, span, small, em, strong, figcaption { color: #111; }
+    /* the few places that set a literal colour instead of a token */
+    h1.title, h2.mc-h, td.mc-m, td.mc-m b, .mc-sub { color: #111 !important; -webkit-text-fill-color: #111; }
+    #findings th, .mc-t th, table th { color: #111 !important; }
+    .disp, .disp-caveated, .disp-killed, .disp-survived { color: #333 !important; }
+    /* the pipeline diagram is svg with its own fills: labels to ink, the coded bars keep their hue.
+       !important because #pipe-css sits further down the document and sets the same five classes at the
+       same specificity, so without it the screen fills won and the diagram printed at 2:1 on white. */
+    .pp-t { fill: #333 !important; } .pp-h { fill: #111 !important; } .pp-k, .pp-n, .pp-big { fill: #5a4526 !important; }
   }
   #findings table { min-width: 640px; }
   .tbl-cap { font-family: var(--sans); font-size: 0.82rem; color: var(--text-faint); font-style: italic; margin: 0.75rem 0 0.5rem; max-width: none; }
@@ -349,8 +376,8 @@
   .claim-card .cl { font-size: 0.86rem; color: var(--text-dim); margin: 0 0 0.4rem; line-height: 1.55; max-width: none; }
   .claim-card .cl strong { color: var(--text); font-weight: 600; }
   .claim-card .cl num { white-space: nowrap; }
-  .claim-card .jump { font-size: 0.82rem; margin: 0.7rem 0 0; color: var(--text-faint); }
-  .claim-card .jump a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(184,147,95,0.35); }
+  .claim-card .jump { font-size: 0.82rem; margin: 0.15rem 0 -0.5rem; color: var(--text-faint); }
+  .claim-card .jump a { color: var(--accent); text-decoration: underline; text-decoration-color: rgba(184,147,95,0.45); text-underline-offset: 3px; border-bottom: 0; }
   .claim-card .jump .sep { margin: 0 0.5em; }
   .claim-limits { border: 1px solid var(--border); border-radius: 6px; padding: 0.7rem 1.3rem; margin: 0 0 2.5rem; font-family: var(--sans); font-size: 0.84rem; color: var(--text-dim); }
   .claim-limits ul { margin: 0; padding-left: 1.1rem; }

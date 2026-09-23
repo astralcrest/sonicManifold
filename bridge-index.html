@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <title>bridge index: compute your own</title>
 <meta name="description" content="Compute your own Bridge Index from your Spotify Extended Streaming History, entirely in your browser. Nothing is uploaded.">
+<meta name="robots" content="index, follow, noai, noimageai">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/bridge-index.html">
 <meta property="og:title" content="bridge index: audit your own listening">
@@ -193,6 +194,19 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
 /* responsive: wide desktop */
 @media (min-width:1441px){
   .wrap{max-width:820px}
+}
+/* printed: the dark panel palette goes to ink on white by re-pointing the tokens, the same way the
+   landing page and the technical summary do it. */
+@media print{
+  :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--line:#999;
+    --ink:#111;--dim:#333;--faint:#333;--mint:#0a6a54;--mint-dk:#0a6a54;
+    --rose:#9c1c4a;--ice:#0b4e7d;--warn:#7a4f06}
+  html,body{background:#fff!important;color:#111}
+  body::before,body::after{display:none!important}
+  h1,h2,h3{color:#111;-webkit-text-fill-color:#111;background:none}
+  p,li,dt,dd,td,th,span,small,em,strong,b,code,figcaption{color:#111}
+  a{color:#111;text-decoration:underline}
+  button,input,select,button:disabled,button[aria-disabled=true]{color:#111;background:#fff;border-color:#999}
 }
 </style>
 </head>

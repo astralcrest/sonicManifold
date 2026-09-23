@@ -286,5 +286,6 @@ css.textContent =
 'section[data-room="game"] .g-tap.bad,section[data-room="game"] .g-queue.bad{background:none;color:var(--mute);border:1px dashed var(--mute)}' +
 'section[data-room="game"] .g-end{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:34ch}' +
 'section[data-room="game"] .g-score{font-weight:600}' +
+'@media (min-width:1600px){section[data-room="game"] .g-mid{max-width:clamp(340px,26vw,560px)}section[data-room="game"] .g-kbd{font-size:clamp(11px,.7vw,16px)}section[data-room="game"] .g-arrow{font-size:clamp(18px,1.1vw,26px)}}' +
 '@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="game"] .g-wrap.g-endwide{overflow-y:auto;overscroll-behavior:contain}section[data-room="game"] .g-end{gap:2px;max-width:none}section[data-room="game"] .g-mid{gap:8px}section[data-room="game"] .g-name{font-size:24px}section[data-room="game"] .g-mid.answered .g-name,section[data-room="game"] .g-mid.answered .g-arrow{display:none}}';
 document.head.appendChild(css);

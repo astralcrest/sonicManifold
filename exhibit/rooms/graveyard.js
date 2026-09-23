@@ -47,6 +47,9 @@ section[data-room=graveyard] .gv-status:focus{outline:none}
 section[data-room=graveyard] .gv-status:focus-visible{outline:2px solid var(--ice);outline-offset:3px;border-radius:2px}
 section[data-room=graveyard] .gv-card span{flex:1}
 section[data-room=graveyard] .gv-null,section[data-room=graveyard] .gv-x,section[data-room=graveyard] .gv-rule,section[data-room=graveyard] .gv-stoneline,section[data-room=graveyard] .gv-caveat{margin:0;font:400 11.5px/1.55 var(--mono);color:var(--mute)}
+/* the plume falls through this copy: 11.5px mono with amber dots scattered through the glyphs was unreadable.
+   the loose lines get the same dark pill the cards and the listeners cue already use. */
+section[data-room=graveyard] .gv-null,section[data-room=graveyard] .gv-result,section[data-room=graveyard] .gv-buried,section[data-room=graveyard] .gv-caveat{background:rgba(10,1,24,.74);border-radius:10px;padding:8px 12px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 section[data-room=graveyard] .gv-result{display:flex;flex-direction:column;gap:6px}
 section[data-room=graveyard] .gv-status{margin:0;min-height:1.3em;font:600 13.5px/1.4 var(--mono)}
 section[data-room=graveyard] .gv-status.k{color:var(--rose)}

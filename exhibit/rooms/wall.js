@@ -108,7 +108,9 @@ export default {
         + '.wg input[type=range]::-moz-range-track{height:2px;background:rgba(134,203,254,.38);border-radius:1px}'
         + '.wg input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--ice);border:0}'
         + '.wg input[type=range]:focus-visible{outline:2px solid var(--ice);outline-offset:2px;border-radius:4px}'
-        + '.wg .wg-out{display:block;margin-top:2px;font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ice)}';
+        + '.wg .wg-out{display:block;margin-top:2px;font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ice)}'
+        /* a gallery screen: a 320px card with 11.5px type is a postcard on a 2560px wall */
+        + '@media (min-width:1600px){.wg{width:min(440px,calc(100vw - 32px));font-size:clamp(11.5px,.72vw,17px);padding:14px 20px 10px}.wg .wg-out{font-size:clamp(10.5px,.64vw,15px)}}';
       document.head.appendChild(st);
     }
     const wg = document.createElement('div'); wg.className = 'wg'; wg.hidden = true;
@@ -129,7 +131,14 @@ export default {
   },
   placeGuess(ctx) {
     if (!this.wg) return;
-    const s = ctx.stage(); this.wg.style.left = (s.x + s.w / 2) + 'px'; this.wg.style.top = Math.round(s.y + s.h / 2 + 30) + 'px';
+    const s = ctx.stage(); this.wg.style.left = (s.x + s.w / 2) + 'px';
+    let t = Math.round(s.y + s.h / 2 + 30);
+    /* the panel is ~110px tall and grows as the label wraps; on a short phone half-the-stage-plus-30 put its
+       bottom edge on the kicker. keep it inside the stage. offsetHeight is 0 while it is hidden, and copy()
+       has already settled hidden by the time enter() places it. */
+    const hh = this.wg.offsetHeight;
+    if (hh) t = Math.max(Math.round(s.y), Math.min(t, Math.round(s.y + s.h - hh)));
+    this.wg.style.top = t + 'px';
   },
   /* shown only while the wall is still white and untouched, and only until a guess exists */
   syncGuess() { if (this.wg) this.wg.hidden = !(this.guess == null && !this.done && this.r === 0); },

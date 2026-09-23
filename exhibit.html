@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
 <title>mostly the machine, a sonic manifold exhibit</title>
 <meta name="description" content="Seven years of one person's streaming log as an eight-room exhibit: 97,427 plays, who pressed play, a ruler that changed, a map that lied, two listeners, a graveyard of my own findings.">
+<meta name="robots" content="index, follow, noai, noimageai">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <link rel="preload" href="fonts/JetBrainsMono-sub.woff2" as="font" type="font/woff2" crossorigin>
@@ -73,9 +74,9 @@ section.is-active .room-body{opacity:1;visibility:visible;transition:opacity .7s
 @media (hover:none){.dot::before{display:none}}
 .dot.on::after{background:var(--mint);width:18px;border-radius:3px;box-shadow:0 0 12px rgba(33,246,188,.6)}
 #top{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top)) clamp(14px,4vw,28px) 10px;font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}
-#top a{color:var(--mute);text-decoration:none;padding:12px 4px}
+#top a{color:var(--mute);text-decoration:none;padding:12px 4px;display:inline-flex;align-items:center;min-height:44px}
 #top a:hover{color:var(--ink)}
-#mute{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:11px 14px;min-height:40px;cursor:pointer}
+#mute{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:11px 14px;min-height:44px;cursor:pointer}
 #mute[aria-pressed="false"]{color:var(--mint);border-color:rgba(33,246,188,.45)}
 body:not(.entered) #dots,body:not(.entered) #mute{visibility:hidden}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font:600 11px/1.3 var(--mono);letter-spacing:.08em;color:var(--mute);margin:10px 0 0}
@@ -87,14 +88,49 @@ noscript p{position:relative;z-index:4;padding:24px}
 @media (max-width:640px){#dots{right:0}.dot{width:34px}.btn{padding:16px 18px;letter-spacing:.08em}.row{gap:8px;margin-top:12px}}
 @media (max-aspect-ratio:115/100){section[data-room]::before{content:"";position:absolute;left:0;right:0;bottom:0;height:52%;background:linear-gradient(180deg,rgba(10,1,24,0),rgba(10,1,24,.86) 38%,#0a0118 70%);pointer-events:none}.wall{position:relative}}
 @media (min-aspect-ratio:115/100){.wall{max-width:min(34rem,calc(40vw - 110px))}h1{font-size:clamp(40px,6.6vw,112px)}h2{font-size:clamp(30px,4.6vw,68px)}}
+/* a landscape screen that is narrow (a 1024x768 projector, a half-width window) or short (a browser
+   window that is not full height): the wall column is 40vw, so the threshold's text stacked past the
+   bottom and both doors sat under a fold. scroll-snap-stop jumps the whole section, so a visitor could
+   never scroll down to them; they entered by falling into room 01 without ever choosing sound.
+   measured on a 14x12 grid of landscape sizes in chromium and webkit: every size 560px tall and over
+   now clears. only sizes that were already broken are touched, so 1152x768 and everything larger is
+   pixel-identical to before. the column stays clear of stage() (max(40vw,430) from the left edge):
+   34vw - 20px is under that bound at every width from 900 to 2560. */
+@media (min-aspect-ratio:115/100) and (min-height:481px) and (max-width:1199px),
+       (min-aspect-ratio:115/100) and (min-height:481px) and (max-height:700px){
+  .wall{max-width:min(34rem,calc(34vw - 20px))}
+  h1{font-size:clamp(32px,4.6vw,56px);margin-bottom:6px}
+  h2{font-size:clamp(25px,3.6vw,44px);margin-bottom:6px}
+  .no{margin-bottom:5px}
+  .say{font-size:15px;line-height:1.4;margin-bottom:6px}
+  .say.dim{font-size:12.5px;line-height:1.44}
+  .row{margin-top:8px}
+}
+/* a landscape window under ~580px tall, at any width. one tier tighter, which is what it takes to keep the
+   doors on screen at 900x500; below 481px the phone-sideways branch further down takes over. */
+@media (min-aspect-ratio:115/100) and (min-height:481px) and (max-height:580px){
+  h1{font-size:clamp(28px,3.6vw,44px);margin-bottom:4px}
+  h2{font-size:clamp(22px,2.9vw,36px);margin-bottom:4px}
+  .no{margin-bottom:4px}
+  .say{font-size:14px;line-height:1.36;margin-bottom:5px}
+  .say.dim{font-size:12px;line-height:1.4}
+  .row{margin-top:6px}
+  .btn{min-height:44px;padding:12px 16px}
+}
 @media (max-height:720px) and (max-aspect-ratio:115/100){section[data-room]{padding-bottom:calc(env(safe-area-inset-bottom) + max(34px,var(--dockh)))}h1{font-size:38px;margin-bottom:8px}h2{font-size:28px;margin-bottom:8px}.no{margin-bottom:8px}.say{font-size:14.5px;line-height:1.42;margin-bottom:6px}.say.dim{font-size:12.5px}.deeper{margin-top:4px;padding:10px 0}.row{margin-top:8px}.btn{min-height:44px;padding:13px 12px;letter-spacing:.05em}.short-hide{display:none}}
-#labelbtn{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom) + max(0px,var(--dockh) - clamp(56px,9vh,96px)));z-index:5;font:600 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);background:rgba(10,1,24,.55);border:1px solid var(--line);border-radius:3px;padding:10px 12px;min-height:40px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+/* a very short phone held upright (an se at 568px): the wall text alone is taller than the screen, so the stage
+   had nowhere to go and the room's own numbers landed on the kicker. same idiom as the landscape branch below:
+   the text scrolls inside its own column and keeps ~230px of the top for the room. the threshold is exempt,
+   its wall holds the two doors in and nothing may push those under a fold. */
+@media (max-height:600px) and (max-aspect-ratio:115/100){section[data-room]:not([data-room="threshold"]) .wall{max-height:calc(100vh - 254px);overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin;-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 22px),transparent)}}
+@supports (height:100svh){@media (max-height:600px) and (max-aspect-ratio:115/100){section[data-room]:not([data-room="threshold"]) .wall{max-height:calc(100svh - 254px)}}}
+#labelbtn{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom) + max(0px,var(--dockh) - clamp(56px,9vh,96px)));z-index:5;font:600 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);background:rgba(10,1,24,.55);border:1px solid var(--line);border-radius:3px;padding:10px 12px;min-height:44px;min-width:44px;gap:.34em;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 #labelbtn:hover{color:var(--ink);border-color:rgba(240,234,255,.45)}#labelbtn:focus-visible,.lb-x:focus-visible,.lb-more:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 /* the placard is readable at the threshold too: in a gallery the label is how you decide whether to walk in */
 /* a phone held upright: the wall text runs to the bottom of the screen and the rooms fill the top of the stage, so the
    placard leaves the corner and takes its place in the title bar, between the way out and the sound */
-@media (max-width:640px) and (max-aspect-ratio:115/100){#labelbtn{position:static;transform:none;flex:0 0 auto;padding:9px 10px;min-height:38px}#labelbtn .lb-w{display:none}}
-@media (max-width:367px) and (max-aspect-ratio:115/100){#labelbtn .lb-l{display:none}} /* under this the title bar has room for the mark alone */
+@media (max-width:640px) and (max-aspect-ratio:115/100){#labelbtn{position:static;transform:none;flex:0 0 auto;padding:9px 10px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}#labelbtn .lb-w{display:none}}
+@media (max-width:367px) and (max-aspect-ratio:115/100){#labelbtn .lb-l{display:none}#labelbtn{min-width:44px;padding:9px 8px}} /* under this the title bar has room for the mark alone */
 #label{border:0;padding:0;background:#efe9dc;color:#17131f;max-width:min(31rem,calc(100vw - 28px));max-height:min(86vh,44rem);border-radius:2px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.2);overflow:auto;overscroll-behavior:contain}
 #label::backdrop{background:rgba(5,0,14,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .lb-body{padding:30px 32px 26px}
@@ -105,22 +141,86 @@ noscript p{position:relative;z-index:4;padding:24px}
 .lb-rows dt{font:600 10px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#6d6480;padding-top:2px}
 .lb-rows dd{margin:0;font:400 14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#17131f}
 .lb-more{display:inline-block;margin-top:20px;font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#0b6a52;text-decoration:none;border-bottom:1px solid rgba(11,106,82,.4);padding:8px 0}
-.lb-x{position:sticky;top:6px;float:right;margin:6px 6px 0 0;width:40px;height:40px;border:0;background:none;color:#4b435c;font:400 24px/1 var(--mono);cursor:pointer}
-@media (max-width:560px){.lb-body{padding:24px 20px 20px}.lb-rows{grid-template-columns:1fr;gap:2px 0}.lb-rows dd{margin-bottom:10px}.lb-t{font-size:26px}#labelbtn{padding:9px 10px}}
+.lb-x{position:sticky;top:6px;float:right;margin:6px 6px 0 0;width:44px;height:44px;border:0;background:none;color:#4b435c;font:400 24px/1 var(--mono);cursor:pointer}
+@media (max-width:560px){.lb-body{padding:24px 20px 20px}.lb-rows{grid-template-columns:1fr;gap:2px 0}.lb-rows dd{margin-bottom:10px}.lb-t{font-size:26px}#labelbtn{padding:9px 10px;min-height:44px}}
 #hint{position:fixed;z-index:4;transform:translate(-50%,0);margin:0;max-width:min(30rem,calc(100vw - 40px));text-align:center;font:500 12px/1.4 var(--mono);letter-spacing:.06em;color:var(--ice);background:rgba(10,1,24,.94);border:1px solid rgba(134,203,254,.25);border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .8s ease}
 #hint.on{opacity:1}
 .vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 /* landscape: the placard button sits in the bottom-left corner under the wall text; keep that corner clear of it */
 @media (min-aspect-ratio:115/100) and (min-height:481px){section[data-room]{padding-bottom:calc(env(safe-area-inset-bottom) + max(clamp(64px,9vh,96px),var(--dockh)))}}
 .kiosk,.kiosk *{cursor:none!important}.kiosk #top a,.kiosk .deeper,.kiosk #labelbtn{visibility:hidden}
+/* a laptop is short as well as wide: at 768px of height the open colours list in 06 reaches the bottom-left
+   corner and the placard sat on two of the thirteen genre swatches. above 820px the placard keeps its corner. */
+@media (min-aspect-ratio:115/100) and (max-height:820px){#labelbtn{position:static;transform:none;flex:0 0 auto;display:inline-flex;align-items:center;min-height:44px}}
 /* a phone held sideways: very little height. compact type, and the label button moves up beside the title bar so it never sits on the text */
-@media (max-height:480px) and (min-aspect-ratio:115/100){.wall{max-height:calc(100vh - 62px - max(0px, var(--dockh) - 8px));overflow-y:auto;padding-right:6px;scrollbar-width:thin;-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent)}section[data-room]{padding-top:54px;padding-bottom:calc(env(safe-area-inset-bottom) + max(16px,var(--dockh)))}h1{font-size:34px;margin-bottom:6px}h2{font-size:26px;margin-bottom:6px}.no{margin-bottom:6px}.say{font-size:14px;line-height:1.4;margin-bottom:5px}.say.dim{font-size:12px}.deeper{margin-top:2px;padding:8px 0}.short-hide,.land-hide{display:none}.btn{min-height:44px;padding:12px 14px}#labelbtn{bottom:auto;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 10px;min-height:36px}}
+@media (max-height:480px) and (min-aspect-ratio:115/100){.wall{max-height:calc(100vh - 62px - max(0px, var(--dockh) - 8px));overflow-y:auto;padding-right:6px;scrollbar-width:thin;-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent)}section[data-room]{padding-top:54px;padding-bottom:calc(env(safe-area-inset-bottom) + max(16px,var(--dockh)))}h1{font-size:34px;margin-bottom:6px}h2{font-size:26px;margin-bottom:6px}.no{margin-bottom:6px}.say{font-size:14px;line-height:1.4;margin-bottom:5px}.say.dim{font-size:12px}.deeper{margin-top:2px;padding:8px 0}.short-hide,.land-hide{display:none}.btn{min-height:44px;padding:12px 14px}#labelbtn{padding:8px 10px;min-height:44px;display:inline-flex;align-items:center;transform:none}}
 /* dvh goes through @supports, not a second declaration in the same block: the dvh line carries var(--dockh),
    so an engine with no dvh still parses it, still lets it win the cascade, and only throws it away at computed
    value time, which takes the vh line with it and leaves max-height:none. measured on chromium and webkit. */
 @supports (height:100dvh){@media (max-height:480px) and (min-aspect-ratio:115/100){.wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}}
 @view-transition{navigation:auto}
+/* on paper there is no particle field and no sound, so the exhibit prints as what is left: the wall text of
+   the room you were standing in, in ink on white. without this it printed a near-black page. */
+@media print{
+  :root{color-scheme:light;--bg:#fff;--ink:#111;--mute:#333;--mint:#0a6a54;--amber:#7a4f06;--violet:#453380;--rose:#9c1c4a;--ice:#0b4e7d;--line:#999}
+  html,body{background:#fff!important;color:#111}
+  canvas.layer,#glow,#dots,#hint,#top,#labelbtn,.cue,body::after{display:none!important}
+  section[data-room]::before{display:none}
+  section[data-room]{display:none}
+  section[data-room].is-active{display:block;min-height:0;padding:0}
+  .wall{max-width:none;max-height:none;overflow:visible;background:none;border:0;padding:0}
+  h1,h2{color:#111;-webkit-text-fill-color:#111;background:none}
+  .no,.say,.say.dim,.legend,.side-door,.side-door a,.deeper,p,li,span,b,em,strong{color:#111}
+  .row,.exits{display:none}
+  /* the room's own chrome is a canvas and the controls that drive it: nothing of it survives on paper,
+     and its dark pills printed as low-contrast blocks. */
+  .room-body{display:none!important}
+}
 .exits{display:flex;flex-wrap:wrap;gap:4px 18px;margin:0 0 10px}.exits .deeper{margin:0}.exits button.deeper{background:none;border:0;border-bottom:1px dotted rgba(134,203,254,.5);cursor:pointer}.side-door{font-size:13.5px;line-height:1.5;max-width:30rem}@media (min-aspect-ratio:115/100){section[data-room="make"] .wall{padding-bottom:64px}}.side-door a{color:var(--ice);text-decoration:none;border-bottom:1px dotted rgba(134,203,254,.5)}.side-door a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+/* a gallery screen, a kiosk, a 27-inch desk. the type used to stop growing at 1366 and the whole exhibit sat in
+   the middle of a 2560px wall like a postcard: 20px body text in a 544px column, 8px on the buttons you press. */
+/* the height gate matters as much as the width one: 29px body copy and a 150px headline in a 2560px-wide
+   window that is only 900px tall pushed the threshold's two doors off the bottom of the screen. gallery
+   screens and maximised windows are 1000px tall and over; a short window gets the ordinary sizes back. */
+@media (min-width:1600px) and (min-height:1000px){
+  .no{font-size:clamp(11px,.72vw,17px);letter-spacing:.26em}
+  .say{font-size:clamp(20px,1.24vw,29px);max-width:34rem}
+  .say.dim{font-size:clamp(16px,1vw,23px)}
+  .deeper,.legend{font-size:clamp(11px,.66vw,15px)}
+  .legend i{width:clamp(9px,.56vw,13px);height:clamp(9px,.56vw,13px)}
+  .side-door{font-size:clamp(13.5px,.86vw,20px);max-width:34rem}
+  .btn{font-size:clamp(12px,.72vw,17px);padding:clamp(16px,1.05vw,24px) clamp(26px,1.7vw,40px);min-height:clamp(48px,3vw,64px)}
+  .cue{font-size:clamp(11px,.7vw,16px);padding:clamp(14px,.95vw,21px) clamp(20px,1.35vw,30px)}
+  .big{font-size:clamp(84px,5.6vw,132px)}
+  #top{font-size:clamp(11px,.66vw,15px)}
+  #labelbtn{font-size:clamp(10.5px,.64vw,15px);padding:clamp(10px,.7vw,16px) clamp(12px,.86vw,20px)}
+  #hint{font-size:clamp(12px,.72vw,17px);max-width:min(40rem,calc(100vw - 40px))}
+}
+@media (min-width:1600px) and (min-height:1000px) and (min-aspect-ratio:115/100){
+  .wall{max-width:min(46rem,calc(40vw - 110px))}
+  h1{font-size:clamp(40px,6.6vw,150px)}
+  h2{font-size:clamp(30px,4.6vw,92px)}
+}
+/* windows high contrast. the field carries the colour code, so the canvases keep their own palette and the text
+   gets one solid placard over them instead of a ragged white chip per line. */
+@media (forced-colors:active){
+  #glow{display:none}
+  canvas.layer{forced-color-adjust:none}
+  section[data-room]::before{display:none}
+  .wall{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:2px;padding:14px 16px}
+  .wall h1,.wall h2{background:none;-webkit-text-fill-color:CanvasText;color:CanvasText}
+  .wall .no,.wall .no b,.wall .say,.wall .say.dim,.wall .legend,.wall .side-door,.wall .side-door a{color:CanvasText}
+  .wall .deeper{color:LinkText;border-bottom-color:LinkText}
+  #dots{forced-color-adjust:none;background:Canvas;border:1px solid CanvasText;border-radius:2px;padding:4px 0}
+  .dot::after{background:CanvasText}
+  .dot.on::after{background:Highlight}
+  #top a,#mute,#labelbtn{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none}
+  #mute[aria-pressed],#mute[aria-pressed="false"]{color:CanvasText;border-color:CanvasText}
+  .cue{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none;animation:none}
+  .btn{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}
+  .room-body{forced-color-adjust:none}
+  body::after{display:none}
+}
 </style>
 </head>
 <body>

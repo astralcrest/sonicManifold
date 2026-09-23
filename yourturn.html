@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>your turn — audit your own listening · sonic manifold</title>
 <meta name="description" content="Drop in your Spotify Extended Streaming History and see how much of your listening was actually you vs. the algorithm. Runs entirely in your browser — nothing is uploaded.">
+<meta name="robots" content="index, follow, noai, noimageai">
 <style>
   :root{
     --bg:#0a0118; --panel:#15082d; --ink:#f0eaff; --dim:#a394c9;
@@ -57,6 +58,17 @@
   .foot{font-size:12px;color:#8c81a8;line-height:1.7;margin:34px 0 0;max-width:62ch}
   .foot a{color:var(--ice)}
   .note{font-size:12px;color:var(--gold);background:rgba(255,250,106,.06);border:1px solid rgba(255,250,106,.2);border-radius:10px;padding:11px 13px;margin:18px 0 0;line-height:1.55}
+/* printed: ink on white. the tokens carry most of it; the few literal hues are named here. */
+@media print{
+  :root{color-scheme:light;--bg:#fff;--panel:#fff;--ink:#111;--dim:#333;
+    --mint:#0a6a54;--rose:#9c1c4a;--ice:#0b4e7d;--gold:#7a4f06;--orchid:#453380;--line:#999}
+  html,body{background:#fff!important;color:#111}
+  body::before,body::after{display:none!important}
+  h1,h2,h3{color:#111;-webkit-text-fill-color:#111;background:none}
+  p,li,dt,dd,td,th,span,small,em,strong,b,code,figcaption,div{color:#111}
+  a{color:#111;text-decoration:underline}
+  .note b,.note code,.privacy b,.stat b,p.foot,button,input{color:#111}
+}
 </style>
 </head>
 <body>
