@@ -14,7 +14,7 @@
    ctx = { reduced, coarse, particles, audio, data(name), go(i), stage() }
 */
 
-import { postCSS, post, stopAll, playClip, clipsAllowed } from './post.js?v=6';
+import { postCSS, post, stopAll, playClip, clipsAllowed } from './post.js?v=7';
 import { LABELS, HINTS } from './labels.js?v=11';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';

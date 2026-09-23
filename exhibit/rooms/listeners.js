@@ -53,7 +53,10 @@ section[data-room="listeners"] .lst-post .post-note{font-size:10.5px;line-height
 /* a phone held sideways: the reading column is ~190px wide and 270px tall, so every line of it is rationed */
 @media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .lst-strip{margin:5px 0 3px}section[data-room="listeners"] .lst-strip-h{font-size:8.5px;letter-spacing:.12em;margin-bottom:4px}section[data-room="listeners"] .lst-line{font-size:9.5px;margin-bottom:2px}section[data-room="listeners"] .lst-line .lst-v{font-size:11px}section[data-room="listeners"] .lst-dots{gap:1px;margin-bottom:4px}section[data-room="listeners"] .lst-dots i{height:3px}section[data-room="listeners"] .lst-why{font-size:11px;line-height:1.32}section[data-room="listeners"] .lst-cav{font-size:10px;line-height:1.42;margin-top:4px}section[data-room="listeners"] .lst-fine summary{padding:7px 0 4px;font-size:10px;letter-spacing:.05em}section[data-room="listeners"] .lst-fines{column-gap:14px}}
 /* sideways phone with the dock open: the scrolling wall ends above the dock instead of under it */
-@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}
+@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .wall{max-height:calc(100vh - 62px - max(0px, var(--dockh) - 8px))}}
+/* dvh behind @supports: a second declaration in the same block is no fallback here, because this one carries
+   var(--dockh) and so survives parsing on an engine with no dvh, then dies at computed value time */
+@supports (height:100dvh){@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}}
 `;
 const fmt = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 

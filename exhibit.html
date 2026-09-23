@@ -9,12 +9,12 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
 <link rel="preload" href="fonts/JetBrainsMono-sub.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/exhibit.html">
-<link rel="modulepreload" href="exhibit/shell.js?v=20260925g">
-<link rel="modulepreload" href="exhibit/post.js?v=6">
+<link rel="modulepreload" href="exhibit/shell.js?v=20260926a">
+<link rel="modulepreload" href="exhibit/post.js?v=7">
 <link rel="modulepreload" href="exhibit/labels.js?v=11">
-<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260925g">
-<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260925g">
-<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260925g">
+<link rel="modulepreload" href="exhibit/rooms/threshold.js?v=20260926a">
+<link rel="modulepreload" href="exhibit/rooms/wall.js?v=20260926a">
+<link rel="preload" as="fetch" crossorigin href="exhibit/data/wall.json?v=20260926a">
 <meta name="theme-color" content="#0a0118">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/exhibit.html">
@@ -41,8 +41,11 @@ canvas.layer{position:fixed;inset:0;width:100vw;height:100vh;height:100svh;displ
 body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E")}
 main{position:relative;z-index:3}
 section[data-room]{min-height:100vh;min-height:100svh;scroll-snap-align:start;scroll-snap-stop:always;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:max(72px,env(safe-area-inset-top)) clamp(18px,6vw,80px) calc(env(safe-area-inset-bottom) + max(clamp(56px,9vh,96px),var(--dockh)))}
-.wall{max-width:min(34rem,100%);opacity:0;transform:translateY(10px);transition:opacity .9s ease .25s,transform .9s ease .25s}
-section.is-active .wall{opacity:1;transform:none}
+/* visibility, not just opacity: `inert` is Firefox 112+ / Safari 15.5+, and on an older engine it is the only thing
+   keeping eight off-screen rooms' links out of the tab order. same idiom as .room-body below. the .15s tail on the
+   delay lets the wall stay visible through its whole fade out. */
+.wall{max-width:min(34rem,100%);opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .9s ease .25s,transform .9s ease .25s,visibility 0s linear 1.15s}
+section.is-active .wall{opacity:1;visibility:visible;transform:none;transition:opacity .9s ease .25s,transform .9s ease .25s,visibility 0s}
 .no{font:600 11px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin:0 0 14px}
 .no b{color:var(--ice);font-weight:600}
 h1,h2{font-family:var(--serif);font-style:italic;font-weight:500;letter-spacing:-.01em;margin:0 0 14px;line-height:1.02}
@@ -80,7 +83,7 @@ body:not(.entered) #dots,body:not(.entered) #mute{visibility:hidden}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:-1px}
 .big{font:600 clamp(40px,9vw,84px)/1 var(--mono);letter-spacing:-.03em;margin:0 0 6px}
 noscript p{position:relative;z-index:4;padding:24px}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.wall{transition:none;opacity:1;transform:none}.cue{animation:none}.room-body,section.is-active .room-body{transition:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.wall{transition:none;transform:none}section.is-active .wall{transition:none}.cue{animation:none}.room-body,section.is-active .room-body{transition:none}}
 @media (max-width:640px){#dots{right:0}.dot{width:34px}.btn{padding:16px 18px;letter-spacing:.08em}.row{gap:8px;margin-top:12px}}
 @media (max-aspect-ratio:115/100){section[data-room]::before{content:"";position:absolute;left:0;right:0;bottom:0;height:52%;background:linear-gradient(180deg,rgba(10,1,24,0),rgba(10,1,24,.86) 38%,#0a0118 70%);pointer-events:none}.wall{position:relative}}
 @media (min-aspect-ratio:115/100){.wall{max-width:min(34rem,calc(40vw - 110px))}h1{font-size:clamp(40px,6.6vw,112px)}h2{font-size:clamp(30px,4.6vw,68px)}}
@@ -111,7 +114,11 @@ noscript p{position:relative;z-index:4;padding:24px}
 @media (min-aspect-ratio:115/100) and (min-height:481px){section[data-room]{padding-bottom:calc(env(safe-area-inset-bottom) + max(clamp(64px,9vh,96px),var(--dockh)))}}
 .kiosk,.kiosk *{cursor:none!important}.kiosk #top a,.kiosk .deeper,.kiosk #labelbtn{visibility:hidden}
 /* a phone held sideways: very little height. compact type, and the label button moves up beside the title bar so it never sits on the text */
-@media (max-height:480px) and (min-aspect-ratio:115/100){.wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px));overflow-y:auto;padding-right:6px;scrollbar-width:thin;-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent)}section[data-room]{padding-top:54px;padding-bottom:calc(env(safe-area-inset-bottom) + max(16px,var(--dockh)))}h1{font-size:34px;margin-bottom:6px}h2{font-size:26px;margin-bottom:6px}.no{margin-bottom:6px}.say{font-size:14px;line-height:1.4;margin-bottom:5px}.say.dim{font-size:12px}.deeper{margin-top:2px;padding:8px 0}.short-hide,.land-hide{display:none}.btn{min-height:44px;padding:12px 14px}#labelbtn{bottom:auto;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 10px;min-height:36px}}
+@media (max-height:480px) and (min-aspect-ratio:115/100){.wall{max-height:calc(100vh - 62px - max(0px, var(--dockh) - 8px));overflow-y:auto;padding-right:6px;scrollbar-width:thin;-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent)}section[data-room]{padding-top:54px;padding-bottom:calc(env(safe-area-inset-bottom) + max(16px,var(--dockh)))}h1{font-size:34px;margin-bottom:6px}h2{font-size:26px;margin-bottom:6px}.no{margin-bottom:6px}.say{font-size:14px;line-height:1.4;margin-bottom:5px}.say.dim{font-size:12px}.deeper{margin-top:2px;padding:8px 0}.short-hide,.land-hide{display:none}.btn{min-height:44px;padding:12px 14px}#labelbtn{bottom:auto;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 10px;min-height:36px}}
+/* dvh goes through @supports, not a second declaration in the same block: the dvh line carries var(--dockh),
+   so an engine with no dvh still parses it, still lets it win the cascade, and only throws it away at computed
+   value time, which takes the vh line with it and leaves max-height:none. measured on chromium and webkit. */
+@supports (height:100dvh){@media (max-height:480px) and (min-aspect-ratio:115/100){.wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}}
 @view-transition{navigation:auto}
 .exits{display:flex;flex-wrap:wrap;gap:4px 18px;margin:0 0 10px}.exits .deeper{margin:0}.exits button.deeper{background:none;border:0;border-bottom:1px dotted rgba(134,203,254,.5);cursor:pointer}.side-door{font-size:13.5px;line-height:1.5;max-width:30rem}@media (min-aspect-ratio:115/100){section[data-room="make"] .wall{padding-bottom:64px}}.side-door a{color:var(--ice);text-decoration:none;border-bottom:1px dotted rgba(134,203,254,.5)}.side-door a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 </style>
@@ -240,6 +247,6 @@ noscript p{position:relative;z-index:4;padding:24px}
 
 </main>
 <noscript><p>this exhibit draws with javascript. the whole study, in text, is on the <a href="./">landing page</a> and in the <a href="lab.html">lab</a>.</p></noscript>
-<script type="module" src="exhibit/shell.js?v=20260925g"></script>
+<script type="module" src="exhibit/shell.js?v=20260926a"></script>
 </body>
 </html>

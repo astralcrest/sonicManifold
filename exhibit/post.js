@@ -26,13 +26,22 @@ function loadApi() {
   if (apiReady) return Promise.resolve(apiReady);
   if (!apiPromise) apiPromise = new Promise((res, rej) => {
     const prev = window.onSpotifyIframeApiReady; let to = 0;
-    window.onSpotifyIframeApiReady = (api) => { clearTimeout(to); apiReady = api; if (prev) try { prev(api); } catch (e) {} res(api); };
+    window.onSpotifyIframeApiReady = (api) => { clearTimeout(to); apiReady = api; if (prev) try { prev(api); } catch (e) {} res(api); lateRetry(); };
     const s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true;
     s.onerror = () => { clearTimeout(to); rej(new Error('script')); };
     document.head.appendChild(s);
-    to = setTimeout(() => rej(new Error('timeout')), 9000);
+    to = setTimeout(() => rej(new Error('timeout')), 5000);
   }).catch((e) => { apiPromise = null; throw e; });
   return apiPromise;
+}
+/* five seconds is short enough to be honest and long enough to be wrong on a slow phone. if the api turns up
+   after its own timeout while the dock is still showing that failure, answer the click that was made rather
+   than asking for a second one. apiPromise === null is the precise signal that the wait already gave up. */
+let lateRetried = false;
+function lateRetry() {
+  if (lateRetried || apiPromise || !D.open || D.ctl || !D.artist || !D.ctx) return;
+  lateRetried = true;
+  playArtist(D.artist, D.ctx, null).catch(() => {});
 }
 
 /* ------------------------------------------------------------------ the dock */
@@ -73,16 +82,43 @@ const D = {
     this.attr.firstChild.textContent = lead;
     this.attr.lastChild.textContent = tail;
   },
+  /* the bar says what is actually true at each step: loading, then hearing, and never hearing while nothing plays */
+  say(line) {
+    if (!this.msg) return;
+    this.msg.textContent = line || '';
+    this.msg.hidden = !line;
+    requestAnimationFrame(() => this.measure());
+  },
   show(artist, tid) {
-    this.artist = artist; this.who.textContent = 'hearing ' + artist;
-    this.el.classList.remove('is-msg');
+    this.artist = artist; this.who.textContent = 'loading ' + artist;
+    /* an empty 80px box is a lie about a player being there; collapse the slot until there is an iframe in it.
+       once the player is docked there is nothing to ask spotify for, so the line only belongs on the first one */
+    this.el.classList.toggle('is-msg', !this.ctl);
+    this.say(this.ctl ? '' : 'asking spotify for the player…');
     this.setAttr('player and artwork: ', 'spotify ↗', 'https://open.spotify.com/track/' + tid); this.attr.hidden = false;
     this.el.classList.remove('is-off'); this.open = true;
     requestAnimationFrame(() => this.measure());
   },
+  /* the player is in the slot: stop claiming to be fetching it, but do not claim it is playing either */
+  slotted() {
+    if (!this.el) return;
+    this.el.classList.remove('is-msg');
+    if (!this.started) this.say('');
+    requestAnimationFrame(() => this.measure());
+  },
+  playing(artist) {
+    this.who.textContent = 'hearing ' + artist; this.say('');
+  },
+  /* the embed took the request and never started: a privacy browser that loads the frame and then blocks it */
+  stalled(artist) {
+    if (this.started || !this.open) return;
+    this.who.textContent = 'could not play ' + artist;
+    this.say('the player loaded but did not start. your browser may be blocking it. the link above opens the track on spotify.');
+  },
   fail(artist, tid) {
     clearTimeout(this.armTo); this.started = false;
     this.slot.textContent = ''; this.ctl = null; this.el.classList.add('is-msg');
+    this.who.textContent = 'could not play ' + artist;
     this.msg.hidden = false;
     this.msg.textContent = 'spotify did not load. it may be blocked on this network, or you may be offline.';
     if (tid) { this.setAttr('open ' + artist + ' on ', 'spotify ↗', 'https://open.spotify.com/track/' + tid); this.attr.hidden = false; }
@@ -93,9 +129,14 @@ const D = {
   /* the bed goes down the moment a clip is asked for, so the clip never starts over it at full level. if the clip has
      not started six seconds later (a browser that wants a tap inside the player), the bed comes back */
   arm(t0) {
+    const artist = this.artist;
     this.armT = t0 || Date.now(); this.started = false; clearTimeout(this.armTo);
     if (this.ctx) this.ctx.audio.duck(true);
-    this.armTo = setTimeout(() => { if (!this.started && this.ctx) this.ctx.audio.duck(false); }, 6000);
+    this.armTo = setTimeout(() => {
+      if (this.started) return;
+      if (this.ctx) this.ctx.audio.duck(false);
+      this.stalled(artist);
+    }, 6000);
   },
   pending() { return this.open && !this.started && Date.now() - this.armT < 6000; },
   close(restoreFocus) {
@@ -139,11 +180,11 @@ async function playArtist(artist, ctx, trigger) {
     D.slot.textContent = ''; D.slot.appendChild(host);
     api.createController(host, { uri: 'spotify:track:' + tid, height: 80, width: '100%' }, (ctl) => {
       D.ctl = ctl;
-      ctl.addListener('ready', () => { nudge(D.wantTid); requestAnimationFrame(() => D.measure()); });
+      ctl.addListener('ready', () => { D.slotted(); nudge(D.wantTid); requestAnimationFrame(() => D.measure()); });
       ctl.addListener('playback_update', (e) => {
         const dat = e && e.data; if (!dat) return;
         const playing = D.open && !dat.isPaused;
-        if (playing) D.started = true;
+        if (playing && !D.started) { D.started = true; D.playing(D.artist); }
         /* the embed reports paused while it loads: that must not bring the bed back up before the clip has begun */
         if (playing || !D.pending()) ctx.audio.duck(playing);
         /* the embed loads paused; one nudge per uri, never a loop */
@@ -153,7 +194,7 @@ async function playArtist(artist, ctx, trigger) {
   } catch (e) { D.fail(artist, tid); return 'apifail'; }
   return 'ok';
 }
-function nudge(tid) { if (!D.ctl || D.wantTid !== tid) return; D.playT = Date.now(); setTimeout(() => { if (D.ctl && D.wantTid === tid && D.open) try { D.ctl.play(); } catch (e) {} }, 420); }
+function nudge(tid) { if (!D.ctl || D.wantTid !== tid) return; D.arm(); D.playT = Date.now(); setTimeout(() => { if (D.ctl && D.wantTid === tid && D.open) try { D.ctl.play(); } catch (e) {} }, 420); }
 
 function grantConsent() {
   if (consent) return;

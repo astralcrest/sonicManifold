@@ -12,7 +12,7 @@
 <meta name="description" content="sonic manifold — seven years of personal listening, decoded with network science, information theory, and topology.">
 <meta name="theme-color" content="#0a0118">
 <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
-<meta name="build-stamp" content="2026-09-22 17:24Z">
+<meta name="build-stamp" content="2026-09-23 00:46Z">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
@@ -6893,7 +6893,7 @@ if('IntersectionObserver'in window){var io=new IntersectionObserver(function(es)
 </section>
 <!--APPLE-CREATION-END-->
 
-<footer class="smcv" style="--cv390:223px;--cv1600:142px;display:flex; flex-direction:column; align-items:center; gap:6px; padding:36px 0 48px; color:var(--mute); font-family:JetBrains Mono, monospace; font-size:10px; letter-spacing:1.2px; opacity:0.75"><span style="color:#86cbfe"><span style="color:#21f6bc">stack:</span> Python &middot; plotly &middot; uv &middot; Tone.js &middot; Spotify Embed iframes &middot; ripser &middot; umap-learn &middot; gensim &middot; statsmodels &middot; ruptures &middot; networkx &middot; kepler-mapper &middot; GitHub Pages</span><span><i>built as a personal project alongside a day job. 24,323 lines of Python across 59 scripts. ~28 methods, one listener.</i></span><span> &middot; <a href="./" style="color:inherit">overview</a></span><span style="opacity:0.6">build 2026-09-22 17:24Z</span></footer>
+<footer class="smcv" style="--cv390:223px;--cv1600:142px;display:flex; flex-direction:column; align-items:center; gap:6px; padding:36px 0 48px; color:var(--mute); font-family:JetBrains Mono, monospace; font-size:10px; letter-spacing:1.2px; opacity:0.75"><span style="color:#86cbfe"><span style="color:#21f6bc">stack:</span> Python &middot; plotly &middot; uv &middot; Tone.js &middot; Spotify Embed iframes &middot; ripser &middot; umap-learn &middot; gensim &middot; statsmodels &middot; ruptures &middot; networkx &middot; kepler-mapper &middot; GitHub Pages</span><span><i>built as a personal project alongside a day job. 24,323 lines of Python across 59 scripts. ~28 methods, one listener.</i></span><span> &middot; <a href="./" style="color:inherit">overview</a></span><span style="opacity:0.6">build 2026-09-23 00:46Z</span></footer>
 
 
 
@@ -6983,7 +6983,7 @@ try {
   var debounceT = null, fadeT = null, hintT = null, current = null;
   var pinned = false, currentLabel = '', currentArtist = '', currentLabelSub = '';
   var startedAt = 0;  // performance.now() of start
-  var muted = (localStorage.getItem('sonicMuted') === '1');
+  var muted = false; try { muted = (localStorage.getItem('sonicMuted') === '1'); } catch (e) {}
   // content-blocker resilience: blockers cancel open.spotify.com/embed at the
   // network layer (fetch rejects). Probe the real destination once, 2s timeout.
   var contentBlockerDetected = false, blockerToastShown = false;
@@ -7013,7 +7013,7 @@ try {
   // user-gesture tracking: true once user has clicked/keypressed anywhere
   var userInteracted = false;
   // one-shot warning flags
-  var ctaSeen = (localStorage.getItem('sonicCtaSeen') === '1');
+  var ctaSeen = false; try { ctaSeen = (localStorage.getItem('sonicCtaSeen') === '1'); } catch (e) {}
   var hoverWarned = false, autoplayWarned = false;
   // last-played metadata for retry
   var lastTid = null, lastArtist = '', lastTrack = '';
@@ -7098,7 +7098,7 @@ try {
 
   // ── mute ─────────────────────────────────────────────────────────
   function setMuted(m) {
-    muted = !!m; localStorage.setItem('sonicMuted', m ? '1' : '0');
+    muted = !!m; try { localStorage.setItem('sonicMuted', m ? '1' : '0'); } catch (e) {}
     tog.textContent = m ? '✕♪' : '♪';
     tog.classList.toggle('muted', m);
     tog.setAttribute('aria-label', m ? 'unmute' : 'mute');
@@ -8254,7 +8254,7 @@ try {
   var on  = false;          // playback active right now
   var pausedByOverlay = false;  // listening-room / h1-loop forced a pause
   var prefKey = 'sonicAmbientPref';   // 'on' | 'off' | (null)
-  var promptShown = (localStorage.getItem('sonicAmbientPrompted') === '1');
+  var promptShown = false; try { promptShown = (localStorage.getItem('sonicAmbientPrompted') === '1'); } catch (e) {}
   // Tone.js fallback state
   var _toneOn = false;
   var _toneNodes = null;   // { synth, loop, reverb, delay } — held for cleanup
@@ -8492,7 +8492,7 @@ try {
   if (!chip) return;
 
   // mode persists across reloads
-  var mode = (localStorage.getItem('scrollScoreMode') === 'raga') ? 'raga' : 'penta';
+  var mode = 'penta'; try { if (localStorage.getItem('scrollScoreMode') === 'raga') mode = 'raga'; } catch (e) {}
   applyModeLabel();
 
   var on = false;
@@ -8807,7 +8807,7 @@ try {
   modeBtn.addEventListener('click', function(ev) {
     ev.stopPropagation();
     mode = (mode === 'raga') ? 'penta' : 'raga';
-    localStorage.setItem('scrollScoreMode', mode);
+    try { localStorage.setItem('scrollScoreMode', mode); } catch (e) {}
     currentDeg = -1;
     applyModeLabel();
     if (synth) {
@@ -10831,11 +10831,11 @@ try {
 
   // sync muted state across all audio systems
   var MUTED_KEY = 'sonicManifoldMuted';
-  var muted = localStorage.getItem(MUTED_KEY) === '1';
+  var muted = false; try { muted = localStorage.getItem(MUTED_KEY) === '1'; } catch (e) {}
 
   function applyMute(m) {
     muted = !!m;
-    localStorage.setItem(MUTED_KEY, m ? '1' : '0');
+    try { localStorage.setItem(MUTED_KEY, m ? '1' : '0'); } catch (e) {}
     pill.textContent = m ? '✕♪' : '♪';
     pill.classList.toggle('muted', m);
     pill.setAttribute('aria-label', m ? 'unmute all audio' : 'mute all audio');
@@ -16438,7 +16438,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <!--APPLE-FONTBUMP-END-->
 
 <!--APPLE-REMOVE-TOUR-START-->
-<style id="apple-remove-tour-css">#lr-btn,#lr-overlay,#lr-host,.lr-iframe-host{display:none !important}nav li:has(.lr-launch-cta),nav li:has(a[href="#lr-btn"]){display:none !important}</style>
+<style id="apple-remove-tour-css">#lr-btn,#lr-overlay,#lr-host,.lr-iframe-host,.lr-launch-cta{display:none !important}nav li:has(.lr-launch-cta),nav li:has(a[href="#lr-btn"]){display:none !important}</style>
 <!--APPLE-REMOVE-TOUR-END-->
 <!--APPLE-NAVSIMPLIFY-START-->
 <style id="apple-navsimplify-css">.rm-nav-li,#rm-toggle{display:none !important}html body nav.cyber-nav .story-toggle#story-toggle{font-size:0 !important}html body nav.cyber-nav .story-toggle#story-toggle::after{font-size:10.5px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;content:'EXPAND ALL'}html body:not(.story-only) nav.cyber-nav .story-toggle#story-toggle::after{content:'STORY VIEW'}</style>

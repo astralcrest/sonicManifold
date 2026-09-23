@@ -96,7 +96,11 @@ const mixc = (a, b, k) => {
     S + '.mapwrap.mtight .mtog button{min-height:38px;padding:10px 13px}' + S + '.mapwrap.mtight .mdial{height:34px}' +
     S + '.mapwrap.mtiny .mcross,' + S + '.mapwrap.mtiny .mcaps{display:none}' + S + '.mapwrap.mtiny .mbig{font-size:23px}' +
     S + '.mapwrap.mmicro .manchl{display:none}' + S + '.mapwrap.mmicro .mcap{font-size:12px}' +
-    '@media (max-height:480px) and (min-aspect-ratio:115/100){' + S + '.wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}' + /* sideways phone with the dock open */
+    /* sideways phone with the dock open. dvh goes behind @supports: a second declaration in the same block is
+       no fallback, because the dvh one carries var(--dockh) and so parses fine on an engine with no dvh and
+       only dies at computed value time, taking the vh line with it */
+    '@media (max-height:480px) and (min-aspect-ratio:115/100){' + S + '.wall{max-height:calc(100vh - 62px - max(0px, var(--dockh) - 8px))}}' +
+    '@supports (height:100dvh){@media (max-height:480px) and (min-aspect-ratio:115/100){' + S + '.wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}}' +
     S + '.mapwrap.mcurve .mcross,' + S + '.mapwrap.mcurve .mheldposts{display:none}' +
     S + '.mchead{display:none;align-items:baseline;gap:7px;white-space:nowrap;font:600 11px/1.25 var(--mono);letter-spacing:.05em;color:var(--mute)}' + S + '.mcheadv{font-size:15px;color:var(--ink);letter-spacing:0}' +
     S + '.mapwrap.mcurve.mtight .mhud{padding-bottom:0;background:none}' + S + '.mapwrap.mcurve.mtight .mtop,' + S + '.mapwrap.mcurve.mtight .mkey{display:none}' + S + '.mapwrap.mcurve.mtight .mchead{display:flex}';
