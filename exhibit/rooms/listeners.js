@@ -59,16 +59,82 @@ section[data-room="listeners"] .lst-post .post-note{font-size:10.5px;line-height
 @supports (height:100dvh){@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}}
 `;
 const fmt = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+/* K1 trail tuning (W39, ROUND2_PLAN.md R3; re-tuned round 3, P2 "faint dotted rain"). Measured on the live field
+   (r2_R3.mjs): a hard-edged, ~800-dot cluster is what makes every one of the 120 node clusters draw its own
+   Sobel-rim glyph, and that alone already accounts for the whole 37% baseline — 118-400 edges cannot add enough
+   new haze cells to dilute that by dilution alone. So this room still asks for `edges:false` on its own dot field
+   (atlasEnter) to hold that gate; it is orthogonal to trail brightness (the renderer's "strong" bracket, LINE.strong
+   in glyphfield.js, is a tone/glyph choice, never a Sobel rim).
+   Round 2 then capped every trail's weight (K1_W_MAX 0.5) under that 0.6 "strong" line, so no arm could ever draw as
+   a bright directional mark ( - / | \\ ) — only its brief once-per-K1_PULSE_MS pulse head ever touched pv>=0.5, and
+   even that lit only 1-3 cells for K1_PULSE_TRAVEL_MS out of the whole segment, which read as a stray flicker, not
+   the "bright lines" the room's own cue promises. Round 3: the busiest quartile of arms (K1_W_TOPQ, w===5 — ~21-22%
+   of both edge sets, the closest a 5-bucket rate already gives to a quartile) now draws continuously in the strong
+   bracket (K1_W_STRONG..+STRONGSPAN, 0.6-0.8, jittered per edge so the busy arms don't all read one identical
+   brightness), so the periodic pulse travels along an already-bright line instead of blinking alone in the dark.
+   Every other arm keeps the old faint base weight (K1_W0/K1_W1) — the haze band is correct for them, only the
+   claim's own busiest arms needed to be visible: a hub artist can still sit at the shared end of 30-45 edges at
+   once (this graph's own degree), and the renderer unions overlapping weights at a cell, so K1_W_MAX (now 0.8, just
+   above the top band) stays the hard backstop regardless of what adds into it (a hub union or the intro pulseK).
+   The audio-reactive shimmer the old stroke draw gave bridge edges is dropped for K1 (kept only in the ?atlas=0
+   legacy draw): at this weight scale it would swing further than the base signal it was riding on. */
+const K1_W0 = 0.02, K1_W1 = 0.035, K1_W_TOPQ = 5, K1_W_STRONG = 0.6, K1_W_STRONGSPAN = 0.2, K1_W_MAX = 0.8, K1_PULSE_MS = 2500, K1_PULSE_TRAVEL_MS = 300;
+/* a stable per-edge 0..1 jitter (not Math.random — every reload and every engine must agree), reused for K1_W_STRONGSPAN */
+const jitter01 = (k) => ((Math.imul(k + 1, 2246822519) >>> 0) / 4294967296);
+
+/* ---- atlas mode (BUILD_SPEC_V2 §3 listeners row). reached only when ctx.atlas.on; ?atlas=0 is today, byte for byte */
+const isAtlas = (ctx) => !!(ctx && ctx.atlas && ctx.atlas.on);
+/* R5 L4: angle 0 is the hundred jumps, a lazy module (hundred.js) that wraps this room through attach() */
+const ANGLES = [{ id: 'hundred', name: 'the hundred jumps' }, { id: 'taps', name: 'my taps' }, { id: 'autoplay', name: 'autoplay' }, { id: 'fade', name: 'the fade dial' }];
+/* the zoom at which each plays bucket (1-5 quantiles, twolisteners.json) earns its floating name: the most played at once */
+const LZOOM = [0, 2.3, 1.9, 1.55, 1.2, 1];
+const ACSS = `
+html.atlas section[data-room="listeners"] .lst-tgw{position:absolute;z-index:1;transform:translate(-50%,-100%);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 8px;pointer-events:none;width:max-content}
+html.atlas section[data-room="listeners"] .lst-tgw .lst-toggle{position:static;transform:none;pointer-events:auto}
+html.atlas section[data-room="listeners"] .lst-door{pointer-events:auto;display:flex;align-items:center;gap:6px;font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ice);background:rgba(10,1,24,.6);border:1px solid rgba(134,203,254,.45);border-radius:999px;padding:13px 16px;min-height:44px;cursor:pointer;white-space:nowrap;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+html.atlas section[data-room="listeners"] .lst-door:hover{border-color:var(--ice);background:rgba(134,203,254,.1)}
+html.atlas section[data-room="listeners"] .lst-door:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+html.atlas section[data-room="listeners"] .lst-door .lst-star{font-size:12px;letter-spacing:0;opacity:.85}
+/* the selected (or hovered) artist's name, in the atlas's label voice. it rides the camera layer and is counter-scaled,
+   so it stays 10.5px while the graph under it zooms */
+html.atlas section[data-room="listeners"] .lst-tag{transform-origin:0 0;transform:scale(var(--iz,1)) translate(-50%,-100%);font:400 10.5px/1.3 var(--mono);letter-spacing:.06em;color:var(--ice);background:none;border:0;border-radius:0;padding:2px 4px;text-shadow:0 0 6px rgba(10,1,24,.95),0 0 2px rgba(10,1,24,.95)}
+html.atlas section[data-room="listeners"] .lst-tag.below{transform:scale(var(--iz,1)) translate(-50%,0)}
+html.atlas section[data-room="listeners"] .lst-tag::before{content:"[ ";color:rgba(134,203,254,.6)}
+html.atlas section[data-room="listeners"] .lst-tag::after{content:" ]";color:rgba(134,203,254,.6)}
+html.atlas section[data-room="listeners"] .lst-hit{touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+/* phones: toggle and door share one row; every button keeps a 44px target (VERIFY_r3_a11y P1: this override
+   dropped both back to 40px under the base 44px rule above — the padding shrinks to fit the row, the target does not) */
+@media (max-width:520px){
+html.atlas section[data-room="listeners"] .lst-tgw{gap:6px}
+html.atlas section[data-room="listeners"] .lst-toggle{gap:3px;padding:3px}
+html.atlas section[data-room="listeners"] .lst-toggle button{padding:10px 10px;min-height:44px;letter-spacing:.05em;font-size:10.5px;gap:6px}
+html.atlas section[data-room="listeners"] .lst-toggle .lst-sw{width:10px}
+html.atlas section[data-room="listeners"] .lst-door{padding:10px 11px;min-height:44px;letter-spacing:.05em;font-size:10.5px}
+}
+/* the compact card (\`less\`, the phone default): the rate strip, its reading and the disclosures wait behind \`more\`,
+   so the graph gets the screen. the wall's first line and the tour caption still carry the claim */
+html.atlas.ai-less section[data-room="listeners"] .lst-extra{display:none}
+@media (max-width:359px){
+html.atlas section[data-room="listeners"] .lst-toggle button{padding:9px 8px;letter-spacing:.02em;font-size:10px;gap:4px}
+html.atlas section[data-room="listeners"] .lst-toggle .lst-sw{width:7px}
+html.atlas section[data-room="listeners"] .lst-door{padding:9px 9px;letter-spacing:.02em;font-size:10px;gap:4px}
+}
+@media print{html.atlas section[data-room="listeners"] .lst-tgw,html.atlas section[data-room="listeners"] .lst-tag{display:none}}
+@media (forced-colors:active){html.atlas section[data-room="listeners"] .lst-door{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}}
+`;
 
 export default {
   id: 'listeners', track: 'dorian-manifold',
   ready: false, mode: 'tap', fadeStart: null,
 
   async mount(root, ctx) {
-    document.head.appendChild(el('style')).textContent = CSS;
+    this.ctxRef = ctx;
+    /* R5 PERF2: the two angle modules load beside the identity + data waits below, not after them */
+    if (isAtlas(ctx)) { const V = ctx.V || ''; this.modP = [import('./hundred.js' + V), import('./fade.js' + V)]; this.modP.forEach((p) => p.catch(() => {})); }
+    document.head.appendChild(el('style')).textContent = CSS + (isAtlas(ctx) ? ACSS : '');
     await ctx.identity();
     this.root = root;
-    const wall = root.parentElement.querySelector('.wall'), extra = el('div');
+    const wall = root.parentElement.querySelector('.wall'), extra = el('div', isAtlas(ctx) ? 'lst-extra' : null);
     wall.insertBefore(extra, wall.querySelector('.deeper'));
     this.extra = extra;
 
@@ -81,6 +147,8 @@ export default {
     this.nodeComm = nodes.map((nd) => nd.community);
     /* edges follow PROVENANCE only: mint = my taps, violet = autoplay (shuffle + served, the toggle's other state) */
     this.MINT = rgb(ctx.PAL.tap).join(); this.AV = rgb(ctx.PAL.violet).join(); this.DIM = '200,190,220';
+    /* K1 hues: the same two provenance colours and the same neutral, as plain 0xRRGGBB numbers for setLines' c field */
+    this.palTapN = ctx.PAL.tap; this.palAutoN = ctx.PAL.violet; this.DIMN = 0xc8bedc;
     /* keyboard listbox order: most-played first, then name — same 120 artists as the cloud, no new data */
     this.order = nodes.map((_, i) => i).sort((a, b) => (nodes[b].plays_bucket - nodes[a].plays_bucket) || nodes[a].name.localeCompare(nodes[b].name));
 
@@ -94,7 +162,7 @@ export default {
        with the raw jump counts beside them. the drawn picture is counts; this is what the number compares. */
     const strip = el('div', 'lst-strip');
     strip.setAttribute('role', 'img');
-    strip.setAttribute('aria-label', 'of every 100 jumps to a new artist, mine cross into another scene ' + tap1 + ' times and autoplay’s ' + auto1 + '. ' + tap1 + ' against ' + auto1 + ' is the bridge index: ' + ratio + ', a direction, not a size. i made ' + fmt(nTap) + ' of those jumps in seven years, autoplay made ' + fmt(nAuto) + '. autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.');
+    strip.setAttribute('aria-label', 'of every 100 jumps to a new artist, mine cross into another scene ' + tap1 + ' times and autoplay’s ' + auto1 + '. ' + tap1 + ' against ' + auto1 + ' is the bridge index: ' + ratio + ', a direction, not a size. i made ' + fmt(nTap) + ' of those jumps in ' + (isAtlas(ctx) ? 'the whole log' : 'seven years') + ', autoplay made ' + fmt(nAuto) + '. autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.');
     strip.appendChild(el('p', 'lst-strip-h', 'of every 100 jumps to a new artist, how many cross into another scene'));
     const strRow = (who, jumps, pct, shown, colour) => {
       const line = el('div', 'lst-line');
@@ -111,9 +179,9 @@ export default {
     extra.appendChild(el('p', 'say lst-why', 'autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.'));
     const fines = extra.appendChild(el('div', 'lst-fines'));
     const fine = fines.appendChild(el('details', 'lst-fine')); fine.appendChild(el('summary', '', 'why not a size'));
-    ['a third to two fifths of my jumps carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13.', 'the drawn graph keeps only the busiest ' + n + ' artists and their strongest edges, so it is a picture of my two habits, not the measurement.'].forEach((t) => fine.appendChild(el('p', 'lst-cav', t)));
-    fine.open = innerWidth > innerHeight * 1.15 && innerHeight >= 860; /* closed on phones and on laptop-height screens, where open it ran into the wall label button */
-    fine.addEventListener('toggle', () => { if (this.ready && root.parentElement.classList.contains('is-active')) this.enter(ctx); });
+    [(isAtlas(ctx) ? 'a third of my jumps and two fifths of autoplay’s' : 'a third to two fifths of my jumps') + ' carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13.', 'the drawn graph keeps only the busiest ' + n + ' artists and their strongest edges, so it is a picture of my two habits, not the measurement.'].forEach((t) => fine.appendChild(el('p', 'lst-cav', t)));
+    fine.open = !isAtlas(ctx) && innerWidth > innerHeight * 1.15 && innerHeight >= 860; /* closed on phones and on laptop-height screens, where open it ran into the wall label button; closed in the atlas, whose wall column starts under the info panel */
+    fine.addEventListener('toggle', () => { if (this.ready && root.parentElement.classList.contains('is-active')) this.relay(ctx); });
 
     /* the colour code, in one more disclosure ("the colours") rather than new always-on lines: on a short phone stage the
        graph already meets the wall text at its tightest point, so nothing here may add height unconditionally.
@@ -124,22 +192,40 @@ export default {
     ctx.legend(clr, 'fam', { items: d.communities });
     clr.open = false; /* closed everywhere: open, the ten family chips pushed the wall into the label button */
     this.wallEl = wall; this.fines = [fine, clr];
-    clr.addEventListener('toggle', () => { if (clr.open && fine.open) fine.open = false; if (this.ready && root.parentElement.classList.contains('is-active')) this.enter(ctx); });
+    clr.addEventListener('toggle', () => { if (clr.open && fine.open) fine.open = false; if (this.ready && root.parentElement.classList.contains('is-active')) this.relay(ctx); });
     fine.addEventListener('toggle', () => { if (fine.open && clr.open) clr.open = false; });
 
     this.hit = root.appendChild(el('div', 'lst-hit'));
     this.hit.setAttribute('aria-hidden', 'true'); /* pointer-only decoration; the listbox below is the real control */
-    this.hit.addEventListener('click', (e) => this.tapAt(e.clientX, e.clientY, ctx));
-    this.hit.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') this.hoverAt(e.clientX, e.clientY); });
+    if (isAtlas(ctx)) {
+      /* one element, one input path (§1.4): the gesture layer owns this element and hands over world coordinates, so a
+         tap or a hover lands on the right node at any zoom. the native click/pointermove pair (screen coordinates) is
+         never attached here: the two would double-fire, and screen px against world-px node centres miss once panned */
+      this.offHit = ctx.gesture.bind(this.hit, this.hitSpec(ctx));
+    } else {
+      this.hit.addEventListener('click', (e) => this.tapAt(e.clientX, e.clientY, ctx));
+      this.hit.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') this.hoverAt(e.clientX, e.clientY); });
+    }
 
     const tgl = el('div', 'lst-toggle'); tgl.setAttribute('role', 'radiogroup'); tgl.setAttribute('aria-label', 'which edges to show');
     const bTap = el('button', 'on', 'my taps'); bTap.prepend(this.swatch(this.MINT)); bTap.type = 'button'; bTap.setAttribute('role', 'radio'); bTap.setAttribute('aria-checked', 'true'); bTap.tabIndex = 0;
     const bAuto = el('button', '', 'autoplay'); bAuto.prepend(this.swatch(this.AV)); bAuto.type = 'button'; bAuto.setAttribute('role', 'radio'); bAuto.setAttribute('aria-checked', 'false'); bAuto.tabIndex = -1;
     tgl.append(bTap, bAuto); root.appendChild(tgl); this.tgl = tgl; this.bTap = bTap; this.bAuto = bAuto;
-    bTap.addEventListener('click', () => this.flip('tap', ctx)); bAuto.addEventListener('click', () => this.flip('auto', ctx));
+    this.tgPos = tgl;
+    if (isAtlas(ctx)) {
+      /* D15: the constellations are their own stop now; the old third toggle state survives only as a door to it */
+      const w = el('div', 'lst-tgw'); root.insertBefore(w, tgl); w.appendChild(tgl);
+      const door = el('button', 'lst-door'); door.type = 'button';
+      door.append(el('span', '', 'constellations'), el('span', 'lst-star', '›'));
+      door.setAttribute('aria-label', 'constellations: fly to the universe stop, every artist i played 50 times or more as a star');
+      /* ctx.go resolves a stop id itself (ctx.route hands a string id straight to the activation path, REQUESTS_R3 #1) */
+      door.addEventListener('click', () => { try { ctx.go('universe', { angle: 'sky', via: 'tap' }); } catch (e) {} });
+      w.appendChild(door); this.door = door; this.tgPos = w;
+    }
+    bTap.addEventListener('click', () => { this.flip('tap', ctx); this.syncAngle(ctx); }); bAuto.addEventListener('click', () => { this.flip('auto', ctx); this.syncAngle(ctx); });
     tgl.addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-      e.preventDefault(); e.stopPropagation(); this.flip(this.mode === 'tap' ? 'auto' : 'tap', ctx); (this.mode === 'tap' ? bTap : bAuto).focus();
+      e.preventDefault(); e.stopPropagation(); this.flip(this.mode === 'tap' ? 'auto' : 'tap', ctx); this.syncAngle(ctx); (this.mode === 'tap' ? bTap : bAuto).focus();
     });
 
     /* keyboard + screen-reader path onto the artist cloud: a visually-hidden, focusable listbox right after the toggle in tab order */
@@ -154,7 +240,7 @@ export default {
     listbox.addEventListener('blur', () => { this.kbFocusIdx = null; if (!this.pinned) this.tag.hidden = true; });
     listbox.addEventListener('keydown', (e) => {
       const total = this.order.length; let idx = this.lbIndex == null ? 0 : this.lbIndex;
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); this.selectNode(this.order[idx], ctx); return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); this.selectNode(this.order[idx], ctx, { fly: true }); return; }
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') idx = Math.min(total - 1, idx + 1);
       else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') idx = Math.max(0, idx - 1);
       else if (e.key === 'Home') idx = 0;
@@ -168,7 +254,8 @@ export default {
     this.cue = root.appendChild(el('p', 'lst-cue', CUE_TEXT)); this.cue.hidden = true; this.cue.setAttribute('aria-hidden', 'true'); /* decorative echo of the always-present prose above */
     this.postSlot = root.appendChild(el('div', 'lst-post'));
     /* the post changes height when the player replaces the button: re-check what it now covers */
-    if (window.ResizeObserver) new ResizeObserver(() => { this.postRect = null; this.fitLive(); if (this.kbFocusIdx != null) this.showTag(this.kbFocusIdx); }).observe(this.postSlot);
+    if (window.ResizeObserver) new ResizeObserver(() => { this.postRect = null; this.fitLive(); if (this.kbFocusIdx != null) this.showTag(this.kbFocusIdx); if (this.atlasOn) this.labVis(ctx); }).observe(this.postSlot);
+    if (isAtlas(ctx)) this.mountAtlas(root, ctx);
 
     root.addEventListener('pointerdown', () => this.hideCue(), { once: true });
     root.addEventListener('keydown', () => this.hideCue(), { once: true });
@@ -176,9 +263,142 @@ export default {
     this.announce(); this.ready = true;
   },
 
+  /* ------------------------------------------------------------------ atlas mode (§3 listeners row, §1.4-§1.7, D10, D15) */
+  angles: ANGLES,
+  vz: 1, hoverI: -1, labOn: false, labT: 0, hidLab: new Set(),
+
+  mountAtlas(root, ctx) {
+    this.atlasOn = true;
+    const h = this.modP[0].then((m) => m.default.attach(this, ctx), (e) => console.warn('hundred', e));
+    this.modP[1].then((m) => h.then(() => m.default.attach(this, ctx)), (e) => console.warn('fade', e));
+    const nodes = this.d.nodes;
+    this.fold = nodes.map((nd) => String(nd.name).toLowerCase());
+    /* the name tag rides the camera layer (§1.5), so it sits on its node at any pose; tab order is untouched (it is
+       aria-hidden decoration of the listbox) */
+    this.camL = ctx.view.layer(root, [this.tag]);
+    /* label widths for the post keepout, measured once on a canvas with the labels' own font (never a layout read) */
+    const m = document.createElement('canvas').getContext('2d'); m.font = '400 10.5px "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace';
+    this.labW = nodes.map((nd) => m.measureText(nd.name + '[  ]').width + nd.name.length * 0.63 + 11);
+  },
+
+  hitSpec(ctx) {
+    return {
+      tap: (p) => this.tapAt(p.wx, p.wy, ctx),
+      hover: (p) => this.hoverAt(p.wx, p.wy),
+      leave: () => { if (!this.pinned) { this.hoverI = -1; this.tag.hidden = true; this.labVis(); } },
+      cursor: (p) => (this.ready && this.nodeAt(p.wx, p.wy, 24) >= 0 ? 'pointer' : 'grab'),
+    };
+  },
+  /* the bare field around the graph (once the camera has moved it past the stage rect): same names, same taps */
+  gestures(ctx) {
+    return { hover: (p) => this.hoverAt(p.wx, p.wy), leave: () => { if (!this.pinned) { this.hoverI = -1; this.tag.hidden = true; this.labVis(); } } };
+  },
+  pick(wx, wy, ctx) {
+    if (!this.ready || !this.atlasOn) return null;
+    const i = this.nodeAt(wx, wy, 28); if (i < 0) return null;
+    const nm = this.d.nodes[i].name;
+    return { label: nm, focus: { artist: nm }, wx: this.px[i * 2], wy: this.px[i * 2 + 1], z: Math.max(this.vz, 1.6) };
+  },
+  focus(desc, ctx) {
+    if (!desc || !this.ready || desc.artist == null || !this.fold) return false;
+    const i = this.fold.indexOf(String(desc.artist).toLowerCase()); if (i < 0) return false;
+    this.selectNode(i, ctx, { fly: true });
+    return true;
+  },
+  look(k) {
+    if (typeof k !== 'string' || !this.fold || !this.px) return null;
+    const i = this.fold.indexOf(k.replace(/^artist:/, '').toLowerCase());
+    return i < 0 ? null : [this.px[i * 2], this.px[i * 2 + 1]];
+  },
+  syncAngle(ctx) {
+    if (!this.atlasOn) return;
+    const id = this.mode === 'tap' ? 'taps' : 'autoplay';
+    try { if (ctx.angle.get().id !== id) ctx.angle.set(id, { via: 'room' }); } catch (e) {}
+  },
+  setAngle(k, ctx, o = {}) {
+    const a = ANGLES[k]; if (!a || !this.ready || a.id === 'hundred' || a.id === 'fade') return 0;
+    const m = a.id === 'taps' ? 'tap' : 'auto'; if (m === this.mode) return 0;
+    this.flip(m, ctx); if (o.instant) this.fadeStart = null;
+    return o.instant || ctx.reduced ? 0 : 900; /* the edge cross-fade */
+  },
+  /* the toggle row, the cue/live line and an open listening post: no floating label lands on them (M6 refreshes these on
+     stop change and resize; the post's own rect is kept clear by labVis below, since it opens mid-visit) */
+  keepout(ctx) {
+    const out = [], add = (e) => { if (!e || e.hidden) return; const r = e.getBoundingClientRect(); if (r.width > 0 && r.height > 0) out.push({ x: r.left - 4, y: r.top - 4, w: r.width + 8, h: r.height + 8 }); };
+    add(this.tgPos); add(this.cue); if (this.postSlot && this.postSlot.firstChild) add(this.postSlot);
+    return out;
+  },
+
+  atlasEnter(ctx) {
+    const P = ctx.particles, v = ctx.view, re = !!(ctx.atlas && ctx.atlas.reenter);
+    const st = ctx.stage(), b = { x: st.x - st.w * 0.25, y: st.y - st.h * 0.25, w: st.w * 1.5, h: st.h * 1.5 }; /* a locked node on the rim still reaches the middle */
+    try { v.configure({ mode: 'pan', zMin: 1, zMax: 3, bounds: b, drift: true, look: (k) => this.look(k) }); } catch (e) {}
+    /* continuous glyphs, one real play's hue per cell: every cluster is its genre family (ctx.FAM), never a blend.
+       edges:false (W39): each of the 120 clusters is dense and >=40 cells on its own, so it draws a Sobel rim
+       regardless of the K2 'large' component gate; the family hue already reads each cluster's shape, it needs no
+       outline. Forward-compatible: today gfRoom() ignores an opts.edges it doesn't forward (R2_REQUESTS_R3.md #1). */
+    P.glyphAll(true); P.glyphMode('cont', { colour: 'sample', edges: false });
+    if (!this.offCam) this.offCam = v.onChange(() => { if (!this.root.parentElement.classList.contains('is-active')) return; this.setIz(ctx); if (this.postSlot.firstChild || this.hidLab.size) this.labVis(); });
+    this.setIz(ctx);
+    if (!re) { this.pinned = false; this.kbFocusIdx = null; this.hoverI = -1; this.tag.hidden = true; }
+    else if (this.pinned && this.kbFocusIdx != null && v.lock === this.d.nodes[this.kbFocusIdx].name) {
+      /* a relayout mid-flight (the chrome re-measuring itself when the hud or lock chip changes) must not strand the lock */
+      const i = this.kbFocusIdx; try { v.flyTo({ wx: this.px[i * 2], wy: this.px[i * 2 + 1], z: Math.max(v.z || 1, this.flyZ || 1) }, { speed: 'quick', lock: v.lock }); } catch (e) {}
+    }
+    clearTimeout(this.labT);
+    if (re) this.pushLabels(ctx);
+    else { this.labOn = false; ctx.labels.clear('listeners'); this.labT = setTimeout(() => { if (this.root.parentElement.classList.contains('is-active')) this.pushLabels(ctx); }, ctx.reduced ? 0 : 700); }
+  },
+  setIz(ctx) { if (this.camL) this.camL.style.setProperty('--iz', String(1 / ((ctx.view && ctx.view.z) || 1))); },
+
+  /* 120 names (D10): priority = plays bucket, the quieter buckets revealed as you zoom in; a tap on one selects it */
+  pushLabels(ctx) {
+    if (!this.atlasOn || !this.px) return;
+    const nodes = this.d.nodes, items = [], ord = this.order;
+    for (let k = 0; k < ord.length; k++) {
+      const i = ord[k], nd = nodes[i], b = nd.plays_bucket | 0, zmin = LZOOM[Math.max(1, Math.min(5, b))];
+      items.push({ id: 'n' + i, text: nd.name, x: this.px[i * 2], y: this.px[i * 2 + 1], r: Math.max(6, this.clusterR[i] * 0.55), kind: 'obj',
+        pri: b * 2 - k * 0.001, zoom: this.hidLab.has(i) ? [1e9, 1e9] : zmin > 1 ? [zmin, 99] : null,
+        go: (c) => this.selectNode(i, c || ctx, { fly: true }) });
+    }
+    ctx.labels.set('listeners', items); this.labOn = true;
+    this.labVis();
+  },
+  labZoom(i) { const b = this.d.nodes[i].plays_bucket | 0, z = LZOOM[Math.max(1, Math.min(5, b))]; return z > 1 ? [z, 99] : null; },
+  /* which floating names stand down: the one the tag is already naming (no twin), and any whose box would land on an
+     open listening post (its play button must stay reachable). recomputed only when the camera, the tag or the post changes */
+  labVis() {
+    if (!this.atlasOn || !this.labOn || !this.px) return;
+    const ctx = this.ctxRef; if (!ctx) return;
+    const hid = new Set(), tagI = !this.tag.hidden ? (this.pinned ? this.kbFocusIdx : this.hoverI) : null;
+    if (tagI != null && tagI >= 0) hid.add(tagI);
+    if (this.postSlot.firstChild) {
+      const b = this.postSlot.getBoundingClientRect(), v = ctx.view, z = (v && v.z) || 1, n = this.d.nodes.length;
+      if (b.width > 0) for (let i = 0; i < n; i++) {
+        const q = v.apply(this.px[i * 2], this.px[i * 2 + 1]), off = Math.max(Math.max(6, this.clusterR[i] * 0.55) * z * 0.72, 5);
+        const l = q[0] + off, t = q[1] - off - 18, r = l + this.labW[i], bt = t + 18;
+        if (r > b.left - 6 && l < b.right + 6 && bt > b.top - 6 && t < b.bottom + 6) hid.add(i);
+      }
+    }
+    const L = ctx.labels;
+    this.hidLab.forEach((i) => { if (!hid.has(i)) L.update('listeners', 'n' + i, { zoom: this.labZoom(i) }); });
+    hid.forEach((i) => { if (!this.hidLab.has(i)) L.update('listeners', 'n' + i, { zoom: [1e9, 1e9] }); });
+    this.hidLab = hid;
+  },
+  /* a selection in the atlas: the camera flies to the node (quick) and locks on its name; the hud names its family */
+  atlasSelect(i, ctx, opts) {
+    const nd = this.d.nodes[i], v = ctx.view, x = this.px[i * 2], y = this.px[i * 2 + 1];
+    if (opts.fly) this.flyZ = Math.max((v && v.z) || 1, 1.6);
+    if (opts.fly && v && !(v.flying && v.lock === nd.name)) { try { v.flyTo({ wx: x, wy: y, z: this.flyZ }, { speed: 'quick', lock: nd.name }); } catch (e) {} }
+    if (opts.fly) ctx.lock(nd.name);
+    ctx.hud(nd.name + ' · ' + (nd.community === 'untagged' ? 'no public genre tag' : nd.community));
+    requestAnimationFrame(() => this.labVis());
+  },
+
   /* portrait, a disclosure open: the wall would grow up past the stage's 26% floor and run under the
      toggle, so it becomes a scroll box that ends where that floor does, scrolled to the opened text */
   capWall() {
+    if (this.atlasOn) return; /* the atlas chrome owns the wall card (§2.3) */
     const w = this.wallEl, H = innerHeight, open = this.fines.some((f) => f.open);
     const fade = 'linear-gradient(180deg,transparent,#000 24px)';
     if (!open || innerWidth > H * 1.15) { w.style.maxHeight = w.style.overflowY = w.style.overscrollBehavior = w.style.webkitMaskImage = w.style.maskImage = ''; return; }
@@ -193,19 +413,24 @@ export default {
 
   buildEdges(list) {
     const n = list.length, x1 = new Float32Array(n), y1 = new Float32Array(n), x2 = new Float32Array(n), y2 = new Float32Array(n), a0 = new Float32Array(n), br = new Uint8Array(n);
+    /* K1 (W39): each edge's trail weight (0..1, see K1_W0/K1_W1 above) and its own pulse phase in ms, so parallel
+       trails don't all flash together — every edge still completes one pulse every K1_PULSE_MS, just out of step */
+    const wt = new Float32Array(n), ph = new Float32Array(n);
     const px = this.px, comm = this.nodeComm;
     for (let k = 0; k < n; k++) {
       const e = list[k], i = e[0], j = e[1], w = e[2];
       x1[k] = px[i * 2]; y1[k] = px[i * 2 + 1]; x2[k] = px[j * 2]; y2[k] = px[j * 2 + 1];
       a0[k] = 0.1 + 0.16 * ((w - 1) / 4);
+      wt[k] = w >= K1_W_TOPQ ? K1_W_STRONG + K1_W_STRONGSPAN * jitter01(k) : K1_W0 + K1_W1 * ((w - 1) / 4);
       br[k] = (comm[i] !== comm[j] && comm[i] !== 'untagged' && comm[j] !== 'untagged') ? 1 : 0;
+      ph[k] = (Math.imul(k + 1, 2654435761) >>> 0) % K1_PULSE_MS;
     }
-    return { x1, y1, x2, y2, a0, br, n };
+    return { x1, y1, x2, y2, a0, br, wt, ph, n };
   },
 
   layoutEdges(ctx) {
     const nodes = this.d.nodes, n = nodes.length, s = ctx.stage();
-    this.gh = Math.max(0.6, 1 - 84 / s.h); /* the graph stops above the toggle */
+    this.gh = this.ghFor(s); /* the graph stops above the toggle */
     this.px = new Float32Array(n * 2);
     this.clusterR = new Float32Array(n);
     for (let i = 0; i < n; i++) {
@@ -213,10 +438,18 @@ export default {
       this.clusterR[i] = clamp((0.008 + nodes[i].plays_bucket * 0.009) * s.w, 14, 60);
     }
     this.tapPre = this.buildEdges(this.d.tap_edges); this.autoPre = this.buildEdges(this.d.auto_edges);
+    /* K1: the most either a single frame ever writes is one full crossfade (the outgoing set plus the incoming one) */
+    if (this.atlasOn) this.segBuf = new Float32Array((this.tapPre.n + this.autoPre.n) * 7);
     this.hit.style.left = s.x + 'px'; this.hit.style.top = s.y + 'px'; this.hit.style.width = s.w + 'px'; this.hit.style.height = s.h + 'px';
-    const cx = s.x + s.w / 2, cy = s.y + s.h - 29; /* the toggle is ~56px tall: its lower edge stays on the stage, clear of the dock */
+    let cx = s.x + s.w / 2, cy = s.y + s.h - 29; /* the toggle is ~56px tall: its lower edge stays on the stage, clear of the dock */
     this.sx = s.x; this.sy = s.y; this.sw = s.w;
-    this.tgl.style.left = cx + 'px'; this.tgl.style.top = cy + 'px';
+    if (this.atlasOn) {
+      /* atlas: the toggle row (with the door) hangs from the stage's bottom edge and may wrap on a narrow stage; the cue and
+         the live line keep their places above its first row. its lower edge is today's toggle's (1 px inside the stage),
+         so a one-row toggle sits exactly where ?atlas=0 puts it (and ghFor keeps today's graph height) */
+      this.tgPos.style.left = cx + 'px'; this.tgPos.style.top = (s.y + s.h - 1) + 'px';
+      cy = s.y + s.h - 1 - (this.tgH || 56) + 28;
+    } else { this.tgPos.style.left = cx + 'px'; this.tgPos.style.top = cy + 'px'; }
     /* the listbox is clipped to 1px (visually hidden) but must sit at a real on-screen point — an unset/auto
        position here makes focus-follows-scrollIntoView jump the whole page to wherever "auto" resolved to */
     this.listbox.style.left = cx + 'px'; this.listbox.style.top = cy + 'px';
@@ -245,6 +478,7 @@ export default {
     if (mode === this.mode || !this.ready) return;
     this.fromPre = this.mode === 'tap' ? this.tapPre : this.autoPre;
     this.fromCol = this.mode === 'tap' ? this.MINT : this.AV;
+    this.fromColN = this.mode === 'tap' ? this.palTapN : this.palAutoN;
     this.mode = mode;
     this.bTap.className = mode === 'tap' ? 'on' : ''; this.bTap.setAttribute('aria-checked', String(mode === 'tap')); this.bTap.tabIndex = mode === 'tap' ? 0 : -1;
     this.bAuto.className = mode === 'auto' ? 'on' : ''; this.bAuto.setAttribute('aria-checked', String(mode === 'auto')); this.bAuto.tabIndex = mode === 'auto' ? 0 : -1;
@@ -256,6 +490,7 @@ export default {
   showTag(i) {
     this.tag.textContent = this.d.nodes[i].name;
     this.placeTag(this.px[i * 2], this.px[i * 2 + 1]);
+    if (this.atlasOn) { if (!this.pinned) this.hoverI = i; this.labVis(); }
   },
 
   /* put the name tag on the node, flipping it under the node rather than off the top of the stage,
@@ -271,6 +506,7 @@ export default {
 
   selectNode(i, ctx, opts = {}) {
     this.pinned = true; this.kbFocusIdx = i;
+    if (this.atlasOn) this.atlasSelect(i, ctx, opts);
     if (opts.note !== false) ctx.audio.note(1 + (i % 5), { dur: 0.5, vol: 0.05 });
     this.showTag(i);
     if (this.lbIndex != null) { const cur = this.listbox.children[this.lbIndex]; if (cur) cur.setAttribute('aria-selected', 'false'); }
@@ -305,18 +541,36 @@ export default {
 
   hoverAt(x, y) {
     if (!this.ready || this.pinned) return;
-    const px = this.px, n = this.d.nodes.length; let best = -1, bd = 24 * 24;
+    const px = this.px, n = this.d.nodes.length, R = 24 / this.vz; let best = -1, bd = R * R; /* 24 screen px at any zoom (vz = 1 at ?atlas=0) */
     for (let i = 0; i < n; i++) { const dx = px[i * 2] - x, dy = px[i * 2 + 1] - y, dist = dx * dx + dy * dy; if (dist < bd) { bd = dist; best = i; } }
-    this.hit.style.cursor = best < 0 ? '' : 'pointer';
-    if (best < 0) { this.tag.hidden = true; return; }
+    if (!this.atlasOn) this.hit.style.cursor = best < 0 ? '' : 'pointer'; /* atlas: the gesture layer sets the cursor */
+    this.hoverI = best;
+    if (best < 0) { this.tag.hidden = true; if (this.atlasOn) this.labVis(); return; }
     this.showTag(best);
+  },
+  nodeAt(x, y, r) {
+    const px = this.px, n = this.d.nodes.length, R = r / this.vz; let best = -1, bd = R * R;
+    for (let i = 0; i < n; i++) { const dx = px[i * 2] - x, dy = px[i * 2 + 1] - y, dist = dx * dx + dy * dy; if (dist < bd) { bd = dist; best = i; } }
+    return best;
   },
   tapAt(x, y, ctx) {
     if (!this.ready) return;
-    const px = this.px, n = this.d.nodes.length; let best = -1, bd = 28 * 28;
-    for (let i = 0; i < n; i++) { const dx = px[i * 2] - x, dy = px[i * 2 + 1] - y, dist = dx * dx + dy * dy; if (dist < bd) { bd = dist; best = i; } }
-    if (best < 0) { this.pinned = false; this.kbFocusIdx = null; return; }
-    this.selectNode(best, ctx);
+    const best = this.nodeAt(x, y, 28);
+    if (best < 0) { this.pinned = false; this.kbFocusIdx = null; if (this.atlasOn) { this.tag.hidden = true; this.labVis(); } return; }
+    this.selectNode(best, ctx, { fly: this.atlasOn });
+    return true;
+  },
+
+  relay(ctx) { if (this.atlasOn) ctx.relayout(); else this.enter(ctx); },
+  /* the graph's share of the stage height: today 84px are kept for the toggle and the cue (the 56px toggle, 1px under
+     it, 27px over it); in the atlas the toggle row is measured (one layout read per enter), since it can wrap on a narrow
+     stage, and keeps the same 28px. a one-row toggle (56px) gives today's height exactly, so the graph and every
+     scene-jump line land where ?atlas=0 draws them at the home pose */
+  ghFor(s) {
+    if (!this.atlasOn || !this.tgPos) return Math.max(0.6, 1 - 84 / s.h);
+    this.tgPos.style.maxWidth = Math.max(160, s.w) + 'px';
+    this.tgH = this.tgPos.offsetHeight || 56;
+    return Math.max(0.45, 1 - (this.tgH + 28) / s.h);
   },
 
   enter(ctx) {
@@ -325,10 +579,11 @@ export default {
     if (!this.ready) { P.scatter(); P.color(() => 0x6b5a86); return; }
     this.capWall();
     const nodeColor = this.nodeColor, nodes = this.d.nodes, n = nodes.length;
-    const gh = this.gh = Math.max(0.6, 1 - 84 / ctx.stage().h);
+    const gh = this.gh = this.ghFor(ctx.stage());
     P.target((i) => { const nd = nodes[P.artist[i] % n]; const r = Math.sqrt(ctx.hash(i)) * (0.008 + nd.plays_bucket * 0.009), a = ctx.hash(i * 97 + 13) * 6.283; return [clamp(nd.xy[0] + Math.cos(a) * r, 0, 1), clamp(nd.xy[1] + Math.sin(a) * r, 0, 1) * gh]; });
     P.color((i) => nodeColor[P.artist[i] % n]);
     this.layoutEdges(ctx);
+    if (this.atlasOn) this.atlasEnter(ctx);
     if (!this.introShown) { /* first-time visitor: the core interaction (tap/keyboard-select a node) is otherwise undiscoverable */
       this.introShown = true;
       if (this.reduced) this.showCue();
@@ -336,39 +591,89 @@ export default {
     }
   },
 
-  leave(ctx) { ctx.stopPosts(); if (this.tag) this.tag.hidden = true; this.stopDemo(); },
+  leave(ctx) {
+    ctx.stopPosts(); if (this.tag) this.tag.hidden = true; this.stopDemo();
+    if (this.atlasOn) {
+      clearTimeout(this.labT); this.labOn = false; this.hidLab = new Set(); this.hoverI = -1; this.pinned = false; this.kbFocusIdx = null; if (this.postSlot) this.postSlot.textContent = '';
+      /* K1: belt-and-braces alongside the shell's own room-exit clear (K1 contract) — never leave a stale trail set for the next room */
+      try { if (ctx.atlas && typeof ctx.atlas.setLines === 'function') ctx.atlas.setLines(null); } catch (e) {}
+    }
+  },
 
   /* a real hand arrived: the kiosk sequence stops walking the toggle */
   stopDemo() { if (this._demoT) { this._demoT.forEach(clearTimeout); this._demoT = null; } },
 
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;
+    if (this.atlasOn) this.vz = ctx.view && ctx.view.mode === 'pan' ? ctx.view.z || 1 : 1;
     let p = 1; if (this.fadeStart != null) p = clamp((t - this.fadeStart) / 900, 0, 1);
     const subK = 1 + (bands.low - 0.5) * 0.1, hi = bands.high * 0.15;
-    let pulse = null;
+    let pulseSet = null, pulseK = 0;
     if (this.pulseSet && this.mode === 'tap') {
       const pt = (t - this.pulseStart) / 1600;
-      if (pt >= 1) this.pulseSet = null; else pulse = { set: this.pulseSet, k: Math.sin(clamp(pt, 0, 1) * Math.PI) * 0.55 };
+      if (pt >= 1) this.pulseSet = null; else { pulseSet = this.pulseSet; pulseK = Math.sin(clamp(pt, 0, 1) * Math.PI) * 0.55; }
     }
-    const draw = (pre, mul, col, pl) => {
-      if (!pre || mul <= 0.01) return;
-      const { x1, y1, x2, y2, a0, br, n } = pre;
-      for (let k = 0; k < n; k++) {
-        let a = Math.min(1, a0[k] * mul * subK + (br[k] ? hi : 0));
-        if (pl && pl.set.has(k)) a = Math.min(1, a + pl.k);
-        if (a <= 0.01) continue;
-        g.globalAlpha = a; g.strokeStyle = br[k] ? css(col, 1) : css(this.DIM, 1); g.lineWidth = br[k] ? 2.2 : 1;
-        g.beginPath(); g.moveTo(x1[k], y1[k]); g.lineTo(x2[k], y2[k]); g.stroke();
-      }
-    };
+    /* atlas: the graph is drawn in world px and the camera scales it; strokes thin as it zooms so lines stay lines */
+    const zk = this.atlasOn ? Math.pow(this.vz, 0.7) : 1;
     const curPre = this.mode === 'tap' ? this.tapPre : this.autoPre, curCol = this.mode === 'tap' ? this.MINT : this.AV;
-    if (p < 1) { draw(this.fromPre, 1 - p, this.fromCol, null); draw(curPre, p, curCol, pulse); } else draw(curPre, 1, curCol, pulse);
+    if (this.atlasOn) {
+      this.drawTrails(ctx, t, p, subK, curPre, pulseSet, pulseK);
+    } else {
+      const lwB = 2.2 / zk, lwD = 1 / zk;
+      const draw = (pre, mul, col, pl) => {
+        if (!pre || mul <= 0.01) return;
+        const { x1, y1, x2, y2, a0, br, n } = pre;
+        for (let k = 0; k < n; k++) {
+          let a = Math.min(1, a0[k] * mul * subK + (br[k] ? hi : 0));
+          if (pl && pl.has(k)) a = Math.min(1, a + pulseK);
+          if (a <= 0.01) continue;
+          g.globalAlpha = a; g.strokeStyle = br[k] ? css(col, 1) : css(this.DIM, 1); g.lineWidth = br[k] ? lwB : lwD;
+          g.beginPath(); g.moveTo(x1[k], y1[k]); g.lineTo(x2[k], y2[k]); g.stroke();
+        }
+      };
+      if (p < 1) { draw(this.fromPre, 1 - p, this.fromCol, null); draw(curPre, p, curCol, pulseSet); } else draw(curPre, 1, curCol, pulseSet);
+    }
     if (this.kbFocusIdx != null && this.px) {
       const i = this.kbFocusIdx, px = this.px, base = this.clusterR ? this.clusterR[i] : 20, r = base + (this.reduced ? 0 : Math.sin(t * 0.005) * 2);
-      g.globalAlpha = 0.85; g.strokeStyle = '#86cbfe'; g.lineWidth = 2; /* a selection ring is interface: ice */
+      g.globalAlpha = 0.85; g.strokeStyle = '#86cbfe'; g.lineWidth = 2 / zk; /* a selection ring is interface: ice */
       g.beginPath(); g.arc(px[i * 2], px[i * 2 + 1], Math.max(10, r), 0, 6.283); g.stroke();
     }
     g.globalAlpha = 1;
+  },
+
+  /* K1 (W39): the bridge graph as glyph trails (ctx.atlas.setLines) instead of ctx.stroke() chords on the overlay
+     canvas, so the graph reads in the same glyph language as the rest of the atlas. Only atlas mode calls this —
+     ?atlas=0 keeps the vector chords above, byte for byte, since the glyph field itself is atlas-only. The old
+     stroke draw's audio-reactive "hi" bridge boost is not carried into K1 (see the tuning comment above); pulseK
+     (the first-visit intro highlight) still applies, and stays inside K1_W_MAX same as every other segment. */
+  drawTrails(ctx, t, p, subK, curPre, pulseSet, pulseK) {
+    const A = ctx.atlas; if (!A || typeof A.setLines !== 'function' || !this.segBuf) return;
+    const curColN = this.mode === 'tap' ? this.palTapN : this.palAutoN;
+    const buf = this.segBuf; let o = 0;
+    if (p < 1 && this.fromPre) o = this.fillSegs(buf, o, this.fromPre, (1 - p) * subK, this.fromColN, t, null, 0);
+    o = this.fillSegs(buf, o, curPre, p * subK, curColN, t, pulseSet, pulseK);
+    try { A.setLines(o ? buf.subarray(0, o) : null); } catch (e) {}
+  },
+
+  /* packs one edge set into buf at buf[off..]: 7 floats per segment (x0,y0,x1,y1,w,c,pulse — the K1 contract), x0/y0
+     the "from" node so the pulse travels i -> j, in play order. w is held under K1_W_MAX (0.8 — above the top
+     quartile's 0.6-0.8 band on purpose, headroom for a hub node's many edges unioning together at one cell) no
+     matter what the intro boost adds. pulse is NaN (no pulse) outside its brief travel window: the renderer draws a pulse head
+     at full brightness regardless of w, so an always-on pulse would force every edge into the strong bracket. */
+  fillSegs(buf, off, pre, mul, colN, t, pulseSet, pulseK) {
+    const { x1, y1, x2, y2, br, wt, ph, n } = pre;
+    let o = off;
+    for (let k = 0; k < n; k++) {
+      let w = wt[k] * mul;
+      if (pulseSet && pulseSet.has(k)) w += pulseK;
+      if (w > K1_W_MAX) w = K1_W_MAX; else if (w < 0) w = 0;
+      buf[o] = x1[k]; buf[o + 1] = y1[k]; buf[o + 2] = x2[k]; buf[o + 3] = y2[k]; buf[o + 4] = w;
+      buf[o + 5] = br[k] ? colN : this.DIMN;
+      const ph2 = (t + ph[k]) % K1_PULSE_MS;
+      buf[o + 6] = ph2 < K1_PULSE_TRAVEL_MS ? ph2 / K1_PULSE_TRAVEL_MS : NaN;
+      o += 7;
+    }
+    return o;
   },
 
   /* kiosk mode, unattended: perform the room's own story so a passer-by sees the finding without touching anything */

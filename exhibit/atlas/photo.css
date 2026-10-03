@@ -1,0 +1,42 @@
+/* exhibit/atlas/photo.css — package M8: photo and share. every selector starts with html.atlas (module
+   convention, §12); tokens are the page's --ink --mute --ice --line --bg --mono; ice is the only chrome
+   accent (never mint/amber/violet/rose). No native CSS nesting. */
+
+html.atlas .atlas-photodock{position:relative;z-index:6;display:flex;align-items:flex-start;gap:6px;pointer-events:auto}
+/* the fallback dock (chrome, M3, not yet mounted): float it under the top bar so it never collides with #mute */
+html.atlas .atlas-photodock-standalone{position:fixed;top:calc(env(safe-area-inset-top) + 54px);right:max(14px,env(safe-area-inset-right));flex-wrap:wrap;justify-content:flex-end;max-width:min(360px,92vw)}
+
+html.atlas .atlas-photogroup{position:relative;display:flex;align-items:flex-start}
+
+html.atlas .atlas-chip{font:600 10.5px/1 var(--mono,"JetBrains Mono",monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);background:rgba(10,1,24,.55);border:1px solid var(--line);border-radius:3px;padding:9px 11px;min-height:38px;cursor:pointer;white-space:nowrap;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+html.atlas .atlas-chip:hover{color:var(--ink);border-color:rgba(134,203,254,.5)}
+html.atlas .atlas-chip:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+html.atlas .atlas-chip[aria-pressed="true"]{color:var(--ice);border-color:rgba(134,203,254,.6);background:rgba(134,203,254,.12)}
+html.atlas .atlas-chip[aria-expanded="true"]{color:var(--ice);border-color:rgba(134,203,254,.6)}
+
+html.atlas .atlas-photobar{position:absolute;top:0;right:0;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:min(420px,92vw)}
+html.atlas .atlas-photodock:not(.atlas-photodock-standalone) .atlas-photobar{position:static;max-width:none}
+html.atlas .atlas-photobar-btn{padding:9px 12px}
+
+/* a brief white-ice flash on every capture (save picture / copy as text); decoration only, never data (D11) */
+html.atlas .atlas-photoflash{position:fixed;inset:0;z-index:20;background:radial-gradient(circle at 50% 42%,#eef7ff,#86cbfe 62%);opacity:0;pointer-events:none;animation:atlasPhotoFlash .49s ease-out forwards}
+@keyframes atlasPhotoFlash{0%{opacity:0}12%{opacity:.62}100%{opacity:0}}
+
+@media (max-width:640px){
+  html.atlas .atlas-photodock-standalone{top:calc(env(safe-area-inset-top) + 50px);gap:8px}
+  html.atlas .atlas-chip{padding:10px 12px;min-height:44px}
+}
+
+@media (prefers-reduced-motion: reduce){
+  html.atlas .atlas-photoflash{display:none}
+}
+
+@media print{
+  html.atlas .atlas-photodock{display:none}
+}
+
+@media (forced-colors: active){
+  html.atlas .atlas-chip{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none}
+  html.atlas .atlas-chip[aria-pressed="true"],html.atlas .atlas-chip[aria-expanded="true"]{color:CanvasText;border-color:CanvasText}
+  html.atlas .atlas-photoflash{display:none}
+}

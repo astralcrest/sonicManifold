@@ -1,0 +1,25 @@
+/* atlas camera + gesture layer (package M2). every selector starts with html.atlas, so ?atlas=0 never sees a rule here.
+   #atlas-stage is the field's one input surface: full viewport, above the canvases (z 0-1), below the rooms (main, z 3).
+   it owns touch (touch-action:none) so a finger drags the camera instead of the page; everything else on the page keeps
+   the browser default, and "pinch zooms: the page" hands two-finger pinch back to the browser (§1.6). */
+html.atlas #atlas-stage{position:fixed;left:0;top:0;width:100vw;height:100vh;height:100svh;z-index:2;margin:0;padding:0;background:transparent;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
+@supports (height:100dvh){html.atlas #atlas-stage{height:100dvh}}
+html.atlas #atlas-stage.atlas-grab{cursor:grab}
+html.atlas #atlas-stage.atlas-grabbing,html.atlas .atlas-grabbing{cursor:grabbing!important}
+/* room hit-targets bound through ctx.gesture: one input path, no callout, no double-tap page zoom */
+html.atlas [data-atlas-bound]{touch-action:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+html.atlas.atlas-pinch-page #atlas-stage,html.atlas.atlas-pinch-page [data-atlas-bound]{touch-action:pinch-zoom}
+/* keyboard focus on the field: a thin ice frame just inside the viewport, and one line naming the keys it now answers.
+   the line is a hint, not a label: it says it once and goes after 3 s, so it never sits over a room's readout. on a
+   touch-first screen neither shows unless a keyboard is really driving the field (.atlas-kbd, set by gesture.js): focus
+   handed to the field by code after a search must not frame the screen of a phone */
+html.atlas #atlas-stage:focus-visible{outline:2px solid rgba(134,203,254,.72);outline-offset:-7px}
+html.atlas #atlas-stage:focus-visible::after{content:attr(data-keys);position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 58px);transform:translateX(-50%);font:500 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ice);white-space:nowrap;padding:7px 11px;border:1px solid rgba(134,203,254,.38);border-radius:2px;background:rgba(10,1,24,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);pointer-events:none;animation:atlas-keys-in .35s ease-out both,atlas-keys-out .45s ease-in 3s forwards}
+@keyframes atlas-keys-in{from{opacity:0;transform:translate(-50%,-4px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes atlas-keys-out{from{opacity:1}to{opacity:0;visibility:hidden}}
+@media (pointer:coarse){html.atlas #atlas-stage:focus-visible:not(.atlas-kbd){outline:none}html.atlas #atlas-stage:focus-visible:not(.atlas-kbd)::after{display:none}}
+/* world-anchored room dom rides the camera: one css matrix, the same numbers as the canvas (view.layer) */
+html.atlas .atlas-cam{position:absolute;left:0;top:0;width:0;height:0;margin:0;padding:0;transform-origin:0 0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){html.atlas #atlas-stage:focus-visible::after{animation:atlas-keys-out 0s linear 3s forwards}}
+@media (forced-colors:active){html.atlas #atlas-stage:focus-visible{outline:2px solid Highlight}html.atlas #atlas-stage:focus-visible::after{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}}
+@media print{html.atlas #atlas-stage{display:none}}

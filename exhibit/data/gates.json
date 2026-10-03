@@ -1,0 +1,191 @@
+{
+ "source": "researcher.html (gauntlet caption, scoreboards, table) + AUDIT_LEDGER public row numbers",
+ "src_id": "researcher.html#gauntlet-cap",
+ "total": 13,
+ "tally": {
+  "fired_kills": 3,
+  "substituted_passed": 1,
+  "unreachable": 4,
+  "informative_survivor": 1,
+  "added_in_revision": 4,
+  "pre_revision": 9
+ },
+ "scoreboards": {
+  "retrospective": {
+   "survived": 11,
+   "killed": 8,
+   "confounded": 6,
+   "of": 25
+  },
+  "prospective": {
+   "survived_unqualified": 0,
+   "caveated": 6,
+   "killed": 5,
+   "of": 11
+  }
+ },
+ "adjudication_rows": [
+  {
+   "name": "Same-artist floor identity (pre-declared rule (b))",
+   "disposition": "demoted"
+  },
+  {
+   "name": "Per-arm sequence-Markov gate (test (i))",
+   "disposition": "demoted"
+  },
+  {
+   "name": "Geometry-adaptive null v1, balanced-embedding arm",
+   "disposition": "uninformative"
+  },
+  {
+   "name": "Balanced-embedding Bridge Index as a result (geometry-adaptive null v2)",
+   "disposition": "killed"
+  }
+ ],
+ "doors": [
+  {
+   "i": 1,
+   "kind": "kill",
+   "ledger": "143",
+   "name": "First-order Markov surrogate",
+   "rule": "Kill if the observed value does not clear the surrogate's 95th percentile.",
+   "verdict": "Fired. The topology framing died: first-order locality inside sessions already reproduces it. The index in its first form did not clear the same null (it sat below the surrogate's 95th percentile, and below its mean); door 2 shows the tap-vs-autoplay locality survives.",
+   "number": null,
+   "low_power": false,
+   "public_row": null
+  },
+  {
+   "i": 2,
+   "kind": "survive",
+   "ledger": "144",
+   "name": "Conditional-locality follow-up (substituted)",
+   "rule": "Substituted for the gate that fired: keep each arm's switch rate but destroy the conditional structure, then ask whether the gap survives.",
+   "verdict": "Ran and passed. The direction survives a switch-rate-only surrogate; the old framing stays dead.",
+   "number": null,
+   "low_power": false,
+   "public_row": null
+  },
+  {
+   "i": 3,
+   "kind": "kill",
+   "ledger": "215/255",
+   "name": "Tap-only Markov floor",
+   "rule": "Kill if p(null at or above observed) exceeds 0.05.",
+   "verdict": "Fired. The sequencing-agency framing was killed. The controlled re-run on the balanced-embedding partition agrees: taps cross 0.588 of the time against a habit floor of 0.689. On the genre-family partition it holds at every smoothing under this rule; under a stricter tail rule it misses at the loosest smoothing by 0.0001.",
+   "number": "taps 0.588 vs habit floor 0.689 (controlled re-run, balanced-embedding partition; first run 0.4665 vs 0.5785)",
+   "low_power": false,
+   "public_row": null
+  },
+  {
+   "i": 4,
+   "kind": "brick",
+   "ledger": "215",
+   "name": "Composition floor, Null(a)",
+   "rule": "The tap rate had to beat a blind picker's ~86-91%; no real listening clears that at this granularity.",
+   "verdict": "Counted unreachable by construction in the paper's tally.",
+   "number": "composition floor 0.861 (controlled re-run; first run 0.8553)",
+   "low_power": false,
+   "public_row": null
+  },
+  {
+   "i": 5,
+   "kind": "brick",
+   "ledger": "226",
+   "name": "Same-artist floor identity, rule (b)",
+   "rule": "Withdraw the size claim if the controlled index falls below its own random-partition floor.",
+   "verdict": "Unreachable. The control divides the index by that same floor, so afterwards the floor is exactly 1.00 and the rule could not fire.",
+   "number": "controlled index = raw index x (1 - autoplay's same-artist share) / (1 - my taps' same-artist share)",
+   "low_power": false,
+   "public_row": "Same-artist floor identity (pre-declared rule (b))"
+  },
+  {
+   "i": 6,
+   "kind": "brick",
+   "ledger": "227",
+   "name": "Per-arm sequence-Markov gate, test (i)",
+   "rule": "Kill if the observed value falls inside the surrogate's 5th to 95th percentile range (two-sided).",
+   "verdict": "Unreachable. The surrogate reproduces the observed rate by construction, so it has zero power.",
+   "number": "surrogate 1.1004 against observed 1.1010, 53rd percentile (on a different partition from the headline's)",
+   "low_power": false,
+   "public_row": "Per-arm sequence-Markov gate (test (i))"
+  },
+  {
+   "i": 7,
+   "kind": "survive",
+   "ledger": "227",
+   "name": "Pooled intent-blind Markov null, test (iii)",
+   "rule": "Kill if the observed value falls inside the pooled surrogate's 5th to 95th percentile range (two-sided).",
+   "verdict": "Survived, and it was the informative one: the observed value sat at the 100th percentile (p < 0.002).",
+   "number": "100th percentile of the surrogates",
+   "low_power": false,
+   "public_row": null
+  },
+  {
+   "i": 8,
+   "kind": "brick",
+   "ledger": "229",
+   "name": "Geometry-adaptive null, v1",
+   "rule": "Survive only if the observed index clears the 95th percentile of surrogates whose geometry is re-learned each draw.",
+   "verdict": "Uninformative. The literal result was a kill, but its power check showed it could never have passed, so it says nothing either way. Superseded by v2.",
+   "number": null,
+   "low_power": false,
+   "public_row": "Geometry-adaptive null v1, balanced-embedding arm"
+  },
+  {
+   "i": 9,
+   "kind": "kill",
+   "ledger": "231",
+   "name": "Geometry-adaptive null, v2",
+   "rule": "Survive only if the observed value exceeds the 95th percentile of 500 re-learned surrogates.",
+   "verdict": "Fired. The balanced-embedding arm was killed as a result; it is kept as a seed distribution.",
+   "number": "observed at the 1st percentile of the null",
+   "low_power": false,
+   "public_row": "Balanced-embedding Bridge Index as a result (geometry-adaptive null v2)"
+  },
+  {
+   "i": 10,
+   "kind": "revision",
+   "ledger": "237",
+   "name": "Audio-embedding imputation of the untagged tail",
+   "rule": "Drop any imputer under a 40% accuracy bar; with one that clears, re-score the tail and narrow or withdraw the bound by a rule fixed in advance.",
+   "verdict": "Did not fire: the decision rule returned neither a rescue nor a withdrawal. The imputer cleared its bar; the re-scored estimate stays inconclusive at this coverage. It covers 1.6% of the untagged artists; a random imputer moves the bound just as little.",
+   "number": "CLAP 43.1% against a pre-declared 40% bar (majority baseline 32.1%; MERT 36.3% failed and was dropped)",
+   "low_power": false,
+   "public_row": null
+  },
+  {
+   "i": 11,
+   "kind": "revision",
+   "ledger": "240",
+   "name": "Leave-one-year and leave-one-family out",
+   "rule": "Fragility rule: fire if any fold's point estimate is at or below 1.00.",
+   "verdict": "Did not fire, but it could barely have fired: one fold would have had to pull the index down by 0.053. The 21 folds are one estimate shaken 21 ways, and leaving out electronic gives an interval that includes 1. A second limb, proposed but dropped before the rule was fixed, would have fired on 5 of 13 families.",
+   "number": "21 of 21 folds above 1.00 (not independent; 3 year folds remove almost nothing)",
+   "low_power": true,
+   "public_row": null
+  },
+  {
+   "i": 12,
+   "kind": "revision",
+   "ledger": "241",
+   "name": "Coverage-matched sensitivity",
+   "rule": "Pre-declared, two limbs: fire if an adequately powered threshold's interval lies entirely below 1, or if the position-reweighted estimate's interval reaches 1.",
+   "verdict": "Did not fire. The position-reweighted interval stayed above 1, and the threshold limb was close to unfalsifiable at these sample sizes. The direction never reverses; interval support is confined to low play-count thresholds (20 plays or fewer); at 50 plays the estimate is attenuated to 1.008 [0.977, 1.038].",
+   "number": null,
+   "low_power": true,
+   "public_row": null
+  },
+  {
+   "i": 13,
+   "kind": "revision",
+   "ledger": "242",
+   "name": "Label-permutation test",
+   "rule": "Kill if the observed index falls inside the permutation null's 5th-95th percentile band (or one-sided p > 0.05).",
+   "verdict": "Did not fire, and it could have: the observed index sits outside the whole permutation null, which centres on 1.002. It tests the within-session part of the headline, not all of it.",
+   "number": null,
+   "low_power": false,
+   "public_row": null
+  }
+ ],
+ "caption": "the thirteen tests the headline faced, each written down before it ran, as doors. three slammed: two killed readings of the headline (its first form, its 'agency' reading), one killed an embedding arm; the headline's direction stayed. four could never have closed, and two more were set too high to close: writing a test down first fixes the order, not the power."
+}

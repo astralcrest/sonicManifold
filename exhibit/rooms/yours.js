@@ -28,7 +28,14 @@
 
    so this room computes BOTH and says which is which. the bars use the bundled ruler, because that is the ruler
    my wall is drawn on and a comparison on two different rulers would be a lie. the strict share is printed
-   underneath, because that is the ruler the bridge index runs on. */
+   underneath, because that is the ruler the bridge index runs on.
+
+   ATLAS MODE (BUILD_SPEC_V2 §3 yours row, brief R1). the two walls of bars are a categorical glyph field (o O @ tapped,
+   x X % shuffled, - = ≡ served; colour sampled from one member dot, never averaged), each bar a block of whole glyph
+   cells on a lattice that is a whole multiple of the dot pitch (cells(), below). the camera pans and zooms (z 1-3, no
+   drift). the walls stand side by side; on a landscape screen MINE and YOURS are region labels. the drop target, the
+   worker and the reading are untouched: drag and drop are not pointer events, and nothing here calls preventDefault on
+   them. still a side room: no stop number, no tours. */
 
 export const TAP_STRICT = ['playbtn', 'clickrow', 'remote'];
 export const TAP_BUNDLED = ['playbtn', 'clickrow', 'remote', 'backbtn', 'fwdbtn'];
@@ -39,11 +46,18 @@ export const MIN_QUALIFIED = 200;  /* this room's own floor: under this the thre
 const STRICT = Object.create(null); TAP_STRICT.forEach((k) => { STRICT[k] = 1; });
 const BUNDLED = Object.create(null); TAP_BUNDLED.forEach((k) => { BUNDLED[k] = 1; });
 const CHUNK = 25000;
+const LIFT = 20, LAB_GAP = 5, PLATE = 'rgba(10,1,24,.82)', BG = '#0a0118';
+/* one category per wall and provenance (1-3 mine, 4-6 yours), each drawn in its provenance's family: the field's
+   categorical passes (the shell's thinning, the glyph field's outline quota) share out per category, so per wall */
+const CATS = [{ family: 'neutral' }, { family: 'tap' }, { family: 'shuffle' }, { family: 'served' }, { family: 'tap' }, { family: 'shuffle' }, { family: 'served' }];
+const dbg = { on: false };
 
 function err(code, info) { const e = new Error(code); e.code = code; e.info = info; return e; }
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
-export function newAcc() { return { nRaw: 0, nWithReason: 0, nQual: 0, tap: 0, shuffle: 0, served: 0, tapStrict: 0, first: null, last: null }; }
+export function newAcc() { return { nRaw: 0, nWithReason: 0, nQual: 0, tap: 0, shuffle: 0, served: 0, tapStrict: 0, first: null, last: null, art: Object.create(null) }; }
+/* the visitor's three most-played artists, kept for the card's opt-in line; the per-artist tally itself is dropped */
+export function topOf(acc) { const a = acc.art || {}; acc.top = Object.keys(a).sort((x, y) => a[y] - a[x]).slice(0, 3); delete acc.art; return acc; }
 
 /* one pass over a slice of raw export rows. the four lines that decide anything are the four copied above. */
 export function scanRows(data, from, to, acc) {
@@ -55,6 +69,7 @@ export function scanRows(data, from, to, acc) {
     if ((r.ms_played || 0) < MS_PLAYED_MIN) continue;
     if (!r.spotify_track_uri || !r.master_metadata_album_artist_name) continue;
     acc.nQual++;
+    const an = r.master_metadata_album_artist_name; acc.art[an] = (acc.art[an] || 0) + 1;
     const rs = r.reason_start || '';
     if (BUNDLED[rs]) acc.tap++;
     else if (r.shuffle) acc.shuffle++;
@@ -91,7 +106,7 @@ export async function scanFiles(files, onProgress) {
   if (!acc.nRaw) throw err('empty', '');
   if (acc.nWithReason / acc.nRaw < REASON_FLOOR) throw err('noreason', Math.round((100 * acc.nWithReason) / acc.nRaw));
   if (acc.nQual < MIN_QUALIFIED) throw err('few', acc.nQual);
-  return acc;
+  return topOf(acc);
 }
 
 /* ------------------------------------------------------------------ demo data.
@@ -139,12 +154,13 @@ const ASK = 'drop your extended streaming history json here, or';
 const WAIT = 'spotify takes a few days to send an export: account, then privacy, then tick extended streaming history. the short account-data file will not do, it has no reason_start in it.';
 const DEMOTAG = 'demo data. i invented these plays in this tab just now, so they are nobody.';
 const DEMOTAG_S = 'demo data. i invented these plays just now.';
+const SHORT = 'nothing is uploaded.';
 const NOTBI = 'this is not a bridge index. that one needs the jumps between artists and a map to score them against, and it lives in the full probe.';
 const PROBE = 'the full probe: your own bridge index';
-const SAVE = 'save this as a picture';
 const CARD_TITLE = 'who pressed play, in two logs';
-const CARD_URL = 'astralcrest.github.io/sonicManifold/exhibit.html';
 const CARD_FILE = 'who-pressed-play.png';
+const NEUTRAL = 'a split is neither good nor bad: it is only who pressed play.';
+const TOP3 = 'add my top 3 artists to the card';
 
 const ERRS = {
   notjson: (n) => 'i could not read ' + n + ' as json. the files you want are the ones named streaming_history_audio_*.json.',
@@ -169,11 +185,12 @@ const TPL = `<div class="y-pn">
 <p class="y-line y-mine"></p>
 <p class="y-say"></p>
 <div class="y-row"><button type="button" class="btn ghost y-again">read another file</button><a class="y-probe" href="bridge-index.html#sec-howto"></a></div>
-<button type="button" class="y-save"></button>
+<div class="y-card"><label class="y-top"><input type="checkbox" class="y-topc"> <span></span></label></div>
 <button type="button" class="y-more" aria-expanded="true"></button>
 <div class="y-fine"><p class="y-rule"></p><p class="y-not"></p></div>
 </div>
 <p class="y-priv"></p>
+<div class="y-row y-fold"><span class="y-short"></span><button type="button" class="y-open" aria-expanded="false"></button></div>
 <input class="y-file" type="file" accept=".json,application/json" multiple hidden>
 </div>`;
 
@@ -185,8 +202,11 @@ section[data-room=yours] .y-ask{margin:0;font:500 13px/1.45 var(--mono);color:va
 section[data-room=yours] .y-wait,section[data-room=yours] .y-priv,section[data-room=yours] .y-rule,section[data-room=yours] .y-not,section[data-room=yours] .y-tag{margin:0;font:400 11px/1.5 var(--mono);color:var(--mute)}
 /* the privacy line is pinned to the bottom of the panel: whatever else scrolls, that sentence does not leave */
 section[data-room=yours] .y-priv{position:sticky;bottom:0;z-index:2;border-top:1px dotted rgba(189,166,255,.22);padding:8px 0 2px;background:#0a0118}
-section[data-room=yours] .y-more,section[data-room=yours] .y-save{align-self:flex-start;margin:0;padding:6px 0;border:0;background:none;color:var(--ice);font:500 11px/1.4 var(--mono);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-section[data-room=yours] .y-save:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+section[data-room=yours] .y-more{align-self:flex-start;margin:0;padding:6px 0;border:0;background:none;color:var(--ice);font:500 11px/1.4 var(--mono);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+section[data-room=yours] .y-card{display:flex;flex-wrap:wrap;align-items:center;gap:2px 18px}
+section[data-room=yours] .y-top{display:flex;gap:8px;align-items:center;font:400 11px/1.4 var(--mono);color:var(--mute);cursor:pointer}
+section[data-room=yours] .y-top input{margin:0;accent-color:#86cbfe}
+section[data-room=yours] .y-top input:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
 section[data-room=yours] .y-fine{display:flex;flex-direction:column;gap:6px}
 section[data-room=yours] .y-fine[hidden]{display:none}
 section[data-room=yours] .y-tag{color:var(--amber)}
@@ -215,7 +235,7 @@ section[data-room=yours] .y-pn.squeeze .y-priv,section[data-room=yours] .y-pn.sc
 section[data-room=yours] .y-pn.squeeze .y-row{gap:8px;margin-top:0}
 section[data-room=yours] .y-pn.squeeze .y-again{padding:10px 12px;min-height:40px;font-size:10px;letter-spacing:.06em}
 section[data-room=yours] .y-pn.squeeze .y-probe{padding:7px 0;font-size:10px;letter-spacing:.06em}
-section[data-room=yours] .y-pn.squeeze .y-more,section[data-room=yours] .y-pn.squeeze .y-save{padding:3px 0;font-size:10px}
+section[data-room=yours] .y-pn.squeeze .y-more,section[data-room=yours] .y-pn.squeeze .cd-b{padding:3px 0;font-size:10px}
 section[data-room=yours] .y-pn.squeeze .y-priv{padding-top:6px}
 /* once there is a result, the invitation has done its job and gets out of the way of the numbers */
 section[data-room=yours] .y-pn.has .y-intro{display:none}
@@ -232,7 +252,25 @@ section[data-room=yours] .btn{padding:11px 14px;min-height:42px}
 @media (max-height:480px) and (min-aspect-ratio:115/100){
 section[data-room=yours] .y-pn{gap:5px}
 section[data-room=yours] .y-wait{display:none}
-}`;
+}
+section[data-room=yours] .y-fold{display:none}
+/* atlas, an upright phone (fix r3): the walls are the room. the ask keeps its two buttons on one row; how to get an
+   export and the privacy sentence fold under more, and the short line that stays is the promise itself.
+   with a result: the picture and the counting rules fold there too; the sentence and read another file stay */
+section[data-room=yours] .y-pn.compact .y-fold{display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:center;gap:10px}
+section[data-room=yours] .y-pn.compact .y-open{padding:4px 0}
+section[data-room=yours] .y-pn.compact:not(.open) .y-wait,section[data-room=yours] .y-pn.compact:not(.open) .y-priv{display:none}
+section[data-room=yours] .y-pn.compact:not(.open) .y-card,section[data-room=yours] .y-pn.compact:not(.open) .y-more,section[data-room=yours] .y-pn.compact:not(.open) .y-fine{display:none}
+section[data-room=yours] .y-pn.compact .y-live:empty{min-height:0}
+section[data-room=yours] .y-pn.compact .y-priv{position:static;box-shadow:none;border-top:0;padding:0}
+section[data-room=yours] .y-pn.compact .y-intro .y-row{flex-wrap:nowrap;gap:8px}
+section[data-room=yours] .y-pn.compact .y-intro .btn{flex:1 1 0;min-width:0;white-space:nowrap;padding:12px 8px;letter-spacing:.06em}
+section[data-room=yours] .y-pn.compact.has .y-them,section[data-room=yours] .y-pn.compact.has .y-mine{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+section[data-room=yours] .y-short{font:400 11px/1.4 var(--mono);color:var(--mute)}
+section[data-room=yours] .y-open{margin:0;padding:6px 0;border:0;background:none;color:var(--ice);font:500 11px/1.4 var(--mono);text-decoration:underline;text-underline-offset:3px;cursor:pointer;white-space:nowrap}
+section[data-room=yours] .y-open:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+/* R1-e: the folded button sat 40x23 on touch. min-height on the flex item (its row centres it, nothing else moves) */
+@media (pointer:coarse){section[data-room=yours] .y-open{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}}`;
 
 /* ------------------------------------------------------------------ the room */
 
@@ -242,18 +280,20 @@ export default {
   mineN: 97427, mineP: [19, 17, 64], mineStrict: 11.5, /* fallback if wall.json fails; real values read in mount() */
 
   async mount(root, ctx) {
-    this.root = root; this.ctx = ctx;
+    this.root = root; this.ctx = ctx; this.A = !!(ctx.atlas && ctx.atlas.on); this.prec = [];
     if (!document.getElementById('y-css')) { const st = document.createElement('style'); st.id = 'y-css'; st.textContent = CSS; document.head.appendChild(st); }
     root.innerHTML = TPL;
-    const Q = { pn: '.y-pn', intro: '.y-intro', ask: '.y-ask', pick: '.y-pick', dem: '.y-demo', wait: '.y-wait', live: '.y-live', errEl: '.y-err', res: '.y-res', tag: '.y-tag', them: '.y-them', mineEl: '.y-mine', say: '.y-say', more: '.y-more', fine: '.y-fine', ruleEl: '.y-rule', notEl: '.y-not', again: '.y-again', probe: '.y-probe', save: '.y-save', priv: '.y-priv', file: '.y-file' };
+    const Q = { pn: '.y-pn', intro: '.y-intro', ask: '.y-ask', pick: '.y-pick', dem: '.y-demo', wait: '.y-wait', live: '.y-live', errEl: '.y-err', res: '.y-res', tag: '.y-tag', them: '.y-them', mineEl: '.y-mine', say: '.y-say', more: '.y-more', fine: '.y-fine', ruleEl: '.y-rule', notEl: '.y-not', again: '.y-again', probe: '.y-probe', cardEl: '.y-card', topc: '.y-topc', priv: '.y-priv', file: '.y-file', shortEl: '.y-short', opn: '.y-open' };
     for (const k in Q) this[k] = root.querySelector(Q[k]);
 
     this.ask.textContent = ASK; this.pick.textContent = 'choose files'; this.dem.textContent = 'use demo data';
     this.wait.textContent = WAIT; this.priv.textContent = PRIVACY; this.notEl.textContent = NOTBI;
     this.probe.textContent = PROBE + ' →';
-    this.save.textContent = SAVE;
+    this.topc.nextElementSibling.textContent = TOP3;
+    this.shortEl.textContent = SHORT; this.foldOpen(false);
+    this.opn.addEventListener('click', () => { this.foldOpen(!this.pn.classList.contains('open')); this.repaint(); });
 
-    this.save.addEventListener('click', () => this.saveCard());
+    this.topc.addEventListener('change', () => this.setCard());
     this.pick.addEventListener('click', () => { this.file.value = ''; this.file.click(); });
     this.file.addEventListener('change', () => { if (this.file.files && this.file.files.length) this.read(this.file.files); });
     this.dem.addEventListener('click', () => this.runDemo());
@@ -272,6 +312,21 @@ export default {
       const f = e.dataTransfer && e.dataTransfer.files;
       if (f && f.length) this.read(f);
     });
+    /* atlas: the section itself is pointer-events:none and the bars are canvas, so a file let go over the field lands on
+       #atlas-stage, outside the section, and the browser would open it. while this room is on screen, the document
+       catches what the section cannot and hands it to the same reader (the section's own handlers stop propagation, so
+       nothing is read twice) */
+    if (this.A) {
+      const on = () => sec.classList.contains('is-active');
+      const files = (e) => !!(e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0);
+      document.addEventListener('dragover', (e) => { if (!on() || !files(e)) return; e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; this.pn.classList.add('drag'); });
+      document.addEventListener('dragleave', (e) => { if (on() && !e.relatedTarget) this.pn.classList.remove('drag'); });
+      document.addEventListener('drop', (e) => {
+        if (!on() || !files(e)) return;
+        e.preventDefault(); this.pn.classList.remove('drag');
+        const f = e.dataTransfer.files; if (f && f.length) this.read(f);
+      });
+    }
 
     await ctx.identity();
     const w = await ctx.data('wall').catch(() => null);
@@ -305,6 +360,7 @@ export default {
      visitor's file exists in the tab there is nothing left to go and get. it is why the network log during a
      parse is empty, which is the promise this room makes. */
   warm() {
+    if (!this.cardP) this.cardP = import('../atlas/card.js' + ((this.ctx && this.ctx.V) || '')).catch(() => null);
     if (this.worker || this.noWorker) return;
     try { this.worker = new Worker(new URL('./yours.worker.js', import.meta.url), { type: 'module' }); }
     catch (e) { this.noWorker = true; this.worker = null; return; }
@@ -354,7 +410,7 @@ export default {
     this.errEl.textContent = '';
     this.live.textContent = 'inventing a listener';
     const acc = newAcc(), rows = demoRows((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0);
-    scanRows(rows, 0, rows.length, acc);
+    scanRows(rows, 0, rows.length, acc); topOf(acc);
     setTimeout(() => { this.busy(false); this.show(acc, true); }, 380);
   },
 
@@ -371,6 +427,7 @@ export default {
   },
 
   fail(code, info) {
+    if (this.bar) this.bar.clear();
     this.theirs = null; this.res.hidden = true; this.pn.classList.remove('has');
     this.live.textContent = '';
     this.errEl.textContent = (ERRS[code] || ERRS.bad)(info);
@@ -379,6 +436,7 @@ export default {
   },
 
   reset() {
+    if (this.bar) this.bar.clear();
     this.theirs = null; this.demo = false;
     this.res.hidden = true; this.pn.classList.remove('has');
     this.errEl.textContent = ''; this.live.textContent = ''; this.file.value = '';
@@ -390,7 +448,7 @@ export default {
     if (!acc || !acc.nQual) { this.fail('empty', ''); return; }
     const p = shares3(acc.tap, acc.shuffle, acc.served);
     const strict = Math.round((1000 * acc.tapStrict) / acc.nQual) / 10;
-    this.theirs = { p: p, n: acc.nQual, strict: strict };
+    this.theirs = { p: p, n: acc.nQual, strict: strict, top: acc.top || [], f: [acc.tap / acc.nQual, acc.shuffle / acc.nQual, acc.served / acc.nQual] };
 
     this.live.textContent = int(acc.nQual) + ' of your plays ran past thirty seconds. ' + p[0] + '% tapped, ' + p[1] + '% shuffled, ' + p[2] + '% served.';
     this.tag.hidden = !isDemo;
@@ -402,6 +460,7 @@ export default {
       : d <= -2
         ? 'i pressed play by hand more often than you did: ' + this.mineP[0] + '% of my plays against ' + p[0] + '% of yours.'
         : 'we pressed play by hand about as often as each other: ' + p[0] + '% of yours against ' + this.mineP[0] + '% of mine.';
+    this.say.textContent += ' ' + NEUTRAL;
     this.ruleEl.textContent = 'both of those count a skip button as a tap, which is how my ' + this.mineP[0]
       + '% is counted. on the stricter reading the bridge index runs on (track row, play button, remote only) yours is '
       + strict + '% and mine is ' + this.mineStrict + '%. i counted your plays the way the probe does: past thirty seconds, with a track id and an artist on them.';
@@ -413,7 +472,40 @@ export default {
     this.repaint();
     this.checkScroll();
     this.repaint(); /* the fold, if it happened, gives the walls their height back */
-    try { this.ctx.audio.note(5, { vol: 0.04, dur: 0.9 }); } catch (e) {}
+    this.topc.checked = false; this.setCard();
+    this.arp(p);
+  },
+
+  /* the visitor's three shares as 100 rising notes, one per point, voiced by arm (taps first), about 2.5 s */
+  arp(p) {
+    const A = this.ctx && this.ctx.audio, V = [['triangle', 0.03, 0.16], ['sine', 0.035, 0.2], ['square', 0.008, 0.09]];
+    let k = 0, left = p[0];
+    try { for (let i = 0; i < 100; i++) { while (left <= 0 && k < 2) left = p[++k]; left--; const v = V[k]; A.note(Math.floor(i / 10), { type: v[0], vol: v[1], dur: v[2], at: i * 0.025 }); } } catch (e) {}
+  },
+
+  /* the share card (exhibit/atlas/card.js, fetched while the room idles): the two triples, the stricter reading in small
+     type, the pseudonym and the url. no file name, no dates, no artists unless the visitor ticks the box; nothing sent */
+  setCard() {
+    const t = this.theirs; if (!t) return;
+    if (!this.cardP) this.warm();
+    this.cardP.then((C) => {
+      if (!C || this.theirs !== t) return;
+      if (!this.bar) { this.bar = C.bar(null, { ctx: this.ctx, label: 'share your card' }); this.cardEl.insertBefore(this.bar.el, this.cardEl.firstChild); }
+      const M = this.mineP, who = this.demo ? 'demo' : 'you', top = this.topc.checked && t.top.length ? t.top.join(' · ') : '';
+      const seg = (w, q) => [[w, 'ice'], ['  '], [q[0], 'tap'], [' · ', 'mute'], [q[1], 'shuffle'], [' · ', 'mute'], [q[2], 'served']];
+      const st = (q) => ({ counts: q, colors: ['tap', 'shuffle', 'served'], glyphs: ['o', 'x', '='] });
+      const text = CARD_TITLE + '. ' + (this.demo ? 'an invented demo listener: ' : 'me: ') + t.p[0] + '% tapped · ' + t.p[1] + '% shuffled · ' + t.p[2] + '% served'
+        + (top ? ' (top 3: ' + top + ')' : '') + '. astralcrest: ' + M.join(' · ') + '. ' + NEUTRAL
+        + ' find yours, the file never leaves your tab: https://astralcrest.github.io/sonicManifold/exhibit.html#yours';
+      this.bar.set({
+        kicker: 'tapped · shuffled · served, % of plays', title: CARD_TITLE, demo: this.demo,
+        hero: [{ segs: seg(who.toUpperCase(), t.p), strip: st(t.p) }, { segs: seg('ASTRALCREST', M), strip: st(M) }],
+        note: top ? (this.demo ? 'demo top 3: ' : 'my top 3: ') + top : '',
+        fine: 'a skip button counts as a tap on both sides. stricter reading (track row, play button, remote only): ' + who + ' '
+          + t.strict + '% · astralcrest ' + this.mineStrict + '%. ' + NEUTRAL,
+        path: 'exhibit.html#yours',
+      }, text, CARD_FILE);
+    });
   },
 
   /* ---------------- the dots ---------------- */
@@ -444,7 +536,7 @@ export default {
 
   /* two strings get shorter when the stage is short, so the result and its controls stay on one screen */
   retext() {
-    const sq = this.pn.classList.contains('squeeze');
+    const sq = this.pn.classList.contains('squeeze') || this.pn.classList.contains('compact');
     this.probe.textContent = (sq ? 'the full probe' : PROBE) + ' →';
     this.tag.textContent = this.demo ? (sq ? DEMOTAG_S : DEMOTAG) : '';
   },
@@ -453,12 +545,15 @@ export default {
   layout(ctx) {
     const s = ctx.stage(); this.s = s;
     this.pn.classList.toggle('squeeze', s.h < 380);
+    /* atlas, an upright phone: the panel folds to the ask, its two buttons and one line (css .compact), and the walls
+       stand side by side on one baseline under it: the yours box beside mine, never stacked under it */
+    this.compact = this.A && this.portraitStack(s); this.pn.classList.toggle('compact', this.compact);
     this.pn.style.left = s.x + 'px'; this.pn.style.top = s.y + 'px'; this.pn.style.width = s.w + 'px';
     this.pn.style.maxHeight = Math.round(s.h * (this.theirs ? 0.66 : 0.56)) + 'px';
     const pnH = Math.min(this.pn.offsetHeight || 0, s.h * 0.68);
-    const top = s.y + pnH + 14;
+    const top = s.y + pnH + (this.compact ? 8 : 14);
     const band = Math.max(56, s.y + s.h - top);
-    const stacked = this.portraitStack(s) && band >= 170;
+    const stacked = !this.A && this.portraitStack(s) && band >= 170;
     this.boxes = stacked
       ? [{ x: s.x, y: top, w: s.w, h: (band - 14) / 2 }, { x: s.x, y: top + (band - 14) / 2 + 14, w: s.w, h: (band - 14) / 2 }]
       : (() => { const gap = Math.max(18, s.w * 0.055), ww = (s.w - gap) / 2; return [{ x: s.x, y: top, w: ww, h: band }, { x: s.x + ww + gap, y: top, w: ww, h: band }]; })();
@@ -473,30 +568,54 @@ export default {
     const CAP = this.tiny ? 12 : 23; /* the strip at the top of a box that the caption and the % labels own */
     const colW = boxes[0].w / 3, usable = colW * 0.78;
     const barH = Math.max(20, boxes[0].h - CAP);
+    const fits = (k, h) => Math.ceil(this.maxc / Math.max(1, Math.floor(usable / k))) * k <= h;
     /* the biggest dot at which the tallest column still fits. fine steps, because the grid quantises twice
        (dot size and dots per row) and a coarse sweep leaves the tallest bar a long way short of the ceiling. */
     let d = 0.5;
-    for (let step = 2; step <= 28; step++) { const k = step / 4; const per = Math.max(1, Math.floor(usable / k)); if (Math.ceil(this.maxc / per) * k <= barH) d = k; }
+    for (let step = 2; step <= 28; step++) { const k = step / 4; if (fits(k, barH)) d = k; }
+    /* atlas: the dots are binned into glyph cells, so a pitch under half a pixel still draws. on the smallest phones
+       (320 wide) the tallest bar did not fit at 0.5 and ran up over the caption and into the panel */
+    if (this.A && !fits(d, barH)) { for (let k = 45; k >= 25; k -= 5) { d = k / 100; if (fits(d, barH)) break; } }
     const per = Math.max(1, Math.floor(usable / d));
     this.d = d; this.per = per; this.cap = CAP;
+    /* atlas: a bar's rendered top is the top of its glyph cell, and its % stands LAB_GAP px over that on a plate; the
+       caption keeps its place and steps up only as far as a label under it needs (frame). LIFT is that room. fix r3: the
+       pitch above is ?atlas=0's, picked from the same bar height (round 2 took LIFT off first, which dropped desk's pitch
+       from 1 to 0.75 and moved every number on the wall). LIFT is reserved only where that pitch still fits under it;
+       elsewhere the caption stays put and the % plates stay inside the CAP strip, as at ?atlas=0 */
+    this.lift = this.A && !this.tiny && fits(d, barH - LIFT) ? LIFT : 0;
     /* the grid quantises twice, so the tallest column rarely reaches the ceiling. rather than leave a band of
        empty box above it, the caption comes down to sit on top of the tallest bar. */
     this.barTop = boxes[0].h - Math.ceil(this.maxc / per) * d;
-    const side = this.sideA, pv = this.pvA, rank = this.rankA, split = this.split;
-    const pad = colW * 0.11;
-    P.targetPx((i) => {
-      const sd = side[i]; if (sd === 1 && !split) return null;
-      const b = boxes[sd], c = pv[i], r = rank[i];
-      return [b.x + c * colW + pad + (r % per) * d, b.y + b.h - Math.floor(r / per) * d];
-    });
-    const C = ctx.PROV; P.color((i) => C[pv[i]]);
+    this.plan = null;
+    if (this.A && this.glyphs(ctx)) {
+      /* an upright phone fills the box and has no bar height to spare for LIFT: its caption stays put, and a % under it
+         stands in the CAP strip, as at ?atlas=0 */
+      if (this.compact) this.lift = 0;
+      this.cells(ctx);
+    } else {
+      const side = this.sideA, pv = this.pvA, rank = this.rankA, split = this.split;
+      const pad = colW * 0.11;
+      P.targetPx((i) => {
+        const sd = side[i]; if (sd === 1 && !split) return null;
+        const b = boxes[sd], c = pv[i], r = rank[i];
+        return [b.x + c * colW + pad + (r % per) * d, b.y + b.h - Math.floor(r / per) * d];
+      });
+    }
+    const C = ctx.PROV, pv = this.pvA; P.color((i) => C[pv[i]]);
+    if (this.A && this.active) { this.flight = true; this.atlasGlyph(ctx); this.floorMask(ctx); } /* weighed now: the next field frame bins before the next overlay frame */
   },
 
   enter(ctx) {
     this.active = true;
     const P = ctx.particles; P.ease = 0.06; P.jitter = 0.45; P.big = false; P.swirl = 0.3;
     if (!this.ready) { P.scatter(); P.color(() => ctx.PAL.fog); return; }
+    /* atlas: the bars are a grid and their heights are the numbers: no jitter across cell edges, no pointer parting, and
+       no swirl: a swirled flight arcs half the dots out past their target (the bottom rows' dots dipped under the baseline
+       on the way in), and floorMask() predicts each dot's next position on a straight flight */
+    if (this.A) { P.jitter = 0; P.touch = false; P.swirl = 0; }
     this.layout(ctx); this.place(ctx);
+    if (this.A) ctx.view.configure({ mode: 'pan', zMin: 1, zMax: 3, drift: false });
   },
 
   leave() { this.active = false; },
@@ -516,82 +635,6 @@ export default {
     if (byHand) { this.fineByHand = true; this.repaint(); }
   },
 
-  /* ---------------- the share card ----------------
-     one 1200x630 png, drawn on a canvas that never joins the page. it carries the two sets of three shares,
-     the two names, the visitor's play count rounded to the nearest hundred, and the url. no file name, no
-     dates, no artists: nothing a stranger could use to pick the visitor out of a crowd. and nothing is sent:
-     the bytes go from the canvas to a blob to the visitor's own downloads folder. */
-  drawCard() {
-    const W = 1200, H = 630, PADX = 64;
-    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-    const g = cv.getContext('2d'); if (!g) return null;
-    const mono = '"JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace';
-    const HEX = ['#21f6bc', '#f5a623', '#8b6fd6'], ICE = '#86cbfe', MUTE = '#a49bbd', INK = '#f0eaff';
-    g.fillStyle = '#0a0118'; g.fillRect(0, 0, W, H);
-
-    g.textBaseline = 'alphabetic'; g.textAlign = 'left';
-    g.fillStyle = INK; g.font = '600 34px ' + mono; g.fillText(CARD_TITLE, PADX, 92);
-    g.fillStyle = ICE; g.font = '500 17px ' + mono; g.fillText(CARD_URL, PADX, 586);
-
-    const theirN = Math.max(100, Math.round(this.theirs.n / 100) * 100);
-    const panels = [
-      { who: this.demo ? 'demo' : 'you', tail: 'about ' + int(theirN) + ' plays', p: this.theirs.p },
-      { who: 'astralcrest', tail: int(this.mineN) + ' plays', p: this.mineP },
-    ];
-    /* 280 not 300: a 100% bar plus its label must still clear the name line at 156 */
-    const GAP = 64, PW = (W - PADX * 2 - GAP) / 2, BASE = 500, MAXH = 280, PITCH = 7, R = 2.6;
-    const NAMES = ['tapped', 'shuffled', 'served'];
-    for (let k = 0; k < 2; k++) {
-      const x0 = PADX + k * (PW + GAP), pn = panels[k];
-      g.textAlign = 'left'; g.font = '600 20px ' + mono; g.fillStyle = ICE; g.fillText(pn.who, x0, 156);
-      const tailX = x0 + g.measureText(pn.who).width + 18;
-      g.fillStyle = MUTE; g.font = '400 16px ' + mono; g.fillText(pn.tail, tailX, 156);
-      g.strokeStyle = 'rgba(134,203,254,.3)'; g.lineWidth = 1;
-      g.beginPath(); g.moveTo(x0, BASE + 0.5); g.lineTo(x0 + PW, BASE + 0.5); g.stroke();
-      const colW = PW / 3, per = 16, barW = (per - 1) * PITCH, pad = (colW - barW) / 2;
-      for (let c = 0; c < 3; c++) {
-        const cx = x0 + c * colW, rows = Math.round((pn.p[c] / 100) * MAXH / PITCH);
-        g.fillStyle = HEX[c];
-        for (let r = 0; r < rows; r++) for (let i = 0; i < per; i++) {
-          g.beginPath(); g.arc(cx + pad + i * PITCH, BASE - 4 - r * PITCH, R, 0, Math.PI * 2); g.fill();
-        }
-        g.textAlign = 'center';
-        g.font = '600 30px ' + mono; g.fillStyle = HEX[c];
-        g.fillText(pn.p[c] + '%', cx + colW / 2, BASE - 4 - rows * PITCH - 12);
-        g.font = '400 15px ' + mono; g.fillStyle = MUTE;
-        g.fillText(NAMES[c], cx + colW / 2, BASE + 30);
-      }
-    }
-    return cv;
-  },
-
-  /* a.download is the normal road. ios safari treats a blob download as a page to show rather than a file
-     to keep, so there the picture opens in a tab of its own and the visitor holds it to save. the tab has to
-     be opened inside the click, before toBlob returns, or safari's popup rule closes the door. */
-  saveCard() {
-    if (!this.theirs) return;
-    const cv = this.drawCard(); if (!cv) return;
-    const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    let tab = null;
-    if (ios) { try { tab = window.open('', '_blank'); } catch (e) { tab = null; } }
-    const hand = (blob) => {
-      if (!blob) { if (tab) { try { tab.close(); } catch (e) {} } return; }
-      const url = URL.createObjectURL(blob);
-      if (tab) { try { tab.location.href = url; } catch (e) { tab = null; } }
-      if (!tab) {
-        const a = document.createElement('a'); a.href = url; a.download = CARD_FILE; a.rel = 'noopener';
-        document.body.appendChild(a); a.click(); a.remove();
-      }
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    };
-    if (cv.toBlob) { cv.toBlob(hand, 'image/png'); return; }
-    try {
-      const b64 = cv.toDataURL('image/png').split(',')[1], bin = atob(b64), u8 = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-      hand(new Blob([u8], { type: 'image/png' }));
-    } catch (e) { hand(null); }
-  },
-
   /* the panel may scroll as a last resort, but the result and its controls should fit without it:
      if they do not, fold the fine print first and only then let it scroll. */
   checkScroll() {
@@ -604,37 +647,259 @@ export default {
   frame(g, t, bands, w, h, ctx) {
     const boxes = this.boxes; if (!boxes || !this.ready) return;
     const mono = '"JetBrains Mono", ui-monospace, monospace';
+    /* atlas: k = 1 / zoom, so captions and percentages keep their screen size while staying in world px (1 at home) */
+    const k = this.A ? 1 / (ctx.view.z || 1) : 1;
+    if (this.A) { dbg.on = !!ctx.atlas.debug; this.prec.length = 0; if (this.flight) this.floorMask(ctx); else this.watchLattice(ctx); }
     const colW = boxes[0].w / 3, per = this.per || 1, d = this.d || 1, pad = colW * 0.11;
-    const caps = [
-      ['mine', int(this.mineN) + ' plays'],
-      [this.theirs ? (this.demo ? 'demo' : 'yours') : 'yours', this.theirs ? int(this.theirs.n) + ' plays' : ''],
-    ];
+    const caps = [this.capText(0), this.capText(1)];
     const HEX = ['#21f6bc', '#f5a623', '#8b6fd6'];
     for (let sd = 0; sd < 2; sd++) {
       const b = boxes[sd];
       if (sd === 1 && !this.theirs) {
-        g.strokeStyle = 'rgba(134,203,254,.34)'; g.lineWidth = 1; g.setLineDash([4, 5]);
-        g.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1); g.setLineDash([]);
-        g.font = '600 11px ' + mono; g.fillStyle = 'rgba(134,203,254,.75)';
+        g.strokeStyle = 'rgba(134,203,254,.34)'; g.lineWidth = k; g.setLineDash([4 * k, 5 * k]);
+        g.strokeRect(b.x + 0.5 * k, b.y + 0.5 * k, b.w - k, b.h - k); g.setLineDash([]);
+        g.font = '600 ' + (11 * k) + 'px ' + mono; g.fillStyle = 'rgba(134,203,254,.75)';
         g.textAlign = 'center'; g.textBaseline = 'middle';
         g.fillText('yours', b.x + b.w / 2, b.y + b.h / 2);
         continue;
       }
-      g.strokeStyle = 'rgba(134,203,254,.22)'; g.lineWidth = 1;
-      g.beginPath(); g.moveTo(b.x, b.y + b.h + 0.5); g.lineTo(b.x + b.w, b.y + b.h + 0.5); g.stroke();
-      const capY = Math.max(b.y, b.y + (this.barTop || 0) - this.cap);
-      g.font = '600 ' + (this.tiny ? 9 : 10) + 'px ' + mono; g.textAlign = 'left'; g.textBaseline = 'top';
+      g.strokeStyle = 'rgba(134,203,254,.22)'; g.lineWidth = k;
+      g.beginPath(); g.moveTo(b.x, b.y + b.h + 0.5 * k); g.lineTo(b.x + b.w, b.y + b.h + 0.5 * k); g.stroke();
+      const capY0 = Math.max(b.y, b.y + (this.barTop || 0) - this.cap), fc = (this.tiny ? 9 : 10) * k, fl = (colW < 70 ? 9 : 10) * k;
+      const p = this.tiny ? null : sd === 0 ? this.mineP : this.theirs.p;
+      let capY = capY0, labs = null;
+      if (this.A) {
+        /* atlas (round 2, W(D3 offset)): the label stays at the SAME y HEAD prints it at — LAB_GAP px over the bar's true
+           top dot row, not the top of whatever glyph cell that row happens to round into. a glyph cell rounds UP to its
+           own lattice, which at a larger governor tier can sit most of a cell above the true top (measured up to 10.7 px
+           at 1280, growing with the tier — the label chasing that meant the on-screen offset from ?atlas=0 grew with it
+           too, past the 1.5-6 px this room was built to). instead, any sliver of that cell above the true top is painted
+           back out in the field's own background (the overlay canvas already sits over the field, the same technique
+           wall.js's drawMargin uses to keep a block's rendered edge where its data actually ends) — the bar's VISIBLE top
+           now tracks the data, not the lattice, so the label needs no more than its original, fixed, tier-independent gap. */
+        g.font = '600 ' + fc + 'px ' + mono;
+        const cL = b.x, cR = b.x + g.measureText(caps[sd][0] + '  ' + caps[sd][1]).width, pl = this.plan;
+        let lim = Infinity; labs = [];
+        g.font = '600 ' + fl + 'px ' + mono;
+        for (let c = 0; c < 3; c++) {
+          let x0, x1, top;
+          if (pl) {
+            /* fix r3 (R1-d): the glyph plan's own row top (pl.rows*pl.ch, the packed-sample geometry) is not HEAD's
+               topY (the real per/d dot pitch) — they quantise on different lattices, so the label chased a top that
+               could sit up to ~10px off ?atlas=0's. HEAD's own formula is exact regardless of the glyph packing, so
+               the label (and the masked-back visible bar top) now stand on THAT line, not the plan's. */
+            const j = sd * 3 + c; if (!pl.cs[sd] || !pl.cs[sd][c]) continue;
+            const n = this.cnt[sd * 3 + c]; if (!n) continue;
+            const topY = b.y + b.h - Math.ceil(n / per) * d, gt = this.cellTop(ctx, topY + d);
+            x0 = pl.L[j]; x1 = x0 + pl.k * pl.cw; top = topY;
+            if (gt != null && gt < top - 0.05) { g.fillStyle = BG; g.fillRect(x0, gt, x1 - x0, top - gt); }
+          } else {
+            const n = this.cnt[sd * 3 + c]; if (!n) continue;
+            const topY = b.y + b.h - Math.ceil(n / per) * d, gt = this.cellTop(ctx, topY + d);
+            x0 = b.x + c * colW + pad; x1 = x0 + per * d; top = topY;
+            if (gt != null && gt < top - 0.05) { g.fillStyle = BG; g.fillRect(x0, gt, x1 - x0, top - gt); }
+          }
+          if (x0 < cR && x1 > cL) lim = Math.min(lim, top);
+          if (!p) continue;
+          const tx = p[c] + '%', m = g.measureText(tx), tw = m.width, asc = m.actualBoundingBoxAscent || 0.74 * fl, px = b.x + c * colW + pad + (per * d) / 2;
+          const l = px - tw / 2 - 4 * k, under = l < cR && l + tw + 8 * k > cL;
+          /* R1-d: HEAD's own (non-plan) py is ALWAYS this same clamp, with no lift/under bypass — its tallest
+             column (the least room above the caption) needs it even off to the side, clear of any caption text
+             (a 3px miss on the served pile otherwise, g_precision --mode=head). */
+          const py = Math.max(capY0 + this.cap - 2, top - LAB_GAP * k);
+          const L = { c, tx, px, py, l, t: py - asc - 3 * k, w: tw + 8 * k, h: asc + 5 * k };
+          if (under) lim = Math.min(lim, L.t);
+          labs.push(L);
+        }
+        if (lim < Infinity) capY = Math.min(capY0, Math.max(capY0 - this.lift, lim - 3 * k - fc));
+      }
+      g.font = '600 ' + fc + 'px ' + mono; g.textAlign = 'left'; g.textBaseline = 'top';
       g.fillStyle = 'rgba(134,203,254,.85)'; g.fillText(caps[sd][0], b.x, capY);
-      if (caps[sd][1]) { g.fillStyle = 'rgba(164,155,189,.85)'; g.fillText(caps[sd][1], b.x + g.measureText(caps[sd][0] + '  ').width, capY); }
+      if (caps[sd][1]) { const cx1 = b.x + g.measureText(caps[sd][0] + '  ').width; g.fillStyle = 'rgba(164,155,189,.85)'; g.fillText(caps[sd][1], cx1, capY); if (dbg.on) this.prec.push({ id: 'n' + sd, text: caps[sd][1], wx: cx1, wy: capY }); }
       if (this.tiny) continue;
-      const p = sd === 0 ? this.mineP : this.theirs.p;
-      g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.font = '600 ' + (colW < 70 ? 9 : 10) + 'px ' + mono;
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.font = '600 ' + fl + 'px ' + mono;
+      if (labs) {
+        for (const L of labs) {
+          g.fillStyle = PLATE; g.fillRect(L.l, L.t, L.w, L.h);
+          g.fillStyle = HEX[L.c]; g.fillText(L.tx, L.px, L.py);
+          if (dbg.on) this.prec.push({ id: 'p' + sd + L.c, text: L.tx, wx: L.px, wy: L.py });
+        }
+        continue;
+      }
       for (let c = 0; c < 3; c++) {
         const n = this.cnt[sd * 3 + c]; if (!n) continue;
         const topY = b.y + b.h - Math.ceil(n / per) * d;
         g.fillStyle = HEX[c];
-        g.fillText(p[c] + '%', b.x + c * colW + pad + (per * d) / 2, Math.max(capY + this.cap - 2, topY - 5));
+        const px = b.x + c * colW + pad + (per * d) / 2, py = Math.max(capY + this.cap - 2, topY - 5 * k);
+        g.fillText(p[c] + '%', px, py);
+        if (dbg.on) this.prec.push({ id: 'p' + sd + c, text: p[c] + '%', wx: px, wy: py });
       }
     }
   },
+  /* atlas: nothing is drawn under a wall's baseline. at rest nothing is there, but the dots fly in from wherever the last
+     stop left them, and on a phone the make room's field runs well below these walls: a dot coming up from under a
+     baseline weighs nothing (is not drawn) until it crosses into its wall's bottom glyph row, so the bars rise out of the
+     baseline. the test is on the position the next frame will bin (swirl 0 and no jitter here, so y + (ty - y) * ease is
+     exact), in world px against the grid line half a pitch under each baseline. a dot parked off stage (no wall: the
+     second wall before a file is read) weighs nothing on its way out. runs only while a dot is still under a baseline;
+     place() starts it again. the shell resets P.w on every stop change */
+  floorMask(ctx) {
+    const P = ctx.particles, W = P.w, Y = P.y, TY = P.ty, SD = P.seed, n = P.n, side = this.sideA, B = this.boxes, h = (this.d || 1) / 2;
+    if (!W || !side || !B) { this.flight = false; return; }
+    const e = ctx.reduced ? 1 : P.ease, red = !!ctx.reduced, f0 = B[0].y + B[0].h + h, f1 = B[1].y + B[1].h + h;
+    let below = 0;
+    for (let i = 0; i < n; i++) {
+      const ty = TY[i];
+      if (ty < -40) { W[i] = 0; continue; }
+      const y = red ? ty : Y[i] + (ty - Y[i]) * e * (0.5 + SD[i] * 0.16);
+      if (y >= (side[i] ? f1 : f0)) { W[i] = 0; below++; } else W[i] = 255;
+    }
+    if (!below) this.flight = false;
+  },
+  /* the top of the glyph cell that holds world y, i.e. where a bar drawn in glyphs visibly ends, off this frame's lattice
+     (the field is binned before the overlay is drawn, in the same frame). null without a glyph field */
+  cellTop(ctx, wy) {
+    let B = null; try { B = ctx.atlas.GF.buffers(); } catch (e) {}
+    if (!B || !(B.invCh > 0)) return null;
+    const v = ctx.view, dpr = ctx.particles.dpr || 1, py = v.apply(0, wy)[1] * dpr;
+    const top = Math.round(B.gy0 + Math.floor((py - B.gy0) * B.invCh) / B.invCh);
+    return v.unapply(0, top / dpr)[1];
+  },
+  /* ================================================================ atlas (BUILD_SPEC_V2 §1.4, §3 yours row) */
+  angles: [{ id: 'bars', name: 'the bars' }],
+
+  glyphs(ctx) { const A = ctx.atlas; return !!(A && A.GF && !A.noglyph && !A.GF.stub); },
+  cellCss(ctx) { try { const c = ctx.atlas.GF.info().cellCss; return c > 0 ? c : 6; } catch (e) { return 6; } },
+
+  /* ---- the walls in whole glyph cells (fix r3) ----
+     D2 is counted per wall, in cells, and a wall is 33 to 400 cells. laid out in rows of dots, a bar ended in a part-filled
+     row of cells and its sides fell across cells wherever its column missed the lattice, so each bar's cell count rounded
+     its own way and a wall missed its three shares by up to 7.6 points (360x640). here:
+     - the lattice is the field's own at z 1 (glyphfield layout(), fit 'multiple'): cells of m x mh dot pitches;
+     - each bar is k cells wide (as wide as ?atlas=0's column, to the nearest cell), centred where ?atlas=0 centres it
+       and moved onto the lattice (under half a cell);
+     - each wall has C cells, handed to its three bars by largest remainder of the shares (mine: the field's own
+       provenance, all of it; yours: the counts read from the file, unrounded). a share that is there keeps a cell;
+     - every cell holds exactly K dots, spread evenly over its m x mh places, so every cell is full: the shell's partial-
+       cell thinning never runs, all cells draw the same glyph, and the cells show the rounded shares, off by at most
+       2/3 of a cell each (2 points at 33 cells);
+     - C sits near the count that keeps ?atlas=0's bar heights (C0); within 4% of it, a count whose rounding misses by
+       more than a point gives way to a nearby one that misses less. the tallest bar must end under the CAP strip;
+     - the dots come from the whole field: mine by their own provenance (the even dots first, as at ?atlas=0), yours by
+       quota over the rest (the odd dots first). the few no cell needs are parked off stage and weigh nothing.
+     a new cell size (the governor's tier, the detail setting) re-plans it: frame() watches the lattice at z 1 */
+  cells(ctx) {
+    const P = ctx.particles, n = P.n, B = this.boxes, d = this.d, per = this.per, dpr = P.dpr || 1, split = this.split;
+    const css = this.cellCss(ctx), cwT = Math.max(3, Math.round(css * dpr)), chT = Math.round(cwT * 1.8), pw = d * dpr;
+    let m = Math.max(1, Math.round(cwT / pw)), mh = Math.max(1, Math.round(chT / pw));
+    while (pw * m < 3) m *= 2;
+    while (pw * mh < 4) mh *= 2;
+    const cw = m * d, ch = mh * d, slots = m * mh, colW = B[0].w / 3, pad = colW * 0.11;
+    const k = Math.max(1, Math.min(Math.round((per * d) / cw), Math.floor((colW * 0.94) / cw)));
+    const prov = P.prov, pc = [0, 0, 0]; for (let i = 0; i < n; i++) pc[prov[i]]++;
+    const fm = pc.map((v) => v / n), ft = split && this.theirs ? this.theirs.f || this.theirs.p.map((v) => v / 100) : null;
+    const F = ft ? [fm, ft] : [fm], N = ft ? Math.floor(n / 2) : n;
+    const lr = (f, C) => {
+      const q = f.map((v) => v * C), c = q.map(Math.floor), o = [0, 1, 2].sort((a, b) => q[b] - c[b] - (q[a] - c[a]));
+      for (let j = 0, r = C - c[0] - c[1] - c[2]; j < r; j++) c[o[j]]++;
+      for (let j = 0; j < 3; j++) if (f[j] > 0 && !c[j]) { c[c.indexOf(Math.max(c[0], c[1], c[2]))]--; c[j]++; }
+      return c;
+    };
+    const miss = (C) => { let e = 0; for (const f of F) { const c = lr(f, C); for (let j = 0; j < 3; j++) e = Math.max(e, Math.abs(c[j] / C - f[j]) * 100); } return e; };
+    const tall = (C) => { let r = 0; for (const f of F) r = Math.max(r, Math.ceil(Math.max(...lr(f, C)) / k)); return r * ch; };
+    const room = B[0].h - this.cap - this.lift + d, C0 = (N * k) / (per * mh);
+    /* an upright phone has no ?atlas=0 heights to keep (its layout there is another shape): the tallest bar fills the box
+       instead of stopping where the pitch's quarter steps left it (41% of the stage on a 390x844 phone at d 0.75) */
+    let cT = Math.max(3, Math.round(C0));
+    if (this.compact) { for (let c = cT, top = 4 * cT; c <= top; c++) if (tall(c) <= room) cT = c; }
+    const w = Math.max(1, Math.round(cT * 0.04)), hi = this.compact ? cT : cT + w;
+    let C = 0, best = Infinity;
+    for (let c = Math.max(3, cT - w); c <= hi; c++) {
+      if (tall(c) > room) continue;
+      const s = Math.max(1, Math.round(miss(c) * 10) / 10);
+      if (s < best - 1e-9 || (Math.abs(s - best) < 1e-9 && Math.abs(c - cT) < Math.abs(C - cT))) { best = s; C = c; }
+    }
+    if (!C) { C = Math.max(3, cT - w - 1); while (C > 3 && tall(C) > room) C--; }
+    const cs = F.map((f) => lr(f, C));
+    let K = Math.max(1, Math.floor(N / C));
+    for (let j = 0; j < 3; j++) if (cs[0][j]) K = Math.min(K, Math.floor(pc[j] / cs[0][j]));
+    K = Math.max(1, K);
+
+    const side = this.sideA, pv = this.pvA, rank = this.rankA, need = cs.map((c) => c.map((v) => v * K)), used = [[0, 0, 0], [0, 0, 0]];
+    side.fill(2);
+    const st = ft ? 2 : 1;
+    for (const par of ft ? [0, 1] : [0]) for (let i = par; i < n; i += st) { const c = prov[i]; if (used[0][c] < need[0][c]) { side[i] = 0; pv[i] = c; rank[i] = used[0][c]++; } }
+    if (ft) {
+      const t = ft[0], s = ft[0] + ft[1], hash = ctx.hash, nd = need[1], u1 = used[1];
+      let left = K * C;
+      for (const par of [1, 0]) for (let i = par; i < n && left > 0; i += 2) {
+        if (side[i] !== 2) continue;
+        const u = hash(i * 31 + 17); let c = u < t ? 0 : u < s ? 1 : 2;
+        if (u1[c] >= nd[c]) c = u1[0] < nd[0] ? 0 : u1[1] < nd[1] ? 1 : 2;
+        side[i] = 1; pv[i] = c; rank[i] = u1[c]++; left--;
+      }
+    }
+    const base = [B[0].y + B[0].h + d / 2, B[1].y + B[1].h + d / 2], L = new Float64Array(6), rows = new Int32Array(6);
+    const ox = B[0].x + pad + (per * d) / 2 - (k * cw) / 2;
+    for (let sd = 0; sd < 2; sd++) for (let c = 0; c < 3; c++) {
+      const x = B[sd].x + c * colW + pad + (per * d) / 2 - (k * cw) / 2;
+      L[sd * 3 + c] = ox + Math.round((x - ox) / cw) * cw;
+      rows[sd * 3 + c] = cs[sd] ? Math.ceil(cs[sd][c] / k) : 0;
+    }
+    P.targetPx((i) => {
+      const sd = side[i]; if (sd > 1) return null;
+      const r = rank[i], q = (r / K) | 0, j = r - q * K, row = (q / k) | 0, sl = Math.floor((j * slots) / K);
+      return [L[sd * 3 + pv[i]] + (q - row * k) * cw + ((sl % m) + 0.5) * d, base[sd] - row * ch - (((sl / m) | 0) + 0.5) * d];
+    });
+    /* the caption sits over the tallest bar: ?atlas=0's place for it, except on an upright phone, where it is the filled bar's */
+    if (this.compact) this.barTop = base[0] - Math.max(rows[0], rows[1], rows[2], rows[3], rows[4], rows[5]) * ch - B[0].y;
+    this.plan = { t: performance.now(), css, dpr, m, mh, cw, ch, k, K, C, C0, cT, cs, L, rows, base, ox, cwDev: cw * dpr, chDev: ch * dpr, skip: false, miss: miss(C) };
+  },
+  /* a wall's caption: its name and its count */
+  capText(sd) { return sd === 0 ? ['mine', int(this.mineN) + ' plays'] : [this.theirs ? (this.demo ? 'demo' : 'yours') : 'yours', this.theirs ? int(this.theirs.n) + ' plays' : '']; },
+  /* the lattice changed under the plan (a governor tier, the detail setting): re-plan. read at z 1 only, where the plan's
+     cells are the field's; once the fly-in has settled; and never twice for the same cell size */
+  watchLattice(ctx) {
+    const pl = this.plan; if (!pl || pl.skip || this.flight || !this.active) return;
+    if (Math.abs((ctx.view.z || 1) - 1) > 1e-6 || performance.now() - pl.t < 400) return;
+    let B = null; try { B = ctx.atlas.GF.buffers(); } catch (e) {}
+    if (!B || !(B.invCw > 0)) return;
+    if (Math.abs(1 / B.invCw - pl.cwDev) < 1e-3 && Math.abs(1 / B.invCh - pl.chDev) < 1e-3) return;
+    if (this.cellCss(ctx) === pl.css && (ctx.particles.dpr || 1) === pl.dpr) { pl.skip = true; return; }
+    this.place(ctx);
+  },
+  /* an upright phone's panel: how to get an export and the privacy sentence, folded under more */
+  foldOpen(o) {
+    this.pn.classList.toggle('open', o);
+    this.opn.setAttribute('aria-expanded', String(o));
+    this.opn.textContent = o ? 'less ▴' : 'more ▾';
+  },
+
+  atlasGlyph(ctx) {
+    const P = ctx.particles, pv = this.pvA, b = this.boxes && this.boxes[0], d = this.d, pl = this.plan; if (!b || !d) return;
+    const colW = b.w / 3, pad = colW * 0.11;
+    P.glyphAll(true);
+    P.glyphMode('cat', { cats: CATS });
+    const side = this.sideA; P.catBy((i) => pv[i] + (side[i] === 1 ? 4 : 1));
+    /* cells are whole multiples of the dot pitch, their lines halfway between dots: the plan's lattice, or (no glyph
+       field) anchored at my first bar's corner */
+    P.glyphGrid({ ox: pl ? pl.ox : b.x + pad - d / 2, oy: b.y + b.h + d / 2, pw: d, ph: d, fit: 'multiple' });
+    this.atlasLabels(ctx);
+  },
+
+  /* MINE and YOURS, each under its own baseline, left-aligned with its wall (anchors.js: a region box starts 5 px right
+     of its anchor and ends 5 px over it, 18 px tall, so the box runs 4 to 22 px under the baseline). an upright phone
+     has no free line for them: there the overlay captions ("mine 97,427 plays") are the names */
+  atlasLabels(ctx) {
+    if (!this.A || !this.active || !this.boxes) return;
+    const B = this.boxes, items = [];
+    if (innerWidth <= innerHeight * 1.15) { ctx.labels.set('yours', []); return; }
+    const put = (id, text, b) => { items.push({ id, text, kind: 'region', x: b.x - 5, y: b.y + b.h + 27, r: 0, pri: 5 }); };
+    put('mine', 'mine', B[0]);
+    if (this.theirs) put('yours', this.demo ? 'demo' : 'yours', B[1]);
+    ctx.labels.set('yours', items);
+  },
+
+  precision() { return this.prec ? this.prec.slice() : []; },
+  keepout() { const r = this.pn && this.pn.getBoundingClientRect(); return r && r.width ? [{ x: r.left, y: r.top, w: r.width, h: r.height }] : []; },
 };

@@ -1,0 +1,24 @@
+.pq-veil,.pq-end{pointer-events:auto}
+.pq-veil{position:fixed;z-index:999;background:rgba(10,1,24,.985)}
+.pq{position:absolute;box-sizing:border-box;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 24px));max-height:calc(100% - 16px);overflow:auto;padding:16px 18px 10px;background:var(--ai-panel2);border:1px solid var(--ai-line);border-radius:6px;color:var(--ink);font:400 13px/1.5 var(--mono)}
+.pq-end{position:fixed;transform:none;width:auto;padding:6px 10px;z-index:6}
+.pq p{margin:0 0 8px}
+.pq-k{color:var(--ice);font-size:11px}
+.pq-v{display:block;font-size:30px;color:var(--ice)}
+.pq input{width:100%;height:44px;margin:0;accent-color:#86cbfe}
+.pq-t{position:relative;height:30px;margin:14px 0 8px;border-bottom:1px solid var(--ai-line)}
+.pq-t i{position:absolute;bottom:0;width:2px;height:22px;background:var(--ice);transition:left .6s}
+.pq-t i+i{background:var(--ink);height:30px}
+.pq-t b{position:absolute;top:-14px;font-size:10px;color:var(--mute);transform:translateX(-50%);white-space:nowrap}
+.pq-row{display:flex;flex-wrap:wrap;gap:8px}
+.pq button,.pq-pill button{min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--ai-line);border-radius:22px;background:var(--ai-panel2);color:var(--ice);font:500 12px var(--mono);cursor:pointer}
+.pq .pq-go,.pq [aria-pressed=true]{background:var(--ice);color:#0a0118}
+.pq button:disabled:not([aria-pressed=true]){opacity:.45}
+.pq :focus-visible,.pq-pill :focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.pq-r:empty{display:none}
+.pq img{width:100%}
+.pq-pill{position:fixed;z-index:6;display:flex;gap:4px}
+.pq-pill .pq-po{max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:700px){.pq{top:auto;bottom:8px;transform:translateX(-50%);padding:12px 14px 6px}.pq-v{font-size:26px}.pq-end{bottom:auto;transform:none}}
+@media (prefers-reduced-motion:reduce){.pq-t i{transition:none}}
+html.pq-on #ai-caption,html.pq-on #ai-hud,html.pq-on #atlas-labels,html.pq-on .atlas-sight{visibility:hidden}

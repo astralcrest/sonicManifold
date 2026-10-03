@@ -2,7 +2,13 @@
    falls out of the picture, and what is left (the plays i tapped) rises into a camelot wheel: two
    rings, inner is the minor keys, outer is the major ones, and the twenty-two tracks i made from
    this log sit at their real key. tap one to hear it; its harmonic neighbours glow.
-   data: exhibit/data/tracks.json, and dot provenance from exhibit/data/wall.json via ctx.identity(). */
+   data: exhibit/data/tracks.json, and dot provenance from exhibit/data/wall.json via ctx.identity().
+   atlas mode (BUILD_SPEC_V2 §3 make row): beats one and two are the wall again in categorical glyphs (the shape says
+   who pressed play: o a tap, x a shuffle, = the queue) on a grid cut to the wall's own dot pitch, with the camera held
+   at identity; beat three is the wheel in one mint ramp (mean colour) under a pan camera (zoom 1-2.2). the wheel's dom
+   (circles, key text, deck badges, the tap layer) rides the camera in one css layer, in its existing tab order. every
+   key that holds a track is named as a [ label ]; a tap on one prints the camelot mixing rule for it (music theory,
+   not a finding) and lights the tracks in keys that mix cleanly with it. */
 const RIM = 0.36, TAU = 6.2831853;
 const B1 = 1400, B2 = 2600, SETTLE = 1400; /* beat boundaries in ms, read off the frame clock */
 const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two'];
@@ -13,11 +19,16 @@ function mix(a, b, k) { const r = (a >> 16 & 255) + ((b >> 16 & 255) - (a >> 16 
 function parseKey(k) { return { num: parseInt(k, 10), letter: k.slice(-1) }; }
 function sameKey(a, b) { return a.num === b.num && a.letter === b.letter; }
 function adjKey(a, b) { if (a.num === b.num && a.letter !== b.letter) return true; if (a.letter === b.letter) { const d = Math.abs(a.num - b.num); return d === 1 || d === 11; } return false; }
+const atlasOn = (ctx) => !!(ctx && ctx.atlas && ctx.atlas.on);
+/* the camelot mixing rule for one key: the same number in the other letter, then one step either way in the same letter */
+function mixKeys(num, letter) { const o = letter === 'A' ? 'B' : 'A', dn = ((num + 10) % 12) + 1, up = (num % 12) + 1; return [num + o, dn + letter, up + letter]; }
 
 export default {
   id: 'make', track: 'reach-back', ready: false, tracks: [], playing: -1, neighborSet: null,
   beat: 0, t0: -1, endAt: 0, ran: false, away: true, demoT: 0, vh: 800, jit: 12, tight: false,
   cued: -1, aLive: false, liveOn: false, chips: false, noEnd: false, noIntro: false, chipEls: [], blend: null, armed: false, badgeEls: null, longTitle: '', trackPos: [],
+  atl: false, kf: null, camMode: '', keysWith: null,
+  angles: [{ id: 'wheel', name: 'the wheel' }, { id: 'fall', name: 'the fall' }, { id: 'blend', name: 'a blend' }],
   async mount(root, ctx) {
     const lslot = root.parentElement && root.parentElement.querySelector('.legend-slot');
     if (lslot) ctx.legend(lslot, 'prov');
@@ -64,7 +75,8 @@ export default {
       + 'section[data-room="make"] .mk-trk:disabled{cursor:default}'
       + 'section[data-room="make"] .mk-trk[aria-pressed="true"]{border-color:var(--mint);box-shadow:0 0 0 3px rgba(33,246,188,.16)}'
       /* the phone picker: the same 22 tracks as a strip of 44px chips sorted by key, under a wheel that is then only a picture.
-         it scrolls sideways, so an up or down swipe on it still walks the rooms */
+         it scrolls sideways, so an up or down swipe on it still walks the rooms. these are today's rules, and ?atlas=0 keeps
+         them to the pixel; the atlas pages them (below) */
       + 'section[data-room="make"] .mk-chips{display:none;position:relative;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,2),44px);grid-auto-columns:max-content;gap:5px 6px;margin:1px 0 2px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;pointer-events:auto;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}'
       + 'section[data-room="make"] .mk-chips::-webkit-scrollbar{display:none}'
       + 'section[data-room="make"] .mk-chips.at-end{-webkit-mask-image:none;mask-image:none}'
@@ -72,6 +84,19 @@ export default {
       + 'section[data-room="make"] .mk-hide .mk-chips{display:none}'
       + 'section[data-room="make"] .mk-chip{scroll-snap-align:start;height:44px;min-width:44px;padding:0 12px;margin:0;border:1px solid var(--line);border-radius:3px;background:rgba(10,1,24,.78);color:var(--ink);font:500 12px/1 var(--mono);text-align:left;white-space:nowrap;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}'
       + 'section[data-room="make"] .mk-chip .mk-ck{color:var(--mute);margin-right:7px}'
+      + 'section[data-room="make"] .mk-chipbar{display:none}'
+      /* atlas (round 2, W36: the chips ran off both sides of the phone): two chip columns fill the text column exactly (--cw,
+         whole px, set in layout) and every column is a mandatory snap point, so at rest no chip is ever cut by an edge. a
+         title too long for its chip ends in an ellipsis; the desk line spells out whatever is loaded. a slim bar under the
+         pages says where in the 22 you are, in place of the fade */
+      + 'html.atlas section[data-room="make"] .mk-chips{grid-auto-columns:var(--cw,160px);margin:1px 0 0;scroll-snap-type:x mandatory;-webkit-mask-image:none;mask-image:none}'
+      + 'html.atlas section[data-room="make"] .mk-chip{display:flex;align-items:center;min-width:0;width:100%;padding:0 10px;overflow:hidden}'
+      + 'html.atlas section[data-room="make"] .mk-chip .mk-ck{flex:none}'
+      + 'html.atlas section[data-room="make"] .mk-chip .mk-ct{min-width:0;overflow:hidden;text-overflow:ellipsis}'
+      + 'html.atlas section[data-room="make"] .mk-chipbar{position:relative;height:2px;margin:5px 0 2px;border-radius:1px;background:rgba(134,203,254,.14);overflow:hidden;pointer-events:none}'
+      + 'html.atlas section[data-room="make"] .mk-chipmode .mk-chipbar{display:block}'
+      + 'html.atlas section[data-room="make"] .mk-hide .mk-chipbar{display:none}'
+      + 'html.atlas section[data-room="make"] .mk-chipbar i{position:absolute;left:0;top:0;height:100%;width:0;border-radius:1px;background:rgba(134,203,254,.72)}'
       + 'section[data-room="make"] .mk-chip[aria-pressed="true"]{border-color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint)}'
       + 'section[data-room="make"] .mk-chip[aria-pressed="true"] .mk-ck{color:var(--mint)}'
       + 'section[data-room="make"] .mk-chip[data-deck="b"]{border-color:var(--ice);box-shadow:inset 0 0 0 1px var(--ice)}'
@@ -80,8 +105,23 @@ export default {
       + 'section[data-room="make"] .mk-chip:disabled{cursor:default}'
       + 'section[data-room="make"] .mk-chipmode .mk-blend{min-height:44px;padding:0 14px}'
       + 'section[data-room="make"] .mk-chipmode .mk-trk{border-color:transparent;box-shadow:none}' /* the wheel is only a picture here: no ring of overlapping outlines */
+      /* the nearest-centre tap layer is on (a touch screen, or a tight wheel): the clusters themselves are the targets, so
+         the resting outlines, which overlap round the inner ring there, give way; the decks keep theirs */
+      + 'html.atlas section[data-room="make"] .mk-hitmode .mk-trk:not([aria-pressed="true"]):not([data-deck]){border-color:transparent}'
       + '@media (prefers-reduced-motion:reduce){section[data-room="make"] .mk-chips{scroll-behavior:auto}}'
-      + '@media (prefers-reduced-motion:reduce){section[data-room="make"] .mk-labels,section[data-room="make"] .mk-btns,section[data-room="make"] .mk-text,section[data-room="make"] .mk-badge{transition:none}}';
+      + '@media (prefers-reduced-motion:reduce){section[data-room="make"] .mk-labels,section[data-room="make"] .mk-btns,section[data-room="make"] .mk-text,section[data-room="make"] .mk-badge{transition:none}}'
+      /* atlas: a key that holds a track is named by its [ label ]; the key text stays only on the empty keys, dimmer */
+      + 'html.atlas section[data-room="make"] .mk-kl.mk-has{visibility:hidden}' /* laid out, unpainted: its text box is where the label's text goes */
+      + 'html.atlas section[data-room="make"] .mk-kl{color:rgba(164,155,189,.55);background:none;font-weight:500}'
+      /* a key whose label the label layer could not place (decluttered away, or labels switched off) keeps today's plain name */
+      + 'html.atlas section[data-room="make"] .mk-kl.mk-has.mk-bare{visibility:visible;color:var(--mute);font-weight:600}'
+      /* the 64px lift under the wall text is for today's bottom-anchored landscape wall. the atlas hangs the wall from the
+         info block instead, where a short landscape phone makes it a scroll box whose padding cannot shrink, so the lift
+         pushed its box past the bottom of the screen */
+      + '@media (min-aspect-ratio:115/100){html.atlas section[data-room="make"] .wall{padding-bottom:0}}'
+      /* while this stop is up, its unbracketed labels (the keys, the decks) track like today's key text (.04em, not .14em),
+         so a key label's text is the same width as the text it stands in for and sits on it to the pixel */
+      + 'html.atlas.mk-keys #atlas-labels .lab.region{letter-spacing:.04em}';
     document.head.appendChild(st);
     let data = null;
     try { data = await ctx.data('tracks'); } catch (e) {}
@@ -103,15 +143,16 @@ export default {
     this.order = order; this.tapCount = cnt[0];
     const tapPct = Math.round(cnt[0] / n * 100), restPct = 100 - tapPct; /* 19 / 81 — matches wall.json pct_rounded.tap = 19 */
     this.restPct = restPct;
-    const word = WORDS[this.tracks.length] || String(this.tracks.length);
+    const word = WORDS[this.tracks.length] || String(this.tracks.length), yrs = atlasOn(ctx) ? 'the whole log' : 'seven years';
     this.lines = [
-      'the wall again. seven years, sorted.',
+      'the wall again. ' + yrs + ', sorted.',
       'the queue or shuffle started all of that. it is leaving.',
       'what is left is the ' + tapPct + '% i tapped. i made ' + word + ' tracks out of the whole log anyway.',
     ];
-    /* the short screens get the same sentence with the middle clause dropped, not a different claim */
-    this.short = ['the wall again. seven years, sorted.', 'the queue or shuffle started all of that.', 'what is left is the ' + tapPct + '% i tapped. ' + word + ' tracks.'];
-    this.closings = ['that was the last of the eight rooms. the wheel stays up for as long as you want it.', 'that was the last of the eight rooms.'];
+    /* short screens: middle clause dropped */
+    this.short = ['the wall again. ' + yrs + ', sorted.', 'the queue or shuffle started all of that.', 'what is left is the ' + tapPct + '% i tapped. ' + word + ' tracks.'];
+    this.closings0 = ['that was the last of the eight rooms. the wheel stays up for as long as you want it.', 'that was the last of the eight rooms.'];
+    this.closings = atlasOn(ctx) ? ['that was the last stop. the wheel stays up for as long as you want it.', 'that was the last stop.'] : this.closings0;
     this.longTitle = this.tracks.reduce((m, t) => (t.t.length > m.length ? t.t : m), '');
 
     const text = document.createElement('div'); text.className = 'mk-text'; wrap.appendChild(text); this.textEl = text;
@@ -120,9 +161,12 @@ export default {
     const now = document.createElement('p'); now.className = 'mk-now'; now.setAttribute('aria-live', 'off'); text.appendChild(now);
     const next = document.createElement('p'); next.className = 'mk-next'; text.appendChild(next);
     const chips = document.createElement('div'); chips.className = 'mk-chips'; chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', 'my twenty-two tracks, by key'); text.appendChild(chips); this.chipWrap = chips;
-    chips.addEventListener('scroll', () => chips.classList.toggle('at-end', chips.scrollLeft + chips.clientWidth >= chips.scrollWidth - 2), { passive: true });
+    /* K7: the chips and the desk are this room's controls, so no chrome hint and no label may sit on them */
+    chips.setAttribute('data-keepout', '');
+    const bar = document.createElement('div'); bar.className = 'mk-chipbar'; bar.setAttribute('aria-hidden', 'true'); bar.appendChild(document.createElement('i')); text.appendChild(bar); this.chipBar = bar;
+    chips.addEventListener('scroll', () => { chips.classList.toggle('at-end', chips.scrollLeft + chips.clientWidth >= chips.scrollWidth - 2); this.chipPos(); }, { passive: true });
     /* the mixing desk: one control and one line that always says what the two decks hold */
-    const desk = document.createElement('div'); desk.className = 'mk-desk'; text.appendChild(desk); this.deskEl = desk;
+    const desk = document.createElement('div'); desk.className = 'mk-desk'; desk.setAttribute('data-keepout', ''); text.appendChild(desk); this.deskEl = desk;
     const blend = document.createElement('button'); blend.type = 'button'; blend.className = 'mk-blend'; blend.textContent = 'blend'; blend.disabled = true;
     /* the button disables itself while the blend runs, which would drop keyboard focus to the page: hand it to deck b instead */
     blend.addEventListener('click', () => { const kb = document.activeElement === blend, b = this.cued; this.stopDemo(); this.doBlend(ctx); if (kb && this.blend) (this.chips ? this.chipEls : this.btnEls)[b].focus({ preventScroll: true }); });
@@ -137,7 +181,9 @@ export default {
 
     const labels = document.createElement('div'); labels.className = 'mk-labels'; labels.setAttribute('aria-hidden', 'true'); wrap.appendChild(labels); this.labelWrap = labels;
     this.labelEls = [];
-    for (let k = 1; k <= 12; k++) for (const L of ['A', 'B']) { const s = document.createElement('span'); s.className = 'mk-kl'; s.textContent = k + L; labels.appendChild(s); this.labelEls.push({ el: s, num: k, letter: L }); }
+    this.keysWith = new Set(this.tracks.map((t) => t.k));
+    this.keySpan = {};
+    for (let k = 1; k <= 12; k++) for (const L of ['A', 'B']) { const s = document.createElement('span'); s.className = 'mk-kl' + (this.keysWith.has(k + L) ? ' mk-has' : ''); s.textContent = k + L; labels.appendChild(s); this.labelEls.push({ el: s, num: k, letter: L }); this.keySpan[k + L] = s; }
 
     const btns = document.createElement('div'); btns.className = 'mk-btns'; wrap.appendChild(btns); this.btnWrap = btns;
     this.btnEls = this.tracks.map((t, i) => {
@@ -152,7 +198,8 @@ export default {
     this.chipEls = [];
     byKey.forEach((i) => {
       const t = this.tracks[i], b = document.createElement('button'); b.type = 'button'; b.className = 'mk-chip';
-      const k = document.createElement('span'); k.className = 'mk-ck'; k.textContent = t.k; b.appendChild(k); b.appendChild(document.createTextNode(' ' + t.t));
+      const k = document.createElement('span'); k.className = 'mk-ck'; k.textContent = t.k; b.appendChild(k);
+      const tt = document.createElement('span'); tt.className = 'mk-ct'; tt.textContent = ' ' + t.t; b.appendChild(tt);
       b.addEventListener('click', (e) => { this.stopDemo(); this.tap(i, ctx, e.detail === 0); });
       chips.appendChild(b); this.chipEls[i] = b;
     });
@@ -161,7 +208,10 @@ export default {
        to be later in the dom. this layer sits over the wheel alone (never over the desk) and hands the tap to
        the nearest cluster centre instead. desktop leaves it off, so the circles keep their own hover. */
     const hit = document.createElement('div'); hit.className = 'mk-hit'; hit.setAttribute('aria-hidden', 'true'); wrap.appendChild(hit); this.hitEl = hit;
-    hit.addEventListener('click', (e) => {
+    /* atlas: one input path (§1.4). the layer is bound through ctx.gesture, which hands it world coordinates, so the
+       nearest-centre pick stays right under any zoom; the native click below is never attached there */
+    if (atlasOn(ctx)) ctx.gesture.bind(hit, { tap: (p) => { this.hitTap(p.wx, p.wy, ctx); return true; }, drag: 'camera' });
+    else hit.addEventListener('click', (e) => {
       if (!this.armed) return;
       let best = -1, bd = Infinity;
       this.trackPos.forEach((p, i) => { const d = (p.x - e.clientX) * (p.x - e.clientX) + (p.y - e.clientY) * (p.y - e.clientY); if (d < bd) { bd = d; best = i; } });
@@ -172,11 +222,19 @@ export default {
     const marks = document.createElement('div'); marks.className = 'mk-marks'; marks.setAttribute('aria-hidden', 'true'); wrap.appendChild(marks);
     this.badgeEls = ['a', 'b'].map((d) => { const s = document.createElement('span'); s.className = 'mk-badge'; s.dataset.d = d; s.textContent = d; marks.appendChild(s); return s; });
     this.trackPos = this.tracks.map(() => ({ x: 0, y: 0 }));
+    /* atlas: the wheel's world-anchored dom moves into the camera's css layer as four whole containers, in document
+       order, so the tab order through the 22 circles is exactly today's (§1.5) */
+    if (atlasOn(ctx)) { try { ctx.view.layer(wrap, [labels, btns, hit, marks]); } catch (e) {} }
+    /* the key labels are centred from a measured box: measure again once the webfont is in */
+    if (atlasOn(ctx) && document.fonts && document.fonts.ready) document.fonts.ready.then(() => { this.kcorr = null; this.kz = 0; if (this.active && this.atl && this.beat === 3) this.atlasLabels(ctx); }).catch(() => {});
     this.ready = true;
   },
   /* ---- layout ------------------------------------------------------------------ */
   layout(ctx) {
     const s = ctx.stage(); this.s = s; this.vh = innerHeight;
+    /* two chip columns fill the text column exactly, in whole px (a fractional column would leave a sliver of the next one
+       showing at a snap point) */
+    this.chipWrap.style.setProperty('--cw', Math.max(44, Math.floor((s.w - 6) / 2)) + 'px');
     /* on a short screen the copy would squeeze the wheel to nothing, so tight mode drops the two lines the
        desk already says (the track under the needle, and the next one in my order) and shortens the rest.
        a phone that keeps all of it ends up with a wheel 84px across and clusters that cover each other. */
@@ -231,7 +289,7 @@ export default {
     this.btnEls.forEach((b, i) => { b.style.width = b.style.height = bs + 'px'; b.style.left = this.trackPos[i].x + 'px'; b.style.top = this.trackPos[i].y + 'px'; });
     /* the nearest-centre tap layer, sized to the wheel and nothing else, and only where the circles actually collide */
     const hw = R + this.jit + bs / 2 + 2, on = this.tight || ctx.coarse;
-    this.hitEl.style.display = on ? 'block' : 'none';
+    this.hitEl.style.display = on ? 'block' : 'none'; this.wrap.classList.toggle('mk-hitmode', on);
     if (on) { this.hitEl.style.left = (cx - hw) + 'px'; this.hitEl.style.top = (cy - hw) + 'px'; this.hitEl.style.width = this.hitEl.style.height = (hw * 2) + 'px'; }
     /* two resting places for the copy: hard against the bottom of the stage while the beats run (one line, and the
        wall needs every other pixel), and up where the four settled lines start once the wheel is there */
@@ -259,10 +317,26 @@ export default {
   /* slide the strip so a deck's chip is in view (the demo and the arrival pick for you, off screen otherwise) */
   showChip(i, instant) {
     if (!this.chips || i < 0 || !this.chipEls[i]) return;
-    const w = this.chipWrap, el = this.chipEls[i], l = el.offsetLeft, r = l + el.offsetWidth;
-    if (l >= w.scrollLeft && r <= w.scrollLeft + w.clientWidth - 30) return;
-    const left = Math.max(0, l - 8);
+    if (!this.atl) { /* ?atlas=0: today's free strip, unchanged */
+      const w = this.chipWrap, el = this.chipEls[i], l = el.offsetLeft, r = l + el.offsetWidth;
+      if (l >= w.scrollLeft && r <= w.scrollLeft + w.clientWidth - 30) return;
+      const left = Math.max(0, l - 8);
+      if (instant || this.reducedM) w.scrollLeft = left; else w.scrollTo({ left, behavior: 'smooth' });
+      return;
+    }
+    const w = this.chipWrap, wr = w.getBoundingClientRect(), er = this.chipEls[i].getBoundingClientRect(); if (!wr.width) return;
+    /* the chip's column start in scroll coordinates (a snap point): already on the page, or the page that starts there */
+    const l = er.left - wr.left + w.scrollLeft, r = l + er.width;
+    if (l >= w.scrollLeft - 1 && r <= w.scrollLeft + w.clientWidth + 1) { this.chipPos(); return; }
+    const left = Math.max(0, Math.min(w.scrollWidth - w.clientWidth, l));
     if (instant || this.reducedM) w.scrollLeft = left; else w.scrollTo({ left, behavior: 'smooth' });
+    this.chipPos();
+  },
+  /* the bar under the chips: its thumb is the visible share of the 22, at the scroll position */
+  chipPos() {
+    const w = this.chipWrap, bar = this.chipBar, th = bar && bar.firstChild; if (!th || !w.scrollWidth) return;
+    th.style.width = (100 * Math.min(1, w.clientWidth / w.scrollWidth)).toFixed(2) + '%';
+    th.style.transform = 'translateX(' + (w.scrollLeft / w.scrollWidth * bar.clientWidth).toFixed(1) + 'px)';
   },
   /* measure the text block at its tallest, so it can never grow down into the .wall copy underneath */
   reserve(s) {
@@ -275,7 +349,7 @@ export default {
     let nx = '', nw = '';
     for (let i = 0; i < this.tracks.length; i++) { const a = this.nextLine(i), b = this.nowLine(i); if (a.length > nx.length) nx = a; if (b.length > nw.length) nw = b; }
     this.introEl.textContent = this.line(2); this.nowEl.textContent = nw;
-    this.nextEl.textContent = nx; this.endEl.textContent = this.closingText();
+    this.nextEl.textContent = nx; this.endEl.textContent = this.reserveClosing();
     this.hugeEl.textContent = this.restPct + '%';
     /* the desk is display:none while the three beats run, so it is forced back for the measurement: the settled
        room has to reserve room for it or the desk would grow down into the wall copy when the wheel arrives.
@@ -283,17 +357,17 @@ export default {
        the big display number is the mirror case: it only ever shows during beat two, while the wheel is not
        there, so it is taken out of this measurement and put back for the beat one below. */
     this.deskEl.style.display = 'flex'; this.abEl.textContent = '';
-    this.chipWrap.style.display = this.chips ? 'grid' : ''; this.introEl.style.display = this.noIntro ? 'none' : ''; this.endEl.style.display = this.noEnd ? 'none' : '';
+    this.chipWrap.style.display = this.chips ? 'grid' : ''; this.chipBar.style.display = this.chips && this.atl ? 'block' : ''; this.introEl.style.display = this.noIntro ? 'none' : ''; this.endEl.style.display = this.noEnd ? 'none' : '';
     const h1 = t.offsetHeight;
     this.nextEl.textContent = ''; this.abEl.textContent = this.worstAb();
     const h = Math.max(h1, t.offsetHeight);
     /* and again with the one beat line alone, plus the display number at its full height: that pair is all
        the copy the wall has to leave room for while the three beats run */
     let lg = ''; for (let i = 0; i < 3; i++) { const v = this.line(i); if (v.length > lg.length) lg = v; }
-    this.deskEl.style.display = 'none'; this.chipWrap.style.display = 'none'; this.introEl.style.display = ''; this.hugeEl.style.height = 'auto'; this.hugeEl.style.marginBottom = '2px';
+    this.deskEl.style.display = 'none'; this.chipWrap.style.display = 'none'; this.chipBar.style.display = 'none'; this.introEl.style.display = ''; this.hugeEl.style.height = 'auto'; this.hugeEl.style.marginBottom = '2px';
     this.nowEl.textContent = this.nextEl.textContent = this.endEl.textContent = this.abEl.textContent = ''; this.introEl.textContent = lg;
     this.lineH = t.offsetHeight;
-    this.deskEl.style.display = ''; this.chipWrap.style.display = ''; this.hugeEl.style.height = ''; this.hugeEl.style.marginBottom = '';
+    this.deskEl.style.display = ''; this.chipWrap.style.display = ''; this.chipBar.style.display = ''; this.hugeEl.style.height = ''; this.hugeEl.style.marginBottom = '';
     this.introEl.textContent = keep[0]; this.nowEl.textContent = keep[1]; this.nextEl.textContent = keep[2]; this.endEl.textContent = keep[3]; this.hugeEl.textContent = keep[4]; this.abEl.textContent = keep[5];
     this.vis();
     requestAnimationFrame(() => this.setLive(!!this.liveOn));
@@ -341,7 +415,7 @@ export default {
      sounding, mint2 for its harmonic neighbours, ice for the deck you have queued. the ring a cluster sits in
      already says whether its key is minor or major, so the two rims are the same mint at lower weight. */
   paint(ctx) {
-    const P = ctx.particles, prov = P.prov, PAL = ctx.PAL, playing = this.playing, cued = this.cued, nb = this.neighborSet;
+    const P = ctx.particles, prov = P.prov, PAL = ctx.PAL, playing = this.playing, cued = this.cued, nb = this.kf ? this.kf.set : this.neighborSet;
     const rim = mix(PAL.bg, PAL.tap, 0.3), rest = mix(PAL.bg, PAL.tap, 0.55);
     P.color((i) => {
       if (prov[i] !== 0) return PAL.bg;
@@ -355,7 +429,13 @@ export default {
   },
   line(k) { return (this.tight ? this.short : this.lines)[k]; },
   nowLine(i) { const t = this.tracks[i]; return 'now: ' + t.t + ' · ' + t.k + ' · ' + t.bpm + ' bpm'; },
-  closingText() { return this.closings[this.tight ? 1 : 0]; },
+  /* "the last stop" is true of the walk (make is its last stop), and of a tour only on its own last stop: on a tour, played
+     or paused (round 2b: a paused grand tour printed it on stop 10 of 12), the wheel is one stop of several, so no closing
+     line is printed there */
+  closingText() { const T = this.atl && this.ctx && this.ctx.tour, a = T && T.active; return a && a.id && a.k < a.n - 1 ? '' : this.closings[this.tight ? 1 : 0]; },
+  /* the layout reserves room for the longer of the two closing lines. the atlas one is shorter and wraps a line
+     less; measuring it would move the wheel, its caption and every key name (D3: numbers stay put across modes) */
+  reserveClosing() { const a = this.closingText(), b = this.closings0[this.tight ? 1 : 0]; return b.length > a.length ? b : a; },
   /* the album order, described in the same four words the desk uses for a pair you choose yourself */
   nextLine(i) {
     const n = this.tracks.length, j = (i + 1) % n, nx = this.tracks[j], head = 'next in my order: ' + nx.t + ' (' + nx.k + ')';
@@ -391,6 +471,7 @@ export default {
   /* a visitor's tap on a cluster. deck a is already loaded once the wheel settles, so a tap loads deck b,
      tapping deck b again puts it back down, and tapping deck a clears b and leaves a playing. */
   tap(i, ctx, fromKey) {
+    if (this.kf) { this.kf = null; if (this.atl) ctx.hud(null); }
     if (this.blend) this.finishBlend(ctx);
     if (!this.aLive || i === this.playing) { this.cued = -1; this.aLive = true; this.select(i, ctx, true); }
     else if (i === this.cued) { this.cued = -1; this.paint(ctx); }
@@ -430,6 +511,7 @@ export default {
       if (on) { el.style.left = this.trackPos[k].x + 'px'; el.style.top = this.trackPos[k].y + 'px'; }
     });
     [this.btnEls, this.chipEls].forEach((L) => L.forEach((b, k) => { if (show && k === this.cued) b.dataset.deck = 'b'; else delete b.dataset.deck; }));
+    if (this.atl && this.ctx) this.atlasLabels(this.ctx);
   },
   /* run the blend: the engine crossfades a into b at the time constant the key relationship earns, and the
      overlay walks a line round the wheel for as long as that takes. muted, the line and the words still run. */
@@ -458,6 +540,7 @@ export default {
     P.ease = 0.1; P.jitter = 0.28; P.big = false; P.swirl = 0.22;
     this.wallTargets(ctx);
     P.color((i) => PROV[prov[i]]);
+    if (this.atl) this.atlasBeat(ctx);
   },
   wallTargets(ctx) {
     const P = ctx.particles, rows = this.wrows, cell = this.wcell, ox = this.wox, oy = this.woy;
@@ -483,6 +566,7 @@ export default {
     const dim = [mix(PAL.bg, ctx.PROV[0], 0.3), mix(PAL.bg, ctx.PROV[1], 0.3), mix(PAL.bg, ctx.PROV[2], 0.3)];
     P.color((i) => (prov[i] === 0 ? PAL.tap : dim[prov[i]]));
     if (!quiet) ctx.audio.note(0, { dur: 1.7, vol: 0.045 });
+    if (this.atl) this.atlasBeat(ctx);
   },
   beatThree(ctx, t, quiet) {
     const P = ctx.particles;
@@ -491,13 +575,17 @@ export default {
     this.layoutParticles(ctx); this.select(this.playing, ctx, false);
     /* deck a is already on the wheel with its badge, and it is this room's own bed: the first tap loads b rather than replacing a */
     this.aLive = true; this.arm(true); this.showChip(this.playing, true);
+    if (this.atl) this.atlasBeat(ctx);
     this.endAt = (t || performance.now()) + SETTLE;
     if (!quiet) { ctx.audio.note(4, { dur: 1.9, vol: 0.04 }); ctx.audio.note(7, { at: 0.12, dur: 1.7, vol: 0.03 }); }
   },
   settled() { this.endAt = 0; this.endEl.textContent = this.closingText(); },
   /* ---- lifecycle --------------------------------------------------------------- */
   enter(ctx) {
-    this.active = true;
+    this.active = true; this.ctx = ctx; this.atl = atlasOn(ctx);
+    if (this.atl) document.documentElement.classList.add('mk-keys');
+    /* a tour starting or ending while the wheel is up changes whether the closing line is true */
+    if (this.atl && !this.offTour && ctx.tour && ctx.tour.onChange) this.offTour = ctx.tour.onChange(() => { if (this.active && this.beat === 3 && !this.endAt && this.endEl) { const t = this.closingText(); if (this.endEl.textContent !== t) this.endEl.textContent = t; } });
     /* a real visitor's own pointer, touch or key anywhere in the document ends a running kiosk demo immediately — the
        same idiom game.js uses. the track-button click handler already covers one path; this covers everything else.
        attached here, removed in leave(), so nothing is listening while this room is not the one on screen. */
@@ -514,13 +602,16 @@ export default {
       if (ctx.reduced) { this.beatThree(ctx, performance.now(), true); this.settled(); } else this.beatOne(ctx);
       return;
     }
-    if (!fresh && this.beat === 1) return this.wallTargets(ctx); /* a resize mid-finale keeps the clock and re-forms at the new size */
-    if (!fresh && this.beat === 2) return this.beatTwo(ctx, true);
+    if (!fresh && this.beat === 1) { this.wallTargets(ctx); if (this.atl) this.atlasBeat(ctx); return; } /* a resize mid-finale keeps the clock and re-forms at the new size */
+    if (!fresh && this.beat === 2) { this.beatTwo(ctx, true); return; }
     this.beatThree(ctx, performance.now(), !fresh); this.settled(); /* afterwards: the short version, straight to the wheel */
   },
   /* left mid-finale (a fast scroll, or the shell settling on the room at startup): it did not happen, so it plays again next time */
   leave(ctx) {
-    this.active = false; this.stopDemo(); this.away = true;
+    this.active = false; this.stopDemo(); this.away = true; this.kf = null; this.camMode = '';
+    if (this.offZoom) { this.offZoom(); this.offZoom = null; } clearTimeout(this.kfixT); clearTimeout(this.kfixT2);
+    if (this.offTour) { try { this.offTour(); } catch (e) {} this.offTour = null; }
+    document.documentElement.classList.remove('mk-keys');
     if (this.ready) this.setLive(false); /* leaving settles the desk and rewrites its lines: that is not news */
     if (this.blend) this.finishBlend(ctx); /* no frames run while this room is off screen, so settle the blend now rather than half-drawn */
     document.removeEventListener('pointerdown', this._onDemoBreak);
@@ -538,6 +629,10 @@ export default {
       return;
     }
     if (this.endAt && t >= this.endAt) this.settled();
+    /* a key pill the layer drops later (a track name that came in over it) hands the key back to today's text, every
+       half second: a key name never goes missing between the two (round 2b, webkit) */
+    if (this.atl && t - (this.bareT || 0) >= 500) { this.bareT = t; this.keyBare(); }
+    if (this.atl) this.drawKeys(g);
     if (this.playing < 0) return;
     const bl = this.blend;
     if (bl) {
@@ -578,6 +673,229 @@ export default {
     g.beginPath(); g.arc(p[0], p[1], 10, 0, TAU); g.fillStyle = 'rgba(33,246,188,.2)'; g.fill();
     g.beginPath(); g.arc(p[0], p[1], 5, 0, TAU); g.fillStyle = 'rgba(33,246,188,.95)'; g.fill();
   },
+  /* ---- atlas (§1.4, §3) ------------------------------------------------------------ */
+  /* the camera and the glyph pass follow the beat: the wall (1-2) is categorical on the wall's own lattice with the
+     camera held at identity; the wheel (3) is one mint ramp under a pan camera */
+  atlasBeat(ctx) {
+    const P = ctx.particles, W = P.w, prov = P.prov, n = P.n;
+    P.glyphAll(true);
+    /* glyph brightness is normalised per hue, so "dimmed on the way out" has to be carried by weight: the 81% fall as a
+       lighter rain in beat two, and once the wheel is up they weigh nothing (parked, never drawn crossing the screen) */
+    const out = this.beat === 1 ? 255 : this.beat === 2 ? 90 : 0;
+    for (let i = 0; i < n; i++) W[i] = prov[i] === 0 ? 255 : out;
+    if (this.beat === 1 || this.beat === 2) {
+      if (this.camMode !== 'none') { ctx.view.configure({ mode: 'none' }); this.camMode = 'none'; }
+      P.catBy((i) => P.prov[i] + 1); /* 1 tapped, 2 shuffled, 3 served: the renderer's default family map */
+      P.glyphMode('cat', { cats: [{ family: 'neutral' }, { family: 'tap' }, { family: 'shuffle' }, { family: 'served' }] });
+      /* cell edges sit on the lines between dots (first dot centre minus half a pitch), so no dot straddles two cells */
+      const c = this.wcell; P.glyphGrid({ ox: this.wox - c / 2, oy: this.woy - c / 2, pw: c, ph: c, fit: 'multiple' });
+      ctx.labels.set('make', []);
+    } else {
+      const re = ctx.atlas && ctx.atlas.reenter;
+      if (this.camMode !== 'pan' || re) { ctx.view.configure({ mode: 'pan', zMin: 1, zMax: 2.2, drift: false, look: (k) => this.look(k) }); this.camMode = 'pan'; }
+      P.glyphGrid(null); P.glyphMode('cont', { colour: 'mean' });
+      this.atlasLabels(ctx);
+    }
+  },
+  keyPos(num, letter) {
+    const a = rad(ang(num)), r = letter === 'A' ? this.rIn - this.jit - 11 : this.rOut + this.jit + 9;
+    return [this.cx + Math.cos(a) * r, this.cy + Math.sin(a) * r];
+  },
+  /* a key's label is centred on the spot today's key text is centred on (D3: key names do not move), so it stays
+     outside the outer ring (B) or inside the inner one (A). the item asks the layer for a centred box (`align: 'c'`,
+     round 2b: a corner box let the layer's eight-position search move a key 28-47 px when its first corner was taken);
+     the anchor carries a small screen-space correction per key: two frames after the layer has placed the labels (and
+     whenever the camera settles), the text's real centre is read back and the correction takes up the rounding. a key
+     the layer cannot centre there is not placed at all, and today's key text shows in its own place (mk-bare) */
+  keyCorr(key) {
+    const c = this.kcorr || (this.kcorr = {});
+    if (!c[key]) c[key] = [0, 0];
+    return c[key];
+  },
+  keyAnchor(num, letter, z) {
+    const [x, y] = this.keyPos(num, letter), c = this.keyCorr(num + letter), k = 1 / (z || 1);
+    return [x + c[0] * k, y + c[1] * k];
+  },
+  keyMove(ctx, z) {
+    this.labelEls.forEach(({ num, letter }) => { const key = num + letter; if (!this.keysWith.has(key)) return; const [x, y] = this.keyAnchor(num, letter, z); ctx.labels.update('make', 'k' + key, { x, y }); });
+  },
+  /* zoom changes the world size of that screen offset: re-anchor the key labels (pans need nothing); once the camera
+     has been still for a moment, read the placed labels back */
+  keyZoom(ctx) {
+    if (this.beat !== 3) return;
+    const z = +ctx.view.z || 1; if (z !== this.kz) { this.kz = z; this.keyMove(ctx, z); }
+    clearTimeout(this.kfixT); this.kfixT = setTimeout(() => { this.kfixN = 0; this.keyFix(ctx); }, 200);
+  },
+  /* the layer places on its own frame and fades a label in a frame later, so look twice: soon, and once it has settled */
+  keyFixSoon(ctx) { requestAnimationFrame(() => requestAnimationFrame(() => this.keyFix(ctx))); clearTimeout(this.kfixT2); this.kfixT2 = setTimeout(() => this.keyFix(ctx), 450); },
+  keyFix(ctx) {
+    if (!this.active || !this.atl || this.beat !== 3) return;
+    const layer = document.getElementById('atlas-labels'); if (!layer) return;
+    const z = +ctx.view.z || 1, shown = new Set(); let moved = false;
+    layer.querySelectorAll('.lab.on').forEach((el) => {
+      const key = el.textContent; if (!/^\d{1,2}[AB]$/.test(key) || !this.keysWith.has(key)) return;
+      shown.add(key);
+      const tn = el.firstChild; if (!tn || tn.nodeType !== 3) return;
+      const rg = document.createRange(); rg.selectNodeContents(tn); const b = rg.getBoundingClientRect(); if (!b.width) return;
+      /* the target is today's text box for the same key (the hidden span, still laid out in place under the camera): the
+         label's text takes its centre; at the home pose the two are the same size, so the corners match too */
+      const span = this.keySpan && this.keySpan[key]; let dx, dy;
+      if (span && span.firstChild) {
+        const r2 = document.createRange(); r2.selectNodeContents(span.firstChild); const t = r2.getBoundingClientRect();
+        dx = t.left + t.width / 2 - (b.left + b.width / 2); dy = t.top + t.height / 2 - (b.top + b.height / 2);
+      } else { const [wx, wy] = this.keyPos(parseInt(key, 10), key.slice(-1)), [sx, sy] = ctx.view.apply(wx, wy); dx = sx - (b.left + b.width / 2); dy = sy - (b.top + b.height / 2); }
+      /* the layer rounds a box to whole px: under 0.35 px is as close as it gets (the pass stops after four rounds) */
+      if (Math.abs(dx) > 0.35 || Math.abs(dy) > 0.35) { const c = this.keyCorr(key); c[0] += dx; c[1] += dy; moved = true; }
+    });
+    this.keyBare(layer, shown);
+    if (moved) { this.keyMove(ctx, z); if (++this.kfixN < 4) this.keyFixSoon(ctx); }
+  },
+  /* a key whose pill the layer is not showing shows today's key text in its place (mk-bare) */
+  keyBare(layer, shown) {
+    if (!this.active || !this.atl || this.beat !== 3 || !this.labelEls) return;
+    layer = layer || document.getElementById('atlas-labels'); if (!layer) return;
+    if (!shown) { shown = new Set(); layer.querySelectorAll('.lab.on').forEach((el) => { const k = el.textContent; if (/^\d{1,2}[AB]$/.test(k) && this.keysWith.has(k)) shown.add(k); }); }
+    const off = layer.style.display === 'none' || getComputedStyle(layer).display === 'none'; /* labels switched off: every key keeps its plain name */
+    if (off || shown.size) this.labelEls.forEach(({ el, num, letter }) => { const key = num + letter; if (this.keysWith.has(key)) el.classList.toggle('mk-bare', off || !shown.has(key)); });
+  },
+  /* the wheel's names: every key that holds a track, the 22 titles (revealed as the camera closes in) and the two decks */
+  atlasLabels(ctx) {
+    if (this.beat !== 3 || !this.ready || !this.trackPos.length) { ctx.labels.set('make', []); return; }
+    const items = [], z = +ctx.view.z || 1; this.kz = z;
+    if (!this.offZoom) this.offZoom = ctx.view.onChange(() => this.keyZoom(ctx));
+    /* a small wheel (phones) has no room for key names at rest: there they appear once the camera has closed in */
+    this.labelEls.forEach(({ num, letter }) => {
+      const key = num + letter; if (!this.keysWith.has(key)) return;
+      const [x, y] = this.keyAnchor(num, letter, z), gated = !this.showLabels || (letter === 'A' && !this.showInner);
+      /* the unbracketed (region) style: a bracketed box is ~50 px wide and at three and nine o'clock it would lie over the
+         cluster beside it and take the tap meant for it; this one is about as wide as today's key text */
+      items.push({ id: 'k' + key, text: key, x, y, r: 0.001, pri: 2, kind: 'region', align: 'c', zoom: gated ? [1.6, 99] : null, go: (c) => this.keyFocus(num, letter, c, true) });
+    });
+    this.kfixN = 0; this.keyFixSoon(ctx);
+    const r = (this.bs || 28) / 2;
+    this.tracks.forEach((t, i) => {
+      const p = this.trackPos[i];
+      items.push({ id: 't' + i, text: t.t, x: p.x, y: p.y, r, pri: i === this.playing ? 6 : 4, kind: 'obj', zoom: [1.35, 99], go: (c) => this.labelTrack(i, c) });
+    });
+    /* the decks' names: only where the wheel has room between its rings for them (a desktop pointer). on a touch screen or
+       under the chip strip the wheel is small and the name lay over the inner ring's glyphs; the a / b badges on the
+       clusters and the desk line already say which deck is which */
+    const show = (this.armed || !!this.blend) && !ctx.coarse && !this.chips;
+    [[this.playing, 'deck a'], [show && this.cued >= 0 && this.cued !== this.playing ? this.cued : -1, 'deck b']].forEach(([k, text]) => {
+      if (k < 0 || !show) return; const p = this.trackPos[k];
+      /* no go: a region label lets a press through to the cluster under it, which is the thing to tap */
+      items.push({ id: text, text, x: p.x, y: p.y + r * 0.2, r: r + 4, pri: 8, kind: 'region' });
+    });
+    ctx.labels.set('make', items);
+  },
+  labelTrack(i, ctx) {
+    const p = this.trackPos[i]; if (!p) return;
+    ctx.view.flyTo({ wx: p.x, wy: p.y, z: Math.max(1.8, ctx.view.z || 1) }, { speed: 'quick', lock: this.tracks[i].t });
+    ctx.lock(this.tracks[i].t);
+    if (this.armed) { this.stopDemo(); this.tap(i, ctx, false); }
+  },
+  /* a key: the camelot rule for it in the hud, and the tracks in keys that mix cleanly with it lit */
+  keyFocus(num, letter, ctx, fly) {
+    const keys = mixKeys(num, letter), set = new Set(), me = num + letter;
+    this.tracks.forEach((t, i) => { if (i !== this.playing && (t.k === me || keys.includes(t.k))) set.add(i); });
+    this.kf = { num, letter, keys, set };
+    this.paint(ctx);
+    ctx.hud(me + ' \u00b7 keys that mix cleanly with it: ' + keys.join(', '));
+    if (fly) { const [x, y] = this.keyPos(num, letter); ctx.view.flyTo({ wx: x, wy: y, z: Math.max(1.6, ctx.view.z || 1) }, { speed: 'quick', lock: me }); ctx.lock(me); }
+  },
+  /* exact axis marks on the overlay: one short tick per key on each ring, and, with a key in focus, arcs on it and on
+     the three keys that mix cleanly with it (drawn in world px; the shell applies the camera) */
+  drawKeys(g) {
+    if (this.beat !== 3) return;
+    const cx = this.cx, cy = this.cy, jit = this.jit;
+    g.strokeStyle = 'rgba(134,203,254,.34)'; g.lineWidth = 1; g.beginPath();
+    for (let n = 1; n <= 12; n++) {
+      const a = rad(ang(n)), c = Math.cos(a), sn = Math.sin(a);
+      const r0 = this.rOut + jit + 1, r1 = r0 + 4; g.moveTo(cx + c * r0, cy + sn * r0); g.lineTo(cx + c * r1, cy + sn * r1);
+      if (this.showInner) { const q0 = this.rIn - jit - 1, q1 = q0 - 4; g.moveTo(cx + c * q0, cy + sn * q0); g.lineTo(cx + c * q1, cy + sn * q1); }
+    }
+    g.stroke();
+    const kf = this.kf; if (!kf) return;
+    const arc = (num, letter, w, col) => {
+      const a = rad(ang(num)), r = letter === 'A' ? this.rIn : this.rOut;
+      g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.arc(cx, cy, r, a - 0.2, a + 0.2); g.stroke();
+    };
+    kf.keys.forEach((k) => arc(parseInt(k, 10), k.slice(-1), 2, 'rgba(134,203,254,.55)'));
+    arc(kf.num, kf.letter, 3, 'rgba(134,203,254,.95)');
+  },
+  look(k) {
+    if (k === 'wheel' || k === 'centre') return [this.cx, this.cy];
+    const t = /^track:(.+)$/.exec(String(k)); if (t) { const i = this.tracks.findIndex((x) => x.f === t[1]); return i >= 0 ? [this.trackPos[i].x, this.trackPos[i].y] : null; }
+    const m = /^key:(\d{1,2})([AB])$/.exec(String(k)); if (m) return this.keyPos(+m[1], m[2]);
+    return null;
+  },
+  /* the tap layer's own pick, in world coordinates: the nearest cluster centre, never the hole or past the rims */
+  hitTap(wx, wy, ctx) {
+    if (!this.armed) return;
+    let best = -1, bd = Infinity;
+    this.trackPos.forEach((p, i) => { const d = (p.x - wx) * (p.x - wx) + (p.y - wy) * (p.y - wy); if (d < bd) { bd = d; best = i; } });
+    const lim = this.bs * 0.9 + this.jit;
+    if (best < 0 || bd > lim * lim) return;
+    this.stopDemo(); this.tap(best, ctx, false);
+  },
+  /* the wheel is up: skip what is left of the finale (a search or a tour that wants a track now) */
+  toWheel(ctx) {
+    if (!this.ready) return false;
+    if (this.beat !== 3) { this.ran = true; this.beatThree(ctx, performance.now(), true); this.settled(); }
+    return true;
+  },
+  setAngle(k, ctx) {
+    const a = this.angles[k]; if (!a || !this.ready || !atlasOn(ctx)) return 0;
+    this.stopDemo();
+    if (a.id === 'wheel') {
+      if (this.beat === 1 || this.beat === 2) return Math.max(0, Math.round((this.t0 < 0 ? B2 : this.t0 + B2 - performance.now()) + SETTLE));
+      this.toWheel(ctx); ctx.view.home({}); return 0;
+    }
+    if (a.id === 'fall') {
+      if (this.blend) this.finishBlend(ctx);
+      ctx.view.home({ instant: true });
+      if (ctx.reduced) { this.toWheel(ctx); return 0; }
+      this.ran = true; this.beatOne(ctx); return B2 + SETTLE;
+    }
+    /* blend: put a neighbour on deck b and let the engine run the blend, the dotted route first */
+    this.toWheel(ctx); if (this.blend) this.finishBlend(ctx);
+    const T = this.tracks, a0 = this.playing; let b = -1;
+    for (let j = 0; j < T.length; j++) if (j !== a0 && T[j].k !== T[a0].k && adjKey(T[a0], T[j])) { b = j; break; }
+    if (b < 0) b = this.farFrom(a0);
+    this.aLive = true; this.cued = b; this.paint(ctx); this.refreshDesk();
+    const rel = this.relation(a0, b);
+    this.demoT = setTimeout(() => { this.demoT = 0; if (this.active && this.cued === b) this.doBlend(ctx); }, 900);
+    return 900 + Math.round(rel.xf * 2200);
+  },
+  /* search: {track: <file id or title>} puts that track on deck a and plays it; a field tap ({track, tap}) loads it
+     the way a tap on its circle would. {key: '8B'} opens that key's mixing rule */
+  focus(desc, ctx) {
+    if (!desc || !this.ready || !this.tracks.length) return false;
+    if (desc.key) { const m = /^(\d{1,2})([AB])$/.exec(String(desc.key)); if (!m || !this.toWheel(ctx)) return false; this.keyFocus(+m[1], m[2], ctx, true); return true; }
+    if (desc.track == null) return false;
+    const f = String(desc.track), i = this.tracks.findIndex((t) => t.f === f || t.t.toLowerCase() === f.toLowerCase());
+    if (i < 0 || !this.toWheel(ctx)) return false;
+    this.stopDemo();
+    if (desc.tap) { if (this.armed) this.tap(i, ctx, false); return true; }
+    if (this.blend) this.finishBlend(ctx);
+    this.kf = null; this.cued = -1; this.aLive = true; this.select(i, ctx, true); this.refreshDesk();
+    const p = this.trackPos[i]; ctx.view.flyTo({ wx: p.x, wy: p.y, z: 1.8 }, { speed: 'quick', lock: this.tracks[i].t }); ctx.lock(this.tracks[i].t);
+    return true;
+  },
+  pick(wx, wy) {
+    if (!this.ready || this.beat !== 3) return null;
+    let best = -1, bd = Infinity;
+    this.trackPos.forEach((p, i) => { const d = Math.hypot(p.x - wx, p.y - wy); if (d < bd) { bd = d; best = i; } });
+    if (best < 0 || bd > (this.bs || 28) * 0.9 + this.jit) return null;
+    const p = this.trackPos[best];
+    return { label: this.tracks[best].t, wx: p.x, wy: p.y, z: 1.8, focus: { track: this.tracks[best].f, tap: true } };
+  },
+  gestures() { return { drag: 'camera' }; },
+  keepout() {
+    const el = this.textEl; if (!el) return [];
+    const r = el.getBoundingClientRect(); return r.width && r.height ? [{ x: r.left, y: r.top, w: r.width, h: r.height }] : [];
+  },
+  precision() { return []; },
   /* ---- kiosk ------------------------------------------------------------------- */
   /* three tracks that are harmonic neighbours of each other, so the glow walks one step round the wheel */
   chain() {

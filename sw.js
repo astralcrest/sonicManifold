@@ -3,7 +3,12 @@
    figdata/images/json: stale-while-revalidate (instant, refreshes in background).
    Audio is deliberately NOT handled: <audio> uses Range requests (206) which
    the Cache API can't store; the browser HTTP cache handles those fine. */
-var VERSION = 'sm-v5';
+/* bumped with every exhibit build whose modules changed (2026-09-28 atlas round 3, modules at ?v=20260929r5, 2026-09-29 V4 fixes; 2026-10-01 round 5 at ?v=20261001r1; 2026-10-02 round 5 pass 2 at ?v=20261001r2; 2026-10-03 round 5 wave 3 at ?v=20261001r3: predict, postcards, field listens, reorder): activate drops every older cache, so a
+   returning visitor never runs one version's module next to another's. nothing is precached: the Tier-B universe files
+   (the per-day records, the full roster, the tracks) are never named here. the round-5 pass-2 stops and angles (rooms/bail,
+   loop, arrivals, wheel, fade, gates, map.ghost .js; data/bail, loops, arrivals, wheel_agg, whopressed2, bi_conditions, gates,
+   ghost .json) are cached on first use by the .js/.json stale-while-revalidate rule below, under the new VERSION */
+var VERSION = 'sm-v13';
 
 self.addEventListener('install', function () { self.skipWaiting(); });
 

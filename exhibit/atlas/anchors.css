@@ -1,0 +1,126 @@
+/* package M6 — anchored labels (§1.7). every selector starts html.atlas; no native nesting. */
+
+html.atlas #atlas-labels{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden;contain:layout style}
+
+/* base: 'obj' kind. --mute name, --line brackets (pseudo, dimmer than the name), fades in .8s out, out .3s in. */
+html.atlas .lab{position:absolute;left:0;top:0;margin:0;padding:2px 4px;border:0;border-radius:2px;background:none;
+  font:400 10.5px/1.3 var(--mono);letter-spacing:.06em;color:var(--mute);white-space:nowrap;cursor:pointer;
+  opacity:0;visibility:hidden;transition:opacity .3s ease-in,background-color .3s ease,visibility 0s linear .3s;pointer-events:none;-webkit-tap-highlight-color:transparent;
+  text-shadow:0 0 2px #0a0118,0 0 4px #0a0118,0 0 10px rgba(10,1,24,.9);will-change:transform,opacity}
+html.atlas .lab.on{opacity:1;visibility:visible;transition:opacity .8s ease-out,background-color .3s ease,visibility 0s;pointer-events:auto}
+html.atlas .lab.obj::before{content:"[ ";color:var(--line)}
+html.atlas .lab.obj::after{content:" ]";color:var(--line)}
+html.atlas .lab.obj:hover,html.atlas .lab.obj:focus-visible{color:var(--ice)}
+html.atlas .lab.obj:hover::before,html.atlas .lab.obj:hover::after,
+html.atlas .lab.obj:focus-visible::before,html.atlas .lab.obj:focus-visible::after{color:var(--ice)}
+html.atlas .lab:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+
+/* the top 8 object labels by priority: a size up, ink at .85 (anchors.js hands out .hi in placement order) */
+html.atlas .lab.obj.hi{font-size:11px;color:var(--ink);color:color-mix(in srgb,var(--ink) 85%,transparent)}
+html.atlas .lab.obj.hi::before,html.atlas .lab.obj.hi::after{color:rgba(189,166,255,.4)}
+
+/* round 2 (W1 fix): no label but the lock carries a coverage plate any more -- a dark box over the field read as a grey
+   sticky note (gcd never boxes a name). the stronger triple text-shadow above carries legibility instead, and
+   anchors.js now rejects a candidate position outright once it sits over too dense a patch of drawn glyphs, rather
+   than compensating with a background once placed. .plate/.dense are kept as no-op selectors (harmless if ever set). */
+html.atlas .lab.plate,html.atlas .lab.plate.dense{background-color:transparent}
+
+/* region: uppercase, tracked, unbracketed, dimmer, never clickable unless a room opts one in via go */
+html.atlas .lab.region{font:600 11px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);opacity:0}
+html.atlas .lab.region.on{opacity:.62;transition:opacity .8s ease-out,background-color .3s ease,visibility 0s}
+html.atlas .lab.region:not(.lab-live):hover{opacity:.62}
+
+/* counter: live text, ice, no brackets */
+html.atlas .lab.counter{color:var(--ice);font:400 10.5px/1.3 var(--mono);letter-spacing:.04em}
+
+/* a label with no route: same look, never intercepts the pointer */
+html.atlas .lab.static{cursor:default;pointer-events:none!important}
+
+/* the locked object: what the LOCKED ON chip names. ink name, ice brackets, full opacity, on its own ice-edged plate,
+   above every other label */
+html.atlas .lab.lock{z-index:2;padding:2px 5px;border:1px solid rgba(134,203,254,.5);background-color:rgba(10,1,24,.78);
+  font:500 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--ink);text-shadow:none}
+html.atlas .lab.lock.on,html.atlas .lab.region.lock.on{opacity:1}
+html.atlas .lab.obj.lock::before,html.atlas .lab.obj.lock::after{color:var(--ice)}
+html.atlas .lab.region.lock{font-weight:600;letter-spacing:.14em;color:var(--ice)}
+
+/* the reticle on the locked object: four ice corner ticks, closing in from 1.5x once per new target */
+html.atlas .lab-ret{position:absolute;left:0;top:0;width:20px;height:20px;z-index:1;pointer-events:none;opacity:0;
+  transition:opacity .3s ease-in;will-change:transform,opacity}
+html.atlas .lab-ret.on{opacity:1;transition:opacity .35s ease-out;animation:lab-ret-in .55s cubic-bezier(.2,.7,.2,1) both}
+html.atlas .lab-ret i{position:absolute;width:30%;height:30%;min-width:6px;min-height:6px;max-width:18px;max-height:18px;
+  filter:drop-shadow(0 0 1px #0a0118) drop-shadow(0 0 1px #0a0118) drop-shadow(0 0 4px rgba(10,1,24,.8))}
+html.atlas .lab-ret i::before,html.atlas .lab-ret i::after{content:"";position:absolute;background:var(--ice)}
+html.atlas .lab-ret i::before{width:100%;height:2px}
+html.atlas .lab-ret i::after{width:2px;height:100%}
+html.atlas .lab-ret i:nth-child(1){left:0;top:0}
+html.atlas .lab-ret i:nth-child(2){right:0;top:0}
+html.atlas .lab-ret i:nth-child(3){left:0;bottom:0}
+html.atlas .lab-ret i:nth-child(4){right:0;bottom:0}
+html.atlas .lab-ret i:nth-child(1)::before,html.atlas .lab-ret i:nth-child(1)::after{left:0;top:0}
+html.atlas .lab-ret i:nth-child(2)::before,html.atlas .lab-ret i:nth-child(2)::after{right:0;top:0}
+html.atlas .lab-ret i:nth-child(3)::before,html.atlas .lab-ret i:nth-child(3)::after{left:0;bottom:0}
+html.atlas .lab-ret i:nth-child(4)::before,html.atlas .lab-ret i:nth-child(4)::after{right:0;bottom:0}
+@keyframes lab-ret-in{from{scale:1.5;opacity:0}to{scale:1;opacity:1}}
+
+/* round 2 (W28): a candidate placed on the declutter's 2x ring reads as detached from its object, so it gets a thin
+   1px leader back to the anchor (anchors.js positions/rotates it; width is its length). one per node, lazily made. */
+html.atlas .lab-leader{position:absolute;left:0;top:0;height:1px;width:0;transform-origin:0 50%;background:var(--line);
+  opacity:0;pointer-events:none;transition:opacity .3s ease-in;will-change:transform,width,opacity}
+html.atlas .lab-leader.on{opacity:.55;transition:opacity .8s ease-out}
+
+/* off-screen indicator for the locked object: one shared, edge-clamped chip */
+html.atlas .lab-off{position:absolute;left:0;top:0;margin:0;padding:5px 9px;border:1px solid var(--line);border-radius:3px;
+  background:rgba(10,1,24,.66);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  font:600 10.5px/1 var(--mono);letter-spacing:.08em;color:var(--ice);opacity:0;visibility:hidden;pointer-events:none;cursor:pointer;
+  transition:opacity .3s ease,visibility 0s linear .3s;will-change:transform,opacity}
+html.atlas .lab-off.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .3s ease,visibility 0s}
+html.atlas .lab-off:hover,html.atlas .lab-off:focus-visible{border-color:rgba(134,203,254,.55)}
+html.atlas .lab-off:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+
+/* touch-first screens (the switch chrome.css's 44px pass uses; anchors.js reads the same query): every tappable label is
+   a 44px target. the brackets own ::before/::after, so the box grows by a transparent border instead of chrome.css's
+   ::before inset: the plate is clipped to the padding box, the lock's edge is an inset shadow, and a negative margin
+   of the same size keeps the drawn pill exactly where anchors.js placed it. PAD_H 6 / PAD_V 14 in anchors.js.
+   scoped to the layer (a fading label keeps its pad too): the probe calendar.js measures the pill with lives in its own
+   room and keeps the bare box. */
+@media (pointer:coarse),(max-aspect-ratio:115/100){
+  html.atlas #atlas-labels .lab:not(.static){border:14px solid transparent;border-left-width:6px;border-right-width:6px;margin:-14px -6px;background-clip:padding-box}
+  html.atlas #atlas-labels .lab.lock:not(.static){border-color:transparent;padding:3px 6px;box-shadow:inset 0 0 0 1px rgba(134,203,254,.5)}
+  html.atlas #atlas-labels .lab:not(.static):focus-visible{outline:0;box-shadow:inset 0 0 0 2px var(--ice)}
+  /* the off-screen chip has no pseudo content of its own: chrome.css's technique as is (box 44px, drawn chip inset) */
+  html.atlas .lab-off{min-width:44px;padding:16px 9px;margin:-11px 0;border-color:transparent;background:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+  html.atlas .lab-off::before{content:"";position:absolute;z-index:-1;left:-1px;right:-1px;top:10px;bottom:10px;border:1px solid var(--line);border-radius:3px;
+    background:rgba(10,1,24,.66);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  html.atlas .lab-off:hover,html.atlas .lab-off:focus-visible{border-color:transparent}
+  html.atlas .lab-off:hover::before,html.atlas .lab-off:focus-visible::before{border-color:rgba(134,203,254,.55)}
+  html.atlas .lab-off:focus-visible{outline:0}
+  html.atlas .lab-off:focus-visible::before{outline:2px solid var(--ice);outline-offset:2px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html.atlas .lab,html.atlas .lab.on,html.atlas .lab.region.on,html.atlas .lab-off,html.atlas .lab-off.on,
+  html.atlas .lab-ret,html.atlas .lab-ret.on,html.atlas .lab-leader,html.atlas .lab-leader.on{transition:none;animation:none}
+}
+
+@media (forced-colors:active){
+  html.atlas #atlas-labels{forced-color-adjust:none}
+  html.atlas .lab,html.atlas .lab-off{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}
+  html.atlas .lab.obj::before,html.atlas .lab.obj::after{color:CanvasText}
+  html.atlas .lab.obj.hi,html.atlas .lab.obj:hover,html.atlas .lab.obj:focus-visible{color:CanvasText}
+  html.atlas .lab.obj.hi::before,html.atlas .lab.obj.hi::after,html.atlas .lab.obj:focus-visible::before,html.atlas .lab.obj:focus-visible::after{color:CanvasText}
+  html.atlas .lab.lock{border:2px solid Highlight}
+  html.atlas .lab-ret i{filter:none}
+  html.atlas .lab-ret i::before,html.atlas .lab-ret i::after{background:Highlight}
+  html.atlas .lab-leader{background:CanvasText}
+}
+@media (forced-colors:active) and (pointer:coarse),(forced-colors:active) and (max-aspect-ratio:115/100){
+  html.atlas #atlas-labels .lab:not(.static){border-color:transparent;box-shadow:inset 0 0 0 1px CanvasText}
+  html.atlas #atlas-labels .lab.lock:not(.static){box-shadow:inset 0 0 0 2px Highlight}
+  html.atlas .lab-off{border-color:transparent;background:none}
+  html.atlas .lab-off::before{background:Canvas;border-color:CanvasText}
+}
+
+@media print{
+  html.atlas #atlas-labels{display:none}
+}

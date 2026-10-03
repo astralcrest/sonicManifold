@@ -1,0 +1,98 @@
+/* atlas search (module M5). every selector starts with html.atlas; chrome accent is ice only. */
+
+html.atlas .as-bar{display:none;align-items:center;gap:6px;position:relative;margin:0 10px;background:rgba(10,1,24,.5);border:1px solid var(--line);border-radius:4px;padding:0 8px;height:32px;width:190px;flex:0 0 auto}
+@media (min-aspect-ratio:115/100) and (min-height:481px){html.atlas .as-bar{display:flex}}
+html.atlas .as-bar input{flex:1 1 auto;min-width:0;background:none;border:0;color:var(--ink);font:500 12.5px/1 var(--mono);letter-spacing:.01em;text-transform:none}
+html.atlas .as-bar input::placeholder{color:var(--mute);text-transform:none}
+html.atlas .as-bar input:focus{outline:0}
+html.atlas .as-bar:focus-within{border-color:rgba(134,203,254,.55)}
+html.atlas .as-kbd{flex:0 0 auto;font:600 9.5px/1 var(--mono);letter-spacing:.06em;color:var(--mute);border:1px solid var(--line);border-radius:2px;padding:2px 5px;pointer-events:none}
+html.atlas .as-bar input:focus ~ .as-kbd{opacity:0}
+
+html.atlas .as-panel{position:fixed;z-index:9;left:0;right:0;top:var(--as-vvtop,0px);height:var(--as-vvh,100dvh);height:var(--as-vvh,100svh);display:flex;flex-direction:column;pointer-events:none;opacity:0;transition:opacity .18s ease}
+html.atlas .as-panel.as-on{pointer-events:auto;opacity:1}
+/* one "ATLAS" input header, on every viewport: it is what makes the panel read as a menu with search on top,
+   not a bare results dropdown (W26) */
+html.atlas .as-sheet-head{display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;border-bottom:1px solid var(--line);flex:0 0 auto}
+/* desktop: a right-docked drawer, full height — room for 388 stars, not an afterthought under the bar
+   (gcdatlas's own reference layout: ref_d1_21_search_sat.png) */
+@media (min-aspect-ratio:115/100) and (min-height:481px){
+  html.atlas .as-panel{left:auto;right:0;top:0;bottom:0;height:auto;max-height:none;width:min(400px,92vw);border:0;border-left:1px solid var(--line);border-radius:0;background:rgba(7,3,17,.98);box-shadow:-30px 0 90px rgba(0,0,0,.55);transform:translateX(14px);transition:opacity .18s ease,transform .18s ease}
+  html.atlas .as-panel.as-on{transform:translateX(0)}
+  html.atlas .as-sheet-head{padding-top:calc(16px + env(safe-area-inset-top))}
+}
+/* phone: a bottom sheet, sized to the live keyboard via visualViewport (never vh/env()) */
+@media (max-aspect-ratio:115/100),(max-height:480px){
+  html.atlas .as-panel{background:rgba(6,1,16,.98);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+}
+html.atlas .as-sheet-label{font:600 10px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ice)}
+html.atlas .as-sheet-head input{flex:1 1 auto;min-width:0;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:4px;color:var(--ink);font:500 15px/1 var(--mono);padding:10px 12px;min-height:40px}
+html.atlas .as-close{flex:0 0 auto;font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:9px 12px;min-height:38px;cursor:pointer}
+html.atlas .as-close:hover{color:var(--ink)}
+
+html.atlas .as-empty{padding:14px 14px 10px;font:500 11.5px/1.4 var(--mono);color:var(--mute)}
+html.atlas .as-stat{margin-bottom:3px}
+html.atlas .as-seen{color:var(--mute)}
+/* the sort toggle (STARS only): unconditionally display:none, so the JS `hidden` attribute alone governs it —
+   an unconditional display rule here would out-prioritize [hidden] via author-origin cascade, the same quirk
+   that makes .as-panel's own display:flex win over its hidden attribute (that panel is instead shown/hidden by
+   .as-on's opacity, never by [hidden]; this element has no such second mechanism, so it must defer to [hidden]) */
+html.atlas .as-sort{display:none;gap:6px;padding:0 14px 10px;flex-wrap:wrap;align-items:baseline}
+html.atlas .as-sort:not([hidden]){display:flex}
+html.atlas .as-sort-label{font:600 9.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+html.atlas .as-sortbtn{font:600 10px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 10px;cursor:pointer}
+html.atlas .as-sortbtn:hover{color:var(--ink)}
+html.atlas .as-sortbtn[aria-pressed="true"]{color:var(--ice);border-color:rgba(134,203,254,.5)}
+html.atlas .as-list{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;padding:2px 0 6px;-webkit-overflow-scrolling:touch}
+html.atlas .as-group-h{position:sticky;top:0;background:inherit;font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ice);padding:10px 14px 6px;opacity:.85}
+html.atlas .as-nores{padding:16px 14px;font:500 12.5px/1.4 var(--mono);color:var(--mute)}
+html.atlas .as-row{display:flex;align-items:stretch;gap:10px;padding:0 14px}
+html.atlas .as-opt{display:flex;align-items:center;flex:1 1 auto;min-width:0;padding:9px 0;cursor:pointer;min-height:40px}
+html.atlas .as-opt:hover,html.atlas .as-opt[aria-selected="true"]{background:rgba(134,203,254,.1);margin:0 -14px;padding-left:14px;padding-right:14px}
+html.atlas .as-row-main{display:flex;align-items:baseline;gap:8px;min-width:0;flex:1 1 auto}
+html.atlas .as-label{font:500 13.5px/1.3 var(--mono);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.atlas .as-sub{font:500 11px/1.3 var(--mono);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+html.atlas .as-swatch{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+/* STOPS numbering (num) and the STARS Tier-A share (right, W26: "never a Tier-B count") */
+html.atlas .as-num{flex:0 0 auto;width:16px;text-align:right;font:500 11px/1.3 var(--mono);font-variant-numeric:tabular-nums;color:var(--mute)}
+html.atlas .as-right{flex:0 0 auto;margin-left:10px;font:500 11.5px/1.3 var(--mono);font-variant-numeric:tabular-nums;color:var(--mute)}
+html.atlas .as-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+html.atlas .as-loading .as-label{color:var(--mute);font-style:normal}
+html.atlas .as-loading{cursor:default}
+/* .as-row stretches its children to the row's height; the chip strip must not inherit that stretch, or each pill
+   grows to the full row (an egg with its 1-line text pinned to the top). centre the strip, fix the pill's height,
+   and centre the text inside it. the trailing letter-spacing is paid back on the right so the word sits centred. */
+html.atlas .as-chips{display:flex;align-items:center;align-self:center;gap:4px;flex:0 0 auto}
+html.atlas .as-chip{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:24px;font:600 9.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:0 calc(8px - .08em) 0 8px;white-space:nowrap;cursor:pointer}
+/* touch: rows, close, the sheet input and the chips all reach 44px (V4 a11y P2-6) */
+@media (pointer:coarse){
+  html.atlas .as-opt{min-height:44px}
+  html.atlas .as-close,html.atlas .as-sheet-head input{min-height:44px}
+  html.atlas .as-chips{gap:6px}
+  html.atlas .as-chip{height:44px;padding:0 calc(12px - .08em) 0 12px;font-size:10px}
+  html.atlas .as-sortbtn{min-height:36px;padding:0 12px}
+}
+html.atlas .as-chip:hover{color:var(--ice);border-color:rgba(134,203,254,.5)}
+html.atlas .as-foot{flex:0 0 auto;padding:9px 14px calc(9px + env(safe-area-inset-bottom));border-top:1px solid var(--line);font:500 10.5px/1.3 var(--mono);color:var(--mute)}
+
+html.atlas .as-bar input:focus-visible,html.atlas .as-sheet-head input:focus-visible,html.atlas .as-close:focus-visible,html.atlas .as-sortbtn:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+html.atlas .as-opt:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
+
+/* the bar and panel opt out of forcing to paint an opaque Canvas over the field canvas. forced-color-adjust inherits,
+   so every descendant would keep its author ink/mute/ice on that Canvas (VERIFY r3 P0: the bar input at 1.17:1 on
+   every stop; open panel: labels, subs, group heads, empty/no-result/foot lines). each takes the system pair
+   explicitly; the inputs (0-2-2) and the loading label (0-3-1) outrank the wildcard, so they are named. */
+@media (forced-colors:active){
+  html.atlas .as-bar,html.atlas .as-panel,html.atlas .as-close,html.atlas .as-chip,html.atlas .as-sortbtn{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}
+  html.atlas .as-bar *,html.atlas .as-panel *,html.atlas .as-bar input,html.atlas .as-sheet-head input,html.atlas .as-loading .as-label{color:CanvasText;border-color:CanvasText;text-shadow:none}
+  html.atlas .as-sheet-head input,html.atlas .as-group-h{background:Canvas}
+  html.atlas .as-bar input::placeholder,html.atlas .as-sheet-head input::placeholder{color:GrayText}
+  /* a dimmed system colour is a low-contrast colour */
+  html.atlas .as-group-h{opacity:1}
+  html.atlas .as-opt:hover,html.atlas .as-opt[aria-selected="true"],html.atlas .as-close:hover,html.atlas .as-chip:hover,html.atlas .as-sortbtn[aria-pressed="true"]{background:Highlight;color:HighlightText;border-color:Highlight}
+  html.atlas .as-opt:hover *,html.atlas .as-opt[aria-selected="true"] *{color:HighlightText}
+  html.atlas .as-bar:focus-within{border-color:Highlight}
+  html.atlas .as-bar input:focus-visible,html.atlas .as-sheet-head input:focus-visible,html.atlas .as-close:focus-visible,html.atlas .as-opt:focus-visible,html.atlas .as-sortbtn:focus-visible{outline-color:Highlight}
+}
+@media print{html.atlas .as-bar,html.atlas .as-panel{display:none!important}}
+@media (prefers-reduced-motion:reduce){html.atlas .as-panel{transition:none}}

@@ -1,0 +1,19 @@
+/* R5 L3: the phone's sight (atlas/reticle.js). ice = interface, never a provenance colour */
+.atlas-sight{position:fixed;left:0;top:0;width:56px;height:56px;margin:-28px 0 0 -28px;z-index:4;touch-action:none;-webkit-tap-highlight-color:transparent;opacity:0;transition:opacity .3s;pointer-events:none}
+.atlas-sight.on{opacity:.82;pointer-events:auto}
+.atlas-sight.on.hit{opacity:1}
+html.atlas-idle .atlas-sight.on{opacity:.5}
+.atlas-sight *{position:absolute;pointer-events:none;background:#86cbfe}
+.atlas-sight b{left:10px;top:10px;width:36px;height:36px;box-sizing:border-box;border-radius:50%;background:none;border:1.5px solid rgba(134,203,254,.6);transition:transform .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s}
+.atlas-sight.hit b{transform:scale(.72);border-color:#86cbfe;box-shadow:0 0 14px rgba(134,203,254,.5)}
+.atlas-sight i{left:27px;top:3px;width:2px;height:7px;opacity:.85}
+.atlas-sight i+i{top:46px}
+.atlas-sight i+i+i{left:3px;top:27px;width:7px;height:2px}
+.atlas-sight i+i+i+i{left:46px}
+.atlas-sight u{left:27px;top:27px;width:2px;height:2px;border-radius:50%}
+.atlas-sight s{left:50%;top:52px;transform:translateX(-50%);max-width:168px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none;font:500 11px/1.4 var(--mono,monospace);letter-spacing:.06em;color:#86cbfe;padding:1px 6px;background:rgba(10,1,24,.72);opacity:0;transition:opacity .2s}
+.atlas-sight.hit:not(.lab) s{opacity:1}
+@media (prefers-reduced-motion:reduce){.atlas-sight b,.atlas-sight s{transition:none}}
+@media (forced-colors:active){.atlas-sight b{border-color:CanvasText;box-shadow:none}
+.atlas-sight i,.atlas-sight u{background:CanvasText}
+.atlas-sight s{color:CanvasText;background:Canvas;forced-color-adjust:none}}

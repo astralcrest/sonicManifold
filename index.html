@@ -3,912 +3,539 @@
 <head>
 <meta charset="utf-8">
 <script>
-/* deep-link shim: anything shared before the split points at a lab anchor — send it home */
-(function(){var h=location.hash;if(!h)return;var own={'#argument':1,'#finding':1,'#kills':1,'#links':1,'#top':1};if(!own[h.split('?')[0]])location.replace('lab.html'+h);})();
+/* deep-link shim: #tour=… and #atlas forward into the atlas; the door's own ids stay; everything
+   else forwards to the lab exactly as before (old shared index.html#graveyard etc. meant the lab) */
+(function(){
+var h=location.hash;if(!h)return;
+var base=h.split('?')[0];
+if(base.slice(0,6)==='#tour='||base==='#atlas'){location.replace('exhibit.html'+h);return;}
+var own={'#argument':1,'#finding':1,'#kills':1,'#links':1,'#top':1,'#tours':1,'#deeper':1};
+if(!own[base])location.replace('lab.html'+h);
+})();
 </script>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>sonic manifold: streaming logs are not preference logs</title>
-<meta name="description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate. What survives conditioning on who pressed play, and what died in the audit. The same confound sits under any log a recommender mediates.">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+<title>sonic manifold: an explorable atlas of who pressed play</title>
+<meta name="description" content="97,427 plays over the whole log, one listener. An explorable atlas of who pressed play, and a sky of the artists you can fly through. Only 19% of plays started with my tap (11.5% by the strictest reading).">
 <meta name="robots" content="index, follow, noai, noimageai">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/sonicManifold/android-chrome-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
-<link rel="preload" href="fonts/JetBrainsMono-sub.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a0118">
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/">
-<meta property="og:title" content="sonic manifold: streaming logs are not preference logs">
-<meta property="og:description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate taps. The audit killed or withdrew 18 of my own findings: what survived is the point.">
+<meta property="og:title" content="sonic manifold: an explorable atlas of who pressed play">
+<meta property="og:description" content="97,427 plays over the whole log, one listener. Walk the atlas: who pressed play, a sky of the artists, and eighteen of my own findings killed, retracted or withdrawn along the way.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="sonic manifold: streaming logs are not preference logs">
-<meta name="twitter:description" content="Seven years, 97,427 plays, one listener. Only 19% were deliberate taps. The audit killed or withdrew 18 of my own findings: what survived is the point.">
+<meta name="twitter:title" content="sonic manifold: an explorable atlas of who pressed play">
+<meta name="twitter:description" content="97,427 plays over the whole log, one listener. Walk the atlas: who pressed play, a sky of the artists, and eighteen of my own findings killed, retracted or withdrawn along the way.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <style>
-@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("fonts/JetBrainsMono-var.woff2") format("woff2");unicode-range:U+0370-03FF,U+2600-27FF,U+FEFF,U+FFFD}
-@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("fonts/JetBrainsMono-sub.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2190-21FF,U+2200-22FF,U+2300-23FF,U+2500-25FF}
-:root{color-scheme:dark;--bg:#0a0118;--ink:#f0eaff;--body:rgba(240,234,255,.88);--mute:#a49bbd;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff6e9c;--ice:#86cbfe;--line:rgba(189,166,255,.19);--line2:rgba(189,166,255,.34);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+/* JetBrains Mono (OFL): a door-only subset (U+0020-007E and a few marks, wght 100-800, no ligatures, no hinting)
+   inlined, so the whole first load stays under 60 KB; the atlas loads its own */
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url(data:font/woff2;base64,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) format("woff2")}
+:root{color-scheme:dark;--bg:#0a0118;--ink:#f0eaff;--body:rgba(240,234,255,.88);--mute:#a49bbd;--faint:#6d6486;--ice:#86cbfe;--line:rgba(189,166,255,.19);--halo:0 0 9px #0a0118,0 0 3px #0a0118,0 0 1px #0a0118;--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--pt:max(16px,env(safe-area-inset-top));--pr:max(18px,env(safe-area-inset-right));--pb:max(14px,env(safe-area-inset-bottom));--pl:max(18px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%;overscroll-behavior:none}
 html{-webkit-text-size-adjust:100%}
-body{background:var(--bg);color:var(--body);font:400 17px/1.68 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(900px 620px at 78% -8%,rgba(107,90,134,.30),transparent 62%),radial-gradient(700px 560px at 4% 6%,rgba(33,246,188,.055),transparent 60%)}
-.page{max-width:1160px;margin:0 auto;padding:0 clamp(16px,4.4vw,48px)}
-.prose{max-width:min(64ch,616px)}
-p{margin:0 0 16px}
+body{background:var(--bg);color:var(--body);font:400 15px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;height:100vh;height:100dvh}
 a{color:var(--ice);text-underline-offset:3px}
-a:hover{color:var(--mint)}
-:focus-visible{outline:2px solid var(--mint);outline-offset:3px;border-radius:3px}
-code{font:500 .9em var(--mono);color:var(--ice)}
+a:hover{color:#bfe4ff}
+:focus-visible{outline:2px solid var(--ice);outline-offset:3px;border-radius:3px}
 b,strong{font-weight:600;color:var(--ink)}
-
-/* ---------- hero ---------- */
-.hero{display:grid;grid-template-columns:minmax(0,1fr);gap:30px;padding:clamp(36px,6vh,76px) 0 clamp(30px,5vh,52px)}
-@media (min-width:980px){.hero{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);column-gap:clamp(36px,4.6vw,66px);row-gap:26px;grid-template-areas:"a b" "c b";align-items:start;padding-top:clamp(52px,9vh,104px)}.herotext{grid-area:a}.wall{grid-area:b;align-self:center}.herobody{grid-area:c}}
-.hero>*{min-width:0}
-.eyebrow{font:600 10.5px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin:0 0 20px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
-.eyebrow b{color:var(--mint);font-weight:600}
-.eyebrow i{width:5px;height:5px;border-radius:50%;background:var(--line2);display:inline-block;flex:0 0 auto}
-h1{font:italic 600 clamp(36px,7.1vw,74px)/1.06 var(--serif);letter-spacing:-.022em;margin:0 0 24px;background:linear-gradient(104deg,#bff3df 4%,#cfd8ff 48%,#e9c8ff 88%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.tot{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0;background:rgba(189,166,255,.035)}
-.tot div{padding:12px 14px;border-right:1px solid var(--line);font:600 20px/1.15 var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
-.tot div:last-child{border-right:0}
-.tot div span{display:block;margin-top:4px;font:500 10px/1.35 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-variant-numeric:normal}
-.tot div.kill{color:var(--rose)}
-@media (max-width:560px){.tot{grid-template-columns:repeat(2,minmax(0,1fr))}.tot div{border-bottom:1px solid var(--line)}.tot div:nth-child(2n){border-right:0}.tot div:last-child{grid-column:1/-1;border-bottom:0}}
-.thesis{font-size:17px;max-width:56ch;text-wrap:pretty;color:var(--body);margin-top:0}
-.thesis b{color:var(--mint);font-weight:600}
-.cta{margin:24px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
-.cta a{font:600 11.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;text-decoration:none;border-radius:999px;padding:16px 18px;display:inline-flex;align-items:center;min-height:44px;white-space:nowrap}
-.cta a.go{color:#04130e;background:linear-gradient(100deg,#21f6bc,#62e7ff)}
-.cta a.alt{color:var(--mint);border:1px solid rgba(33,246,188,.42)}
-.cta a.alt:hover{border-color:var(--mint);background:rgba(33,246,188,.07)}
-.cta-sub{font:400 12px/1.65 var(--mono);color:var(--mute);margin:14px 0 0;max-width:60ch}
-.wall{margin:0;position:relative}
-.wall canvas{display:block;width:100%;aspect-ratio:10/8;height:auto;border-radius:12px;background:rgba(189,166,255,.035);box-shadow:inset 0 0 0 1px var(--line)}
-@media (max-width:979px){.wall canvas{aspect-ratio:10/5.4}}
-.wallhd{font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
-.readout{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:9px}
-.readout li{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline;gap:0 11px;font:500 12.5px/1.4 var(--mono);color:var(--mute);border-top:1px solid var(--line);padding-top:9px}
-.readout li:first-child{border-top:0;padding-top:0}
-.readout s{width:10px;height:10px;border-radius:2px;align-self:center}
-.readout b{font:600 15px/1 var(--mono);letter-spacing:-.01em;min-width:3.2em}
-.r-mint s{background:var(--mint)}.r-mint b{color:var(--mint)}
-.r-amber s{background:var(--amber)}.r-amber b{color:var(--amber)}
-.r-violet s{background:var(--violet)}.r-violet b{color:var(--violet)}
-.wallcap{font:400 11px/1.6 var(--mono);color:var(--mute);margin:16px 0 0;max-width:46ch}
-
-</style>
-<noscript><style>.wall canvas{display:none}</style></noscript>
-</head>
-<body id="top">
-<div class="page" role="main">
-
-<div class="hero">
- <div class="herotext">
-  <p class="eyebrow">a listening life, decoded <i></i> n=1 <i></i> <b>astralcrest</b></p>
-  <h1>I didn&rsquo;t choose most of my&nbsp;music.</h1>
-  <div class="tot">
-   <div>97,427<span>plays</span></div>
-   <div>seven<span>years</span></div>
-   <div>81%<span>machine-queued</span></div>
-   <div>19%<span>deliberate taps</span></div>
-   <div class="kill">18<span>of my findings killed</span></div>
-  </div>
- </div>
-
- <figure class="wall">
-  <p class="wallhd">who pressed play &middot; one dot per forty plays</p>
-  <canvas id="wallc" aria-hidden="true"></canvas>
-  <ul class="readout">
-   <li class="r-mint"><s aria-hidden="true"></s><b>19%</b><span>i tapped it</span></li>
-   <li class="r-amber"><s aria-hidden="true"></s><b>17%</b><span>shuffle picked it</span></li>
-   <li class="r-violet"><s aria-hidden="true"></s><b>64%</b><span>the app played it next</span></li>
-  </ul>
-  <figcaption class="wallcap">2,436 dots, sorted by who started the play. the exhibit draws all 97,427 of them.</figcaption>
- </figure>
-
- <div class="herobody">
-  <p class="thesis">a streamed &ldquo;play&rdquo; is produced jointly by a listener and a recommender, yet listening logs get read as records of taste. spotify&rsquo;s export records who initiated every play (<code>reason_start</code>: did i tap this song, or did it just come on next). condition on that one field and most of what my own log seemed to say about me changes. <b>streaming logs are not preference logs.</b></p>
-  <p class="cta"><a class="go" href="exhibit.html">walk through it: the exhibit &rarr;</a><a class="alt" href="researcher.html">read the technical report &rarr;</a></p>
-  <p class="cta-sub">eight rooms, about seven minutes, better with sound.</p>
- </div>
-</div>
-
-<style>/* the rest of the sheet: everything below the first screen, kept out of the first paint */
-/* ---------- body grid + sticky rail ---------- */
-.body{display:grid;grid-template-columns:minmax(0,1fr)}
-.body>*{min-width:0}
-.rail{display:none}
-@media (min-width:1120px){
-.body{grid-template-columns:minmax(0,1fr) 216px;column-gap:clamp(30px,3.4vw,52px)}
-.rail{display:block;position:sticky;top:26px;align-self:start;padding-top:clamp(56px,9vh,104px)}
+.fx-fallback{display:none}
+/* the sky: canvases behind the copy (starfield, glow, glyph sky); .fx is the grid slot a portrait screen measures */
+.wrap{position:relative;height:100vh;height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top" "fx" "main" "foot";row-gap:clamp(8px,1.6vh,18px);padding:var(--pt) var(--pr) var(--pb) var(--pl);pointer-events:none}
+.wrap a,.wrap p,.wrap h1{pointer-events:auto}
+.fx{grid-area:fx;min-width:0;min-height:0}
+.fx canvas{position:fixed;left:0;top:0;width:100%;height:100%;display:block;forced-color-adjust:none}
+#doorglow{opacity:.7}
+/* [ name ] labels as the atlas draws them (anchors.css .lab): no plate, no leader */
+.labs i{position:fixed;left:0;top:0;z-index:1;font:400 10.5px/1.4 var(--mono);font-style:normal;color:#d6cfea;white-space:nowrap;text-shadow:var(--halo);opacity:0;transition:opacity .3s ease-in;will-change:transform,opacity;pointer-events:none}
+.labs i.on{opacity:1;transition:opacity .8s ease-out}
+.labs.ph i{font-size:10px}
+.labs i::before{content:"[ ";color:rgba(164,155,189,.62)}
+.labs i::after{content:" ]";color:rgba(164,155,189,.62)}
+.top,main,footer{position:relative;z-index:2;text-shadow:var(--halo)}
+/* a tap on the sky flies into the 90-second tour, which opens on the universe */
+.sky{position:fixed;z-index:1;left:0;top:0;width:0;height:0;border-radius:50%;text-decoration:none;-webkit-tap-highlight-color:transparent}
+/* focus rings the hint, not the whole sky (its outline would cross the copy) */
+.sky:focus-visible{outline:none}
+.sky:focus-visible span{outline:2px solid var(--ice);outline-offset:3px;border-radius:3px}
+.sky span{position:absolute;left:0;top:0;white-space:nowrap;font:500 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);text-shadow:var(--halo);padding:9px 2px 9px 4px;transition:color .2s}
+.sky:hover span,.sky:focus-visible span{color:var(--ice)}
+.top{grid-area:top;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+/* the atlas's wordmark, exactly (exhibit.html #top a + atlas/chrome.css #top .brand), minus its back arrow */
+.brand{margin:0;font:300 clamp(14px,1.3vw,19px)/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.eyebrow{margin:0;font:500 10.5px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.eyebrow b{color:var(--ice);font-weight:600}
+main{grid-area:main;display:flex;flex-direction:column;min-width:0;gap:clamp(8px,1.5vh,16px)}
+h1{font:italic 600 clamp(26px,5.6vw,58px)/1.1 var(--serif);letter-spacing:-.02em;margin:0;max-width:17ch;text-wrap:balance;color:var(--ink);text-shadow:0 0 12px var(--bg),var(--halo)}
+.lede{font-size:clamp(13.5px,2vw,17px);line-height:1.5;max-width:52ch;margin:0;color:var(--body)}
+/* the page's one accent: the 19% (the second figure in the finding) */
+#finding b+b{color:var(--ice)}
+.lede.dim{color:var(--mute)}
+.cta{margin:clamp(4px,1vh,10px) 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
+.cta a{font:600 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;min-height:44px;white-space:nowrap}
+/* the way in is the atlas's own chip (chrome.css .ai-tourchip): an ice outline; the quiet one is plain text */
+.cta a.go{color:var(--ice);border:1px solid rgba(134,203,254,.62);border-radius:3px;padding:0 16px;background:rgba(134,203,254,.05);text-shadow:none}
+.cta a.go:hover{border-color:var(--ice);background:rgba(134,203,254,.12);color:#bfe4ff}
+.cta a.quiet{color:var(--mute)}
+.cta a.quiet:hover,.tours a:hover .nm,.tours a:hover ::after{color:var(--ice)}
+/* tours in tours.js order, a borderless mono list; each blurb is the link's aria-description (a visible, aria-hidden
+   line on wide screens) */
+.tours{margin-top:clamp(2px,.6vh,8px)}
+.hd{font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.tours .hd{margin:0 0 4px}
+.tours ul{list-style:none;margin:0;padding:0;display:grid;grid:repeat(3,auto)/auto-flow max-content;column-gap:clamp(14px,7vw,36px)}
+.tours a{display:flex;align-items:center;min-height:30px;text-decoration:none;white-space:nowrap}
+.nm{font:500 9.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--body)}
+/* the \203A is not read (empty alt text; the first content is the fallback) */
+.nm::after,.bl::after{content:"\a0\203A";content:"\a0\203A"/"";color:var(--faint)}
+.bl{display:none}
+footer{grid-area:foot;min-width:0;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:clamp(8px,1.6vh,14px)}
+.deeper p{margin:0}
+.deeper .hd{margin:0 0 6px}
+.deeper a{font:500 12px/1.5 var(--mono);color:var(--ice)}
+.deeper a:hover{color:#bfe4ff}
+.deeper .sep{color:var(--faint);margin:0 8px}
+.fnote{margin:0;font:400 10.5px/1.6 var(--mono);color:var(--mute);max-width:78ch}
+.fnote a{color:var(--mute)}
+.fnote a:hover{color:var(--ink)}
+.fnote2{margin:0;font:400 10.5px/1.6 var(--mono);color:#857ca0;max-width:80ch}
+@media (max-width:480px){
+.eyebrow{letter-spacing:.1em}
+.lede.dim{display:none}
+.deeper{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px}
+.deeper .hd{margin:0}
+.deeper #links{position:absolute}
+.deeper .sep{margin:0 6px}
 }
-.rail-h{font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
-.routes{display:grid;gap:8px}
-.route{display:block;border:1px solid var(--line);border-radius:10px;padding:11px 12px;text-decoration:none;background:rgba(189,166,255,.03);transition:border-color .16s,background .16s}
-.route:hover{border-color:rgba(33,246,188,.45);background:rgba(33,246,188,.05)}
-.rt-k{display:block;font:600 10.5px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mint)}
-.rt-d{display:block;font:400 11.5px/1.5 var(--mono);color:var(--mute);margin-top:4px}
-.route.big .rt-k{color:var(--ice)}
-.rail .leg{font:400 10.5px/1.7 var(--mono);color:var(--mute);margin:16px 0 0;display:grid;gap:3px}
-.rail .leg i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:7px;vertical-align:1px}
-
-/* ---------- sections ---------- */
-section{padding:clamp(56px,9vh,104px) 0 0;border-top:1px solid var(--line);margin-top:clamp(44px,7vh,76px)}
-/* below the fold: skip layout and paint until scrolled to */
-#argument,#carry,#finding,#kills,#links{content-visibility:auto}
-#argument{contain-intrinsic-size:800px;contain-intrinsic-size:auto 800px}
-#carry{contain-intrinsic-size:750px;contain-intrinsic-size:auto 750px}
-#finding{contain-intrinsic-size:2500px;contain-intrinsic-size:auto 2500px}
-#kills{contain-intrinsic-size:1100px;contain-intrinsic-size:auto 1100px}
-#links{contain-intrinsic-size:800px;contain-intrinsic-size:auto 800px}
-.sec{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
-.sec>*{min-width:0}
-@media (min-width:900px){.sec{grid-template-columns:110px minmax(0,1fr);gap:0 34px}}
-.num{font:600 11px/1.6 var(--mono);letter-spacing:.15em;color:var(--mute);margin:0 0 14px}
-.num span{color:var(--mint)}
-h2{font:italic 500 clamp(26px,3.7vw,42px)/1.14 var(--serif);letter-spacing:-.018em;color:var(--ink);margin:0 0 22px;max-width:21ch;text-wrap:pretty}
-h3{font:600 11px/1.5 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:34px 0 12px}
-.lede{font-size:19px;line-height:1.6;color:var(--ink);max-width:56ch;margin-bottom:20px;text-wrap:pretty}
-.dim{color:var(--mute)}
-.small{font-size:15.5px;line-height:1.7}
-.transfer{border-left:2px solid var(--ice);padding:2px 0 2px 22px;margin:0 0 22px;max-width:62ch}
-.dose{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:24px 0 8px;font:600 13px/1.5 var(--mono);color:var(--mute)}
-.dose em{font-style:normal;font-size:24px;letter-spacing:-.02em;color:var(--ink)}
-.dose .to{color:var(--line2)}
-.dose .hi{color:var(--violet)}
-
-/* ---------- verdict stamps ---------- */
-.stamp{display:inline-flex;align-items:center;gap:5px;font:700 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 9px;border-radius:4px;white-space:nowrap;flex:0 0 auto;vertical-align:2px}
-.stamp::before{content:"";width:6px;height:6px;border-radius:50%;flex:0 0 auto}
-/* verdicts are not provenance: survived = plain ink, caveated = ice and dashed, killed = rose. mint and amber stay reserved for who pressed play */
-.stamp.mint{color:var(--ink);border:1px solid rgba(240,234,255,.55);background:rgba(240,234,255,.06)}
-.stamp.mint::before{background:var(--ink)}
-.stamp.amber{color:var(--ice);border:1px dashed rgba(134,203,254,.6);background:rgba(134,203,254,.06)}
-.stamp.amber::before{background:none;box-shadow:inset 0 0 0 1.5px var(--ice)}
-.stamp.rose{color:var(--rose);border:1px solid rgba(255,110,156,.4);background:rgba(255,110,156,.08)}
-.stamp.rose::before{background:var(--rose)}
-.legend-key{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font:500 10.5px/1.5 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 16px}
-
-.stat{margin:6px 0 26px;padding:22px 24px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(33,246,188,.05),rgba(33,246,188,0));max-width:46ch}
-.stat .top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 6px}
-.stat .v{font:600 clamp(40px,6.4vw,58px)/1 var(--mono);letter-spacing:-.04em;color:var(--mint);margin:0}
-.stat .ci{font:500 12.5px/1.5 var(--mono);color:var(--mute);margin:0 0 10px}
-.stat .k{font:400 14.5px/1.55 var(--sans);color:var(--body);margin:0}
-
-/* ---------- shrink timeline ---------- */
-.tlfig{margin:26px 0 0;border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:rgba(189,166,255,.025)}
-.tlfig svg{display:block;width:100%;height:auto}
-@media (max-width:760px){.tlfig{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:14px}.tlfig svg{min-width:760px}} /* 660 drew the caption text at 7.6px on a 360px phone: the svg scales, so the label has to be lifted at both ends */
-.tl-cap{font:400 11.5px/1.65 var(--mono);color:var(--mute);max-width:66ch;margin:12px 0 26px}
-
-/* ---------- drawers + forest ---------- */
-details.drawer{margin:20px 0 6px;border:1px solid var(--line);border-radius:12px;padding:0 17px}
-details.drawer[open]{padding-bottom:6px;background:rgba(189,166,255,.025)}
-details.drawer>summary{cursor:pointer;font:600 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ice);padding:15px 0;list-style:none;display:flex;align-items:center;gap:10px}
-details.drawer>summary::-webkit-details-marker{display:none}
-details.drawer>summary::before{content:"+";font-size:15px;line-height:1;color:var(--ice)}
-details.drawer[open]>summary::before{content:"\2212"}
-details.drawer>summary:hover{color:var(--ink)}
-details.forest{margin:22px 0 8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-details.forest>summary{list-style:none;cursor:pointer;padding:16px 2px;display:flex;align-items:center;gap:10px;font:600 11px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ice)}
-details.forest>summary::-webkit-details-marker{display:none}
-details.forest>summary::before{content:"+";font-size:15px;line-height:1;color:var(--ice)}
-details.forest[open]>summary::before{content:"\2212"}
-.fig{margin:6px 0 6px;background:#0E0F12;border:1px solid var(--line);border-radius:14px;padding:8px;max-width:100%}
-.fig svg{width:100%;height:auto;border-radius:8px;display:block}
-.fig .fig-n{display:none}
-@media (max-width:760px){.fig{padding:4px}}
-@media (max-width:900px){.fig .fig-w{display:none}.fig .fig-n{display:block;max-width:480px;margin:0 auto}}
-.panhint{display:none}
-@media (max-width:760px){.panhint{display:inline}}
-.figcap{font:400 11.5px/1.65 var(--mono);color:var(--mute);max-width:66ch;margin:12px 0 18px}
-
-/* ---------- parity cards, kills, cards ---------- */
-.fails{list-style:none;margin:8px 0 26px;padding:0;display:grid;gap:12px;max-width:880px}
-.fails li{border:1px solid var(--line);border-radius:12px;padding:15px 17px;font-size:14.5px;line-height:1.62;color:var(--mute);background:rgba(245,166,35,.03)}
-.fails b{display:block;font:600 11px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ice);margin-bottom:5px}
-@media (min-width:860px){.fails{grid-template-columns:repeat(3,minmax(0,1fr))}}
-ul.kills{list-style:none;margin:18px 0 12px;padding:0}
-ul.kills li{position:relative;padding:12px 0 12px 28px;border-bottom:1px dashed rgba(255,110,156,.2);font-size:15.5px}
-ul.kills li::before{content:"\00D7";position:absolute;left:2px;top:11.5px;color:var(--rose);font:600 14px var(--mono)}
-ul.kills b{color:var(--ink);font-weight:600}
-ul.kills .why{display:block;font-size:13.5px;margin-top:3px;color:var(--mute)}
-.score{display:grid;gap:14px 28px;margin:4px 0 22px;padding:0;list-style:none;grid-template-columns:repeat(auto-fit,minmax(150px,max-content))}
-.score li{font:400 12px/1.5 var(--mono);color:var(--mute)}
-.score .hd{display:flex;align-items:baseline;gap:10px;margin-bottom:3px}
-.score b{font:600 30px/1.1 var(--mono);letter-spacing:-.03em;color:var(--ink)}
-.score .r b{color:var(--rose)}
-.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin:24px 0 8px}
-@media (min-width:660px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.card{display:block;border:1px solid var(--line);border-radius:14px;padding:18px 19px;text-decoration:none;color:var(--ink);background:rgba(189,166,255,.035);transition:border-color .16s,background .16s,transform .16s}
-.card:hover{border-color:rgba(33,246,188,.5);background:rgba(33,246,188,.05);transform:translateY(-2px)}
-.card .k{font:600 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mint);display:block;margin-bottom:8px}
-.card .d{font-size:13.5px;color:var(--mute);line-height:1.6;display:block}
-.card.wide{grid-column:1/-1;border-color:rgba(33,246,188,.36);background:linear-gradient(120deg,rgba(33,246,188,.07),rgba(139,111,214,.07))}
-.card.wide .d{font-size:14.5px;max-width:62ch}
-.card.big .k{color:var(--ice)}
-footer{margin:74px 0 52px;padding-top:24px;border-top:1px solid var(--line);font:400 11.5px/1.8 var(--mono);color:var(--mute)}
-footer a{color:var(--mute)}
-footer a:hover{color:var(--ink)}
-.fnote{display:block;margin-top:8px;opacity:.84;max-width:78ch}
-@media (max-width:430px){.eyebrow{letter-spacing:.13em;font-size:10px;gap:5px 8px}}
-@media (max-width:520px){body{font-size:16px}.cta a{padding:15px 18px;letter-spacing:.08em}.stat{padding:18px 18px}}
+@media (max-width:380px){
+.nm{letter-spacing:0}
+}
+@media (max-width:340px){
+.brand{letter-spacing:.12em}
+.tours ul{column-gap:12px}
+.eyebrow{font-size:9.5px;letter-spacing:.08em}
+.cta a{letter-spacing:.06em}
+.cta a.go{padding:0 11px}
+}
+@media (max-height:760px) and (max-aspect-ratio:1/1){
+.lede.dim{display:none}
+.tours a{min-height:25px}
+.fnote,.fnote2{font-size:10px;line-height:1.5}
+}
+@media (min-width:700px) and (min-aspect-ratio:1/1){
+.wrap{grid-template-columns:minmax(0,clamp(330px,44vw,720px)) minmax(0,1fr);grid-template-rows:auto 1fr auto;grid-template-areas:"top fx" "main fx" "foot fx";column-gap:clamp(20px,3vw,56px);padding-left:max(var(--pl),clamp(18px,4.4vw,80px))}
+main{align-self:center}
+h1{font-size:clamp(26px,3.8vw,72px)}
+}
+/* wide: name over blurb in two columns; from 1280px one tour a line, names and blurbs aligned (subgrid) */
+@media (min-width:700px) and (min-aspect-ratio:1/1) and (min-height:560px){
+.tours ul{grid:auto-flow/repeat(2,minmax(0,1fr));gap:2px 24px;max-width:600px}
+.tours a{display:block;min-height:0;padding:5px 0;white-space:normal}
+.nm{font-size:10.5px;letter-spacing:.1em;color:var(--ink)}
+.nm::after{content:none}
+.bl{display:block;margin-top:4px;font:400 11px/1.35 var(--mono);color:var(--mute)}
+.tours a:hover .bl{color:var(--body)}
+}
+@media (min-width:1280px) and (min-aspect-ratio:1/1) and (min-height:560px){
+.tours ul{grid-template-columns:max-content minmax(0,1fr);row-gap:0;max-width:none}
+.tours li,.tours a{display:grid;grid-column:1/-1;grid-template-columns:subgrid;align-items:baseline}
+.bl{margin:0}
+}
+@media (max-height:620px){
+h1{font-size:clamp(22px,6.4vw,40px)}
+.lede.dim{display:none}
+}
+@media (max-height:430px){
+.wrap{row-gap:6px;padding-top:10px;padding-bottom:8px}
+main{gap:5px}
+h1{font-size:clamp(17px,4.2vw,24px);max-width:26ch}
+.lede{font-size:11.5px}
+.cta{margin-top:4px;gap:8px}
+.cta a{font-size:10px}
+.tours{margin-top:2px;display:flex;align-items:baseline;column-gap:14px}
+.tours .hd{margin:0}
+.tours ul{display:flex;flex-wrap:wrap;column-gap:14px}
+.tours a{min-height:24px}
+footer{gap:4px;padding-top:6px}
+.deeper .hd{margin-bottom:3px}
+.fnote,.fnote2{font-size:9.5px;line-height:1.4}
+}
+@media (max-height:430px) and (min-width:700px) and (min-aspect-ratio:1/1){
+.wrap{grid-template-columns:minmax(0,52vw) minmax(0,1fr);grid-template-areas:"top fx" "main fx" "foot foot"}
+footer{border-image:linear-gradient(90deg,var(--line) 40%,transparent 62%) 1}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-/* on paper the palette inverts at the source. the five coded hues are not flattened to black, they are taken
-   down to print-safe versions of themselves so a legend swatch still says which channel it is. */
-@media print{
-:root{color-scheme:light;--bg:#fff;--ink:#111;--body:#111;--mute:#333;--mint:#0a6a54;--amber:#7a4f06;--violet:#453380;--rose:#9c1c4a;--ice:#0b4e7d;--line:#bbb;--line2:#999}
-html,body{background:#fff!important;color:#111}
-body::before,body::after{display:none!important}
-p,li,dt,dd,td,th,figcaption,small,em,strong,span,b{color:#111}
-.dim,.small,.lede,.num,.note,.cap{color:#333}
-h1,h2,h3,h4{color:#111;background:none;-webkit-text-fill-color:#111}
-.stat *,.stat{color:#111;background:#fff;border-color:#999}
-a{color:#111;text-decoration:underline}
-.wall,.cta,.rail{display:none}
-/* the timeline figure is inline svg with no panel of its own, so on paper it sits on white and its labels
-   carry a fill="" presentation attribute that no token swap reaches: two of them printed white on white and
-   the rest between 1.6:1 and 2.6:1. css beats a presentation attribute without !important, so each coded hue
-   goes to the same print-safe version used above and the rest goes to ink. the two forest plots are left
-   alone on purpose: each paints its own #0E0F12 panel, so its light labels already print legibly, and
-   darkening them would put black on black. */
-.tlfig svg text,.tlfig svg tspan{fill:#111}
-.tlfig svg text[fill="#a49bbd"]{fill:#453380}
-.tlfig svg text[fill="#86cbfe"]{fill:#0b4e7d}
-.tlfig svg text[fill="#ff6e9c"]{fill:#9c1c4a}
-.tlfig svg text[fill="#21f6bc"]{fill:#0a6a54}
-.tlfig svg text[fill="#f5a623"]{fill:#7a4f06}
-.dose .to{color:#333}
+/* forced colours: every text colour is a system colour. chromium resolves -webkit-text-fill-color against the authored
+   colour (axe read dark ink on white), the primary CTA loses its edge */
+@media (forced-colors:active){
+.fx canvas,.sky,.labs{display:none}
+.fx-fallback{display:block;position:fixed;top:14px;right:16px;z-index:1;font:600 11px/1.4 var(--mono);letter-spacing:.14em;padding:5px 9px;forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}
+body{background:Canvas;color:CanvasText}
+.brand,.eyebrow,.eyebrow b,h1,.lede,.lede b,#finding b+b,.lede.dim,.tours .hd,.nm,.bl,.deeper .hd,.deeper .sep,.fnote,.fnote2{color:CanvasText;-webkit-text-fill-color:CanvasText}
+a,.cta a.go,.cta a.quiet,.tours a,.tours a .nm,.deeper a,.fnote a{color:LinkText;-webkit-text-fill-color:LinkText}
+.cta a.go{background:Canvas;border:2px solid LinkText;box-shadow:none}
+footer{border-top-color:CanvasText;border-image:none}
+:focus-visible{outline:2px solid Highlight}
 }
-@media (min-width:900px){.sec .bleed{margin-left:-144px}}
-/* a 27-inch desk or a gallery screen: the column and the type froze at 1366 and left ~660px of empty margin
-   each side at 2560. above 1600 both keep going, the measure held near 64 characters by the ch unit. */
 @media (min-width:1600px){
-.page{max-width:min(1500px,calc(100vw - 180px))}
-body{font-size:clamp(17px,1.02vw,23px)}
-h1{font-size:clamp(74px,5.1vw,118px)}
-.lede{font-size:clamp(19px,1.16vw,26px)}
-.thesis{font-size:clamp(17px,1.04vw,23px)}
-.prose{max-width:min(64ch,900px)}
-.tl-cap{font-size:clamp(11.5px,.72vw,16px);max-width:76ch}
-.small{font-size:clamp(15.5px,.95vw,21px)}
-.eyebrow,.num{font-size:clamp(11px,.66vw,15px)}
-.tot div{font-size:clamp(20px,1.3vw,30px)}
-.tot div span{font-size:clamp(10px,.62vw,14px)}
-.cta a{font-size:clamp(11.5px,.7vw,16px);padding:clamp(16px,1vw,22px) clamp(18px,1.2vw,28px)}
-.cta-sub{font-size:clamp(12px,.74vw,17px)}
-@media (min-width:900px){.sec{grid-template-columns:clamp(110px,7.4vw,168px) minmax(0,1fr);gap:0 clamp(34px,2.4vw,54px)}.sec .bleed{margin-left:calc(-1 * (clamp(110px,7.4vw,168px) + clamp(34px,2.4vw,54px)))}}
+.lede{font-size:clamp(15px,1.05vw,20px)}
 }
-
 </style>
-<div class="body">
-<div class="flow">
+<noscript><style>.fx canvas,.sky,.labs{display:none}</style></noscript>
+</head>
+<body>
+<div class="wrap" id="top">
+<div class="fx" aria-hidden="true"><canvas id="doorsf"></canvas><canvas id="doorglow"></canvas><canvas id="doorfx"></canvas><div class="labs"></div><p class="fx-fallback">[ the atlas ]</p></div>
 
-<section id="argument"><div class="sec">
-<p class="num"><span>01</span><br>the contamination argument</p>
-<div>
-<h2>streaming logs are not preference logs.</h2>
-<p class="lede">only 19% of my plays started with a deliberate act (pooled over a changing logger; the strict definition is 11.5% and era-stable). the other 81% were the platform advancing a queue.</p>
-<div class="prose">
-<p>some summaries survive conditioning on who pressed play: my circadian structure does. genre composition doesn&rsquo;t: the calm ambient wall that reads as &ldquo;my taste&rdquo; is mostly what the algorithm over-serves, and the ranking flips once exposure is separated from choice.</p>
-<p>the sharpest result is a catch, and it travels: an embedding trained on an algorithm-dominated stream leaks its provenance into any statistic computed on its partitions. in normal words: an embedding is a learned map of which artists sit near each other. mine was learned mostly from plays the algorithm picked, so the map already drew its borders the algorithm&rsquo;s way, and anything measured on that map made the algorithm look tidier than it is. my own headline number arrived inflated at 1.61. the audit caught it and i withdrew it, and retraining at seven algorithmic-share levels traces a monotone dose-response between how contaminated the training stream is and how big the inflation gets. any pipeline that fits &ldquo;preference&rdquo; models to raw streaming logs inherits this.</p>
-</div>
-</div>
-</div></section>
+<header class="top">
+<p class="brand">sonic manifold</p>
+<p class="eyebrow">n = 1 &middot; <b>astralcrest</b></p>
+</header>
 
-<section id="carry"><div class="sec">
-<p class="num"><span>02</span><br>the transfer</p>
-<div>
-<h2>the part that isn&rsquo;t about music</h2>
-<div class="prose">
-<p class="transfer">i trained an artist embedding on this stream, which is 6.6&times; algorithm-dominated, and measured my own headline on it. it came back inflated at 1.61: the training stream&rsquo;s provenance had leaked into the geometry. <span class="stamp rose">withdrawn</span></p>
-<p class="dose"><em>0.99</em><span class="to">&rarr;</span><em class="hi">1.46</em><span>dose-response across seven retrained embeddings, by algorithmic share</span></p>
-<p>retraining at seven algorithmic-share levels traces that dose-response, 0.99 to 1.46. on a simulated stream where both channels cross communities at exactly the same rate, the same pipeline still read 1.11 at an 80% algorithmic share, and the curve stays where it is when i hold the number of communities fixed. any preference model fit to logs that a deployed system helped generate inherits this, music or not.</p>
-<p class="dim small">a recommender writes most of the log. a model trained on that log learns the recommender as well as the listener. most logs never say which was which. spotify&rsquo;s export does, in one field, and this whole project is what happens when you read it. that is a measurement problem before it is a music problem.</p>
-</div>
-</div>
-</div></section>
+<main id="argument">
+<h1>I didn&rsquo;t press play on most of my music.</h1>
+<p class="lede" id="finding"><b>97,427</b> plays in the whole log. <b>19%</b> i tapped (11.5% by the strictest reading); the rest the queue served or shuffle picked.</p>
+<p class="lede dim">an explorable atlas of who pressed play, and a sky of the artists you can fly through.</p>
+<p class="cta">
+<a class="go" id="enter" href="exhibit.html?enter=sound#tour=grand&amp;stop=1">enter the atlas &#9656;</a>
+<a class="quiet" id="enter-quiet" href="exhibit.html?enter=quiet#tour=grand&amp;stop=1">enter quietly</a>
+</p>
 
-<section id="finding"><div class="sec">
-<p class="num"><span>03</span><br>the number</p>
-<div>
-<h2>the claim my own audit shrank</h2>
-<p class="dim lede">this section is here for the trail more than the number. it started at 1.61 (withdrawn), the audit took it down to a direction, and the loosest definitions take the direction to parity. the shape of the correction is what i want read.</p>
-
-<p class="legend-key">verdict key <span class="stamp mint">survived</span><span class="stamp amber">caveated</span><span class="stamp rose">killed / withdrawn</span></p>
-
-<div class="stat">
-<p class="top"><span class="v">1.05</span><span class="stamp amber">caveated</span></p>
-<p class="ci">95% ci 1.03 &ndash; 1.08 &middot; embedding-free</p>
-<p class="k">the bridge index: how much more often my own pick crosses into another listening community than autoplay&rsquo;s does. a direction, not a size.</p>
-</div>
-
-<div class="prose">
-<p>when i pick the next track, it crosses into another listening community (a cluster of artists that belong together; here, a genre family from public tags) more often than when autoplay picks. the <b>bridge index</b> is that ratio, with same-artist repeats removed from both channels: <b>1.05</b> (95% CI 1.03&ndash;1.08) on communities built only from external genre tags (no embedding anywhere) and 1.10 (1.08&ndash;1.13; in simulation that bracket has 86% coverage, not 95%) on the higher-coverage tag partition where 39% of labels were filled in through my own listening embedding. same leakage channel, smaller dose, so i lead with the smaller number. every provenance-clean estimate lands between <b>1.03 and 1.14</b>, a partition-sensitivity range, not an interval estimate; fold shuffle into the algorithm&rsquo;s side and it reads 1.03, which doesn&rsquo;t survive multiplicity correction (the penalty for testing many things: try enough cuts and one will look real by luck). that is the floor of the comparator axis, not the floor of the study. the 1.15&ndash;1.30 band i reported earlier is withdrawn.</p>
-</div>
-
-<div class="tlfig bleed" tabindex="0" role="region" aria-label="how the headline shrank, scrollable">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 220" width="100%" style="height:auto" role="img" aria-labelledby="tl-title tl-desc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">
-<title id="tl-title">How the headline shrank, in the order the audit worked through it</title>
-<desc id="tl-desc">A schematic timeline, left to right by order of discovery, not a value scale. Naive canonical estimate 1.61, withdrawn after an embedding-leakage check. Balanced-embedding retrain: the 1.15 point killed by a geometry-adaptive null, and the 1.15 to 1.30 band withdrawn. Headline 1.05, 95% confidence interval 1.03 to 1.08, embedding-free, caveated as a direction rather than a fixed size. Two dashed branches show where the loosest readings drift toward parity: 1.03, which fails Bonferroni correction across eight partitions, and 1.01, which brackets 1.</desc>
-<line x1="140" y1="55" x2="350" y2="100" stroke="#948bb2" stroke-width="1.3"/>
-<line x1="350" y1="100" x2="560" y2="145" stroke="#948bb2" stroke-width="1.3"/>
-<line x1="560" y1="145" x2="490" y2="185" stroke="#86cbfe" stroke-width="1.3" stroke-dasharray="3,3"/>
-<line x1="560" y1="145" x2="710" y2="185" stroke="#86cbfe" stroke-width="1.3" stroke-dasharray="3,3"/>
-<g><circle cx="140" cy="55" r="7" fill="#0a0118" stroke="#ff6e9c" stroke-width="2"/><line x1="135" y1="50" x2="145" y2="60" stroke="#ff6e9c" stroke-width="1.6"/><line x1="135" y1="60" x2="145" y2="50" stroke="#ff6e9c" stroke-width="1.6"/></g>
-<text x="140" y="30" font-size="13" font-weight="700" fill="#ff6e9c" text-anchor="middle">1.61 &middot; withdrawn</text>
-<text x="140" y="16" font-size="12" fill="#a49bbd" text-anchor="middle">naive estimate, embedding leakage</text>
-<g><circle cx="350" cy="100" r="6.5" fill="#0a0118" stroke="#ff6e9c" stroke-width="2"/><line x1="345.5" y1="95.5" x2="354.5" y2="104.5" stroke="#ff6e9c" stroke-width="1.5"/><line x1="345.5" y1="104.5" x2="354.5" y2="95.5" stroke="#ff6e9c" stroke-width="1.5"/></g>
-<text x="350" y="52" font-size="12" font-weight="700" fill="#ff6e9c" text-anchor="middle">1.15 killed &middot; band 1.15&ndash;1.30 withdrawn</text>
-<text x="350" y="38" font-size="12" fill="#a49bbd" text-anchor="middle">balanced retrain, geometry-adaptive null</text>
-<circle cx="560" cy="145" r="9" fill="#f0eaff"/>
-<text x="560" y="118" font-size="15" font-weight="700" fill="#f0eaff" text-anchor="middle">1.05 [1.03, 1.08]</text>
-<text x="560" y="104" font-size="12" fill="#f0eaff" text-anchor="middle">headline, embedding-free</text>
-<text x="578" y="138" font-size="12" fill="#86cbfe" font-style="italic">caveated: a direction, not a size</text>
-<circle cx="490" cy="185" r="5" fill="#0a0118" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="490" y="203" font-size="12" fill="#86cbfe" text-anchor="middle">1.03, fails &times;8</text>
-<circle cx="710" cy="185" r="5" fill="#0a0118" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="710" y="203" font-size="12" fill="#86cbfe" text-anchor="middle">1.01, brackets 1</text>
-<text x="10" y="216" font-size="12" fill="#a49bbd" font-style="italic">left to right: the order the audit worked through it, not a scale</text>
-</svg>
-</div>
-<p class="tl-cap bleed">three numbers i published and then took down or trimmed, in the order it happened. the dashed blue branches are readings that drift to parity; the three ways that happens are below.<span class="panhint"> pan sideways on phones.</span></p>
-
-<h3>three ways it goes to parity</h3>
-<ul class="fails bleed">
-<li><b>the untagged tail</b>depending on how i treat the transitions with no public genre tag, the index lands anywhere from 1.00 to 1.13.</li>
-<li><b>the loosest definitions</b>count skip-presses as my taps, count shuffle as the algorithm&rsquo;s, and it reads 1.01 (0.99&ndash;1.03), which no longer separates from 1.</li>
-<li><b>matched tag coverage</b>restrict both sides to artists above 50 plays, where the gap in tag coverage closes to a fifth of a point, and it reads 1.01 (0.98&ndash;1.04). no higher cut-off gives a bracket that clears 1 either.</li>
+<nav class="tours" aria-label="tours" id="tours">
+<p class="hd">tours</p>
+<ul>
+<li><a href="exhibit.html?enter=sound#tour=ninety&amp;stop=1" aria-description="for a phone and a minute and a half"><span class="nm">90 seconds</span><span class="bl" aria-hidden="true">for a phone and a minute and a half</span></a></li>
+<li><a href="exhibit.html?enter=sound#tour=grand&amp;stop=1" aria-description="from one play to the whole log"><span class="nm">grand tour</span><span class="bl" aria-hidden="true">from one play to the whole log</span></a></li>
+<li><a href="exhibit.html?enter=sound#tour=minute&amp;stop=1" aria-description="for builders and investors"><span class="nm">the pitch &middot; 45 s</span><span class="bl" aria-hidden="true">for builders and investors</span></a></li>
+<li><a href="exhibit.html?enter=sound#tour=scientists&amp;stop=1" aria-description="the claim, the instrument failure, the kill conditions"><span class="nm">for scientists</span><span class="bl" aria-hidden="true">the claim, the instrument failure, the kill conditions</span></a></li>
+<li><a href="exhibit.html?enter=sound#tour=musicians&amp;stop=1" aria-description="keys, transitions, the soundtrack, the sky"><span class="nm">for musicians</span><span class="bl" aria-hidden="true">keys, transitions, the soundtrack, the sky</span></a></li>
+<li><a href="exhibit.html?enter=sound#tour=artists&amp;stop=1" aria-description="the most beautiful views"><span class="nm">for artists &amp; designers</span><span class="bl" aria-hidden="true">the most beautiful views</span></a></li>
 </ul>
-
-<details class="drawer">
-<summary>read the working: how to read 1.05, and what it held up to</summary>
-<div class="prose">
-<p class="dim small"><b>how to read 1.05 (1.03&ndash;1.08)</b>: my picks cross about 5% more often than autoplay&rsquo;s: roughly 70 of every 100 jumps against 66. the bracket is the range the true value plausibly sits in, given how much data there is. it stays above 1 on the transitions i can score, so the direction is clear. the size is not: a third to two fifths of my transitions have no public genre tag on this partition, and depending on how i treat that untagged tail the index lands anywhere from 1.00 to 1.13. so i report the direction and not the size. there is a second way it goes to parity: take the loosest reading of both definitions (count skip-presses as my taps, count shuffle as the algorithm&rsquo;s) and it reads 1.01 (0.99&ndash;1.03), which no longer separates from 1. there is a third: match the two channels on how well they are tagged. restrict both sides to artists above 50 plays, where the gap in tag coverage between them closes to a fifth of a point, and it reads 1.01 (0.98&ndash;1.04), and no higher cut-off gives a bracket that clears 1 either.</p>
-<p class="dim small"><span class="stamp mint">survived</span> what it did hold up to: clustering the error bars on artist instead of session, splitting by device, splitting by logging era, and a label-permutation test that reshuffles who pressed play inside each session and never once reaches the observed value in 20,000 draws. a partition is just one way of sorting artists into communities; i tried eight.</p>
-</div>
-</details>
-
-<details class="forest bleed" open>
-<summary>every number i ever quoted, on one axis, including the dead ones</summary>
-<div class="fig" tabindex="0" role="region" aria-label="bridge index forest plot"><div class="fig-w"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1460" width="100%" style="height:auto" role="img" aria-labelledby="bi-forest-title bi-forest-desc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">
-<title id="bi-forest-title">Bridge Index forest plot across estimators, partitions, and robustness checks</title>
-<desc id="bi-forest-desc">Horizontal forest plot, same-artist-controlled, rows ordered by embedding exposure. The headline Bridge Index, embedding-free (pure-Last.fm genre-family partition) crossed with strict autoadvance, is 1.05, 95% CI [1.03, 1.08]. A higher-coverage tag partition whose labels are 39% embedding-propagated gives 1.10 [1.08, 1.13] and is shown separately, labelled as such. Folding shuffle into the algorithmic arm, a disclosed lower bound on the comparator axis rather than the primary estimand, gives 1.03 [1.00, 1.05] on the embedding-free partition, which does not survive Bonferroni correction across eight partitions. The naive uncorrected estimate 1.61 is withdrawn after an embedding-leakage check; its same-artist-controlled counterpart is 1.48, still not the reported value. Splitting BOTH the deliberate and the autoplay arm by how the destination artist was first introduced, on the headline partition itself, gives a matched menu-authorship effect that is present on every destination class and weakest on self-introduced destinations. The earlier balanced-embedding version of this split is withdrawn. A coverage bracket for the untagged tail spans 1.13 [1.11, 1.16] (untagged artists pooled into one community) down to 1.00 [0.98, 1.02] (untagged artists each their own community), which straddles 1: magnitude is partition- and coverage-relative, not a fixed number. The two bundled-deliberate-arm cells of the 2x2 definitional grid are shown as a post hoc sub-block, 1.04 [1.01, 1.06] against strict autoadvance and 1.01 [0.99, 1.03] against the shuffle-included comparator, the second of which brackets 1. Two mechanical floors for the underlying tap crossing rate are shown separately on their own 0 to 1 scale, since they are rates, not Bridge Index ratios.</desc>
-<rect x="0" y="0" width="900" height="1460" fill="#0E0F12"/>
-<text x="20" y="32" font-size="13" fill="#86cbfe" letter-spacing="2">BRIDGE INDEX: WHERE THE NUMBER COMES FROM</text>
-<text x="20" y="54" font-size="15" fill="#94b6d6" font-family="ui-serif,Georgia,'Times New Roman',serif">deliberate cross-community rate &#247; autoplay cross-community rate, same-artist-controlled</text>
-<text x="20" y="78" font-size="14" fill="#f4eefb" font-weight="700">headline: 1.05 [1.03, 1.08] (embedding-free)</text>
-<circle cx="31.0" cy="108.0" r="4.1" fill="#86cbfe"/>
-<text x="48" y="112.5" font-size="13" fill="#94b6d6">estimate and interval</text>
-<circle cx="246.8" cy="108.0" r="8.5" fill="none" stroke="#86cbfe" stroke-width="1.2" opacity="0.8"/><circle cx="246.8" cy="108.0" r="5.5" fill="#f4eefb"/>
-<text x="263.79999999999995" y="112.5" font-size="13" fill="#94b6d6">headline</text>
-<rect x="356.9" y="103.8" width="8.5" height="8.5" transform="rotate(45 361.2 108.0)" fill="#94b6d6"/>
-<text x="378.2" y="112.5" font-size="13" fill="#94b6d6">upper bound, seed spread only</text>
-<circle cx="639.4" cy="108.0" r="4.7" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.8"/><line x1="634.7" y1="112.7" x2="644.1" y2="103.3" stroke="#94b6d6" stroke-width="1.6"/>
-<text x="656.4" y="112.5" font-size="13" fill="#94b6d6">not leakage-immune</text>
-<rect x="26.8" y="129.8" width="8.5" height="8.5" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="48" y="138.5" font-size="13" fill="#94b6d6">lower bound or coverage bracket</text>
-<line x1="313.8" y1="134.0" x2="335.8" y2="134.0" stroke="#94b6d6" stroke-width="1.4" stroke-dasharray="4,2"/><circle cx="324.8" cy="134.0" r="4.1" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
-<text x="341.79999999999995" y="138.5" font-size="13" fill="#94b6d6">dashed: includes no advantage</text>
-<circle cx="603.0" cy="134.0" r="5.1" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="599.2" y1="130.2" x2="606.8" y2="137.8" stroke="#ff6e9c" stroke-width="1.6"/><line x1="599.2" y1="137.8" x2="606.8" y2="130.2" stroke="#ff6e9c" stroke-width="1.6"/>
-<text x="620.0" y="138.5" font-size="13" fill="#94b6d6">killed or withdrawn</text>
-<line x1="386.7" y1="180" x2="386.7" y2="1234" stroke="#94b6d6" stroke-width="1" stroke-dasharray="5,3" opacity="0.7"/>
-<text x="386.7" y="174" font-size="13" fill="#94b6d6" text-anchor="middle">no advantage (1.0)</text>
-<text x="20" y="205.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">EMBEDDING-FREE (EXTERNAL TAGS / AUDIO)</text>
-<line x1="20" y1="212.0" x2="880" y2="212.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="330" y1="234.0" x2="610" y2="234.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="401.5" y1="234.0" x2="425.1" y2="234.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="413.2" cy="234.0" r="4.8" fill="#86cbfe"/>
-<text x="437.1" y="238.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.09 [1.05, 1.13]</text>
-<text x="322" y="239.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: super-5</text>
-<line x1="330" y1="266.0" x2="610" y2="266.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="394.6" y1="266.0" x2="410.5" y2="266.0" stroke="#f4eefb" stroke-width="2.6"/>
-<circle cx="402.5" cy="266.0" r="10.0" fill="none" stroke="#86cbfe" stroke-width="1.2" opacity="0.8"/><circle cx="402.5" cy="266.0" r="6.5" fill="#f4eefb"/>
-<text x="422.5" y="270.5" font-size="13" fill="#f4eefb" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" font-weight="700">1.05 [1.03, 1.08]</text>
-<text x="322" y="271.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="700" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: genre-family</text>
-<line x1="330" y1="298.0" x2="610" y2="298.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="394.5" y1="298.0" x2="407.0" y2="298.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="400.6" cy="298.0" r="4.8" fill="#86cbfe"/>
-<text x="419.0" y="302.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.03, 1.07]</text>
-<text x="322" y="303.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: CLAP audio-content (KMeans)</text>
-<line x1="330" y1="330.0" x2="610" y2="330.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="393.5" y1="330.0" x2="401.4" y2="330.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="397.4" cy="330.0" r="4.8" fill="#86cbfe"/>
-<text x="413.4" y="334.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.02, 1.05]</text>
-<text x="322" y="335.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: top-tag</text>
-<line x1="330" y1="362.0" x2="610" y2="362.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="388.1" y1="362.0" x2="400.4" y2="362.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="394.4" cy="362.0" r="4.8" fill="#86cbfe"/>
-<text x="412.4" y="366.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.03 [1.00, 1.05]</text>
-<text x="322" y="367.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: MERT audio-content (KMeans)</text>
-<text x="20" y="405.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">TAG PARTITIONS, 39% EMBEDDING-PROPAGATED LABELS</text>
-<line x1="20" y1="412.0" x2="880" y2="412.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="330" y1="434.0" x2="610" y2="434.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="415.9" y1="434.0" x2="437.8" y2="434.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="427.0" cy="434.0" r="4.8" fill="#86cbfe"/>
-<text x="449.8" y="438.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.14 [1.10, 1.17]</text>
-<text x="322" y="439.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: super-5 family</text>
-<line x1="330" y1="466.0" x2="610" y2="466.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="409.2" y1="466.0" x2="424.2" y2="466.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="416.7" cy="466.0" r="4.8" fill="#86cbfe"/>
-<text x="436.2" y="470.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.10 [1.08, 1.13], 86% coverage</text>
-<text x="322" y="471.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage variant (39% propagated labels)</text>
-<line x1="330" y1="498.0" x2="610" y2="498.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="403.4" y1="498.0" x2="410.7" y2="498.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="407.1" cy="498.0" r="4.8" fill="#86cbfe"/>
-<text x="422.7" y="502.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.06, 1.08]</text>
-<text x="322" y="503.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: raw top-tag</text>
-<text x="20" y="541.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">STREAM-TRAINED EMBEDDING PARTITIONS</text>
-<line x1="20" y1="548.0" x2="880" y2="548.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="330" y1="570.0" x2="610" y2="570.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="421.2" y1="570.0" x2="442.9" y2="570.0" stroke="#ff6e9c" stroke-width="2"/>
-<circle cx="431.8" cy="570.0" r="6.0" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="427.3" y1="565.5" x2="436.3" y2="574.5" stroke="#ff6e9c" stroke-width="1.6"/><line x1="427.3" y1="574.5" x2="436.3" y2="565.5" stroke="#ff6e9c" stroke-width="1.6"/>
-<text x="454.9" y="574.5" font-size="13" fill="#ff6e9c" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.15 [1.12, 1.19], killed</text>
-<text x="322" y="575.0" font-size="14" fill="#ff6e9c" text-anchor="end" font-weight="400" font-style="italic" textLength="232" lengthAdjust="spacingAndGlyphs" font-family="ui-serif,Georgia,'Times New Roman',serif">balanced embedding, one frozen seed</text>
-<line x1="90" y1="570.0" x2="322" y2="570.0" stroke="#ff6e9c" stroke-width="1" opacity="0.8"/>
-<line x1="330" y1="602.0" x2="610" y2="602.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<rect x="440.1" y="597.0" width="10.0" height="10.0" transform="rotate(45 445.1 602.0)" fill="#94b6d6"/>
-<text x="461.1" y="606.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.20 [1.156, 1.244] (upper bound)</text>
-<text x="322" y="607.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">leakage-corrected (balanced 50/50 retrain)</text>
-<line x1="330" y1="634.0" x2="610" y2="634.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="478.1" y1="634.0" x2="508.8" y2="634.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="492.7" cy="634.0" r="4.8" fill="#86cbfe"/>
-<text x="520.8" y="638.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.36 [1.31, 1.41]</text>
-<text x="322" y="639.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: spectral (artist2vec affinity)</text>
-<line x1="330" y1="666.0" x2="610" y2="666.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="490.0" y1="666.0" x2="512.8" y2="666.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="501.0" cy="666.0" r="4.8" fill="#86cbfe"/>
-<text x="524.8" y="670.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.38 [1.35, 1.42]</text>
-<text x="322" y="671.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: label-propagation (artist2vec)</text>
-<line x1="330" y1="698.0" x2="610" y2="698.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="489.8" y1="698.0" x2="517.5" y2="698.0" stroke="#94b6d6" stroke-width="1.6" stroke-dasharray="1.5,3"/>
-<circle cx="502.9" cy="698.0" r="5.5" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.8"/><line x1="497.4" y1="703.5" x2="508.4" y2="692.5" stroke="#94b6d6" stroke-width="1.6"/>
-<text x="529.5" y="702.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">not leakage-immune</text>
-<text x="322" y="703.0" font-size="14" fill="#94b6d6" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: KMeans / artist2vec</text>
-<line x1="330" y1="730.0" x2="610" y2="730.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="515.2" y1="730.0" x2="544.5" y2="730.0" stroke="#ff6e9c" stroke-width="2"/>
-<circle cx="529.7" cy="730.0" r="6.0" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="525.2" y1="725.5" x2="534.2" y2="734.5" stroke="#ff6e9c" stroke-width="1.6"/><line x1="525.2" y1="734.5" x2="534.2" y2="725.5" stroke="#ff6e9c" stroke-width="1.6"/>
-<text x="556.5" y="728.0" font-size="13" fill="#ff6e9c" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">WITHDRAWN, embedding leakage</text>
-<text x="556.5" y="744.0" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" opacity="0.8">1.61 same-artist included (uncontrolled)</text><line x1="556.5" y1="740.1" x2="868.5" y2="740.1" stroke="#94b6d6" stroke-width="1" opacity="0.8"/>
-<text x="322" y="735.0" font-size="14" fill="#ff6e9c" text-anchor="end" font-weight="400" font-style="italic" font-family="ui-serif,Georgia,'Times New Roman',serif">naive canonical partition</text>
-<text x="20" y="773.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">MENU AUTHORSHIP, HEADLINE PARTITION, BOTH ARMS SPLIT</text>
-<line x1="20" y1="780.0" x2="880" y2="780.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="330" y1="802.0" x2="610" y2="802.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="377.9" y1="802.0" x2="406.1" y2="802.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="391.4" cy="802.0" r="4.8" fill="#86cbfe"/>
-<text x="418.1" y="806.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.02 [0.97, 1.07]</text>
-<text x="322" y="807.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">self-introduced destinations</text>
-<line x1="330" y1="834.0" x2="610" y2="834.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="400.4" y1="834.0" x2="423.0" y2="834.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="411.7" cy="834.0" r="4.8" fill="#86cbfe"/>
-<text x="435.0" y="838.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.08 [1.05, 1.12]</text>
-<text x="322" y="839.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">algorithm-introduced destinations</text>
-<line x1="330" y1="866.0" x2="610" y2="866.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="402.6" y1="866.0" x2="428.7" y2="866.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="415.7" cy="866.0" r="4.8" fill="#86cbfe"/>
-<text x="440.7" y="870.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.10 [1.05, 1.14]</text>
-<text x="322" y="871.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">shuffle-introduced destinations</text>
-<text x="20" y="909.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">SHUFFLE FOLDED INTO THE ALGORITHMIC ARM (LOWER BOUND ON THE COMPARATOR AXIS)</text>
-<line x1="20" y1="916.0" x2="880" y2="916.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="330" y1="938.0" x2="610" y2="938.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="387.6" y1="938.0" x2="402.4" y2="938.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="390.0" y="933.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="414.4" y="942.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.03 [1.00, 1.05], fails Bonferroni x8</text>
-<text x="322" y="943.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">embedding-free partition</text>
-<line x1="330" y1="970.0" x2="610" y2="970.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="399.9" y1="970.0" x2="414.3" y2="970.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="402.2" y="965.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="426.3" y="974.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.04, 1.09]</text>
-<text x="322" y="975.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage partition (39% propagated)</text>
-<line x1="330" y1="1002.0" x2="610" y2="1002.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="393.7" y1="1002.0" x2="411.5" y2="1002.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="397.5" y="997.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="423.5" y="1006.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.02, 1.08]</text>
-<text x="322" y="1007.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">balanced canonical partition</text>
-<text x="20" y="1045.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">BUNDLED DELIBERATE ARM, 2X2 CORNER OF THE HEADLINE PARTITION (POST HOC, LEDGER 234)</text>
-<line x1="20" y1="1052.0" x2="880" y2="1052.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="330" y1="1074.0" x2="610" y2="1074.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="390.8" y1="1074.0" x2="404.5" y2="1074.0" stroke="#94b6d6" stroke-width="1.4"/>
-<circle cx="397.7" cy="1074.0" r="4.8" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
-<text x="416.5" y="1078.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.01, 1.06]</text>
-<text x="322" y="1079.0" font-size="14" fill="#94b6d6" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x strict autoadvance</text>
-<line x1="330" y1="1106.0" x2="610" y2="1106.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="384.0" y1="1106.0" x2="396.5" y2="1106.0" stroke="#94b6d6" stroke-width="1.4" stroke-dasharray="4,2"/>
-<circle cx="390.3" cy="1106.0" r="4.8" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
-<text x="408.5" y="1110.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.01 [0.99, 1.03], brackets 1</text>
-<text x="322" y="1111.0" font-size="14" fill="#94b6d6" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x shuffle-included</text>
-<text x="20" y="1149.0" font-size="13" fill="#94b6d6" font-style="italic" letter-spacing="0.5">COVERAGE BRACKET (UNTAGGED TAIL)</text>
-<line x1="20" y1="1156.0" x2="880" y2="1156.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="330" y1="1178.0" x2="610" y2="1178.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="419.4" y1="1178.0" x2="434.5" y2="1178.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="421.8" y="1173.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="446.5" y="1182.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.13 [1.11, 1.16]</text>
-<text x="322" y="1183.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists pooled into one community</text>
-<line x1="330" y1="1210.0" x2="610" y2="1210.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="381.7" y1="1210.0" x2="391.3" y2="1210.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="381.5" y="1205.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="403.3" y="1214.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.00 [0.98, 1.02], brackets 1</text>
-<text x="322" y="1215.0" font-size="14" fill="#f4eefb" text-anchor="end" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists each their own community</text>
-<text x="476.0" y="1256" font-size="13" fill="#94b6d6" text-anchor="middle">Bridge Index (ratio)</text>
-<text x="20" y="1318" font-size="13" fill="#94b6d6">mechanical floors for the tap crossing RATE (same-artist-controlled), not Bridge Index ratios</text>
-<rect x="418.3" y="1340" width="14.9" height="74" fill="#f4eefb" opacity="0.07"/>
-<line x1="425.8" y1="1340" x2="425.8" y2="1414" stroke="#f4eefb" stroke-width="1" opacity="0.55"/>
-<line x1="330" y1="1360.0" x2="610" y2="1360.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="546.9" y1="1360.0" x2="548.9" y2="1360.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="546.9" y1="1354.0" x2="546.9" y2="1366.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="548.9" y1="1354.0" x2="548.9" y2="1366.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="547.9" y1="1352.0" x2="547.9" y2="1368.0" stroke="#f4eefb" stroke-width="2"/>
-<text x="560.9" y="1364.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.86 [0.86, 0.86]</text>
-<text x="322" y="1365.0" font-size="14" fill="#f4eefb" text-anchor="end" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: composition-null (sequence-free)</text>
-<line x1="330" y1="1392.0" x2="610" y2="1392.0" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="468.4" y1="1392.0" x2="474.3" y2="1392.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="468.4" y1="1386.0" x2="468.4" y2="1398.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="474.3" y1="1386.0" x2="474.3" y2="1398.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="471.3" y1="1384.0" x2="471.3" y2="1400.0" stroke="#f4eefb" stroke-width="2"/>
-<text x="486.3" y="1396.5" font-size="13" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.69 [0.68, 0.70]</text>
-<text x="322" y="1397.0" font-size="14" fill="#f4eefb" text-anchor="end" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: first-order Markov (tap-only)</text>
-<text x="476.0" y="1438" font-size="13" fill="#94b6d6" text-anchor="middle">tap crossing rate (0-1 scale) . solid line = controlled observed 0.59</text>
-</svg></div><div class="fig-n"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 2281" width="100%" style="height:auto" role="img" aria-labelledby="bi-forest-n-title bi-forest-n-desc" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">
-<title id="bi-forest-n-title">Bridge Index forest plot across estimators, partitions, and robustness checks</title>
-<desc id="bi-forest-n-desc">Horizontal forest plot, same-artist-controlled, rows ordered by embedding exposure. The headline Bridge Index, embedding-free (pure-Last.fm genre-family partition) crossed with strict autoadvance, is 1.05, 95% CI [1.03, 1.08]. A higher-coverage tag partition whose labels are 39% embedding-propagated gives 1.10 [1.08, 1.13] and is shown separately, labelled as such. Folding shuffle into the algorithmic arm, a disclosed lower bound on the comparator axis rather than the primary estimand, gives 1.03 [1.00, 1.05] on the embedding-free partition, which does not survive Bonferroni correction across eight partitions. The naive uncorrected estimate 1.61 is withdrawn after an embedding-leakage check; its same-artist-controlled counterpart is 1.48, still not the reported value. Splitting BOTH the deliberate and the autoplay arm by how the destination artist was first introduced, on the headline partition itself, gives a matched menu-authorship effect that is present on every destination class and weakest on self-introduced destinations. The earlier balanced-embedding version of this split is withdrawn. A coverage bracket for the untagged tail spans 1.13 [1.11, 1.16] (untagged artists pooled into one community) down to 1.00 [0.98, 1.02] (untagged artists each their own community), which straddles 1: magnitude is partition- and coverage-relative, not a fixed number. The two bundled-deliberate-arm cells of the 2x2 definitional grid are shown as a post hoc sub-block, 1.04 [1.01, 1.06] against strict autoadvance and 1.01 [0.99, 1.03] against the shuffle-included comparator, the second of which brackets 1. Two mechanical floors for the underlying tap crossing rate are shown separately on their own 0 to 1 scale, since they are rates, not Bridge Index ratios.</desc>
-<rect x="0" y="0" width="360" height="2281" fill="#0E0F12"/>
-<line x1="26.9" y1="363" x2="26.9" y2="2011" stroke="#94b6d6" stroke-width="1" stroke-dasharray="5,3" opacity="0.7"/>
-<text x="14" y="30" font-size="14" fill="#86cbfe" letter-spacing="1"><tspan x="14" dy="0">BRIDGE INDEX: WHERE THE </tspan><tspan x="14" dy="18">NUMBER COMES FROM</tspan></text>
-<text x="14" y="70" font-size="15" fill="#94b6d6" font-family="ui-serif,Georgia,'Times New Roman',serif"><tspan x="14" dy="0">deliberate cross-community rate &#247; </tspan><tspan x="14" dy="19">autoplay cross-community rate, </tspan><tspan x="14" dy="19">same-artist-controlled</tspan></text>
-<text x="14" y="132" font-size="15" fill="#f4eefb" font-weight="700">headline: 1.05 [1.03, 1.08] <tspan x="14" dy="19">(embedding-free)</tspan></text>
-<circle cx="25.0" cy="175.0" r="4.1" fill="#86cbfe"/>
-<text x="44" y="179.5" font-size="14" fill="#94b6d6">estimate and interval</text>
-<circle cx="25.0" cy="197.0" r="8.5" fill="none" stroke="#86cbfe" stroke-width="1.2" opacity="0.8"/><circle cx="25.0" cy="197.0" r="5.5" fill="#f4eefb"/>
-<text x="44" y="201.5" font-size="14" fill="#94b6d6">headline</text>
-<rect x="20.8" y="214.8" width="8.5" height="8.5" transform="rotate(45 25.0 219.0)" fill="#94b6d6"/>
-<text x="44" y="223.5" font-size="14" fill="#94b6d6">upper bound, seed spread only</text>
-<circle cx="25.0" cy="241.0" r="4.7" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.8"/><line x1="20.3" y1="245.7" x2="29.7" y2="236.3" stroke="#94b6d6" stroke-width="1.6"/>
-<text x="44" y="245.5" font-size="14" fill="#94b6d6">not leakage-immune</text>
-<rect x="20.8" y="258.8" width="8.5" height="8.5" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="44" y="267.5" font-size="14" fill="#94b6d6">lower bound or coverage bracket</text>
-<line x1="14.0" y1="285.0" x2="36.0" y2="285.0" stroke="#94b6d6" stroke-width="1.4" stroke-dasharray="4,2"/><circle cx="25.0" cy="285.0" r="4.1" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
-<text x="44" y="289.5" font-size="14" fill="#94b6d6">dashed: includes no advantage</text>
-<circle cx="25.0" cy="307.0" r="5.1" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="21.2" y1="303.2" x2="28.8" y2="310.8" stroke="#ff6e9c" stroke-width="1.6"/><line x1="21.2" y1="310.8" x2="28.8" y2="303.2" stroke="#ff6e9c" stroke-width="1.6"/>
-<text x="44" y="311.5" font-size="14" fill="#94b6d6">killed or withdrawn</text>
-<text x="26.9" y="355" font-size="14" fill="#94b6d6" text-anchor="start">no advantage (1.0)</text>
-<text x="14" y="369" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">EMBEDDING-FREE (EXTERNAL TAGS / AUDIO)</tspan></text>
-<line x1="14" y1="377" x2="346" y2="377" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="14" y="401" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: super-5</text>
-<line x1="14" y1="419" x2="182" y2="419" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="39.8" y1="419.0" x2="60.3" y2="419.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="50.0" cy="419.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="423.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.09 [1.05, 1.13]</text>
-<text x="14" y="449" font-size="15" fill="#f4eefb" font-weight="700" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: genre-family</text>
-<line x1="14" y1="467" x2="182" y2="467" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="33.8" y1="467.0" x2="47.6" y2="467.0" stroke="#f4eefb" stroke-width="2.6"/>
-<circle cx="40.7" cy="467.0" r="10.0" fill="none" stroke="#86cbfe" stroke-width="1.2" opacity="0.8"/><circle cx="40.7" cy="467.0" r="6.5" fill="#f4eefb"/>
-<text x="192.0" y="471.5" font-size="14" fill="#f4eefb" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" font-weight="700">1.05 [1.03, 1.08]</text>
-<text x="14" y="497" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: CLAP audio-content (KMeans)</text>
-<line x1="14" y1="515" x2="182" y2="515" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="33.7" y1="515.0" x2="44.6" y2="515.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="39.0" cy="515.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="519.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.03, 1.07]</text>
-<text x="14" y="545" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">pure Last.fm: top-tag</text>
-<line x1="14" y1="563" x2="182" y2="563" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="32.9" y1="563.0" x2="39.7" y2="563.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="36.3" cy="563.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="567.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.02, 1.05]</text>
-<text x="14" y="593" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: MERT audio-content (KMeans)</text>
-<line x1="14" y1="611" x2="182" y2="611" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="28.2" y1="611.0" x2="38.8" y2="611.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="33.6" cy="611.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="615.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.03 [1.00, 1.05]</text>
-<text x="14" y="647" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">TAG PARTITIONS, 39% </tspan><tspan x="14" dy="18">EMBEDDING-PROPAGATED LABELS</tspan></text>
-<line x1="14" y1="673" x2="346" y2="673" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="14" y="697" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: super-5 family</text>
-<line x1="14" y1="715" x2="182" y2="715" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="52.3" y1="715.0" x2="71.3" y2="715.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="62.0" cy="715.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="719.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.14 [1.10, 1.17]</text>
-<text x="14" y="745" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage variant (39% propagated labels)</text>
-<line x1="14" y1="763" x2="182" y2="763" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="46.5" y1="763.0" x2="59.5" y2="763.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="53.0" cy="763.0" r="4.8" fill="#86cbfe"/>
-<text x="192" y="767.5" font-size="14" fill="#94b6d6">1.10 [1.08, 1.13], <tspan x="14" dy="20">86% coverage</tspan></text>
-<text x="14" y="813" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: raw top-tag</text>
-<line x1="14" y1="831" x2="182" y2="831" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="41.5" y1="831.0" x2="47.8" y2="831.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="44.6" cy="831.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="835.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.06, 1.08]</text>
-<text x="14" y="867" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">STREAM-TRAINED EMBEDDING PARTITIONS</tspan></text>
-<line x1="14" y1="875" x2="346" y2="875" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="14" y="899" font-size="15" fill="#ff6e9c" font-weight="400" font-style="italic" textLength="232" lengthAdjust="spacingAndGlyphs" font-family="ui-serif,Georgia,'Times New Roman',serif">balanced embedding, one frozen seed</text>
-<line x1="14" y1="894" x2="246" y2="894" stroke="#ff6e9c" stroke-width="1" opacity="0.8"/>
-<line x1="14" y1="917" x2="182" y2="917" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="56.9" y1="917.0" x2="75.7" y2="917.0" stroke="#ff6e9c" stroke-width="2"/>
-<circle cx="66.1" cy="917.0" r="6.0" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="61.6" y1="912.5" x2="70.6" y2="921.5" stroke="#ff6e9c" stroke-width="1.6"/><line x1="61.6" y1="921.5" x2="70.6" y2="912.5" stroke="#ff6e9c" stroke-width="1.6"/>
-<text x="192" y="921.5" font-size="14" fill="#ff6e9c">1.15 [1.12, 1.19], <tspan x="14" dy="20">killed</tspan></text>
-<text x="14" y="967" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">leakage-corrected (balanced 50/50 retrain)</text>
-<line x1="14" y1="985" x2="182" y2="985" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<rect x="72.6" y="980.0" width="10.0" height="10.0" transform="rotate(45 77.6 985.0)" fill="#94b6d6"/>
-<text x="192" y="989.5" font-size="14" fill="#94b6d6">1.20 [1.156, 1.244] <tspan x="14" dy="20">(upper bound)</tspan></text>
-<text x="14" y="1035" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: spectral (artist2vec affinity)</text>
-<line x1="14" y1="1053" x2="182" y2="1053" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="106.2" y1="1053.0" x2="132.9" y2="1053.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="119.0" cy="1053.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="1057.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.36 [1.31, 1.41]</text>
-<text x="14" y="1083" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">partition: label-propagation (artist2vec)</text>
-<line x1="14" y1="1101" x2="182" y2="1101" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="116.6" y1="1101.0" x2="136.4" y2="1101.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="126.1" cy="1101.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="1105.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.38 [1.35, 1.42]</text>
-<text x="14" y="1131" font-size="15" fill="#94b6d6" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">taxonomy: KMeans / artist2vec</text>
-<line x1="14" y1="1149" x2="182" y2="1149" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="116.5" y1="1149.0" x2="140.5" y2="1149.0" stroke="#94b6d6" stroke-width="1.6" stroke-dasharray="1.5,3"/>
-<circle cx="127.8" cy="1149.0" r="5.5" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.8"/><line x1="122.3" y1="1154.5" x2="133.3" y2="1143.5" stroke="#94b6d6" stroke-width="1.6"/>
-<text x="192.0" y="1153.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">not leakage-immune</text>
-<text x="14" y="1179" font-size="15" fill="#ff6e9c" font-weight="400" font-style="italic" font-family="ui-serif,Georgia,'Times New Roman',serif">naive canonical partition</text>
-<line x1="14" y1="1197" x2="182" y2="1197" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="138.5" y1="1197.0" x2="164.0" y2="1197.0" stroke="#ff6e9c" stroke-width="2"/>
-<circle cx="151.1" cy="1197.0" r="6.0" fill="#0E0F12" stroke="#ff6e9c" stroke-width="2"/><line x1="146.6" y1="1192.5" x2="155.6" y2="1201.5" stroke="#ff6e9c" stroke-width="1.6"/><line x1="146.6" y1="1201.5" x2="155.6" y2="1192.5" stroke="#ff6e9c" stroke-width="1.6"/>
-<text x="14.0" y="1221.5" font-size="14" fill="#ff6e9c" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">WITHDRAWN, embedding leakage</text>
-<text x="14.0" y="1241.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace" opacity="0.8">1.61 same-artist included (uncontrolled)</text><line x1="14.0" y1="1237.3" x2="350.0" y2="1237.3" stroke="#94b6d6" stroke-width="1" opacity="0.8"/>
-<text x="14" y="1273" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">MENU AUTHORSHIP, HEADLINE PARTITION, </tspan><tspan x="14" dy="18">BOTH ARMS SPLIT</tspan></text>
-<line x1="14" y1="1299" x2="346" y2="1299" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="14" y="1323" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">self-introduced destinations</text>
-<line x1="14" y1="1341" x2="182" y2="1341" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="19.3" y1="1341.0" x2="43.8" y2="1341.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="31.1" cy="1341.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="1345.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.02 [0.97, 1.07]</text>
-<text x="14" y="1371" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">algorithm-introduced destinations</text>
-<line x1="14" y1="1389" x2="182" y2="1389" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="38.8" y1="1389.0" x2="58.4" y2="1389.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="48.6" cy="1389.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="1393.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.08 [1.05, 1.12]</text>
-<text x="14" y="1419" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">shuffle-introduced destinations</text>
-<line x1="14" y1="1437" x2="182" y2="1437" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="40.7" y1="1437.0" x2="63.4" y2="1437.0" stroke="#86cbfe" stroke-width="1.4"/>
-<circle cx="52.1" cy="1437.0" r="4.8" fill="#86cbfe"/>
-<text x="192.0" y="1441.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.10 [1.05, 1.14]</text>
-<text x="14" y="1473" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">SHUFFLE FOLDED INTO THE ALGORITHMIC ARM </tspan><tspan x="14" dy="18">(LOWER BOUND ON THE COMPARATOR AXIS)</tspan></text>
-<line x1="14" y1="1499" x2="346" y2="1499" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="14" y="1523" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">embedding-free partition</text>
-<line x1="14" y1="1541" x2="182" y2="1541" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="27.8" y1="1541.0" x2="40.6" y2="1541.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="29.2" y="1536.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="192" y="1545.5" font-size="14" fill="#94b6d6">1.03 [1.00, 1.05], <tspan x="14" dy="20">fails Bonferroni x8</tspan></text>
-<text x="14" y="1591" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">higher-coverage partition (39% propagated)</text>
-<line x1="14" y1="1609" x2="182" y2="1609" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="38.5" y1="1609.0" x2="50.9" y2="1609.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="39.7" y="1604.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="192.0" y="1613.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.07 [1.04, 1.09]</text>
-<text x="14" y="1639" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">balanced canonical partition</text>
-<line x1="14" y1="1657" x2="182" y2="1657" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="33.0" y1="1657.0" x2="48.5" y2="1657.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="35.7" y="1652.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="192.0" y="1661.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.05 [1.02, 1.08]</text>
-<text x="14" y="1693" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">BUNDLED DELIBERATE ARM, 2X2 CORNER OF </tspan><tspan x="14" dy="18">THE HEADLINE PARTITION (POST HOC, </tspan><tspan x="14" dy="18">LEDGER 234)</tspan></text>
-<line x1="14" y1="1737" x2="346" y2="1737" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="14" y="1761" font-size="15" fill="#94b6d6" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x strict autoadvance</text>
-<line x1="14" y1="1779" x2="182" y2="1779" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="30.5" y1="1779.0" x2="42.4" y2="1779.0" stroke="#94b6d6" stroke-width="1.4"/>
-<circle cx="36.5" cy="1779.0" r="4.8" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
-<text x="192.0" y="1783.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.04 [1.01, 1.06]</text>
-<text x="14" y="1809" font-size="15" fill="#94b6d6" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">bundled taps x shuffle-included</text>
-<line x1="14" y1="1827" x2="182" y2="1827" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="24.6" y1="1827.0" x2="35.4" y2="1827.0" stroke="#94b6d6" stroke-width="1.4" stroke-dasharray="4,2"/>
-<circle cx="30.1" cy="1827.0" r="4.8" fill="#0E0F12" stroke="#94b6d6" stroke-width="1.7"/>
-<text x="192" y="1831.5" font-size="14" fill="#94b6d6">1.01 [0.99, 1.03], <tspan x="14" dy="20">brackets 1</tspan></text>
-<text x="14" y="1883" font-size="14" fill="#94b6d6" font-style="italic"><tspan x="14" dy="0">COVERAGE BRACKET (UNTAGGED TAIL)</tspan></text>
-<line x1="14" y1="1891" x2="346" y2="1891" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<text x="14" y="1915" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists pooled into one community</text>
-<line x1="14" y1="1933" x2="182" y2="1933" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="55.3" y1="1933.0" x2="68.5" y2="1933.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="56.8" y="1928.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="192.0" y="1937.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">1.13 [1.11, 1.16]</text>
-<text x="14" y="1963" font-size="15" fill="#f4eefb" font-weight="400" font-family="ui-serif,Georgia,'Times New Roman',serif">untagged artists each their own community</text>
-<line x1="14" y1="1981" x2="182" y2="1981" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="22.6" y1="1981.0" x2="30.9" y2="1981.0" stroke="#86cbfe" stroke-width="1.6" stroke-dasharray="4,2"/>
-<rect x="21.7" y="1976.0" width="10.0" height="10.0" fill="#0E0F12" stroke="#86cbfe" stroke-width="1.8"/>
-<text x="192" y="1985.5" font-size="14" fill="#94b6d6">1.00 [0.98, 1.02], <tspan x="14" dy="20">brackets 1</tspan></text>
-<text x="98.0" y="2033" font-size="14" fill="#94b6d6" text-anchor="middle">Bridge Index (ratio)</text>
-<text x="14" y="2077" font-size="14" fill="#94b6d6"><tspan x="14" dy="0">mechanical floors for the tap crossing </tspan><tspan x="14" dy="18">RATE (same-artist-controlled), not </tspan><tspan x="14" dy="18">Bridge Index ratios</tspan></text>
-<rect x="61.8" y="2151" width="9.4" height="70" fill="#f4eefb" opacity="0.07"/>
-<line x1="66.6" y1="2151" x2="66.6" y2="2221" stroke="#f4eefb" stroke-width="1" opacity="0.55"/>
-<text x="14" y="2145" font-size="15" fill="#f4eefb" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: composition-null (sequence-free)</text>
-<line x1="14" y1="2163" x2="182" y2="2163" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="142.4" y1="2163.0" x2="143.7" y2="2163.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="142.4" y1="2157.0" x2="142.4" y2="2169.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="143.7" y1="2157.0" x2="143.7" y2="2169.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="143.1" y1="2155.0" x2="143.1" y2="2171.0" stroke="#f4eefb" stroke-width="2"/>
-<text x="192.0" y="2167.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.86 [0.86, 0.86]</text>
-<text x="14" y="2193" font-size="15" fill="#f4eefb" font-family="ui-serif,Georgia,'Times New Roman',serif">floor: first-order Markov (tap-only)</text>
-<line x1="14" y1="2211" x2="182" y2="2211" stroke="rgba(148,182,214,0.18)" stroke-width="1"/>
-<line x1="93.2" y1="2211.0" x2="96.9" y2="2211.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="93.2" y1="2205.0" x2="93.2" y2="2217.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="96.9" y1="2205.0" x2="96.9" y2="2217.0" stroke="#94b6d6" stroke-width="1.6"/>
-<line x1="95.0" y1="2203.0" x2="95.0" y2="2219.0" stroke="#f4eefb" stroke-width="2"/>
-<text x="192.0" y="2215.5" font-size="14" fill="#94b6d6" font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace">0.69 [0.68, 0.70]</text>
-<text x="14" y="2241" font-size="14" fill="#94b6d6"><tspan x="14" dy="0">tap crossing rate (0-1 scale) . solid </tspan><tspan x="14" dy="18">line = controlled observed 0.59</tspan></text>
-</svg></div></div>
-<p class="figcap">killed and demoted estimates struck; mechanical floors bracketed. single source: <code>bi_single_source.json</code> in the repro kit.</p>
-</details>
-
-<p class="dim small prose">whether the gap is listener agency or recommender design, one log can&rsquo;t adjudicate. the operative fact is narrower: the two channels are structurally different, so a log that pools them misrepresents both.</p>
-</div>
-</div></section>
-
-<section id="kills"><div class="sec">
-<p class="num"><span>04</span><br>the audit is the product</p>
-<div>
-<h2>every kill condition i pre-declared was in code before i saw the result; the post-hoc ones are labelled.</h2>
-<ul class="score">
-<li><span class="hd"><b>11 / 25</b><span class="stamp mint">survived</span></span>back-catalogue claims survived</li>
-<li class="r"><span class="hd"><b>16</b><span class="stamp rose">killed</span></span>have their own card in the graveyard</li>
-<li><span class="hd"><b>18</b></span>kills and retractions in all</li>
-</ul>
-<div class="prose">
-<p>every claim ran a fixed audit. then i put the dashboard&rsquo;s own back catalogue through the same gates: <b>11 of 25 headline claims survived</b>. <b>18 of my own findings are dead</b>, 16 of them with a card in the graveyard naming the check that killed it. a sample:</p>
-</div>
-<ul class="kills">
-<li><b>the predictability gap</b><span class="why">an in-sample mirage: d=0.50 collapses to &minus;0.02 out-of-sample.</span></li>
-<li><b>the 4-year reign &ldquo;p = 0.0000&rdquo;</b><span class="why">a straw-man null; a circular block bootstrap gives p = 0.49&ndash;0.78.</span></li>
-<li><b>music &rarr; heart rate</b><span class="why">fails a shuffle-instrument test of exogeneity. null, twice.</span></li>
-<li><b>&ldquo;i&rsquo;m choosing more over time&rdquo;</b><span class="why">a logging artifact: the instrument changed, i didn&rsquo;t.</span></li>
-<li><b>genre trends over time</b><span class="why">mostly what was served, wearing the costume of what was wanted.</span></li>
-<li><b>the portability demo</b><span class="why">confidently wrong about 696 strangers: the proxy doesn&rsquo;t transfer.</span></li>
-</ul>
-<p class="dim small">all sixteen, with receipts: <a href="lab.html#graveyard">the graveyard</a>.</p>
-</div>
-</div></section>
-
-
-
-</div>
-
-<nav class="rail" aria-label="go here next">
-<p class="rail-h">go here next</p>
-<div class="routes">
-<a class="route" href="exhibit.html"><span class="rt-k">the exhibit</span><span class="rt-d">eight rooms. every dot is one of my plays.</span></a>
-<a class="route" href="lab.html#toy-whopressed"><span class="rt-k">who pressed play?</span><span class="rt-d">ten real transitions. guess which.</span></a>
-<a class="route" href="researcher.html"><span class="rt-k">the report</span><span class="rt-d">every number, every qualifier, all eighteen kills.</span></a>
-<a class="route big" href="lab.html"><span class="rt-k">the full lab</span><span class="rt-d">every method, every null, seven years.</span></a>
-<a class="route" href="bridge-index.html"><span class="rt-k">the probe</span><span class="rt-d">already have your spotify export? it runs on yours.</span></a>
-</div>
-<p class="leg"><span><i style="background:var(--mint)"></i>i chose it</span><span><i style="background:var(--amber)"></i>chance</span><span><i style="background:var(--violet)"></i>the machine served it</span><span><i style="background:var(--rose)"></i>killed or withdrawn</span></p>
 </nav>
-</div>
-<section id="links"><div class="sec">
-<p class="num"><span>05</span><br>the routes</p>
-<div>
-<h2>run it, read it, go deeper</h2>
-<div class="prose">
-<p class="small dim">all of this is hand-built. the exhibit is one canvas field carrying a dot for each of the 97,427 plays, retargeted room to room. the probe parses your own spotify export in your own tab. the headline figure is generated from one numbers file, not pasted in. the soundtrack is mine.</p>
-</div>
-<div class="cards">
-<a class="card wide" href="exhibit.html"><span class="k">the exhibit: mostly the machine</span><span class="d">eight rooms. every dot is one of my plays. hold the wall to see who pressed play, turn the dial that bends the map, try to kill a finding. the music is mine.</span></a>
-<a class="card" href="lab.html#toy-whopressed"><span class="k">play: who pressed play?</span><span class="d">ten real transitions from my log. guess whether i tapped the next artist or autoplay did. the point of the whole study in about a minute.</span></a>
-<a class="card" href="researcher.html"><span class="k">the technical report</span><span class="d">abstract, the gate sequence, every headline number with its qualifiers, all eighteen kills, and the limitations. the long write-up is unpublished; this is the citable version until it is.</span></a>
-<a class="card big" href="lab.html"><span class="k">the full lab</span><span class="d">the complete dashboard: every method, every null, the seven-year record, the soundtrack. long, loud, and audited.</span></a>
-<a class="card" href="bridge-index.html"><span class="k">the probe</span><span class="d">if you already have your spotify export, this computes your split and your bridge index in this tab. nothing is uploaded, and it works offline. spotify takes a few days to send an export, so there is a demo button too.</span></a>
-</div>
-</div>
-</div></section>
+</main>
+<a class="sky" id="sky" href="exhibit.html?enter=sound#tour=grand&amp;stop=2" aria-label="fly into the sky of artists, the grand tour from there"><span>fly into the sky &#9656;</span></a>
 
-<footer role="presentation">
-built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a> &middot; <a href="lab.html">full lab</a> &middot; <a href="researcher.html">for researchers</a>
-<span class="fnote">every number on this page comes from the audit ledger behind the report. if you find one that does not hold, write to me and i will kill it in public, the way i killed eighteen of my own. &middot; the previous single-page site lives on at <a href="lab.html">lab.html</a>; old links redirect.</span>
+<footer id="kills">
+<nav class="deeper" aria-label="go deeper" id="deeper">
+<a id="links"></a>
+<p class="hd">go deeper</p>
+<p><a href="lab.html">the lab</a><span class="sep">&middot;</span><a href="researcher.html">the report</a><span class="sep">&middot;</span><a href="bridge-index.html">the probe</a></p>
+</nav>
+<p class="fnote">built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a> &middot; old links redirect</p>
+<p class="fnote2">the report lists eighteen findings killed, retracted or withdrawn; the graveyard shows sixteen. every kill condition i pre-declared was written down before i saw the result; the post-hoc ones are labelled.</p>
 </footer>
 
 </div>
 <script>
+/* the door's sky: the universe room's sky, resolved at frame 0, on the atlas's cell grid (6x11 css px, 7x12.6 on phones:
+   D12). the 388 artists with 50+ plays (from universe_nodes.json) are glyph clusters that grow with their plays; every
+   other play is dust on a shell (exhibit/rooms/universe.worker.js). a cell's glyph is gcd's tone map of its plays (1 - exp,
+   a steady IGN dither in the 0.03-0.14 haze band, 0.34 floor), its hue its heaviest dot's family. nothing is fetched; the
+   layout means nothing (GS K4); starfield, twinkle, glints and glow carry no data */
 (function(){
-var cv=document.getElementById('wallc');
-if(!cv||!cv.getContext)return;
-var g=cv.getContext('2d');
-var N=2436,LV=8,DUR=2500;
-var NEU=[76,70,99],COL=[[33,246,188],[245,166,35],[139,111,214]],SH=[0.19,0.17];
-var PAL=[],i,b,l,f;
-for(b=0;b<3;b++)for(l=0;l<LV;l++){f=l/(LV-1);
-PAL.push('rgb('+Math.round(NEU[0]+(COL[b][0]-NEU[0])*f)+','+Math.round(NEU[1]+(COL[b][1]-NEU[1])*f)+','+Math.round(NEU[2]+(COL[b][2]-NEU[2])*f)+')');}
-var BK=[];for(i=0;i<3*LV;i++)BK.push([]);
-var ux=new Float32Array(N),uy=new Float32Array(N),dl=new Float32Array(N),jx=new Float32Array(N),jy=new Float32Array(N),
-tx=new Float32Array(N),ty=new Float32Array(N),bd=new Uint8Array(N);
-var n0=Math.round(N*SH[0]),n1=Math.round(N*SH[1]);
-function seed(){for(i=0;i<N;i++){
-ux[i]=0.5+(Math.random()-0.5)*0.97;
-uy[i]=0.5+(Math.random()-0.5)*0.97;
-dl[i]=Math.min(0.999,(i/N)*0.62+Math.random()*0.3);
-jx[i]=Math.random()-0.5;jy[i]=Math.random()-0.5;
-bd[i]=i<n0?0:(i<n0+n1?1:2);
-}}
-var W=0,H=0,R=3,reduce=false,settled=false,raf=0,t0=0,el=0,vis=true;
-try{reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+/* 388 stars x 4 bytes: x, y (xy quantised to 1/255), family | plays_bucket<<4, plays as 50 x (5299/50)^(b/255) (<1% off) */
+var STARS_B64='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';
+/* the most played artists, in order (universe_nodes.json ids 0..15); the sky labels the first ones that fit */
+var NAMES=['Phaeleh','The Weeknd','Mickey Singh','Third Hour','Chris Brown','AK','Drake','Sizzle Bird','Zack Knight','B Young','Doja Cat','Ya Levis','Rema','shy ink','Tove Lo','Tems'];
+/* the dust: the 31,447 plays of every artist under 50 plays (and the 39 unlisted, as untagged) by family, from
+   universe_artists_all.json */
+var DUSTF=[1971,203,3629,33,293,183,4251,421,899,1494,1057,263,1780,14970];
+var $=function(s){return document.querySelector(s);},cv=$('#doorfx'),gv=$('#doorglow'),fv=$('#doorsf'),slot=cv&&cv.parentNode,link=$('#sky'),hint=link&&link.firstElementChild,labs=$('.labs');
+if(!cv||!cv.getContext||!slot){return;}
+var g=cv.getContext('2d'),gg=gv&&gv.getContext('2d'),gf=fv&&fv.getContext('2d');
+var reduce=false;
+try{reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+
+/* ---- decode the embedded star block ---- */
+var SX=new Uint8Array(0),SY=SX,SF=SX,SB=SX,SP=new Float32Array(0),NS=0;
+function decodeStars(b64){
+var bin;try{bin=atob(b64);}catch(e){return;}
+var n=(bin.length/4)|0,v;NS=n;SX=new Uint8Array(n);SY=new Uint8Array(n);SF=new Uint8Array(n);SB=new Uint8Array(n);SP=new Float32Array(n);
+for(var i=0;i<n;i++){SX[i]=bin.charCodeAt(i*4);SY[i]=bin.charCodeAt(i*4+1);v=bin.charCodeAt(i*4+2);SF[i]=v&15;SB[i]=(v>>4)&7;SP[i]=50*Math.pow(5299/50,bin.charCodeAt(i*4+3)/255);}
+window.__doorStars={n:n,x:SX,y:SY,fam:SF,bucket:SB,plays:SP};
+}
+decodeStars(STARS_B64);
+
+var FONT='"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace',TAU=6.283185307179586;
+/* FAM hues (exhibit/shell.js), by index 0..13 (13 = untagged) */
+var FAMHEX=['#adced7','#dfd086','#8698df','#c3add7','#b8d86e','#d86ed5','#df868f','#d7b4ad','#b8d7ad','#df86c4','#7fd489','#41dfec','#d89c6e','#9a9aa2'];
+/* the atlas's density ramp (exhibit/atlas/glyph-atlas.js RAMP_CHARS), light to heavy */
+var RAMP=".':;+*o%#&8@$W",NL=14;
+/* the room's geometry (universe.worker.js); sigma x1.6 (the door's sky is ~0.6x the room's scale); dust at 3x the
+   dots and a fraction of the weight: a haze. a small sky sampled like a desktop's (~0.6 dust dots a cell) was confetti
+   (a phone's ~900 cells, 6 in 10 dark), so the dust gets at least DPH dots a cell, up to 3,000: one body at any size */
+var SLAB=0.18,SIG=0.0022*1.6,SH0=0.55,SH1=0.8,BXY=0.59,BZ=0.12,TOTAL=97427,DUST=31447,PD=3,KT=2.4,WDUST=0.16,DUSTX=3,DPH=3;
+/* a fixed tilt, a turn of 0.02 rad/s; the clusters settle from SPREAD x wider over RES ms; STILL = the still frame */
+var TILT=0.6,CP=Math.cos(TILT),SPt=Math.sin(TILT),SPIN0=0.7,YAW=2e-5,RES=1600,SPREAD=1.5,STILL=4200;
+var i,j,k;
+
+function hash(i){var x=(i+1)*2654435761>>>0;x^=x>>>15;x=Math.imul(x,2246822519)>>>0;x^=x>>>13;return (x>>>0)/4294967296;}
+function nrm(s){return Math.sqrt(-2*Math.log(hash(s)*0.9999+1e-4))*Math.cos(TAU*hash(s+1));}
+var UX=new Float32Array(NS),UY=new Float32Array(NS),UZ=new Float32Array(NS);
+for(k=0;k<NS;k++){UX[k]=(SX[k]/255-0.5)*2;UY[k]=(SY[k]/255-0.5)*2;UZ[k]=SLAB*(hash(k*7+11)-0.5);}
+/* the sky's reach over a turn, in layout units: sideways, up, down */
+var EX=0.86,EU=0.86,ED=0.86;
+(function(){var a,ca,sa,xr,yr,y2,s,X,Y;for(a=0;a<24;a++){ca=Math.cos(a*TAU/24);sa=Math.sin(a*TAU/24);
+for(k=0;k<NS;k++){xr=UX[k]*ca-UY[k]*sa;yr=UX[k]*sa+UY[k]*ca;y2=yr*CP+UZ[k]*SPt;s=PD/(PD+UZ[k]*CP-yr*SPt);X=Math.abs(xr*s);Y=y2*s;
+if(X>EX)EX=X;if(-Y>EU)EU=-Y;if(Y>ED)ED=Y;}}EX+=0.03;EU+=0.03;ED+=0.03;})();
+
+/* weight x 64 -> level (255 = unlit), and the haze band's keep probability (2 = outside it) */
+var LVL=new Uint8Array(1024),HZP=new Float32Array(1024),BRT=new Float32Array(NL);
+for(i=0;i<1024;i++){var v=1-Math.exp(-i/64/KT);LVL[i]=v<=0.03?255:Math.min(NL-1,Math.floor(Math.pow((v-0.03)/0.97,1.2)*NL));HZP[i]=v>0.03&&v<0.14?Math.pow((v-0.03)/0.11,0.7)*1.05:2;}
+for(k=0;k<NL;k++)BRT[k]=0.34+0.66*Math.sqrt(Math.pow((k+0.5)/NL,0.83));
+var FRGB=new Float32Array(42);for(k=0;k<14;k++){var hv=parseInt(FAMHEX[k].slice(1),16);FRGB[k*3]=hv>>16;FRGB[k*3+1]=(hv>>8)&255;FRGB[k*3+2]=hv&255;}
+
+var OFF=false,SC0=0,SC1=0,SR0=0,SR1=0,OXD=0,OYD=0,W=0,H=0,dpr=1,cw=6,ch=11,cols=0,rows=0,N=0,x0=0,y0=0,phone=false,wide=false,CX=0,CY=0,U=0,LX0=4,SPIN=SPIN0,FIELD=0,KR=[],SKS=[];
+var F0=new Float32Array(0),U8=new Uint8Array(0),I0=new Int32Array(0);
+var XD=I0,YD=I0,CWD=I0,CHD=I0,KO=U8,IG=F0,HC=F0,ACW=F0,ACP=F0,ACC=U8,OCC=I0,nocc=0,CUR=new Uint16Array(0),NXT=CUR,DL=I0,PL=I0,npl=0;
+var M=0,DX=F0,DY=F0,DZ=F0,QX=F0,QY=F0,QZ=F0,DC=U8,DU=U8,GC=0,GR=0,GT=null,gt=null,GA=F0,GB=F0,GK=U8,GD=null,CNS={hue:new Int32Array(14),lv:new Int32Array(NL)};
+/* labels: element, text box, alpha, spot, last spot (tried first, so a label does not hop) */
+var NN=NAMES.length,LE=[],LW=new Float32Array(NN),LH=new Float32Array(NN),LA=new Float32Array(NN),LX=new Float32Array(NN),LY=new Float32Array(NN),LON=new Uint8Array(NN),LQ=new Uint8Array(NN),LS=new Uint8Array(NN),lastEl=-1;
+var LB=[],PXs=new Float32Array(NN),PYs=new Float32Array(NN),PRs=new Float32Array(NN),PZs=new Float32Array(NN);
+if(labs)for(k=0;k<NN;k++){var el=document.createElement('i');el.textContent=NAMES[k];labs.appendChild(el);LE.push(el);}
+
+function sprite(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+/* the copy's keep-out (css px): text line boxes and the plain-text links (1: haze only under them), the chip (2:
+   nothing drawn) */
+function keepOut(nohint){
+var R=[],L,e,rr,n,rg=document.createRange(),T=document.querySelectorAll('.brand,.eyebrow,h1,.lede,.tours .hd,.deeper .hd,.deeper p,.fnote,.fnote2'+(nohint?'':',.sky span')),C=document.querySelectorAll('.cta a,.tours a');
+for(i=0;i<T.length;i++){e=T[i];if(!e.getClientRects().length)continue;rg.selectNodeContents(e);L=rg.getClientRects();
+for(n=0;n<L.length;n++){rr=L[n];if(rr.width>1)R.push(rr.left-6,rr.top-3,rr.right+6,rr.bottom+3,1);}}
+for(i=0;i<C.length;i++){rr=C[i].getBoundingClientRect();if(rr.width>1)R.push(rr.left-3,rr.top-3,rr.right+3,rr.bottom+3,C[i].className=='go'?2:1);}
+return R;
+}
+function edges(n,o,p){var a=new Int32Array(n+1);for(var q=0;q<=n;q++)a[q]=Math.round((o+q*p)*dpr);return a;}
 function layout(){
-var r=cv.getBoundingClientRect();
-if(!r.width||!r.height)return false;
-W=r.width;H=r.height;
-var dpr=Math.min(window.devicePixelRatio||1,2);
-cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
-g.setTransform(dpr,0,0,dpr,0,0);
-var pad=Math.max(6,Math.min(W,H)*0.035),gap=Math.max(4,H*0.022);
-var iw=W-pad*2,ih=H-pad*2-gap*2;
-var cols=Math.max(14,Math.round(Math.sqrt(N*iw/ih)));
-var n2=N-n0-n1;
-var r0=Math.ceil(n0/cols),r1=Math.ceil(n1/cols),r2=Math.ceil(n2/cols);
-var ch=ih/(r0+r1+r2),cw=iw/cols;
-R=Math.max(1.3,Math.min(cw,ch)*0.56);
-var off=[pad,pad+r0*ch+gap,pad+(r0+r1)*ch+gap*2],base=[0,n0,n0+n1];
-for(b=0;b<3;b++){
-var st=base[b],en=b===2?N:base[b+1];
-for(i=st;i<en;i++){
-var k=i-st;
-tx[i]=pad+(k%cols)*cw+cw/2-R/2+jx[i]*cw*0.16;
-ty[i]=off[b]+Math.floor(k/cols)*ch+ch/2-R/2+jy[i]*ch*0.16;
+var r=fv.getBoundingClientRect();
+dpr=Math.min(window.devicePixelRatio||1,2);
+if(r.width<80||r.height<80){W=H=0;cv.width=cv.height=0;return false;}
+/* the starfield is full-bleed at 1x; the sky's canvas only covers the sky, at device pixels (full-bleed at 2x was
+   ~40 MB on a retina laptop) */
+fv.width=Math.round(r.width);fv.height=Math.round(r.height);
+W=r.width;H=r.height;phone=Math.min(W,H)<500;wide=W>=700&&W>=H;
+cw=phone?7:6;ch=phone?12.6:11;
+cols=Math.floor(W/cw);rows=Math.floor(H/ch);N=cols*rows;x0=(W-cols*cw)/2;y0=(H-rows*ch)/2;
+XD=edges(cols,x0,cw);YD=edges(rows,y0,ch);CWD=new Int32Array(cols);CHD=new Int32Array(rows);
+for(i=0;i<cols;i++)CWD[i]=XD[i+1]-XD[i];for(i=0;i<rows;i++)CHD[i]=YD[i+1]-YD[i];
+/* the font size whose advance is exactly one cell */
+g.font='500 100px '+FONT;
+var adv=g.measureText('@@@@@@@@@@').width/10||60,fs=cw*100/adv,font='500 '+fs.toFixed(3)+'px '+FONT;
+g.font=font;
+var mm=g.measureText('@'),a=mm.actualBoundingBoxAscent,d=mm.actualBoundingBoxDescent;
+if(!(a>0))a=fs*0.7;if(!(d>=0))d=0;var base=ch/2+(a-d)/2;
+/* wide: the sky's whole turn fits the band from 24 px (and a cell, for the grid's snap) right of the copy column to the
+   edge, centred in it, at most 93% of the height (it never runs under the copy); portrait: brand row to copy, or the top 44% (at most behind the h1's top
+   half) */
+var pad=Math.max(10,Math.min(W,H)*0.03),hb=$('.top').getBoundingClientRect().bottom,sr=slot.getBoundingClientRect(),cr=0;
+KR=keepOut(1);LX0=4;
+if(wide){
+for(i=0;i<KR.length;i+=5)if(KR[i]<0.5*W&&KR[i+2]>cr)cr=KR[i+2];
+cr+=24+cw;LX0=cr;
+U=Math.min((H-2*pad)*0.93/(EU+ED),(W-pad-cr)/(2*EX));
+CX=(cr+W-pad)/2;CY=H/2+(EU-ED)/2*U;
+}else{
+var h1r=$('h1').getBoundingClientRect(),top=hb+2,bot=Math.max(sr.bottom,Math.min(0.44*H,h1r.top+0.45*h1r.height));
+U=Math.min((W-2*pad)/(2*EX),(bot-top)/(EU+ED));CX=W/2;CY=top+EU*U+((bot-top)-(EU+ED)*U)/2;
 }
+/* no room left by the copy (320x568): starfield only; the 90 seconds chip is the same link */
+OFF=U<60;if(link)link.style.display=OFF?'none':'';
+SC0=Math.max(0,Math.floor((CX-1.1*EX*U-x0)/cw)-2);SC1=Math.min(cols-1,Math.ceil((CX+1.1*EX*U-x0)/cw)+2);SR0=Math.max(0,Math.floor((CY-1.1*EU*U-y0)/ch)-2);SR1=Math.min(rows-1,Math.ceil((CY+1.1*ED*U-y0)/ch)+2);
+OXD=XD[SC0];OYD=YD[SR0];cv.width=XD[SC1+1]-OXD;cv.height=YD[SR1+1]-OYD;
+var cs=cv.style;cs.left=OXD/dpr+'px';cs.top=OYD/dpr+'px';cs.width=cv.width/dpr+'px';cs.height=cv.height/dpr+'px';
+for(i=0;i<=cols;i++)XD[i]-=OXD;for(i=0;i<=rows;i++)YD[i]-=OYD;
+for(k=0;k<LE.length;k++){LE[k].classList.remove('on');LS[k]=LON[k]=0;LA[k]=0;}
+/* the link covers the sky's reach; its hint takes the first spot clear of the copy */
+if(link){var ls=link.style,lx=CX-EX*U,ly=CY-EU*U,lw=2*EX*U,lh=(EU+ED)*U;ls.left=lx+'px';ls.top=ly+'px';ls.width=lw+'px';ls.height=lh+'px';
+if(hint){var hr=hint.getBoundingClientRect(),hw=hr.width,hh=hr.height,pr=parseFloat(getComputedStyle(slot.parentNode).paddingRight)||16,h1t=$('h1').getBoundingClientRect().top,
+P=wide?[CX-hw/2,ly+lh-4,lx+lw-hw,ly+lh-4,W-pr-hw,hb+2]:[W-pr-hw,Math.min(ly+lh,h1t)-hh+2,W-pr-hw,hb+2],hx=P[P.length-2],hy=P[P.length-1];
+for(i=0;i<P.length;i+=2){var px=Math.max(4,Math.min(W-hw-4,P[i])),py=Math.max(4,Math.min(H-hh-4,P[i+1])),hit=false;
+for(j=0;j<KR.length;j+=5)if(px<KR[j+2]&&px+hw>KR[j]&&py+7<KR[j+3]&&py+hh-7>KR[j+1]){hit=true;break;}
+if(!hit){hx=px;hy=py;break;}}
+hint.style.left=hx-lx+'px';hint.style.top=hy-ly+'px';}}
+KR=keepOut(0);
+KO=new Uint8Array(N);
+for(i=0;i<KR.length;i+=5){
+var c0=Math.max(0,Math.floor((KR[i]-x0)/cw)),c1=Math.min(cols-1,Math.floor((KR[i+2]-x0)/cw)),r0=Math.max(0,Math.floor((KR[i+1]-y0)/ch)),r1=Math.min(rows-1,Math.floor((KR[i+3]-y0)/ch));
+for(var rr=r0;rr<=r1;rr++)for(var cc=c0;cc<=c1;cc++){k=rr*cols+cc;if(KO[k]<KR[i+4])KO[k]=KR[i+4];}
 }
+ACW=new Float32Array(N);ACP=new Float32Array(N);ACC=new Uint8Array(N);OCC=new Int32Array(N);nocc=0;IG=new Float32Array(N);HC=new Float32Array(N);
+CUR=new Uint16Array(N);NXT=new Uint16Array(N);DL=new Int32Array(N);PL=new Int32Array(N);npl=0;
+for(i=0;i<N;i++){var dd=(i%cols)*0.06711056+((i/cols)|0)*0.00583715,ig=52.9829189*(dd-Math.floor(dd));IG[i]=ig-Math.floor(ig);HC[i]=hash(i+31);}
+/* sprites: the ramp in 14 FAM hues (top levels bleached toward white, as gcd), then a glint; a glyph sits 1 device
+   px in and is blitted clipped to its cell, so a redraw never touches a neighbour */
+var sw=Math.ceil(cw*dpr)+2,sh=Math.ceil(ch*dpr)+2;SKS=[];
+for(var f=0;f<15;f++)for(k=0;k<(f<14?NL:1);k++){var sc=sprite(sw,sh),xa=sc.getContext('2d');
+xa.setTransform(dpr,0,0,dpr,1,1);xa.font=font;xa.fillStyle=f<14?FAMHEX[f]:'#f6f2ff';xa.globalAlpha=f<14?BRT[k]:1;xa.fillText(f<14?RAMP[k]:'*',0,base);
+if(f<14&&k>=NL-3){xa.fillStyle='#fff';xa.globalAlpha=0.12*(k-NL+4);xa.fillText(RAMP[k],0,base);}
+SKS.push(sc);}
+/* one dot per ppd plays (density follows the sky's size in cells), stars first, then the dust */
+var area=Math.PI*EX*U*(EU+ED)/2*U/(cw*ch),ppd=TOTAL/Math.max(600,Math.min(4200,Math.round(area*0.6))),nk=new Int32Array(NS),ns=0,nd=Math.round(Math.max(DUST/ppd*DUSTX,Math.min(area*DPH,3e3))),q=0,sg,h1,h2,h3,h4,rad,ux,uy,uz,ph,ex;
+for(k=0;k<NS;k++){nk[k]=Math.max(1,Math.round(SP[k]/ppd));ns+=nk[k];}
+M=ns+nd;DX=new Float32Array(M);DY=new Float32Array(M);DZ=new Float32Array(M);QX=new Float32Array(M);QY=new Float32Array(M);QZ=new Float32Array(M);DC=new Uint8Array(M);DU=new Uint8Array(M);
+for(k=0;k<NS;k++){sg=SIG*Math.cbrt(SP[k]);
+for(j=0;j<nk[k];j++,q++){var s0=100003+q*6;DX[q]=UX[k];DY[q]=UY[k];DZ[q]=UZ[k];QX[q]=sg*nrm(s0);QY[q]=sg*nrm(s0+2);QZ[q]=sg*nrm(s0+4);DC[q]=SF[k]<14?SF[k]:13;}}
+var dcum=[],dt=0;for(k=0;k<14;k++){dt+=DUSTF[k];dcum.push(dt);}
+for(j=0;j<nd;j++,q++){
+var s1=900007+j*4;h1=hash(s1);h2=hash(s1+1);h3=hash(s1+2);h4=hash(s1+3)*dt;
+uz=2*h1-1;ph=TAU*h2;rad=Math.sqrt(Math.max(0,1-uz*uz));ux=rad*Math.cos(ph);uy=rad*Math.sin(ph);
+rad=SH0+(SH1-SH0)*h3;
+if(Math.abs(ux*rad)<BXY&&Math.abs(uy*rad)<BXY&&Math.abs(uz*rad)<BZ){ex=Math.min(Math.abs(ux)>1e-6?BXY/Math.abs(ux):9,Math.abs(uy)>1e-6?BXY/Math.abs(uy):9);rad=ex;}
+DX[q]=ux*rad;DY[q]=uy*rad;DZ[q]=uz*rad;DU[q]=1;
+for(k=0;k<13&&h4>=dcum[k];k++){}DC[q]=k;
+}
+/* the glow: lit cells' light in 3x3-cell texels, blurred, smoothed up 6x here (webkit bands a bare upscale), the rest
+   by the compositor: gcd's glow pass, weaker */
+if(gg){GC=Math.ceil(cols/3);GR=Math.ceil(rows/3);gv.width=GC*6;gv.height=GR*6;GT=sprite(GC,GR);gt=GT.getContext('2d');gg.imageSmoothingEnabled=true;gg.imageSmoothingQuality='high';
+var st=gv.style;st.left=x0+'px';st.top=y0+'px';st.width=GC*3*cw+'px';st.height=GR*3*ch+'px';
+GA=new Float32Array(GC*GR*3);GB=new Float32Array(GC*GR*3);GK=new Uint8Array(GC*GR);GD=gt.createImageData(GC,GR);
+for(i=0;i<N;i++)if(KO[i])GK[((((i/cols)|0)/3)|0)*GC+(((i%cols)/3)|0)]=1;}
+/* ~4% of the cells clear of the sky (plus two cells) and the copy */
+FIELD=0;
+if(gf){gf.font=font;gf.fillStyle='#b4a9d6';
+var ax=EX*U+2*cw,ayu=EU*U+2*ch,ayd=ED*U+2*ch;
+for(i=0;i<N;i++){if(KO[i])continue;var hh2=hash(i*3+7);if(hh2>=0.04)continue;
+var cx=x0+(i%cols+0.5)*cw,cy=y0+(((i/cols)|0)+0.5)*ch,dx=(cx-CX)/ax,dy=(cy-CY)/(cy<CY?ayu:ayd);if(dx*dx+dy*dy<1)continue;
+var u2=hh2/0.04;gf.globalAlpha=u2<0.8?0.3:(u2<0.95?0.38:0.46);gf.fillText(u2<0.8?'.':(u2<0.95?"'":':'),x0+(i%cols)*cw,y0+((i/cols)|0)*ch+base);FIELD++;}}
+/* the labels' text boxes */
+if(labs){labs.className=phone?'labs ph':'labs';for(k=0;k<LE.length;k++){LW[k]=LE[k].offsetWidth;LH[k]=LE[k].offsetHeight;}}
+lastEl=-1;
 return true;
 }
-function draw(p){
-var k,u,e,x,y,lv,arr,j;
-for(k=0;k<BK.length;k++)BK[k].length=0;
-g.clearRect(0,0,W,H);
-for(i=0;i<N;i++){
-u=(p-dl[i]*0.5)/0.5;
-u=u<0?0:(u>1?1:u);
-e=u<0.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
-x=ux[i]*W+(tx[i]-ux[i]*W)*e;
-y=uy[i]*H+(ty[i]-uy[i]*H)*e;
-lv=(u*(LV-1)+0.5)|0;
-arr=BK[bd[i]*LV+lv];arr.push(x,y);
-}
-for(k=0;k<BK.length;k++){
-arr=BK[k];if(!arr.length)continue;
-g.fillStyle=PAL[k];
-for(j=0;j<arr.length;j+=2)g.fillRect(arr[j],arr[j+1],R,R);
+
+/* each dot into its cell (near dots weigh up to 1.8x far ones); labels place on that; only changed cells redraw */
+function project(el){
+var u=el>=RES?1:(el<0?0:el/RES),e=1-(1-u)*(1-u)*(1-u),sp=1+SPREAD*(1-e),wd=WDUST*(0.4+0.6*e),x,y,z,xr,yr,z2,s,X,Y,w,c,r,ci,CA=Math.cos(SPIN),SA=Math.sin(SPIN);
+for(k=0;k<nocc;k++){ci=OCC[k];ACW[ci]=0;ACP[ci]=0;}nocc=0;
+for(j=0;j<M;j++){
+if(DU[j]){x=DX[j];y=DY[j];z=DZ[j];}else{x=DX[j]+QX[j]*sp;y=DY[j]+QY[j]*sp;z=DZ[j]+QZ[j]*sp;}
+xr=x*CA-y*SA;yr=x*SA+y*CA;z2=z*CP-yr*SPt;s=U*PD/(PD+z2);
+X=CX+xr*s-x0;Y=CY+(yr*CP+z*SPt)*s-y0;
+if(X<0||Y<0)continue;c=(X/cw)|0;r=(Y/ch)|0;if(c<SC0||c>SC1||r<SR0||r>SR1)continue;
+w=(DU[j]?wd:1)*(z2>0.8?0.55:(z2<-0.8?1:0.775-0.28125*z2));
+ci=r*cols+c;
+if(ACW[ci]===0)OCC[nocc++]=ci;
+ACW[ci]+=w;if(w>ACP[ci]){ACP[ci]=w;ACC[ci]=DC[j];}
 }
 }
+function cells(el){
+var s,c,r,ci,col,lv,h,al,ko,ix,gi,b,ndl=0,hz=0,cut=0,gl=0,chg=0,HU=CNS.hue,LV=CNS.lv,T,nb=LB.length;
+if(GD)GA.fill(0);
+HU.fill(0);LV.fill(0);
+/* each lit cell's next sprite (0 = dark); faint cells twinkle a ramp step, rare bright ones glint */
+for(k=0;k<nocc;k++){
+ci=OCC[k];ko=KO[ci];if(ko===2){cut++;continue;}
+if(nb){r=(ci/cols)|0;c=ci-r*cols;for(b=0;b<nb;b+=4)if(c>=LB[b]&&c<=LB[b+2]&&r>=LB[b+1]&&r<=LB[b+3])break;if(b<nb){cut++;continue;}}
+ix=ACW[ci]*64;ix=ix>1023?1023:ix|0;lv=LVL[ix];if(lv===255)continue;
+if(HZP[ix]<2){if(IG[ci]>HZP[ix])continue;hz++;}
+h=HC[ci];col=ACC[ci];
+if(lv<4){al=Math.sin(el*(0.0011+0.0017*h)+h*40);if(al>0.75)lv++;else if(al<-0.75&&lv>0)lv--;}
+if(ko===1){if(lv>1)lv=1;cut++;}
+if(lv>4&&!ko&&Math.sin(el*(6e-5+8e-5*h)+h*97)>0.9997){NXT[ci]=14*NL+1;gl++;}else NXT[ci]=col*NL+lv+1;
+DL[ndl++]=ci;HU[col]++;LV[lv]++;
+if(GD&&!ko){r=(ci/cols)|0;c=ci-r*cols;gi=(((r/3)|0)*GC+((c/3)|0))*3;b=BRT[lv]*BRT[lv];ix=col*3;GA[gi]+=FRGB[ix]*b;GA[gi+1]+=FRGB[ix+1]*b;GA[gi+2]+=FRGB[ix+2]*b;}
+}
+g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;
+for(k=0;k<npl;k++){ci=PL[k];if(NXT[ci]===0&&CUR[ci]!==0){r=(ci/cols)|0;c=ci-r*cols;g.clearRect(XD[c],YD[r],CWD[c],CHD[r]);CUR[ci]=0;chg++;}}
+for(k=0;k<ndl;k++){ci=DL[k];s=NXT[ci];NXT[ci]=0;if(s!==CUR[ci]){r=(ci/cols)|0;c=ci-r*cols;if(CUR[ci])g.clearRect(XD[c],YD[r],CWD[c],CHD[r]);g.drawImage(SKS[s-1],1,1,CWD[c],CHD[r],XD[c],YD[r],CWD[c],CHD[r]);CUR[ci]=s;chg++;}}
+T=PL;PL=DL;DL=T;npl=ndl;
+CNS.lit=ndl;CNS.occ=nocc;CNS.haze=hz;CNS.glint=gl;CNS.cut=cut;CNS.changed=chg;
+if(GD)glow();
+}
+/* [1 2 1] blur; hue at full value, light in alpha (an empty texel is clear, not black) */
+function glow(){
+var x,y,o,c,m,A=GA,B=GB,P=GD.data,n=GC*GR,a;
+for(y=0;y<GR;y++)for(x=0;x<GC;x++){o=(y*GC+x)*3;for(c=0;c<3;c++)B[o+c]=2*A[o+c]+(x>0?A[o+c-3]:0)+(x<GC-1?A[o+c+3]:0);}
+for(y=0;y<GR;y++)for(x=0;x<GC;x++){o=(y*GC+x)*3;for(c=0;c<3;c++)A[o+c]=2*B[o+c]+(y>0?B[o+c-GC*3]:0)+(y<GR-1?B[o+c+GC*3]:0);}
+for(o=0;o<n;o++){m=Math.max(A[o*3],A[o*3+1],A[o*3+2]);a=m*0.006;if(GK[o])a*=0.2;if(a>110)a=110;
+if(m>0){P[o*4]=A[o*3]*255/m;P[o*4+1]=A[o*3+1]*255/m;P[o*4+2]=A[o*3+2]*255/m;}P[o*4+3]=a;}
+gt.putImageData(GD,0,0);gg.clearRect(0,0,gv.width,gv.height);gg.drawImage(GT,0,0,gv.width,gv.height);
+}
+/* labels as gcd places them: up-right of the star past its core, else another side; most played first; a label
+   yields to a label, a more played star's core, the copy, the edge, or (below the top three) too much sky. the cells
+   under a label stay dark; css fades it and LA mirrors that for the tests */
+function labels(el){
+var jump=lastEl<0||el<lastEl||el-lastEl>250,dt=jump?0:el-lastEl,max=phone?4:8,n=0,B=[],LBn=[],CA=Math.cos(SPIN),SA=Math.sin(SPIN),x,y,z,xr,yr,s,X,Y,off,lx,ly,lw,lh,ok,t,m,bs,bq,bx,by,bc,nn=Math.min(NN,NS,LE.length);
+for(k=0;k<nn;k++){x=UX[k];y=UY[k];z=UZ[k];xr=x*CA-y*SA;yr=x*SA+y*CA;PZs[k]=z*CP-yr*SPt;s=U*PD/(PD+PZs[k]);PXs[k]=CX+xr*s;PYs[k]=CY+(yr*CP+z*SPt)*s;PRs[k]=Math.max(4,1.6*SIG*Math.cbrt(SP[k])*s);}
+for(k=0;k<nn;k++){
+X=PXs[k];Y=PYs[k];off=Math.max(5,0.72*PRs[k]);lw=LW[k];lh=LH[k];ok=false;
+/* the clear spot that hides the least sky (its last spot wins a near tie) */
+bs=1e9;
+if(n<max&&el>=450+70*k)for(t=0;t<6;t++){
+lx=t&1?X-off-lw:X+off;ly=t<2?Y-off-lh:(t<4?Y+off:Y-lh/2);
+if(lx<LX0||ly<4||lx+lw>W-4||ly+lh>H-4)continue;
+ok=true;
+for(m=0;m<B.length;m+=4)if(lx<B[m+2]+6&&lx+lw+6>B[m]&&ly<B[m+3]+4&&ly+lh+4>B[m+1]){ok=false;break;}
+if(ok)for(m=0;m<k;m++)if(lx<PXs[m]+0.5*PRs[m]&&lx+lw>PXs[m]-0.5*PRs[m]&&ly<PYs[m]+0.5*PRs[m]&&ly+lh>PYs[m]-0.5*PRs[m]){ok=false;break;}
+if(ok)for(m=0;m<KR.length;m+=5)if(lx<KR[m+2]&&lx+lw>KR[m]&&ly<KR[m+3]&&ly+lh>KR[m+1]){ok=false;break;}
+if(!ok)continue;
+var c0=Math.max(0,Math.floor((lx-2-x0)/cw)),c1=Math.min(cols-1,Math.floor((lx+lw+2-x0)/cw)),r0=Math.max(0,Math.floor((ly-y0)/ch)),r1=Math.min(rows-1,Math.floor((ly+lh-1-y0)/ch)),cv2=0,rr,cc;
+for(rr=r0;rr<=r1;rr++)for(cc=c0;cc<=c1;cc++)cv2+=Math.min(2,ACW[rr*cols+cc]);
+cv2=cv2/((c1-c0+1)*(r1-r0+1))*(t===LQ[k]?0.8:1);
+if(cv2<bs){bs=cv2;bq=t;bx=lx;by=ly;bc=[c0,r0,c1,r1];}
+}
+ok=bs<(k<3?9:0.9);
+if(ok){lx=bx;ly=by;LX[k]=lx;LY[k]=ly;LQ[k]=bq;B.push(lx,ly,lx+lw,ly+lh);LBn.push(bc[0],bc[1],bc[2],bc[3]);n++;}
+LON[k]=ok?1:0;
+LA[k]=jump?LON[k]:(ok?Math.min(1,LA[k]+dt/800):Math.max(0,LA[k]-dt/300));
+if(ok)LE[k].style.transform='translate3d('+lx.toFixed(1)+'px,'+ly.toFixed(1)+'px,0)';
+if(LS[k]!==LON[k]){LS[k]=LON[k];LE[k].classList.toggle('on',ok);}
+}
+CNS.labels=n;LB=LBn;
+}
+function draw(el){
+if(!W||!SKS.length||OFF)return;
+SPIN=SPIN0+YAW*el;project(el);labels(el);cells(el);
+lastEl=el;
+}
+
+var t0=0,raf=0,vis=true,frameMs=0,lp=0,FT=[];
+/* ~30 fps once settled: the sky moves about a cell a second */
 function tick(now){
 raf=0;
-if(!vis)return;
-if(!t0)t0=now-el;
-el=now-t0;
-var p=el/DUR;
-if(p>=1){p=1;settled=true;}
-draw(p);
-if(!settled)raf=requestAnimationFrame(tick);
+if(!vis||!W)return;
+if(!t0)t0=now;
+var el=now-t0;
+if(el<RES+1500||now-lp>=31){lp=now;var m0=performance.now();draw(el);frameMs=performance.now()-m0;FT.push(frameMs);if(FT.length>600)FT.shift();}
+raf=requestAnimationFrame(tick);
 }
-function kick(){
-if(raf||settled||!vis)return;
-t0=0;raf=requestAnimationFrame(tick);
-}
-function boot(){
-seed();
-if(!layout())return;
-if(reduce){settled=true;draw(1);return;}
-draw(0);
-kick();
-}
+function kick(){if(raf||!vis||reduce||!W)return;raf=requestAnimationFrame(tick);}
+function stop(){if(raf){cancelAnimationFrame(raf);raf=0;}}
+/* reduced motion: one still frame, the settled sky with its labels */
+function paint(){if(!layout()){stop();return;}if(reduce)draw(STILL);else kick();}
+var booted=false;
+function boot(){booted=true;paint();}
+/* the copy moves the sky (font swap, rotation, toolbar) */
 var rt=0;
-addEventListener('resize',function(){
-clearTimeout(rt);
-rt=setTimeout(function(){
-if(!layout())return;
-if(settled)draw(1);else{if(raf){cancelAnimationFrame(raf);raf=0;}t0=0;kick();}
-},160);
-},{passive:true});
-if('IntersectionObserver' in window){
-new IntersectionObserver(function(es){
-vis=es[0].isIntersecting;
-if(vis)kick();
-else if(raf){cancelAnimationFrame(raf);raf=0;t0=0;}
-},{threshold:0}).observe(cv);
-}
-requestAnimationFrame(function(){requestAnimationFrame(boot);});
+function relayout(){if(!booted)return;clearTimeout(rt);rt=setTimeout(paint,120);}
+if('ResizeObserver' in window)new ResizeObserver(relayout).observe(slot);
+addEventListener('resize',relayout,{passive:true});
+document.addEventListener('visibilitychange',function(){
+vis=!document.hidden;
+if(vis)kick();else stop();
+});
+/* the glyphs need the inlined font (a data: url: a decode, not a fetch) */
+function start(){requestAnimationFrame(boot);}
+var fp=null;
+try{fp=document.fonts.load('500 12px "JetBrains Mono"',"@%.':;*o#&8$W[]");}catch(e){}
+if(fp&&fp.then)fp.then(start,start);else start();
+
+window.__doorfx={draw:draw,frameMs:function(){return frameMs;},frames:function(){return FT.slice();},starN:function(){return NS;},cell:function(){return {w:W,h:H};},ramp:RAMP,still:STILL,res:RES,yaw:YAW,
+grid:function(){return {cw:cw,ch:ch,cols:cols,rows:rows,n:N,x0:x0,y0:y0,dpr:dpr,oxd:OXD,oyd:OYD,box:[SC0,SR0,SC1,SR1],wide:wide,phone:phone};},
+place:function(){return {off:OFF,cx:CX,cy:CY,u:U,ex:EX,eu:EU,ed:ED,field:FIELD,m:M};},
+state:function(){return {cur:Array.from(CUR),ko:Array.from(KO),nl:NL};},
+census:function(){var o={};for(var k in CNS)o[k]=CNS[k].length?Array.from(CNS[k]):CNS[k];return o;},
+sky:function(){var L=[];for(var k=0;k<NN;k++)L.push({name:NAMES[k],on:LON[k],a:LA[k],x:LX[k],y:LY[k],w:LW[k],h:LH[k]});
+return {m:M,occ:nocc,cells:Array.from(PL.subarray(0,npl)),spin:SPIN,tilt:TILT,u:U,cx:CX,cy:CY,dust:(function(){var s=0;for(var j=0;j<M;j++)s+=DU[j];return s;})(),fam:Array.from(DC),labels:L};}};
 })();
-(function(){try{if(innerWidth<900){var d=document.querySelector('details.forest');if(d)d.removeAttribute('open');}}catch(e){}})();
 </script>
 </body>
 </html>

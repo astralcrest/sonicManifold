@@ -1,0 +1,110 @@
+/* package M4 — panels.css: #top menu additions, #atlas-dock (phone), the tours/settings/help dialogs.
+   Every selector starts with html.atlas (BUILD_SPEC_V2 §12). Ice (#86cbfe) is the only chrome accent:
+   never mint/amber/violet/rose/orange here. No native CSS nesting. */
+
+html.atlas .a-btn{font:600 10.5px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--mute);background:rgba(10,1,24,.5);border:1px solid var(--line);border-radius:3px;padding:9px 11px;min-height:38px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+html.atlas .a-btn:hover{color:var(--ink);border-color:rgba(240,234,255,.4)}
+html.atlas .a-btn:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+html.atlas .a-btn[aria-pressed="true"],html.atlas .a-btn.on{color:var(--ice);border-color:rgba(134,203,254,.5);background:rgba(134,203,254,.08)}
+html.atlas .atlas-topbar{display:flex;align-items:center;gap:6px;margin-left:auto}
+html.atlas .atlas-topbar #mute{font:600 10.5px/1 var(--mono);letter-spacing:.13em;padding:9px 11px;min-height:38px;border-radius:3px}
+@media (max-aspect-ratio:115/100){html.atlas .atlas-topbar{display:none}}
+/* idle (§1.12): the desktop menu dims to .35 and stays findable; the phone dock instead fully hides
+   (data-idle="hide", chrome.css's global rule) — it is one of the fixed chrome bands the ≤30% phone
+   budget is built from (§0.2/§0.4), so at rest it must give the field its full height back. */
+html.atlas-idle .atlas-topbar[data-idle]{opacity:.35}
+@media (hover:hover){html.atlas-idle .atlas-topbar[data-idle]:hover{opacity:1;transition:opacity .25s ease-out}}
+html.atlas-idle .atlas-topbar[data-idle]:has(:focus-visible),html.atlas-idle #atlas-dock[data-idle]:has(:focus-visible){opacity:1;transition:opacity .25s ease-out}
+
+/* ------------------------------------------------------------------------------- phone dock (W22: 44px, lowercase) */
+html.atlas #atlas-dock{position:fixed;left:0;right:0;bottom:0;z-index:6;display:none;padding-bottom:env(safe-area-inset-bottom);background:linear-gradient(0deg,rgba(6,2,16,.92),rgba(6,2,16,.74));border-top:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+@media (max-aspect-ratio:115/100){html.atlas #atlas-dock{display:flex}}
+html.atlas #atlas-dock .d-row{display:flex;width:100%}
+html.atlas #atlas-dock button{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:44px;padding:4px 2px;background:none;border:0;color:var(--mute);font:500 9.5px/1 var(--mono);letter-spacing:.04em;text-transform:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.atlas #atlas-dock button .d-ic{font-size:16px;line-height:1;font-family:var(--mono)}
+html.atlas #atlas-dock button[aria-pressed="true"],html.atlas #atlas-dock button.on{color:var(--ice)}
+html.atlas #atlas-dock button:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
+html.atlas #atlas-dock #mute{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:44px;padding:4px 2px;background:none;border:0;font:500 9.5px/1 var(--mono);letter-spacing:.04em;text-transform:none;border-radius:0}
+html.atlas #atlas-dock #mute::before{content:"\266A";font-size:16px;display:block}
+html.atlas #atlas-dock #mute[aria-pressed="false"]{color:var(--ice)}
+html.atlas #atlas-dock #mute[aria-pressed="true"]{color:var(--mute)} /* CRIT6A: muted reads grey, as on #top (chrome.css W13); the generic pressed=ice rule above painted it ice */
+@media (max-width:359px){html.atlas #atlas-dock .d-label{display:none}}
+/* CRIT6A: "♪ tap for sound" (panels.js syncMuteLabel) wrapped to 3 lines in a 48 px dock tab. under 760 px the tab shows
+   one word like its neighbours: the text stays in the DOM (font-size 0) as the accessible name, ::after draws "sound" (ice)
+   or "muted" (grey), with empty alt text so it is not read twice. the 44 px target is untouched */
+@media (max-width:759px){html.atlas #atlas-dock #mute{font-size:0;white-space:nowrap;gap:0}html.atlas #atlas-dock #mute::after{content:"sound";content:"sound"/"";margin-top:3px;font:500 9.5px/1 var(--mono);letter-spacing:.04em}html.atlas #atlas-dock #mute[aria-pressed="true"]::after{content:"muted";content:"muted"/""}}
+
+/* ------------------------------------------------------------------------------- dialogs (tours / settings / help) */
+/* one scroll container: the dialog is a flex column capped in height, the head never shrinks, the body takes
+   the rest and scrolls (a fixed "head = 54px" guess used to make the dialog overflow too and clip the body) */
+html.atlas dialog.atlas-panel{border:1px solid var(--line);border-radius:4px;padding:0;background:rgba(7,3,17,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--ink);width:min(420px,calc(100vw - 32px));max-height:min(84vh,720px);overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+html.atlas dialog.atlas-panel[open]{display:flex;flex-direction:column}
+@supports (height:100dvh){html.atlas dialog.atlas-panel{max-height:min(84dvh,720px)}}
+html.atlas dialog.atlas-panel::backdrop{background:rgba(4,0,10,.55)}
+/* W23: the tours panel only, docked right over live art on desktop/landscape — phones keep the centred
+   card above (the "sheet"). No dimming scrim here: the field stays visible and a click on it still closes
+   the dialog (native <dialog> backdrop clicks target the dialog element itself, unaffected by its colour). */
+@media (min-aspect-ratio:115/100) and (min-height:481px){
+  html.atlas dialog.atlas-panel.atlas-panel-dock{margin:0;top:0;right:0;bottom:0;left:auto;width:min(400px,92vw);max-width:none;height:100%;max-height:none;border-width:0 0 0 1px;border-radius:0;box-shadow:-30px 0 90px rgba(0,0,0,.55)}
+  html.atlas dialog.atlas-panel.atlas-panel-dock::backdrop{background:transparent}
+}
+html.atlas .a-pn-head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;border-bottom:1px solid var(--line);background:rgba(7,3,17,.9)}
+html.atlas .a-pn-title{font:600 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ice);margin:0}
+html.atlas .a-pn-close{font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);background:none;border:1px solid var(--line);border-radius:3px;padding:9px 12px;min-height:38px;cursor:pointer}
+html.atlas .a-pn-close:hover{color:var(--ink)}
+html.atlas .a-pn-body{flex:1 1 auto;min-height:0;padding:14px 18px 20px;overflow:auto;overscroll-behavior:contain}
+html.atlas .a-pn-body[data-more]{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 44px),transparent)}
+html.atlas .a-pn-body dl{margin:0}
+html.atlas .a-pn-row{display:flex;gap:8px;margin:0 0 14px}
+html.atlas .a-seg{display:flex;gap:6px;flex-wrap:wrap}
+html.atlas .a-seg button{flex:1 1 0;font:600 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:3px;padding:10px 8px;min-height:40px;cursor:pointer}
+html.atlas .a-seg button[aria-pressed="true"]{color:var(--ice);border-color:rgba(134,203,254,.55);background:rgba(134,203,254,.1)}
+html.atlas .a-seg button:focus-visible,html.atlas .a-pn-close:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+html.atlas .a-lbl{font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+html.atlas .a-pn-body > * + .a-lbl{margin-top:14px}
+html.atlas .a-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(189,166,255,.1);font:500 12.5px/1.3 var(--mono);color:var(--ink)}
+html.atlas .a-toggle button{font:600 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:7px 12px;min-height:32px;cursor:pointer}
+html.atlas .a-toggle button[aria-pressed="true"]{color:var(--ice);border-color:rgba(134,203,254,.5)}
+
+/* tours list (W23: the current tour also carries a 2px ice bar, not just the "›" glyph, since the docked
+   panel now sits beside the live art rather than centred over it, where the extra edge reads better) */
+html.atlas .a-tour-item{display:block;width:100%;text-align:left;background:none;border:0;border-left:2px solid transparent;border-top:1px solid rgba(189,166,255,.1);color:var(--ink);padding:12px 2px 12px 10px;cursor:pointer;border-radius:3px}
+html.atlas .a-tour-item:first-child{border-top:0}
+html.atlas .a-tour-item:hover,html.atlas .a-tour-item:focus-visible{background:rgba(134,203,254,.06);outline:none}
+html.atlas .a-tour-item:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
+html.atlas .a-tour-item[aria-current="true"]{border-left-color:var(--ice)}
+html.atlas .a-tour-item .a-t-name{font:600 14px/1.3 var(--mono);color:var(--ink)}
+html.atlas .a-tour-item[aria-current="true"] .a-t-name{color:var(--ice)}
+html.atlas .a-tour-item .a-t-name::before{content:"\203A ";color:var(--ice);opacity:0}
+html.atlas .a-tour-item[aria-current="true"] .a-t-name::before{opacity:1}
+html.atlas .a-tour-item .a-t-blurb{display:block;font:400 11.5px/1.4 var(--mono);color:var(--mute);margin-top:3px}
+
+/* help */
+html.atlas .a-help-row{display:grid;grid-template-columns:6.4rem 1fr;gap:4px 12px;font:500 12px/1.4 var(--mono);padding:5px 0}
+html.atlas .a-help-row dt{color:var(--ice);letter-spacing:.02em}
+html.atlas .a-help-row dd{margin:0;color:var(--mute)}
+html.atlas .a-help-note{font:400 11.5px/1.5 var(--mono);color:var(--mute);margin:6px 0 0;padding-top:10px;border-top:1px solid rgba(189,166,255,.12)}
+html.atlas .a-grid-read{font:500 11px/1 var(--mono);color:var(--mute);letter-spacing:.04em;margin-top:12px}
+
+/* touch screens and phone widths: every control here is a 44px target, the bar chrome.css's .ai-* controls already
+   meet (VERIFY r3 P1: .a-btn/.a-pn-close 38px, .a-seg 40px, the on/off toggles 32px) */
+@media (pointer:coarse),(max-width:600px){
+  html.atlas .a-btn,html.atlas .atlas-topbar #mute,html.atlas .a-pn-close,html.atlas .a-seg button{min-height:44px}
+  html.atlas .a-toggle{padding:4px 0}
+  html.atlas .a-toggle button{min-height:44px;min-width:56px}
+}
+
+/* forced colours (§9.4). the dock, the menu buttons and the dialogs opt out of forcing to paint an opaque Canvas over
+   the field canvas. forced-color-adjust inherits, so every descendant would keep its authored mute/ice/ink on that
+   Canvas (VERIFY r3 P0: the dock labels at 2.62:1, because #atlas-dock button{color:var(--mute)} outranks a colour set
+   on the dock itself): each one takes the system pair explicitly, the dialogs' at an id's weight so no authored
+   state or hover rule outranks it. pressed and filled states read as Highlight, focus rings as Highlight, and the
+   scroll fade is dropped (a faded system colour is a low-contrast colour), chrome.css's pattern. */
+@media (forced-colors:active){
+  html.atlas dialog.atlas-panel,html.atlas .atlas-topbar .a-btn,html.atlas #atlas-dock{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none}
+  html.atlas #atlas-dock .d-row>button,html.atlas #atlas-dock .d-row>button *{color:CanvasText;background-color:transparent}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *::before,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *::after{color:CanvasText;background-color:Canvas;border-color:CanvasText;text-shadow:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) .a-pn-body{-webkit-mask-image:none;mask-image:none}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :is([aria-pressed="true"],.on),html.atlas .atlas-topbar .a-btn:is([aria-pressed="true"],.on),html.atlas #atlas-dock .d-row>button:is([aria-pressed="true"],.on),html.atlas #atlas-dock .d-row>button:is([aria-pressed="true"],.on) *{color:HighlightText;background-color:Highlight;border-color:Highlight}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :focus-visible,html.atlas .atlas-topbar .a-btn:focus-visible,html.atlas #atlas-dock button:focus-visible{outline-color:Highlight}
+}
