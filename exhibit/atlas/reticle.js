@@ -1,16 +1,16 @@
-/* R5 L3 phone hover: a fixed sight the field moves under (API: R5/L3/API.md) */
+/* R5 L3 phone hover: a fixed sight the field moves under (API: R5/L3/API.md). R7B: drawn as a tonearm, stylus on the pick */
 const HIDE = new Set(['threshold', 'game', 'bail', 'loop']), GAP = 45, R_LAB = 26, BW = 168, RS = 22, RH = 20; /* BW: reticle.css */
 const KO = '#top>*,#dots,#exdock,#atlas-dock,#atlas-info,#ai-caption,#ai-hud,.atlas-ladder-chip,.atlas-panel,section.is-active .wall,.is-active [data-keepout]';
 const CP = { capture: true, passive: true }, now = () => performance.now();
 
 export function install(ctx, view, G) {
   const doc = document, A = ctx.audio, el = doc.createElement('div'), S0 = G.stage, css = doc.createElement('link');
-  el.className = 'atlas-sight'; el.setAttribute('aria-hidden', 'true'); el.innerHTML = '<b></b><i></i><i></i><i></i><i></i><u></u><s></s>';
+  el.className = 'atlas-sight'; el.setAttribute('aria-hidden', 'true'); el.innerHTML = '<b></b><i></i><u></u><s></s>';
   el.hidden = true; css.rel = 'stylesheet'; css.href = new URL('reticle.css' + new URL(import.meta.url).search, import.meta.url).href;
   css.onload = () => { el.hidden = false; }; doc.head.appendChild(css);
   (S0 ? S0.parentNode : doc.body).insertBefore(el, S0 ? S0.nextSibling : null);
-  const rd = el.querySelector('s'), ring = el.querySelector('b');
-  let on = false, X = 0, Y = 0, cur = null, key = null, hush = false, armed = '', hand = -1e9, /* the visitor's last drag: a pill waits for one */ lastS = 0, raf = 0, ko = [], koAt = 0, lit = null, watch = 0, n = 0, why = '';
+  const rd = el.querySelector('s');
+  let on = false, X = 0, Y = 0, cur = null, key = null, hush = false, armed = '', hand = -1e9, /* the visitor's last drag: a pill waits for one */ lastS = 0, raf = 0, side = 1, aa = '', al = '', ko = [], koAt = 0, lit = null, watch = 0, n = 0, why = '';
   const room = () => { const rs = ctx.atlas && ctx.atlas.deps && ctx.atlas.deps.rooms; return (rs && rs[ctx.index]) || null; };
   const over = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 
@@ -33,6 +33,17 @@ export function install(ctx, view, G) {
     }
     return null;
   }
+  /* arm from a pivot beyond the stage's top corner; it takes the other corner when it would run over the picked label */
+  function arm() {
+    const s = ctx.stage(), L = Math.min(s.w < 600 ? 120 : 220, 400);
+    let lr = null; try { lr = lit && lit.getBoundingClientRect(); } catch (e) {}
+    const ang = (sd) => Math.atan2(s.y - 80 - Y, s.x + (sd > 0 ? s.w + 60 : -60) - X);
+    const hits = (sd) => { if (!lr || lr.width < 1) return false; const a = ang(sd); for (let t = 12; t <= L; t += 8) { const x = X + Math.cos(a) * t, y = Y + Math.sin(a) * t; if (x > lr.left - 4 && x < lr.right + 4 && y > lr.top - 4 && y < lr.bottom + 4) return true; } return false; };
+    if (hits(side) && !hits(-side)) side = -side;
+    const a = (ang(side) * 180 / Math.PI).toFixed(1) + 'deg', l = L + 'px';
+    if (a !== aa) { aa = a; el.style.setProperty('--aa', a); }
+    if (l !== al) { al = l; el.style.setProperty('--al', l); }
+  }
   function wanted() {
     const r = room(), m = G.mode;
     if (!r || !r.mod || HIDE.has(r.id) || r.mod.reticle === false) return 'stop';
@@ -44,7 +55,7 @@ export function install(ctx, view, G) {
     if (!why) { p = force || !on || now() - koAt > 700 ? place() : [X, Y]; if (!p) why = 'keepout'; }
     if (why) { if (on) { on = false; el.classList.remove('on'); const g = why === 'gesture'; setCur(null, g); hush = g; } return; }
     if (p[0] !== X || p[1] !== Y) { X = p[0]; Y = p[1]; el.style.transform = 'translate3d(' + Math.round(X) + 'px,' + Math.round(Y) + 'px,0)'; }
-    if (!on) { on = true; el.classList.add('on'); }
+    arm(); if (!on) { on = true; el.classList.add('on'); }
     sample();
   }
 
@@ -80,9 +91,9 @@ export function install(ctx, view, G) {
       if (lit) { lit.classList.remove('vx-on'); lit = null; }
       el.classList.toggle('hit', !!c); rd.textContent = c ? c.text : '';
       if (c) { lit = labOf(c); if (lit) lit.classList.add('vx-on'); el.classList.toggle('lab', !!lit); }
+      arm();
       if (quiet || hush) { hush = false; return; }
       if (!c) { A.tick(null); off(); return; }
-      if (!ctx.reduced && ring.animate) ring.animate([{ boxShadow: '0 0 0 0 #86cbfeb3' }, { boxShadow: '0 0 0 14px #86cbfe00' }], 500);
       if (A.tick(k, { fam: c.fam, plays: c.plays, deg: c.deg, kind: c.kind === 'label' || c.kind === 'control' ? c.kind : 'glyph', x: c.sx, y: c.sy }) !== undefined) n++;
       if (!c.artist) off();
     } else if (c) cur = c; else return;

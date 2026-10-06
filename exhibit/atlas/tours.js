@@ -133,15 +133,15 @@ const SHARE = {
   bail: { line: '61% of my skip-forwards came inside 5 s, most in runs.', src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#bins', 'exhibit/data/bail.json#n_in5_in_runs'] },
   listeners: { line: 'of 100 tagged jumps, do my picks cross genre more than autoplay?', src: ['exhibit/data/twolisteners.json#full_transition_crossing', 'derive:tap_cross_pct', 'derive:auto_cross_pct', 'exhibit/rooms/hundred.js'] },
   chain: { line: 'make a chain: start anywhere and follow a real link. 482 links join 293 of the 388 stars of my sky; on 264 of them i made the jump by hand at least 3 times.', src: ['exhibit/data/universe_edges.json#edges', 'derive:edge_count', 'derive:linked_node_count', 'derive:named_count', 'derive:hand_link_count', 'derive:hand_link_floor'] },
-  wall: { line: '97,427 plays poured by who started them: 19 of every 100 by my hand, 17 by shuffle, 64 by the queue running on.', src: ['exhibit/data/wall.json#total', 'exhibit/data/wall.json#pct_rounded'] },
+  wall: { line: '19 of every 100 plays started by my hand, 17 by shuffle, 64 by the queue.', src: ['exhibit/data/wall.json#total', 'exhibit/data/wall.json#pct_rounded'] },
   arrivals: { line: '6,277 artists, falling in the order of their first full play in my log. for about two in three, the queue started that play.', src: ['exhibit/data/arrivals.json#n', 'derive:arrivals_n', 'exhibit/data/arrivals.json#folded.bundled'] },
   loop: { line: 'hold to loop. 12,390 times my log shows the same song twice in a row. most of those repeats sit in streaks of 14 or more.', src: ['exhibit/data/loops.json#repeats', 'exhibit/data/loops.json#tail'] },
   wheel: { line: '5,489 listening sessions. inside them the wheel changed hands 20,688 times (bundled reading).', src: ['exhibit/data/wheel_agg.json#sessions.n', 'exhibit/data/wheel_agg.json#ruler.bundled.handoffs'] },
-  calendar: { line: 'october 2023: the app changed how it records a start. my tapped share reads 11.8% before the line and 22.7% after. nothing about me moved 10.9 points that month.', src: ['exhibit.html#calendar.say', 'exhibit.html#calendar.say.dim', 'exhibit/labels.js#calendar.swing'] },
-  clock: { line: 'at 14:00, the busiest hour of the whole log: 9,457 plays, 17.0% of them tapped. the hour is a fixed utc-7 approximation.', src: ['exhibit/data/clock.json#hours', 'derive:hour14_total', 'exhibit/data/clock.json#tap_share_by_hour', 'exhibit/labels.js#clock.hour'] },
-  map: { line: 'seven maps, each retrained on a bigger share of plays i didn’t tap. on them the same listening’s bridge index reads 0.99 at 12% and 1.46 at 100%, mean of three retrains. my headline uses no map at all.', src: ['exhibit/labels.js#map.curve', 'exhibit/labels.js#map.withdrawn'] },
-  graveyard: { line: 'pick a finding of mine and try to kill it. sixteen lie buried here and four can be run live; the report lists eighteen killed, retracted or withdrawn.', src: ['exhibit/data/killit.json#buried', 'exhibit/data/killit.json#cases', 'researcher.html#graveyard'] },
-  make: { line: 'the 81% the queue and shuffle started falls away, and the 19% i tapped becomes a wheel. i made twenty-two tracks about this log.', src: ['exhibit.html#make.say', 'exhibit/data/wall.json#pct_rounded', 'exhibit/data/tracks.json'] },
+  calendar: { line: 'october 2023: the app changed how it records what started a song. my tapped share reads 11.8% before the line and 22.7% after. nothing about me moved 10.9 points that month.', src: ['exhibit.html#calendar.say', 'exhibit.html#calendar.say.dim', 'exhibit/labels.js#calendar.swing'] },
+  clock: { line: 'my whole log folded onto one day: midnight at the top, noon at the bottom. the busiest hour is 14:00, on one fixed clock, all year.', src: ['exhibit/data/clock.json#hours', 'derive:hour14_total', 'exhibit/data/clock.json#tap_share_by_hour', 'exhibit/labels.js#clock.hour'] },
+  map: { line: 'a program learned a map of my artists from my plays. the more of its diet was songs i didn’t pick, the higher my number read on it. my headline uses no map.', src: ['exhibit/labels.js#map.curve', 'exhibit/labels.js#map.withdrawn'] },
+  graveyard: { line: 'each card is a claim i once made. press it: 150 to 500 fake versions of my data fall first. if my real number lands in that pile, the claim dies.', src: ['exhibit/data/killit.json#buried', 'exhibit/data/killit.json#cases', 'researcher.html#graveyard'] },
+  make: { line: 'the 81% falls away; the 19% i tapped becomes a wheel of my 22 tracks, placed by musical key. pick one: the glow shows which others mix cleanly with it.', src: ['exhibit.html#make.say', 'exhibit/data/wall.json#pct_rounded', 'exhibit/data/tracks.json'] },
   yours: { line: 'find your own split: drop your export, nothing leaves your tab.', src: ['exhibit.html#yours.say'] },
 };
 
@@ -149,25 +149,29 @@ const SHARE = {
 const GATES1 = 'the thirteen tests the headline faced, each written down before it ran, as doors.';
 const GATES2 = 'three slammed: two killed readings of the headline (its first form, its \'agency\' reading), one killed an embedding arm; the headline\'s direction stayed.';
 const GATES3 = 'four could never have closed, and two more were set too high to close: writing a test down first fixes the order, not the power.';
+/* R6 CAPTION8: the grand tour's plain-words gates (the verbatim gates.json three stay on the scientists tour) */
+const GATES1P = 'before each test of my main finding ran, i wrote down what result would kill it. each door is one test.';
+const GATES2P = 'three doors slammed: they killed two readings of the finding and a map-based version. the plain direction stayed.';
+const GATES3P = 'four doors could never have closed, and i set two too high to close. writing a test down first fixes the order, not its strength.';
 /* R5 R5 ghost: the referee's cap (REFEREE_APPLIED "exact copy"), split at its sentence break; the second line carries the 1.05 hedge */
-const GHOST1 = 'a simulation, not my data: in a made-up world where my picks and the algorithm\'s cross genres equally often, a map trained the same way still reads a difference, and reads more of one as the algorithm\'s share grows.';
+const GHOST1 = 'a made-up world where both kinds of song change genre equally often. a map trained the same way still sees a gap. that\'s one reason my headline uses no map.';
 const GHOST2 = 'one reason the headline uses no map: 1.05 [1.03, 1.08], a direction, not a size: how the untagged jumps are handled moves it 1.00 to 1.13; the loosest or 50-play definitions read 1.01.';
 /* the bridge-index ratio with its conditions (bi REFEREE2 C-4 / tours brief: never a bare "a third of jumps" rate) */
-const TAPS = '69.9 ÷ 66.3 = 1.05 [1.03, 1.08], the bridge index: a direction, not a size. how untagged jumps are handled moves it 1.00 to 1.13; loosest or 50-play definitions read 1.01.';
+const TAPS1 = '69.9 ÷ 66.3 = 1.05, likely 1.03 to 1.08, the bridge index: a direction, not a size. how untagged jumps are handled moves it 1.00 to 1.13; loosest or 50-play definitions read 1.01.';
 
 export const TOURS = [
   {
     // R5 §4.2: the pocket tour. every caption <= 90 chars, typed twice as fast, whole words only (76 s authored; TOURS3
     // re-paced it per CRIT6 §6, see the stop notes)
     id: 'ninety',
-    name: '90 SECONDS',
+    name: 'the single',
     blurb: 'for a phone and a minute and a half',
     capSpeed: 2, capWords: true,
     stops: [
       {
         room: 'threshold', angle: 'whole', hold: 6, gate: true,
         share: SHARE.threshold,
-        caption: '97,427 plays of mine. who started each one: me, or the app?',
+        caption: '97,427 plays in my log. i assumed i started them. who actually did?',
         src: ['exhibit/data/wall.json#total'],
       },
       {
@@ -183,22 +187,22 @@ export const TOURS = [
         // holdLeft advances at about 12.5 s; each visitor call keeps it open 12 s more, three calls max). hold 15 = the ceiling
         room: 'game', angle: 'round', hold: 15,
         share: SHARE.game,
-        caption: 'your turn: swipe who pressed play. a coin gets half.',
+        caption: 'your turn: swipe who pressed play, me or the queue. a coin gets half.',
         src: S_GAME.slice(),
       },
       {
         room: 'listeners', angle: 'hundred', hold: 8,
         share: SHARE.listeners,
-        caption: 'of 100 tagged jumps, about 70 of mine changed genre; about 66 when the queue ran on.',
+        caption: 'of 100 tagged jumps, about 70 of mine switch genre. when the queue runs on, about 66.',
         src: S_PAIR.slice(),
         then: [{
           angle: 'taps',
-          caption: '1.05 [1.03, 1.08]: a direction, not a size; handling untagged jumps moves it 1.00 to 1.13.',
+          caption: '1.05, likely 1.03 to 1.08: a direction, not a size; untagged jumps move it 1.00 to 1.13.',
           src: S_BI.slice(),
         }, {
           // TOURS3 (CRIT6 §4 P1, V4 P2-2): the other two conditions on 1.05, a second step over the same picture (90-char cap)
           angle: 'taps',
-          caption: 'the loosest or 50-play definitions read 1.01.',
+          caption: 'the loosest or 50-play definitions read 1.01. that\'s how fragile it is.',
           src: ['exhibit/labels.js#threshold.finding', 'exhibit/data/bi_conditions.json'],
         }],
       },
@@ -215,7 +219,7 @@ export const TOURS = [
         // TOURS3 (CRIT6 §6): 16 s on the most stunning stop. no scripted strum: tours.js has no demo hook (the strum is kiosk-only)
         room: 'universe', angle: 'sky', hold: 16,
         share: SHARE.universe,
-        caption: 'my {named} most-played artists. where one sits means nothing. hover or press one.',
+        caption: 'my {named} most-played artists. where one sits means nothing. press one; it sings.',
         src: ['exhibit/data/universe_nodes.json', 'derive:named_count'],
       },
       {
@@ -231,21 +235,21 @@ export const TOURS = [
     // TOURS3 (R5/CRIT6 §2): threshold, sky, wall, game, bail, listeners, chain, arrivals, clock, map, gates, pile, calendar,
     // loop, wheel, make, yours (17); the fade and ghost angles left this tour (scientists keeps both)
     id: 'grand',
-    name: 'GRAND TOUR',
+    name: 'the long play',
     blurb: 'from one play to the whole log',
     stops: [
       {
         room: 'threshold', angle: 'whole', gate: true,
         share: SHARE.threshold,
         pose: { yaw: 0, pitch: 0, z: 1 },
-        caption: 'spotify logged what i played and i assumed the log was a record of me. the queue or shuffle started four fifths of it.',
+        caption: 'every dot is a song i played. i assumed i\'d picked most of them. i started about one in five; shuffle or the queue started the rest.',
         src: ['exhibit.html#threshold.say'],
       },
       {
         // no pose: R5 R2 tuned the room's own home framing to fill >= 85% of the stage; hold 12 lets the kiosk strum finish
         room: 'universe', angle: 'sky', hold: 12,
         share: SHARE.universe,
-        caption: 'every artist i played at least 50 times is a star: {named} of them. hover or press one: it sings, and the artists most often played next to it ring along. where one sits means nothing on its own.',
+        caption: 'each star is an artist i played 50 times or more: {named} of them. colour is genre. where a star sits means nothing. press one and it sings.',
         src: ['exhibit.html#universe.say', 'exhibit/data/universe_nodes.json', 'derive:named_count', 'exhibit/data/universe_edges.json'],
       },
       {
@@ -254,18 +258,24 @@ export const TOURS = [
         room: 'wall', angle: 'unsorted', hold: 7,
         share: SHARE.wall,
         pose: { z: 1 },
-        caption: '97,427 plays, every one the same colour. before they pour: of every 100, how many do you think i started by hand?',
+        caption: '97,427 plays, all one colour for now. guess before they pour: of every 100, how many did i start by hand?',
         src: ['exhibit/data/wall.json#total'],
         then: [
           {
             angle: 'pour',
-            caption: '97,427 plays poured by who started them: 19 of every 100 by my hand, 17 by shuffle, 64 by the queue running on.',
-            src: ['exhibit/data/wall.json#total', 'exhibit/data/wall.json#pct_rounded'],
+            caption: 'mint: i picked it, 19 in 100. amber: shuffle, 17. violet: it just played on next, 64.',
+            src: ['exhibit/data/wall.json#total', 'exhibit/data/wall.json#pct_rounded', 'exhibit/labels.js#wall.the pour'],
+          },
+          {
+            // R6 ME: the by-hand tally needs about 5.4 s after the pour lands; a second step over the same pour holds the picture (tour.js then dwell 6 s)
+            angle: 'pour',
+            caption: 'one song lifts out of the mint jar: Outside the Lines · Phaeleh. i pressed play on it by hand 99 times.',
+            src: ['exhibit/data/by_hand.json'],
           },
           {
             // also chrome.js's off-tour caption for a sorted wall (pickCaption reads the grand tour), so it never shows the question
             angle: 'sorted',
-            caption: 'the same plays back on the wall, in three piles by who started them. tap a pile to fly to it.',
+            caption: 'same plays, back on the wall in three piles: mine, shuffle\'s, the queue\'s. tap a pile to go there.',
             src: ['exhibit/rooms/wall.js#flyPile'],
           },
         ],
@@ -276,18 +286,18 @@ export const TOURS = [
         room: 'game', angle: 'round', hold: 15,
         share: SHARE.game,
         pose: { z: 1 },
-        caption: 'one of two things started each song here: my hand or the queue. swipe your guess. a coin gets half; see if you can do better.',
+        caption: 'two songs from my log, back to back. did i pick the second one, or did it just come on next? your call. a coin gets half right.',
         src: S_GAME.slice(),
       },
       {
         // R5 N1 bail (REFEREE_APPLIED #1 and #5, verbatim): the demo thumb holds 2.6 s and drops; the then turns to the 30-second line
         room: 'bail', angle: 'heap', hold: 9,
         share: SHARE.bail,
-        caption: 'hold to listen, let go when you’d skip. of the 12,441 times i pressed skip-forward, 7,559 came inside five seconds.',
+        caption: 'hold to listen, let go when you’d skip. i pressed skip-forward 12,441 times; 7,559 of those came inside five seconds.',
         src: ['exhibit/data/bail.json'],
         then: [{
           angle: 'line',
-          caption: '9,537 of these skip-forwards stopped before the line. across all 125,388 track rows, 27,961 never reached it.',
+          caption: 'spotify only counts a play after 30 seconds: that\'s the line. 9,537 of my skip-forward presses came before it.',
           src: ['exhibit/data/bail.json', 'derive:bail_pre30'],
         }],
       },
@@ -296,15 +306,23 @@ export const TOURS = [
         // stays in scientists and one angle away
         room: 'listeners', angle: 'hundred', hold: 9,
         share: SHARE.listeners,
-        caption: '100 jumps between two genre-tagged artists. when i picked the next song, about 70 crossed into another genre; when autoplay ran on (the next song starting on its own, shuffle off), about 66.',
+        caption: '100 jumps between two genre-tagged artists. when i picked the next song, about 70 switched genre. when autoplay ran on (the next song starting by itself, shuffle off), about 66.',
         src: S_PAIR.slice(),
-        then: [{ angle: 'taps', caption: TAPS, src: S_BI.slice() }],
+        then: [{
+          angle: 'taps',
+          caption: '69.9 ÷ 66.3 = 1.05, likely 1.03 to 1.08. i call it the bridge index. a direction, not a size.',
+          src: S_BI.slice(),
+        }, {
+          angle: 'taps',
+          caption: 'and it\'s fragile. how i count jumps to untagged artists moves it anywhere from 1.00 to 1.13; the loosest or 50-play definitions read 1.01.',
+          src: ['exhibit/labels.js#threshold.finding', 'exhibit/data/bi_conditions.json'],
+        }],
       },
       {
         // hold 11: the room's kiosk demo (five hops from Phaeleh, then the riff) runs about 10 s
         room: 'chain', angle: 'all', hold: 11,
         share: SHARE.chain,
-        caption: 'make a chain: start anywhere and follow a real link. 482 links join 293 of the 388 stars of my sky; on 264 of them i made the jump by hand at least 3 times.',
+        caption: 'a line joins two artists i played back to back. mint: i made that jump myself. violet: it just came on next. build a chain and hear it.',
         src: S_EDGES.slice(),
       },
       {
@@ -318,14 +336,14 @@ export const TOURS = [
         /* no pose, same reason: 'busiest' is hourPose() on hour 14, fitted so the wedge and the readout stay whole */
         room: 'clock', angle: 'busiest',
         share: SHARE.clock,
-        caption: 'at 14:00, the busiest hour of the whole log: 9,457 plays, 17.0% of them tapped. the hour is a fixed utc-7 approximation.',
+        caption: 'my whole log folded onto one day: midnight at the top, noon at the bottom. the busiest hour is 14:00, on one fixed clock, all year.',
         src: ['exhibit/data/clock.json#hours', 'derive:hour14_total', 'exhibit/data/clock.json#tap_share_by_hour', 'exhibit/labels.js#clock.hour'],
       },
       {
         room: 'map', angle: 'm12', then: ['m100', 'curve'],
         share: SHARE.map,
         pose: { z: 1 },
-        caption: 'seven maps, each retrained on a bigger share of plays i didn’t tap. on them the same listening’s bridge index reads 0.99 at 12% and 1.46 at 100%, mean of three retrains. my headline uses no map at all.',
+        caption: 'a program learned a map of my artists from my plays. the more of its diet was songs i didn’t pick, the higher my number read on it. my headline uses no map.',
         src: ['exhibit/labels.js#map.curve', 'exhibit/labels.js#map.withdrawn'],
       },
       {
@@ -334,11 +352,11 @@ export const TOURS = [
         // embedding arm) and before the pile. no pose: the gates angle frames the doors itself
         room: 'graveyard', angle: 'gates', hold: 7,
         share: SHARE.graveyard,
-        caption: GATES1,
+        caption: GATES1P,
         src: S_GATES.slice(),
         then: [
-          { angle: 'gates', caption: GATES2, src: S_GATES.slice() },
-          { angle: 'gates', caption: GATES3, src: S_GATES.slice() },
+          { angle: 'gates', caption: GATES2P, src: S_GATES.slice() },
+          { angle: 'gates', caption: GATES3P, src: S_GATES.slice() },
         ],
       },
       {
@@ -346,22 +364,22 @@ export const TOURS = [
         room: 'graveyard', angle: 'kill',
         share: SHARE.graveyard,
         pose: { z: 1 },
-        caption: 'pick a finding of mine and try to kill it. sixteen lie buried here and four can be run live; the report lists eighteen killed, retracted or withdrawn.',
-        src: ['exhibit/data/killit.json#buried', 'exhibit/data/killit.json#cases', 'researcher.html#graveyard'],
+        caption: 'each card is a claim i once made. press it: 150 to 500 fake versions of my data fall first. if my real number lands in that pile, the claim dies.',
+        src: ['exhibit/data/killit.json#buried', 'exhibit/data/killit.json#cases', 'researcher.html#graveyard', 'exhibit/labels.js#graveyard.what falls'],
       },
       {
         /* no pose: the room's own 'line' angle frames the break (linePose, z <= 1.6, fitted to the stage). a hand-set
            {z:2.4, look:'break'} put the baseline under the fold and the swing under the ladder (fix r3; framing gate) */
         room: 'calendar', angle: 'line',
         share: SHARE.calendar,
-        caption: 'october 2023: the app changed how it records a start. my tapped share reads 11.8% before the line and 22.7% after. nothing about me moved 10.9 points that month.',
+        caption: 'october 2023: the app changed how it records what started a song. my tapped share reads 11.8% before the line and 22.7% after. nothing about me moved 10.9 points that month.',
         src: ['exhibit.html#calendar.say', 'exhibit.html#calendar.say.dim'],
       },
       {
         // R5 N4 loop (REFEREE_APPLIED P1-1 verbatim; pass 3 "my log counts"); hold 13 covers the five-loop demo
         room: 'loop', angle: 'tower', hold: 13,
         share: SHARE.loop,
-        caption: 'hold to loop. 12,390 times my log shows the same song twice in a row. most of those repeats sit in streaks of 14 or more.',
+        caption: 'a pedalboard of my repeats, one ring per run length. twice is a solid ring; fifty or more is 35 glyphs you can count.',
         src: ['exhibit/data/loops.json'],
         then: [{
           angle: 'ten',
@@ -374,11 +392,11 @@ export const TOURS = [
         // named ruler's own count. the strict then is also chrome.js's off-tour caption for the strict ruler
         room: 'wheel', angle: 'bundled', hold: 11,
         share: SHARE.wheel,
-        caption: '5,489 listening sessions. inside them the wheel changed hands 20,688 times (bundled reading). mint = runs i started by hand, violet = runs i didn’t start by hand.',
-        src: ['exhibit/data/wheel_agg.json#sessions.n', 'exhibit/data/wheel_agg.json#ruler.bundled.handoffs'],
+        caption: 'a run is songs in a row started the same way. mint bars: runs i started. violet: runs i didn’t. most of mine are one song long.',
+        src: ['exhibit/data/wheel_agg.json#ruler.bundled'],
         then: [{
           angle: 'strict',
-          caption: '5,489 listening sessions. inside them the wheel changed hands 14,795 times (strict reading). mint = runs i started by hand, violet = runs i didn’t start by hand.',
+          caption: '5,489 listening sessions. on the strict reading the wheel changed hands 14,795 times inside them. mint: runs i started by hand. violet: runs i didn’t.',
           src: ['exhibit/data/wheel_agg.json#sessions.n', 'exhibit/data/wheel_agg.json#ruler.strict.handoffs'],
         }],
       },
@@ -386,7 +404,7 @@ export const TOURS = [
         room: 'make', angle: 'wheel',
         share: SHARE.make,
         pose: { z: 1 },
-        caption: 'the 81% the queue and shuffle started falls away, and the 19% i tapped becomes a wheel. i made twenty-two tracks about this log.',
+        caption: 'the 81% falls away; the 19% i tapped becomes a wheel of my 22 tracks, placed by musical key. pick one: the glow shows which others mix cleanly with it.',
         src: ['exhibit.html#make.say', 'exhibit/data/tracks.json'],
       },
       {
@@ -405,7 +423,7 @@ export const TOURS = [
   {
     // R5 §4.3: the 45-second pitch. the id stays 'minute' so the door's #tour=minute links keep working
     id: 'minute',
-    name: 'THE PITCH · 45 S',
+    name: 'the radio edit',
     blurb: 'for builders and investors',
     capSpeed: 2, capWords: true,
     stops: [
@@ -418,13 +436,13 @@ export const TOURS = [
       {
         room: 'wall', angle: 'pour', hold: 6,
         share: SHARE.wall,
-        caption: '81 of every 100 plays started without my hand (the broad reading).',
+        caption: '81 of every 100 plays started without my hand. and that\'s the generous reading.',
         src: ['exhibit/data/wall.json#pct_rounded', 'exhibit.html#make.say'],
       },
       {
         room: 'listeners', angle: 'hundred', hold: 7,
         share: SHARE.listeners,
-        caption: 'of 100 tagged jumps, about 70 of mine changed genre; about 66 when the queue ran on. a direction, not a size; loosest rules: even.',
+        caption: 'of 100 tagged jumps, about 70 of mine switch genre, about 66 of the queue\'s. a direction, not a size. loosest rules: a tie.',
         src: S_PAIR.slice(),
       },
       {
@@ -437,8 +455,8 @@ export const TOURS = [
       {
         room: 'bail', angle: 'heap', hold: 6,
         share: SHARE.bail,
-        caption: '61% of my skip-forward presses came inside five seconds.',
-        src: ['exhibit/data/bail.json#pct_in5'],
+        caption: '61% of my skip-forward presses came inside five seconds, most in runs.',
+        src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#n_in5_in_runs'],
       },
       {
         room: 'calendar', angle: 'line', hold: 7,
@@ -457,7 +475,7 @@ export const TOURS = [
   {
     // R5 §4.4
     id: 'scientists',
-    name: 'FOR SCIENTISTS',
+    name: 'liner notes for scientists',
     blurb: 'the claim, the instrument failure, the kill conditions',
     stops: [
       {
@@ -475,12 +493,12 @@ export const TOURS = [
         then: [
           {
             angle: 'taps',
-            caption: 'bridge index 1.05 [1.03, 1.08]: a direction, not a size. a third of my jumps and two fifths of autoplay\'s carry no genre tag; how they are handled moves the index 1.00 to 1.13. loosest definitions: 1.01.',
+            caption: 'bridge index 1.05, likely 1.03 to 1.08: a direction, not a size. a third of my jumps and two fifths of autoplay\'s carry no genre tag; how they are handled moves the index 1.00 to 1.13. loosest definitions: 1.01.',
             src: ['exhibit/labels.js#threshold.finding', 'exhibit/data/bi_conditions.json'],
           },
           {
             angle: 'fade',
-            caption: 'the pre-declared sweep, strict tap vs queue: raise the play floor; its bracket clears 1 only up to 20 plays. the drop is real, not just fewer jumps: at 50 plays the index sits 0.045 [0.026, 0.063] below where it started.',
+            caption: 'a dial that drops my rarely played artists, step by step. while the bracket stays right of the dashed 1.00, the direction holds: up to 20 plays. by 50 plays the index sits 0.045 lower.',
             src: ['exhibit/data/bi_conditions.json'],
           },
         ],
@@ -488,7 +506,7 @@ export const TOURS = [
       {
         room: 'map', angle: 'curve',
         share: SHARE.map,
-        caption: 'leakage: on maps retrained with a bigger share of plays i didn’t tap, the same bridge index climbs from 0.99 to 1.46. the first reading, 1.61, was withdrawn. my headline uses no map.',
+        caption: 'leakage. retrain an embedding (a learned artist map) on a bigger share of plays i didn’t tap and the same bridge index climbs from 0.99 to 1.46. my first reading, 1.61, came off one; withdrawn. my headline uses no map.',
         src: ['exhibit/labels.js#map.curve', 'exhibit/labels.js#map.withdrawn'],
       },
       {
@@ -502,14 +520,14 @@ export const TOURS = [
       {
         room: 'graveyard', angle: 'kill',
         share: SHARE.graveyard,
-        caption: 'each card is one of my own tests. the pile is the same data with the effect scrambled, 150 to 500 times. inside the pile, the finding dies.',
+        caption: 'each card is a claim i once made. press it: 150 to 500 fake versions of my data fall first. if my real number lands in that pile, the claim dies.',
         src: ['exhibit/labels.js#graveyard.what falls', 'exhibit/labels.js#graveyard.verdict'],
       },
       {
         // VERIFY_2 #1: the referee's settled, unit-free string (no "counted by X" claim). R5 R6: the gates follow
         room: 'graveyard', angle: 'survive',
         share: SHARE.graveyard,
-        caption: 'this one stood outside its pile: 0 of 150 same-sized random groups came as far. it is a check i added after the fact, and it counts plays.',
+        caption: 'this one stood outside its pile: 0 of 150 same-sized random groups came as far. but i added this check after the fact, and it counts plays.',
         src: ['exhibit/data/killit.json#cases.3.c', 'exhibit/data/killit.json#cases.3.x'],
         then: [{ angle: 'gates', caption: GATES1, src: S_GATES.slice() }],
       },
@@ -523,7 +541,7 @@ export const TOURS = [
       {
         room: 'wall', angle: 'sorted',
         share: SHARE.wall,
-        caption: 'the instrument again: 19 in every 100 plays i tapped by the broad reading, 11.5 by the strictest (play button, track row, remote).',
+        caption: 'back to the instrument. on the broad reading i tapped 19 in every 100 plays; on the strictest (play button, track row, remote), 11.5.',
         src: ['exhibit/labels.js#wall.split', 'exhibit/labels.js#game.labels', 'exhibit/data/wall.json#pct_rounded', 'exhibit/labels.js#calendar.survived'],
       },
       {
@@ -556,13 +574,13 @@ export const TOURS = [
       {
         room: 'calendar', angle: 'line',
         share: SHARE.calendar,
-        caption: 'instrument failure: the bundled tapped rate reads 11.8% before october 2023 and 22.7% after, against a stability bar of 3 points written down first. the strict set swings 1.87 points.',
+        caption: 'instrument failure: the bundled tapped rate reads 11.8% before october 2023 and 22.7% after, against a stability bar of 3 points i wrote down first. the strict set swings 1.87 points.',
         src: ['exhibit/labels.js#calendar.swing', 'exhibit/labels.js#calendar.survived'],
       },
       {
         room: 'yours', angle: 'bars',
         share: SHARE.yours,
-        caption: 'run the same split on your own export, in this tab: the same field, the same broad ruler on both sides. nothing is uploaded.',
+        caption: 'run the same split on your own export, in this tab: same field, same broad ruler on both sides. nothing is uploaded.',
         src: ['exhibit.html#yours.say'],
       },
     ],
@@ -570,7 +588,7 @@ export const TOURS = [
   {
     // R5 §4.5
     id: 'musicians',
-    name: 'FOR MUSICIANS',
+    name: 'liner notes for musicians',
     blurb: 'keys, transitions, the soundtrack, the sky',
     stops: [
       {
@@ -615,13 +633,13 @@ export const TOURS = [
       {
         room: 'listeners', angle: 'hundred', hold: 9,
         share: SHARE.listeners,
-        caption: 'two voices, one ear each: my picks left, autoplay’s right. of 100 jumps between tagged artists, about 70 and about 66 crossed genre. the left plays on alone.',
+        caption: 'two voices, one per ear: my picks on the left, autoplay on the right. of 100 jumps between tagged artists, about 70 and about 66 switch genre. the left plays on alone.',
         src: S_PAIR.slice(),
         then: [
-          { angle: 'taps', caption: TAPS, src: S_BI.slice() },
+          { angle: 'taps', caption: TAPS1, src: S_BI.slice() },
           {
             angle: 'autoplay',
-            caption: '4,876 tapped jumps against 26,938 autoplay jumps, autoplay being the next song starting on its own, shuffle off. the rate is what the number compares, not the count of lines.',
+            caption: '4,876 jumps of mine, 26,938 of autoplay’s (the next song starting on its own, shuffle off). autoplay draws more lines; the number compares rates, not lines.',
             src: ['exhibit/data/twolisteners.json#full_transition_crossing', 'exhibit/rooms/listeners.js#.lst-why'],
           },
         ],
@@ -644,8 +662,8 @@ export const TOURS = [
   {
     // R5 §4.6
     id: 'artists',
-    name: 'FOR ARTISTS & DESIGNERS',
-    blurb: 'the most beautiful views',
+    name: 'liner notes for artists & designers',
+    blurb: 'the views i\'d frame and hang',
     stops: [
       {
         room: 'threshold', angle: 'close', gate: true,
@@ -683,14 +701,14 @@ export const TOURS = [
         // R5 N5 wheel: the two skylines (the rows/textile view is held: wheel_rows not cleared this round)
         room: 'wheel', angle: 'bundled', hold: 10,
         share: SHARE.wheel,
-        caption: 'two skylines out of 5,489 sessions: mint = runs i started by hand, violet = runs i didn’t start by hand. each one plays back as a phrase.',
+        caption: 'two skylines out of 5,489 sessions: mint is runs i started by hand, violet is runs i didn’t. each one plays back as a phrase.',
         src: ['exhibit/data/wheel_agg.json#sessions.n'],
       },
       {
         // R5 N4 loop: the tower
         room: 'loop', angle: 'tower', hold: 12,
         share: SHARE.loop,
-        caption: 'a tower of my repeats, a floor per streak length. the long floors at the top hold most of the 12,390.',
+        caption: 'a pedalboard of my repeats, one ring per run length. twice is a solid ring; fifty or more is 35 glyphs you can count.',
         src: ['exhibit/data/loops.json'],
       },
       {

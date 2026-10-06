@@ -1,18 +1,14 @@
 /* room 7: tap a claim. the field falls into a null histogram (amber: a null is chance), then my
    real number drops in last as one ink mark. buried = killed, outside = survived.
    data: exhibit/data/killit.json.
-   atlas mode (BUILD_SPEC_V2 §3 graveyard row): a pan stop. at rest the ground is a small cemetery drawn in glyphs,
-   one grave per buried finding (sixteen, the count in killit.json), and each grave carries its finding's name as a
-   [ label ]: except two whose names touch a date, which stay in the room's own list only until the owner says
-   otherwise. a run turns every dot into the null family's glyphs on a grid cut to the pile's own bins, and the killed
-   marker rises exactly to the rendered top of its column's glyph stack (the same quantisation as the sand, so
-   "buried" stays true). the angles are the ground, a kill (case 0) and a survivor (case 3, the hip-hop test). */
+   atlas (BUILD_SPEC_V2 §3): at rest a glyph cemetery, one grave per buried finding, each named by a label (two that
+   touch a date stay in the list). a run grids the null's glyphs to the pile's bins; angles: ground, a kill, a survivor. */
 
 const SHORT = [
   'even on a relearned map, my picks bridge more than autoplay does',
   'my network has real topological loops, not just tight clusters',
   'when i tap, i cross genre-families more than habit alone predicts',
-  'hip-hop/r&b is a genre i actually pick, not bucket-size noise',
+  'by play, hip-hop/r&b is over-tapped beyond bucket-size noise; per track it reverses',
 ];
 const NULL_TXT = "a null is what the number looks like when the effect isn't there. i scramble the part that would carry the effect and recompute, hundreds of times.";
 const STONE_LINE = 'sixteen of my findings died this way.';
@@ -23,7 +19,7 @@ const CAVEAT = 'four of my pre-declared tests are runnable here. two survived. t
    wall label says; killit's sixteen buried are separate from the four cards, and not all of them died against a pile.
    the hip-hop card claims only what case 3 tested, a per-play ratio against play-count-matched random groups: no intent,
    no unit other than plays (R2_VERIFY_2_honesty P1-4) */
-const SHORT_A = [SHORT[0], SHORT[1], 'when i tap, i cross genre-families more than a model pooled over my taps and autoplay predicts', 'by play, hip-hop/r&b is over-tapped beyond bucket-size noise'];
+const SHORT_A = [SHORT[0], SHORT[1], 'when i tap, i cross genre-families more than a model pooled over my taps and autoplay predicts', 'by play, hip-hop/r&b is over-tapped beyond bucket-size noise; per track it reverses'];
 const TAG_A = { 3: '(added after)' };
 const STONE_A = 'sixteen more are buried in the lab.';
 const CAVEAT_A = 'four of my tests are runnable here; the hip-hop one is a check i added after the fact. two survived. sixteen other kills are in the lab, and most of them are not this pretty.';
@@ -60,16 +56,14 @@ const TPL = `<div class="gv-pn">
 </div>
 <p class="gv-caveat"></p>
 </div>`;
-/* atlas (verify r3 P1-11): the pile owns the middle of the stage. above it one mono line, [ the claim ▾ ]: the claim is
+/* atlas (verify r3 P1-11): the pile owns the middle of the stage. above it one mono line, the claim ▾: the claim is
    the card that runs, the ▾ opens the other three in place. under the mine marker the verdict is a plate: the verdict,
    its numbers, then in finer print what the test found and the rule it was judged by, word for word as ?atlas=0 prints
    them (round 2, W33: every number the old room showed is on screen after a run, the rule's 5% / 10% included). the rest
    (what a null is, the sixteen, the caveat) is a foot in the wall text, folded away under more ▾ */
 const TPL_A = `<div class="gv-pn gv-pick">
-<span class="gv-br" aria-hidden="true">[</span>
 <div class="gv-cards" id="gv-cards" role="group" aria-label="my findings: pick one and try to kill it"></div>
 <button type="button" class="gv-drop" aria-expanded="false" aria-controls="gv-cards" aria-label="the other findings"><span aria-hidden="true">▾</span></button>
-<span class="gv-br" aria-hidden="true">]</span>
 <button type="button" class="gv-again" hidden aria-label="back to the graves" title="back to the graves"><span aria-hidden="true">↺</span></button>
 </div>
 <div class="gv-result" hidden>
@@ -134,7 +128,6 @@ const S_ = 'html.atlas section[data-room=graveyard] ';
 const CSS_A = [
   S_ + '.gv-pick{position:absolute;display:flex;align-items:flex-start;gap:2px;pointer-events:none;font:500 12.5px/1.35 var(--mono);color:var(--ink)}',
   S_ + '.gv-pick>*{pointer-events:auto}',
-  S_ + '.gv-br{flex:0 0 auto;line-height:44px;color:var(--ice);opacity:.75;padding:0 2px}',
   S_ + '.gv-cards{flex:0 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}',
   S_ + '.gv-card{display:flex;align-items:center;min-height:44px;width:100%;padding:0 4px;border:0;border-radius:4px;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}',
   S_ + '.gv-card>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
@@ -303,6 +296,7 @@ export default {
       this.cd.replaceWith(p);
     }
     this.ready = true;
+    if (A) import('./graveyard.dead.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx)).catch(() => {});
     this.checkScroll();
   },
   /* atlas controls: the ▾ opens the claims in place (escape or a press anywhere else folds them), the ↺ goes back to the
@@ -977,7 +971,7 @@ export default {
   cRect(x, y, text) {
     const c = this._mc || (this._mc = document.createElement('canvas').getContext('2d'));
     c.font = '400 11px "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace';
-    const t = String(text), w = c.measureText(t + '[  ]').width + (t.length + 4) * 0.66 + 8 + 3, left = x - (w - 3) / 2;
+    const t = String(text), w = c.measureText(t).width + t.length * 0.66 + 8 + 3, left = x - (w - 3) / 2;
     return { left, top: y - 9.5, right: left + w, bottom: y + 9.5 };
   },
   /* the chrome the label layer keeps names off (anchors.js refreshKeepouts, the same selectors), as viewport rects */
@@ -1005,16 +999,16 @@ export default {
     const c = this.cases[this.curCase], pr = this.pileRect; if (!c || !pr) return null;
     const cn = c.cn, bins = cn.length, maxC = Math.max.apply(null, cn) || 1, base = pr.y + pr.h;
     const frac = Math.min(1, Math.max(0, (c.o - c.lo) / (c.w * bins))), b = Math.min(bins - 1, Math.max(0, Math.floor(frac * bins)));
-    /* [ mine ] at the top of the buried line for a kill, halfway up the pole for a survivor */
+    /* mine at the top of the buried line for a kill, halfway up the pole for a survivor */
     return { x: pr.x + frac * pr.w * AX, y: c.v === 'k' ? base - pr.h * (cn[b] / maxC) : base - pr.h * 0.45 };
   },
-  /* where anchors.js will put an [ obj ] label anchored at (x, y) (home pose, so world = screen): up-right, or the next
+  /* where anchors.js will put an obj label anchored at (x, y) (home pose, so world = screen): up-right, or the next
      corner that fits the window (a name near a phone's right edge flips left, back over the pile, which the r3 phone
      shots showed). the width is anchors.js's own measure: canvas metrics of its 11px mono + letter-spacing + padding */
   labRect(x, y, text) {
     const c = this._mc || (this._mc = document.createElement('canvas').getContext('2d'));
     c.font = '400 11px "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace';
-    const t = String(text), w = c.measureText(t + '[  ]').width + (t.length + 4) * 0.66 + 8 + 3, h = 19, off = 3 * 0.72 + 6, M = 8, W = innerWidth, H = innerHeight;
+    const t = String(text), w = c.measureText(t).width + t.length * 0.66 + 8 + 3, h = 19, off = 3 * 0.72 + 6, M = 8, W = innerWidth, H = innerHeight;
     for (const [qx, qy] of [[1, -1], [-1, -1], [1, 1], [-1, 1]]) {
       const left = qx > 0 ? x + off : x - off - (w - 3), top = qy < 0 ? y - off - h : y + off;
       if (left >= M && top >= M && left + w <= W - M && top + h <= H - M) return { left, top, right: left + w, bottom: top + h };

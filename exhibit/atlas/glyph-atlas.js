@@ -4,32 +4,41 @@
    readback cannot be trusted (Brave farbling, Firefox resistFingerprinting, a throwing getImageData) the whole atlas
    comes from the 5x9 bitmap font below instead, in a fixed order. no DOM is touched except a detached canvas. */
 
-export const RAMP_CHARS = ".':;+*o%#&8@$W";           /* 14 continuous candidates */
-export const DIR_CHARS = '-/|\\';                     /* directional edge glyphs, by edge angle 0, 45, 90, 135 deg */
-/* categorical families (§6.4, D2). four ink levels each, every shape owned by one family: a character names one family
-   and nothing else, and none of them is an outline glyph (- / | \ trace an edge in cat mode too, so the queue's single
-   line is the low `_`, never a mid-height dash). full cells weave the top two levels, partial cells step down the rest */
+/* continuous ramp: a dial, not ASCII art. a pin dot, rings that open, discs that fill (quarter, half, full) like a record
+   or volume knob; none shared with a family, edge or trail mark; all single-cell in the shipped font; bitmap rows below */
+export const RAMP_CHARS = "∙◦◠◌◇○◖◔◐◓◕◎◍●";
+/* edges by angle 0, 45, 90, 135 deg: drawn rules spanning the cell, so an outline or bright trail joins into a line */
+export const DIR_CHARS = '─╱│╲';
+/* categorical families (§6.4, D2): one instrument mark per arm, four ink levels, one owner per shape, none an edge: the
+   groove's arcs, the hand's tally, dice pips (a zigzag, never a dash), the conveyor's rails, the null pile's bricks, a
+   hatch. the character only names the mark: each is drawn from its bitmap row (none is in the font subset), inset so it
+   never joins a neighbour as an edge does. full cells weave the top two levels, partial cells step down the rest */
 export const FAMILY_IDS = ['neutral', 'tap', 'shuffle', 'served', 'null', 'ink'];
-export const FAMILIES = { neutral: ".'+*", tap: '°oO@', shuffle: '×xX%', served: '_=≡≣', null: ',:;8', ink: '"^#H' };
+export const FAMILIES = { neutral: '‿◡⌣⏝', tap: 'ı‖⦀⫴', shuffle: '⚀⚁⚂⚃', served: '⎽⎯⚍⚌', null: '▂▃▅▆', ink: '∕⫽⫻▩' };
 export const FONT_STACK = '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace';
 /* trail marks (K1 lines). a faint trail steps between ' · . by where the line crosses the cell (top, middle, bottom), so a
-   shallow slope reads at three times the row pitch; a bright one does the same with ¯ - _. · and ¦ belong to no family, so
-   a trail in a categorical room is never read as a category. the mask order is fixed: the renderer indexes it */
-export const LINE_CHARS = '·¦¯';
+   shallow slope reads at three times the row pitch; a bright one with the rules ▔ ─ ▁. none is a family's, so a trail
+   is never read as a category. the mask order is fixed: the renderer indexes it */
+export const LINE_CHARS = "'·.▔▁¦:";
+const FAM_CHARS = FAMILY_IDS.map((f) => FAMILIES[f]).join(''), JOIN = DIR_CHARS + '▔▁';
 /* atlas slot order: 0 is the blank cell, then every distinct character once */
-export const CHARS = (() => { const s = [' ']; for (const c of RAMP_CHARS + DIR_CHARS + FAMILY_IDS.map((f) => FAMILIES[f]).join('') + LINE_CHARS) if (s.indexOf(c) < 0) s.push(c); return s; })();
-/* the non-ASCII marks: each is checked for tofu once the font draws. '≡' falls back to a bold '=' (§6.4), the rest to their
-   bitmap shape below */
-const TOFU = CHARS.filter((c) => c.charCodeAt(0) > 126);
+export const CHARS = (() => { const s = [' ']; for (const c of RAMP_CHARS + DIR_CHARS + FAM_CHARS + LINE_CHARS) if (s.indexOf(c) < 0) s.push(c); return s; })();
+/* always drawn from the bitmap, so every platform draws the same shape */
+const BM_ONLY = new Set(FAM_CHARS + JOIN);
+/* the other non-ASCII marks are checked for tofu once the font draws, and fall back to their bitmap shape below */
+const TOFU = CHARS.filter((c) => c.charCodeAt(0) > 126 && !BM_ONLY.has(c));
 
 /* the fallback font: 5 columns x 9 rows per glyph, one base-32 digit per row, leftmost pixel = 16 */
 const BITMAP = {
-  '.': '000000040', "'": '044000000', ':': '000400040', ';': '000400048', '+': '00044v440', '*': '004lel400',
-  o: '000ehhhe0', O: '0ehhhhhe0', '%': '0op248j30', '#': '0aavavaa0', '&': '0cik8lid0', 8: '0ehhehhe0',
-  '@': '0ehnlnge0', $: '4fkke55u4', W: '0hhhllrh0', '-': '0000v0000', '/': '011248gg0', '|': '444444444',
-  '\\': '0gg842110', x: '000ha4ah0', X: '0hha4ahh0', '=': '000v0v000', '≡': '00v0v0v00', '^': '04ah00000', H: '0hhhvhhh0',
-  '°': '0eae00000', '×': '000a4a000', _: '00000000v', '≣': '0v0v0v0v0', ',': '000000448', '"': '0aa000000',
-  '·': '000040000', '¦': '044400444', '¯': '0v0000000',
+  '.': '000000040', "'": '044000000', ':': '000400040', '·': '000040000', '¦': '044400444',
+  '─': '0000v0000', '╱': '1122488gg', '│': '444444444', '╲': 'gg8842211', '▔': 'v00000000', '▁': '00000000v',
+  '‿': '00000he00', '◡': '0000hhe00', '⌣': '0000hre00', '⏝': '000hree00', 'ı': '000444400', '‖': '00aaaaa00',
+  '⦀': '00lllll00', '⫴': '0lllllll0', '⚀': '000oo0000', '⚁': '330000330', '⚂': '330oo0330', '⚃': '770ss0770',
+  '⎽': '000000e00', '⎯': '000000v00', '⚍': '00e000v00', '⚌': '00v000vv0', '▂': '000000ee0', '▃': '0000eeee0',
+  '▅': '00eeeeee0', '▆': '00vvvvvv0', '∕': '000248000', '⫽': '0025ak800', '⫻': '012lak8g0', '▩': '0halalah0',
+  '∙': '0000e0000', '◦': '000eae000', '◠': '000eh0000', '◌': '00ah0ha00', '◇': '04ahhha40', '○': '00ehhhe00',
+  '◖': '006eee600', '◔': '00enjhe00', '◐': '00epppe00', '◓': '00ehvve00', '◕': '00etvve00', '◎': '00ehlhe00',
+  '◍': '00evvve00', '●': '0evvvvve0',
 };
 
 let docCanvas = null;
@@ -60,8 +69,8 @@ export function probeReadback() {
 }
 
 /* draw every slot with the real font; returns alpha per pixel (Uint8Array cw*ch per slot) or null if readback fails */
-function drawFont(cw, ch, weight, eqBold) {
-  const n = CHARS.length, W = cw * (n + 2), g = canvas(W, ch);
+function drawFont(cw, ch, weight) {
+  const n = CHARS.length, W = cw * (n + 1), g = canvas(W, ch);
   if (!g) return null;
   const px = Math.max(4, Math.min(cw / 0.6, ch / 1.08));
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, ch);
@@ -72,13 +81,13 @@ function drawFont(cw, ch, weight, eqBold) {
     g.fillText(c, k * cw + cw / 2, ch / 2 + px * 0.03);
     g.restore();
   };
-  for (let k = 1; k < n; k++) draw(CHARS[k] === '≡' && eqBold ? '=' : CHARS[k], k, CHARS[k] === '≡' && eqBold ? 800 : weight);
-  /* two extra slots for the tofu test: a private-use codepoint (no font has it) and a bold '=' for the fallback */
-  draw('', n, weight); draw('=', n + 1, 800);
+  for (let k = 1; k < n; k++) if (!BM_ONLY.has(CHARS[k])) draw(CHARS[k], k, weight);
+  /* one extra slot for the tofu test: a private-use codepoint (no font has it) */
+  draw('', n, weight);
   let d;
   try { d = g.getImageData(0, 0, W, ch).data; } catch (e) { return null; }
   const out = [];
-  for (let k = 0; k < n + 2; k++) {
+  for (let k = 0; k < n + 1; k++) {
     const a = new Uint8Array(cw * ch);
     for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) a[y * cw + x] = d[(y * W + k * cw + x) * 4 + 3];
     out.push(a);
@@ -91,9 +100,10 @@ function drawBitmap(cw, ch) {
   for (let k = 0; k < CHARS.length; k++) {
     const a = new Uint8Array(cw * ch), rows = BITMAP[CHARS[k]];
     if (rows) {
-      /* nearest-neighbour scale of the 5x9 cell, inset so neighbouring glyphs keep a gap. each output pixel ORs the
-         source pixels it covers, so shrinking below 5x9 never drops a one-pixel stroke ('-' at 4x7) */
-      const gx = Math.max(0, Math.floor(cw * 0.1)), gw = Math.max(3, Math.min(cw, cw - gx * 2)), gh = ch, R = [];
+      /* nearest-neighbour scale of the 5x9 cell, inset so neighbours keep a gap (a mark at least 1 px, a rule none). each
+         output pixel ORs the source pixels it covers, so shrinking never drops a one-pixel stroke ('─' at 4x7) */
+      const J = JOIN.includes(CHARS[k]), gx = J ? 0 : Math.max(0, Math.floor(cw * 0.1));
+      const gw = J ? cw : Math.max(3, Math.min(cw, cw - Math.max(BM_ONLY.has(CHARS[k]) ? 1 : 0, gx * 2))), gh = ch, R = [];
       for (let r = 0; r < 9; r++) R.push(parseInt(rows[r], 32));
       for (let y = 0; y < gh; y++) {
         const y0 = Math.min(8, Math.floor((y * 9) / gh)), y1 = Math.max(y0 + 1, Math.min(9, Math.floor(((y + 1) * 9) / gh)));
@@ -114,22 +124,22 @@ const eqMask = (a, b) => { if (a.length !== b.length) return false; for (let i =
 
 /* build one atlas for a cw x ch device-px cell.
    opts.fallback forces the bitmap font; opts.weight is the font weight (500). returns
-   { cw, ch, n, chars, text[], mask, ink, alpha, ramp[15], dir[4], fam[6][], line[11], famNames, fallback, eqBold,
+   { cw, ch, n, chars, text[], mask, ink, alpha, ramp[15], dir[4], fam[6][], line[11], famNames, fallback, eqBold (false),
      pxStart, pxX, pxY, off, offPW }  */
 export function buildAtlas(cwDev, chDev, opts = {}) {
   const cw = Math.max(2, cwDev | 0), ch = Math.max(3, chDev | 0), n = CHARS.length, weight = opts.weight || 500;
-  let fallback = !!opts.fallback, eqBold = false, alpha = null;
+  let fallback = !!opts.fallback, alpha = null;
   if (!fallback) {
-    alpha = drawFont(cw, ch, weight, false);
+    alpha = drawFont(cw, ch, weight);
     if (!alpha) fallback = true;
     else {
-      /* does each non-ASCII mark really render? tofu looks like the private-use slot; nothing at all is also a failure */
-      let bm = null;
+      const bm = drawBitmap(cw, ch);
+      for (const c of BM_ONLY) alpha[CHARS.indexOf(c)] = bm[CHARS.indexOf(c)];
+      /* does each other non-ASCII mark really render? tofu looks like the private-use slot; nothing at all also fails */
       for (const c of TOFU) {
         const k = CHARS.indexOf(c), m = alpha[k];
         let inkC = 0; for (let i = 0; i < m.length; i++) if (m[i] > 127) inkC++;
-        if (inkC && !eqMask(m, alpha[n])) continue;
-        if (c === '≡') { eqBold = true; alpha[k] = alpha[n + 1]; } else { bm = bm || drawBitmap(cw, ch); alpha[k] = bm[k]; }
+        if (!inkC || eqMask(m, alpha[n])) alpha[k] = bm[k];
       }
     }
   }
@@ -156,11 +166,10 @@ export function buildAtlas(cwDev, chDev, opts = {}) {
   pxStart[n] = tot;
   const pxX = new Uint8Array(tot), pxY = new Uint8Array(tot);
   for (let k = 0, p = 0; k < n; k++) for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) if (mask[k * cells + y * cw + x]) { pxX[p] = x; pxY[p] = y; p++; }
-  const text = CHARS.map((c) => (c === '≡' && eqBold ? '=' : c));
-  /* trail slots: [' · . ¯ - _ ¦ : | / \] = faint top/mid/bottom, bright top/mid/bottom, faint steep (categorical: ¦,
+  /* trail slots: [' · . ▔ ─ ▁ ¦ : │ ╱ ╲] = faint top/mid/bottom, bright top/mid/bottom, faint steep (categorical: ¦,
      continuous: :), bright steep, the two bright diagonals */
-  const line = new Uint8Array(["'", '·', '.', '¯', '-', '_', '¦', ':', '|', '/', '\\'].map(idx));
-  return { cw, ch, n, chars: CHARS, text, mask, ink, alpha: asum, ramp, dir, fam, line, famNames: FAMILY_IDS, fallback, eqBold, pxStart, pxX, pxY, off: null, offPW: -1 };
+  const line = new Uint8Array(["'", '·', '.', '▔', '─', '▁', '¦', ':', '│', '╱', '╲'].map(idx));
+  return { cw, ch, n, chars: CHARS, text: CHARS.slice(), mask, ink, alpha: asum, ramp, dir, fam, line, famNames: FAMILY_IDS, fallback, eqBold: false, pxStart, pxX, pxY, off: null, offPW: -1 };
 }
 
 /* row offsets for one frame width (fast path: base + off[k]) */

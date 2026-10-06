@@ -197,7 +197,7 @@ export default {
     }
     const wg = document.createElement('div'); wg.className = 'wg'; wg.hidden = true; wg.setAttribute('data-keepout', '');
     wg.addEventListener('contextmenu', (e) => e.preventDefault());
-    const lab = document.createElement('label'); lab.htmlFor = 'wall-guess'; lab.textContent = 'before you press: of every 100 of my plays, how many do you think i chose myself?';
+    const lab = document.createElement('label'); lab.htmlFor = 'wall-guess'; lab.className = 'ai-voice-p'; lab.textContent = 'before you press: of every 100 of my plays, how many do you think i chose myself?';
     const inp = document.createElement('input'); inp.type = 'range'; inp.id = 'wall-guess'; inp.min = '0'; inp.max = '100'; inp.step = '1'; inp.value = '50';
     inp.setAttribute('aria-label', 'your guess: of every 100 of my plays, how many i chose myself'); inp.setAttribute('aria-valuetext', 'you say 50');
     /* the number in print only: the slider's own aria-valuetext already says it, so this is not a live region (it used to be an <output>, role=status, and every arrow was read twice) */
@@ -378,7 +378,7 @@ export default {
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;
     const k = this.A ? 1 / (ctx.view.z || 1) : 1;
-    if (this.A) { ctx0.debug = !!ctx.atlas.debug; this.prec.length = 0; if (this.pour) return this.pour.frame(g, t, k); this.drawMargin(g, k, ctx); if (this.press) this.drawPress(g, k); }
+    if (this.A) { ctx0.debug = !!ctx.atlas.debug; this.prec.length = 0; if (this.pour) { this.pour.frame(g, t, k); return this.handDraw(ctx, g, k); } this.drawMargin(g, k, ctx); if (this.press) this.drawPress(g, k); }
     if (this.holding && !this.done) {
       const dt = this._lt ? Math.min(64, t - this._lt) : 16.7; this._lt = t;
       this.r += 0.9 * dt; /* px per second from the frame timestamp, not per frame, so 120 Hz doesn't double the speed */
@@ -428,7 +428,9 @@ export default {
   angles: [{ id: 'unsorted', name: 'unsorted' }, { id: 'flood', name: 'flood' }, { id: 'sorted', name: 'sorted' }, { id: 'pour', name: 'pour' }],
   /* R5 R3: the pour angle lives in the lazy wall.pour.js, which owns this.pour while it runs */
   pourIn(ctx, o) { import('./wall.pour.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx, o)).catch((e) => console.warn('pour', e)); return o.instant || ctx.reduced || o.via !== 'tour' ? 0 : 4600; },
-  unpour(ctx, re) { if (this.pour) this.pour.stop(re); },
+  unpour(ctx, re) { if (this.tally) this.tally.stop(); if (this.pour) this.pour.stop(re); },
+  /* R6 ME: once the pour has landed, the lazy wall.hand.js lifts the song i pressed play on most by hand out of the mint jar */
+  handDraw(ctx, g, k) { if (this.tally) return this.tally.draw(g, k); if (this._handP || this.pour.st().ph < 2) return; this._handP = import('./wall.hand.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx)).catch((e) => console.warn('hand', e)); },
   hoverVoice(id) { return this.pour ? this.pour.voice(id) : null; },
 
   /* the flood has to reach the far corner of the wall from wherever it starts: under a zoom, a press on the bare field
@@ -602,7 +604,7 @@ export default {
   precision() { return this.prec ? this.prec.slice() : []; },
   keepout() {
     const out = [];
-    [this.cue, this.wg, this.pourBtn].forEach((el) => { if (!el || el.hidden) return; const r = el.getBoundingClientRect(); if (r.width && r.height && getComputedStyle(el).opacity !== '0') out.push({ x: r.left, y: r.top, w: r.width, h: r.height }); });
+    [this.cue, this.wg, this.pourBtn, this.handEl].forEach((el) => { if (!el || el.hidden) return; const r = el.getBoundingClientRect(); if (r.width && r.height && getComputedStyle(el).opacity !== '0') out.push({ x: r.left, y: r.top, w: r.width, h: r.height }); });
     return out;
   },
 

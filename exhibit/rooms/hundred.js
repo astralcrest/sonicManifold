@@ -131,6 +131,7 @@ b.append(el('span','','▸'));this.btnT=b.appendChild(el('span','','play the hun
 b.addEventListener('click',()=>this.play(ctx));
 f.appendChild(el('p','hd-r',this.t1 +' ÷ '+ this.a1 +' = '+ this.ratio +' [1.03, 1.08]: the bridge index'));
 this.cond=f.appendChild(el('p','hd-c'));
+import('./hundred.hear.js'+new URL(import.meta.url).search).then((m)=>m.default(this,ctx)).catch(()=>{});
 this.tag=root.appendChild(el('p','hd-tag'));this.tag.hidden=true;
 },
 cellText(id){
@@ -175,7 +176,7 @@ const aw=s.w-pad*2,beside=bot-top<300&&aw>=300,fs=this.foot.style;
 const fw=beside?Math.max(160,Math.min(300,aw*0.45)):Math.min(aw,720),nr=narrow||beside;
 this.root.classList.toggle('nr',nr);this.root.classList.toggle('bs',beside);this.btnT.textContent=nr ?'play':'play the hundred';
 
-this.cond.textContent=beside ?'a direction, not a size: how untagged jumps are handled moves it 1.00 to 1.13.':'a direction, not a size: a third of my jumps carry no genre tag; how they are handled moves the index '+(nr ?'1.00 to 1.13. lit: crossed · dark: stayed · dashes: 1.00.':'anywhere from 1.00 to 1.13. lit: crossed genre · dark: stayed · dashes: where 1.00 would stop.');
+this.cond.textContent=beside ?'a direction, not a size: untagged jumps move it 1.00 to 1.13; loosest or 50-play counts read 1.01.':'a direction, not a size: a third of my jumps carry no genre tag; how they are handled moves the index '+(nr ?'1.00 to 1.13; the loosest or 50-play definitions read 1.01. lit: crossed · dark: stayed · dashes: 1.00.':'anywhere from 1.00 to 1.13; the loosest or 50-play definitions read 1.01. lit: crossed genre · dark: stayed · dashes: where 1.00 would stop.');
 fs.width=fw +'px';fs.justifyContent=nr ?'flex-start':'center';fs.textAlign=nr ?'left':'center';
 const fH=this.foot.offsetHeight||90,footH=beside?0:fH+14,ah=bot-top-footH,gw=beside?aw-fw-20:aw;
 const gap=narrow||beside?12:40;

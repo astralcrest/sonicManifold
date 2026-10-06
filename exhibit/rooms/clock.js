@@ -120,7 +120,7 @@ export default {
       this.lead.textContent = 'the hourly counts did not load, so this dial is holding an even ring and claiming nothing.';
       this.more.textContent = '';
     }
-    this.cav.textContent = ' hours are read at a fixed utc-7 for ' + (this.A ? 'the whole log' : 'all seven years') + ', so only roughly local.';
+    this.cav.textContent = ' hours are read on one fixed clock, all year, so only roughly local.';
 
     this.dial.addEventListener('pointerdown', (e) => {
       if (!this.d) return;

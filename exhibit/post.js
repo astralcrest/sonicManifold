@@ -280,7 +280,7 @@ function watchStops(ctx) {
   stopSub = true;
   ctx.onStop(() => { clearTimeout(DW.t); DW.t = 0; DW.artist = ''; D.hideAsk(); if (D.open && D.quiet) D.close(false); });
 }
-function nudge(tid) { if (!D.ctl || D.wantTid !== tid || !D.open) return; D.arm(); D.playT = Date.now(); setTimeout(() => { if (D.ctl && D.wantTid === tid && D.open) try { D.ctl.play(); } catch (e) {} }, 420); }
+function nudge(tid) { if (!D.ctl || D.wantTid !== tid || !D.open) return; D.arm(); D.playT = Date.now(); setTimeout(() => { if (D.ctl && D.wantTid === tid && D.open) try { Promise.resolve(D.ctl.play()).catch(() => {}); } catch (e) {} }, 420); }
 
 function grantConsent() {
   if (consent) return;

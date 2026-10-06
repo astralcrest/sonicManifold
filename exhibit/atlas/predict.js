@@ -1,13 +1,12 @@
-/* R8 call it first */
 const V=new URL(import.meta.url).search,KEY='exhibit.predict';
 const sg=()=>{try{return JSON.parse(sessionStorage.getItem(KEY))||{}}catch{return {}}};
 const ss=o=>{try{sessionStorage.setItem(KEY,JSON.stringify(o))}catch{}};
 const n0=v=>Number(v).toLocaleString('en-US'),hh=h=>(h<10?'0':'')+h+':00';
 const COND='1.05 [1.03, 1.08], a direction, not a size: how the untagged jumps are handled moves it 1.00 to 1.13; the loosest or 50-play definitions read 1.01.';
 const Q={
-clock:{f:'clock',lab:'peak (utc-7)',ask:'which hour of the day did i play the most?',lo:0,hi:23,st:1,fmt:hh,circ:1,
+clock:{f:'clock',lab:'peak hour',ask:'which hour of the day did i play the most?',lo:0,hi:23,st:1,fmt:hh,circ:1,
 truth:d=>{let v=0,n=-1;d.hours.forEach((h,i)=>{const s=d.tap[i]+d.shuffle[i]+d.served[i];if(s>n){n=s;v=h}});return {v,n}},
-say:t=>hh(t.v)+': '+n0(t.n)+' plays, busiest; 13:00 trails by 55. the hour is a fixed utc-7 approximation.'},
+say:t=>hh(t.v)+': '+n0(t.n)+' plays, the peak hour on one fixed clock, all year; 13:00 trails by 55.'},
 listeners:{f:'twolisteners',lab:'my jumps crossing',ask:'100 jumps between two genre-tagged artists, each time i picked the next song. how many crossed into another genre?',lo:0,hi:100,st:1,
 truth:d=>{const c=d.full_transition_crossing,p=x=>Math.round(x*1000)/10;return {v:Math.round(c.tap*100),x:p(c.tap),a:Math.round(c.auto*100),ax:p(c.auto)}},
 say:t=>'about '+t.v+' ('+t.x+'). when autoplay ran on (the next song starting on its own, shuffle off), about '+t.a+' ('+t.ax+'). '+t.x+' ÷ '+t.ax+' is the bridge index: '+COND},
@@ -17,7 +16,7 @@ say:t=>t.v+': '+n0(t.n)+' of '+n0(t.N)+' skip-forwards inside 5 s; '+n0(t.r)+' o
 loop:{f:'loops',lab:'songs played 10+',ask:'how many different songs did i play 10 times or more?',lo:0,hi:5000,st:50,fmt:n0,
 truth:d=>({v:d.tracks_10plus}),
 say:t=>n0(t.v)+' songs my log counts 10 times or more (counted plays: 30 s or more).'},
-graveyard:{f:'killit',lab:'a claim: loops',ask:'a claim i tried to kill: my listening network has real topological loops, not just tight neighborhoods. did it survive?',opts:['survived','died'],
+graveyard:{on:'kill',f:'killit',lab:'a claim: loops',ask:'a claim i tried to kill: my listening network has real topological loops, not just tight neighborhoods. did it survive?',opts:['survived','died'],
 truth:d=>({v:d.cases[1].v==='s'?0:1,x:d.cases[1].x}),
 say:t=>'it '+(t.v?'died':'survived')+': '+t.x+'.'},
 };
@@ -32,7 +31,6 @@ const wallG=()=>{try{const g=sessionStorage.getItem('exhibit.wall.guess');return
 const count=S=>OR.filter(id=>id==='wall'?wallG()!=null:S[id]&&S[id].t!=null).length;
 function boot(X){
 const ctx=X.ctx,A=ctx.audio,html=D.documentElement;
-/* not in the kiosk or under automation (og shots, other tests) unless {on:1} */
 if(ctx.atlas.kiosk||navigator.webdriver&&!sg().on)return;
 const L=mk('link');L.rel='stylesheet';L.href='exhibit/atlas/predict.css'+V;L.onerror=()=>{L.href+='&r=1'};D.head.appendChild(L);
 let veil=null,box=null,pill=null,ent=null,mode='',cur=null,tk=0;
@@ -124,7 +122,7 @@ function arrive(ev){
 close();const id=ev&&ev.id,q=Q[id];
 if(q&&!sg()[id]){
 let a=null;try{a=ctx.angle.get().id}catch{}
-if(q.no&&a===q.no)return;
+if(q.on&&a!==q.on)return;
 if(ctx.tour&&ctx.tour.isPlaying&&ctx.tour.isPlaying()){
 pill=grp(mk('div','pq-pill'),'call it first');cur={id};
 pill.append(btn('call it first: '+q.ask,'pq-po',()=>{try{ctx.tour.pause('user')}catch{}ask(id)}),btn('skip','',skip));
@@ -136,6 +134,7 @@ const w=X.atlas.walk(),l=w[w.length-1];
 if(id==='yours'||l&&(l.id||l)===id)entry();
 }
 ctx.onStop(arrive);
+try{ctx.angle.onChange(a=>{if(a&&a.id==='kill')arrive({id:'graveyard'})})}catch{}
 try{ctx.tour.on('end',()=>setTimeout(entry,600))}catch{}
 addEventListener('resize',()=>{if(tk)place()});
 D.addEventListener('keydown',e=>{

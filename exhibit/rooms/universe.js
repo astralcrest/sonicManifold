@@ -128,7 +128,7 @@ const DAY_C = 0.4;
 const SUN_D0 = 0.32, SUN_D1 = 0.38, SUN_CAP = 14, SUN_KEEP = 32, SUN_NB_KEEP = 96, SUN_DOTS = 12, SUN_IN = 700, SUN_OUT = 280, THREAD_CELLS = 170, CELLMAX = 1200;
 const ATMO = 1.55, RUN_MAX = 5, LOCK_LAB_R = 0.9;
 const GLYPHS = ".:+*@-\\|/'", THREAD_COL = 'rgb(216,210,234)';
-const RAMP0 = ".':;+*o%#&8@$W"; /* the field's continuous ramp (glyph-atlas.js RAMP_CHARS); GF.info().ramp gives it in ink order */
+const RAMP0 = "∙◦◠◌◖◇○◔◓◐◎◍◕●"; /* the field's continuous ramp (glyph-atlas.js RAMP_CHARS); GF.info().ramp gives it in ink order */
 const GFONT = '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace'; /* the field's own glyph font (glyph-atlas.js) */
 
 /* every sentence this room prints, verbatim from its source (C2 pins the same strings in COPY.universe; C2's win) */
@@ -162,7 +162,7 @@ const COPY0 = {
   comet: 'an artist heard in three months or fewer, most of it in one.', /* GS required fix */
   pos0: 'positions come from a seeded force layout of which artists were played back to back. distance and direction mean nothing on their own.', /* GS K4 */
   pos2: 'this artist isn’t joined to the main web by enough back-to-back plays to be laid out, so it sits on the outer ring, spaced evenly in order of plays; where it sits on the ring says nothing else about it.', /* GATE_tierb W-B6; the ring runs in plays order (build_universe.py L428/L460: by node id, Spearman(id, angle) = 1 over all 143), so "means nothing" was false (ROUND2 R4 item 2) */
-  pos1: 'this dot’s position is a placeholder so search has somewhere to fly. it isn’t computed from listening and means nothing.', /* GATE_tierb W-B6 */
+  pos1: 'this dot’s position is a placeholder so search has somewhere to land. it isn’t computed from listening and means nothing.', /* GATE_tierb W-B6 */
   track: '{title}, {artist}: {plays} plays, first play in this export {first}.', /* GATE_tierb K-B4 */
   trackPlays: '{title}, {artist}: {plays} plays.',
   callout: 'counted by play, ambient/lo-fi is under-tapped: 0.636× strict (0.50× bundled [0.44, 0.55]). hip-hop/r&b is over-tapped: 1.23× strict (1.22× bundled [1.12, 1.32]). the report marks the hip-hop side caveated on how plays are counted.', /* §8.3 genre callout. B(g) = P(tap|g)/P(tap) is per play (GROUND_TRUTH; ledger 130, 184). no per-track clause (R2_VERIFY_2 honesty P0-1): B_track's null is not 1 but 0.581 [0.560, 0.603] bundled (bg_track_cluster_ci.py L128), and against it hip-hop per track is 1.60x, so the old '0.93 counted by track ... not the genre' compared to the wrong reference; the direction does not flip */
@@ -171,7 +171,7 @@ const COPY0 = {
   viewsLabel: 'views of the sky', armLabelL: 'whose jumps the lines show', armLabelT: 'whose jumps the threads show',
   nameLine: '{name} · {family}',
   caveat: 'the export holds very little before february 2022 (253 plays over 44 days). on any date, a quiet or empty day says more about what the export kept than about listening.', /* universe_days_index.json caveat, pinned */
-  timeBasis: 'dates use one fixed UTC-7 clock for the whole log (no per-play timezone or daylight saving was kept), not a real local time', /* REQUESTS_privacy_copy #1: the day records carry no hours */
+  timeBasis: 'dates read on one fixed clock all year (the export kept no per-play local clock or daylight saving), not a real local time', /* REQUESTS_privacy_copy #1: the day records carry no hours */
   chipSearch: ', all searchable', /* appended to the chip only when the full roster (Tier B) loaded */
   ringSay: 'the rest ring the edge, spaced evenly in order of plays; where one sits on the ring says nothing else about it.', /* the wall's ring clause (ROUND2 R4 item 2), replacing "the rest ring the edge in no order." */
   sayRoster: 'search finds every artist by name.', /* the wall's sentence, appended only when the full roster (Tier B) loaded */

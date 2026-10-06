@@ -29,6 +29,11 @@ const CHIP_GAP = 10;
 /* W32: unlabelled minor dashes at each plays-per-mark decade, purely textural (the rail "reads as an
    instrument"); hidden when the axis goes ordinal (non-monotonic data), since a decade has no meaning there */
 const MINOR_DECADES = [10, 100, 1000, 10000];
+/* R7B: the knob. the rail's vertical geometry stays the logical axis (ticks, marker, drag, snap), but nothing of it is
+   drawn: a rotary knob of dial glyphs is, with the scale names set round it like the stops on an amp. KD is the knob's
+   box, KC its centre's distance in from the rail's right edge (the knob sticks 4px past the rail). */
+const KD = 84, KC = 38, RING = '∙◦◠◌◇○◖◔◐◓◕◎◍●', RING_R = 35, STOP_R = 48;
+const ROWS = false; /* the old per-row readouts (lit row, marker pill) are replaced by the knob's centre, serif name and foot line */
 
 /* §1.9's own derivation of each tick from the shipped Tier-B files (play-weighted medians of universe_days `n`,
    universe_artists_all `plays`, the 14 family totals, the four complete years). the M7 test re-derives them from
@@ -153,7 +158,7 @@ export function mount(ctx, deps) {
      B) has loaded; null until known, so the rung stays offered until the site can actually tell it is absent */
   let daysAvailable = null, daysProbeP = null;
   const fitMemo = new Map();
-  const last = { text: null, aria: null, now: null, now_i: -1, inrow: null, vnow: null, mlab: null, mtop: null, under: -1, mini: null, chip: null };
+  const last = { text: null, aria: null, now: null, now_i: -1, inrow: null, vnow: null, mlab: null, mtop: null, under: -1, mini: null, chip: null, voice: null };
 
   function computeTicks(daysFile, artistsFile) {
     const days = (daysFile && daysFile.days) || [];
@@ -227,6 +232,8 @@ export function mount(ctx, deps) {
     '<div class="al-track" role="slider" tabindex="0" aria-orientation="vertical" ' +
     'aria-label="aggregation scale: how many plays one mark stands for" ' +
     'aria-valuemin="0" aria-valuemax="' + (levels.length - 1) + '" aria-valuenow="0">' +
+    '<div class="al-knob" aria-hidden="true"><div class="al-kbody"><div class="al-kdisc"></div><div class="al-kring"></div><div class="al-kstops"></div>' +
+    '<div class="al-kc"></div><div class="al-kp"><i>°</i></div></div><div class="al-voice"></div><div class="al-pad"></div></div>' +
     '<div class="al-line" aria-hidden="true"></div><div class="al-marker" aria-hidden="true"></div></div>' +
     '<svg class="al-leaders" aria-hidden="true"></svg>' +
     '<div class="al-mlab" aria-hidden="true"></div>' +
@@ -248,6 +255,13 @@ export function mount(ctx, deps) {
   const mlabEl = root.querySelector('.al-mlab');
   const miniEl = root.querySelector('.al-mini');
   root.querySelector('.al-note').textContent = TYPICAL_NOTE;
+  const kcEl = root.querySelector('.al-kc'), voiceEl = root.querySelector('.al-voice'), kptrEl = root.querySelector('.al-kp');
+  const ringEls = [...RING].map((c, k) => {
+    const g = document.createElement('span'); g.className = 'al-kg'; g.textContent = c;
+    g.style.setProperty('--a', (k * 360 / RING.length).toFixed(2) + 'deg'); g.dataset.k = k;
+    root.querySelector('.al-kring').appendChild(g); return g;
+  });
+  const stopEls = LEVELS.map(() => { const d = document.createElement('i'); root.querySelector('.al-kstops').appendChild(d); return d; });
   /* W32: minor decade dashes, positioned once (their frac never changes) and drawn under the named ticks */
   MINOR_DECADES.filter((v) => v > ONE_PLAY && v < SEVEN_YEARS).forEach((v) => {
     const m = document.createElement('div');
@@ -335,7 +349,28 @@ export function mount(ctx, deps) {
     }
     return levels[levels.length - 1]._frac;
   }
-  function positionMarkerFrac(frac) { markerFrac = clamp01(frac); const t = (markerFrac * 100).toFixed(3) + '%'; markerEl.style.top = t; miniEl.style.top = t; }
+  function positionMarkerFrac(frac) { markerFrac = clamp01(frac); const t = (markerFrac * 100).toFixed(3) + '%'; markerEl.style.top = t; miniEl.style.top = t; knobTo(markerFrac); }
+  /* the pointer's angle at a display fraction: piecewise linear between the stops' own angles, the same map dispFrac
+     inverts, so the pointer is on a stop exactly when the marker is on its tick. the glyph ring warms toward it */
+  let knobKey = '';
+  function knobTo(f) {
+    if (!(levels[0]._ang != null)) return;
+    let a = levels[levels.length - 1]._ang;
+    if (f <= levels[0]._frac) a = levels[0]._ang;
+    else for (let i = 1; i < levels.length; i++) {
+      const p = levels[i - 1], q = levels[i];
+      if (f <= q._frac) { a = q._frac > p._frac ? p._ang + (q._ang - p._ang) * (f - p._frac) / (q._frac - p._frac) : q._ang; break; }
+    }
+    /* the knob's own face is the dial glyph for where it points: ∙ at one play, filling up to ● at the whole log */
+    const gi = Math.round(clamp01((f - levels[0]._frac) / ((levels[levels.length - 1]._frac - levels[0]._frac) || 1)) * (RING.length - 1));
+    if (kcEl.textContent !== RING[gi]) kcEl.textContent = RING[gi];
+    const k = a.toFixed(1); if (k === knobKey) return; knobKey = k;
+    kptrEl.style.setProperty('--ap', k + 'deg');
+    ringEls.forEach((el, j) => {
+      let d = Math.abs((((a - j * 360 / ringEls.length) % 360) + 540) % 360 - 180);
+      el.style.opacity = (0.45 + 0.55 * Math.max(0, 1 - d / 48)).toFixed(2);
+    });
+  }
   function render() {
     setText(capEl, ordinal ? 'SCALE' : 'PLAYS PER MARK');
     root.classList.toggle('al-ordinal', ordinal); /* W32: the decade dashes assume a log axis; hide them on the rare ordinal fallback */
@@ -376,21 +411,37 @@ export function mount(ctx, deps) {
        50vh floor / 6 = 47px). The row's true tick keeps its real log position (the instrument stays honest);
        only its NAME is carried to the list slot, by a transform (--al-open-dy) ladder.css applies only inside
        .al-open, with a leader line (leaderEls) drawn for exactly the distance carried. */
-    const openGap = trackH / (levels.length - 1);
-    const openHalf = Math.min(24, openGap / 2);
+    /* R7B: every name is carried off its tick's true (log) row onto a stop on an arc round the knob, which sits at the
+       rail's middle. strip: tight arc; phone sheet: the stops are 44px apart so each name keeps a real reach, and the
+       arc's radius is whatever the sheet's width leaves. the tick itself never moves, so the instrument stays honest */
+    const SM = STRIP.matches;
+    /* at rest the knob is small and only it is drawn. hovered / focused / dragged (strip) or the sheet open, the knob turns up to
+       scale S about a centre KCX in from the rail's right edge and the names stand on an arc of radius Rn round it, each with its
+       plays-per-mark count. strip: ~150px ring. sheet: as big as the sheet's width leaves room for beside the names */
+    const W = root.clientWidth || innerWidth;
+    const S = SM ? 1.78 : Math.max(1.2, Math.min(2.1, (W - 277) / 48));
+    const KCX = SM ? 82 : Math.round(48 * S + 2);
+    const Rn = SM ? 100 : 138;
+    const g = SM ? 30 : 44;
+    root.style.setProperty('--al-s', S.toFixed(3));
+    root.style.setProperty('--al-kx', (KCX - KC) + 'px');
+    root.style.setProperty('--al-vy', (48 * S - 42 + (SM ? 18 : 6)).toFixed(1) + 'px');
+    /* the strip's rail can be crushed by a tall info card (the end card): the knob then rides up so its arc stays above the rail's foot */
+    const ky = SM ? Math.min(trackH / 2, trackH - 150) : trackH / 2;
+    root.style.setProperty('--al-ky', ky.toFixed(1) + 'px');
+    const half = SM ? g / 2 - 2.5 : Math.min(24, g / 2), mid = levels.length >> 1;
     levels.forEach((lv, i) => {
-      const upHalf = panelOpen ? openHalf : i > 0 ? Math.min(22, (lv._frac - levels[i - 1]._frac) * trackH / 2) : 22;
-      const downHalf = panelOpen ? openHalf : i < levels.length - 1 ? Math.min(22, (levels[i + 1]._frac - lv._frac) * trackH / 2) : 22;
+      const ay = (i - mid) * g, phi = Math.asin(Math.max(-1, Math.min(1, ay / Rn)));
+      lv._ang = -90 - phi * 180 / Math.PI; /* the pointer's css rotation (clockwise from up) at this stop */
       const nameEl = tickEls[i].querySelector('.al-name');
-      nameEl.style.setProperty('--al-hit-up', Math.max(0, upHalf - halfH).toFixed(1) + 'px');
-      nameEl.style.setProperty('--al-hit-down', Math.max(0, downHalf - halfH).toFixed(1) + 'px');
-      const openFrac = i / (levels.length - 1), dy = (openFrac - lv._frac) * trackH;
-      tickEls[i].querySelector('.al-lab').style.setProperty('--al-open-dy', dy.toFixed(1) + 'px');
-      const ln = leaderEls[i];
-      ln.setAttribute('x1', '2'); ln.setAttribute('x2', '2');
-      ln.setAttribute('y1', (lv._frac * 100).toFixed(3) + '%');
-      ln.setAttribute('y2', (openFrac * 100).toFixed(3) + '%');
+      nameEl.style.setProperty('--al-hit-up', Math.max(0, half - halfH).toFixed(1) + 'px');
+      nameEl.style.setProperty('--al-hit-down', Math.max(0, half - halfH).toFixed(1) + 'px');
+      const lab = tickEls[i].querySelector('.al-lab');
+      lab.style.setProperty('--al-arc-dy', (ky + ay - lv._frac * trackH).toFixed(1) + 'px');
+      lab.style.setProperty('--al-arc-r', (9 + KCX + Rn * Math.cos(phi)).toFixed(1) + 'px');
+      stopEls[i].style.setProperty('--a', lv._ang.toFixed(2) + 'deg');
     });
+    knobKey = '';
     publishInset();
     paint();
   }
@@ -453,13 +504,15 @@ export function mount(ctx, deps) {
       markOn = frac != null; root.classList.toggle('al-nomark', !markOn);
       if (markOn) positionMarkerFrac(frac);
     }
-    tickEls.forEach((el, i) => el.classList.toggle('al-sel', i === lit));
+    tickEls.forEach((el, i) => { el.classList.toggle('al-sel', i === lit); stopEls[i].classList.toggle('al-sel', i === lit); });
+    const vs = lit >= 0 ? levels[lit].name.toLowerCase() : mode === 'note' ? 'no play count' : '';
+    if (last.voice !== vs) { setText(voiceEl, vs); last.voice = vs; }
     /* the live number sits where it really is on the axis: on the marker. only when the marker is at the lit level
        (within one row) does it join that level's row; otherwise the lit name is a landmark and the number rides the
        marker, so "1 glyph ≈ 12 plays" is never printed beside DAY (a day is 97) as if the two were the same */
     let mlab = '', under = -1;
     if (dragging) nowText = ''; /* mid-drag the line under the strip reads live; no row claims the moving number */
-    else if (lit >= 0 && frac != null && nowText) {
+    else if (ROWS && lit >= 0 && frac != null && nowText) {
       if (Math.abs(levels[lit]._frac - frac) * railH >= ROW_PX) {
         mlab = pill; nowText = '';
         let bd = ROW_PX; levels.forEach((lv, i) => { const d = Math.abs(lv._frac - frac) * railH; if (i !== lit && d < bd) { bd = d; under = i; } });
@@ -602,13 +655,34 @@ export function mount(ctx, deps) {
   function placeChip(force) {
     if (STRIP.matches) { chipKey = ''; return; }
     if (chipDown) return; /* never slide the chip out from under a finger: the next poll after the release places it */
+    /* the end card owns the whole bottom of the screen on a phone and the chip sat on its seal caption: no chip while it is open */
+    const endEl = document.getElementById('ai-end'), endOpen = !!(endEl && !endEl.hidden);
+    const setOff = (v) => { if (chip.classList.contains('al-chip-off') !== v) chip.classList.toggle('al-chip-off', v); };
+    setOff(endOpen);
+    if (endOpen) return;
+    /* a phone held upright: the chip has one fixed home, the masthead's free right end. rooms paint their content on canvas where no DOM
+       obstacle walk can see it, so a chip that floats over the field will always land on somebody's glyphs somewhere */
+    if (innerHeight > innerWidth && innerWidth < 700) {
+      setOff(false);
+      const cw = chip.getBoundingClientRect().width || 80;
+      const hx = Math.round(innerWidth - 12 - cw);
+      if (force || chipKey !== 'home') { chipKey = 'home'; chip.style.left = hx + 'px'; chip.style.top = '-6px'; chip.style.right = 'auto'; }
+      else if (parseInt(chip.style.left, 10) !== hx) chip.style.left = hx + 'px';
+      return;
+    }
     let st = null; try { st = ctx.stage(); } catch (e) {}
     if (!st || st.w <= 0 || st.h <= 0) return;
     const obs = [];
+    let toastQ = null;
     const push = (q) => { if (q) obs.push(q); };
     const sec = document.querySelector('section[data-room].is-active');
     if (sec) sec.querySelectorAll('[data-keepout]').forEach((el) => push(visibleRect(el)));
     if (sec) textObstacles(sec).forEach(push);
+    /* the hint toast (#atlas-toast) lives outside the room's section, so the walk never saw it: it is a hard obstacle while shown */
+    if (document.documentElement.classList.contains('ai-toast-on')) {
+      toastQ = visibleRect(document.getElementById('atlas-toast'));
+      if (toastQ) obs.push(toastQ);
+    }
     const hard = obs.slice(); /* FIX3: what the chip may never cover: declared keepout elements, text, and (below) the room's controls */
     if (sec) sec.querySelectorAll('button,a[href],input,select,[role="slider"]').forEach((el) => { if (!el.closest('.wall')) { const q = visibleRect(el); if (q) hard.push(q); } });
     try {
@@ -673,6 +747,9 @@ export function mount(ctx, deps) {
     }
     const xC = Math.max(12, Math.min(x, innerWidth - 12 - w)); y = Math.max(st.y, 12, Math.min(y, innerHeight - 12 - h));
     const nx = Math.round(xC), ny = Math.round(y), key = nx + ',' + ny;
+    /* while the hint is up the chip clears it where the stage has room; where there is no room that is clear of both the hint and the
+       room's own text it steps out of the way for the hint's few seconds rather than sit on either */
+    setOff(!!toastQ && hard.some((o) => nx < o.right && nx + w > o.left && ny < o.bottom && ny + h > o.top));
     if (!force && key === chipKey) return;
     chipKey = key;
     chip.style.left = nx + 'px'; chip.style.top = ny + 'px'; chip.style.right = 'auto';
@@ -707,7 +784,11 @@ export function mount(ctx, deps) {
         }
       }
     }
-    paint();
+    /* the strip's rail is as tall as the room's info card leaves it (the end card crushes it to a few dozen px): the rows are
+       laid out off that height, so a change that no resize announced has to re-lay them or they stack on one another
+       (the end card's "THE WH0LEEEEE") */
+    const th = trackEl.clientHeight || 0;
+    if (th && Math.abs(th - railH) > 1) render(); else paint();
     if (insetR < 0) publishInset(); /* the strip's css arrived after mount */
     placeChip(false);
   }
@@ -741,11 +822,11 @@ export function mount(ctx, deps) {
 
   /* -------------------------------------------------------------------------------------- drag */
   trackEl.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.al-tick')) return; /* a tick is a plain button: let its own click fire */
+    if (e.target.closest('.al-tick,.al-pad')) return; /* a tick is a plain button: let its own click fire */
     ensureData(); manual = false; dragging = true; dragLastY = e.clientY;
     try { trackEl.setPointerCapture(e.pointerId); } catch (err) {}
     /* with no live N (a stop whose glyphs are not plays) the handle starts where the finger went down */
-    if (!markOn) { const r = trackEl.getBoundingClientRect(); markerFrac = clamp01((e.clientY - r.top) / (r.height || 1)); markerEl.style.top = (markerFrac * 100).toFixed(3) + '%'; }
+    if (!markOn) { const r = trackEl.getBoundingClientRect(); markerFrac = clamp01((e.clientY - r.top) / (r.height || 1)); markerEl.style.top = (markerFrac * 100).toFixed(3) + '%'; knobTo(markerFrac); }
     try { dragCenter = ctx.stage(); } catch (err) { dragCenter = { x: innerWidth / 2, y: innerHeight / 2, w: 0, h: 0 }; }
     trackEl.classList.add('al-dragging'); root.classList.add('al-drag'); syncHold();
   });
@@ -754,8 +835,8 @@ export function mount(ctx, deps) {
     const dy = e.clientY - dragLastY; dragLastY = e.clientY;
     if (dy) {
       const h = trackEl.clientHeight || 1;
-      markerFrac = clamp01(markerFrac + dy / h);
-      markerEl.style.top = (markerFrac * 100).toFixed(3) + '%';
+      markerFrac = clamp01(markerFrac + dy / Math.max(h, 200));
+      markerEl.style.top = (markerFrac * 100).toFixed(3) + '%'; knobTo(markerFrac);
       const cx = dragCenter.x + dragCenter.w / 2, cy = dragCenter.y + dragCenter.h / 2;
       try { ctx.view.zoomBy(Math.exp(-dy * 0.008), cx, cy); } catch (err) {}
     }

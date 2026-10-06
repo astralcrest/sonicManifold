@@ -17,7 +17,7 @@
    lists them exactly as implemented here.
 */
 
-import { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } from './post.js?v=8';
+import { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } from './post.js?v=9';
 import { LABELS, HINTS, HINTS_ATLAS, HINTS_TOUCH } from './labels.js?v=20';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
@@ -387,13 +387,15 @@ function gfConfigure() {
   try { GF.configure({ W, H, PW, PH, DPR, lowPower, cellCss }); } catch (e) { console.warn('GF.configure', e); }
 }
 
-/* the sky (atlas, D12 look target): a fixed field of dim . ' : (and a rare + and *) across the whole viewport, behind every
-   stop, so the page is not flat #0a0118 wherever a room does not draw. it is decoration and must never read as data: stars
-   sit on screen-space lattices (a zoom leaves them where they are; a pan or an orbit moves them at about 0.15 of the field's
-   speed, the way a distant sky moves), never within two cells of a cell that holds plays or on a lit pixel, in ink at the
-   field's 0.34 floor, and the threshold's wall label says what they are. hash-stable per lattice site, about 5% of cells
-   (SKYL); the rare * glints unless motion is reduced, twinkle is off or the governor is at tier 4 */
-const SKY = { on: ATLAS && !NOGLYPH, off: false, keep: [], at: null, key: '', gen: 0, fb: false, g: null, css: lowPower ? 7 : 6, x: 0, y: 0, mode: '', room: -1, ax: 0, ay: 0, ms: 0, n: 0 };
+/* the sky (atlas): the void behind every stop is the face of a record. its marks sit on grooves, concentric arcs about a
+   spindle off the stage's top-right corner, 2.2 cells apart. a groove holds lit runs of 12 to 28 marks (a hash per groove and run,
+   so a run always or never holds marks), fewer toward the outer grooves, and every ninth groove is blank, the gap between two tracks.
+   the marks are ∙ and ◦ and a rare mint ° (the ◦ raised), at 0.14 to 0.3 of full: under the field's 0.34 floor, so the dimmest play still
+   outshines the brightest groove. it is decoration and must never read as data: never within two cells of a cell that holds
+   plays, on a lit pixel or under text, and the threshold's wall label says what it is. the record turns slowly (a lap in about
+   21 minutes) and a pan or an orbit turns it a little further; it holds still when motion is reduced, twinkle is off or the
+   governor is at tier 4 */
+const SKY = { on: ATLAS && !NOGLYPH, off: false, keep: [], at: null, key: '', gen: 0, fb: false, g: null, css: lowPower ? 7 : 6, x: 0, y: 0, mode: '', room: -1, ax: 0, ay: 0, ms: 0, n: 0, rot: 0, lt: 0 };
 if (SKY.on) {
   try { SKY.fb = typeof GAM.probeReadback === 'function' ? !GAM.probeReadback() : true; } catch (e) { SKY.fb = true; }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { SKY.gen++; skyAtlas(); }).catch(() => {});
@@ -402,15 +404,8 @@ function skyAtlas() {
   if (!SKY.on || typeof GAM.buildAtlas !== 'function' || !DPR) return;
   const cw = Math.max(3, Math.round(SKY.css * DPR)), ch = Math.round(cw * 1.8), key = cw + 'x' + ch + ':' + SKY.gen;
   if (key === SKY.key) return;
-  try { const at = GAM.buildAtlas(cw, ch, { fallback: SKY.fb }), g = ['.', "'", '+', '*', ':'].map((c) => at.chars.indexOf(c)); if (g.some((k) => k < 1)) return; SKY.at = at; SKY.g = g; SKY.key = key; } catch (e) { SKY.at = null; }
+  try { const at = GAM.buildAtlas(cw, ch, { fallback: SKY.fb }), g = ['∙', '◦'].map((c) => at.chars.indexOf(c)); if (g.some((k) => k < 1)) return; SKY.at = at; SKY.g = g; SKY.key = key; } catch (e) { SKY.at = null; }
 }
-/* the void is not empty (W53, G10): three lattices at 1, 1.8 and 3.2 cells, about 5% of the screen's cells between them
-   (gcdatlas's own starfield is about 9%, but its field has no data guard). `d` is the chance a lattice site holds a star,
-   so each layer's share of the screen is d / s². the sparse layers are the near ones: they drift a little faster under a
-   pan or an orbit (par x the sky's 0.15) and carry the rare + and glinting *. placement is a fixed hash of the site (a
-   site either always holds a star or never does), not interleaved-gradient noise: IGN thresholded at 2-8% prints
-   period-nine diagonal dashes, which read as a pattern, not a sky */
-const SKYL = [{ s: 1, d: 0.028, par: 0.5, salt: 0 }, { s: 1.8, d: 0.054, par: 0.8, salt: 0x51ed27 }, { s: 3.2, d: 0.11, par: 1.2, salt: 0x2c9277 }];
 /* where the sky stays dark: under every line of text (the active wall and room text, the info card, the hints), in device
    px, re-measured with the signature's corner (sigPlace: each stop change, relayout and every 900 ms). a stop whose own
    field is a sky of real data (the universe: its dust is artists) sets data-sky="0" and gets none */
@@ -442,40 +437,41 @@ function drawSky(buf, t, nIn, gx0, gy0, invCw, invCh, cols, rows) {
   const t0 = DEBUG ? performance.now() : 0;
   skyStep();
   const cw = at.cw, ch = at.ch, pw = PW, ph = PH, ps = at.pxStart, pX = at.pxX, pY = at.pxY, hcw = cw >> 1, hch = ch >> 1;
-  const tw = !reduced && ATL.gov.tier < 4 && settingOn('twinkle'), ts = t / 1000;
-  const KP = SKY.keep, nk = KP.length, ink = 255 / 0xea; /* the ink's brightest channel (#d8d2ea's blue) lands on b of full, the field's own floor rule */
+  if (!reduced && ATL.gov.tier < 4 && settingOn('twinkle')) SKY.rot += 5e-6 * Math.min(100, Math.max(0, t - SKY.lt));
+  SKY.lt = t;
+  const KP = SKY.keep, nk = KP.length, gn = 255 * FLS.gain, cx = pw * 1.1, cy = -ph * 0.25, gap = 2.2 * ch, step = 1.6 * cw;
+  const r0 = Math.hypot(pw * 0.1, ph * 0.25), r1 = Math.hypot(cx, ph - cy), off = SKY.rot + (SKY.x - SKY.y) * DPR / Math.hypot(cx - pw / 2, ph / 2 - cy);
   let n = 0;
-  for (let L = 0; L < 3; L++) {
-    const Ly = SKYL[L], pcx = cw * Ly.s, pcy = ch * Ly.s, sx = SKY.x * DPR * Ly.par, sy = SKY.y * DPR * Ly.par, th = (Ly.d * 4294967296) >>> 0, near = L === 2, salt = Ly.salt;
-    const ix0 = Math.floor(-sx / pcx), ix1 = Math.ceil((pw - sx) / pcx), iy0 = Math.floor(-sy / pcy), iy1 = Math.ceil((ph - sy) / pcy);
-    for (let iy = iy0; iy < iy1; iy++) {
-      const y0 = Math.round(iy * pcy + sy); if (y0 < 0 || y0 + ch > ph) continue;
-      const hy = Math.imul(iy + 0x3c6e + salt, 0x165667b1), gy = nIn ? ((y0 + hch - gy0) * invCh) | 0 : 0;
-      for (let ix = ix0; ix < ix1; ix++) {
-        let h = Math.imul(ix ^ salt, 0x27d4eb2d) ^ hy; h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); h ^= h >>> 12;
-        if ((h >>> 0) >= th) continue;
-        const x0 = Math.round(ix * pcx + sx); if (x0 < 0 || x0 + cw > pw) continue;
-        let hit = false; for (let q = 0; q < nk; q += 4) if (x0 + cw > KP[q] && x0 < KP[q + 2] && y0 + ch > KP[q + 1] && y0 < KP[q + 3]) { hit = true; break; }
-        if (hit) continue;
-        if (nIn) {
-          const gx = ((x0 + hcw - gx0) * invCw) | 0; let near2 = false;
-          for (let r = gy - 2; r <= gy + 2 && !near2; r++) { if (r < 0 || r >= rows) continue; const o = r * cols; for (let c = gx - 2; c <= gx + 2; c++) if (c >= 0 && c < cols && nIn[o + c]) { near2 = true; break; } }
-          if (near2) continue;
-        }
-        /* never on a lit pixel: the cell's corners, its middle and the top and foot of its middle column */
-        const base = y0 * pw + x0, mc = base + hch * pw + hcw;
-        if (buf[mc] !== BG || buf[base] !== BG || buf[base + (ch - 1) * pw + cw - 1] !== BG || buf[base + hcw] !== BG || buf[base + (ch - 1) * pw + hcw] !== BG) continue;
-        let h2 = Math.imul(h ^ (h >>> 16), 0x7feb352d); h2 ^= h2 >>> 15; h2 = Math.imul(h2, 0x846ca68b); h2 ^= h2 >>> 16;
-        const u = h2 & 1023, v = (h2 >>> 10) & 1023, hf = ((h2 >>> 20) & 255) / 255;
-        /* 80% . 15% ' 5% : on every layer; the near layer also holds the rare + and the glinting * */
-        const k = near && u < 52 ? (u < 26 ? 3 : 2) : v < 819 ? 0 : v < 973 ? 1 : 4;
-        let b = 0.34 + 0.05 * hf;
-        if (tw) { b = 0.34 + 0.08 * hf * (0.5 + 0.5 * Math.sin(ts * (0.4 + 0.9 * hf) + 6.283 * hf)); if (k === 3 && Math.sin(ts * (0.05 + 0.07 * hf) + 6.283 * hf) > 0.97) b = 0.62; }
-        else if (k === 3) b = 0.46;
-        const s = b * 255 * ink * FLS.gain, col = 0xff000000 | (((0xea * s / 255) | 0) << 16) | (((0xd2 * s / 255) | 0) << 8) | ((0xd8 * s / 255) | 0), g = G[k];
-        for (let p = ps[g], e = ps[g + 1]; p < e; p++) buf[base + pY[p] * pw + pX[p]] = col;
-        n++;
+  for (let j = Math.ceil(r0 / gap); j * gap <= r1; j++) {
+    if (j % 9 === 0) continue;
+    const r = j * gap, nb = Math.round(6.2832 * r / step), da = 6.2832 / nb, thr = ((0.46 - 0.3 * (r - r0) / (r1 - r0)) * 4294967296) >>> 0, dc = Math.cos(da), ds = Math.sin(da), rl = 12 + 8 * (Math.imul(j, 0x2c1b3c6d) >>> 30 & 3) % 24;
+    /* the spindle is up and right of the stage, so a groove's visible arc lies in the second quadrant, where cos and sin both
+       fall: each stage edge bounds its angle on one side (plus a cell either way) */
+    const e = cw / r, ph1 = (ph - cy) / r, lo = Math.max(Math.acos(Math.max(-1, (pw - cx) / r)), ph1 < 1 ? 3.1416 - Math.asin(ph1) : 1.5708) - e - off, hi = Math.min(Math.acos(Math.max(-1, -cx / r)), 3.1416 - Math.asin(Math.min(1, -cy / r))) + e - off;
+    let k = Math.floor(lo / da), k1 = Math.ceil(hi / da), c = Math.cos(k * da + off), sn = Math.sin(k * da + off), q = 0;
+    for (; k <= k1; k++, q = c, c = c * dc - sn * ds, sn = sn * dc + q * ds) {
+      const m = ((k % nb) + nb) % nb, run = (m / rl) | 0, pos = m - run * rl;
+      let h = Math.imul(j * 0x9e3779b1 + run, 0x27d4eb2d); h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); h ^= h >>> 12;
+      if ((h >>> 0) >= thr) continue;
+      let h2 = Math.imul(h ^ (m + 0x3c6e), 0x165667b1); h2 ^= h2 >>> 15; h2 = Math.imul(h2, 0x846ca68b); h2 ^= h2 >>> 16;
+      if ((h2 & 1023) < 150) continue;
+      const x0 = Math.round(cx + r * c) - hcw, y0 = Math.round(cy + r * sn) - hch;
+      if (x0 < 0 || y0 < 0 || x0 + cw > pw || y0 + ch > ph) continue;
+      let hit = false; for (let p = 0; p < nk; p += 4) if (x0 + cw > KP[p] && x0 < KP[p + 2] && y0 + ch > KP[p + 1] && y0 < KP[p + 3]) { hit = true; break; }
+      if (hit) continue;
+      if (nIn) {
+        const gx = ((x0 + hcw - gx0) * invCw) | 0, gy = ((y0 + hch - gy0) * invCh) | 0; let near2 = false;
+        for (let rr = gy - 2; rr <= gy + 2 && !near2; rr++) { if (rr < 0 || rr >= rows) continue; const o = rr * cols; for (let cc = gx - 2; cc <= gx + 2; cc++) if (cc >= 0 && cc < cols && nIn[o + cc]) { near2 = true; break; } }
+        if (near2) continue;
       }
+      /* never on a lit pixel: the cell's corners, its middle and the top and foot of its middle column */
+      const base = y0 * pw + x0, mc = base + hch * pw + hcw;
+      if (buf[mc] !== BG || buf[base] !== BG || buf[base + (ch - 1) * pw + cw - 1] !== BG || buf[base + hcw] !== BG || buf[base + (ch - 1) * pw + hcw] !== BG) continue;
+      /* a run is brightest in its middle, the way a groove catches the light: 0.14 at its ends to 0.3 */
+      const v = (h2 >>> 10) & 1023, g = v < 4 ? 2 : v < 210 ? 1 : 0, b = 0.14 + 0.14 * Math.sin(3.1416 * (pos + 0.5) / rl) + 0.02 * ((h2 >>> 20) & 15) / 15;
+      const z = b * gn / (g === 2 ? 0xf6 : 0xea), col = g === 2 ? 0xff000000 | (((0xbc * z) | 0) << 16) | (((0xf6 * z) | 0) << 8) | ((0x21 * z) | 0) : 0xff000000 | (((0xea * z) | 0) << 16) | (((0xd2 * z) | 0) << 8) | ((0xd8 * z) | 0), gi = G[g & 1], up = g === 2 ? base - ((ch * 0.3) | 0) * pw : base; /* the mint ° is the ◦ raised to the top of its cell */
+      for (let p = ps[gi], e = ps[gi + 1]; p < e; p++) buf[up + pY[p] * pw + pX[p]] = col;
+      n++;
     }
   }
   SKY.n = n;
@@ -628,7 +624,7 @@ function stratPass(t, on, b, nK, lastI, BM, ma, me, dpr) {
 const FL = { e: 0, j: 0, two: false, sw: 0, mor: false, FM: null, push: false, mx: 0, my: 0, R2: 0, pk: 0, pan: false, ma: 1, me: 0, mf: 0,
   ta: 0, tb: 0, spark: false, tick: 0, glyphOn: false, GM: P.glyph, WT: P.w, CAT: P.cat, accW: null, accR: null, accG: null, accB: null,
   pickC: null, pickK: null, nIn: null, occ: null, cwk: null, gx0: 0, gy0: 0, invCw: 0, invCh: 0, cols: 0, rows: 0, meanCol: false, strat: false,
-  nK: null, lastI: null, RGa: null, BM: null, fe: 0, fx0: 0, fx1: 0, fy0: 0, fy1: 0, pw: 0, ph: 0, dpr: 1 };
+  nK: null, lastI: null, RGa: null, BM: null, fe: 0, fx0: 0, fx1: 0, fy0: 0, fy1: 0, pw: 0, ph: 0, dpr: 1, cb: 0.12, snap: true };
 /* every dot, once a frame: its move, its colour, and either its cell (the glyph field) or its pixel. dots i0..i1; `on` is how many
    cells are occupied so far, returned updated */
 function fieldLoop(i0, i1, F, on) {
@@ -638,7 +634,7 @@ function fieldLoop(i0, i1, F, on) {
   const glyphOn = F.glyphOn, GM = F.GM, WT = F.WT, CAT = F.CAT, accW = F.accW, accR = F.accR, accG = F.accG, accB = F.accB, pickC = F.pickC, pickK = F.pickK;
   const nIn = F.nIn, occ = F.occ, cwk = F.cwk, gx0 = F.gx0, gy0 = F.gy0, invCw = F.invCw, invCh = F.invCh, cols = F.cols, rows = F.rows;
   const meanCol = F.meanCol, strat = F.strat, nK = F.nK, lastI = F.lastI, RGa = F.RGa, BM = F.BM, fe = F.fe, fx0 = F.fx0, fx1 = F.fx1, fy0 = F.fy0, fy1 = F.fy1;
-  const occLen = occ ? occ.length : 0;
+  const occLen = occ ? occ.length : 0, cb = F.cb, snap = F.snap;
   for (let i = i0; i < i1; i++) {
     const s = SD[i]; let x = X[i], y = Y[i];
     const dx = TX[i] - x, dy = TY[i] - y;
@@ -650,7 +646,7 @@ function fieldLoop(i0, i1, F, on) {
     if (push) { const qx = x - mx, qy = y - my, d2 = qx * qx + qy * qy; if (d2 < R2 && d2 > 0.5) { const f = (1 - d2 / R2) * pk / Math.sqrt(d2); x += (qx - qy * 0.5) * f; y += (qy + qx * 0.5) * f; } }
     X[i] = x; Y[i] = y;
     let c = C[i];
-    if (c !== TC[i]) c = C[i] = (dx < 0.5 && dx > -0.5 && dy < 0.5 && dy > -0.5) ? TC[i] : blend(c, TC[i], 0.12);
+    if (c !== TC[i]) c = C[i] = (snap && dx < 0.5 && dx > -0.5 && dy < 0.5 && dy > -0.5) ? TC[i] : blend(c, TC[i], cb);
     let fx = x + Math.sin(ta + s) * j, fy = y + Math.cos(tb + s * 1.7) * j;
     if (pan) { fx = fx * ma + me; fy = fy * ma + mf; }
     if (glyphOn && GM[i]) { /* §6.3: the dot joins its cell instead of lighting a pixel */
@@ -811,6 +807,9 @@ function drawField(t, bands) {
   F.pan = pan; F.ma = ma; F.me = me; F.mf = mf;
   F.spark = !reduced && bands.high > 0.16; F.tick = (((t * 0.06) | 0) * 7919) | 0; F.ta = t * 0.0011; F.tb = t * 0.0013;
   const FM = morphStep(t); F.mor = FM !== null; if (FM) F.FM = FM;
+  /* R6: a stop that hands its colours on (threshold.hueTrip) fades them on the trip's envelope (group 0, done at 72%), not in
+     the first 20 frames, and a dot its next room places outright (the sky) does not snap to its new colour */
+  const hk = ATLAS && FM && MORPH.hk; F.cb = hk ? FM[0] : 0.12; F.snap = !hk;
   const on = fieldLoop(0, N, F, 0);
   if (FLS.on) fieldListen(t, bands);
   if (strat && on) stratPass(t, on, gb, F.nK, F.lastI, F.BM, ma, me, DPR);
@@ -1352,6 +1351,7 @@ async function activateRoom(i, via, instant) {
   if (ATLAS) atlasPreEnter();
   if (r.mod) { if (r.mod.track) A.play(r.mod.track, xfade(prev && prev.mod && prev.mod.track, r.mod.track)); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
   layMark();
+  if (ATLAS) MORPH.hk = trip && !!(prev.mod && prev.mod.hueTrip);
   if (trip) stopTrip(m0, via, performance.now(), tripSec());
   const nx = rooms[i + 1]; if (nx && !nx.el.hidden && !nx.el.dataset.side) load(i + 1); /* never warm the side room: it only opens from its own door */
   sigPlace();
@@ -1967,7 +1967,9 @@ async function mountAtlas() {
   const r = rooms[active]; if (r) { const ev = { i: active, id: r.id, prev: null, via: 'mount' }; STOPFNS.slice().forEach((f) => { try { f(ev); } catch (e) { console.warn('onStop', e); } }); }
   if (KIOSK) { try { FAC.tour.play('grand', 0); } catch (e) { console.warn('kiosk', e); } } /* tour.js is the only autoplay driver in atlas mode (§1.10) */
 }
-if (ATLAS) requestAnimationFrame(() => setTimeout(() => { mountAtlas().catch((e) => { console.warn('atlas', e); bootLift(); }); }, 0));
+/* R7 perf: the first stop is interactive before the atlas modules start loading (they would share a slow link and a busy main
+   thread with it). waits for any stop to mount (a deep link may open on another), 2.5 s at most, then mounts as before */
+if (ATLAS) requestAnimationFrame(() => { const t0 = performance.now(), go = () => { if (rooms.some((r) => r.mounted) || performance.now() - t0 > 2500) { mountAtlas().catch((e) => { console.warn('atlas', e); bootLift(); }); } else setTimeout(go, 25); }; setTimeout(go, 0); });
 /* boot watchdog: a module or file that never answers leaves the atlas unmounted and the page silent. after 10 s of
    visible time (a background tab does not count: it draws no frames, so it cannot mount) the visitor gets a way out */
 if (ATLAS) {

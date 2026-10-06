@@ -196,8 +196,8 @@ status(msg, speak) {
  if (msg) { msg.forEach((m) => add(m[0], m[1])); if (speak) this.say(msg.map((m) => (m[1] === 'small' ? ' ' : '') + m[0]).join('')); return; }
  const c = this.counts();
  if (this.L >= this.n) { add(fmt(this.n) + ' artists. '); add('my hand ' + fmt(c[0]) + ' · shuffle ' + fmt(c[1]) + ' · the queue ' + fmt(c[2]), 'b'); add('. type one of yours.'); }
- else { add('they fall in the order they first played for me: '); add(this.of(), 'b'); add(' have landed.'); }
- this.ctx.hud('first meetings · ' + this.of() + ' landed');
+ else { add('they fall in the order of their first full play in my log: '); add(this.of(), 'b'); add(' have landed.'); }
+ this.ctx.hud((innerWidth < 500 ? '\u00a0'.repeat(7) : 'first meetings · ') + this.of() + ' landed');
 },
 armText(k) {
  if (this.strict[k] !== 3) return ARM[this.pool[k]];

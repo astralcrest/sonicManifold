@@ -30,6 +30,8 @@ export const STOP_ALIASES = {
   'pour': { stop: 'wall', angle: 'pour' },
   'the jars': { stop: 'wall', angle: 'pour' },
   'pour the wall': { stop: 'wall', angle: 'pour' },
+  'the tally': { stop: 'wall', angle: 'pour' },
+  'by hand': { stop: 'wall', angle: 'pour' },
   'chain': { stop: 'chain' },
   'the chain': { stop: 'chain' },
   'make a chain': { stop: 'chain' },
@@ -76,6 +78,7 @@ export const STOP_ALIASES = {
   'streak': { stop: 'loop' },
   'streaks': { stop: 'loop' },
   'the tower': { stop: 'loop', angle: 'tower' },
+  'the rings': { stop: 'loop', angle: 'tower' },
   'ten plays': { stop: 'loop', angle: 'ten' },
   'ten plays or more': { stop: 'loop', angle: 'ten' },
   /* R5 pass 2: who held the wheel */

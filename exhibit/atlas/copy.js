@@ -13,31 +13,40 @@ export const COPY = {
   },
 
   chrome: {
-    lockedOn: 'LOCKED ON',
-    freeCamera: 'FREE CAMERA',
-    nextStop: 'next stop · {stop} ›',
-    backToTour: 'back to the tour · {stop} ›',
-    startAgain: 'start again ›',
+    lockedOn: '° held',
+    freeCamera: '° your hand',
+    // R6 M1: the stepper is a tracklist and a tour is the queue (the tour's names live in tours.js)
+    nextStop: 'up next · {stop} ›',
+    backToTour: 'back to the queue · {stop} ›',
+    startAgain: 'play it again ›',
+    mpillNext: 'up next ›',
     enRoute: 'en route',
-    angleBar: 'angle {k}/{n}',
+    angleBar: 'bar {k} / {n}',
+    // R6 move 3: how the visitor reached each stop, in the arms' own glyphs (≡ the tour, ° their pick, × shuffle).
+    // plain counts, kept for this tab only; never compared with the log's rate.
+    shuffle: '× shuffle',
+    servedKey: 'how you reached each stop: ≡ the tour moved on, ° you picked it, × shuffle',
+    servedEnd: 'you started {n} of your {total} stops by hand. i started 19 of every 100 plays.',
     // W40/W12 (ROUND2_PLAN §0.9): "anywhere" stopped being true once the prompt could sit over a specific
     // control, so the chip only claims what §1.9 arming actually does — it shows while ctx.audio.state() is
     // 'off'/'arming' and hides on 'on'/'muted' (INTEGRATION W45 arms on the first pointerup/touchend/click/keydown).
     soundChip: '♪ tap for sound',
     soundOff: 'sound off',
     soundOn: 'sound on',
-    onboarding: 'drag to turn · pinch or wheel to zoom · tap a [ name ] to fly there · / to search',
+    // R6 M9: the hint leads with sound
+    onboarding: 'hover to hear · hold to loop · drag to turn · / to dig the log',
+    onboardingTouch: 'touch to hear · hold to loop · drag to turn',
     // W40/W10 tour end card: verbatim source for chrome.js's CC.end*/CC.contact fallbacks (chrome.js ~L40-45).
-    endHead: 'that’s the tour.',
-    endFly: 'fly it yourself ›',
+    endHead: 'end of the record.',
+    endFly: 'take the wheel ›',
     endExport: 'run it on your own export ›',
     endReport: 'the report ›',
-    endAgain: 'start again ›',
+    endAgain: 'play it again ›',
     contact: 'questions or a dataset of your own · astralcrest',
     toasts: {
       pressAndHold: 'press and hold',
       zoomedOut: 'zoomed all the way out · next stop with → or the pill',
-      tourPaused: 'tour paused · press p or tap ▸ to pick up where it left off',
+      tourPaused: 'you took the wheel · ▶ hands it back to the queue',
       sessionNotCounted: "single sessions aren't in the public data; only their totals are",
       linkCopied: 'link copied',
       detailLowered: 'detail lowered to normal for smoother motion',
@@ -60,18 +69,19 @@ export const COPY = {
       'drag: turn or pan the field',
       'pinch / ctrl+wheel / wheel: zoom',
       'double-tap or double-click: zoom in',
-      'tap a [ name ]: fly there',
+      'tap a name: go there',
       'arrow keys (field focused): pan or turn; +/- zoom; 0 or escape: home',
       '/ or o: search',
       'p or space: pause or resume the tour',
       '[ ] or , .: step stops or angles',
       'g: glow · v: detail · y: travel speed · l: labels · m: mute',
+      'e: how to read this stop',
       '?: this help',
     ],
     accuracy: [
       'in a categorical room, the shape of a character says who pressed play; colour is not needed to read it.',
       'on a small screen one dot stands for four plays, not one.',
-      "the clock and the universe's day view both use one fixed utc−7 clock for the whole log (no per-play timezone or daylight saving was kept), not a real local time.",
+      "the clock and the universe's day view both read on one fixed clock, all year (no per-play timezone or daylight saving was kept), not a real local time.",
       "a star's position in the universe carries no meaning as distance; its depth is a seeded drawing offset unless a 3d layout file ships.",
       'twinkle and the occasional bright glint are decoration everywhere on this site and carry no data.',
     ],
@@ -97,14 +107,16 @@ export const COPY = {
   search: {
     // R2 C2 #2: "lands somewhere real" contradicted universe.js's own pos1 (a dust artist's dot is a placeholder
     // with no computed position); this says the same thing search actually does without the false claim.
-    footer: "names and dates from the log · every result flies somewhere; a dust artist's spot is a placeholder",
-    seen: 'seen {n} of {total} stops',
+    footer: "names and dates from the log · every result lands somewhere; a dust artist's spot is a placeholder",
+    placeholder: 'dig the log',
+    seen: 'heard {n} of {total}',
   },
 
+  // R6 M5: the tape counter (it replaced a mission clock). it never runs on its own and never passes stats.lastDay: on a stop
+  // with a date of its own the ● and the count follow that day, else the tape reads full.
   tplus: {
-    // §9.9. the suffix is mandatory on both forms: the counter must never read as a log still recording.
-    since: 'T+{y}y {mo}m {d}d {hh}:{mm}:{ss} since the first logged play · the log stops 2026-05-10',
-    cursor: 'T+{y}y {mo}m {d}d into the log · {date}',
+    whole: 'the whole log',
+    at: 'play {n} of {total}',
   },
 
   // §6.4 wall label addition: the categorical glyph legend. R2 C2 #3: this had drifted from the shipped
@@ -113,7 +125,7 @@ export const COPY = {
   // edge glyph, never a served-family shape), and missing `≣` and the trailing edge-glyph disambiguation.
   // Now byte-identical to labels.js's `shape` string (this field is unused/dead elsewhere — labels.js hardcodes
   // its own copy rather than importing COPY.glyphLegend — so keep the two in sync by hand if either changes).
-  glyphLegend: 'the shape of each character says who pressed play without colour: ° o O @ a tap, × x X % a shuffle, _ = ≡ ≣ the queue. heavier marks hold more plays; - / | \\ only trace an edge.',
+  glyphLegend: 'the shape of each mark says who pressed play without colour: tally strokes a tap, dice pips a shuffle, conveyor slats the queue. heavier marks hold more plays; hairlines only trace an edge. in text, ° stands for a tap, × a shuffle, ≡ the queue.',
 
   // §7 front door alternate h1 (D13/H16 owner-checkpoint flag #4; F1 applies it, the old line stays as a comment token there).
   doorH1: "I didn't press play on most of my music.",
@@ -137,7 +149,7 @@ export const COPY = {
     // K4 position sentence (GATE_science K4, resolved) — placed == 0 nodes.
     posLayout: 'positions come from a seeded force layout of which artists were played back to back. distance and direction mean nothing on their own.',
     // placed == 1 (dust/placeholder), TIER_B_DATA_CARD §5 verbatim.
-    posPlaceholder: "this dot's position is a placeholder so search has somewhere to fly. it isn't computed from listening and means nothing.",
+    posPlaceholder: "this dot's position is a placeholder so search has somewhere to land. it isn't computed from listening and means nothing.",
     // placed == 2 (outer ring) — ROUND2 R4 item 2: the ring runs in plays order, so "means nothing" was false.
     posRing: 'this artist isn’t joined to the main web by enough back-to-back plays to be laid out, so it sits on the outer ring, spaced evenly in order of plays; where it sits on the ring says nothing else about it.',
 
@@ -213,8 +225,9 @@ export default COPY;
 export const SRC = [
   { n: '97,427', where: 'stats.plays, universe.say/sayDim1 (via exhibit.html)', src: 'exhibit/data/wall.json#total; GATE_science.md recompute #1' },
   { n: '2019-09-05', where: 'stats.firstDay', src: 'exhibit/data/universe_days_index.json#first_date' },
-  { n: '2026-05-10', where: 'stats.lastDay, tplus.since', src: 'exhibit/data/universe_days_index.json#last_date' },
-  { n: '19', where: 'universe.sayDim1', src: 'GATE_science.md W1 replacement (verbatim); GROUND_TRUTH.md L20-22, main.tex L108' },
+  { n: '2026-05-10', where: 'stats.lastDay, the tape counter end', src: 'exhibit/data/universe_days_index.json#last_date' },
+  { n: '', where: 'tplus.at {n}/{total}', src: 'derive: running sum of exhibit/data/universe_days.json days[].n through the cursor day; the sum over every day is 97,427' },
+  { n: '19', where: 'universe.sayDim1, chrome.servedEnd', src: 'GATE_science.md W1 replacement (verbatim); GROUND_TRUTH.md L20-22, main.tex L108' },
   { n: '17', where: 'universe.sayDim1', src: 'GATE_science.md W1 replacement (verbatim)' },
   { n: '64', where: 'universe.sayDim1', src: 'GATE_science.md W1 replacement (verbatim)' },
   { n: '0.7', where: 'universe.sayDim1', src: 'GATE_science.md W1 replacement (verbatim)' },

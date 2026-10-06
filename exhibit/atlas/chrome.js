@@ -1,5 +1,5 @@
 /* exhibit/atlas/chrome.js — package M3 (BUILD_SPEC_V2 BRIEF M3).
-   Info panel, stepper, captions, chips, idle-fade, toast, T+, zoom buttons, the bottom hint line (first-visit
+   Info panel, stepper, captions, chips, idle-fade, toast, tape counter, zoom buttons, the bottom hint line (first-visit
    onboarding + "tap anywhere for sound"). Reads: §1.3, §1.12, §2.3, §2.4, §9 (1-4,7,9). SKELETON_NOTES.md's
    "exact API as implemented" wins over the prose spec where they differ (module load order, ctx.atlas fields,
    facade replay behaviour).
@@ -24,34 +24,44 @@ export function mount(ctx, deps) {
   const coarse = !!deps.coarse || matchMedia('(pointer:coarse)').matches;
 
   const T = {
-    nextStop: CC.nextStop || 'next stop · {stop} ›',
-    backToTour: CC.backToTour || 'back to the tour · {stop} ›',
-    startAgain: CC.startAgain || 'start again ›',
+    nextStop: CC.nextStop || 'up next · {stop} ›',
+    backToTour: CC.backToTour || 'back to the queue · {stop} ›',
+    startAgain: CC.startAgain || 'play it again ›',
     cameraHome: CC.cameraHome || 'camera home ›',
     backTo: CC.backTo || 'back to {stop} ›',
     sideRoom: CC.sideRoom || 'side room',
     enRoute: CC.enRoute || 'en route',
     sound: CC.soundChip || '♪ tap for sound',
-    onboard: CC.onboarding || 'drag to turn · pinch or wheel to zoom · tap a [ name ] to fly there · / to search',
-    onboardTouch: CC.onboardingTouch || 'drag to turn · pinch to zoom · tap a [ name ] to fly',
+    onboard: CC.onboarding || 'hover to hear · hold to loop · drag to turn · / to dig the log',
+    onboardTouch: CC.onboardingTouch || 'touch to hear · hold to loop · drag to turn',
     pauseTour: CC.pauseTour || '‖ pause',
     playTour: CC.playTour || '▶ play tour',
     /* round-2 (W-fix7): the phone merged-row pill carries only a short verb — the destination name is already
        in the caption/tours sheet, repeating it here is what made the row read as noise */
-    mpillNext: CC.mpillNext || 'next ›',
+    mpillNext: CC.mpillNext || 'up next ›',
     mpillBack: CC.mpillBack || 'back ›',
     mpillAgain: CC.mpillAgain || 'again ›',
     mpillHome: CC.mpillHome || 'home ›',
     /* W10 tour end card (fallback copy; C2/copy.js may supply `CC.end*`) */
-    endHead: CC.endHead || 'that’s the tour.',
-    endFly: CC.endFly || 'fly it yourself ›',
+    endHead: CC.endHead || 'end of the record.',
+    endFly: CC.endFly || 'take the wheel ›',
     endExport: CC.endExport || 'run it on your own export ›',
     endReport: CC.endReport || 'the report ›',
-    endAgain: CC.endAgain || 'start again ›',
+    endAgain: CC.endAgain || 'play it again ›',
     contact: CC.contact || 'questions or a dataset of your own · astralcrest',
     overflow: CC.overflow || 'more controls',
     share: CC.shareLabel || 'share',
+    lockedOn: CC.lockedOn || '° held',
+    freeCamera: CC.freeCamera || '° your hand',
+    paused: (CC.toasts && CC.toasts.tourPaused) || 'you took the wheel · ▶ hands it back to the queue',
+    bar: CC.angleBar || 'bar {k} / {n}',
+    shuffle: CC.shuffle || '× shuffle',
+    servedKey: CC.servedKey || 'how you reached each stop: ≡ the tour moved on, ° you picked it, × shuffle',
+    servedEnd: CC.servedEnd || 'you started {n} of your {total} stops by hand. i started 19 of every 100 plays.',
+    tapeWhole: (deps.COPY && deps.COPY.tplus && deps.COPY.tplus.whole) || 'the whole log',
+    tapeAt: (deps.COPY && deps.COPY.tplus && deps.COPY.tplus.at) || 'play {n} of {total}',
   };
+  const LP = (TOURS.find((t) => t.id === 'grand') || {}).name || 'the long play';
   const fillStop = (s, name) => s.replace('{stop}', name);
 
   /* ---------------------------------------------------------------- storage guard (§9.6): a stored value is honoured
@@ -67,13 +77,14 @@ export function mount(ctx, deps) {
 
   /* ---------------------------------------------------------------- DOM build (mount, no layout, §1.4)
      rows, top to bottom (gcdatlas order): stop row · typed caption · angle bar · the pill (its own row, so it is never
-     clipped by a long angle bar and never jumps sideways between stops) · T+ · tools (share · photo · label). */
+     clipped by a long angle bar and never jumps sideways between stops) · tape counter · tools (share · photo · label). */
   const info = doc.createElement('div');
   info.id = 'atlas-info'; info.className = 'atlas-info';
   info.innerHTML =
     '<div class="ai-row1" id="ai-row1" data-idle="dim">' +
       '<span class="ai-stop" id="ai-stop"></span>' +
-      '<button type="button" class="ai-chip ai-tourchip" id="ai-tourchip" data-idle="hide" aria-haspopup="dialog"><span class="ai-tourchip-t" id="ai-tourchip-t">GRAND TOUR</span><span aria-hidden="true">&nbsp;▾</span></button>' +
+      '<button type="button" class="ai-chip ai-tourchip" id="ai-tourchip" data-idle="hide" aria-haspopup="dialog"><span class="ai-tourchip-t" id="ai-tourchip-t"></span><span aria-hidden="true">&nbsp;▾</span></button>' +
+      '<button type="button" class="ai-chip ai-shuf" id="ai-shuf" data-idle="hide"></button>' +
       '<span class="ai-chip ai-camchip" id="ai-camchip" data-idle="hide" hidden></span>' +
       '<span class="ai-row1-sp"></span>' +
       '<button type="button" class="ai-mini" id="ai-less" data-idle="hide"></button>' +
@@ -82,9 +93,10 @@ export function mount(ctx, deps) {
     /* round-2 item 4: gcd's own anchor ("Earth", 30px) — the stop's name, under the stop row, never a
        gradient. Phone never renders this (chrome.css): the merged row already carries the name there, and
        phone's strict coverage budget has no room for a second copy of it. */
-    '<h1 class="ai-title" id="ai-title" data-idle="dim"></h1>' +
+    /* R7B: title + caption = the liner note (chrome.css: fixed lower left on desktop, display:contents elsewhere) */
+    '<div class="ai-liner" id="ai-liner"><h1 class="ai-title" id="ai-title" data-idle="dim"></h1>' +
     '<p class="ai-caption" id="ai-caption" data-idle="dim" aria-hidden="true" hidden><span class="ai-cap-ghost" id="ai-cap-g"></span>' +
-      '<span class="ai-cap-live" id="ai-cap-live"><span class="ai-cap-t" id="ai-cap-t"></span><span class="ai-cursor" id="ai-cursor" hidden></span><span class="ai-cap-x"></span></span></p>' +
+      '<span class="ai-cap-live" id="ai-cap-live"><span class="ai-cap-t" id="ai-cap-t"></span><span class="ai-cursor" id="ai-cursor" hidden></span><span class="ai-cap-x"></span></span></p></div>' +
     '<div class="ai-angle" id="ai-angle" data-idle="dim" hidden>' +
       '<button type="button" class="ai-angle-btn" id="ai-angle-prev" aria-label="previous angle" data-idle="hide">‹</button>' +
       '<span class="ai-angle-bar" id="ai-angle-bar"></span>' +
@@ -98,6 +110,7 @@ export function mount(ctx, deps) {
       '<button type="button" class="ai-pill" id="ai-pill" data-idle="hide" hidden></button>' +
     '</div>' +
     '<p class="ai-tplus" id="ai-tplus" data-idle="hide" aria-hidden="true" hidden><span id="ai-tplus-a"></span><span class="ai-tplus-end" id="ai-tplus-b"></span></p>' +
+    '<p class="ai-served" id="ai-served" data-idle="dim" role="img" hidden></p>' +
     '<div class="ai-hud" id="ai-hud" data-idle="dim" hidden></div>' +
     '<div class="ai-foot" id="ai-foot" data-idle="hide">' +
       /* the wall label (the l key, the phone dock's `label`); `more ▾` in the stop row is the card's own expander, so this
@@ -116,16 +129,22 @@ export function mount(ctx, deps) {
     '<div class="ai-overflow" id="ai-overflow" hidden>' +
       '<button type="button" class="ai-ov-btn" id="ai-ov-less"></button>' +
       '<button type="button" class="ai-ov-btn" id="ai-ov-label">label</button>' +
+      '<button type="button" class="ai-ov-btn" id="ai-ov-shuf"></button>' +
       '<button type="button" class="ai-ov-btn" id="ai-ov-share" hidden>share</button>' +
+      '<button type="button" class="ai-ov-btn" id="ai-ov-photo" hidden>picture</button>' +
+      '<button type="button" class="ai-ov-btn" id="ai-ov-expose" hidden>expose</button>' +
+      '<button type="button" class="ai-ov-btn" id="ai-ov-xray">x-ray</button>' +
       '<button type="button" class="ai-ov-btn" id="ai-ov-hide">hide</button>' +
     '</div>' +
     /* ---------------------------------------------------------- W10: tour end card, both viewports */
     '<div class="ai-end" id="ai-end" hidden>' +
       '<p class="ai-end-h" id="ai-end-h"></p>' +
+      '<p class="ai-end-served" id="ai-end-served"></p>' +
       '<button type="button" class="ai-end-btn" id="ai-end-fly"></button>' +
       '<button type="button" class="ai-end-btn" id="ai-end-export"></button>' +
       '<button type="button" class="ai-end-btn" id="ai-end-report"></button>' +
       '<button type="button" class="ai-end-btn" id="ai-end-again"></button>' +
+      '<a class="ai-end-btn" id="ai-end-colophon" href="colophon.html">colophon &rsaquo;</a>' +
       '<p class="ai-end-contact" id="ai-end-contact"></p>' +
     '</div>';
   body.appendChild(info);
@@ -173,9 +192,11 @@ export function mount(ctx, deps) {
   const tplusEl = $('ai-tplus'), tplusA = $('ai-tplus-a'), tplusB = $('ai-tplus-b'), hudEl = $('ai-hud');
   const zoomOut = $('ai-zout'), zoomIn = $('ai-zin'), moreBtn = $('ai-more'), footEl = $('ai-foot');
   const mrow = $('ai-mrow'), mplay = $('ai-mplay'), mplayI = $('ai-mplay-i'), mrowLabel = $('ai-mrow-label'), mrowT = $('ai-mrow-t'), mrowOv = $('ai-mrow-ov'), mpillBtn = $('ai-mpill');
-  const overflowEl = $('ai-overflow'), ovLess = $('ai-ov-less'), ovLabel = $('ai-ov-label'), ovShare = $('ai-ov-share'), ovHide = $('ai-ov-hide');
+  const overflowEl = $('ai-overflow'), ovLess = $('ai-ov-less'), ovLabel = $('ai-ov-label'), ovShare = $('ai-ov-share'), ovPhoto = $('ai-ov-photo'), ovExpose = $('ai-ov-expose'), ovXray = $('ai-ov-xray'), ovHide = $('ai-ov-hide');
   mrowOv.setAttribute('aria-label', T.overflow);
   ovShare.textContent = T.share;
+  const shufBtn = $('ai-shuf'), ovShuf = $('ai-ov-shuf'), servedEl = $('ai-served'), endServed = $('ai-end-served');
+  shufBtn.textContent = ovShuf.textContent = T.shuffle; tourChipT.textContent = LP;
   const endEl = $('ai-end'), endH = $('ai-end-h'), endFly = $('ai-end-fly'), endExport = $('ai-end-export'), endReport = $('ai-end-report'), endAgain = $('ai-end-again'), endContact = $('ai-end-contact');
 
   /* photo.js (M8) appends its share/photo dock straight into #atlas-info; it belongs on the tools row, before
@@ -188,10 +209,22 @@ export function mount(ctx, deps) {
        photodock itself sits in #ai-foot (hidden by the compact card except while `.is-open`, WIRE_BUGS 1) */
     realShareBtn = d.querySelector('[data-act="share"]');
     if (realShareBtn && ovShare.hidden) ovShare.hidden = false;
+    ovPhoto.hidden = ovExpose.hidden = false;
     if (!d.dataset.postcard) { d.dataset.postcard = '1'; d.addEventListener('click', postcard, true); }
   }
   new MutationObserver(adoptPhotoDock).observe(info, { childList: true });
   ovShare.addEventListener('click', () => { if (realShareBtn) realShareBtn.click(); closeOverflow(); });
+  /* the compact card hides the photo chip (0x0 at 390 px), so phones reach the photo bar from here. focus goes to the
+     "…" first: photo.js hands focus back to whoever held it on open, and the entry itself is gone by then */
+  const openPhoto = (then) => {
+    const P = ctx.atlas && ctx.atlas.photo; closeOverflow(); if (!P) return;
+    try { mrowOv.focus(); } catch (e) {}
+    P.open(); if (then) then(P);
+  };
+  ovPhoto.addEventListener('click', () => openPhoto());
+  ovExpose.addEventListener('click', () => openPhoto((P) => P.expose()));
+  /* same URL string as exhibit.html's loader, so this is the same module instance as the x key's */
+  ovXray.addEventListener('click', () => { closeOverflow(); import('./engine.js' + (ctx.V || '')).then((m) => m.toggle()).catch(() => {}); });
   /* R9 postcards: on a stop with a share line (tours.js SHARE), `share` sends its unfurl page s/<stop>.html, carrying this
      view's hash, with the line: the share sheet where there is one, else the clipboard. captured on the dock, ahead of
      photo.js's own link copy, which still runs on a stop without a line */
@@ -507,9 +540,17 @@ export function mount(ctx, deps) {
     capToken++; capT.textContent = capShown; cursorEl.hidden = true; stopTyping();
     if (capFull) sayLater(capFull, capToken);
   }
+  /* R7 voice: a first-person sentence with few numbers is the person and sets serif italic (chrome.css .ai-voice-p);
+     number lines, keys and formulas stay the machine's mono */
+  const VOICE_RE = /(^|[\s("'\u2018\u201c])(i|my|me|mine|i\u2019m|i'm|i\u2019ve|i've|i\u2019d|i'd|you|your)\b/i;
+  /* a person's line written without a pronoun (the clock: tours.js says "my whole log folded..." elsewhere) */
+  const VOICE_ALSO = /^the whole log folded onto one day/;
+  const isVoice = (t) => !!t && (VOICE_RE.test(t) || VOICE_ALSO.test(t)) && !/[=\u00f7\u2192]/.test(t);
+  const voiceCap = (t) => { capEl.classList.toggle('ai-voice-p', isVoice(t)); };
   function captionSet(text, full) {
     capToken++; stopTyping(); text = text || ''; capWords = false;
     capText = text; capFull = full != null ? full : text; capOpen = false; capSaid = true;
+    voiceCap(capFull);
     const shown = layoutCap(); capT.textContent = shown; cursorEl.hidden = true; syncPrintCaption(capFull);
   }
   function captionClear() { captionSet(''); }
@@ -518,6 +559,7 @@ export function mount(ctx, deps) {
     capWords = !!o.words;
     capToken++; const myToken = capToken; text = text || '';
     stopTyping(); capText = text; capFull = o.full != null ? o.full : text; capOpen = false; capSaid = !capFull;
+    voiceCap(capFull);
     syncPrintCaption(capFull);
     capEl.hidden = !capText;
     if (!capText) { capT.textContent = ''; cursorEl.hidden = true; return Promise.resolve(); }
@@ -763,7 +805,14 @@ export function mount(ctx, deps) {
   }
   function place(el) {
     const sp = lineSpot();
+    if (el === toastEl && sp.band != null) sp.maxW = Math.min(sp.maxW, 620);
     el.style.left = sp.cx + 'px'; el.style.maxWidth = sp.maxW + 'px';
+    /* R7B: upright, the hint sits in the card's band over the caption, never above the card on the room's labels */
+    if (el === toastEl && isPortrait() && !html.classList.contains('atlas-hidden')) {
+      const it = info.getBoundingClientRect().top, eh = el.offsetHeight, mt = mrow.getBoundingClientRect().top || innerHeight;
+      const tp = Math.max(0, Math.min(Math.max(it, mt - eh), innerHeight - dockH - 4 - eh));
+      el.style.bottom = Math.round(innerHeight - tp - eh) + 'px'; return;
+    }
     let bottom = sp.bottom;
     /* upright, a keepout that runs down into the card itself is a room reserving room for the chrome to move into
        (universe: its card grows), not something drawn on the stage; only keepouts inside the stage push the line up */
@@ -785,30 +834,28 @@ export function mount(ctx, deps) {
   let toastT = 0;
   function hideToast() { clearTimeout(toastT); toastEl.classList.remove('on'); html.classList.remove('ai-toast-on'); }
   function toast(text, ms) {
-    clearTimeout(toastT); toastEl.textContent = text || '';
+    clearTimeout(toastT); toastEl.textContent = text || ''; toastEl.classList.toggle('ai-voice-p', isVoice(text));
     place(toastEl);
     toastEl.classList.add('on'); html.classList.add('ai-toast-on');
     toastT = setTimeout(hideToast, ms == null ? 2600 : ms);
   }
   ctx.toast = toast;
 
-  /* ---------------------------------------------------------------- stepper: stop row + tour chip + camera chip
-     W08: one padded format throughout (WB6) — on tour `STOP 03 / 07 · 90 SECONDS ▾`, off tour
-     `STOP 08 · THE UNIVERSE` (+ FREE CAMERA/LOCKED ON, W11 keeps that off a tour only). The merged phone row
-     (`#ai-mrow-t`, W06) mirrors the same string so the two layouts never drift. */
+  /* ---------------------------------------------------------------- stepper: a tracklist row + the queue's name (R6 M1)
+     on a tour `02 / 16  the log` beside `the long play ▾`, off one `08  the universe`; the merged phone row mirrors it */
   function stepLabel() {
-    const ts = tourState(), cur = curStop();
-    if (ts && ts.here) return { stop: 'STOP ' + two(tourPos(ts).k) + ' / ' + two(tourPos(ts).n), chip: (ts.def ? ts.def.name : ts.a.id).toUpperCase(), onTour: true };
-    if (cur && cur.side) return { stop: T.sideRoom + ' · ' + cur.name.toUpperCase(), chip: 'GRAND TOUR', onTour: false };
+    const ts = tourState(), cur = curStop(), nm = cur ? cur.name : '';
+    if (ts && ts.here) return { stop: two(tourPos(ts).k) + ' / ' + two(tourPos(ts).n) + '  ' + nm, chip: ts.def ? ts.def.name : ts.a.id, onTour: true };
+    if (cur && cur.side) return { stop: T.sideRoom + ' · ' + nm, chip: LP, onTour: false };
     const w = walkStops(), pos = cur ? w.findIndex((s) => s.i === cur.i) : -1;
-    return { stop: 'STOP ' + two(pos < 0 ? 1 : pos + 1) + ' · ' + (cur ? cur.name.toUpperCase() : ''), chip: 'GRAND TOUR', onTour: false };
+    return { stop: two(pos < 0 ? 1 : pos + 1) + '  ' + nm, chip: LP, onTour: false };
   }
   /* the camera-state suffix ("FREE CAMERA"/"LOCKED ON · x") appended off-tour, never on one (W11) */
   function camSuffix() {
     if (tourDriving()) return '';
     const st = (ctx.view && ctx.view.state) || 'home';
-    if (st === 'locked' && lockLabel) return ' · LOCKED ON · ' + lockLabel.toUpperCase();
-    if (st === 'free') return ' · FREE CAMERA';
+    if (st === 'locked' && lockLabel) return ' · ' + T.lockedOn + ' · ' + lockLabel;
+    if (st === 'free') return ' · ' + T.freeCamera;
     return '';
   }
   /* round-2 (W-fix7): the phone merged row used to mirror the desktop "STOP 03 / 07 · 90 SECONDS ▾" string
@@ -822,12 +869,12 @@ export function mount(ctx, deps) {
      between fitting and an ellipsis mid-name ("THE RULER CHANG…") — the row is tappable as a whole regardless
      (aria-haspopup carries the affordance), so the glyph is decorative there, not load-bearing. */
   function phoneStopLabel(s, ts, cur) {
-    const nm = cur ? cur.name.toUpperCase() : '';
+    const nm = cur ? cur.name : '';
     const roomy = innerWidth > 400;
-    if (s.onTour && ts && ts.a) return two(tourPos(ts).k) + '/' + two(tourPos(ts).n) + (roomy ? ' ▾ · ' : ' ') + nm;
+    if (s.onTour && ts && ts.a) return two(tourPos(ts).k) + '/' + two(tourPos(ts).n) + (roomy ? ' ▾  ' : '  ') + nm;
     if (cur && cur.side) return nm;
     const w = walkStops(), pos = cur ? w.findIndex((x) => x.i === cur.i) : -1;
-    return two(pos < 0 ? 1 : pos + 1) + ' · ' + nm + camSuffix();
+    return two(pos < 0 ? 1 : pos + 1) + '  ' + nm + camSuffix();
   }
   function renderStop() {
     const s = stepLabel(), ts = tourState(), cur = curStop();
@@ -852,8 +899,8 @@ export function mount(ctx, deps) {
     const st = (ctx.view && ctx.view.state) || 'home';
     /* W11: on a tour the chip must never say LOCKED ON in place of the tour name */
     if (tourDriving()) { camChip.hidden = true; camChip.textContent = ''; delete camChip.dataset.state; row1.classList.remove('ai-cam-on'); renderStop(); return; }
-    if (st === 'locked' && lockLabel) { camChip.hidden = false; camChip.dataset.state = 'locked'; camChip.textContent = 'LOCKED ON · ' + lockLabel; }
-    else if (st === 'free') { camChip.hidden = false; camChip.dataset.state = 'free'; camChip.textContent = 'FREE CAMERA'; }
+    if (st === 'locked' && lockLabel) { camChip.hidden = false; camChip.dataset.state = 'locked'; camChip.textContent = T.lockedOn + ' · ' + lockLabel; }
+    else if (st === 'free') { camChip.hidden = false; camChip.dataset.state = 'free'; camChip.textContent = T.freeCamera; }
     else { camChip.hidden = true; camChip.textContent = ''; delete camChip.dataset.state; }
     row1.classList.toggle('ai-cam-on', !camChip.hidden);
     renderStop(); /* keeps the phone merged row's camera suffix in sync */
@@ -881,12 +928,18 @@ export function mount(ctx, deps) {
   }
 
   /* ---------------------------------------------------------------- angle bar + en-route + pills
-     the bar is split into one segment per angle: off-tour the segments up to the current angle are full; on a tour
-     the current angle's segment fills with the hold (so it reads as progress, never as an empty, broken bar) */
-  function angleBarText(n, k, frac) {
+     R6 M2: the angles are bars of music, `bar 2 / 4  ▮▮▯▯`, one glyph an angle, played ones full. with the bed on, the
+     current bar's glyph lands full on each downbeat and rests small between (ctx.audio.beat); sound off or reduced
+     motion, it simply stays full. no beat is ever made up. */
+  function beatGlyph() {
+    if (reduced) return '▮';
+    let b = null; try { b = ctx.audio && typeof ctx.audio.beat === 'function' ? ctx.audio.beat(0.25) : null; } catch (e) {}
+    return !b || b.phase < 0.25 ? '▮' : '▪';
+  }
+  function angleBarText(n, k) {
     if (n <= 1) return '';
-    const W = 18, f = clamp(Math.round(frac * W), 0, W);
-    return 'angle ' + (k + 1) + '/' + n + '  [' + '#'.repeat(f) + '-'.repeat(W - f) + ']';
+    let g = ''; for (let i = 0; i < n; i++) g += i < k ? '▮' : i === k ? beatGlyph() : '▯';
+    return T.bar.replace('{k}', k + 1).replace('{n}', n) + '  ' + g;
   }
   const angleNow = () => (ctx.angle && ctx.angle.get ? ctx.angle.get() : { k: 0, n: 1 });
   /* W15: while a tour drives this stop, the bar is the TOUR's own angle count (K3 active.angleK/angleN — 1 +
@@ -897,7 +950,6 @@ export function mount(ctx, deps) {
     if (ts && ts.here && ts.a && (ts.a.playing || ts.a.enRoute)) { const a = ts.a; return { n: a.angleN || 1, k: a.angleK || 0, hold: typeof a.holding === 'number' ? a.holding : 0 }; }
     const a = angleNow(); return { n: a.n, k: a.k, hold: null };
   }
-  function barFrac(d) { return d.hold != null ? (d.k + clamp(d.hold, 0, 1)) / d.n : (d.k + 1) / d.n; }
   let enRouteT = 0, enRouteDots = 1, freeEnRoute = false;
   function setEnRouteUI(on) {
     angleRow.hidden = !on && angleNow().n <= 1;
@@ -918,7 +970,7 @@ export function mount(ctx, deps) {
       const d = angleDims(tourState());
       setEnRouteUI(false);
       angleRow.hidden = d.n <= 1;
-      angleBar.textContent = angleBarText(d.n, d.k, barFrac(d));
+      angleBar.textContent = angleBarText(d.n, d.k);
       anglePrev.hidden = angleNext.hidden = d.n <= 1;
     }
     renderPill();
@@ -932,13 +984,14 @@ export function mount(ctx, deps) {
       if (freeEnRoute) freeEnRoute = false;
       if (ta.enRoute) return;
       const d = angleDims(tourState()); if (d.n <= 1) return;
-      const txt = angleBarText(d.n, d.k, barFrac(d));
+      const txt = angleBarText(d.n, d.k);
       if (txt !== angleBar.textContent) angleBar.textContent = txt;
       return;
     }
     const f = ctx.view && ctx.view.flight;
     const show = !!(f && f.dur >= 0.8 && f.u < 1);
     if (show !== freeEnRoute) { freeEnRoute = show; if (show) setEnRouteUI(true); else { setEnRouteUI(false); renderAngle(); } }
+    else if (!show && !angleRow.hidden) { const d = angleDims(tourState()), txt = angleBarText(d.n, d.k); if (txt && txt !== angleBar.textContent) angleBar.textContent = txt; }
   }
   anglePrev.addEventListener('click', () => { try { ctx.angle.prev(); } catch (e) {} });
   angleNext.addEventListener('click', () => { try { ctx.angle.next(); } catch (e) {} });
@@ -1112,48 +1165,54 @@ export function mount(ctx, deps) {
     } catch (e) {}
   }
 
-  /* ---------------------------------------------------------------- T+ counter (§9.9): one line where the column allows;
-     the suffix is its own unbreakable piece, so a narrow column wraps before it and never through it */
-  function calDiff(startMs, nowMs) {
-    const s = new Date(startMs), n = new Date(nowMs);
-    let y = n.getUTCFullYear() - s.getUTCFullYear(), mo = n.getUTCMonth() - s.getUTCMonth(), d = n.getUTCDate() - s.getUTCDate();
-    let h = n.getUTCHours() - s.getUTCHours(), mi = n.getUTCMinutes() - s.getUTCMinutes(), se = n.getUTCSeconds() - s.getUTCSeconds();
-    if (se < 0) { se += 60; mi--; }
-    if (mi < 0) { mi += 60; h--; }
-    if (h < 0) { h += 24; d--; }
-    if (d < 0) { const pm = new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), 0)).getUTCDate(); d += pm; mo--; }
-    if (mo < 0) { mo += 12; y--; }
-    return { y, mo, d, h, mi, se };
-  }
-  const pad2 = (v) => String(Math.max(0, v)).padStart(2, '0');
-  function firstDayMs() { try { return Date.parse((ctx.stats.firstDay || '2019-09-05') + 'T00:00:00-07:00'); } catch (e) { return Date.parse('2019-09-05T00:00:00-07:00'); } }
-  let universeSub = null, universeLast = null;
+  /* ---------------------------------------------------------------- the tape counter (R6 M5, §9.9; it replaced a mission clock)
+     `▶ 2019-09-05 ━━━━●── 2026-05-10 · play 61,204 of 97,427`: on a stop with a day of its own (the universe's day
+     cursor) the ● and the count sit at that day's running total of plays; anywhere else the tape reads full, `the whole
+     log`. it never runs on a clock and can never pass the log's last day. */
+  let universeSub = null;
   function tryHookUniverse() {
     if (universeSub) return;
     const u = ctx.peek && ctx.peek('universe');
     if (u && typeof u.onTime === 'function') {
-      universeSub = u.onTime((t) => {
-        universeLast = t;
+      universeSub = u.onTime(() => {
+        renderTplus();
         /* a day-bound caption (the median day) must not stay up once the cursor leaves that day */
         const cur = curStop();
         if (cur && cur.id === 'universe' && !tourOwnsCaption()) refreshCaption(false);
       });
-      universeLast = u.time || null;
     }
   }
+  let dayCum = null, dayCumP = null;
+  function loadDayCum() {
+    if (!dayCumP) dayCumP = ctx.data('universe_days').then((j) => { let c = 0; const D = (j && j.days) || []; dayCum = { d: D.map((x) => x.d), c: D.map((x) => (c += x.n || 0)), total: c }; renderTplus(); }).catch(() => { dayCumP = null; });
+  }
+  function playsThrough(day) {
+    const d = dayCum.d; let lo = 0, hi = d.length - 1, k = -1;
+    while (lo <= hi) { const m = (lo + hi) >> 1; if (d[m] <= day) { k = m; lo = m + 1; } else hi = m - 1; }
+    return k < 0 ? 0 : dayCum.c[k];
+  }
+  function stopDay() {
+    const cur = curStop(); if (!cur || cur.id !== 'universe') return null;
+    const u = ctx.peek && ctx.peek('universe'), t = u && u.time;
+    return t && t.at ? t.at : null;
+  }
+  const TAPE = 12, fmt = (n) => n.toLocaleString('en-US');
   function renderTplus() {
     tryHookUniverse();
-    tplusEl.hidden = false;
-    if (universeLast && universeLast.playing && universeLast.at) {
-      const dayMs = Date.parse(universeLast.at + 'T00:00:00-07:00');
-      const p = calDiff(firstDayMs(), dayMs);
-      tplusA.textContent = 'T+' + p.y + 'y ' + p.mo + 'm ' + p.d + 'd into the log · ';
-      tplusB.textContent = universeLast.at;
-    } else {
-      const p = calDiff(firstDayMs(), Date.now());
-      tplusA.textContent = 'T+' + p.y + 'y ' + p.mo + 'm ' + p.d + 'd ' + pad2(p.h) + ':' + pad2(p.mi) + ':' + pad2(p.se) + ' since the first play · ';
-      tplusB.textContent = 'the log stops ' + (ctx.stats.lastDay || '2026-05-10');
+    const st = ctx.stats || {}, first = st.firstDay || '2019-09-05', last = st.lastDay || '2026-05-10', day = stopDay();
+    let bar = '━'.repeat(TAPE), tail = T.tapeWhole;
+    if (day && day >= first && day <= last) {
+      if (!dayCum) loadDayCum();
+      else if (dayCum.total > 0) {
+        const n = playsThrough(day), i = Math.round((n / dayCum.total) * (TAPE - 1));
+        bar = '━'.repeat(i) + '●' + '─'.repeat(TAPE - 1 - i);
+        tail = T.tapeAt.replace('{n}', fmt(n)).replace('{total}', fmt(dayCum.total));
+      }
     }
+    const a = '▶ ' + first + ' ' + bar + ' ' + last + ' · ';
+    if (tplusA.textContent !== a) tplusA.textContent = a;
+    if (tplusB.textContent !== tail) tplusB.textContent = tail;
+    tplusEl.hidden = false;
   }
   setInterval(renderTplus, 1000);
 
@@ -1201,11 +1260,13 @@ export function mount(ctx, deps) {
        card is up; chrome.css scopes this to phone only (desktop's card sits in the normal column flow, no
        overlay, nothing to hide). */
     html.classList.add('ai-endcard-open');
+    const sc = servedCounts();
+    endServed.textContent = T.servedEnd.replace('{n}', sc.rooms.filter((r) => served[r] === '°').length).replace('{total}', sc.rooms.length);
     endH.textContent = T.endHead; endFly.textContent = T.endFly; endExport.textContent = T.endExport;
     endReport.textContent = T.endReport; endAgain.textContent = T.endAgain; endContact.textContent = T.contact;
     /* a genuine read-time grace (same formula the caption uses, over all five lines) before idle-fade can dim
        it, so a visitor actually reading the four choices doesn't have them fade mid-read */
-    capReadUntil = Math.max(capReadUntil, now() + readTime([T.endHead, T.endFly, T.endExport, T.endReport, T.endAgain, T.contact].join(' ')));
+    capReadUntil = Math.max(capReadUntil, now() + readTime([T.endHead, endServed.textContent, T.endFly, T.endExport, T.endReport, T.endAgain, T.contact].join(' ')));
     armEndDismiss();
     scheduleLayout();
     try { endFly.focus(); } catch (e) {}
@@ -1228,9 +1289,58 @@ export function mount(ctx, deps) {
   endExport.addEventListener('click', () => { location.href = 'bridge-index.html'; });
   endReport.addEventListener('click', () => { location.href = 'researcher.html'; });
   endAgain.addEventListener('click', () => {
-    hideEndCard(); const id = (ctx.tour && ctx.tour.active && ctx.tour.active.id) || 'grand';
+    hideEndCard(); served = {}; saveServed(); const id = (ctx.tour && ctx.tour.active && ctx.tour.active.id) || 'grand';
     try { ctx.tour.play(id, 0); } catch (e) {}
   });
+
+  /* ---------------------------------------------------------------- R6 move 3: you are being served too
+     each stop the visitor reaches is marked the way it was started, in the arms' own glyphs: ≡ the tour moved on, ° their
+     own pick (a key, a tap, search, the pill), × the shuffle button. first arrival wins; plain counts, this tab only
+     (sessionStorage), nothing sent anywhere. */
+  const SV_KEY = 'sm_atlas_served_v1';
+  let served = {}; try { served = JSON.parse(sessionStorage.getItem(SV_KEY) || '{}') || {}; } catch (e) { served = {}; }
+  const saveServed = () => { try { sessionStorage.setItem(SV_KEY, JSON.stringify(served)); } catch (e) {} };
+  const SV_CLS = { '≡': 'q', '°': 't', '×': 's' };
+  function markArrival(ev) {
+    const cur = curStop(), via = ev && ev.via; if (!cur || !via || via === 'mount' || via === 'url') return;
+    if (served[cur.id]) return;
+    served[cur.id] = via === 'tour' ? (ctx.tour && ctx.tour.active && ctx.tour.active.hand ? '°' : '≡') : via === 'shuffle' ? '×' : '°';
+    saveServed();
+  }
+  /* the stops of the tour in play (the long play when none), gate excluded */
+  function servedStops() {
+    const a = ctx.tour && ctx.tour.active, def = (a && a.id && tourDef(a.id)) || tourDef('grand');
+    return def && def.stops ? def.stops.filter((x) => !x.gate).map((x) => x.room) : walkStops().map((x) => x.id);
+  }
+  function servedCounts() {
+    const c = { '≡': 0, '°': 0, '×': 0 }, rooms = servedStops();
+    for (const r of rooms) if (served[r]) c[served[r]]++;
+    return { c, rooms };
+  }
+  function renderServed() {
+    const { c, rooms } = servedCounts(), any = c['≡'] + c['°'] + c['×'] > 0;
+    servedEl.hidden = !any; if (!any) return;
+    let h = ''; for (const r of rooms) { const g = served[r]; h += '<span class="sv-' + (g ? SV_CLS[g] : 'n') + '">' + (g || '·') + '</span>'; }
+    h += '<span class="sv-n">  ≡' + c['≡'] + ' °' + c['°'] + ' ×' + c['×'] + '</span>';
+    if (servedEl.innerHTML !== h) servedEl.innerHTML = h;
+    servedEl.title = T.servedKey;
+    servedEl.setAttribute('aria-label', T.servedKey + '. ≡ ' + c['≡'] + ', ° ' + c['°'] + ', × ' + c['×'] + '.');
+  }
+  function shuffle() {
+    const cur = curStop(), rooms = [...new Set(servedStops())].filter((r) => r !== (cur && cur.id) && stopById(r));
+    const fresh = rooms.filter((r) => !served[r]), pool = fresh.length ? fresh : rooms;
+    if (!pool.length) return;
+    try { ctx.go(pool[Math.floor(Math.random() * pool.length)], { via: 'shuffle' }); } catch (e) {}
+  }
+  shufBtn.addEventListener('click', shuffle);
+  ovShuf.addEventListener('click', () => { closeOverflow(); shuffle(); });
+  /* another tour picked, or `play it again`, begins a fresh tally */
+  let svTour = null;
+  function servedTourEdge() {
+    const a = ctx.tour && ctx.tour.active; if (!a || !a.id) return;
+    if (svTour && svTour !== a.id) { served = {}; saveServed(); }
+    svTour = a.id;
+  }
 
   /* ---------------------------------------------------------------- insets: measure #top, #atlas-info, .wall, #atlas-dock */
   function activeWall() { const s = doc.querySelector('section[data-room].is-active'); return s && s.querySelector('.wall'); }
@@ -1311,9 +1421,12 @@ export function mount(ctx, deps) {
       const maxH = Math.max(60, Math.round(innerHeight - topBottom - gap - dockH - 8 - wallReserve));
       html.style.setProperty('--atlas-infomaxh', maxH + 'px');
       writeInsets(topBottom, null);
+      const ln = $('ai-liner'); html.style.setProperty('--ai-top', (topBottom + gap) + 'px');
+      html.style.setProperty('--ai-linerh', (ln && getComputedStyle(ln).position === 'fixed' ? Math.round(ln.getBoundingClientRect().height) : 0) + 'px');
       wallMore();
     }
     if (!lineEl.hidden) place(lineEl);
+    if (toastEl.classList.contains('on')) place(toastEl);
   }
   /* size changes seen by a ResizeObserver are laid out on the next frame, not inside the observer: layoutInfo() moves
      and caps #atlas-info (--atlas-infomaxh) and relayouts the room, which resizes observed boxes again mid-delivery
@@ -1349,7 +1462,7 @@ export function mount(ctx, deps) {
     dupT = setTimeout(() => { dupT = 0; recheckDup(); }, 300);
   }
   if (typeof ResizeObserver !== 'undefined') {
-    new ResizeObserver(scheduleLayout).observe(info);
+    new ResizeObserver(scheduleLayout).observe(info); new ResizeObserver(scheduleLayout).observe($('ai-liner'));
     if (topBar) new ResizeObserver(scheduleLayout).observe(topBar);
   }
   new MutationObserver(() => { const d = doc.getElementById('atlas-dock'); if (d && !d.__aiObs) { d.__aiObs = true; if (typeof ResizeObserver !== 'undefined') new ResizeObserver(scheduleLayout).observe(d); else layoutInfo(); } }).observe(body, { childList: true, subtree: true });
@@ -1369,7 +1482,7 @@ export function mount(ctx, deps) {
   }
 
   /* ---------------------------------------------------------------- render-all + subscriptions */
-  function renderAll() { renderStop(); renderCamChip(); renderAngle(); renderPlay(); layoutInfo(); watchWall(); bindWallSwipe(); updatePhoneSlot(); }
+  function renderAll() { renderStop(); renderCamChip(); renderAngle(); renderPlay(); renderServed(); layoutInfo(); watchWall(); bindWallSwipe(); updatePhoneSlot(); }
   const api = { render() { renderAll(); } };
 
   ctx.onStop((ev) => {
@@ -1381,6 +1494,7 @@ export function mount(ctx, deps) {
        is available — this used to be wired only inside the event-path branch below */
     if (endShownFor) { endShownFor = null; hideEndCard(); }
     stopSeen();
+    markArrival(ev);
     renderAll();
     const via = ev && ev.via;
     if (via === 'tour') return; /* the tour engine types its own caption on arrival */
@@ -1394,9 +1508,14 @@ export function mount(ctx, deps) {
        also take the card down, not just a room change — the driving signal is the tour actually playing again */
     if (endShownFor && ctx.tour.active && ctx.tour.active.playing) { endShownFor = null; hideEndCard(); }
     const playingNow = !!(ctx.tour.active && ctx.tour.active.playing);
-    if (tourWasPlaying && !playingNow) capFinishOnPause(); /* M3-b: a playing->paused edge, never a bare re-render */
+    if (tourWasPlaying && !playingNow) {
+      capFinishOnPause(); /* M3-b: a playing->paused edge, never a bare re-render */
+      /* R6 M1: the visitor's own move paused it (never the pause button or the tour's end); after this stop's own hideToast */
+      if (ctx.tour.active.why === 'user') setTimeout(() => { const a = ctx.tour.active; if (a && !a.playing && a.why === 'user') toast(T.paused, 3600); }, 80);
+    }
     tourWasPlaying = playingNow;
-    renderStop(); renderAngle(); renderPlay(); checkTourEnd(tourState());
+    servedTourEdge();
+    renderStop(); renderAngle(); renderPlay(); renderServed(); checkTourEnd(tourState());
   });
   if (ctx.onFrame) ctx.onFrame(() => { pollView(); barTick(); });
 

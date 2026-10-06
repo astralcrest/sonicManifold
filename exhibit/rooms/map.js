@@ -19,9 +19,9 @@
    as a fourth provenance colour. */
 
 const CAP = [
-  'trained almost entirely on my own picks. the advantage vanishes.',
+  'trained almost entirely on plays i tapped.',
   'still mostly my own picks.',
-  'the balanced, corrected map.',
+  'the balanced map (killed as a result: ledger 231).',
   'past the midpoint, more queue than me.',
   'close to a fully served log.',
   'about what an embedding trained on my raw log sees.',
@@ -29,9 +29,9 @@ const CAP = [
 ];
 /* 1.61 is the withdrawn embedding-based reading, from researcher.html / index.html ("the finding,
    with its whole history"); it is the sentence the room is built to say out loud. */
-const NEG = 'this is the map my first number was measured on. it read 1.61. the map itself inflated it, so i withdrew it.';
-const CURVE_CAP = 'each column is one of the seven maps. the more of the training diet the algorithm chose, the higher the number came out.';
-const CURVE_CAP_S = 'each column is one of the seven maps. the more the algorithm chose, the higher it read.';
+const NEG = 'my first number, 1.61, withdrawn, was read on the raw-log map: the 86% column. the map itself inflated it.';
+const CURVE_CAP = 'each column is one of the seven maps. the more of the training plays i didn\'t tap, the higher the number came out.';
+const CURVE_CAP_S = 'each column is one of the seven maps. the more plays i didn\'t tap, the higher it read.';
 const CURVE_SUB = 'the line at 1.00 is no difference at all.';
 
 const SIGMA = 0.012, TAU = 6.283185307;
@@ -256,7 +256,7 @@ export default {
     const pub = map.published;
     this.colX = new Float32Array(7); this.colH = new Float32Array(7); this.colTop = new Float32Array(7);
     this.biTxt = []; this.lvTxt = [];
-    for (let i = 0; i < 7; i++) { this.biTxt.push(pub.bridge_index[i].toFixed(2)); this.lvTxt.push(String(map.levels[i])); }
+    for (let i = 0; i < 7; i++) { this.biTxt.push(i === 2 ? 'killed' : pub.bridge_index[i].toFixed(2)); this.lvTxt.push(String(map.levels[i])); }
 
     /* CURVE colour axis: column 0 (12%) mint to column 6 (100%) violet, the reserved hues, computed once off ctx.PAL */
     this.colColor = new Uint32Array(7);
@@ -267,7 +267,7 @@ export default {
     /* the readout is cut to what the dial changes and the one number it cannot touch: the definition and
        the ringed note moved to the wall text and the wall label, so the map gets the stage */
     const top = el('div', 'mtop');
-    const big = el('div', 'mbig'); big.appendChild(el('span', 'mpct')); big.appendChild(el('span', 'munit', '% algorithmic')); top.appendChild(big);
+    const big = el('div', 'mbig'); big.appendChild(el('span', 'mpct')); big.appendChild(el('span', 'munit', (matchMedia('(max-width:500px)').matches ? '% i didn\'t tap' : '% of its training plays i didn\'t tap'))); top.appendChild(big);
     const nums = el('div', 'mnums');
     const row = el('div', 'mrow'); row.appendChild(el('span', '', 'bridge index')); row.appendChild(el('span', 'mbi')); nums.appendChild(row);
     /* 1.05 is the published embedding-free headline: researcher.html, abstract + method
@@ -276,10 +276,7 @@ export default {
     top.appendChild(nums); hud.appendChild(top);
     /* the two crossing rates the index divides, as one line of type instead of two bars */
     const key = el('div', 'mkey');
-    const cross = el('p', 'mcross');
-    cross.append(el('span', '', 'crossings: my taps '), el('b', 'mtapv'), el('span', '', ', autoplay '), el('b', 'mautov')); /* every piece is its own element so the shell's watermark sees all of the line */
-    key.appendChild(cross);
-    /* the matching legend: mapmorph.json carries no genre-family tag to colour the map view by (see the
+        /* the matching legend: mapmorph.json carries no genre-family tag to colour the map view by (see the
        comment at the top of this file), so the map view keeps its provenance colouring and this is that
        legend: tap / shuffle / served, the same three colours the dots have always used here. */
     ctx.legend(key, 'prov');
@@ -330,12 +327,12 @@ export default {
 
     const wall = root.parentElement.querySelector('.wall'), deeper = wall.querySelector('.deeper');
     /* the definition sits with the wall text, beside the room's claim, instead of on the map */
-    wall.insertBefore(el('p', 'mnote short-hide', 'bridge index: how often my taps cross between neighbourhoods of the map, divided by how often autoplay does. 1.00 means no difference.'), deeper);
+    wall.insertBefore(el('p', 'mnote short-hide', 'bridge index: how often my taps cross between regions of the map, divided by how often autoplay does. 1.00 means no difference.'), deeper);
     wall.insertBefore(el('p', 'mnote short-hide', 'the picture shows the mechanism. the measurement is the dial’s numbers, not the picture.'), deeper);
 
     this.wrap = wrap; this.hudEl = hud; this.ctlEl = ctl; this.anchEl = anch;
     this.pct = hud.querySelector('.mpct'); this.bi = hud.querySelector('.mbi');
-    this.tapv = hud.querySelector('.mtapv'); this.autov = hud.querySelector('.mautov');
+    
     this.capM = cap.querySelector('.mcapm'); this.capS = cap.querySelector('.mcaps');
     this.chv = hud.querySelector('.mcheadv');
     this.dial = dial; this.bMap = bMap; this.bCur = bCur;
@@ -825,13 +822,11 @@ export default {
     this.pct.textContent = String(m.levels[lv]);
     this.bi.textContent = this.biTxt[lv];
     this.chv.textContent = this.biTxt[lv];
-    const tap = Math.round(pub.tap_crossing_pct[lv]), auto = Math.round(pub.auto_crossing_pct[lv]);
-    this.tapv.textContent = tap + '%'; this.autov.textContent = auto + '%';
     /* on a stage too short for the sub-caption the withdrawal moves up into the main line: the
        sentence the room exists to say is never the one that gets dropped */
-    if (this.mode === 'curve') { this.capM.textContent = last && this.subHidden ? NEG : (this.shortCap ? CURVE_CAP_S : CURVE_CAP).replace(/the algorithm chose/, this.atlasOn ? "i didn't tap" : '$&'); this.capS.textContent = last ? NEG : CURVE_SUB; }
+    if (this.mode === 'curve') { this.capM.textContent = last && this.subHidden ? NEG : (this.shortCap ? CURVE_CAP_S : CURVE_CAP); this.capS.textContent = last ? NEG : CURVE_SUB; }
     else { this.capM.textContent = last ? NEG : CAP[lv]; this.capS.textContent = last ? CAP[6] : ''; }
-    this.dial.setAttribute('aria-valuetext', 'level ' + (lv + 1) + ' of 7: ' + m.levels[lv] + '% algorithmic, index ' + this.biTxt[lv] + '. my plays unchanged');
+    this.dial.setAttribute('aria-valuetext', 'level ' + (lv + 1) + ' of 7: ' + m.levels[lv] + '% algorithmic, ' + (lv === 2 ? 'killed, ledger 231' : 'index ' + this.biTxt[lv]) + '. my plays unchanged');
   },
 
   /* a held two-voice drone instead of seven disconnected pings: one sine at G3, one drifting up to
@@ -1012,17 +1007,18 @@ export default {
       g.font = (on ? '700 ' : '600 ') + (on ? f + u(1) : f) + M;
       g.fillStyle = on ? 'rgba(216,210,234,.98)' : 'rgba(198,190,222,.92)';
       g.fillText(this.lvTxt[i], cx[i], base + f + u(5));
+      if (i === 2 && !(on && gv[i] > 0.35) && gv[i] > 0.35) { g.save(); g.font = '700 ' + u(sm ? 9.5 : 11) + M; g.fillStyle = '#ff6e9c'; g.fillText('killed', cx[i], ct[i] - u(8)); g.restore(); }
       /* the reading for the level on the dial. the side was chosen from the column's finished
          height, not its current one, so it does not jump when the rise lands */
       if (on && gv[i] > 0.35) {
         /* atlas: a reading with no room above its column sits on the glyph stack, so it gets its own ground */
         if (this.atlasOn && !vRoom) { g.save(); g.shadowBlur = 0; g.fillStyle = 'rgba(10,1,24,.86)'; g.fillRect(cx[i] - vw / 2 - u(3), vy - vf * 0.82, vw + u(6), vf * 1.02); g.restore(); }
-        g.font = '700 ' + vf + M; g.fillText(this.biTxt[i], cx[i], vy);
+        g.font = '700 ' + vf + M; if (i === 2) g.fillStyle = '#ff6e9c'; g.fillText(this.biTxt[i], cx[i], vy);
       }
     }
     g.font = '600 ' + u(sm ? 10.5 : 11.5) + M;
     g.fillStyle = 'rgba(198,190,222,.9)';
-    g.fillText(this.atlasOn ? "% of training plays i didn't tap" : '% of training plays chosen by the algorithm', (x0 + x1) / 2, base + u(sm ? 29 : 32));
+    g.fillText("% of training plays i didn't tap", (x0 + x1) / 2, base + u(sm ? 29 : 32));
     if (!sm) {
       /* the y title sits below parity, where the tick above it cannot reach */
       g.save(); g.translate(s.x + 12, (this.parY + base) / 2); g.rotate(-Math.PI / 2);

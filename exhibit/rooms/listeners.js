@@ -85,7 +85,7 @@ const jitter01 = (k) => ((Math.imul(k + 1, 2246822519) >>> 0) / 4294967296);
 /* ---- atlas mode (BUILD_SPEC_V2 §3 listeners row). reached only when ctx.atlas.on; ?atlas=0 is today, byte for byte */
 const isAtlas = (ctx) => !!(ctx && ctx.atlas && ctx.atlas.on);
 /* R5 L4: angle 0 is the hundred jumps, a lazy module (hundred.js) that wraps this room through attach() */
-const ANGLES = [{ id: 'hundred', name: 'the hundred jumps' }, { id: 'taps', name: 'my taps' }, { id: 'autoplay', name: 'autoplay' }, { id: 'fade', name: 'the fade dial' }];
+const ANGLES = [{ id: 'hundred', name: 'the hundred jumps' }, { id: 'taps', name: 'my taps' }, { id: 'autoplay', name: 'autoplay' }, { id: 'showwork', name: 'show your work' }, { id: 'fade', name: 'the fade dial' }];
 /* the zoom at which each plays bucket (1-5 quantiles, twolisteners.json) earns its floating name: the most played at once */
 const LZOOM = [0, 2.3, 1.9, 1.55, 1.2, 1];
 const ACSS = `
@@ -130,7 +130,7 @@ export default {
   async mount(root, ctx) {
     this.ctxRef = ctx;
     /* R5 PERF2: the two angle modules load beside the identity + data waits below, not after them */
-    if (isAtlas(ctx)) { const V = ctx.V || ''; this.modP = [import('./hundred.js' + V), import('./fade.js' + V)]; this.modP.forEach((p) => p.catch(() => {})); }
+    if (isAtlas(ctx)) { const V = ctx.V || ''; this.modP = [import('./hundred.js' + V), import('./fade.js' + V), import('./listeners.atlas.js' + V)]; this.modP.forEach((p) => p.catch(() => {})); }
     document.head.appendChild(el('style')).textContent = CSS + (isAtlas(ctx) ? ACSS : '');
     await ctx.identity();
     this.root = root;
@@ -217,7 +217,7 @@ export default {
       const w = el('div', 'lst-tgw'); root.insertBefore(w, tgl); w.appendChild(tgl);
       const door = el('button', 'lst-door'); door.type = 'button';
       door.append(el('span', '', 'constellations'), el('span', 'lst-star', '›'));
-      door.setAttribute('aria-label', 'constellations: fly to the universe stop, every artist i played 50 times or more as a star');
+      door.setAttribute('aria-label', 'constellations: go to the universe stop, every artist i played 50 times or more as a star');
       /* ctx.go resolves a stop id itself (ctx.route hands a string id straight to the activation path, REQUESTS_R3 #1) */
       door.addEventListener('click', () => { try { ctx.go('universe', { angle: 'sky', via: 'tap' }); } catch (e) {} });
       w.appendChild(door); this.door = door; this.tgPos = w;
@@ -269,8 +269,7 @@ export default {
 
   mountAtlas(root, ctx) {
     this.atlasOn = true;
-    const h = this.modP[0].then((m) => m.default.attach(this, ctx), (e) => console.warn('hundred', e));
-    this.modP[1].then((m) => h.then(() => m.default.attach(this, ctx)), (e) => console.warn('fade', e));
+    this.modP.reduce((q, p) => q.then(() => p).then((m) => m.default.attach(this, ctx)).catch((e) => console.warn('listeners', e)), Promise.resolve());
     const nodes = this.d.nodes;
     this.fold = nodes.map((nd) => String(nd.name).toLowerCase());
     /* the name tag rides the camera layer (§1.5), so it sits on its node at any pose; tab order is untouched (it is
@@ -316,7 +315,7 @@ export default {
     try { if (ctx.angle.get().id !== id) ctx.angle.set(id, { via: 'room' }); } catch (e) {}
   },
   setAngle(k, ctx, o = {}) {
-    const a = ANGLES[k]; if (!a || !this.ready || a.id === 'hundred' || a.id === 'fade') return 0;
+    const a = ANGLES[k]; if (!a || !this.ready || !(a.id === 'taps' || a.id === 'autoplay')) return 0;
     const m = a.id === 'taps' ? 'tap' : 'auto'; if (m === this.mode) return 0;
     this.flip(m, ctx); if (o.instant) this.fadeStart = null;
     return o.instant || ctx.reduced ? 0 : 900; /* the edge cross-fade */

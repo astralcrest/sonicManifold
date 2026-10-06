@@ -4,7 +4,7 @@
 html.atlas{--ai-panel:rgba(10,1,24,.74);--ai-panel2:rgba(10,1,24,.9);--ai-line:rgba(134,203,254,.28);--ai-gap:11px}
 
 /* ------------------------------------------------------------------ #atlas-info: the stepper / info block
-   rows: stop row · caption · angle bar · pill · T+ · hud · tools (share · photo · more). 6px apart. */
+   rows: stop row · caption · angle bar · pill · tape counter · hud · tools (share · photo · more). 6px apart. */
 html.atlas #atlas-info{position:fixed;z-index:6;display:flex;flex-direction:column;gap:6px;font:600 11px/1.3 var(--mono);color:var(--ink);pointer-events:none}
 html.atlas #atlas-info>*{pointer-events:auto}
 html.atlas #atlas-info.ai-hidden{display:none}
@@ -21,18 +21,15 @@ html.atlas #atlas-info.ai-hidden{display:none}
 }
 html.atlas #atlas-info{max-height:var(--atlas-infomaxh,none);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
 
-/* round-2 item 4: the desktop/landscape title block (gcd's "Earth", 30px) — the stop's own name, under the
-   stop row. Never a gradient (html.atlas h1 already neutralises any room .wall gradient below; this one
-   never had one). Phone/portrait never shows it (§0.2's budget has no room, and the merged row already
-   carries the name) — chrome.css's own phone block below sets display:none. */
 html.atlas .ai-title{margin:0;font:500 clamp(22px,2.1vw,30px)/1.14 var(--mono);letter-spacing:.005em;
   color:var(--ink);background:none;-webkit-background-clip:border-box;background-clip:border-box;
   transition:opacity .25s ease-out}
 
 html.atlas .ai-row1{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;transition:opacity .25s ease-out}
-html.atlas .ai-stop{font:600 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ice);white-space:nowrap;font-variant-numeric:tabular-nums}
+html.atlas .ai-stop{font:600 11px/1 var(--mono);letter-spacing:.04em;color:var(--ice);white-space:pre;font-variant-numeric:tabular-nums}
 html.atlas .ai-chip{font:600 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;border-radius:3px;padding:7px 10px;min-height:30px;display:inline-flex;align-items:center;cursor:pointer;background:var(--ai-panel);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);white-space:nowrap;min-width:0}
-html.atlas .ai-tourchip{border:1px solid var(--ai-line);color:var(--ice)}
+html.atlas .ai-tourchip,html.atlas .ai-shuf{border:1px solid var(--ai-line);color:var(--ice);text-transform:none;letter-spacing:.03em}
+html.atlas .ai-shuf:hover{border-color:var(--ice);background:rgba(134,203,254,.1)}
 /* W16: never shrink the tour name below "90 SECONDS" — the widest of the short tour names — so it never
    truncates to a bare "GR… ▾"; something else in the row wraps first */
 html.atlas .ai-tourchip-t{overflow:hidden;text-overflow:ellipsis;min-width:9ch}
@@ -49,9 +46,10 @@ html.atlas .ai-mini:hover{color:var(--ink)}
 /* the caption: the full text is laid out invisibly (.ai-cap-ghost) and typed over it, so the box has its final size
    from the first character */
 html.atlas .ai-caption{position:relative;margin:0;max-width:46ch;font:500 12.5px/1.5 var(--mono);color:var(--ink);padding:2px 0 2px 11px;border-left:2px solid var(--ice);transition:opacity .25s ease-out}
+html.atlas #atlas-info #uf-tab{position:absolute;left:0;top:-26px;width:44px;height:28px;min-height:0;padding:0;justify-content:center;border-radius:8px 8px 0 0}
 html.atlas .ai-cap-ghost{visibility:hidden}
 html.atlas .ai-cap-ghost::after{content:"_"}
-html.atlas .ai-cap-live{position:absolute;left:11px;right:0;top:2px;bottom:2px;overflow:hidden}
+html.atlas .ai-cap-live{position:absolute;left:var(--cl,11px);right:var(--cr,0);top:var(--ct,2px);bottom:var(--cb,2px);overflow:hidden}
 html.atlas .ai-cursor{display:inline-block;width:.5em;margin-left:1px;color:var(--ice);animation:ai-blink 1s steps(1) infinite}
 html.atlas .ai-cursor::before{content:"_"}
 @keyframes ai-blink{50%{opacity:0}}
@@ -65,6 +63,12 @@ html.atlas .ai-caption.ai-cap-typing .ai-cap-x{visibility:hidden}
 html.atlas .ai-caption.ai-cap-cut .ai-cap-ghost::after{content:"_\00a0\25BE"}
 html.atlas .ai-caption.ai-cap-open .ai-cap-ghost::after{content:"_\00a0\25B4"}
 html.atlas .ai-caption.ai-cap-cut,html.atlas .ai-caption.ai-cap-open{cursor:pointer}
+/* R6 move 2, karaoke: while a caption types, the whole sentence waits dim underneath and the typed words light over it
+   (the two layers share one layout). reduced motion never types; forced colours keep the plain caption */
+@media (prefers-reduced-motion:no-preference) and (forced-colors:none){
+  html.atlas .ai-caption.ai-cap-typing .ai-cap-ghost{visibility:visible;opacity:.24}
+  html.atlas .ai-caption.ai-cap-typing .ai-cap-ghost::after{visibility:hidden}
+}
 
 html.atlas .ai-angle{display:flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);color:var(--mute);white-space:pre;transition:opacity .25s ease-out}
 html.atlas .ai-angle-btn{background:none;border:0;color:var(--mute);font:600 13px/1 var(--mono);padding:8px 5px;min-height:30px;cursor:pointer;transition:opacity .25s ease-out}
@@ -73,14 +77,19 @@ html.atlas .ai-angle-bar{font-variant-numeric:tabular-nums;letter-spacing:0}
 html.atlas .ai-enroute{color:var(--ice)}
 
 /* the pill has a row of its own: it is the primary "move on" control and must never be clipped or pushed around by
-   the angle bar beside it (VERIFY r1: "NEXT STOP · THE RULER CHA" at 1440) */
+   the angle bar beside it (VERIFY r1: the pill clipped mid-name at 1440) */
 html.atlas .ai-go{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;transition:opacity .25s ease-out}
-html.atlas .ai-pill{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:9px 14px;min-height:32px;cursor:pointer;border:1px solid var(--ai-line);color:var(--ice);background:var(--ai-panel);white-space:nowrap;max-width:100%}
+html.atlas .ai-pill{font:600 11px/1 var(--mono);letter-spacing:.04em;text-transform:none;border-radius:999px;padding:9px 14px;min-height:32px;cursor:pointer;border:1px solid var(--ai-line);color:var(--ice);background:var(--ai-panel);white-space:nowrap;max-width:100%}
 html.atlas .ai-pill:hover{border-color:var(--ice)}
 html.atlas .ai-pill.ai-pill-back{background:var(--ice);color:#031622;border-color:var(--ice)}
 
 html.atlas .ai-tplus{margin:0;font:500 11px/1.3 var(--mono);color:var(--ice);font-variant-numeric:tabular-nums;opacity:.92;transition:opacity .25s ease-out}
 html.atlas .ai-tplus-end{white-space:nowrap}
+/* R6 move 3: the tally strip, one glyph a stop in the arms' colours (the shape carries it without colour) */
+html.atlas .ai-served{margin:0;font:500 11px/1.3 var(--mono);letter-spacing:.14em;white-space:pre;color:var(--mute);transition:opacity .25s ease-out}
+html.atlas .ai-served .sv-q{color:var(--violet)}html.atlas .ai-served .sv-t{color:var(--mint)}html.atlas .ai-served .sv-s{color:var(--amber)}
+html.atlas .ai-served .sv-n{color:var(--mute);letter-spacing:.04em}
+html.atlas .ai-end-served{margin:0 0 4px;font:500 11px/1.45 var(--mono);color:var(--ink)}
 
 html.atlas .ai-hud{font:500 11.5px/1.42 var(--mono);color:var(--ice);opacity:.86;white-space:pre-line;transition:opacity .25s ease-out}
 @media (max-aspect-ratio:115/100){html.atlas .ai-hud{max-height:4.6em;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}}
@@ -104,8 +113,8 @@ html.atlas .ai-zbtn:hover{border-color:var(--ice)}
   html.atlas #atlas-info .ai-mini{min-height:44px;min-width:44px;padding:0 6px}
   html.atlas #atlas-info .ai-angle-btn{min-height:44px;min-width:44px;padding:0 8px}
   html.atlas #atlas-info .ai-more,html.atlas #atlas-info .ai-foot .atlas-chip{min-height:44px}
-  html.atlas #atlas-info .ai-tourchip,html.atlas #atlas-info .ai-pill{position:relative;z-index:0;min-height:44px;background:none;border-color:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
-  html.atlas #atlas-info .ai-tourchip::before,html.atlas #atlas-info .ai-pill::before{content:"";position:absolute;z-index:-1;left:-1px;right:-1px;top:6px;bottom:6px;border:1px solid var(--ai-line);border-radius:inherit;background:var(--ai-panel)}
+  html.atlas #atlas-info .ai-tourchip,html.atlas #atlas-info .ai-shuf,html.atlas #atlas-info .ai-pill{position:relative;z-index:0;min-height:44px;background:none;border-color:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+  html.atlas #atlas-info .ai-tourchip::before,html.atlas #atlas-info .ai-shuf::before,html.atlas #atlas-info .ai-pill::before{content:"";position:absolute;z-index:-1;left:-1px;right:-1px;top:6px;bottom:6px;border:1px solid var(--ai-line);border-radius:inherit;background:var(--ai-panel)}
   html.atlas #atlas-info .ai-pill.ai-pill-back::before{background:var(--ice);border-color:var(--ice)}
   html.atlas #atlas-info .ai-pill{font-size:10px;letter-spacing:.06em;line-height:1.15;padding:0 14px}
 }
@@ -122,24 +131,10 @@ html.atlas .ai-zbtn:hover{border-color:var(--ice)}
    1440x900, most rooms at 1280x720) ran past the bottom of a page that does not scroll. it scrolls in its column, and
    fades at the bottom while there is more below (chrome.js sets .ai-wall-more). */
 @media (min-aspect-ratio:115/100) and (min-height:481px){
-  /* round-2 item 2 safety net: chrome.js now reserves real room for the wall before capping the card
-     (layoutInfo's WALL_MIN_LAND), so this calc should never actually bottom out — the max() floor is a
-     backstop only, so the wall can never go fully unreachable (0 clientHeight) from an unforeseen
-     topbar/dock height on some other device. */
   html.atlas section[data-room] .wall{max-height:max(96px,calc(100vh - var(--atlas-infoh,120px) - 8px - env(safe-area-inset-bottom) - max(clamp(64px,9vh,96px),var(--dockh,0px))));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:6px}
   html.atlas section[data-room] .wall.ai-wall-more{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 28px),transparent)}
 }
-/* round-2 fix: a phone held sideways (short landscape, <=480px tall) fell outside the block above (its
-   min-height:481px guard), so an unfolded `more` card could push the room's own wall/foot (graveyard's rule
-   line, the ladder numbers, etc.) entirely below the viewport with nothing to scroll — 0 clientHeight,
-   unreachable. Same scroll treatment, `--atlas-dockh` (measured every layout pass, portrait or landscape)
-   standing in for the desktop dock-height estimate the tall rule above uses. */
 @media (min-aspect-ratio:115/100) and (max-height:480px){
-  /* round-2 item 2 (R2_VERIFY_2_precision P1): at 844x390 with `more` open the old unbounded card could claim
-     the entire viewport height, leaving this calc at 0 or negative — the wall (and, on the graveyard, its
-     95%/90% rule line) became permanently unreachable. chrome.js's layoutInfo() now reserves WALL_MIN_LAND
-     px before capping --atlas-infomaxh in this tier, so --atlas-infoh always leaves room; the max() floor
-     below is a backstop, not the primary fix. */
   html.atlas section[data-room] .wall{max-height:max(96px,calc(100vh - var(--atlas-infoh,120px) - 8px - env(safe-area-inset-bottom) - var(--atlas-dockh,0px)));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:6px}
   html.atlas section[data-room] .wall.ai-wall-more{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 28px),transparent)}
 }
@@ -162,10 +157,10 @@ html.atlas.ai-less section[data-room].is-active .wall .deeper,
 html.atlas.ai-less section[data-room].is-active .wall .exits,
 html.atlas.ai-less section[data-room].is-active .wall .row{display:none}
 /* phones (upright or sideways): stop row, caption (whole sentences in three lines, chrome.js fitCaption; the typed layer
-   never scrolls), pill. the angle bar, T+, hud and the tools row wait for `more`. */
+   never scrolls), pill. the angle bar, the tape counter, hud and the tools row wait for `more`. */
 @media (max-aspect-ratio:115/100),(max-height:480px){
-  html.atlas.ai-less #atlas-info .ai-angle,html.atlas.ai-less #atlas-info .ai-tplus,
-  html.atlas.ai-less #atlas-info .ai-foot{display:none!important}
+  html.atlas.ai-less #atlas-info .ai-angle,html.atlas.ai-less #atlas-info .ai-tplus,html.atlas.ai-less #atlas-info .ai-served,
+  html.atlas.ai-less #atlas-info .ai-foot,html.atlas.ai-less #atlas-info .ai-shuf{display:none!important}
   /* .ai-hud is no longer blanket-hidden here (round 2, W17): the shared caption/hint/hud slot below decides */
   html.atlas.ai-less #atlas-info{gap:4px}
   html.atlas.ai-less #atlas-info .ai-caption{font-size:12px;max-height:calc(4.5em + 4px);overflow:hidden}
@@ -294,7 +289,7 @@ html.kiosk.atlas-idle .ai-row1,html.kiosk.atlas-idle .ai-caption{opacity:1}
 
 /* ------------------------------------------------------------------ kiosk: stop row + caption only (the bottom line
    keeps its sound prompt: a gallery screen still needs one touch before it can play) */
-html.kiosk .ai-mini,html.kiosk .ai-angle-btn,html.kiosk .ai-foot,html.kiosk .ai-zoom,html.kiosk .ai-tplus,html.kiosk .ai-hud,html.kiosk #atlas-show,html.kiosk #ai-topplay,html.kiosk #atlas-info .ai-mrow-ov,html.kiosk #atlas-info .ai-mpill{display:none!important}
+html.kiosk .ai-mini,html.kiosk .ai-angle-btn,html.kiosk .ai-foot,html.kiosk .ai-zoom,html.kiosk .ai-tplus,html.kiosk .ai-served,html.kiosk .ai-shuf,html.kiosk .ai-hud,html.kiosk #atlas-show,html.kiosk #ai-topplay,html.kiosk #atlas-info .ai-mrow-ov,html.kiosk #atlas-info .ai-mpill{display:none!important}
 
 /* ------------------------------------------------------------------ #exdock (post.js listening-post dock): sit above the phone atlas dock */
 html.atlas #exdock{bottom:var(--atlas-dockh,0px)}
@@ -326,13 +321,15 @@ html.atlas #atlas-show:focus-visible{outline:2px solid var(--ice);outline-offset
 /* ------------------------------------------------------------------ forced colors (§9.4)
    the fixed slabs opt out of forcing to paint an opaque Canvas ground over the field canvas (which keeps its own
    palette). forced-color-adjust inherits, so every descendant of a slab would keep its author ice/mute/ink colour on
-   that forced Canvas (VERIFY r1 P0: 1.17:1 and 1.75:1 on STOP n/N, T+, the angle bar): each one takes the system pair
+   that forced Canvas (VERIFY r1 P0: 1.17:1 and 1.75:1 on the stop row, the tape counter, the angle bar): each one takes the system pair
    explicitly, pseudo-elements included (the touch outlines are ::before). filled states read as Highlight. */
 @media (forced-colors:active){
   html.atlas #atlas-info,html.atlas #atlas-show,html.atlas #atlas-toast,html.atlas #atlas-onboard{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText;text-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
   html.atlas #atlas-info *,html.atlas #atlas-info *::before,html.atlas #atlas-info *::after,
   html.atlas #atlas-onboard *,html.atlas #atlas-onboard *::before,html.atlas #atlas-toast *{color:CanvasText;background-color:Canvas;border-color:CanvasText;text-shadow:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
   html.atlas #atlas-info .ai-cap-live,html.atlas #atlas-info .ai-cap-ghost{background-color:transparent}
+  /* R6: the hint steps aside for the pause toast with no half-faded frame */
+  html.atlas #atlas-onboard,html.atlas #atlas-toast{transition:none}
   /* round-2 fix: the phone-scoped merged-slot variant (html.atlas #atlas-info #atlas-onboard .ai-line-snd,
      2 IDs, chrome.css §"the shared slot's other occupants") outguns this 1-ID rule regardless of source
      order, so it needs its own explicit CanvasText — added to the selector list rather than duplicated. */
@@ -358,14 +355,14 @@ html.atlas #atlas-show:focus-visible{outline:2px solid var(--ice);outline-offset
 /* ================================================================================================================
    ROUND 2 — W06/W07/W09/W10/W17/W18: the phone chrome rebuild (§0.2 of ROUND2_PLAN.md).
    Budget: #top 40 + caption ~40 + merged row 44 + dock 44 ≈ 168px of 844 ≈ 20% at rest. Everything the old
-   compact card showed at rest (row1, angle bar, zoom, T+, hud-as-a-row, foot) is replaced by one 44px merged row
+   compact card showed at rest (row1, angle bar, zoom, tape counter, hud-as-a-row, foot) is replaced by one 44px merged row
    plus the shared caption/hint/hud slot; the detail underneath is still reachable through the "…" overflow's
    `more`, exactly as the old `more ▾` reached it. ================================================================ */
 @media (max-aspect-ratio:115/100){
   /* the old rows: entirely out of the phone layout now (not merely `.ai-less`-collapsed — the merged row and the
      shared slot replace them structurally on every stop, tour or not) */
   html.atlas #atlas-info .ai-row1,html.atlas #atlas-info .ai-angle,html.atlas #atlas-info .ai-go,
-  html.atlas #atlas-info .ai-tplus,html.atlas #atlas-info .ai-foot,html.atlas #atlas-info .ai-title{display:none!important}
+  html.atlas #atlas-info .ai-tplus,html.atlas #atlas-info .ai-foot,html.atlas #atlas-info .ai-title,html.atlas #atlas-info .ai-served{display:none!important}
   /* − / + leave the card on phones (W06); the ladder chip/sheet (M7, W31) carries zoom instead */
   html.atlas .ai-zoom{display:none!important}
 
@@ -374,7 +371,7 @@ html.atlas #atlas-show:focus-visible{outline:2px solid var(--ice);outline-offset
   /* caption: ≤2 lines, no box — a soft scrim gradient instead of the ice left rule, so it reads over live art
      (W06 §0.2). collapses to 0 when there is nothing to say (chrome.js already sets [hidden] when capText is
      empty) or while the slot's shared occupant (HUD/hint, below) is showing instead. */
-  html.atlas.ai-less #atlas-info .ai-caption{border-left:0;padding:6px 10px 8px;margin:0 -8px;max-height:calc(3em + 8px);
+  html.atlas.ai-less #atlas-info .ai-caption{border-left:0;padding:6px 10px 8px;--cl:10px;--cr:10px;--ct:6px;--cb:0px;margin:0 -8px;max-height:calc(3em + 8px);
     background:linear-gradient(180deg,rgba(10,1,24,0) 0,rgba(10,1,24,.55) 40%,rgba(10,1,24,.7) 100%)}
   html.atlas.ai-less #atlas-info .ai-caption.ai-cap-open{max-height:none}
   html.atlas #atlas-info .ai-caption.ai-cap-suppressed{display:none}
@@ -393,29 +390,18 @@ html.atlas #atlas-show:focus-visible{outline:2px solid var(--ice);outline-offset
   /* -------------------------------------------------------------- the merged row (W06, one 44px row) */
   html.atlas #atlas-info .ai-mrow{display:flex!important;align-items:center;gap:6px;height:44px;padding:0 2px 0 6px;
     background:linear-gradient(180deg,rgba(10,1,24,.55),rgba(10,1,24,.72));border-radius:10px}
-  /* round-2 item 1 (44px touch-target floor — this codebase's own stricter convention, R2_VERIFY_2_a11y):
-     .ai-mplay and .ai-mrow-ov are icon-only circles with no adjacent text to protect, so they grow directly
-     to 44x44 (matches .ai-zbtn elsewhere in this file). .ai-mrow-label and .ai-mpill keep their small DRAWN
-     look (the row's 44px visual budget) but the box itself is the full 44px now — round-3 M3-a: the earlier
-     ::before-inset hit-area technique (matching .ai-pill/.ai-tourchip above and anchors.css's .lab) needs
-     `overflow:visible` to escape its own box, which these two can never give it (both truncate with an
-     ellipsis on a long stop name / destination), so the ::before was clipped back down to the drawn size —
-     34px measured, not 44. The label needs no pseudo-element at all: it has no background of its own, so
-     simply making the box 44px tall (padding:0, the same line-height) is invisible and correct. The pill
-     does have a drawn 36px capsule, so that capsule moves to a ::after inset 4px inside the new 44px box —
-     within the box's own bounds, so overflow:hidden no longer clips anything. */
   html.atlas #atlas-info .ai-mplay{flex:0 0 44px;width:44px;height:44px;border-radius:999px;border:1px solid var(--ai-line);
     background:var(--ai-panel);color:var(--ice);font:600 15px/1 var(--mono);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
   html.atlas #atlas-info .ai-mplay:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
   /* the label gets whatever the three fixed-size siblings (play/overflow/pill) leave — min-width is a floor,
      not a target, so it still ellipsises rather than push the row wider than the stage */
   html.atlas #atlas-info .ai-mrow-label{position:relative;flex:1 1 0;min-width:7ch;background:none;border:0;color:var(--ice);text-align:left;
-    font:600 11px/1.2 var(--mono);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;overflow:hidden;
+    font:600 11px/1.2 var(--mono);letter-spacing:.04em;text-transform:none;white-space:pre;overflow:hidden;
     text-overflow:ellipsis;height:44px;padding:0;line-height:44px;cursor:pointer}
   html.atlas #atlas-info .ai-mrow-ov{flex:0 0 44px;width:44px;height:44px;background:none;border:0;color:var(--mute);
     font:600 18px/1 var(--mono);cursor:pointer}
   html.atlas #atlas-info .ai-mrow-ov:hover,html.atlas #atlas-info .ai-mrow-ov[aria-expanded="true"]{color:var(--ice)}
-  html.atlas #atlas-info .ai-mpill{position:relative;isolation:isolate;flex:0 1 auto;font:600 10.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;
+  html.atlas #atlas-info .ai-mpill{position:relative;isolation:isolate;flex:0 1 auto;font:600 10.5px/1 var(--mono);letter-spacing:.03em;text-transform:none;
     border-radius:999px;padding:0 12px;height:44px;min-width:44px;cursor:pointer;border:0;background:none;
     color:var(--ice);white-space:nowrap;max-width:7.5rem;overflow:hidden;text-overflow:ellipsis}
   html.atlas #atlas-info .ai-mpill::after{content:"";position:absolute;z-index:-1;inset:4px 0;border-radius:999px;
@@ -437,35 +423,24 @@ html.atlas #atlas-show:focus-visible{outline:2px solid var(--ice);outline-offset
   /* W18: photo/share stays reachable — the open bar is exempt from every compact hide, and the overflow carries
      its own `share` entry (chrome.js delegates the click to M8's real button) */
   html.atlas.ai-less #atlas-info .atlas-photodock.is-open,
-  html.atlas.ai-less #atlas-info .ai-foot:has(.is-open){display:flex!important}
+  html.atlas.ai-less #atlas-info .ai-foot:has(.is-open),
+  html.atlas #atlas-info .atlas-photodock.is-open,html.atlas #atlas-info .ai-foot:has(.is-open){display:flex!important}
 
-  /* -------------------------------------------------------------- round-2 item 5: tour end card, phone.
-     Was a normal flex child of #atlas-info — its own height grew the card (info.getBoundingClientRect()),
-     which chrome.js reads for the stage insets, so a finished tour visibly shrank the stage (the sky pushed
-     into the top third, R2_VERIFY_2_beauty P1-3). Now position:fixed (the same escape-the-flex-flow pattern
-     #ai-overflow already uses above), a full-width 0.7 scrim over the lower 40% of the viewport: the stage
-     size no longer depends on whether the card is up. */
+  /* tour end card, phone: fixed, so the stage never depends on it */
   html.atlas #atlas-info .ai-end{position:fixed;z-index:7;left:0;right:0;bottom:0;height:40vh;margin:0;
     display:flex;flex-direction:column;gap:6px;
     padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:rgba(10,1,24,.7);overflow-y:auto}
   @supports (height:40dvh){html.atlas #atlas-info .ai-end{height:40dvh}}
-  /* round-2 item 5: the card's own fixed zone overlaps the caption/hint slot's screen position — go quiet
-     there rather than let the stale caption's ghost text collide with the card's own heading through the
-     0.7 scrim. The merged row's play/label/overflow stay (still useful: label re-opens the tours panel). */
   html.atlas.ai-endcard-open #atlas-info .ai-caption,html.atlas.ai-endcard-open #atlas-info #atlas-onboard,
   html.atlas.ai-endcard-open #atlas-info .ai-hud{display:none!important}
   html.atlas #atlas-info .ai-end-h{margin:0 0 2px;font:600 12px/1.3 var(--mono);color:var(--ice);letter-spacing:.02em}
-  html.atlas #atlas-info .ai-end-btn{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;
+  html.atlas #atlas-info .ai-end-btn{font:600 11px/1 var(--mono);letter-spacing:.03em;text-transform:none;
     color:var(--ink);background:rgba(134,203,254,.06);border:1px solid var(--ai-line);border-radius:4px;
     padding:12px 10px;text-align:left;cursor:pointer;min-height:44px}
   html.atlas #atlas-info .ai-end-btn:hover,html.atlas #atlas-info .ai-end-btn:focus-visible{border-color:var(--ice);color:var(--ice)}
   html.atlas #atlas-info .ai-end-contact{margin:4px 0 0;font:500 10.5px/1.4 var(--mono);color:var(--mute)}
 
-  /* -------------------------------------------------------------- small-phone tier (§0.2's max-height:700px)
-     round-2 item 1: this tier used to shrink the row to 40px and the play ring to 28px — under the 44px
-     floor on both counts (R2_VERIFY_2_a11y). Kept at the full 44px row/44px ring here too (the coverage
-     budget on these short phones has ample headroom, R2_DONE_M3's own measurements: 12.6-24.5% of a 35%
-     budget), rather than trade accessibility for a few more px of stage. */
+  /* small-phone tier: the 44px row and ring stay */
   @media (max-height:700px){
     html.atlas.ai-less #atlas-info .ai-caption{max-height:calc(1.5em + 8px);padding-bottom:6px}
   }
@@ -482,7 +457,7 @@ html.atlas #atlas-show:focus-visible{outline:2px solid var(--ice);outline-offset
 @media (min-aspect-ratio:115/100){
   html.atlas .ai-end{display:flex;flex-direction:column;gap:6px;max-width:34ch}
   html.atlas .ai-end-h{margin:0 0 2px;font:600 12.5px/1.3 var(--mono);color:var(--ice)}
-  html.atlas .ai-end-btn{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink);
+  html.atlas .ai-end-btn{font:600 11px/1 var(--mono);letter-spacing:.03em;text-transform:none;color:var(--ink);
     background:var(--ai-panel);border:1px solid var(--ai-line);border-radius:4px;padding:9px 12px;text-align:left;cursor:pointer}
   html.atlas .ai-end-btn:hover,html.atlas .ai-end-btn:focus-visible{border-color:var(--ice);color:var(--ice);outline:none}
   html.atlas .ai-end-contact{margin:4px 0 0;font:500 11px/1.4 var(--mono);color:var(--mute)}
@@ -502,11 +477,50 @@ html.atlas-idle #atlas-info .ai-mrow{background:none;transition:background 1s ea
    otherwise outranks a plain html.atlas-idle version (2 classes) regardless of source order */
 html.atlas-idle.ai-less #atlas-info .ai-caption,html.atlas-idle #atlas-info .ai-caption{background:none;border-left-color:transparent;transition:opacity 1s ease-in,background 1s ease-in,border-color 1s ease-in}
 html.atlas-idle.ai-less #atlas-info #atlas-onboard,html.atlas-idle #atlas-info #atlas-onboard{background:none}
-/* round-2 (W-fix9): the tour-end card was the one piece of chrome idle never reached — a visitor who let the
-   grand tour finish and then walked away from the screen kept it lit indefinitely. It now fades with
-   everything else (chrome.js gives it its own read-time grace first, the same formula the caption uses, so
-   this never yanks it away mid-read). */
 html.atlas-idle #atlas-info .ai-end{opacity:0;pointer-events:none;transition:opacity 1s ease-in}
 @media (prefers-reduced-motion:reduce){
   html.atlas-idle section[data-room].is-active .wall{transition:none}
 }
+html.atlas .ai-end a.ai-end-btn{display:flex;align-items:center;box-sizing:border-box;text-decoration:none}
+
+/* R7 voice: person = serif italic (~1.08x, line box unchanged), machine = mono. */
+html.atlas{--serif-voice:ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Charter,Georgia,"Times New Roman",serif}
+html.atlas .ai-title{font-family:var(--serif-voice);font-style:italic;font-weight:400;font-size:clamp(23.7px,2.27vw,32.4px);line-height:1.055;letter-spacing:-.01em}
+html.atlas .ai-caption.ai-voice-p{font-family:var(--serif-voice);font-style:italic;font-weight:400;font-size:13.5px;line-height:1.39}
+html.atlas #atlas-toast.ai-voice-p{font-family:var(--serif-voice);font-style:italic;font-weight:400;font-size:13px;line-height:1.34}
+html.atlas #atlas-info .ai-end-h{font-family:var(--serif-voice);font-style:italic;font-weight:500;font-size:13.5px;line-height:1.2;letter-spacing:0}
+html.atlas #atlas-info .ai-end-served{font-family:var(--serif-voice);font-style:italic;font-weight:400;font-size:11.9px;line-height:1.34}
+html.atlas #atlas-info .ai-end-contact{font-family:var(--serif-voice);font-style:italic;font-weight:400;font-size:11.9px;line-height:1.29}
+@media (max-aspect-ratio:115/100){
+  html.atlas #atlas-info .ai-end-h{font-size:13px;line-height:1.2}
+  html.atlas #atlas-info .ai-end-contact{font-size:11.3px;line-height:1.3}
+  html.atlas.ai-less #atlas-info .ai-caption.ai-voice-p{font-size:13px;max-height:calc(4.17em + 4px)}
+  html.atlas #atlas-toast.ai-voice-p{font-size:13px}
+  html.atlas.ai-less #atlas-info .ai-caption{margin-bottom:6px}
+}
+/* gatefold tier 1 = person; link, legend, fine print stay mono (lives here: tests pin unfold.css at 3072 bytes) */
+.uf-in>p{font:italic 400 13px/1.385 var(--serif-voice,Georgia,serif)}
+.uf-in>p .uf-lk{font:500 12px/1.5 var(--mono)}
+/* R7B sleeve, desktop: the stop runs down a spine at the left edge, title + the person's line sit low as a liner note
+   (chrome.js writes --ai-linerh so the wall above it stops short), the machine's rows stay mono at the top */
+.ai-liner{display:contents}
+@media (min-width:1024px) and (min-aspect-ratio:115/100) and (min-height:560px){
+  html.atlas .ai-stop{position:fixed;left:calc(clamp(18px,6vw,80px)*.4);top:calc(var(--ai-top,76px) + 4px);writing-mode:vertical-rl;font:500 10.5px/1 var(--mono);letter-spacing:.24em;color:var(--mute)}
+  html.atlas .ai-stop::after{content:"";display:inline-block;inline-size:min(30vh,240px);block-size:1px;margin-inline-start:14px;vertical-align:middle;background:var(--ai-line)}
+  html.atlas .ai-liner{position:fixed;left:clamp(18px,6vw,80px);bottom:30px;width:min(30rem,calc(40vw - 110px));display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--ai-line);pointer-events:auto}
+  html.atlas .ai-liner .ai-title{font-size:clamp(32px,3.2vw,48px);line-height:1}
+  html.atlas .ai-liner .ai-caption{border-left:0;padding:0;--cl:0px;--ct:0px;--cb:0px}
+  html.atlas .ai-liner .ai-caption.ai-voice-p{font-size:15.5px;line-height:1.42}
+  html.atlas.ai-endcard-open .ai-liner{visibility:hidden}
+  html.atlas body section[data-room] .wall{max-height:max(96px,calc(100vh - var(--atlas-infoh,120px) - var(--ai-linerh,0px) - 72px))}
+  html.atlas .ai-row1{column-gap:6px}
+  html.atlas #atlas-info #uf-chip{border:0;background:none;padding:6px 0!important;font:italic 400 13.5px/1 var(--serif-voice)!important;text-decoration:underline dotted;text-underline-offset:4px}
+}
+@media (min-aspect-ratio:115/100){html.atlas #atlas-toast{background:rgba(10,1,24,.86);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-radius:8px;padding:6px 14px;text-shadow:none}}
+@media (max-aspect-ratio:115/100){
+  html.atlas #atlas-toast{background:var(--bg);width:calc(100vw - 16px);max-width:none!important}
+  html.atlas.ai-toast-on #atlas-info .ai-caption,html.atlas.ai-toast-on #atlas-info .ai-hud,html.atlas.ai-toast-on #uf-tab{opacity:0}
+  html.atlas #atlas-info .ai-end{height:auto;max-height:calc(100% - 52px);background:var(--bg);border-top:1px solid var(--ai-line)}
+  html.atlas.ai-endcard-open #atlas-dock,html.atlas.ai-endcard-open #atlas-info .ai-mrow{visibility:hidden}
+}
+html.atlas .wg label.ai-voice-p{font:italic 400 1.08em/1.38 var(--serif-voice);letter-spacing:0;text-transform:none}

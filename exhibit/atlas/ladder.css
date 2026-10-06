@@ -8,8 +8,8 @@
    halo keeps every label readable over the brightest field without drawing a box round each one */
 html.atlas .atlas-ladder{--al-halo:0 0 2px #03010a,0 0 4px #03010a,0 0 8px rgba(3,1,10,.95),0 0 14px rgba(3,1,10,.8);--al-ground:rgba(10,1,24,.86)}
 html.atlas .atlas-ladder{
-  position:fixed;z-index:3;top:0;right:0;bottom:0;width:min(290px,82vw);
-  padding:28px 34px 28px 20px;box-sizing:border-box;
+  position:fixed;z-index:3;top:0;right:0;bottom:0;width:min(100vw,440px);
+  padding:28px 14px 28px 14px;box-sizing:border-box;
   display:flex;flex-direction:column;align-items:flex-end;justify-content:center;
   background:linear-gradient(to left, rgba(3,1,10,.96), rgba(3,1,10,.9) 70%, rgba(3,1,10,0));
   transform:translateX(100%);transition:transform .3s ease,z-index 0s .3s;pointer-events:none;
@@ -78,11 +78,11 @@ html.atlas .al-lab{position:absolute;right:14px;top:50%;transform:translateY(-50
    evenly-spaced list slot (ladder.js render(), --al-open-dy), so every row can clear a real 44px reach with no
    neighbour to split it with. Off .al-open the var is simply unused (this rule never matches), so the desktop
    strip and the sheet's own closed/chip state are both exactly as before. */
-html.atlas .atlas-ladder.al-open .al-lab{transform:translateY(calc(-50% + var(--al-open-dy,0px)))}
+html.atlas .al-lab{right:var(--al-arc-r,14px);transform:translateY(calc(-50% + var(--al-arc-dy,0px)))}
 /* the leader line this carries: a plain vertical run, in the small gutter just past the tick, from the mark's
    true row (y1) to the name's new one (y2) — zero-length, so invisible, wherever the two still coincide */
 html.atlas .al-leaders{position:absolute;top:0;bottom:0;left:3px;width:14px;overflow:visible;pointer-events:none;opacity:0;transition:opacity .2s ease}
-html.atlas .atlas-ladder.al-open .al-leaders{opacity:1}
+html.atlas .atlas-ladder.al-open .al-leaders{opacity:0}
 html.atlas .al-leader{stroke:rgba(134,203,254,.7);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:0 3.5;vector-effect:non-scaling-stroke}
 /* the name's 0.8 lives in its text colour, not in the opacity that shows/hides it, so its dark ground stays
    solid whenever it is shown: over empty sky the ground matches the page and vanishes, over the wall's glyph
@@ -180,10 +180,6 @@ html.atlas .al-zoom-btn:focus-visible{outline:2px solid var(--ice,#86cbfe);outli
    already set below). Scoped off :hover/:focus-within/.al-drag/.al-open so it never fights the reveal rule
    above (higher specificity there wins regardless, but this way it simply doesn't try): hovering, focusing or
    dragging keeps exactly today's full treatment, ground included, the base rule's background never overridden. */
-@media (min-width:1200px){
-  html.atlas .atlas-ladder:not(:hover):not(:focus-within):not(.al-drag):not(.al-open) .al-name{opacity:.42;background:none}
-  html.atlas .atlas-ladder:not(:hover):not(:focus-within):not(.al-drag):not(.al-open) .al-tick.al-sel .al-name{opacity:1}
-}
 
 @media (min-aspect-ratio:115/100) and (min-height:481px){
   html.atlas .atlas-ladder{
@@ -192,13 +188,13 @@ html.atlas .al-zoom-btn:focus-visible{outline:2px solid var(--ice,#86cbfe);outli
     flex-direction:column;justify-content:flex-start;align-items:flex-end;
   }
   html.atlas .atlas-ladder .al-rail{visibility:visible;height:100%}
-  html.atlas .al-cap{position:absolute;top:-22px;right:-4px;margin:0;white-space:nowrap;text-align:right}
+  html.atlas .al-cap{position:absolute;top:calc(var(--al-ky,50%) - 118px);right:-4px;margin:0;white-space:nowrap;text-align:right}
   /* hung from the rail's foot and growing downward, so a two-line note never climbs into the SEVEN YEARS row.
      right:-4px (not the box's own edge) keeps every revealed line at the same absolute position it always had,
      independent of how narrow the resting box is; every line still sits on the ground's solid part below */
-  html.atlas .al-readout{position:absolute;top:calc(100% + 16px);right:-4px;margin:0;width:max-content;max-width:164px;text-align:right}
+  html.atlas .al-readout{position:absolute;top:calc(var(--al-ky,50%) + 132px);right:-4px;margin:0;width:max-content;max-width:164px;text-align:right}
   /* the values' note stands over the caption, growing upward, inside the same column */
-  html.atlas .al-note{position:absolute;bottom:calc(100% + 30px);right:-4px;margin:0;width:max-content;max-width:164px}
+  html.atlas .al-note{position:absolute;top:calc(var(--al-ky,50%) - 150px);right:-4px;margin:0;width:max-content;max-width:164px}
   /* W30's own rest-state readout: a bare number riding the marker, in place of the al-mlab pill it hands off to
      the moment the rail is actually hovered (ladder.css's own reveal rules turn this off there) */
   html.atlas .al-mini{display:block;position:absolute;right:5px;top:0;transform:translateY(-50%);white-space:nowrap;pointer-events:none;
@@ -212,7 +208,7 @@ html.atlas .al-zoom-btn:focus-visible{outline:2px solid var(--ice,#86cbfe);outli
      changed, to keep pace with the box's own new (smaller) width and right offset. still solid (.96: a 10%
      residue of the brightest glyph still broke a name), still not dimmed with the words on idle (ladder.js puts
      data-idle on the children, not this box) */
-  html.atlas .atlas-ladder::before{content:"";position:absolute;z-index:-1;left:-186px;right:-10px;top:-148px;bottom:-112px;pointer-events:none;
+  html.atlas .atlas-ladder::before{content:"";position:absolute;z-index:-1;left:-340px;right:-10px;top:calc(var(--al-ky,50%) - 250px);height:500px;pointer-events:none;
     opacity:0;transition:opacity .2s ease;
     background:linear-gradient(to right,rgba(10,1,24,0) 0,rgba(10,1,24,.96) 24px,rgba(10,1,24,.96) 100%);
     -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 56px,#000 calc(100% - 40px),transparent 100%);
@@ -221,11 +217,62 @@ html.atlas .al-zoom-btn:focus-visible{outline:2px solid var(--ice,#86cbfe);outli
   html.atlas .atlas-ladder-chip,html.atlas .atlas-ladder-scrim,html.atlas .al-zoom{display:none}
 }
 
+/* ---------------------------------------------------------------------------------------------- R7B: the knob
+   the rail below is only the logical axis now (ticks, marker, drag lane, snap): none of it is drawn. what is drawn is a
+   rotary knob of the dial glyphs, the current scale in the serif voice under it, a mint ° for the pointer, and the scale
+   names set on an arc round it like the stops on an amp (ladder.js render() carries each name there, --al-arc-dy/-r) */
+html.atlas .al-line,html.atlas .al-minor,html.atlas .al-leaders,html.atlas .al-tick::before{opacity:0!important}
+html.atlas .al-marker{visibility:hidden}
+html.atlas .al-tick{pointer-events:none}
+html.atlas .al-name{pointer-events:auto}
+/* resting, the names are invisible and must never catch the pointer: they sit over the stage, on top of whatever a room puts there */
+html.atlas .atlas-ladder:not(:hover):not(:focus-within):not(.al-drag):not(.al-open) .al-name{pointer-events:none}
+/* once the knob is open, a pad behind the arc keeps :hover alive across the gaps between the knob and the names (and between names) */
+html.atlas .al-pad{opacity:0;position:absolute;left:-230px;right:0;top:-70px;bottom:-125px;pointer-events:none}
+html.atlas .atlas-ladder:hover .al-pad,html.atlas .atlas-ladder.al-drag .al-pad{pointer-events:auto}
+html.atlas .al-knob{position:absolute;right:-4px;top:var(--al-ky,50%);width:84px;height:84px;margin-top:-42px;border-radius:50%;cursor:grab;pointer-events:auto;touch-action:none}
+html.atlas .al-track:active .al-knob{cursor:grabbing}
+html.atlas .al-track:focus-visible .al-knob{box-shadow:0 0 0 2px var(--ice,#86cbfe)}
+html.atlas .al-kbody{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(10,1,24,.86) 0,rgba(10,1,24,.86) 56%,rgba(10,1,24,0) 71%);transform-origin:50% 50%;transition:transform .28s cubic-bezier(.3,.7,.3,1)}
+html.atlas .atlas-ladder:hover .al-kbody,html.atlas .atlas-ladder:focus-within .al-kbody,html.atlas .atlas-ladder.al-drag .al-kbody,html.atlas .atlas-ladder.al-open .al-kbody{transform:translateX(calc(-1 * var(--al-kx,44px))) scale(var(--al-s,1.78))}
+html.atlas .atlas-ladder:hover .al-voice,html.atlas .atlas-ladder:focus-within .al-voice,html.atlas .atlas-ladder.al-drag .al-voice,html.atlas .atlas-ladder.al-open .al-voice{transform:translate(calc(-50% - var(--al-kx,44px)),var(--al-vy,47px))}
+html.atlas .al-voice{transition:transform .28s cubic-bezier(.3,.7,.3,1)}
+html.atlas .al-kdisc{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(134,203,254,.28);box-shadow:inset 0 0 14px rgba(134,203,254,.1);pointer-events:none}
+html.atlas .al-kc{position:absolute;left:50%;top:50%;width:24px;margin:-19px 0 0 -12px;text-align:center;font:400 22px/1 var(--mono,monospace);color:var(--ice,#86cbfe);text-shadow:0 0 8px rgba(134,203,254,.5);pointer-events:none}
+html.atlas .al-kg{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;display:flex;align-items:center;justify-content:center;
+  font:400 12px/1 var(--mono,monospace);color:var(--ice,#86cbfe);opacity:.45;pointer-events:none;transition:opacity .18s ease;
+  transform:rotate(var(--a)) translateY(-35px) rotate(calc(-1 * var(--a)))}
+html.atlas .al-kstops i{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--mute,#a49bbd);opacity:.75;
+  transform:rotate(var(--a)) translateY(-48px);pointer-events:none}
+html.atlas .al-kstops i.al-sel{background:var(--mint,#21f6bc);opacity:1;box-shadow:0 0 6px rgba(33,246,188,.8)}
+html.atlas .al-kp{position:absolute;left:50%;top:50%;width:0;height:0;transform:rotate(var(--ap,-90deg));transition:transform .22s cubic-bezier(.3,.7,.3,1);pointer-events:none}
+html.atlas .al-kp i{position:absolute;left:-8px;top:-31px;width:16px;text-align:center;font:700 22px/1 var(--mono,monospace);font-style:normal;color:var(--mint,#21f6bc);text-shadow:0 0 7px rgba(33,246,188,.75)}
+html.atlas .al-track.al-dragging .al-kp,html.atlas .al-track.al-dragging .al-kg{transition:none}
+html.atlas .atlas-ladder.al-nomark .al-kp{opacity:0}
+html.atlas .atlas-ladder.al-nomark.al-drag .al-kp{opacity:1}
+html.atlas .al-voice{position:absolute;left:50%;top:100%;margin-top:6px;transform:translateX(-50%);width:max-content;max-width:86px;text-align:center;
+  font:italic 400 14px/1.15 var(--serif-voice,Georgia,serif);color:var(--ink,#f0eaff);text-shadow:var(--al-halo);pointer-events:none;text-wrap:balance}
+/* the centre of the knob: the bare number (or the rung word at a no-count stop) that used to ride the marker */
+html.atlas .al-mini{display:block;position:absolute;right:38px!important;top:calc(var(--al-ky,50%) + 11px)!important;transform:translate(50%,-50%)!important;
+  background:none;border:0;padding:0;font:600 10.5px/1 var(--mono,monospace);color:var(--ice,#86cbfe);text-shadow:var(--al-halo);max-width:50px;text-align:center;white-space:nowrap;opacity:1;pointer-events:none}
+html.atlas .al-mini:empty{display:none}
+html.atlas .atlas-ladder.al-open .al-mini{opacity:0}
+html.atlas .atlas-ladder.al-nomark .al-mini{opacity:1}
+html.atlas .atlas-ladder:hover .al-mini,html.atlas .atlas-ladder:focus-within .al-mini,html.atlas .atlas-ladder.al-drag .al-mini{opacity:0}
+html.atlas .atlas-ladder.al-nomark:hover .al-mini,html.atlas .atlas-ladder.al-nomark:focus-within .al-mini{opacity:1}
+html.atlas .al-tick.al-sel .al-name{border-color:transparent;color:var(--mint,#21f6bc)}
+html.atlas .al-name{background:none}
+html.atlas .atlas-ladder-chip.al-chip-off{visibility:hidden;pointer-events:none}
+
 @media (prefers-reduced-motion:reduce){
-  html.atlas .atlas-ladder,html.atlas .atlas-ladder-scrim,html.atlas .al-marker,html.atlas .al-mlab,html.atlas .al-mini,html.atlas .al-name,html.atlas .al-val,html.atlas .al-now,html.atlas .al-note,html.atlas .al-cap,html.atlas .al-readout,html.atlas .al-tick::before,html.atlas .atlas-ladder::before{transition:none}
+  html.atlas .atlas-ladder,html.atlas .atlas-ladder-scrim,html.atlas .al-marker,html.atlas .al-mlab,html.atlas .al-mini,html.atlas .al-name,html.atlas .al-val,html.atlas .al-now,html.atlas .al-note,html.atlas .al-cap,html.atlas .al-readout,html.atlas .al-tick::before,html.atlas .atlas-ladder::before,html.atlas .al-lab,html.atlas .al-kp,html.atlas .al-kg,html.atlas .al-kbody,html.atlas .al-voice{transition:none}
 }
 
 @media (forced-colors:active){
+  html.atlas .al-knob{forced-color-adjust:none;background:Canvas}
+  html.atlas .al-kg,html.atlas .al-voice,html.atlas .al-mini{forced-color-adjust:none;color:CanvasText;text-shadow:none;opacity:1}
+  html.atlas .al-kp i,html.atlas .al-kstops i.al-sel{forced-color-adjust:none;color:Highlight;background:none;text-shadow:none}
+  html.atlas .al-kstops i{forced-color-adjust:none;background:CanvasText}
   html.atlas .al-chip-pill,html.atlas .al-zoom-btn{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}
   html.atlas .al-line,html.atlas .al-minor{forced-color-adjust:none;background:CanvasText}
   html.atlas .al-marker{forced-color-adjust:none;background:Canvas;border-color:CanvasText}

@@ -1,20 +1,18 @@
-/* exhibit/atlas/photo.js — package M8: photo and share (BUILD_SPEC_V2 §9.6, §9.8, §5; BRIEF M8).
-   Two entry points: a `share` chip (copies the exact-view URL) and a `photo` chip that opens a 5-action
-   bar — save picture · copy as text · freeze · labels · done. Mounts its own DOM (module convention):
-   into #atlas-info when the chrome (M3) has already landed one, else a small standalone dock, so the
-   feature is complete and testable on its own regardless of build order (chrome always mounts before
-   photo, §SKELETON 2, so #atlas-info exists whenever M3 has landed).
-   Privacy (§9.8): the burned caption and the copy-as-text footer name only the pseudonym and the public
-   URL, never a real name or a local path. */
+/* exhibit/atlas/photo.js — package M8: photo and share (BUILD_SPEC_V2 §9.6, §9.8, §5; BRIEF M8; R6 ART).
+   A `share` chip (copies the exact-view URL) and a `photo` chip that opens a 6-action bar: save picture · expose ·
+   the run-out groove (copy as text) · freeze · labels · done. Mounts into #atlas-info when the chrome (M3) has landed
+   one, else a small standalone dock. Every saved picture is signed by seal.js (seal + certificate strip).
+   Privacy (§9.8): the burned caption, the certificate and the copied text name only the pseudonym and the public
+   URL, never a real name or a local path; the edition id hashes the URL hash alone. */
 export function mount(ctx) {
   if (!ctx.atlas || !ctx.atlas.on) return null; /* ?atlas=0: the shell keeps its inert default */
 
-  const doc = document, body = doc.body;
+  const doc = document, body = doc.body, html = doc.documentElement;
   const stopId = () => { const st = ctx.stops || [], i = ctx.index; return (st[i] && st[i].id) || 'atlas'; };
   const caption = () => 'sonic manifold · ' + stopId() + ' · astralcrest.github.io/sonicManifold/exhibit.html';
   const tell = (msg) => { try { ctx.toast(msg); } catch (e) {} try { ctx.say(msg); } catch (e) {} };
 
-  /* ---------------------------------------------------------------- DOM: two chips + the 5-action bar */
+  /* ---------------------------------------------------------------- DOM: two chips + the 6-action bar */
   const host = doc.getElementById('atlas-info');
   const standalone = !host;
   const dock = doc.createElement('div');
@@ -38,17 +36,20 @@ export function mount(ctx) {
     return b;
   };
   const saveBtn = mkBtn('save', 'save picture');
-  const copyBtn = mkBtn('copy', 'copy as text');
+  const exposeBtn = mkBtn('expose', 'expose');
+  exposeBtn.title = 'one bar of music in one still; drag to paint';
+  const copyBtn = mkBtn('copy', 'the run-out groove');
+  copyBtn.setAttribute('aria-label', 'the run-out groove: copy as text');
   const freezeBtn = mkBtn('freeze', 'freeze', false);
   const labelsBtn = mkBtn('labels', 'labels', true);
   const doneBtn = mkBtn('done', 'done');
-  bar.append(saveBtn, copyBtn, freezeBtn, labelsBtn, doneBtn);
+  bar.append(saveBtn, exposeBtn, copyBtn, freezeBtn, labelsBtn, doneBtn);
   group.append(photoBtn, bar);
   dock.append(shareBtn, group);
   (host || body).appendChild(dock);
 
   /* ---------------------------------------------------------------- state */
-  let opened = false, frozen = false, savedEase = null, pendingEase = null, easeHooked = false, forceEase = null, opener = null;
+  let opened = false, frozen = false, savedEase = null, pendingEase = null, easeHooked = false, forceEase = null, opener = null, exposing = false, lastCert = '';
 
   /* a room may reassign P.ease on its own clock while it is the active one (an arrival choreography, a
      flood's payoff, …), independent of anything photo.js does — freeze must out-rank that for as long as
@@ -176,44 +177,87 @@ export function mount(ctx) {
   }
 
   /* ---------------------------------------------------------------- composite #field + #glow(screen) + #overlay */
-  function composite() {
-    const field = doc.getElementById('field'), glowEl = doc.getElementById('glow'), overlay = doc.getElementById('overlay');
-    if (!field || !overlay) return null;
-    const dpr = self.devicePixelRatio || 1;
-    const outW = overlay.width || Math.round(innerWidth * dpr), outH = overlay.height || Math.round(innerHeight * dpr);
+  const dprOf = () => self.devicePixelRatio || 1;
+  function stageInto(g, w, h, blur) {
+    const field = doc.getElementById('field'), glowEl = doc.getElementById('glow');
+    g.drawImage(field, 0, 0, w, h);
+    if (glowEl && glowEl.width && glowEl.height) {
+      g.save();
+      if (blur) try { g.filter = 'blur(' + Math.max(1, Math.round(7 * w / innerWidth)) + 'px)'; } catch (e) {}
+      g.globalCompositeOperation = 'screen';
+      g.drawImage(glowEl, 0, 0, w, h);
+      g.restore();
+    }
+  }
+  function composite(base) {
+    const overlay = doc.getElementById('overlay');
+    if (!doc.getElementById('field') || !overlay) return null;
+    const dpr = dprOf();
+    const outW = base ? base.width : overlay.width || Math.round(innerWidth * dpr), outH = base ? base.height : overlay.height || Math.round(innerHeight * dpr);
     if (!outW || !outH) return null;
     const oc = doc.createElement('canvas'); oc.width = outW; oc.height = outH;
     const g = oc.getContext('2d');
-    g.drawImage(field, 0, 0, outW, outH);
-    if (glowEl && glowEl.width && glowEl.height) {
-      g.save();
-      if ('filter' in g) { try { g.filter = 'blur(' + Math.max(1, Math.round(7 * dpr)) + 'px)'; } catch (e) {} }
-      g.globalCompositeOperation = 'screen';
-      g.drawImage(glowEl, 0, 0, outW, outH);
-      g.restore();
-    }
+    if (base) g.drawImage(base, 0, 0); else stageInto(g, outW, outH, true);
     g.globalCompositeOperation = 'source-over';
     g.drawImage(overlay, 0, 0, outW, outH);
-    const text = caption(), fs = Math.max(11, Math.round(11 * dpr)), pad = Math.round(9 * dpr);
+    return oc;
+  }
+  function burnCaption(oc, k) {
+    const g = oc.getContext('2d'), outH = oc.height;
+    const text = caption(), fs = Math.max(11, Math.round(11 * k)), pad = Math.round(9 * k);
     g.font = '600 ' + fs + 'px "JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace';
     g.textBaseline = 'alphabetic';
     const tw = g.measureText(text).width, barH = fs + pad * 1.6;
     g.fillStyle = 'rgba(10,1,24,0.62)';
-    g.fillRect(0, outH - barH, Math.min(outW, tw + pad * 2), barH);
+    g.fillRect(0, outH - barH, Math.min(oc.width, tw + pad * 2), barH);
     g.fillStyle = '#86cbfe';
     g.fillText(text, pad, outH - barH / 2 + fs * 0.32);
-    return oc;
+  }
+  /* seal + certificate (seal.js): ink counted before anything of ours is drawn */
+  const sealP = () => import('./seal.js' + (ctx.V || '')).catch(() => null);
+  const editionHash = () => location.hash || '#' + stopId();
+  async function sign(oc) {
+    const S = await sealP(), k = oc.width / (innerWidth || oc.width);
+    const au = S ? S.inkAudit(oc, S.modeOf(stopId())) : null;
+    burnCaption(oc, k);
+    if (!S) return oc;
+    const out = S.stamp(oc, au, S.edition(editionHash()), k);
+    lastCert = out.dataset.cert;
+    return out;
   }
 
-  /* ---------------------------------------------------------------- the five actions + share */
-  async function savePicture() {
-    let oc; try { oc = composite(); } catch (e) { oc = null; }
+  /* ---------------------------------------------------------------- the six actions + share */
+  async function savePicture(base, suffix) {
+    let oc; try { oc = composite(base); if (oc) oc = await sign(oc); } catch (e) { oc = null; }
     if (!oc) { tell('this browser blocks saving pictures'); return { ok: false }; }
     let dataUrl;
     try { dataUrl = oc.toDataURL('image/png'); } catch (e) { tell('this browser blocks saving pictures'); return { ok: false }; }
-    try { triggerDownload(dataUrl, 'sonic-manifold-' + stopId() + '.png'); } catch (e) { tell('this browser blocks saving pictures'); return { ok: false }; }
+    try { triggerDownload(dataUrl, 'sonic-manifold-' + stopId() + (suffix || '') + '.png'); } catch (e) { tell('this browser blocks saving pictures'); return { ok: false }; }
     flash();
-    return { ok: true };
+    return { ok: true, cert: lastCert };
+  }
+
+  /* long exposure: one bar of the bed (else 2 s) burned into one still; a drag paints. reduced motion: one frame.
+     never under a call-it-first veil; only the stage canvases are read, never the chrome */
+  async function expose() {
+    if (exposing) return { ok: false };
+    if (html.classList.contains('pq-on') || doc.querySelector('.pq-veil')) { tell('answer the question first, then expose'); return { ok: false, veil: true }; }
+    if (ctx.reduced) return savePicture(null, '-exposure');
+    const S = await sealP();
+    if (!S || !doc.getElementById('field')) return savePicture(null, '-exposure');
+    let b = null; try { b = ctx.audio.beat(); } catch (e) {}
+    const ms = b && b.len > 0 ? Math.min(6e3, Math.max(1200, b.len * (b.bar || 4) * 1e3)) : 2e3;
+    const room = ctx.index, o = opened, coarse = !!ctx.coarse, k = Math.min(dprOf(), coarse ? 1.5 : 2);
+    const w = Math.round(innerWidth * k), h = Math.round(innerHeight * k);
+    const busy = (on) => { exposing = on; exposeBtn.textContent = on ? 'exposing · drag to paint' : 'expose'; exposeBtn.setAttribute('aria-busy', on); try { ctx.idle.hold('expose', on); } catch (e) {} };
+    busy(true);
+    let still = null;
+    try { still = await S.expose({ w, h, ms, coarse, grab: (g) => stageInto(g, w, h, false), stop: () => o && !opened || ctx.index !== room }); } catch (e) { still = null; }
+    busy(false);
+    if (!still) return { ok: false };
+    const r = await savePicture(still, '-exposure');
+    if (r.ok) tell('exposure saved');
+    return Object.assign(r, { ms });
   }
 
   async function writeClipboard(text) {
@@ -230,7 +274,8 @@ export function mount(ctx) {
 
   async function copyText() {
     let body_ = ''; try { body_ = (ctx.atlas.GF && ctx.atlas.GF.toText()) || ''; } catch (e) { body_ = ''; }
-    const text = body_ + '\n\n' + caption();
+    let ed = ''; try { const S = await sealP(); if (S) ed = '\nrun-out · edition ' + S.edition(editionHash()) + ' · astralcrest'; } catch (e) {}
+    const text = body_ + '\n\n' + caption() + ed;
     const copied = await writeClipboard(text);
     if (copied) tell('copied as text');
     else {
@@ -256,6 +301,7 @@ export function mount(ctx) {
   shareBtn.addEventListener('click', () => { share(); });
   photoBtn.addEventListener('click', () => { openBar(); });
   saveBtn.addEventListener('click', () => { savePicture(); });
+  exposeBtn.addEventListener('click', () => { expose(); });
   copyBtn.addEventListener('click', () => { copyText(); });
   freezeBtn.addEventListener('click', () => { setFrozen(!frozen); });
   labelsBtn.addEventListener('click', () => { setLabelsOn(!labelsCurrentlyOn()); });
@@ -269,7 +315,8 @@ export function mount(ctx) {
     open: openBar, close: closeBar,
     toggleFreeze(on) { setFrozen(on === undefined ? !frozen : on); },
     toggleLabels(on) { setLabelsOn(on === undefined ? !labelsCurrentlyOn() : on); },
-    savePicture, copyText, share,
+    savePicture: () => savePicture(), expose, copyText, share,
+    get isExposing() { return exposing; },
   };
 }
 export default { mount };

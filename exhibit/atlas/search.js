@@ -109,10 +109,10 @@ export function mount(ctx, deps) {
 
   const T = (deps.COPY && deps.COPY.search) || {};
   const TXT = {
-    placeholder: T.placeholder || 'search the atlas',
+    placeholder: 'dig the log', /* M7: the crate (proposed for copy.js search.placeholder) */
     // R3 M5-b: the fallback (COPY not wired) must say the same true thing copy.js's COPY.search.footer does —
     // "lands somewhere real" contradicted universe.js's own placeholder dots (R2 C2 #2) and must never come back.
-    footer: T.footer || "names and dates from the log · every result flies somewhere; a dust artist's spot is a placeholder",
+    footer: T.footer || "names and dates from the log · every result lands somewhere; a dust artist's spot is a placeholder",
     loadingArtists: T.loadingArtists || 'loading every artist…',
     loadingTracks: T.loadingTracks || 'loading every track…',
     loadingDays: T.loadingDays || 'loading recorded days…',
@@ -134,7 +134,7 @@ export function mount(ctx, deps) {
   };
   const registered = {}; /* group -> [{id, provider, cache}] */
 
-  /* -------------------------------------------------------------- "seen n of 11" (W26): distinct stop ids the
+  /* -------------------------------------------------------------- "heard n of the stops" (W26): distinct stop ids the
      visitor has actually reached, by any means (tour, search, ladder, url) — try/catch storage, per-visitor
      only, never sent anywhere. */
   const SEEN_KEY = 'sm_atlas_menu_seen_v1';
@@ -209,7 +209,7 @@ export function mount(ctx, deps) {
     (idx.stars || []).forEach((s) => {
       const k = fold(s.name);
       const r = m.get(k) || { name: s.name, inListeners: false, inMap: false, inUniverse: false };
-      r.inUniverse = true; r.fam = s.fam; r.tapShare = s.tapShare; r.starId = s.id;
+      r.inUniverse = true; r.fam = s.fam; r.b = s.b; r.starId = s.id;
       m.set(k, r);
     });
     if (idx.artistsB) {
@@ -217,7 +217,7 @@ export function mount(ctx, deps) {
       for (let i = 0; i < B.name.length; i++) {
         const name = B.name[i], k = fold(name);
         const r = m.get(k) || { name, inListeners: false, inMap: false, inUniverse: false };
-        r.inUniverse = true; r.fam = B.fam[i]; r.plays = B.plays[i]; r.placed = B.placed[i]; r.idx = i;
+        r.inUniverse = true; r.fam = (B.fam_order && B.fam_order[B.fam[i]]) || idx.famKeys[B.fam[i]] || r.fam; r.plays = B.plays[i]; r.placed = B.placed[i]; r.idx = i;
         m.set(k, r);
       }
     }
@@ -256,7 +256,7 @@ export function mount(ctx, deps) {
          every ARTISTS match must reach these names even when Tier B never loads. node id order is plays order
          (ROUND2_PLAN §0.6), so id itself doubles as the "priority by plays" sort key — no plays count needed. */
       ctx.data('universe_nodes').then((d) => {
-        idx.stars = (d.nodes || []).map((n) => ({ id: n.id, name: n.name, fam: idx.famKeys[n.family] || 'untagged', tapShare: n.tap_share }));
+        idx.stars = (d.nodes || []).map((n) => ({ id: n.id, name: n.name, fam: idx.famKeys[n.family] || 'untagged', b: n.plays_bucket | 0 }));
         idx.starsReady = true; mergeArtists(); render();
       }).catch(() => { idx.stars = []; idx.starsReady = true; render(); }),
     ]).then(() => { render(); });
@@ -320,7 +320,7 @@ export function mount(ctx, deps) {
              number — it reads as simply "in the universe" until the real count can be shown */
           const sub = r.plays != null ? playsTxt(r.plays) : (r.inUniverse ? 'in the universe' : (r.inListeners || r.inMap ? 'also known here' : ''));
           const primary = r.inUniverse ? { stop: 'universe', focus: { artist: r.name } } : r.inListeners ? { stop: 'listeners', focus: { artist: r.name } } : { stop: 'map', focus: { artist: r.name } };
-          out.push({ kind: 'artist', label: r.name, sub, chips, route: primary, rank, order: r.idx != null ? r.idx : r.starId != null ? r.starId : 100000 + (i++) });
+          out.push({ kind: 'artist', label: r.name, sub, chips, route: primary, rank, order: r.idx != null ? r.idx : r.starId != null ? r.starId : 100000 + (i++), bar: crateBar(r.b, r.fam), vox: { fam: r.fam, plays: r.plays } });
         } else i++;
       });
     }
@@ -445,11 +445,12 @@ export function mount(ctx, deps) {
       groups.push({ key: 'stars', title: 'STARS', items: [{ kind: 'loading', label: TXT.loadingStars, sub: '', route: null }] });
     } else if (idx.stars.length) {
       /* "plays": ascending node id (ROUND2_PLAN §0.6 ruling — id order IS plays order, most-played first, no
-         count needed); "name": alphabetical. the right-hand figure is the Tier-A share, never a Tier-B count. */
+         count needed); "name": alphabetical. M7: the right-hand mark is the crate's plays bar (plays_bucket, five steps,
+         in the genre colour). the per-artist tap share that used to sit there is an arm split, cut since R5. */
       const list = idx.stars.slice().sort(st.starSort === 'name' ? (a, b) => a.name.localeCompare(b.name) : (a, b) => a.id - b.id);
       groups.push({
         key: 'stars', title: 'STARS',
-        items: list.map((s) => ({ kind: 'artist', label: s.name, sub: '', right: Math.round(s.tapShare * 100) + '%', chip: hex(ctx.famColor ? ctx.famColor(s.fam) : 0x9a9aa2), route: { stop: 'universe', focus: { artist: s.name } } })),
+        items: list.map((s) => { const r = idx.artistsMerged && idx.artistsMerged.get(fold(s.name)); return { kind: 'artist', label: s.name, sub: '', bar: crateBar(s.b, s.fam), vox: { fam: s.fam, plays: r ? r.plays : undefined }, chip: hex(ctx.famColor ? ctx.famColor(s.fam) : 0x9a9aa2), route: { stop: 'universe', focus: { artist: s.name } } }; }),
       });
     }
     if (idx.famKeys.length) groups.push({ key: 'genres', title: 'GENRES', items: idx.famKeys.map((k) => ({ kind: 'family', label: k, sub: 'genre', chip: hex(ctx.famColor ? ctx.famColor(k) : 0x9a9aa2), route: { stop: 'universe', angle: 'threads', focus: { family: k } } })) });
@@ -474,7 +475,7 @@ export function mount(ctx, deps) {
   panel.hidden = true;
   panel.innerHTML =
     '<div class="as-sheet-head">' +
-      '<label class="as-sheet-label" for="atlas-search-sheet-input">ATLAS</label>' +
+      '<label class="as-sheet-label" for="atlas-search-sheet-input">THE CRATE</label>' +
       '<input id="atlas-search-sheet-input" type="text"' + COMBO + ' autocomplete="off" spellcheck="false" placeholder="' + esc(TXT.placeholder) + '" aria-label="' + esc(TXT.placeholder) + '">' +
       '<button type="button" class="as-close" aria-label="close search">close</button>' +
     '</div>' +
@@ -504,6 +505,9 @@ export function mount(ctx, deps) {
   const st = { open: false, q: '', flat: [], activeId: -1, prevFocus: null, byKey: false, starSort: 'plays' };
 
   function optionId(i) { return 'as-opt-' + i; }
+  /* M7: a crate row's plays bar, five steps of plays_bucket (the 388 starred artists in fifths by plays; an artist under
+     50 plays has none lit), in its genre family's colour. a size and a genre, never who pressed play */
+  function crateBar(b, fam) { return { n: Math.max(0, Math.min(5, b | 0)), c: hex(ctx.famColor ? ctx.famColor(fam) : 0x9a9aa2) }; }
   function renderRow(item, i) {
     const cls = 'as-opt' + (item.kind === 'loading' ? ' as-loading' : '');
     /* listbox's required-owned-elements rule (axe: aria-required-children) permits ONLY option/group children,
@@ -521,7 +525,8 @@ export function mount(ctx, deps) {
     }
     const swatch = item.chip ? '<i class="as-swatch" style="background:' + item.chip + '" aria-hidden="true"></i>' : '';
     const numHtml = item.num ? '<span class="as-num" aria-hidden="true">' + esc(item.num) + '</span>' : '';
-    const rightHtml = item.right ? '<span class="as-right">' + esc(item.right) + '</span>' : '';
+    const rightHtml = (item.right ? '<span class="as-right">' + esc(item.right) + '</span>' : '') +
+      (item.bar ? '<span class="as-pbar" aria-hidden="true" style="--fc:' + item.bar.c + '">' + '<i class="on"></i>'.repeat(item.bar.n) + '<i></i>'.repeat(5 - item.bar.n) + '</span>' : '');
     /* role="presentation" makes the wrapper transparent to the a11y tree, so role="option" still reads as a
        direct child of the listbox (WAI-ARIA's listbox>option structural rule) */
     return '<div class="as-row" role="presentation">' +
@@ -532,7 +537,7 @@ export function mount(ctx, deps) {
       chipsHtml +
     '</div>';
   }
-  function seenLine() { return 'seen ' + seenSet.size + ' of ' + (idx.stops.length || 11) + ' stops'; }
+  function seenLine() { const ids = new Set(idx.stops.filter((s) => !s.aliasOnly).map((s) => s.id)); let n = 0; seenSet.forEach((id) => { if (ids.has(id)) n++; }); return 'heard ' + n + ' of ' + (ids.size || 16); } /* angle-alias rows are not stops */
   function renderGroups(groups) {
     const flat = [];
     let html = '';
@@ -632,7 +637,7 @@ export function mount(ctx, deps) {
      to where it was, or leaves it on the page. never #atlas-stage as a fallback: its focus ring is a frame round the
      whole viewport and read as a rendering fault. never one of these inputs: focusing the bar re-opens the panel, so
      a bar-click search could not be closed. on a touch-first screen the hand-off happens only when a hardware key
-     ('/' or 'o') opened the search: a code-handed ring after the soft keyboard's Go is a stray mark, not a cue. */
+     ('/') opened the search: a code-handed ring after the soft keyboard's Go is a stray mark, not a cue. */
   function focusFirst(els) {
     for (const el of els) {
       if (!el || !el.isConnected || el === barInput || el === sheetInput || el === document.body || typeof el.focus !== 'function' || !el.getClientRects().length) continue;
@@ -642,7 +647,7 @@ export function mount(ctx, deps) {
   }
   function close(flew) {
     if (!st.open) return;
-    st.open = false;
+    st.open = false; voxOf(null);
     setExpanded(false);
     panel.classList.remove('as-on');
     document.removeEventListener('keydown', onKeydownCapture, true);
@@ -656,7 +661,7 @@ export function mount(ctx, deps) {
   function moveActive(delta) {
     if (!st.flat.length) return;
     st.activeId = ((st.activeId < 0 ? 0 : st.activeId) + delta + st.flat.length) % st.flat.length;
-    paintActive();
+    paintActive(); voxOf(listEl.querySelectorAll('.as-opt')[st.activeId]); /* the arrow keys hear the crate too */
   }
   function onInput(e) { st.q = e.target.value; render(); }
   /* the panel is not a native <dialog> (it must stay open across a room-crossing fly, which a modal's own
@@ -697,6 +702,19 @@ export function mount(ctx, deps) {
     const i = +row.dataset.i; st.activeId = i; activateItem(st.flat[i]);
   });
   panel.addEventListener('click', (e) => { if (e.target === panel) close(); });
+  /* M7: hovering an artist row plays its note (genre = pitch, more plays = lower) through the site's one hover voice */
+  let voxRow = null;
+  function voxOf(row) {
+    const item = row ? st.flat[+row.dataset.i] : null;
+    if (row === voxRow) return; voxRow = row;
+    try {
+      if (!item || !item.vox) { ctx.audio.tick(null); return; }
+      const b = row.getBoundingClientRect();
+      ctx.audio.tick('crate:' + item.label, { fam: item.vox.fam, plays: item.vox.plays, kind: 'label', x: b.left + 18, y: b.top + b.height / 2 });
+    } catch (e) {}
+  }
+  listEl.addEventListener('pointerover', (e) => { if (e.pointerType === 'mouse') voxOf(e.target.closest('.as-opt')); });
+  listEl.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') voxOf(null); });
   sortEl.addEventListener('click', (e) => {
     const b = e.target.closest('.as-sortbtn'); if (!b) return;
     const v = b.dataset.sort; if (v === st.starSort) return;
@@ -722,7 +740,7 @@ export function mount(ctx, deps) {
   syncVV();
 
   /* -------------------------------------------------------------- global keys: '/' must beat Firefox quick-find, so it
-     is a raw capturing listener, never ctx.keys (which runs in the bubble phase). 'o' has no such conflict. */
+     is a raw capturing listener, never ctx.keys (which runs in the bubble phase). M7: the old 'o' alias is gone. */
   function isTypingTarget(el) { return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable); }
   function onSlash(e) {
     if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -732,9 +750,8 @@ export function mount(ctx, deps) {
     open(); st.byKey = true;
   }
   document.addEventListener('keydown', onSlash, true);
-  const offO = ctx.keys.on('o', () => { open(); st.byKey = true; });
 
-  /* -------------------------------------------------------------- "seen n of 11" (W26): a per-visitor browse
+  /* -------------------------------------------------------------- "heard n of the stops" (W26): a per-visitor browse
      progress line, try/catch storage only, never sent anywhere, never gates anything. */
   try {
     ctx.onStop(({ id }) => {

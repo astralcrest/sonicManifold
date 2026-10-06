@@ -1,5 +1,5 @@
 /* package M6 — anchored labels, `ctx.labels` (BUILD_SPEC_V2 §1.7, REFERENCE.md §4, D10).
-   `[ name ]` DOM buttons anchored in field/camera space, up-right of their object, no leader lines. Greedy by
+   name DOM buttons (M8, R6: liner notes, no brackets; a starred artist's name carries its plays mark, below) anchored in field/camera space, up-right of their object, no leader lines. Greedy by
    priority, max 32 visible (governor T5: 12), 6px gap, keepouts, 0.8s fade in / 0.3s fade out. Off-screen indicator
    for the locked object. Recomputes placement only when the camera or an item changed (view.onChange / set / update),
    never in the render hot loop; keepout rects and label widths are cached, not read every frame.
@@ -65,10 +65,11 @@ const DENSE_ON = 0.45, PHONE_COVER = 0.35;
 const COVER_T = 0.35;
 const MONO = '"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace';
 const FONTS = {
-  obj: ['400 10.5px ' + MONO, 0.06 * 10.5, 8, true, false],
-  hi: ['400 11px ' + MONO, 0.06 * 11, 8, true, false],
-  lock: ['500 11px ' + MONO, 0.06 * 11, 12, true, false],
+  obj: ['400 10.5px ' + MONO, 0.06 * 10.5, 8, false, false],
+  hi: ['400 11px ' + MONO, 0.06 * 11, 8, false, false],
+  lock: ['500 11px ' + MONO, 0.06 * 11, 12, false, false],
   counter: ['400 10.5px ' + MONO, 0.06 * 10.5, 8, false, false],
+  tag: ['400 10.5px ' + MONO, 0.06 * 10.5, 8, true, false], /* universe.js still draws [ ] round a tag */
   region: ['600 11px ' + MONO, 0.14 * 11, 8, false, true],
   regionlock: ['600 11px ' + MONO, 0.14 * 11, 12, false, true],
 }; /* [font, letter-spacing px/char (canvas measureText ignores it), horizontal padding+border, brackets, uppercase] */
@@ -117,13 +118,13 @@ export function mount(ctx, deps) {
   const mcanvas = doc.createElement('canvas');
   const mctx = mcanvas.getContext('2d');
   const widthCache = new Map(); /* key: style+'|'+text -> css px */
-  function measure(style, text) {
-    const key = style + '|' + text;
+  function measure(style, text, sig) {
+    const key = style + '|' + text + '|' + (sig || '');
     let w = widthCache.get(key);
     if (w != null) return w;
     const [font, sp, pad, brackets, upper] = FONTS[style] || FONTS.obj;
     mctx.font = font;
-    const t = upper ? String(text).toUpperCase() : String(text);
+    const t = (upper ? String(text).toUpperCase() : String(text)) + (sig ? '\u00a0' + sig : ''); /* the mark is the label's ::after */
     w = mctx.measureText(t + (brackets ? '[  ]' : '')).width + (t.length + (brackets ? 4 : 0)) * sp + pad;
     w += 3; /* small safety margin: canvas measureText vs rendered CSS text can differ by a px or two */
     widthCache.set(key, w);
@@ -170,6 +171,7 @@ export function mount(ctx, deps) {
       if (r.width > 0 && r.height > 0 && (r.left < lad.left || r.top < lad.top || r.right > lad.right || r.bottom > lad.bottom)) add(el);
     });
     add(doc.querySelector('.atlas-ladder-chip'));
+    add(doc.querySelector('.atlas-sight.on')); /* the phone's fixed sight reads its own name; no label sits under it */
     add(doc.querySelector('#atlas-dock'));
     wallRect = add(doc.querySelector('section.is-active .wall'));
     try {
@@ -308,6 +310,44 @@ export function mount(ctx, deps) {
     return !(a.right + gap < b.left || a.left - gap > b.right || a.bottom + gy < b.top || a.top - gy > b.bottom);
   }
 
+  /* ---- M8 (R6) liner notes. a starred artist's name (the 388 in universe_nodes.json) carries its plays mark: ▮ x its
+     plays_bucket (fifths by plays among those 388), in its genre family's colour; never who pressed play (R5 cut list).
+     on hover, focus, touch or lock a second line reads `n plays · first yyyy-mm` from universe_artists_all.json, fetched
+     on the visitor's own hover/touch, or once the universe's own full roster has loaded (never on mount or entry). */
+  const FAMN = Object.keys(ctx.FAM || {}).filter((k) => k !== 'unknown'), SIG = new Map(), META = new Map();
+  let sigReq = false, metaReq = false, uniApi = null;
+  const relabel = () => { widthCache.clear(); nodes.forEach((n) => { n.text = null; }); markDirty(); };
+  function wantSig() {
+    if (sigReq || typeof ctx.data !== 'function') return; sigReq = true;
+    ctx.data('universe_nodes').then((d) => {
+      ((d && d.nodes) || []).forEach((n) => {
+        const k = String(n.name).toLowerCase(), c = ctx.famColor ? ctx.famColor(FAMN[n.family] || 'untagged') : 0x9a9aa2;
+        if (!SIG.has(k)) SIG.set(k, { s: '▮'.repeat(Math.max(1, Math.min(5, n.plays_bucket | 0))), c: '#' + ((c >>> 0) & 0xffffff).toString(16).padStart(6, '0') });
+      });
+      relabel();
+    }).catch(() => {});
+  }
+  function wantMeta() {
+    if (metaReq || typeof ctx.data !== 'function') return; metaReq = true;
+    ctx.data('universe_artists_all').then((B) => {
+      const nm = (B && B.name) || [];
+      for (let i = 0; i < nm.length; i++) { const k = String(nm[i]).toLowerCase(); if (SIG.has(k) && !META.has(k)) META.set(k, Number(B.plays[i]).toLocaleString('en-US') + ' plays' + (B.first && B.first[i] ? ' · first ' + B.first[i] : '')); }
+      relabel();
+    }).catch(() => {});
+  }
+  function uniCheck() {
+    const rs = ctx.atlas.deps && ctx.atlas.deps.rooms, r = rs && rs[ctx.index];
+    if (metaReq || !r || r.id !== 'universe') return;
+    if (uniApi) { try { if (uniApi.has.roster === 'B') wantMeta(); } catch (e) {} return; }
+    try { ctx.need('universe').then((a) => { uniApi = a; }).catch(() => {}); } catch (e) {}
+  }
+  const sigOf = (item) => { const g = item.kind === 'obj' ? SIG.get(item.low) : null; return g ? g.s : ''; };
+  function lin(el, item) {
+    const g = item.kind === 'obj' ? SIG.get(item.low) : null, m = g ? META.get(item.low) : null;
+    if (g) { el.dataset.sig = g.s; el.style.setProperty('--fh', g.c); } else if (el.dataset.sig) { delete el.dataset.sig; el.style.removeProperty('--fh'); }
+    if (m) el.dataset.meta = m; else if (el.dataset.meta) delete el.dataset.meta;
+  }
+
   /* ---- the selection: the camera's lock label, or chrome's once it announces ctx.lock ---------------------- */
   function syncSel() {
     let vl = null, st = 'home';
@@ -345,6 +385,7 @@ export function mount(ctx, deps) {
     const m = store.get(owner), item = m && m.get(id), n = nodes.get(key);
     if (n && via !== 'lock') n.el.classList.toggle('vx-on', !!on);
     if (!item) { if (!on && hovKey === key) { hovKey = null; try { ctx.audio.tick(null); } catch (e) {} } return; }
+    if (on && via !== 'lock' && SIG.has(item.low)) wantMeta(); /* the visitor reached for a name: its second line */
     const p = projectItem(item), info = { owner, id: item.id, el: n ? n.el : null, via, sx: p.sx, sy: p.sy };
     let quiet = item.voice === false;
     const run = (set) => { if (set) set.forEach((fn) => { try { if (fn(on, item, info) === false) quiet = true; } catch (e) { console.warn('labels hook', e); } }); };
@@ -405,7 +446,7 @@ export function mount(ctx, deps) {
       /* a text change (a ticking counter) rebuilds the class list: keep the state classes, 'on' included, or the label
          would drop to opacity 0 while its node still believes it is shown */
       n.el.className = 'lab atlas-lab ' + item.kind + (n.hi ? ' hi' : '') + (n.lock ? ' lock' : '') + (n.on ? ' on' : '');
-      n.el.textContent = item.text;
+      n.el.textContent = item.text; lin(n.el, item);
       n.kind = item.kind; n.text = item.text;
     }
     n.el.classList.toggle('static', !interactive);
@@ -536,7 +577,8 @@ export function mount(ctx, deps) {
         }
       }
       const style = region ? 'regionlock' : 'lock';
-      const w = measure(style, item.text), h = LABEL_H_LOCK;
+      const w = measure(style, item.text, sigOf(item)), h = LABEL_H_LOCK;
+      if (!region) uniCheck();
       const pad = touch && (item.kind === 'obj' || !!item.go);
       let best = null, fallback = null;
       if (item.align === 'c') { const rect = centredRect(p.sx, p.sy, w, h); if (rect && !hitsKeepout(hitOf(rect))) best = rect; }
@@ -568,7 +610,8 @@ export function mount(ctx, deps) {
       const rpx = c.item.r * (c.p.s || 1);
       const off = kind === 'region' ? Math.max(rpx * 0.72, 5) : rpx * 0.72 + OBJ_OFF;
       const style = kind === 'obj' && hiN < HI_N ? 'hi' : kind;
-      const w = measure(style, c.item.text), h = style === 'hi' ? LABEL_H_HI : LABEL_H;
+      const w = measure(style, c.item.text, sigOf(c.item)), h = style === 'hi' ? LABEL_H_HI : LABEL_H;
+      if (kind === 'obj' && !sigReq) wantSig();
       const pad = touch && (kind === 'obj' || !!c.item.go);
       /* whole and inside the window, touching its object, clear of every keepout and every other placed pill:
          up-right first, then the next corner, at the usual offset and (round 2) again at double it -- 4 quads x 2

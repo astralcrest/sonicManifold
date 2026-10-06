@@ -26,7 +26,7 @@ export function createGesture(ctx, view) {
   stage.id = 'atlas-stage'; stage.tabIndex = 0;
   stage.setAttribute('role', 'application');
   stage.setAttribute('aria-roledescription', 'atlas');
-  stage.setAttribute('aria-label', 'the field. drag to turn or pan, pinch or wheel to zoom, tap a name to fly there. with focus here: arrow keys pan, plus and minus zoom, escape goes home.');
+  stage.setAttribute('aria-label', 'the field. drag to turn or pan, pinch or wheel to zoom, tap a name to go there. with focus here: arrow keys pan, plus and minus zoom, escape goes home.');
   const main = doc.querySelector('body > main');
   doc.body.insertBefore(stage, main || null);
 

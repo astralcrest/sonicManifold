@@ -84,6 +84,12 @@ const grain3 = (x, y, z) => {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 };
 const MLAD =[0, 1, 2, 3, 4, 5, 7, 9, 12, 16, 21, 28, 37, 48, 60], LADN = 12; /* the top weights tried: V14 = 256 m + 255 */
+/* atlas, who pressed play (R6): IGN_W ms after the stop opens every dot takes its play's arm colour (P.prov once the wall's
+   file has dealt it, else the shell's own fallback split of the same hash, 19 / 17 / 64), in IGN_B hashed batches over
+   IGN_D ms: never by place, so the sphere's days and bands say nothing about the colour. a three-word key sits on the lower
+   disc. hueTrip asks the shell to fade the arm colours into the next stop's over the flight (shell.js MORPH.hk) */
+const IGN_W = 900, IGN_D = 2000, IGN_B = 64, KEYW = ['tapped', 'shuffle', 'queue'];
+const lit = (v) => { const r = (v >> 16) & 255, g = (v >> 8) & 255, b = v & 255, m = Math.max(r, g, b, 1) / 255; return 'rgb(' + [r, g, b].map((c) => Math.round(c / m)) + ')'; };
 export default {
   id: 'threshold', track: 'hitting-the-infinite-derivative',
   /* K2 + W38: the edge pass on (a limb, above), and the renderer's bleach for a sampled room, so the brightest tones (t over
@@ -97,7 +103,7 @@ export default {
     if (atlasOn(ctx)) {
       /* the even lattice first (it also sets the world light), then the log's own layout: waited for briefly, so the first
          frame is normally the textured planet; a slow grid lands later and the dots glide to their days */
-      this.lattice(ctx, X, Y, Z);
+      this.lattice(ctx, X, Y, Z); this.root = root;
       const got = ctx.data('threshold_grid').then((G) => this.layData(ctx, G)).catch(() => {});
       await Promise.race([got, new Promise((r) => setTimeout(r, GRID_WAIT))]);
       return;
@@ -472,10 +478,50 @@ export default {
     this.fit = innerWidth > innerHeight * 1.15 ? 0.43 : 0.385;
     if (this.atl) this.enterAtlas(ctx, re);
     if (!this.X) return;
-    P.color((i) => SHADES[(ctx.hash(i * 11 + 7) * 4) | 0]);
+    if (this.atl && this.ig) { this.arms(ctx); this.paintArm(ctx, 0, IGN_B); this.ig = 2; if (ctx.reduced) P.c.set(P.tc); }
+    else P.color((i) => SHADES[(ctx.hash(i * 11 + 7) * 4) | 0]);
     if (!re) this.arm(ctx);
     this.place(ctx, 0, 0);
     if (ctx.reduced) { P.x.set(P.tx); P.y.set(P.ty); }
+    if (this.atl) { this.keyOn(ctx); if (!this.ig && !this.igTo) this.igTo = setTimeout(() => this.ignite(ctx), IGN_W); }
+  },
+  /* ---------------------------------------------------------------- atlas: who pressed play */
+  arms(ctx) {
+    const P = ctx.particles, n = P.n, pv = P.prov, ok = pv.indexOf(2) >= 0, ga = this.ga = new Uint8Array(n), hb = this.hb = new Uint8Array(n);
+    for (let i = 0; i < n; i++) { const u = ctx.hash(i); ga[i] = ok ? pv[i] : u < 0.19 ? 0 : u < 0.36 ? 1 : 2; hb[i] = (ctx.hash(i * 13 + 5) * IGN_B) | 0; }
+    this.pk = ctx.PROV.map((v) => 0xff000000 | ((v & 0xff) << 16) | (v & 0xff00) | ((v >> 16) & 0xff)); /* P.color's packing */
+  },
+  paintArm(ctx, b0, b1) { const TC = ctx.particles.tc, ga = this.ga, hb = this.hb, pk = this.pk; for (let i = 0; i < TC.length; i++) { const b = hb[i]; if (b >= b0 && b < b1) TC[i] = pk[ga[i]]; } },
+  ignite(ctx) {
+    this.igTo = 0; if (!this.atl || this.ig) return;
+    this.arms(ctx); this.ig = 1; this.ib = 0; this.igT = performance.now(); this.hueTrip = true;
+    this.glyph = { edges: true, bleach: false }; this.m = null; /* a hue now says who pressed play: the highlight no longer goes white */
+    if (ctx.reduced) { this.paintArm(ctx, 0, IGN_B); ctx.particles.c.set(ctx.particles.tc); this.ig = 2; }
+    this.keyOn(ctx);
+  },
+  dissolve() {
+    const b = Math.min(IGN_B, Math.floor((performance.now() - this.igT) / IGN_D * IGN_B) + 1);
+    if (b > this.ib) { this.paintArm(this.ctx0, this.ib, b); this.ib = b; if (b >= IGN_B) this.ig = 2; }
+  },
+  /* the key: three words in the three colours as the glyph pass draws them (a cell's hue at full tone), on the lower disc */
+  keyOn(ctx) {
+    this.ctx0 = ctx;
+    let k = this.key;
+    if (!k && this.root) {
+      k = this.key = document.createElement('p'); k.className = 'thr-key'; k.setAttribute('aria-hidden', 'true');
+      k.style.cssText = 'position:fixed;left:0;top:0;margin:0;z-index:3;pointer-events:none;white-space:nowrap;font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:rgba(216,210,234,.55);padding:7px 11px;border-radius:999px;background:rgba(10,1,24,.66);opacity:0;transition:opacity .9s ease';
+      KEYW.forEach((w, j) => { if (j) k.append(' · '); const s = document.createElement('b'); s.textContent = w; s.style.cssText = 'font-weight:600;color:' + lit(ctx.PROV[j]); k.appendChild(s); });
+      this.root.appendChild(k);
+    }
+    if (!k) return;
+    if (ctx.reduced) k.style.transition = 'none';
+    k.style.opacity = this.ig ? '1' : '0'; this.moveKey();
+  },
+  moveKey() {
+    const k = this.key, s = this.s; if (!k || !s) return;
+    const m = Math.min(s.w, s.h), R = m * this.fit * this.vz, g = this.grow(m, this.vz);
+    const x = s.x + s.w / 2 + g[0], y = Math.min(s.y + s.h / 2 + g[1] + R * 0.74, s.y + s.h - 16);
+    k.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px) translate(-50%,-50%)';
   },
   /* ---------------------------------------------------------------- atlas */
   enterAtlas(ctx, re) {
@@ -508,7 +554,7 @@ export default {
     ctx.labels.set('threshold', [{ id: 'plays', text: plays.toLocaleString('en-US') + ' plays', x, y, space: 'world', kind: 'region', pri: 6, r: 4,
       go: (c) => { c.view.flyTo(POSES.close, { speed: 'slow', lock: plays.toLocaleString('en-US') + ' plays' }); } }]);
   },
-  moveLabel(ctx) { if (!this.s) return; const [x, y] = this.labelAt(); ctx.labels.update('threshold', 'plays', { x, y }); },
+  moveLabel(ctx) { if (!this.s) return; const [x, y] = this.labelAt(); ctx.labels.update('threshold', 'plays', { x, y }); this.moveKey(); },
   setAngle(k, ctx, o = {}) {
     const a = this.angles[k]; if (!a || !atlasOn(ctx)) return 0;
     const pose = POSES[a.id], v = ctx.view;
@@ -530,6 +576,7 @@ export default {
   precision() { return []; },
   frame(g, t, bands, w, h, ctx) {
     if (!this.X) return;
+    if (this.ig === 1) this.dissolve();
     if (ctx.reduced) {
       /* reduced motion: no auto-turn, but direct manipulation still answers (the view re-places the sphere at once) */
       if (this.atl && (this.vdirty || this.relaid(ctx))) { this.vdirty = false; const P = ctx.particles; this.place(ctx, 0, 0); P.x.set(P.tx); P.y.set(P.ty); }
@@ -546,5 +593,5 @@ export default {
     const k = Math.min(1, dt * 0.005); this.px += (this.rx - this.px) * k; this.py += (this.ry - this.py) * k; /* ~200 ms lag: the view leans, it never snaps */
     this.place(ctx, t, bands.low);
   },
-  leave() { this.disarm(); if (this.offView) { this.offView(); this.offView = null; } },
+  leave() { this.disarm(); if (this.offView) { this.offView(); this.offView = null; } if (this.igTo) { clearTimeout(this.igTo); this.igTo = 0; } if (this.key) this.key.style.opacity = '0'; },
 };

@@ -5,6 +5,9 @@
 html.atlas #atlas-stage{position:fixed;left:0;top:0;width:100vw;height:100vh;height:100svh;z-index:2;margin:0;padding:0;background:transparent;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
 @supports (height:100dvh){html.atlas #atlas-stage{height:100dvh}}
 html.atlas #atlas-stage.atlas-grab{cursor:grab}
+/* R7: the hand's own cursor over the log, the ° mark in mint; only an active drag shows the grabbing hand */
+html.atlas #atlas-stage,html.atlas #atlas-stage.atlas-grab{cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22'><circle cx='11' cy='11' r='4.2' fill='none' stroke='%2321f6bc' stroke-width='1.6'/><circle cx='11' cy='11' r='7.5' fill='none' stroke='%2321f6bc' stroke-opacity='.35' stroke-width='1'/></svg>") 11 11,crosshair}
+@media (forced-colors:active){html.atlas #atlas-stage,html.atlas #atlas-stage.atlas-grab{cursor:crosshair}}
 html.atlas #atlas-stage.atlas-grabbing,html.atlas .atlas-grabbing{cursor:grabbing!important}
 /* room hit-targets bound through ctx.gesture: one input path, no callout, no double-tap page zoom */
 html.atlas [data-atlas-bound]{touch-action:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}

@@ -29,6 +29,12 @@ html.atlas #atlas-dock #mute::before{content:"\266A";font-size:16px;display:bloc
 html.atlas #atlas-dock #mute[aria-pressed="false"]{color:var(--ice)}
 html.atlas #atlas-dock #mute[aria-pressed="true"]{color:var(--mute)} /* CRIT6A: muted reads grey, as on #top (chrome.css W13); the generic pressed=ice rule above painted it ice */
 @media (max-width:359px){html.atlas #atlas-dock .d-label{display:none}}
+/* M11: the transport (⏮ ▶/‖ ⏭ ♪ ⋯) and its "more" shelf, which floats over the field above the row (absolute: opening it
+   never changes the dock's measured height). ice only, like every other chrome control */
+html.atlas #atlas-dock .d-more{position:absolute;left:0;right:0;bottom:100%;display:flex;border-top:1px solid var(--line);background:linear-gradient(0deg,rgba(6,2,16,.95),rgba(6,2,16,.86));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+html.atlas #atlas-dock .d-more[hidden]{display:none}
+html.atlas #atlas-dock.d-open{z-index:8} /* the open shelf sits over the stepper row (#atlas-info, z 6-7) */
+html.atlas #atlas-dock .d-row>[data-a="play"] .d-ic{color:var(--ice)}
 /* CRIT6A: "♪ tap for sound" (panels.js syncMuteLabel) wrapped to 3 lines in a 48 px dock tab. under 760 px the tab shows
    one word like its neighbours: the text stays in the DOM (font-size 0) as the accessible name, ::after draws "sound" (ice)
    or "muted" (grey), with empty alt text so it is not read twice. the 44 px target is untouched */
@@ -102,9 +108,10 @@ html.atlas .a-grid-read{font:500 11px/1 var(--mono);color:var(--mute);letter-spa
    scroll fade is dropped (a faded system colour is a low-contrast colour), chrome.css's pattern. */
 @media (forced-colors:active){
   html.atlas dialog.atlas-panel,html.atlas .atlas-topbar .a-btn,html.atlas #atlas-dock{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none}
-  html.atlas #atlas-dock .d-row>button,html.atlas #atlas-dock .d-row>button *{color:CanvasText;background-color:transparent}
+  html.atlas #atlas-dock :is(.d-row,.d-more)>button,html.atlas #atlas-dock :is(.d-row,.d-more)>button *{color:CanvasText;background-color:transparent}
+  html.atlas #atlas-dock .d-more{background:Canvas;border-color:CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none}
   html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *::before,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *::after{color:CanvasText;background-color:Canvas;border-color:CanvasText;text-shadow:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
   html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) .a-pn-body{-webkit-mask-image:none;mask-image:none}
-  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :is([aria-pressed="true"],.on),html.atlas .atlas-topbar .a-btn:is([aria-pressed="true"],.on),html.atlas #atlas-dock .d-row>button:is([aria-pressed="true"],.on),html.atlas #atlas-dock .d-row>button:is([aria-pressed="true"],.on) *{color:HighlightText;background-color:Highlight;border-color:Highlight}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :is([aria-pressed="true"],.on),html.atlas .atlas-topbar .a-btn:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on) *{color:HighlightText;background-color:Highlight;border-color:Highlight}
   html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :focus-visible,html.atlas .atlas-topbar .a-btn:focus-visible,html.atlas #atlas-dock button:focus-visible{outline-color:Highlight}
 }

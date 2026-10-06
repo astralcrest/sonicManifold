@@ -69,7 +69,7 @@ export function mount(ctx, deps) {
     });
     dlg.addEventListener('click', (e) => { if (e.target === dlg) closeDialog(dlg); });
     const x = dlg.querySelector('[data-close]'); if (x) x.addEventListener('click', () => closeDialog(dlg));
-    dlg.addEventListener('close', () => { if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) {} });
+    dlg.addEventListener('close', () => { let f = lastFocus; if (f && f.closest && f.closest('#atlas-dock-more[hidden]')) f = document.querySelector('#atlas-dock [data-a="more"]'); if (f && f.focus) try { f.focus({ preventScroll: true }); } catch (e) {} });
   }
   function panelShell(id, title) {
     const dlg = document.createElement('dialog');
@@ -91,13 +91,13 @@ export function mount(ctx, deps) {
   function nameOf(id) { const t = (ctx.tour.list() || []).find((x) => x.id === id); return t ? t.name : id; }
   function renderTours() {
     const body = $('[data-body]', toursDlg), tourApi = ctx.tour, act = tourApi.active;
-    let html = '<div class="a-pn-row" data-toggle></div><p class="a-lbl">time at each stop</p><div class="a-seg" data-dwell></div><div data-list style="margin-top:14px"></div>';
+    let html = '<div class="a-pn-row" data-toggle></div><p class="a-lbl">' + DWELL_L + '</p><div class="a-seg" data-dwell></div><div data-list style="margin-top:14px"></div>';
     body.innerHTML = html;
     const toggle = $('[data-toggle]', body);
     const b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'a-btn'; b1.style.flex = '1';
-    b1.textContent = act.id ? (act.playing ? 'pause tour' : 'resume ' + nameOf(act.id)) : 'play grand tour';
+    b1.textContent = act.id ? (act.playing ? 'pause tour' : 'resume ' + nameOf(act.id)) : 'play ' + nameOf('grand');
     b1.addEventListener('click', () => { if (act.id && act.playing) tourApi.pause('manual'); else if (act.id) tourApi.resume(); else tourApi.play('grand', 0); renderTours(); });
-    const b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'a-btn'; b2.style.flex = '1'; b2.textContent = 'free camera';
+    const b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'a-btn'; b2.style.flex = '1'; b2.textContent = '° your hand'; b2.setAttribute('aria-label', 'your hand: stop the tour and steer yourself');
     b2.addEventListener('click', () => { if (act.id) tourApi.pause('manual'); closeDialog(toursDlg); });
     toggle.appendChild(b1); toggle.appendChild(b2);
     const dwellSeg = $('[data-dwell]', body);
@@ -117,7 +117,7 @@ export function mount(ctx, deps) {
       list.appendChild(b);
     });
     const ss = document.createElement('button'); ss.type = 'button'; ss.className = 'a-tour-item'; ss.style.borderTop = '1px solid rgba(189,166,255,.1)'; ss.style.marginTop = '8px';
-    ss.innerHTML = '<span class="a-t-name">screensaver</span><span class="a-t-blurb">loop the grand tour, hands off</span>';
+    ss.innerHTML = '<span class="a-t-name">screensaver</span><span class="a-t-blurb">' + esc('loop ' + nameOf('grand') + ', hands off') + '</span>';
     ss.addEventListener('click', () => { try { const u = new URL(location.href); u.searchParams.set('kiosk', '1'); location.href = u.toString(); } catch (e) {} });
     list.appendChild(ss);
     syncMore(body);
@@ -126,9 +126,11 @@ export function mount(ctx, deps) {
 
   /* -------------------------------------------------------------- settings panel */
   const setDlg = panelShell('atlas-settings', 'settings');
-  function segHtml(key, opts, label) {
+  /* M12: the flight between stops is a crossfade and a stop is a track that holds (the stored values stay slow/quick/warp) */
+  const XFADE = { slow: 'long', quick: 'short', warp: 'cut' }, DWELL_L = 'how long each track holds';
+  function segHtml(key, opts, label, say) {
     let h = '<p class="a-lbl">' + esc(label || key) + '</p><div class="a-seg" role="group" aria-label="' + esc(label || key) + '">';
-    opts.forEach((o) => { h += '<button type="button" data-k="' + key + '" data-v="' + o + '">' + esc(o) + '</button>'; });
+    opts.forEach((o) => { h += '<button type="button" data-k="' + key + '" data-v="' + o + '">' + esc(say ? say[o] : o) + '</button>'; });
     return h + '</div>';
   }
   function toggleHtml(key, label) {
@@ -136,10 +138,10 @@ export function mount(ctx, deps) {
   }
   function buildSettingsBody() {
     const body = $('[data-body]', setDlg);
-    let html = segHtml('detail', ['ultra', 'fine', 'normal', 'bold']) + segHtml('travel', ['slow', 'quick', 'warp']) + segHtml('dwell', ['short', 'normal', 'long'], 'time at each stop') + segHtml('textSize', ['small', 'normal', 'large'], 'text size');
+    let html = segHtml('detail', ['ultra', 'fine', 'normal', 'bold']) + segHtml('travel', ['slow', 'quick', 'warp'], 'crossfade', XFADE) + segHtml('dwell', ['short', 'normal', 'long'], DWELL_L) + segHtml('textSize', ['small', 'normal', 'large'], 'text size');
     html += toggleHtml('fade', 'interface fade') + toggleHtml('glow', 'glow') + toggleHtml('labels', 'labels') + toggleHtml('twinkle', 'twinkle');
     if (coarse) html += segHtml('pinch', ['atlas', 'page'], 'pinch zooms');
-    html += '<p class="a-grid-read" data-grid></p><p class="a-help-note">v cycles detail &middot; y cycles travel speed &middot; g toggles glow &middot; ? opens help' + (lowPower ? ' &middot; one dot on this screen is four plays' : '') + '</p>';
+    html += '<p class="a-grid-read" data-grid></p><p class="a-help-note">v cycles detail &middot; y cycles the crossfade &middot; g toggles glow &middot; ? opens help' + (lowPower ? ' &middot; one dot on this screen is four plays' : '') + '</p>';
     body.innerHTML = html;
     body.addEventListener('click', (e) => {
       const b = e.target.closest('[data-k]'); if (!b) return;
@@ -163,22 +165,22 @@ export function mount(ctx, deps) {
 
   /* -------------------------------------------------------------- help overlay (§2.6, every control + the
      accuracy notes: glyph shape carries provenance, phones draw one dot per four plays, the clock and the
-     universe day view use one fixed utc-7 approximation, universe positions carry no meaning as distance,
+     universe day view read on one fixed clock all year, universe positions carry no meaning as distance,
      twinkle/glints are decoration everywhere) */
   const helpDlg = panelShell('atlas-help', 'help');
   (function buildHelp() {
     const body = $('[data-body]', helpDlg);
     const rows = [
       ['drag', 'turn or pan the camera'], ['wheel / pinch', 'zoom'], ['double-tap', 'zoom in, wraps to home'],
-      ['tap a name', 'fly there'], ['→ ↓ ]', 'next stop'], ['← ↑ [', 'previous stop'], ['space p', 'play / pause the tour'],
+      ['tap a name', 'go there'], ['→ ↓ ]', 'next stop'], ['← ↑ [', 'previous stop'], ['space p', 'play / pause the tour'],
       ['. ,', 'next / previous angle'], ['p', 'play / pause the tour'], ['1–9, 0', 'jump to stop n of the active tour'],
-      ['/ or o', 'search'], ['+ = / -', 'zoom in / out'], ['r or esc', 'camera home'], ['h', 'first stop'],
-      ['l', 'wall label'], ['m', 'mute'], ['v / g / y', 'detail / glow / travel speed'], ['?', 'this help'],
+      ['/', 'dig the log (search)'], ['+ = / -', 'zoom in / out'], ['r or esc', 'camera home'], ['h', 'first stop'],
+      ['l', 'wall label'], ['m', 'mute'], ['v / g / y', 'detail / glow / crossfade'], ['?', 'this help'],
     ];
     let html = '<dl>' + rows.map((r) => '<div class="a-help-row"><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>').join('') + '</dl>';
     html += '<p class="a-help-note">the glyph SHAPE carries who pressed play in every categorical room, not just colour, and the colour code still means what it always meant.' +
       (lowPower ? ' on this screen one dot is four plays.' : '') +
-      ' the clock and the universe day view read on one fixed utc−7 approximation, not a real local time. positions in the universe carry no meaning as distance or direction on their own. twinkle and the rare bright glints are decoration everywhere and carry no data.' +
+      ' the clock and the universe day view read on one fixed clock all year, not a real local time. the marks after a name, ▮ to ▮▮▮▮▮, are its plays in five steps among the starred artists, in its genre colour; they say nothing about who pressed play. positions in the universe carry no meaning as distance or direction on their own. twinkle and the rare bright glints are decoration everywhere and carry no data.' +
       (coarse ? ' the pinch zooms setting in settings chooses whether two fingers zoom the field or the page.' : '') + '</p>';
     body.innerHTML = html;
   })();
@@ -188,7 +190,7 @@ export function mount(ctx, deps) {
   /* -------------------------------------------------------------- v / g / y setting cycles */
   function cycle(key, opts) { const i = opts.indexOf(get(key)); set(key, opts[(i + 1 + opts.length) % opts.length]); try { ctx.toast(key + ': ' + get(key)); } catch (e) {} }
   ctx.keys.on('v', () => { cycle('detail', ['ultra', 'fine', 'normal', 'bold']); return true; });
-  ctx.keys.on('y', () => { cycle('travel', ['slow', 'quick', 'warp']); return true; });
+  ctx.keys.on('y', () => { const o = ['slow', 'quick', 'warp'], i = o.indexOf(get('travel')); set('travel', o[(i + 1) % 3]); try { ctx.toast('crossfade: ' + XFADE[get('travel')]); } catch (e) {} return true; });
   ctx.keys.on('g', () => { set('glow', !get('glow')); try { ctx.toast('glow: ' + (get('glow') ? 'on' : 'off')); } catch (e) {} return true; });
 
   /* -------------------------------------------------------------- #top menu (desktop/landscape)
@@ -214,18 +216,36 @@ export function mount(ctx, deps) {
      — the dock is one of the fixed chrome bands the phone budget is built from, so it fully hides at idle
      (data-idle="hide", not "dim": §0.4 lists it alongside the ladder/chip/onboarding) rather than just dimming. */
   const dock = document.createElement('div'); dock.id = 'atlas-dock'; dock.setAttribute('role', 'navigation'); dock.setAttribute('aria-label', 'atlas dock'); dock.dataset.idle = 'hide';
-  dock.innerHTML = '<div class="d-row">' + [
-    ['home', '⌂', 'home'], ['atlas', '⌕', 'search'], ['tours', '▸', 'tours'], ['time', '◷', 'time'],
-  ].map((r) => '<button type="button" data-a="' + r[0] + '"><span class="d-ic" aria-hidden="true">' + r[1] + '</span>' + r[2] + '</button>').join('') +
+  /* M11: a transport. prev/play/next drive ctx.tour (off a tour they step the walk), ♪ is #mute (CRIT6A's tab), "more" opens
+     a shelf holding every earlier dock item; it floats (absolute), so --atlas-dockh never changes */
+  const dbtn = (a, ic, word, extra) => '<button type="button" data-a="' + a + '"' + (extra || '') + '><span class="d-ic" aria-hidden="true">' + ic + '</span>' + word + '</button>';
+  dock.innerHTML = '<div class="d-more" id="atlas-dock-more" role="group" aria-label="more" hidden>' + [
+    ['home', '⌂', 'home'], ['atlas', '⌕', 'search'], ['tours', '▸', 'tours'], ['time', '◷', 'time'], ['settings', '⚙︎', 'settings'],
+    ['help', '?', 'help'], /* R2_VERIFY_1_a11y P1: help's only on-screen path on a phone */
+  ].map((r) => dbtn(r[0], r[1], r[2])).join('') + dbtn('label', '▤', 'label', ' class="d-label"') + '</div>' +
+    '<div class="d-row">' +
+    dbtn('prev', '⏮︎', 'prev', ' aria-label="previous stop"') +
+    '<button type="button" data-a="play" aria-label="play the tour"><span class="d-ic" aria-hidden="true">▶︎</span><span class="d-w">play</span></button>' +
+    dbtn('next', '⏭︎', 'next', ' aria-label="next stop"') +
     '<span id="mute-slot" style="display:contents"></span>' +
-    '<button type="button" data-a="settings"><span class="d-ic" aria-hidden="true">⋯</span>settings</button>' +
-    /* R2_VERIFY_1_a11y P1: help had no on-screen path on phone at all — .atlas-topbar's own [data-a="help"]
-       is display:none in portrait (panels.css:11) and the '?' key needs a physical keyboard. doAction()
-       already handles a==='help' (below), so this is markup-only. */
-    '<button type="button" data-a="help"><span class="d-ic" aria-hidden="true">?</span>help</button>' +
-    '<button type="button" class="d-label" data-a="label"><span class="d-ic" aria-hidden="true">▤</span>label</button>' +
+    dbtn('more', '⋯', 'more', ' aria-expanded="false" aria-controls="atlas-dock-more"') +
     '</div>';
   document.body.appendChild(dock);
+  const moreEl = $('#atlas-dock-more', dock), moreBtn = $('[data-a="more"]', dock), playBtn = $('[data-a="play"]', dock);
+  function setMore(on) { moreEl.hidden = !on; moreBtn.setAttribute('aria-expanded', String(on)); moreBtn.classList.toggle('on', on); dock.classList.toggle('d-open', on); }
+  document.addEventListener('pointerdown', (e) => { if (!moreEl.hidden && !dock.contains(e.target)) setMore(false); }, { capture: true, passive: true });
+  dock.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !moreEl.hidden) { e.stopPropagation(); setMore(false); try { moreBtn.focus(); } catch (x) {} } });
+  /* the play key says what a press will do: ▶ play, ‖ pause */
+  function syncPlay() {
+    let on = false; try { on = !!(ctx.tour && ctx.tour.isPlaying && ctx.tour.isPlaying()); } catch (e) {}
+    const ic = playBtn.firstChild, w = playBtn.lastChild, t = on ? '‖' : '▶︎';
+    if (ic.textContent !== t) { ic.textContent = t; w.textContent = on ? 'pause' : 'play'; playBtn.setAttribute('aria-label', on ? 'pause the tour' : 'play the tour'); }
+  }
+  /* panels mounts before tour.js replaces the ctx.tour facade: subscribe once the real engine is there */
+  let tourHooked = null;
+  function hookTour() { const t = ctx.tour; if (t && t !== tourHooked && typeof t.onChange === 'function' && typeof t.isPlaying === 'function') { tourHooked = t; try { t.onChange(syncPlay); } catch (e) {} } syncPlay(); }
+  try { ctx.onStop(hookTour); } catch (e) {}
+  [0, 400, 1500, 4000].forEach((ms) => setTimeout(hookTour, ms));
 
   /* one #mute element, reparented between the topbar and the dock so its id/handler stay singular (D5) */
   const mqPortrait = matchMedia('(max-aspect-ratio:115/100)');
@@ -277,10 +297,14 @@ export function mount(ctx, deps) {
     if (a === 'settings') { openSettings(); return; }
     if (a === 'help') { openHelp(); return; }
     if (a === 'label') { try { ctx.label.open(); } catch (e) {} return; }
+    if (a === 'prev' || a === 'next') { try { ctx.tour[a](); } catch (e) {} return; }
+    if (a === 'play') { try { ctx.tour.toggle(); } catch (e) {} syncPlay(); return; }
   }
   let homeHoldT = 0;
   document.addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('.atlas-topbar [data-a], #atlas-dock [data-a]'); if (!b) return;
+    if (b.dataset.a === 'more') { setMore(moreEl.hidden); return; }
+    if (b.closest('#atlas-dock')) setMore(false);
     doAction(b.dataset.a);
   });
   document.addEventListener('contextmenu', (e) => {

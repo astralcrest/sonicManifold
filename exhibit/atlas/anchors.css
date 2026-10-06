@@ -2,22 +2,26 @@
 
 html.atlas #atlas-labels{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden;contain:layout style}
 
-/* base: 'obj' kind. --mute name, --line brackets (pseudo, dimmer than the name), fades in .8s out, out .3s in. */
+/* base: 'obj' kind. --mute name, no brackets (M8 liner notes), fades in .8s out, out .3s in. */
 html.atlas .lab{position:absolute;left:0;top:0;margin:0;padding:2px 4px;border:0;border-radius:2px;background:none;
   font:400 10.5px/1.3 var(--mono);letter-spacing:.06em;color:var(--mute);white-space:nowrap;cursor:pointer;
   opacity:0;visibility:hidden;transition:opacity .3s ease-in,background-color .3s ease,visibility 0s linear .3s;pointer-events:none;-webkit-tap-highlight-color:transparent;
   text-shadow:0 0 2px #0a0118,0 0 4px #0a0118,0 0 10px rgba(10,1,24,.9);will-change:transform,opacity}
 html.atlas .lab.on{opacity:1;visibility:visible;transition:opacity .8s ease-out,background-color .3s ease,visibility 0s;pointer-events:auto}
-html.atlas .lab.obj::before{content:"[ ";color:var(--line)}
-html.atlas .lab.obj::after{content:" ]";color:var(--line)}
 html.atlas .lab.obj:hover,html.atlas .lab.obj:focus-visible{color:var(--ice)}
-html.atlas .lab.obj:hover::before,html.atlas .lab.obj:hover::after,
-html.atlas .lab.obj:focus-visible::before,html.atlas .lab.obj:focus-visible::after{color:var(--ice)}
+/* M8 liner notes: a starred artist's plays mark after the name (▮ x plays_bucket, its genre colour: anchors.js sets
+   data-sig and --fh), and on hover, focus or lock a second line under the pill, `n plays · first yyyy-mm`, absolute so
+   it never moves the placed pill. the mark carries no arm: shape here never says who pressed play */
+html.atlas .lab.obj[data-sig]::after{content:"\00a0" attr(data-sig);color:var(--fh,var(--line));opacity:.72}
+html.atlas .lab.obj[data-sig]:is(:hover,:focus-visible,.vx-on,.lock)::after{opacity:1}
+html.atlas .lab.obj[data-meta]:is(:hover,:focus-visible,.vx-on,.lock)::before{content:attr(data-meta);position:absolute;left:4px;top:100%;margin-top:1px;
+  font:400 10px/1.3 var(--mono);letter-spacing:.04em;color:var(--ice);white-space:nowrap;pointer-events:none}
+html.atlas .lab.obj[data-meta]:is(:hover,.vx-on){z-index:3}
+html.atlas .lab.obj.lock[data-meta]::before{left:-1px;padding:1px 5px;background:rgba(10,1,24,.78);border:1px solid rgba(134,203,254,.3);border-top:0}
 html.atlas .lab:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
 
 /* the top 8 object labels by priority: a size up, ink at .85 (anchors.js hands out .hi in placement order) */
 html.atlas .lab.obj.hi{font-size:11px;color:var(--ink);color:color-mix(in srgb,var(--ink) 85%,transparent)}
-html.atlas .lab.obj.hi::before,html.atlas .lab.obj.hi::after{color:rgba(189,166,255,.4)}
 
 /* round 2 (W1 fix): no label but the lock carries a coverage plate any more -- a dark box over the field read as a grey
    sticky note (gcd never boxes a name). the stronger triple text-shadow above carries legibility instead, and
@@ -36,12 +40,11 @@ html.atlas .lab.counter{color:var(--ice);font:400 10.5px/1.3 var(--mono);letter-
 /* a label with no route: same look, never intercepts the pointer */
 html.atlas .lab.static{cursor:default;pointer-events:none!important}
 
-/* the locked object: what the LOCKED ON chip names. ink name, ice brackets, full opacity, on its own ice-edged plate,
+/* the locked object: what the camera chip names. ink name, full opacity, on its own ice-edged plate,
    above every other label */
 html.atlas .lab.lock{z-index:2;padding:2px 5px;border:1px solid rgba(134,203,254,.5);background-color:rgba(10,1,24,.78);
   font:500 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--ink);text-shadow:none}
 html.atlas .lab.lock.on,html.atlas .lab.region.lock.on{opacity:1}
-html.atlas .lab.obj.lock::before,html.atlas .lab.obj.lock::after{color:var(--ice)}
 html.atlas .lab.region.lock{font-weight:600;letter-spacing:.14em;color:var(--ice)}
 
 /* the reticle on the locked object: four ice corner ticks, closing in from 1.5x once per new target */
@@ -79,7 +82,7 @@ html.atlas .lab-off:hover,html.atlas .lab-off:focus-visible{border-color:rgba(13
 html.atlas .lab-off:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
 
 /* touch-first screens (the switch chrome.css's 44px pass uses; anchors.js reads the same query): every tappable label is
-   a 44px target. the brackets own ::before/::after, so the box grows by a transparent border instead of chrome.css's
+   a 44px target. the liner notes own ::before/::after, so the box grows by a transparent border instead of chrome.css's
    ::before inset: the plate is clipped to the padding box, the lock's edge is an inset shadow, and a negative margin
    of the same size keeps the drawn pill exactly where anchors.js placed it. PAD_H 6 / PAD_V 14 in anchors.js.
    scoped to the layer (a fading label keeps its pad too): the probe calendar.js measures the pill with lives in its own
@@ -108,7 +111,8 @@ html.atlas .lab-off:focus-visible{outline:2px solid var(--ice);outline-offset:2p
   html.atlas .lab,html.atlas .lab-off{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}
   html.atlas .lab.obj::before,html.atlas .lab.obj::after{color:CanvasText}
   html.atlas .lab.obj.hi,html.atlas .lab.obj:hover,html.atlas .lab.obj:focus-visible{color:CanvasText}
-  html.atlas .lab.obj.hi::before,html.atlas .lab.obj.hi::after,html.atlas .lab.obj:focus-visible::before,html.atlas .lab.obj:focus-visible::after{color:CanvasText}
+  html.atlas .lab.obj.hi::after,html.atlas .lab.obj:focus-visible::after{color:CanvasText;opacity:1}
+  html.atlas .lab.obj[data-meta]::before{background:Canvas;border-color:CanvasText}
   html.atlas .lab.lock{border:2px solid Highlight}
   html.atlas .lab-ret i{filter:none}
   html.atlas .lab-ret i::before,html.atlas .lab-ret i::after{background:Highlight}

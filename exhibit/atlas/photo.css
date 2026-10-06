@@ -22,6 +22,10 @@ html.atlas .atlas-photobar-btn{padding:9px 12px}
 html.atlas .atlas-photoflash{position:fixed;inset:0;z-index:20;background:radial-gradient(circle at 50% 42%,#eef7ff,#86cbfe 62%);opacity:0;pointer-events:none;animation:atlasPhotoFlash .49s ease-out forwards}
 @keyframes atlasPhotoFlash{0%{opacity:0}12%{opacity:.62}100%{opacity:0}}
 
+/* the long exposure is running: the shutter is open (decoration, never data) */
+html.atlas .atlas-photobar-btn[aria-busy="true"]{color:var(--ice);border-color:var(--ice);animation:atlasExpose 1s ease-in-out infinite alternate}
+@keyframes atlasExpose{to{background:rgba(134,203,254,.2)}}
+
 @media (max-width:640px){
   html.atlas .atlas-photodock-standalone{top:calc(env(safe-area-inset-top) + 50px);gap:8px}
   html.atlas .atlas-chip{padding:10px 12px;min-height:44px}
@@ -29,6 +33,7 @@ html.atlas .atlas-photoflash{position:fixed;inset:0;z-index:20;background:radial
 
 @media (prefers-reduced-motion: reduce){
   html.atlas .atlas-photoflash{display:none}
+  html.atlas .atlas-photobar-btn[aria-busy="true"]{animation:none}
 }
 
 @media print{
@@ -39,4 +44,5 @@ html.atlas .atlas-photoflash{position:fixed;inset:0;z-index:20;background:radial
   html.atlas .atlas-chip{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none}
   html.atlas .atlas-chip[aria-pressed="true"],html.atlas .atlas-chip[aria-expanded="true"]{color:CanvasText;border-color:CanvasText}
   html.atlas .atlas-photoflash{display:none}
+  html.atlas .atlas-photobar-btn[aria-busy="true"]{animation:none;border-style:dashed}
 }

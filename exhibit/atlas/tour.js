@@ -28,7 +28,8 @@ export function mount(ctx, deps) {
   const { TOURS = [], DWELL = { short: 0.45, normal: 1, long: 1.7 }, KIOSK, reduced, P } = deps || {};
   const byId = (id) => TOURS.find((t) => t.id === id) || null;
 
-  const active = { id: null, k: 0, n: 0, playing: false, angleK: 0, angleN: 1, holding: 0, enRoute: false };
+  /* R6: why = the last pause's reason ('user' | 'manual' | 'end' ...), hand = a step the visitor asked for (next/prev) is in flight */
+  const active = { id: null, k: 0, n: 0, playing: false, angleK: 0, angleN: 1, holding: 0, enRoute: false, why: null, hand: false };
   const CHANGEFNS = [];
   const EVFNS = {};
   const sub = (list, fn) => { list.push(fn); return () => { const k = list.indexOf(fn); if (k >= 0) list.splice(k, 1); }; };
@@ -261,7 +262,7 @@ export function mount(ctx, deps) {
     const def = byId(id); if (!def) return;
     if (k >= def.stops.length - 1) {
       if (KIOSK) return gotoTourStop(id, 0, my);
-      active.playing = false; fire(); emit('end', { id }); return;
+      active.playing = false; active.why = 'end'; fire(); emit('end', { id }); return;
     }
     return gotoTourStop(id, k + 1, my);
   }
@@ -319,7 +320,7 @@ export function mount(ctx, deps) {
       markSeen(active.id, active.k);
       if (active.k >= def.stops.length - 1) {
         if (KIOSK) { await gotoTourStop(active.id, 0, my); if (my !== epoch) return; continue; }
-        active.playing = false; fire(); emit('end', { id: active.id }); return;
+        active.playing = false; active.why = 'end'; fire(); emit('end', { id: active.id }); return;
       }
       await gotoTourStop(active.id, active.k + 1, my);
       if (my !== epoch) return;
@@ -351,18 +352,18 @@ export function mount(ctx, deps) {
     const my = ++epoch;
     let wantPlay = opts.autoplay !== false;
     if (reduced && !KIOSK) wantPlay = false; /* §9.3: reduced motion starts tours paused, kiosk excepted */
-    active.playing = wantPlay;
+    active.playing = wantPlay; active.why = null; active.hand = false;
     startFrom(id, clamp(k || 0, 0, def.stops.length - 1), my).catch((e) => console.warn('tour', e));
   }
   function pause(reason) {
     if (!active.id || !active.playing) return;
-    active.playing = false; fire();
+    active.playing = false; active.why = reason || null; fire();
     if (KIOSK) { clearTimeout(manualTimer); manualTimer = setTimeout(() => resume(), 45000); }
   }
   function resume() {
     if (!active.id) return;
     clearTimeout(manualTimer);
-    active.playing = true; fire();
+    active.playing = true; active.why = null; fire();
     const my = ++epoch;
     startFrom(active.id, active.k, my).catch((e) => console.warn('tour', e));
   }
@@ -378,7 +379,8 @@ export function mount(ctx, deps) {
     const k = clamp(active.k + dir, 0, def.stops.length - 1);
     if (k === active.k) return Promise.resolve(false);
     const wasPlaying = active.playing, my = ++epoch;
-    (async () => { await gotoTourStop(active.id, k, my); if (my !== epoch) return; if (wasPlaying) await driver(my); })().catch((e) => console.warn('tour', e));
+    active.hand = true;
+    (async () => { try { await gotoTourStop(active.id, k, my); } finally { if (my === epoch) active.hand = false; } if (my !== epoch) return; if (wasPlaying) await driver(my); })().catch((e) => console.warn('tour', e));
     return Promise.resolve(true);
   }
   const api = {
@@ -421,7 +423,7 @@ export function mount(ctx, deps) {
     if (!el || isChromeEl(el) || !el.closest('section[data-room]')) return;
     pause('user');
   }, { capture: true, passive: true });
-  const TOURKEYS = new Set(['ArrowRight', 'ArrowDown', 'PageDown', ']', 'j', ' ', 'ArrowLeft', 'ArrowUp', 'PageUp', '[', 'k', '.', ',', 'Home', 'h', 'End', 'p', '+', '=', '-', 'r', 'Escape', 'm', 'l', '?', 'v', 'g', 'y', '/', 'o']);
+  const TOURKEYS = new Set(['ArrowRight', 'ArrowDown', 'PageDown', ']', 'j', ' ', 'ArrowLeft', 'ArrowUp', 'PageUp', '[', 'k', '.', ',', 'Home', 'h', 'End', 'p', '+', '=', '-', 'r', 'Escape', 'm', 'l', '?', 'v', 'g', 'y', '/', 'o', 'e', 'E']);
   document.addEventListener('keydown', (e) => {
     if (!active.id || !active.playing) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
