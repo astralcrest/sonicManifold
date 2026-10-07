@@ -96,5 +96,26 @@ export function install(A, deps) {
     try { return sound(o, kind); } catch (e) { return undefined; }
   }
 
-  return { tick, live: () => { if (A.ac) prune(A.ac.currentTime); return live.length; }, fade };
+  /* M7: each stop arrives on its own note: degree k of the bed's key floor, an octave up on side b (the second half), on the
+     bed's next beat; the end card plays D and the A above it. same voice pool, same ceiling, silent when muted or locked */
+  function cue(k, n, end) {
+    if (!A.ac || A.muted || !A.on || !A.sfx) return false;
+    const ac = A.ac, R = floorRel(), L = R.length || 1;
+    let b = null; try { b = A.beat(); } catch (e) {}
+    const t = b && b.next > ac.currentTime ? Math.min(b.next, ac.currentTime + 1.2) : ac.currentTime + 0.02;
+    const semis = end ? [0, 7] : [R[(((k | 0) % L) + L) % L] + (n > 0 && k >= n / 2 ? 12 : 0)];
+    prune(ac.currentTime);
+    semis.forEach((semi) => {
+      while (live.length >= MAXV) steal(live.shift(), ac.currentTime);
+      const f = D4 * Math.pow(2, semi / 12), dur = end ? 1.4 : 0.8, v = Math.min(VMAX, 0.03) / Math.sqrt(live.length + 1);
+      const osc = ac.createOscillator(), g = ac.createGain(); osc.type = 'sine'; osc.frequency.value = f;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(A.sfx); osc.start(t); osc.stop(t + dur + 0.05);
+      live.push({ osc, o2: null, g, end: t + dur + 0.05 });
+      if (A._log) (A._cues || (A._cues = [])).push({ t: performance.now(), f, semi, k, n, end: !!end, gain: v, at: t - ac.currentTime });
+    });
+    return true;
+  }
+
+  return { tick, cue, live: () => { if (A.ac) prune(A.ac.currentTime); return live.length; }, fade };
 }

@@ -6,8 +6,8 @@
      orbit    the room projects its own sphere from yaw, pitch, z (radius scale); world = screen
      orbit3d  p = xyz - target, yaw about y, pitch about x, depth = z2 + 2.2·dist, s = 2.2·R / depth
    pan poses are stored against the stage (u, v, z), so a resize or rotation re-applies the same view to the new stage
-   instead of going home (§1.5). flights use gcdatlas's speed table (starts at once, peaks mid-trip, settles gently)
-   and gcdatlas's van wijk-nuij zoom-and-pan path (pan and orbit3d). a trip of more than 1.5 of the current view's widths
+   instead of going home (§1.5). flights use a sine speed table (starts at once, peaks mid-trip, settles gently)
+   and the van wijk-nuij zoom-and-pan path (pan and orbit3d). a trip of more than 1.5 of the current view's widths
    is a hop (out, across, in, with the whoosh), and so is every flight that locks on a name, even to a target on screen
    (the trip profile below). reduced motion: every flight is a jump. */
 
@@ -19,7 +19,7 @@ const wrapA = (a) => { a = (a + PI) % TAU; if (a < 0) a += TAU; return a - PI; }
 const now = () => performance.now();
 const f3 = (v) => String(+(+v).toFixed(3) || 0);
 
-/* gcdatlas's fly-to speed profile: local speed v(x) = sin(πx)·0.85 + 0.15(1-x) + 0.025x over 64 slices. PROG[i] is the
+/* fly-to speed profile: local speed v(x) = sin(πx)·0.85 + 0.15(1-x) + 0.025x over 64 slices. PROG[i] is the
    time fraction at which the trip is i/64 done; ease(u) inverts it (progress at time u). */
 const PROG = (() => { const t = [0]; let acc = 0; for (let i = 1; i <= 64; i++) { const x = (i - 0.5) / 64; acc += 1 / (Math.sin(PI * x) * 0.85 + 0.15 * (1 - x) + 0.025 * x); t.push(acc); } return t.map((v) => v / acc); })();
 export function ease(u) {
@@ -92,7 +92,7 @@ function vwTrip(du, w0, w1) {
 
 const MODES = ['pan', 'orbit', 'orbit3d'];
 /* travel is a trip, not a cut (G2). flight times (s) from the path length L in the vw metric: clamp(base + perL·L, base,
-   max), gcdatlas's cinematic / quick / warp form, capped for worlds a screen or two across */
+   max), in cinematic / quick / warp form, capped for worlds a screen or two across */
 const PAN_DUR = { slow: [1.6, 0.42, 4.0], quick: [1.3, 0.2, 2.4], warp: [0.3, 0.1, 0.6] };
 /* a hop goes out, across and in: a target more than HOP_W of the current view's widths away, or any object trip (a flight
    that locks on a name: a label, a tap on the field, a search hit, a stop's named angle), even to a target on screen */
@@ -257,7 +257,7 @@ export function createView(ctx) {
     } else {
       const dyw = wrapA(q.yaw - S.yaw), dp = q.pitch - S.pitch, g0 = [S.tx, S.ty, S.tz];
       const dT = Math.hypot(q.t[0] - g0[0], q.t[1] - g0[1], q.t[2] - g0[2]), ld = Math.log(q.dist / S.dist), ang = Math.hypot(dyw, dp);
-      /* gcdatlas's own 3d flight: the van wijk-nuij path over (target travel, view width). the view width at the target is
+      /* the 3d flight: the van wijk-nuij path over (target travel, view width). the view width at the target is
          kW·dist layout units (the projection shows R/dist px per unit). a step (set(), a day step) is a reframe, not a trip:
          no path, dist straight in log space */
       const kW = S.st.w / (0.42 * Math.min(S.st.w, S.st.h)), w0 = kW * S.dist, w1 = kW * q.dist;
@@ -332,7 +332,7 @@ export function createView(ctx) {
     if (S.mode === 'pan') { S.cx -= dx / S.z; S.cy -= dy / S.z; S.anc = null; S.zT = clamp(S.z, S.zMin, S.zMax); clampPan(); dirty('input'); }
     else if (S.mode === 'orbit3d') slideRaw(dx, dy);
   }
-  /* the sign is chosen so the surface facing the camera follows the finger under §1.5's projection, which is how gcdatlas
+  /* the sign is chosen so the surface facing the camera follows the finger under §1.5's projection, which is how a globe drag usually feels
      feels (its own `yaw -= dx` moves a camera position; here the pose rotates the points, so the sign flips) */
   function orbitRaw(dx, dy) {
     if (!keepOrbit()) return;

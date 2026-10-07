@@ -31,7 +31,7 @@ const CSS = `@ .lp-hud{position:absolute;box-sizing:border-box;padding:8px 10px;
 export default {
 id: 'loop', track: BED, glyph: { edges: false }, angles: ANGLES,
 ready: false, ang: 'tower', hold: null, holds: [], hov: -1, litKey: '', rest: null, flash: 0, pz: null, spun: 0,
-ladderNote: () => 'a glyph here is one streak, drawn on every ring it reached',
+ladderNote: () => 'a mark here is one streak, drawn on every ring it reached',
 async mount(root, ctx) {
 this.ctx = ctx; this.root = root;
 if (!ctx.atlas || !ctx.atlas.on) return;
@@ -136,11 +136,11 @@ if (this.ang === 'ten') {
 const n = this.nTen, c = this.tc, sp = this.tsp;
 P.targetPx((i) => (i < n ? [this.tx0 + (i % c + 0.5) * sp, this.ty0 + (floor(i / c) + 0.5) * sp] : null));
 P.color((i) => (i < n ? INK : MUTE)); P.w.fill(210, 0, n);
-tr(() => ctx.ladder.readout('1 glyph = 1 song with 10 or more counted plays'));
+tr(() => ctx.ladder.readout('1 mark = 1 song with 10 or more counted plays'));
 } else {
 this.RG.place(this, P);
 this.weigh(ctx, true);
-tr(() => ctx.ladder.readout('1 glyph = 1 streak, on each ring it reached'));
+tr(() => ctx.ladder.readout('1 mark = 1 streak, on each ring it reached'));
 }
 },
 weigh(ctx, force) { if (this.RS && this.ang === 'tower') this.RG.weigh(this, ctx.particles, force); },

@@ -15,7 +15,7 @@ html.atlas .as-panel.as-on{pointer-events:auto;opacity:1}
    not a bare results dropdown (W26) */
 html.atlas .as-sheet-head{display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;border-bottom:1px solid var(--line);flex:0 0 auto}
 /* desktop: a right-docked drawer, full height — room for 388 stars, not an afterthought under the bar
-   (gcdatlas's own reference layout: ref_d1_21_search_sat.png) */
+   (the saturated search layout from the round-1 reference shots) */
 @media (min-aspect-ratio:115/100) and (min-height:481px){
   html.atlas .as-panel{left:auto;right:0;top:0;bottom:0;height:auto;max-height:none;width:min(400px,92vw);border:0;border-left:1px solid var(--line);border-radius:0;background:rgba(7,3,17,.98);box-shadow:-30px 0 90px rgba(0,0,0,.55);transform:translateX(14px);transition:opacity .18s ease,transform .18s ease}
   html.atlas .as-panel.as-on{transform:translateX(0)}

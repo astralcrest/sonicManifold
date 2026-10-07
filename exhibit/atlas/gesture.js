@@ -13,7 +13,7 @@ const DEF = { drag: 'camera', wheel: 'camera', dbl: 'zoom' };
 const KEYS = { pan: 'arrows pan · + − zoom · 0 home', orbit: 'arrows turn · + − zoom · 0 home', orbit3d: 'arrows turn · + − zoom · 0 home', none: 'arrows step through the stops' };
 const LABELS_SEL = '#atlas-labels,.atlas-lab';
 /* a waking touch (the first after the idle fade) is a drag only past this: a sloppy tap to bring the chrome back never
-   turns the field or pauses a playing tour, while a real swipe still turns it at once, as on gcdatlas */
+   turns the field or pauses a playing tour, while a real swipe still turns it at once */
 const WAKE_SLOP = 24;
 
 export function createGesture(ctx, view) {
@@ -212,7 +212,7 @@ export function createGesture(ctx, view) {
   }
   function onLeave(e) { const b = B.get(e.currentTarget), m = b && b.m; if (m && typeof m.leave === 'function' && !G) safe(m.leave); }
 
-  /* ------------------------------------------------------------------ wheel (D4: plain wheel zooms, as gcdatlas does) */
+  /* ------------------------------------------------------------------ wheel (D4: plain wheel zooms) */
   function scrolls(t, stop, e) {
     for (let n = t; n && n.nodeType === 1; n = n.parentElement) {
       const cs = getComputedStyle(n);
@@ -261,7 +261,7 @@ export function createGesture(ctx, view) {
   });
   stage.addEventListener('mousedown', (e) => { e.preventDefault(); }); /* no focus ring and no text selection from a mouse press */
 
-  /* ------------------------------------------------------------------ wake guard (gcdatlas's eatClick): while the chrome is
+  /* ------------------------------------------------------------------ wake guard (eat the waking click): while the chrome is
      idle-faded, the first touch on the field or a name only brings it back. the fade drops at once (not on the chrome's
      next idle tick); the press picks nothing, flies nowhere, holds nothing and clicks nothing, and it only turns the field
      once it is clearly a swipe (WAKE_SLOP). a touch on a faded control that still takes the pointer works at once.

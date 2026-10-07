@@ -14,8 +14,8 @@ if(!own[base])location.replace('lab.html'+h);
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
-<title>sonic manifold: an explorable atlas of who pressed play</title>
-<meta name="description" content="97,427 plays over the whole log, one listener. An explorable atlas of who pressed play, and a sky of the artists you can fly through. Only 19% of plays started with my tap (11.5% by the strictest reading).">
+<title>sonic manifold: a record of who pressed play</title>
+<meta name="description" content="97,427 plays over the whole log, one listener. a record of who pressed play, and a sky of the artists you can fly through. only 19% of plays started with my tap (11.5% by the strictest reading).">
 <meta name="robots" content="index, follow, noai, noimageai">
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
@@ -26,14 +26,14 @@ if(!own[base])location.replace('lab.html'+h);
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/">
-<meta property="og:title" content="sonic manifold: an explorable atlas of who pressed play">
-<meta property="og:description" content="97,427 plays over the whole log, one listener. Walk the atlas: who pressed play, a sky of the artists, and eighteen of my own findings killed, retracted or withdrawn along the way.">
+<meta property="og:title" content="sonic manifold: a record of who pressed play">
+<meta property="og:description" content="97,427 plays over the whole log, one listener. play it through: who pressed play, a sky of the artists, and eighteen of my own findings killed, retracted or withdrawn along the way.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="sonic manifold: an explorable atlas of who pressed play">
-<meta name="twitter:description" content="97,427 plays over the whole log, one listener. Walk the atlas: who pressed play, a sky of the artists, and eighteen of my own findings killed, retracted or withdrawn along the way.">
+<meta name="twitter:title" content="sonic manifold: a record of who pressed play">
+<meta name="twitter:description" content="97,427 plays over the whole log, one listener. play it through: who pressed play, a sky of the artists, and eighteen of my own findings killed, retracted or withdrawn along the way.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <style>
 /* JetBrains Mono (OFL): a door-only subset (U+0020-007E and a few marks, wght 100-800, no ligatures, no hinting)
@@ -55,12 +55,11 @@ b,strong{font-weight:600;color:var(--ink)}
 .fx{grid-area:fx;min-width:0;min-height:0}
 .fx canvas{position:fixed;left:0;top:0;width:100%;height:100%;display:block;forced-color-adjust:none}
 #doorglow{opacity:.7}
-/* [ name ] labels as the atlas draws them (anchors.css .lab): no plate, no leader */
+/* name labels: no plate, no leader; a bar meter after the name, by plays, in the genre hue */
 .labs i{position:fixed;left:0;top:0;z-index:1;font:400 10.5px/1.4 var(--mono);font-style:normal;color:#d6cfea;white-space:nowrap;text-shadow:var(--halo);opacity:0;transition:opacity .3s ease-in;will-change:transform,opacity;pointer-events:none}
 .labs i.on{opacity:1;transition:opacity .8s ease-out}
 .labs.ph i{font-size:10px}
-.labs i::before{content:"[ ";color:rgba(164,155,189,.62)}
-.labs i::after{content:" ]";color:rgba(164,155,189,.62)}
+.labs i::after{content:"";display:inline-block;width:calc(var(--n,1)*.5em);height:.8em;margin-left:.5em;background:repeating-linear-gradient(90deg,var(--c,#a49bbd) 0 .3em,transparent .3em .5em)}
 .top,main,footer{position:relative;z-index:2;text-shadow:var(--halo)}
 /* a tap on the sky flies into the 90-second tour, which opens on the universe */
 .sky{position:fixed;z-index:1;left:0;top:0;width:0;height:0;border-radius:50%;text-decoration:none;-webkit-tap-highlight-color:transparent}
@@ -197,7 +196,7 @@ footer{border-top-color:CanvasText;border-image:none}
 </head>
 <body>
 <div class="wrap" id="top">
-<div class="fx" aria-hidden="true"><canvas id="doorsf"></canvas><canvas id="doorglow"></canvas><canvas id="doorfx"></canvas><div class="labs"></div><p class="fx-fallback">[ the atlas ]</p></div>
+<div class="fx" aria-hidden="true"><canvas id="doorsf"></canvas><canvas id="doorglow"></canvas><canvas id="doorfx"></canvas><div class="labs"></div><p class="fx-fallback">the record</p></div>
 
 <header class="top">
 <p class="brand">sonic manifold</p>
@@ -207,10 +206,10 @@ footer{border-top-color:CanvasText;border-image:none}
 <main id="argument">
 <h1>I didn&rsquo;t press play on most of my music.</h1>
 <p class="lede" id="finding"><b>97,427</b> plays in the whole log. <b>19%</b> i tapped (11.5% by the strictest reading); the rest the queue served or shuffle picked.</p>
-<p class="lede dim">an explorable atlas of who pressed play, and a sky of the artists you can fly through.</p>
+<p class="lede dim">a record of who pressed play, and a sky of the artists you can fly through.</p>
 <p class="cta">
-<a class="go" id="enter" href="exhibit.html?enter=sound#tour=grand&amp;stop=1">enter the atlas &#9656;</a>
-<a class="quiet" id="enter-quiet" href="exhibit.html?enter=quiet#tour=grand&amp;stop=1">enter quietly</a>
+<a class="go" id="enter" href="exhibit.html?enter=sound#tour=grand&amp;stop=1">drop the needle &#9656;</a>
+<a class="quiet" id="enter-quiet" href="exhibit.html?enter=quiet#tour=grand&amp;stop=1">drop it quietly</a>
 </p>
 
 <nav class="tours" aria-label="tours" id="tours">
@@ -241,9 +240,9 @@ footer{border-top-color:CanvasText;border-image:none}
 <script>
 /* the door's sky: the universe room's sky, resolved at frame 0, on the atlas's cell grid (6x11 css px, 7x12.6 on phones:
    D12). the 388 artists with 50+ plays (from universe_nodes.json) are glyph clusters that grow with their plays; every
-   other play is dust on a shell (exhibit/rooms/universe.worker.js). a cell's glyph is gcd's tone map of its plays (1 - exp,
+   other play is dust on a shell (exhibit/rooms/universe.worker.js). a cell's glyph is a tone map of its plays (1 - exp,
    a steady IGN dither in the 0.03-0.14 haze band, 0.34 floor), its hue its heaviest dot's family. nothing is fetched; the
-   layout means nothing (GS K4); starfield, twinkle, glints and glow carry no data */
+   layout means nothing (GS K4); starfield, twinkle, grooves and glow carry no data */
 (function(){
 /* 388 stars x 4 bytes: x, y (xy quantised to 1/255), family | plays_bucket<<4, plays as 50 x (5299/50)^(b/255) (<1% off) */
 var STARS_B64='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';
@@ -271,8 +270,8 @@ decodeStars(STARS_B64);
 var FONT='"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace',TAU=6.283185307179586;
 /* FAM hues (exhibit/shell.js), by index 0..13 (13 = untagged) */
 var FAMHEX=['#adced7','#dfd086','#8698df','#c3add7','#b8d86e','#d86ed5','#df868f','#d7b4ad','#b8d7ad','#df86c4','#7fd489','#41dfec','#d89c6e','#9a9aa2'];
-/* the atlas's density ramp (exhibit/atlas/glyph-atlas.js RAMP_CHARS), light to heavy */
-var RAMP=".':;+*o%#&8@$W",NL=14;
+/* the dial ramp, light to heavy: the exhibit's own 5x9 bitmaps (exhibit/atlas/glyph-atlas.js BITMAP), so no platform font decides the shape; digits are base-32 rows, leftmost pixel = 16 */
+var RAMP="∙◦◠◌◇○◖◔◐◓◕◎◍●",NL=14,BMS=["0000e0000","000eae000","000eh0000","00ah0ha00","04ahhha40","00ehhhe00","006eee600","00enjhe00","00epppe00","00ehvve00","00etvve00","00ehlhe00","00evvve00","0evvvvve0"];
 /* the room's geometry (universe.worker.js); sigma x1.6 (the door's sky is ~0.6x the room's scale); dust at 3x the
    dots and a fraction of the weight: a haze. a small sky sampled like a desktop's (~0.6 dust dots a cell) was confetti
    (a phone's ~900 cells, 6 in 10 dark), so the dust gets at least DPH dots a cell, up to 3,000: one body at any size */
@@ -304,7 +303,7 @@ var M=0,DX=F0,DY=F0,DZ=F0,QX=F0,QY=F0,QZ=F0,DC=U8,DU=U8,GC=0,GR=0,GT=null,gt=nul
 /* labels: element, text box, alpha, spot, last spot (tried first, so a label does not hop) */
 var NN=NAMES.length,LE=[],LW=new Float32Array(NN),LH=new Float32Array(NN),LA=new Float32Array(NN),LX=new Float32Array(NN),LY=new Float32Array(NN),LON=new Uint8Array(NN),LQ=new Uint8Array(NN),LS=new Uint8Array(NN),lastEl=-1;
 var LB=[],PXs=new Float32Array(NN),PYs=new Float32Array(NN),PRs=new Float32Array(NN),PZs=new Float32Array(NN);
-if(labs)for(k=0;k<NN;k++){var el=document.createElement('i');el.textContent=NAMES[k];labs.appendChild(el);LE.push(el);}
+if(labs)for(k=0;k<NN;k++){var el=document.createElement('i');el.textContent=NAMES[k];el.style.setProperty('--n',SP[k]>=2000?4:SP[k]>=1000?3:SP[k]>=700?2:1);el.style.setProperty('--c',FAMHEX[SF[k]]);labs.appendChild(el);LE.push(el);}
 
 function sprite(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c;}
 /* the copy's keep-out (css px): text line boxes and the plain-text links (1: haze only under them), the chip (2:
@@ -373,12 +372,12 @@ for(var rr=r0;rr<=r1;rr++)for(var cc=c0;cc<=c1;cc++){k=rr*cols+cc;if(KO[k]<KR[i+
 ACW=new Float32Array(N);ACP=new Float32Array(N);ACC=new Uint8Array(N);OCC=new Int32Array(N);nocc=0;IG=new Float32Array(N);HC=new Float32Array(N);
 CUR=new Uint16Array(N);NXT=new Uint16Array(N);DL=new Int32Array(N);PL=new Int32Array(N);npl=0;
 for(i=0;i<N;i++){var dd=(i%cols)*0.06711056+((i/cols)|0)*0.00583715,ig=52.9829189*(dd-Math.floor(dd));IG[i]=ig-Math.floor(ig);HC[i]=hash(i+31);}
-/* sprites: the ramp in 14 FAM hues (top levels bleached toward white, as gcd), then a glint; a glyph sits 1 device
+/* sprites: the ramp in 14 FAM hues (top levels bleached toward white), then the groove marks; a glyph sits 1 device
    px in and is blitted clipped to its cell, so a redraw never touches a neighbour */
 var sw=Math.ceil(cw*dpr)+2,sh=Math.ceil(ch*dpr)+2;SKS=[];
-for(var f=0;f<15;f++)for(k=0;k<(f<14?NL:1);k++){var sc=sprite(sw,sh),xa=sc.getContext('2d');
-xa.setTransform(dpr,0,0,dpr,1,1);xa.font=font;xa.fillStyle=f<14?FAMHEX[f]:'#f6f2ff';xa.globalAlpha=f<14?BRT[k]:1;xa.fillText(f<14?RAMP[k]:'*',0,base);
-if(f<14&&k>=NL-3){xa.fillStyle='#fff';xa.globalAlpha=0.12*(k-NL+4);xa.fillText(RAMP[k],0,base);}
+for(var f=0;f<15;f++)for(k=0;k<(f<14?NL:4);k++){var sc=sprite(sw,sh),xa=sc.getContext('2d');
+xa.setTransform(1,0,0,1,1,1);xa.fillStyle=f<14?FAMHEX[f]:'#ead2d8';xa.globalAlpha=f<14?BRT[k]:(k&1?0.3:0.16);bmg(xa,BMS[f<14?k:k>>1],sw-2,sh-2);
+if(f<14&&k>=NL-3){xa.fillStyle='#fff';xa.globalAlpha=0.12*(k-NL+4);bmg(xa,BMS[k],sw-2,sh-2);}
 SKS.push(sc);}
 /* one dot per ppd plays (density follows the sky's size in cells), stars first, then the dust */
 var area=Math.PI*EX*U*(EU+ED)/2*U/(cw*ch),ppd=TOTAL/Math.max(600,Math.min(4200,Math.round(area*0.6))),nk=new Int32Array(NS),ns=0,nd=Math.round(Math.max(DUST/ppd*DUSTX,Math.min(area*DPH,3e3))),q=0,sg,h1,h2,h3,h4,rad,ux,uy,uz,ph,ex;
@@ -396,7 +395,7 @@ DX[q]=ux*rad;DY[q]=uy*rad;DZ[q]=uz*rad;DU[q]=1;
 for(k=0;k<13&&h4>=dcum[k];k++){}DC[q]=k;
 }
 /* the glow: lit cells' light in 3x3-cell texels, blurred, smoothed up 6x here (webkit bands a bare upscale), the rest
-   by the compositor: gcd's glow pass, weaker */
+   by the compositor */
 if(gg){GC=Math.ceil(cols/3);GR=Math.ceil(rows/3);gv.width=GC*6;gv.height=GR*6;GT=sprite(GC,GR);gt=GT.getContext('2d');gg.imageSmoothingEnabled=true;gg.imageSmoothingQuality='high';
 var st=gv.style;st.left=x0+'px';st.top=y0+'px';st.width=GC*3*cw+'px';st.height=GR*3*ch+'px';
 GA=new Float32Array(GC*GR*3);GB=new Float32Array(GC*GR*3);GK=new Uint8Array(GC*GR);GD=gt.createImageData(GC,GR);
@@ -429,11 +428,38 @@ if(ACW[ci]===0)OCC[nocc++]=ci;
 ACW[ci]+=w;if(w>ACP[ci]){ACP[ci]=w;ACC[ci]=DC[j];}
 }
 }
+/* the record's grooves (exhibit/shell.js drawSky): concentric arcs about a spindle off the top-right corner, runs of 12-28 marks, every ninth groove blank, turning 5e-6 rad/ms; marks only in dark cells two cells clear of any play */
+var GRN=0;
+function bmg(x,b,w,h){var y,u,v,d,a;for(y=0;y<9;y++){d=parseInt(b[y],32);for(u=0;u<5;u++)if(d&(16>>u)){for(v=u;v<5&&(d&(16>>v));v++);a=Math.round(u*w/5);x.fillRect(a,Math.round(y*h/9),Math.round(v*w/5)-a,Math.round((y+1)*h/9)-Math.round(y*h/9));u=v;}}}
+function grooves(el,ndl){
+var pw=cols*cw,ph=rows*ch,cx=pw*1.1,cy=-ph*0.25,gap=2.2*ch,r0=Math.hypot(pw*0.1,ph*0.25),r1=Math.hypot(cx,ph-cy),off=5e-6*el,PI=Math.PI,j,r,nb,da,thr,dc,ds,rl,e,p1,lo,hi,a,a1,c,sn,q,m,run,h,h2,gx,gy,ci,v,rr,cc,b,z,n=0;
+for(j=Math.ceil(r0/gap);j*gap<=r1;j++){
+if(j%9===0)continue;
+r=j*gap;nb=Math.round(TAU*r/(1.6*cw));da=TAU/nb;thr=((0.46-0.3*(r-r0)/(r1-r0))*4294967296)>>>0;dc=Math.cos(da);ds=Math.sin(da);rl=12+8*(Math.imul(j,0x2c1b3c6d)>>>30&3)%24;
+e=cw/r;p1=(ph-cy)/r;lo=Math.max(Math.acos(Math.max(-1,(pw-cx)/r)),p1<1?PI-Math.asin(p1):1.5708)-e-off;hi=Math.min(Math.acos(Math.max(-1,-cx/r)),PI-Math.asin(Math.min(1,-cy/r)))+e-off;
+a=Math.floor(lo/da);a1=Math.ceil(hi/da);c=Math.cos(a*da+off);sn=Math.sin(a*da+off);q=0;
+for(;a<=a1;a++,q=c,c=c*dc-sn*ds,sn=sn*dc+q*ds){
+m=((a%nb)+nb)%nb;run=(m/rl)|0;
+h=Math.imul(j*0x9e3779b1+run,0x27d4eb2d);h=Math.imul(h^(h>>>15),0x2c1b3c6d);h^=h>>>12;
+if((h>>>0)>=thr)continue;
+h2=Math.imul(h^(m+0x3c6e),0x165667b1);h2^=h2>>>15;h2=Math.imul(h2,0x846ca68b);h2^=h2>>>16;
+if((h2&1023)<150)continue;
+gx=((cx+r*c)/cw)|0;gy=((cy+r*sn)/ch)|0;
+if(gx<2||gy<2||gx>=cols-2||gy>=rows-2)continue;
+ci=gy*cols+gx;if(KO[ci]||NXT[ci])continue;
+z=0;for(rr=gy-2;rr<=gy+2&&!z;rr++)for(cc=gx-2;cc<=gx+2;cc++)if(ACW[rr*cols+cc]>0){z=1;break;}
+if(z)continue;
+for(b=0;b<LB.length;b+=4)if(gx>=LB[b]&&gx<=LB[b+2]&&gy>=LB[b+1]&&gy<=LB[b+3])break;
+if(b<LB.length)continue;
+v=(h2>>>10)&1023;
+NXT[ci]=14*NL+1+(v<210?2:0)+(Math.sin(PI*((m-run*rl)+0.5)/rl)>0.7?1:0);DL[ndl++]=ci;n++;
+}}
+GRN=n;return ndl;}
 function cells(el){
 var s,c,r,ci,col,lv,h,al,ko,ix,gi,b,ndl=0,hz=0,cut=0,gl=0,chg=0,HU=CNS.hue,LV=CNS.lv,T,nb=LB.length;
 if(GD)GA.fill(0);
 HU.fill(0);LV.fill(0);
-/* each lit cell's next sprite (0 = dark); faint cells twinkle a ramp step, rare bright ones glint */
+/* each lit cell's next sprite (0 = dark); faint cells twinkle a ramp step */
 for(k=0;k<nocc;k++){
 ci=OCC[k];ko=KO[ci];if(ko===2){cut++;continue;}
 if(nb){r=(ci/cols)|0;c=ci-r*cols;for(b=0;b<nb;b+=4)if(c>=LB[b]&&c<=LB[b+2]&&r>=LB[b+1]&&r<=LB[b+3])break;if(b<nb){cut++;continue;}}
@@ -442,10 +468,11 @@ if(HZP[ix]<2){if(IG[ci]>HZP[ix])continue;hz++;}
 h=HC[ci];col=ACC[ci];
 if(lv<4){al=Math.sin(el*(0.0011+0.0017*h)+h*40);if(al>0.75)lv++;else if(al<-0.75&&lv>0)lv--;}
 if(ko===1){if(lv>1)lv=1;cut++;}
-if(lv>4&&!ko&&Math.sin(el*(6e-5+8e-5*h)+h*97)>0.9997){NXT[ci]=14*NL+1;gl++;}else NXT[ci]=col*NL+lv+1;
+NXT[ci]=col*NL+lv+1;
 DL[ndl++]=ci;HU[col]++;LV[lv]++;
 if(GD&&!ko){r=(ci/cols)|0;c=ci-r*cols;gi=(((r/3)|0)*GC+((c/3)|0))*3;b=BRT[lv]*BRT[lv];ix=col*3;GA[gi]+=FRGB[ix]*b;GA[gi+1]+=FRGB[ix+1]*b;GA[gi+2]+=FRGB[ix+2]*b;}
 }
+ndl=grooves(el,ndl);gl=GRN;
 g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;
 for(k=0;k<npl;k++){ci=PL[k];if(NXT[ci]===0&&CUR[ci]!==0){r=(ci/cols)|0;c=ci-r*cols;g.clearRect(XD[c],YD[r],CWD[c],CHD[r]);CUR[ci]=0;chg++;}}
 for(k=0;k<ndl;k++){ci=DL[k];s=NXT[ci];NXT[ci]=0;if(s!==CUR[ci]){r=(ci/cols)|0;c=ci-r*cols;if(CUR[ci])g.clearRect(XD[c],YD[r],CWD[c],CHD[r]);g.drawImage(SKS[s-1],1,1,CWD[c],CHD[r],XD[c],YD[r],CWD[c],CHD[r]);CUR[ci]=s;chg++;}}
@@ -462,7 +489,7 @@ for(o=0;o<n;o++){m=Math.max(A[o*3],A[o*3+1],A[o*3+2]);a=m*0.006;if(GK[o])a*=0.2;
 if(m>0){P[o*4]=A[o*3]*255/m;P[o*4+1]=A[o*3+1]*255/m;P[o*4+2]=A[o*3+2]*255/m;}P[o*4+3]=a;}
 gt.putImageData(GD,0,0);gg.clearRect(0,0,gv.width,gv.height);gg.drawImage(GT,0,0,gv.width,gv.height);
 }
-/* labels as gcd places them: up-right of the star past its core, else another side; most played first; a label
+/* labels sit up-right of the star past its core, else another side; most played first; a label
    yields to a label, a more played star's core, the copy, the edge, or (below the top three) too much sky. the cells
    under a label stay dark; css fades it and LA mirrors that for the tests */
 function labels(el){

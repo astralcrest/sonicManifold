@@ -354,7 +354,7 @@ export default {
         const al = Math.min(1, (this.mt - 0.45) / 0.55);
         const right = x > s.x + rw - 118 * k;
         /* the label and the swing print inside the top of the ribbon, never above it: the readout lives up there.
-           atlas: the name is the floating [ october 2023 ] label instead, unless labels are switched off */
+           atlas: the name is the floating ◦ october 2023 label instead, unless labels are switched off */
         g.font = '600 ' + F(tiny ? 9.5 : 10) + ' "JetBrains Mono", ui-monospace, monospace'; g.textBaseline = 'alphabetic';
         g.textAlign = right ? 'right' : 'left'; g.fillStyle = 'rgba(134,203,254,' + (0.88 * al).toFixed(3) + ')';
         if (!this.A || !this.labelsOn(ctx)) { g.fillText('october 2023', x + (right ? -6 : 6) * k, yT + 11 * k); if (dbg.on) this.prec.push({ id: 'break', text: 'october 2023', wx: x + (right ? -6 : 6) * k, wy: yT + 11 * k }); }
@@ -567,8 +567,8 @@ export default {
     return null;
   },
 
-  /* [ october 2023 ] sits where the overlay used to print the name, just right of the top of the line; a month that
-     search or the ladder flew to gets its own [ name ] over its column */
+  /* ◦ october 2023 sits where the overlay used to print the name, just right of the top of the line; a month that
+     search or the ladder flew to gets its own ◦ name over its column */
   atlasLabels(ctx) {
     if (!this.A || !this.s || !this.sec.classList.contains('is-active')) return;
     const items = [];

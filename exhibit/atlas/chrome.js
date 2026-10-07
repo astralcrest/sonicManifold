@@ -25,21 +25,21 @@ export function mount(ctx, deps) {
 
   const T = {
     nextStop: CC.nextStop || 'up next · {stop} ›',
-    backToTour: CC.backToTour || 'back to the queue · {stop} ›',
+    backToTour: CC.backToTour || 'put the needle back · {stop} ›',
     startAgain: CC.startAgain || 'play it again ›',
     cameraHome: CC.cameraHome || 'camera home ›',
     backTo: CC.backTo || 'back to {stop} ›',
     sideRoom: CC.sideRoom || 'side room',
-    enRoute: CC.enRoute || 'en route',
+    enRoute: CC.enRoute || 'crossfading',
     sound: CC.soundChip || '♪ tap for sound',
     onboard: CC.onboarding || 'hover to hear · hold to loop · drag to turn · / to dig the log',
     onboardTouch: CC.onboardingTouch || 'touch to hear · hold to loop · drag to turn',
-    pauseTour: CC.pauseTour || '‖ pause',
-    playTour: CC.playTour || '▶ play tour',
+    pauseTour: CC.pauseTour || '‖ lift the needle',
+    playTour: CC.playTour || '▶ drop the needle',
     /* round-2 (W-fix7): the phone merged-row pill carries only a short verb — the destination name is already
        in the caption/tours sheet, repeating it here is what made the row read as noise */
     mpillNext: CC.mpillNext || 'up next ›',
-    mpillBack: CC.mpillBack || 'back ›',
+    mpillBack: CC.mpillBack || 'needle back ›',
     mpillAgain: CC.mpillAgain || 'again ›',
     mpillHome: CC.mpillHome || 'home ›',
     /* W10 tour end card (fallback copy; C2/copy.js may supply `CC.end*`) */
@@ -51,7 +51,7 @@ export function mount(ctx, deps) {
     contact: CC.contact || 'questions or a dataset of your own · astralcrest',
     overflow: CC.overflow || 'more controls',
     share: CC.shareLabel || 'share',
-    lockedOn: CC.lockedOn || '° held',
+    lockedOn: CC.lockedOn || 'needle down',
     freeCamera: CC.freeCamera || '° your hand',
     paused: (CC.toasts && CC.toasts.tourPaused) || 'you took the wheel · ▶ hands it back to the queue',
     bar: CC.angleBar || 'bar {k} / {n}',
@@ -76,7 +76,7 @@ export function mount(ctx, deps) {
   const compactVP = () => isPortrait() || innerHeight <= 480;
 
   /* ---------------------------------------------------------------- DOM build (mount, no layout, §1.4)
-     rows, top to bottom (gcdatlas order): stop row · typed caption · angle bar · the pill (its own row, so it is never
+     rows, top to bottom: stop row · typed caption · angle bar · the pill (its own row, so it is never
      clipped by a long angle bar and never jumps sideways between stops) · tape counter · tools (share · photo · label). */
   const info = doc.createElement('div');
   info.id = 'atlas-info'; info.className = 'atlas-info';
@@ -90,7 +90,7 @@ export function mount(ctx, deps) {
       '<button type="button" class="ai-mini" id="ai-less" data-idle="hide"></button>' +
       '<button type="button" class="ai-mini" id="ai-hide" data-idle="hide">hide</button>' +
     '</div>' +
-    /* round-2 item 4: gcd's own anchor ("Earth", 30px) — the stop's name, under the stop row, never a
+    /* round-2 item 4: the big anchor (30px) — the stop's name, under the stop row, never a
        gradient. Phone never renders this (chrome.css): the merged row already carries the name there, and
        phone's strict coverage budget has no room for a second copy of it. */
     /* R7B: title + caption = the liner note (chrome.css: fixed lower left on desktop, display:contents elsewhere) */
@@ -121,7 +121,7 @@ export function mount(ctx, deps) {
        never renders this (chrome.css keeps it display:none there); it duplicates the stop/tour/pill controls above
        instead of reparenting them, so the desktop DOM and its measured metrics never change (W08/W30 gate). */
     '<div class="ai-mrow" id="ai-mrow" hidden>' +
-      '<button type="button" class="ai-mplay" id="ai-mplay" aria-pressed="false" aria-label="pause tour"><span aria-hidden="true" id="ai-mplay-i">&#8214;</span></button>' +
+      '<button type="button" class="ai-mplay" id="ai-mplay" aria-pressed="false" aria-label="pause the tour"><span aria-hidden="true" id="ai-mplay-i">&#8214;</span></button>' +
       '<button type="button" class="ai-mrow-label" id="ai-mrow-label" aria-haspopup="dialog"><span id="ai-mrow-t"></span></button>' +
       '<button type="button" class="ai-mrow-ov" id="ai-mrow-ov" aria-haspopup="true" aria-expanded="false" aria-label="more controls">&hellip;</button>' +
       '<button type="button" class="ai-mpill" id="ai-mpill" hidden></button>' +
@@ -200,7 +200,7 @@ export function mount(ctx, deps) {
   const endEl = $('ai-end'), endH = $('ai-end-h'), endFly = $('ai-end-fly'), endExport = $('ai-end-export'), endReport = $('ai-end-report'), endAgain = $('ai-end-again'), endContact = $('ai-end-contact');
 
   /* photo.js (M8) appends its share/photo dock straight into #atlas-info; it belongs on the tools row, before
-     `more`, as one row of small pills (gcdatlas: share · compare size · photo) */
+     `more`, as one row of small pills (share · compare size · photo) */
   let realShareBtn = null;
   function adoptPhotoDock() {
     const d = info.querySelector(':scope > .atlas-photodock'); if (!d) return;
@@ -325,7 +325,8 @@ export function mount(ctx, deps) {
   }
   function idleTick() {
     const t = now(), tourOn = !!(ctx.tour && ctx.tour.active && ctx.tour.active.playing);
-    const threshold = 3500 * (tourOn ? 0.7 : 1.4);
+    let bt = null; try { bt = ctx.audio && typeof ctx.audio.beat === 'function' ? ctx.audio.beat() : null; } catch (e) {}
+    const threshold = bt && bt.len > 0 ? Math.min(12000, Math.max(3000, 8 * bt.len * 1000)) : (tourOn ? 4000 : 6000);
     const idle = !KIOSK && !idleHold.size && !infoHovered() && !infoFocused() && !panelOpen() && t > capReadUntil && (t - lastInput) > threshold;
     html.classList.toggle('atlas-idle', idle);
     idleAPI.faded = idle;
@@ -470,17 +471,34 @@ export function mount(ctx, deps) {
   /* R5 §4.2: capWords reveals a whole word per step (a glance never lands mid-word), paced so the overall rate is unchanged */
   let capWords = false;
   const nextCut = (t, i) => { if (!capWords) return i + 1; let j = i + 1; while (j < t.length && t[j] !== ' ') j++; return j; };
+  /* M8: the person's lines are played, not typed: each word lights over the dim ghost on the bed's eighth notes (every
+     90 ms when silent), the whole line inside 1.6 s. null for a machine line, which types as before */
+  function voicePlan(text) {
+    if (reduced || !isVoice(capFull) || !text) return null;
+    const ends = []; text.replace(/\S+/g, (m, k) => { ends.push(k + m.length); return m; });
+    if (!ends.length) return null;
+    let b = null; try { b = ctx.audio && typeof ctx.audio.beat === 'function' ? ctx.audio.beat(2) : null; } catch (e) {}
+    const step = Math.min(b && b.len > 0 ? b.len * 1000 : 90, 1600 / ends.length);
+    const lead = b && b.next > b.now && b.next - b.now < 0.3 ? (b.next - b.now) * 1000 : 0;
+    return { ends, step, lead };
+  }
   function typeCharsInto(text, myToken, showCursor, cps) {
-    capT.textContent = ''; cursorEl.hidden = !showCursor; capTyping = true; capEl.classList.add('ai-cap-typing');
-    const delay = 1000 / cps;
+    const vp = voicePlan(text);
+    capT.textContent = ''; cursorEl.hidden = vp ? true : !showCursor; capTyping = true; capEl.classList.add('ai-cap-typing');
+    const delay = 1000 / cps, t0 = now();
     return new Promise((resolve) => {
-      let i = 0;
-      (function step() {
+      let i = 0, w = 0;
+      function step() {
         if (myToken !== capToken) { resolve(false); return; }
-        const j = nextCut(text, i), n = j - i; i = j; capT.textContent = text.slice(0, i);
-        if (i >= text.length) { capTyping = false; capEl.classList.remove('ai-cap-typing'); resolve(true); return; }
-        setTimeout(step, delay * n);
-      })();
+        const j = vp ? vp.ends[w++] : nextCut(text, i), n = j - i; i = j; capT.textContent = text.slice(0, i);
+        if (i >= text.length) {
+          capTyping = false; capEl.classList.remove('ai-cap-typing');
+          if (vp) setTimeout(() => resolve(myToken === capToken), Math.max(0, text.length * delay - (now() - t0))); else resolve(true);
+          return;
+        }
+        setTimeout(step, vp ? vp.step : delay * n);
+      }
+      if (vp && vp.lead > 0) setTimeout(step, vp.lead); else step();
     });
   }
   /* holds until `until`, bailing out the moment this caption is superseded, opened by a tap, or the card
@@ -575,17 +593,24 @@ export function mount(ctx, deps) {
     if (chunks.length > 1) return typeChunks(chunks, myToken, cps, showCursor);
     const shown = layoutCap();
     if (!shown) { capT.textContent = ''; cursorEl.hidden = true; if (capFull) sayLater(capFull, myToken); return Promise.resolve(); }
-    capT.textContent = ''; cursorEl.hidden = !showCursor; capTyping = true; capEl.classList.add('ai-cap-typing');
-    const delay = 1000 / cps;
+    const vp = voicePlan(shown);
+    capT.textContent = ''; cursorEl.hidden = vp ? true : !showCursor; capTyping = true; capEl.classList.add('ai-cap-typing');
+    const delay = 1000 / cps, t0 = now();
     capReadUntil = now() + readTime(shown); /* the read-time formula already paces reading at the typing rate (28 ms a character) */
     return new Promise((resolve) => {
-      let i = 0;
-      (function step() {
+      let i = 0, w = 0;
+      function step() {
         if (myToken !== capToken) { resolve(); return; }
-        const j = nextCut(shown, i), n = j - i; i = j; capT.textContent = shown.slice(0, i);
-        if (i >= shown.length) { stopTyping(); sayLater(capFull, myToken); resolve(); return; }
-        setTimeout(step, delay * n);
-      })();
+        const j = vp ? vp.ends[w++] : nextCut(shown, i), n = j - i; i = j; capT.textContent = shown.slice(0, i);
+        if (i >= shown.length) {
+          stopTyping(); sayLater(capFull, myToken);
+          /* the tour's hold is sized on character speed: a played line keeps the same total, so the promise still resolves when typing would have */
+          if (vp) setTimeout(resolve, Math.max(0, shown.length * delay - (now() - t0))); else resolve();
+          return;
+        }
+        setTimeout(step, vp ? vp.step : delay * n);
+      }
+      if (vp && vp.lead > 0) setTimeout(step, vp.lead); else step();
     });
   }
   /* the card's size or `less` changed: lay the caption out again in place (never retyped; a caption still typing keeps
@@ -831,10 +856,11 @@ export function mount(ctx, deps) {
     el.style.bottom = Math.max(0, Math.min(bottom, Math.round(innerHeight - topLimit - h))) + 'px';
   }
 
-  let toastT = 0;
-  function hideToast() { clearTimeout(toastT); toastEl.classList.remove('on'); html.classList.remove('ai-toast-on'); }
+  let toastT = 0, toastU = 0;
+  /* the slot's caption, hint and hud come back only once the toast has finished fading (.3s), or both read at once */
+  function hideToast() { clearTimeout(toastT); toastEl.classList.remove('on'); clearTimeout(toastU); toastU = setTimeout(() => html.classList.remove('ai-toast-on'), 300); }
   function toast(text, ms) {
-    clearTimeout(toastT); toastEl.textContent = text || ''; toastEl.classList.toggle('ai-voice-p', isVoice(text));
+    clearTimeout(toastT); clearTimeout(toastU); toastEl.textContent = text || ''; toastEl.classList.toggle('ai-voice-p', isVoice(text));
     place(toastEl);
     toastEl.classList.add('on'); html.classList.add('ai-toast-on');
     toastT = setTimeout(hideToast, ms == null ? 2600 : ms);
@@ -843,12 +869,14 @@ export function mount(ctx, deps) {
 
   /* ---------------------------------------------------------------- stepper: a tracklist row + the queue's name (R6 M1)
      on a tour `02 / 16  the log` beside `the long play ▾`, off one `08  the universe`; the merged phone row mirrors it */
+  const sideOf = (k, n) => (k <= Math.ceil(n / 2) ? 'a' : 'b');
+  const sideTrack = (k, n) => sideOf(k, n) + k;
   function stepLabel() {
     const ts = tourState(), cur = curStop(), nm = cur ? cur.name : '';
-    if (ts && ts.here) return { stop: two(tourPos(ts).k) + ' / ' + two(tourPos(ts).n) + '  ' + nm, chip: ts.def ? ts.def.name : ts.a.id, onTour: true };
+    if (ts && ts.here) return { stop: 'side ' + sideOf(tourPos(ts).k, tourPos(ts).n) + ' · ' + tourPos(ts).k + ' · ' + nm, chip: ts.def ? ts.def.name : ts.a.id, onTour: true };
     if (cur && cur.side) return { stop: T.sideRoom + ' · ' + nm, chip: LP, onTour: false };
     const w = walkStops(), pos = cur ? w.findIndex((s) => s.i === cur.i) : -1;
-    return { stop: two(pos < 0 ? 1 : pos + 1) + '  ' + nm, chip: LP, onTour: false };
+    return { stop: 'side ' + sideOf(pos < 0 ? 1 : pos + 1, w.length) + ' · ' + (pos < 0 ? 1 : pos + 1) + ' · ' + nm, chip: LP, onTour: false };
   }
   /* the camera-state suffix ("FREE CAMERA"/"LOCKED ON · x") appended off-tour, never on one (W11) */
   function camSuffix() {
@@ -871,10 +899,10 @@ export function mount(ctx, deps) {
   function phoneStopLabel(s, ts, cur) {
     const nm = cur ? cur.name : '';
     const roomy = innerWidth > 400;
-    if (s.onTour && ts && ts.a) return two(tourPos(ts).k) + '/' + two(tourPos(ts).n) + (roomy ? ' ▾  ' : '  ') + nm;
+    if (s.onTour && ts && ts.a) return sideTrack(tourPos(ts).k, tourPos(ts).n) + (roomy ? ' ▾  ' : '  ') + nm;
     if (cur && cur.side) return nm;
     const w = walkStops(), pos = cur ? w.findIndex((x) => x.i === cur.i) : -1;
-    return two(pos < 0 ? 1 : pos + 1) + '  ' + nm + camSuffix();
+    return sideTrack(pos < 0 ? 1 : pos + 1, w.length) + '  ' + nm + camSuffix();
   }
   function renderStop() {
     const s = stepLabel(), ts = tourState(), cur = curStop();
@@ -913,7 +941,7 @@ export function mount(ctx, deps) {
     topPlay.setAttribute('aria-pressed', String(playing));
     mplayI.innerHTML = playing ? '&#8214;' : '&#9654;';
     mplay.setAttribute('aria-pressed', String(playing));
-    mplay.setAttribute('aria-label', playing ? 'pause tour' : 'play tour');
+    mplay.setAttribute('aria-label', playing ? 'pause the tour' : 'play the tour');
   }
   topPlay.addEventListener('click', () => { tourToggle(); renderPlay(); });
   mplay.addEventListener('click', () => { tourToggle(); renderPlay(); });
@@ -950,6 +978,7 @@ export function mount(ctx, deps) {
     if (ts && ts.here && ts.a && (ts.a.playing || ts.a.enRoute)) { const a = ts.a; return { n: a.angleN || 1, k: a.angleK || 0, hold: typeof a.holding === 'number' ? a.holding : 0 }; }
     const a = angleNow(); return { n: a.n, k: a.k, hold: null };
   }
+  const XF_PHASE = ['◔', '◐', '◕'];
   let enRouteT = 0, enRouteDots = 1, freeEnRoute = false;
   function setEnRouteUI(on) {
     angleRow.hidden = !on && angleNow().n <= 1;
@@ -958,7 +987,7 @@ export function mount(ctx, deps) {
       angleRow.hidden = false;
       angleBar.classList.add('ai-enroute');
       if (reduced) { if (enRouteT) { clearInterval(enRouteT); enRouteT = 0; } angleBar.textContent = T.enRoute; }
-      else if (!enRouteT) { enRouteDots = 1; angleBar.textContent = T.enRoute + ' ' + '>'.repeat(enRouteDots); enRouteT = setInterval(() => { enRouteDots = (enRouteDots % 3) + 1; angleBar.textContent = T.enRoute + ' ' + '>'.repeat(enRouteDots); }, 250); }
+      else if (!enRouteT) { enRouteDots = 1; angleBar.textContent = T.enRoute + ' ' + XF_PHASE[enRouteDots - 1]; enRouteT = setInterval(() => { enRouteDots = (enRouteDots % 3) + 1; angleBar.textContent = T.enRoute + ' ' + XF_PHASE[enRouteDots - 1]; }, 250); }
     } else if (enRouteT) { clearInterval(enRouteT); enRouteT = 0; }
     angleBar.classList.toggle('ai-enroute', on);
   }
@@ -1254,6 +1283,7 @@ export function mount(ctx, deps) {
   function disarmEndDismiss() { removeEventListener('pointerdown', onEndDismiss, { capture: true }); removeEventListener('click', onEndDismiss, { capture: true }); }
   function showEndCard() {
     endEl.hidden = false;
+    try { if (ctx.audio && ctx.audio.cue) ctx.audio.cue(0, 0, true); } catch (e) {}
     /* round-2 item 5: on phone, the end card overlays the caption/hint slot's own screen position (its
        fixed 40vh zone starts well above the dock) — left showing underneath, the old caption's ghost text
        collided visually with the card's own heading at the same line. The shared slot goes quiet while the
@@ -1485,6 +1515,14 @@ export function mount(ctx, deps) {
   function renderAll() { renderStop(); renderCamChip(); renderAngle(); renderPlay(); renderServed(); layoutInfo(); watchWall(); bindWallSwipe(); updatePhoneSlot(); }
   const api = { render() { renderAll(); } };
 
+  /* M7: a stop reached by the tour or the transport arrives on its own note (audio.cue is silent when muted or before the unlock) */
+  function cueStop(ev, via) {
+    if (!ctx.audio || typeof ctx.audio.cue !== 'function') return;
+    const a = ctx.tour && ctx.tour.active; let k = 0, n = 0;
+    if (via === 'tour' && a && a.id) { k = a.k | 0; n = a.n | 0; }
+    else { const w = walkStops(), p = w.findIndex((x) => x.i === ev.i); if (p < 0) return; k = p; n = w.length; }
+    try { ctx.audio.cue(k, n, false); } catch (e) {}
+  }
   ctx.onStop((ev) => {
     lastStopT = now();
     capOffRaw = null; markDup(''); /* the last room's caption is never measured against this room's wall */
@@ -1497,6 +1535,7 @@ export function mount(ctx, deps) {
     markArrival(ev);
     renderAll();
     const via = ev && ev.via;
+    if (via === 'tour' || via === 'key') cueStop(ev, via);
     if (via === 'tour') return; /* the tour engine types its own caption on arrival */
     if (via === 'mount' && ctx.tour && ctx.tour.active && ctx.tour.active.id) return; /* a deep-linked tour owns the first caption */
     refreshCaption(true);

@@ -43,7 +43,7 @@ export default function mount(ctx) {
     const p = el('path', { d, stroke: col, 'stroke-opacity': person ? 1 : 0.4 }); s.appendChild(p);
     let ring = null;
     if (person) { ring = el('circle', { cx: Math.max(w - 2.5, 2), cy: 2.5, r: 1.7, stroke: col }); s.appendChild(ring); }
-    S.draws++; S.kind = person ? 'hand' : 'ruler'; S.w = w; S.d = d;
+    S.draws++; S.kind = o.kind = person ? 'hand' : 'ruler'; S.w = w; S.d = d;
     if (!animate || RM.matches) return;
     const L = p.getTotalLength();
     p.style.strokeDasharray = L; p.style.strokeDashoffset = L;
@@ -60,10 +60,16 @@ export default function mount(ctx) {
   const mo = new MutationObserver((recs) => {
     for (const o of jobs) if (recs.some((r) => r.target === o.h || o.h.contains(r.target))) later(o, true, o.rid ? 220 : 160);
   });
+  const moCap = new MutationObserver(() => {
+    const cap = doc.getElementById('ai-caption'), kind = cap && cap.classList.contains('ai-voice-p') ? 'hand' : 'ruler';
+    if (title && title.kind && title.kind !== kind) later(title, false, 60);
+  });
   const init = () => {
     if (!title && !(title = track('ai-title', 0)) && tries++ < 60) { tm = setTimeout(init, 250); return; }
     if (!jobs.some((o) => o.rid)) track('ai-end-h', 1);
     jobs.forEach((o) => mo.observe(o.h, { childList: true, characterData: true, subtree: true }));
+    /* the caption can turn out to be the person's after the title stroke is drawn: redraw it when the voice class flips */
+    const cap = doc.getElementById('ai-caption'); if (cap) moCap.observe(cap, { attributes: true, attributeFilter: ['class'] });
     if (title && title.h.textContent.trim()) later(title, true, 100);
   };
   init();
@@ -73,7 +79,7 @@ export default function mount(ctx) {
   addEventListener('resize', onR);
   return {
     unmount() {
-      mo.disconnect(); if (typeof off === 'function') off(); removeEventListener('resize', onR);
+      mo.disconnect(); moCap.disconnect(); if (typeof off === 'function') off(); removeEventListener('resize', onR);
       Object.values(timers).forEach(clearTimeout); clearTimeout(rt); clearTimeout(tm); jobs.forEach((o) => o.svg.remove()); document.querySelectorAll('.ink-s').forEach((e) => e.remove()); st.remove(); jobs.length = 0;
     },
     stats() { return { ...S, subscribed: false, svgs: jobs.length }; },

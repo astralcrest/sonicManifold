@@ -12,7 +12,7 @@
      stops accumulating elapsed time while !active.playing); resume() re-flies to the same stop first
      (via, gotoTourStop) and then continues the hold from a fresh wait, matching "p resumes at the same
      stop" — a stop the visitor may have physically left via search/tap/ladder in the meantime.
-   - next()/prev() while a tour is active are themselves "tour keys" (§1.10, gcdatlas parity): they do
+   - next()/prev() while a tour is active are themselves "tour keys" (§1.10): they do
      NOT count as the "manual input" that pauses a tour. Only navigation with a via other than 'tour'
      (search, tap, ladder, url, a key with no tour meaning), a camera drag/zoom (ctx.view.manual) or a
      room control does.
@@ -434,7 +434,7 @@ export function mount(ctx, deps) {
 
   /* -------------------------------------------------------------- keys this module registers (§2.6): p and
      space both toggle play/pause (starting the grand tour from the visitor's current stop if none is active,
-     gcdatlas parity — R2_CRIT_gcdatlas.md "space toggles it"). space must still activate a focused button
+     R2 critique: "space toggles it". space must still activate a focused button
      natively (BUILD_SPEC_V2 Gotchas), so it hands back to the default there instead of toggling. */
   ctx.keys.on('p', () => { toggle(); return true; });
   ctx.keys.on(' ', (e) => {

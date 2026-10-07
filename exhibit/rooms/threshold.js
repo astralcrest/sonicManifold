@@ -15,12 +15,12 @@ const POSES = { whole: { yaw: 0, pitch: 0, z: 1 }, close: { pitch: 0.3, z: 1.9 }
 const atlasOn = (ctx) => !!(ctx && ctx.atlas && ctx.atlas.on);
 /* atlas light (§3 threshold; verify r1 P1-8, r2 P1-4). the renderer sums dot weights per glyph cell, and a sphere of dots
    is uniform by construction, so a cell's dot count says nothing: at 3 to 10 dots a cell it is only grain, and it read as
-   a lilac smear of heavy glyphs flipping cell to cell. atlas mode lights the sphere instead, per CELL, the way gcdatlas
+   a lilac smear of heavy glyphs flipping cell to cell. atlas mode lights the sphere instead, per CELL, the way a glyph renderer
    shades its globe: the room predicts the cell each dot lands in on the next frame (the shell's own ease step, jitter 0),
    shades that cell's centre (lambert under one key light, upper left in front at the home pose, plus a small highlight),
    quantises the shade to one of the 14 ramp levels, and splits the level's cell weight across the cell's dots. so a
    cell's glyph is the light at that point, never its count, and a band of equal light is one run of one glyph.
-   the tone curve is gcdatlas's: the night side a sparse haze of . and ' (the dark side, below), most of the lit side + o *, and only a small highlight
+   the tone curve: the night side a sparse haze of . and ' (the dark side, below), most of the lit side + o *, and only a small highlight
    of & % $ W @. the top level always holds a sliver of the cells, which pins the renderer's exposure (the q-quantile of
    cell weight) to that level's weight; the other levels are placed at the centre of their range through the inverse of
    the renderer's live tone curve. the outer shell is a dithered glow just off the limb. the light is fixed in the
@@ -60,7 +60,7 @@ const RIM_LAM = 0.12;
    (its level bl read as t) is dimmed toward HZ_S of itself, and every one off the limb is then planned by tone, the way
    the glow is, with a grain of +-HZ_A/2 added; dimming and grain are both faded in by a smoothstep of the light alone
    (lambert, no texture: smooth over the disc) from HZ_D1 down to the night's TNIGHT. part of the cells then fall into
-   the renderer's haze band, where its own steady dither (gcdatlas's) leaves about a third of the crop blank, and the
+   the renderer's haze band, where its own steady dither leaves about a third of the crop blank, and the
    rest mix . ' : ;. the fade follows the light alone, never the texture, so it adds no step of its own for the
    renderer's edge pass (a dimming keyed to the textured level put a / | \ on every band edge of the night), and the
    grain is too fine to read as an edge (+-0.13 of tone: a 3 x 3 Sobel of it stays well under the pass's 0.9). the grain
@@ -429,7 +429,7 @@ export default {
     const s = this.s; if (!s) return; this.live = true;
     this.rx = clamp((e.clientX - s.x - s.w / 2) / (s.w / 2), -1, 1) * 0.4; this.ry = clamp((e.clientY - s.y - s.h / 2) / (s.h / 2), -1, 1) * 0.4;
   },
-  listen() { if (this.oriOn) return; this.oriOn = (e) => this.onOri(e); addEventListener('deviceorientation', this.oriOn, { passive: true }); },
+  listen() { if (this.oriOn || !('DeviceOrientationEvent' in window) || !matchMedia('(pointer: coarse)').matches) return; this.oriOn = (e) => this.onOri(e); addEventListener('deviceorientation', this.oriOn, { passive: true }); },
   arm(ctx) {
     this.disarm(); this.armed = true;
     if (ctx.reduced) return;

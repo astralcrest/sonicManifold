@@ -13,14 +13,15 @@ export const COPY = {
   },
 
   chrome: {
-    lockedOn: '° held',
+    lockedOn: 'needle down',
     freeCamera: '° your hand',
     // R6 M1: the stepper is a tracklist and a tour is the queue (the tour's names live in tours.js)
     nextStop: 'up next · {stop} ›',
-    backToTour: 'back to the queue · {stop} ›',
+    backToTour: 'put the needle back · {stop} ›',
     startAgain: 'play it again ›',
     mpillNext: 'up next ›',
-    enRoute: 'en route',
+    mpillBack: 'needle back ›',
+    enRoute: 'crossfading',
     angleBar: 'bar {k} / {n}',
     // R6 move 3: how the visitor reached each stop, in the arms' own glyphs (≡ the tour, ° their pick, × shuffle).
     // plain counts, kept for this tab only; never compared with the log's rate.
@@ -49,7 +50,7 @@ export const COPY = {
       tourPaused: 'you took the wheel · ▶ hands it back to the queue',
       sessionNotCounted: "single sessions aren't in the public data; only their totals are",
       linkCopied: 'link copied',
-      detailLowered: 'detail lowered to normal for smoother motion',
+      detailLowered: 'marks made bigger so the music keeps up',
       photoBlocked: 'this browser blocks saving pictures',
       noRecordDate: 'no plays in the export for this date.', // verbatim, TIER_B_DATA_CARD.md §5
       wakeOnly: null, // wake guard is silent by design (§1.6); no toast fires
@@ -57,10 +58,11 @@ export const COPY = {
   },
 
   settings: {
-    detail: 'detail', travel: 'travel speed', dwell: 'time at each stop', fade: 'interface fade',
-    glow: 'glow', labels: 'labels', twinkle: 'twinkle', textSize: 'text size', pinch: 'pinch zooms',
+    detail: 'detail', detailNames: { ultra: 'finest', fine: 'fine', normal: 'plain', bold: 'big' }, travel: 'travel speed',
+    dwellNames: { short: 'a breath', normal: 'a verse', long: 'the whole song' }, fade: 'let the words go quiet',
+    glow: 'glow', labels: 'names', twinkle: 'shimmer', textSize: 'text size', pinch: 'pinch zooms',
     pinchOptions: { atlas: 'the atlas', page: 'the page' },
-    footerGrid: '{cols} × {rows} characters',
+    footerGrid: '{cols} × {rows} marks on this screen',
   },
 
   // help overlay: every control, plus the five mandatory accuracy notes (§2.6).
@@ -76,7 +78,7 @@ export const COPY = {
       '[ ] or , .: step stops or angles',
       'g: glow · v: detail · y: travel speed · l: labels · m: mute',
       'e: how to read this stop',
-      '?: this help',
+      '?: what every key does',
     ],
     accuracy: [
       'in a categorical room, the shape of a character says who pressed play; colour is not needed to read it.',
@@ -88,18 +90,18 @@ export const COPY = {
   },
 
   photo: {
-    bar: ['save picture', 'copy as text', 'freeze', 'labels', 'done'],
+    bar: ['save the sleeve', 'the run-out groove: copy the marks as text', 'hold this frame', 'names', 'done'],
     share: 'share',
   },
 
   ladder: {
-    readout: '1 glyph ≈ {n} plays',
-    ariaValuetext: '1 glyph is about {n} plays',
+    readout: '1 mark ≈ {n} plays',
+    ariaValuetext: '1 mark is about {n} plays',
     // W40/W31: the phone chip is one line with no room for a sentence. `phoneChip` fires on a stop with a real
     // play-count reading; `rung` is the fallback on a stop without one (ladder.js RUNG_FOR_NOTE supplies the
     // word — artist, shares, readings, clusters, pile, graves, track) — never ladder.js's full unavailable-reading sentence.
-    phoneChip: '⇕ {n} / glyph',
-    rung: '⇕ {rung}',
+    phoneChip: '{g} 1 mark ≈ {n}',
+    rung: '{g} {rung}',
   },
 
   // W40/W26: the ATLAS menu (search.js reads these via deps.COPY.search) — canonical source so the footer

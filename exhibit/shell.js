@@ -17,8 +17,14 @@
    lists them exactly as implemented here.
 */
 
-import { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } from './post.js?v=10';
-import { LABELS, HINTS, HINTS_ATLAS, HINTS_TOUCH } from './labels.js?v=20';
+/* the listening posts and the label text are optional: a blocked or flaky file leaves them off instead of leaving the exhibit unbooted. one retry, then a no-op stand-in */
+const soft = (u, d) => import(u).catch(() => import(u + '&retry=1')).catch(() => d);
+const [PM, LM] = await Promise.all([
+  soft('./post.js?v=10', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}) }),
+  soft('./labels.js?v=20', { LABELS: {}, HINTS: {}, HINTS_ATLAS: {}, HINTS_TOUCH: {} }),
+]);
+const { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } = PM;
+const { LABELS, HINTS, HINTS_ATLAS, HINTS_TOUCH } = LM;
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
 /* the head's boot-veil fallback stands down once this is set: from here on the shell lifts the veil itself (bootLift) */
@@ -55,6 +61,12 @@ const CORE = ['glyphfield', 'camera', 'gesture', 'glyph-atlas'];
    room that stop stands in instead of on the threshold for a moment (a globe, then a cut: R2_REQUESTS_R4 V2) */
 const TOURHASH = ATLAS ? /^#tour=([^&]+)/.exec(HASH0) : null;
 const [GFM, CAMM, GESM, GAM, TOURSM] = ATLAS ? await Promise.all([atlasImport('glyphfield'), atlasImport('camera'), atlasImport('gesture'), atlasImport('glyph-atlas'), TOURHASH ? atlasImport('tours') : {}]) : [{}, {}, {}, {}, {}];
+/* every failure notice offers the way out that needs none of the atlas: the same page, read as text */
+function plainLink(p) {
+  if (p.querySelector('a')) return;
+  const a = document.createElement('a'); a.href = location.pathname + '?atlas=0'; a.textContent = 'read it as a plain page \u203a';
+  a.style.cssText = 'color:var(--ice);min-height:44px;display:inline-flex;align-items:center'; p.style.flexWrap = 'wrap'; p.appendChild(a);
+}
 function loadFailed() {
   if (!ATLAS) return;
   const go = () => {
@@ -63,7 +75,7 @@ function loadFailed() {
     if (!p) { p = document.createElement('p'); p.id = 'atlas-bootfail'; p.setAttribute('role', 'alert'); document.body.appendChild(p); }
     p.textContent = LOADFAIL.some((n) => CORE.includes(n)) ? 'the atlas did not finish loading: the connection dropped part of it.' : 'part of the atlas did not load: the connection dropped it.';
     const b = document.createElement('button'); b.type = 'button'; b.textContent = 'try again'; b.addEventListener('click', () => location.reload());
-    p.appendChild(b);
+    p.appendChild(b); plainLink(p);
     p.dataset.failed = LOADFAIL.join(' ');
   };
   if (document.body) go(); else addEventListener('DOMContentLoaded', go, { once: true });
@@ -292,7 +304,7 @@ function stageAtlas(home) {
   const ins = ATL.insets || {};
   if (W > H * 1.15) {
     const top = Math.max(64, H * 0.1, ins.top || 0), right = Math.max(64, W * 0.06), h = H - top - Math.max(56, H * 0.09, dockPx);
-    /* `hide` puts the info card and the wall text away: the field takes the width they held (gcdatlas's photo view).
+    /* `hide` puts the info card and the wall text away: the field takes the width they held (the photo view).
        the camera keeps its pose across the relayout, so the object glides over to the new centre */
     if (HID.on) { const x = 48; return { x, y: top, w: W - x - (ins.right > 0 ? ins.right : right), h }; }
     const x = Math.max(W * 0.4, 430);
@@ -963,7 +975,7 @@ const A = {
    reduced motion (a flight is a jump there) */
 let NOISE = null;
 A.whoosh = function (sec) {
-  if (!this.ac || this.muted || !this.on || reduced || !(sec > 0)) return;
+  if (!this.ac || this.muted || !this.on || reduced || REC.on || !(sec > 0)) return;
   const ac = this.ac, d = clamp(sec, 0.3, 6), t = ac.currentTime + 0.01;
   if (!NOISE) { const len = ac.sampleRate * 2, b = ac.createBuffer(1, len, ac.sampleRate), ch = b.getChannelData(0); for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1; NOISE = b; }
   const src = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain();
@@ -986,6 +998,12 @@ function loadVoice() {
 A.tick = function (target, o) {
   if (VOICE) return VOICE.tick(target, o);
   voiceQ = target == null ? null : [target, o]; loadVoice(); return undefined;
+};
+/* R7D M7: a stop's own note (atlas/voice.js cue); loads the voice if a visitor reaches a stop before touching anything */
+A.cue = function (k, n, end) {
+  if (!this.ac || this.muted || !this.on) return;
+  if (VOICE) { try { VOICE.cue(k, n, end); } catch (e) {} return; }
+  loadVoice(); const q = [k, n, end]; voiceP && voiceP.then((v) => { if (v && v.cue) { try { v.cue(q[0], q[1], q[2]); } catch (e) {} } });
 };
 ['pointermove', 'keydown', 'touchstart'].forEach((t) => { const f = () => { removeEventListener(t, f, true); loadVoice(); }; addEventListener(t, f, { capture: true, passive: true }); });
 /* the bed's grid: bpm and first downbeat from audio/bed_meta.json (fetched on the first sound-on), phase from the deck */
@@ -1271,7 +1289,7 @@ function activate(i, via, instant) {
   curAct = activateRoom(i, via || null, !!instant);
   return curAct;
 }
-/* ---------------------------------------------------------------- the stop-to-stop trip (W47, G2). gcdatlas's next stop is a
+/* ---------------------------------------------------------------- the stop-to-stop trip (W47, G2). a next stop that is only a
    journey: the view pulls back, crosses and lands, and the world changes shape on the way. here: at the change every dot
    keeps its place on screen (keepOnScreen), so the old picture is where the trip starts, never a cut; the new room's
    camera breathes out to PULL of its home and back in over TRIP s (K6: travel from home to home); and the dots cross over
@@ -1328,10 +1346,71 @@ function stopTrip(m0, via, t, D) {
   tr.home = atHome();
   if (typeof VIEW.travel === 'function' && tr.home) { try { tr.flew = true; VIEW.travel(null, { dur: D, pullback: PULL }).catch(noop); } catch (e) {} }
 }
+/* R7D M6, the record change: a stop reached by the tour or the transport (via tour or key) is a record changing on a deck, not a
+   flight. the stop's field turns away about the groove spindle (the sky's, up and right of the stage) by 14 degrees, shrinking
+   to .96 and fading, and the next stop turns in from the other side to rest at identity; one transform, nothing on the dom
+   moves but the canvases. the crossfade setting sets the time (long 1.1 s, short .7, cut .35). the bed brakes: its playback rate
+   goes 1 to .94 and back with the pitch following (a platter slowing), in place of the sized whoosh. a straight cut under
+   reduced motion and at governor tier 4. a tap, a search or the ladder keep the van Wijk flight */
+const REC_SEC = { slow: 1.1, quick: 0.7, warp: 0.35 };
+const REC = { on: false, anims: [], clone: null, els: [], brake: null };
+const recVia = (via) => via === 'tour' || via === 'key';
+function recCancel() {
+  if (!REC.on) return;
+  REC.on = false;
+  REC.anims.forEach((a) => { try { a.cancel(); } catch (e) {} }); REC.anims = [];
+  REC.els.forEach((e) => { e.style.opacity = ''; e.style.transformOrigin = ''; }); REC.els = [];
+  if (REC.clone) { try { REC.clone.remove(); } catch (e) {} REC.clone = null; }
+  if (REC.brake) { try { REC.brake(); } catch (e) {} REC.brake = null; }
+}
+function recBrake(ms) {
+  if (A.muted || !A.on || A.cur < 0) return null;
+  let el = null, rate0 = 1, pp0 = true;
+  try { el = A.els[A.cur]; if (!el || el.paused) return null; rate0 = el.playbackRate || 1; pp0 = el.preservesPitch; } catch (e) { return null; }
+  const track = el.dataset.t, t0 = performance.now();
+  const set = (r) => { try { el.playbackRate = r; } catch (e) {} };
+  try { el.preservesPitch = false; el.mozPreservesPitch = false; el.webkitPreservesPitch = false; } catch (e) {}
+  const done = () => { clearInterval(iv); set(rate0); try { el.preservesPitch = pp0; el.mozPreservesPitch = pp0; el.webkitPreservesPitch = pp0; } catch (e) {} };
+  const iv = setInterval(() => {
+    const u = (performance.now() - t0) / ms;
+    if (u >= 1 || el.dataset.t !== track) { done(); return; }
+    set(rate0 * (1 - 0.06 * Math.sin(Math.PI * u)));
+  }, 40);
+  return done;
+}
+function recOut(sec) {
+  const ms = sec * 1000, els = [field, glow, over].filter(Boolean), ox = Math.round(field.clientWidth * 1.1) + 'px ' + Math.round(-field.clientHeight * 0.25) + 'px';
+  REC.on = true; REC.els = els; REC.anims = []; REC.t0 = performance.now();
+  try {
+    const cl = document.createElement('canvas'); cl.width = field.width; cl.height = field.height; cl.className = 'layer'; cl.setAttribute('aria-hidden', 'true'); cl.style.zIndex = '1';
+    const c = cl.getContext('2d'); c.drawImage(field, 0, 0); if (glow && glow.width) { c.globalCompositeOperation = 'screen'; c.globalAlpha = 0.85; c.drawImage(glow, 0, 0, cl.width, cl.height); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; } c.drawImage(over, 0, 0, cl.width, cl.height);
+    cl.style.transformOrigin = ox; over.parentNode.insertBefore(cl, over.nextSibling); REC.clone = cl;
+    REC.anims.push(cl.animate([{ transform: 'rotate(0deg) scale(1)', opacity: 1 }, { transform: 'rotate(-14deg) scale(.96)', opacity: 0 }], { duration: ms * 0.42, easing: 'ease-in', fill: 'forwards' }));
+  } catch (e) {}
+  els.forEach((e) => { e.style.transformOrigin = ox; e.style.opacity = '0'; });
+  REC.brake = recBrake(ms);
+}
+function recIn(sec) {
+  const ms = sec * 1000, d = ms * 0.42, inMs = ms - d;
+  ATL.trip = { t: performance.now(), dur: sec, mode: VIEW.mode, home: false, flew: false, rec: true };
+  const fin = () => { REC.els.forEach((e) => { e.style.opacity = ''; e.style.transformOrigin = ''; }); REC.els = []; REC.anims = []; REC.on = false; REC.brake = null; };
+  let left = REC.els.length;
+  REC.els.forEach((e) => {
+    e.style.opacity = ''; let base = 1; try { base = parseFloat(getComputedStyle(e).opacity); } catch (x) {}
+    try {
+      const a = e.animate([{ transform: 'rotate(14deg) scale(.96)', opacity: 0 }, { transform: 'rotate(0deg) scale(1)', opacity: base }], { duration: inMs, delay: Math.max(0, REC.t0 + d - performance.now()), easing: 'ease-out', fill: 'backwards' });
+      REC.anims.push(a); a.onfinish = a.oncancel = () => { if (--left <= 0 && REC.on) { if (REC.clone) { REC.clone.remove(); REC.clone = null; } fin(); } };
+    } catch (x) { left--; }
+  });
+  if (left <= 0) { if (REC.clone) { REC.clone.remove(); REC.clone = null; } fin(); }
+}
 function tripSec() { let sp = 'slow'; try { sp = VIEW.speed || 'slow'; } catch (e) {} return TRIP[sp] || TRIP.slow; }
 async function activateRoom(i, via, instant) {
   ctx.demoStopped = true; /* whatever was demonstrating itself is not the active room any more */
   const prev = rooms[active]; active = i;
+  recCancel();
+  const rec = ATLAS && !!prev && !instant && recVia(via), recGo = rec && !reduced && ATL.gov.tier < 4;
+  if (recGo) { try { recOut(REC_SEC[VIEW.speed] || REC_SEC.slow); } catch (e) { recCancel(); } }
   if (prev && prev.mod && prev.mod.leave) try { prev.mod.leave(ctx); } catch (e) {}
   if (ATLAS) atlasLeave(prev);
   const fa = document.activeElement, strand = !!fa && fa !== document.body && ((prev && prev.el.contains(fa)) || fa === enter || fa === enterQuiet);
@@ -1346,13 +1425,14 @@ async function activateRoom(i, via, instant) {
   const r = await load(i); if (active !== i) return;
   P.swirl = 0.4; P.touch = true;
   /* a stop change is a trip (stopTrip): the old field's screen transform is read before the new room's camera replaces it */
-  const trip = ATLAS && !!prev && !reduced && !instant, m0 = trip ? fieldMatrix() : null;
+  const trip = ATLAS && !!prev && !reduced && !instant && !rec, m0 = trip ? fieldMatrix() : null;
   if (ATLAS) { ATL.arrive = null; ATL.trip = null; }
   if (ATLAS) atlasPreEnter();
   if (r.mod) { if (r.mod.track) A.play(r.mod.track, xfade(prev && prev.mod && prev.mod.track, r.mod.track)); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
   layMark();
   if (ATLAS) MORPH.hk = trip && !!(prev.mod && prev.mod.hueTrip);
   if (trip) stopTrip(m0, via, performance.now(), tripSec());
+  else if (recGo && REC.on) { try { recIn(REC_SEC[VIEW.speed] || REC_SEC.slow); } catch (e) { recCancel(); } }
   const nx = rooms[i + 1]; if (nx && !nx.el.hidden && !nx.el.dataset.side) load(i + 1); /* never warm the side room: it only opens from its own door */
   sigPlace();
   if (labelDlg && labelDlg.open) renderLabel(); armHint();
@@ -1807,7 +1887,7 @@ function gatherWatch(t) {
    T3 bloom (irreversible, as today), T4 twinkle/glints/edges/drift, T5 labels capped at 12 and flights warp.
    recovery: 20 s at slow 0 with mean dt under 18 ms undoes the last cell step only. */
 const GOV = { settle: 0, until: 0, calm0: 0, sum: 0, n: 0 };
-const GOVMSG = ['', 'detail lowered for smoother motion', 'detail lowered for smoother motion'];
+const GOVMSG = ['', 'marks made bigger so the music keeps up', 'marks made bigger so the music keeps up'];
 function govern(t, dt) {
   if (!dt || dt >= 200) return;
   if (++seen <= 60) return;
@@ -1961,8 +2041,14 @@ async function mountAtlas() {
   /* a page without its camera, gestures or renderer is not ready, whatever else mounted: it says so (loadFailed) and waits
      for the visitor's `try again`, and tests that wait on atlasReady see the failure instead of an inert stub */
   if (LOADFAIL.some((n) => CORE.includes(n))) return;
+  /* chrome.js or panels.js blocked: the page draws but has no caption, ladder or dock. it says so, with the plain page as the way out */
+  if (!document.getElementById('atlas-info') || !document.getElementById('atlas-dock')) {
+    let p = document.getElementById('atlas-bootfail');
+    if (!p) { p = document.createElement('p'); p.id = 'atlas-bootfail'; p.setAttribute('role', 'alert'); p.textContent = 'part of the atlas did not load: the connection dropped it.'; const b = document.createElement('button'); b.type = 'button'; b.textContent = 'try again'; b.addEventListener('click', () => location.reload()); p.appendChild(b); plainLink(p); document.body.appendChild(p); }
+    p.dataset.failed = 'chrome';
+  }
   atlasReady = true; window.__exhibit.atlasReady = true; readyRes();
-  { const bf = document.getElementById('atlas-bootfail'); if (bf && !LOADFAIL.length) bf.remove(); }
+  { const bf = document.getElementById('atlas-bootfail'); if (bf && !LOADFAIL.length && bf.dataset.failed !== 'chrome') bf.remove(); }
   /* every module learns where the visitor is standing (a stop may have been entered before they mounted) */
   const r = rooms[active]; if (r) { const ev = { i: active, id: r.id, prev: null, via: 'mount' }; STOPFNS.slice().forEach((f) => { try { f(ev); } catch (e) { console.warn('onStop', e); } }); }
   if (KIOSK) { try { FAC.tour.play('grand', 0); } catch (e) { console.warn('kiosk', e); } } /* tour.js is the only autoplay driver in atlas mode (§1.10) */
@@ -1981,7 +2067,7 @@ if (ATLAS) {
     const p = document.createElement('p'), b = document.createElement('button');
     p.id = 'atlas-bootfail'; p.setAttribute('role', 'alert'); p.textContent = 'the atlas has not finished loading.';
     b.type = 'button'; b.textContent = 'reload'; b.addEventListener('click', () => location.reload());
-    p.appendChild(b); document.body.appendChild(p);
+    p.appendChild(b); plainLink(p); document.body.appendChild(p);
     bootLift();
   };
   setTimeout(bootTick, 1000);

@@ -2,7 +2,8 @@
    each layer is its own module with `export default mount(ctx)`; a layer that fails to load is simply absent.
    aurora: the paper breathes · ink: the hand's stroke under each title · visit: your side of the record on the end card ·
    tilt: hold the phone up to turn (coarse pointers only) · bridge: draw a bridge between two stars (first universe visit) */
-const V = '?v=20261005r6';
+/* the extras ride the page's own version query (exhibit.html imports this file with it), so a bump never leaves them on a stale cache key */
+const V = new URL(import.meta.url).search || '?v=20261006r8';
 const live = {};
 export default function start(ctx) {
   const load = (name) => (live[name] ||= import('./' + name + '.js' + V).then((m) => m.default(ctx)).catch(() => null));

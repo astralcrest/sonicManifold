@@ -57,7 +57,7 @@ function lateRetry() {
 const coarse = () => { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } };
 const D = {
   el: null, slot: null, who: null, attr: null, x: null, msg: null,
-  ctl: null, wantTid: '', artist: '', open: false, lastFocus: null, ctx: null, playT: 0, h: 0, armT: 0, started: false, armTo: 0,
+  ctl: null, wantTid: '', artist: '', open: false, lastFocus: null, ctx: null, playT: 0, h: 0, armT: 0, started: false, armTo: 0, failTo: 0,
   quiet: false, ready: false, byDwell: false, asking: '', askTo: 0, askAt: null, yes: null, no: null, tapTo: 0,
   build(ctx) {
     if (this.el) return this.el;
@@ -90,7 +90,7 @@ const D = {
   },
   /* quiet: the dock becomes a pill fixed next to (x, y). it never reserves the bottom edge, so nothing relayouts */
   setQuiet(q, at) {
-    this.quiet = !!q; this.el.classList.toggle('is-quiet', this.quiet); this.el.classList.remove('is-tap');
+    this.quiet = !!q; this.el.classList.toggle('is-quiet', this.quiet); this.el.classList.remove('is-tap', 'is-fail');
     if (!this.quiet) { this.el.style.transform = ''; return; }
     if (at && isFinite(at.x) && isFinite(at.y)) this.place(at.x, at.y);
   },
@@ -135,7 +135,7 @@ const D = {
   /* the shell keeps the wall text and every room's controls above whatever the dock is using */
   measure() {
     if (!this.el || !this.ctx) return;
-    const h = this.open && (!this.quiet || this.el.classList.contains('is-tap') && coarse()) ? Math.ceil(this.el.getBoundingClientRect().height) : 0;
+    const h = this.open && (!this.quiet || (this.el.classList.contains('is-tap') || this.el.classList.contains('is-fail')) && coarse()) ? Math.ceil(this.el.getBoundingClientRect().height) : 0;
     if (h === this.h) return;
     this.h = h;
     if (this.ctx.reserveBottom) this.ctx.reserveBottom(h ? h + 16 : 0);
@@ -155,7 +155,7 @@ const D = {
   },
   show(artist, tid) {
     this.hideAsk();
-    this.artist = artist; this.el.classList.remove('is-tap'); this.who.textContent = 'loading ' + artist;
+    clearTimeout(this.failTo); this.artist = artist; this.el.classList.remove('is-tap', 'is-fail'); this.who.textContent = 'loading ' + artist;
     /* an empty 80px box is a lie about a player being there; collapse the slot until there is an iframe in it.
        once the player is docked there is nothing to ask spotify for, so the line only belongs on the first one */
     this.el.classList.toggle('is-msg', !this.ctl);
@@ -190,6 +190,9 @@ const D = {
     if (tid) { this.setAttr('open ' + artist + ' on ', 'spotify ↗', 'https://open.spotify.com/track/' + tid); this.attr.hidden = false; }
     else this.attr.hidden = true;
     if (this.ctx) this.ctx.audio.duck(false);
+    /* a pill dropped where the finger was sits on top of the card it came from: on a phone it moves to the bottom dock, and every failure leaves by itself after 8 s (the link stays until then) */
+    this.el.classList.toggle('is-fail', this.quiet && coarse());
+    clearTimeout(this.failTo); this.failTo = setTimeout(() => { if (this.open && !this.started) this.close(false); }, 8000);
     requestAnimationFrame(() => this.measure());
   },
   /* the bed goes down the moment a clip is asked for, so the clip never starts over it at full level. if the clip has
@@ -211,11 +214,11 @@ const D = {
   },
   pending() { return this.open && !this.started && Date.now() - this.armT < (coarse() ? 2500 : 6000); },
   close(restoreFocus) {
-    clearTimeout(this.armTo); clearTimeout(this.tapTo); this.started = false; this.byDwell = false;
+    clearTimeout(this.armTo); clearTimeout(this.tapTo); clearTimeout(this.failTo); this.started = false; this.byDwell = false;
     if (this.ctl) { try { this.ctl.pause(); } catch (e) {} }
     if (this.ctx) this.ctx.audio.duck(false);
     if (!this.el) return;
-    this.open = false; this.el.classList.remove('is-tap'); this.h = -1; if (!this.asking) this.el.classList.add('is-off'); this.msg.hidden = true; this.msg.textContent = '';
+    this.open = false; this.el.classList.remove('is-tap', 'is-fail'); this.h = -1; if (!this.asking) this.el.classList.add('is-off'); this.msg.hidden = true; this.msg.textContent = '';
     this.measure();
     const back = this.lastFocus; this.lastFocus = null;
     if (restoreFocus && back && back.isConnected) { try { back.focus({ preventScroll: true }); } catch (e) {} }
@@ -414,15 +417,17 @@ export const postCSS = `
 .exd.is-quiet .exd-x{min-height:26px;padding:6px 10px}
 .exd.is-quiet .exd-slot{position:absolute;left:0;top:0;width:300px;height:80px;min-height:0;overflow:hidden;opacity:.001;pointer-events:none}
 .exd.is-quiet .exd-msg{display:none}
-.exd.is-quiet.is-ask,.exd.is-quiet.is-tap{border-radius:14px;padding:6px 8px 7px 12px}
+.exd.is-quiet.is-ask,.exd.is-quiet.is-tap,.exd.is-quiet.is-fail{border-radius:14px;padding:6px 8px 7px 12px}
 .exd.is-quiet.is-ask .exd-msg{display:block;margin:4px 0 0;font-size:10.5px}
 .exd.is-quiet.is-tap{width:min(320px,calc(100vw - 16px))}
 .exd.is-quiet.is-tap .exd-slot{position:static;width:auto;height:auto;min-height:80px;margin-top:6px;opacity:1;pointer-events:auto}
 .exd-yes{border-color:#86cbfe;color:#86cbfe}
 @media (pointer:coarse){
-#exdock.exd.is-quiet.is-tap{left:max(10px,env(safe-area-inset-left));right:calc(max(10px,env(safe-area-inset-right)) + 46px);top:auto;bottom:var(--atlas-dockh,calc(8px + env(safe-area-inset-bottom)));width:auto;max-width:540px;margin:0 auto;padding:7px 11px 10px;border-radius:14px;transform:none!important}
-.exd.is-quiet.is-tap .exd-who{flex:1 1 auto;width:auto}
+#exdock.exd.is-quiet.is-tap,#exdock.exd.is-quiet.is-fail{left:max(10px,env(safe-area-inset-left));right:calc(max(10px,env(safe-area-inset-right)) + 46px);top:auto;bottom:var(--atlas-dockh,calc(8px + env(safe-area-inset-bottom)));width:auto;max-width:540px;margin:0 auto;padding:7px 11px 10px;border-radius:14px;transform:none!important}
+.exd.is-quiet.is-tap .exd-who,.exd.is-quiet.is-fail .exd-who{flex:1 1 auto;width:auto}
 .exd.is-quiet.is-tap .exd-attr-l{display:none}
+.exd-x{min-height:44px;min-width:44px}
+.exd.is-quiet .exd-x{min-height:44px;padding:6px 10px}
 }
 @media (forced-colors:active){.exd.is-quiet{border:1px solid CanvasText}}
 `;

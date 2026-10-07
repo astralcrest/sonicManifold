@@ -2,7 +2,7 @@
    shell already activated the room-only prefix of it before any module mounted, SKELETON_NOTES "ctx.atlas
    hash0"), then layers on the richer #tour=/&a=/&c=/#universe&... forms the shell's own early parse does
    not know about. Writing is history.replaceState only, throttled to <=1/s, never touches Back/Forward.
-   Same as gcdatlas (its updateHash is replaceState-only, no popstate): Back leaves the atlas, it never
+   replaceState-only, no popstate: Back leaves the atlas, it never
    steps back one stop. */
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 

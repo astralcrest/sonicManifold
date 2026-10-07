@@ -24,7 +24,7 @@ html.atlas .lab:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
 html.atlas .lab.obj.hi{font-size:11px;color:var(--ink);color:color-mix(in srgb,var(--ink) 85%,transparent)}
 
 /* round 2 (W1 fix): no label but the lock carries a coverage plate any more -- a dark box over the field read as a grey
-   sticky note (gcd never boxes a name). the stronger triple text-shadow above carries legibility instead, and
+   sticky note (a boxed name reads as a sticky note). the stronger triple text-shadow above carries legibility instead, and
    anchors.js now rejects a candidate position outright once it sits over too dense a patch of drawn glyphs, rather
    than compensating with a background once placed. .plate/.dense are kept as no-op selectors (harmless if ever set). */
 html.atlas .lab.plate,html.atlas .lab.plate.dense{background-color:transparent}

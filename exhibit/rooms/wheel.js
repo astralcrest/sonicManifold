@@ -38,6 +38,9 @@ const CSS = `@ .wh-hud{position:absolute;box-sizing:border-box;padding:10px 12px
 @ .wh-hud.cmp .wh-play{padding:0 11px}
 @ .wh-hud.cmp .wh-leg{font-size:10.5px;line-height:1.45;margin-bottom:4px}
 @ .wh-hud.cmp .wh-note{font-size:10px;line-height:1.4}
+@ .wh-hud.sh .wh-k{display:none}
+@ .wh-hud.sh .wh-n{font-size:26px}
+@ .wh-hud.sh .wh-leg{display:flex;flex-wrap:wrap;gap:0 12px;margin-bottom:3px}
 @ .wh-tag{position:absolute;z-index:2;max-width:250px;margin:0;font:400 10.5px/1.4 var(--mono);color:var(--ink);background:rgba(10,1,24,.9);border:1px solid rgba(134,203,254,.35);border-radius:6px;padding:5px 8px;pointer-events:none}
 @ .wh-tag b{font-weight:600;color:var(--ice)}
 @ .wh-tag span{display:block;color:var(--mute)}
@@ -135,7 +138,7 @@ export default {
   /* ------------------------------------------------------------------ layout: only from enter(), sized to ctx.stage() */
   layout(ctx) {
     const s = this.st = ctx.stage(), side = s.h < 440 && s.w > s.h * 1.2, nar = !side && s.w < 600, cmp = this.cmp = side || nar || s.h < 560;
-    const hs = this.hud.style; this.hud.classList.toggle('cmp', cmp);
+    const hs = this.hud.style; this.hud.classList.toggle('cmp', cmp); this.hud.classList.toggle('sh', nar && s.h < 340);
     const hw = side ? Math.min(260, s.w * 0.44) : nar ? s.w : Math.min(318, s.w * 0.42);
     hs.width = hw + 'px'; hs.left = (s.x + s.w - hw) + 'px'; hs.top = s.y + 'px';
     this.copy();

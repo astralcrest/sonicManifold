@@ -8,7 +8,7 @@
    (the per-day records, the full roster, the tracks) are never named here. the round-5 pass-2 stops and angles (rooms/bail,
    loop, arrivals, wheel, fade, gates, map.ghost .js; data/bail, loops, arrivals, wheel_agg, whopressed2, bi_conditions, gates,
    ghost .json) are cached on first use by the .js/.json stale-while-revalidate rule below, under the new VERSION */
-var VERSION = 'sm-v15';
+var VERSION = 'sm-v16';
 
 self.addEventListener('install', function () { self.skipWaiting(); });
 
@@ -74,11 +74,14 @@ self.addEventListener('fetch', function (e) {
 
   // figdata / images / json / fonts: stale-while-revalidate
   if (/\.(json|js|png|webp|jpg|jpeg|svg|ico|woff2?)$/.test(url.pathname)) {
+    // the page's module retry asks for X.js?v=..&retry=N so the browser forgets a failed url; the cache keeps ONE entry per module
+    var key = req;
+    if (/[?&]retry=\d/.test(url.search)) { url.search = url.search.replace(/([?&])retry=\d+&?/, '$1').replace(/[?&]$/, ''); key = url.href; }
     e.respondWith(
       caches.open(VERSION).then(function (c) {
-        return c.match(req).then(function (hit) {
+        return c.match(key).then(function (hit) {
           var net = fetch(req).then(function (r) {
-            if (r && r.status === 200) c.put(req, r.clone());
+            if (r && r.status === 200) c.put(key, r.clone());
             return r;
           }).catch(function () { return hit; });
           return hit || net;

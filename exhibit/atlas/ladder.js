@@ -20,7 +20,7 @@ const STRIP_Q = '(min-aspect-ratio:115/100) and (min-height:481px)'; /* ladder.c
    bar's own contents; failing all, the stage's right margin (landscape phones, where the bar holds the menu) */
 const CHIP_GAP = 10;
 /* W30: the desktop strip's box must fit inside ATL.stage0()'s reserved right margin (86.4px at 1440), and no
-   gcdatlas-width name or "1 glyph ≈ N plays" sentence renders that small. so at rest the box holds only the
+   full-width scale name or "1 mark ≈ N plays" sentence renders that small. so at rest the box holds only the
    instrument itself (rail, ticks, marker, the compact .al-mini pill); everything worded (names, values, the
    caption, the marker's full pill, the foot readout) is revealed by ladder.css only on rail hover/focus/drag
    or the phone sheet opening, the same convention §1.9's values already used. those revealed elements are
@@ -129,7 +129,7 @@ export function mount(ctx, deps) {
   /* no glyph pass this visit (?glyph=0, or glyphfield.js failed to load and the shell kept its stub): every mark on
      screen is one dot, so the readout counts dots (four plays each on a phone), never a glyph that is not drawn */
   const DOTS = !!((deps && deps.NOGLYPH) || !GF || GF.stub);
-  const UNIT = DOTS ? 'dot' : 'glyph';
+  const UNIT = DOTS ? 'dot' : 'mark';
 
   const levels = LEVELS.map((lv) => ({ ...lv }));
   ((deps && deps.LADDER && deps.LADDER.levels) || []).forEach((row) => {
@@ -233,7 +233,8 @@ export function mount(ctx, deps) {
     'aria-label="aggregation scale: how many plays one mark stands for" ' +
     'aria-valuemin="0" aria-valuemax="' + (levels.length - 1) + '" aria-valuenow="0">' +
     '<div class="al-knob" aria-hidden="true"><div class="al-kbody"><div class="al-kdisc"></div><div class="al-kring"></div><div class="al-kstops"></div>' +
-    '<div class="al-kc"></div><div class="al-kp"><i>°</i></div></div><div class="al-voice"></div><div class="al-pad"></div></div>' +
+    '<div class="al-kc"></div><div class="al-kp"><i>°</i></div><i class="al-arm" aria-hidden="true"></i></div><div class="al-voice"></div><div class="al-pad"></div></div>' +
+    '<p class="al-armlive" aria-live="polite" aria-atomic="true"></p>' +
     '<div class="al-line" aria-hidden="true"></div><div class="al-marker" aria-hidden="true"></div></div>' +
     '<svg class="al-leaders" aria-hidden="true"></svg>' +
     '<div class="al-mlab" aria-hidden="true"></div>' +
@@ -301,7 +302,7 @@ export function mount(ctx, deps) {
   chip.setAttribute('aria-label', 'aggregation scale panel');
   /* W31: 44x44 hit, <=110x29 visual — the button itself is the (invisible) 44px hit target, and .al-chip-pill,
      sized to its own content, is the small line actually drawn, centred inside it */
-  chip.innerHTML = '<span class="al-chip-pill"><span class="al-chip-ic" aria-hidden="true">⇕</span><span class="al-chip-txt"></span></span>';
+  chip.innerHTML = '<span class="al-chip-pill"><span class="al-chip-ic" aria-hidden="true">◍</span><span class="al-chip-txt"></span></span>';
   document.body.appendChild(chip);
   const chipTxt = chip.querySelector('.al-chip-txt');
 
@@ -363,7 +364,7 @@ export function mount(ctx, deps) {
     }
     /* the knob's own face is the dial glyph for where it points: ∙ at one play, filling up to ● at the whole log */
     const gi = Math.round(clamp01((f - levels[0]._frac) / ((levels[levels.length - 1]._frac - levels[0]._frac) || 1)) * (RING.length - 1));
-    if (kcEl.textContent !== RING[gi]) kcEl.textContent = RING[gi];
+    if (kcEl.textContent !== RING[gi]) { kcEl.textContent = RING[gi]; const ic = document.querySelector('.atlas-ladder-chip .al-chip-ic'); if (ic) ic.textContent = RING[gi]; }
     const k = a.toFixed(1); if (k === knobKey) return; knobKey = k;
     kptrEl.style.setProperty('--ap', k + 'deg');
     ringEls.forEach((el, j) => {
@@ -494,7 +495,7 @@ export function mount(ctx, deps) {
        only in the markup's own .al-chip-ic span (mount()); chipShort is text-only, or the chip read it
        twice — verify-1 finding "the chip also reads '⇕ ⇕ readings'" */
     let miniTxt = '', chipShort = '';
-    if (mode === 'plays' && shownN != null) { miniTxt = fmt(shownN); chipShort = fmt(shownN) + ' / ' + UNIT; }
+    if (mode === 'plays' && shownN != null) { miniTxt = fmt(shownN); chipShort = '1 ' + UNIT + ' ≈ ' + fmt(shownN); }
     else if (mode === 'note') { const w = RUNG_FOR_NOTE[note]; miniTxt = w || ''; chipShort = w || ''; }
     else if (mode === 'override') { const d = overrideLevel ? pill : short; chipShort = d || short || ''; }
     if (manual) { lit = selIdx; frac = levels[selIdx]._frac; nowText = pill = ''; aria = ariaTextFor(levels[selIdx]); }
@@ -798,7 +799,29 @@ export function mount(ctx, deps) {
   if (daysAvailable == null) probeDaysIndex();
   render();
   liveUpdate();
-  const pollId = setInterval(liveUpdate, POLL_MS);
+  /* M4 tonearm: the needle rests on the record while the queue plays and lifts when the camera is the visitor's hand */
+  const armEl = root.querySelector('.al-arm'), armLive = root.querySelector('.al-armlive');
+  let armState = null;
+  const tourPlaying = () => { try { const t = ctx.tour; return !!t && (typeof t.isPlaying === 'function' ? !!t.isPlaying() : !!(t.active && t.active.playing)); } catch (e) { return false; } };
+  function armSync() {
+    let free = false; try { free = !!ctx.view && ctx.view.state === 'free'; } catch (e) {}
+    const next = !free && tourPlaying() ? 'down' : 'up';
+    if (next === armState) return;
+    const first = armState == null; armState = next;
+    root.setAttribute('data-arm', next);
+    if (!first) armLive.textContent = next === 'down' ? 'the queue is playing' : 'your hand';
+  }
+  armEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    try { const t = ctx.tour; if (!t) return;
+      if (typeof t.toggle === 'function') t.toggle();
+      else if (!t.active || !t.active.id) t.play('grand', (t.active && t.active.k) || 0);
+      else if (t.active.playing) t.pause('manual'); else t.resume();
+    } catch (err) {}
+    armSync();
+  });
+  armSync();
+  const pollId = setInterval(() => { liveUpdate(); armSync(); }, POLL_MS);
   const onResize = () => { render(); placeChip(true); };
   addEventListener('resize', onResize, { passive: true });
   const onMode = () => { render(); placeChip(true); };
@@ -822,7 +845,7 @@ export function mount(ctx, deps) {
 
   /* -------------------------------------------------------------------------------------- drag */
   trackEl.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.al-tick,.al-pad')) return; /* a tick is a plain button: let its own click fire */
+    if (e.target.closest('.al-tick,.al-pad,.al-arm')) return; /* a tick is a plain button: let its own click fire */
     ensureData(); manual = false; dragging = true; dragLastY = e.clientY;
     try { trackEl.setPointerCapture(e.pointerId); } catch (err) {}
     /* with no live N (a stop whose glyphs are not plays) the handle starts where the finger went down */

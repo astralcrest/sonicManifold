@@ -85,8 +85,8 @@ export function mount(ctx, deps) {
 
   /* -------------------------------------------------------------- tours panel (§4.1)
      W23: docked to the right over live art on desktop (panels.css .atlas-panel-dock), the settings/help
-     dialogs keep the centred card treatment — only tours gets the gcdatlas-style flyout. */
-  const toursDlg = panelShell('atlas-tours', 'tours');
+     dialogs keep the centred card treatment — only tours gets the flyout. */
+  const toursDlg = panelShell('atlas-tours', 'records');
   toursDlg.classList.add('atlas-panel-dock');
   function nameOf(id) { const t = (ctx.tour.list() || []).find((x) => x.id === id); return t ? t.name : id; }
   function renderTours() {
@@ -95,14 +95,14 @@ export function mount(ctx, deps) {
     body.innerHTML = html;
     const toggle = $('[data-toggle]', body);
     const b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'a-btn'; b1.style.flex = '1';
-    b1.textContent = act.id ? (act.playing ? 'pause tour' : 'resume ' + nameOf(act.id)) : 'play ' + nameOf('grand');
+    b1.textContent = act.id ? (act.playing ? 'lift the needle' : 'resume ' + nameOf(act.id)) : 'drop the needle';
     b1.addEventListener('click', () => { if (act.id && act.playing) tourApi.pause('manual'); else if (act.id) tourApi.resume(); else tourApi.play('grand', 0); renderTours(); });
     const b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'a-btn'; b2.style.flex = '1'; b2.textContent = '° your hand'; b2.setAttribute('aria-label', 'your hand: stop the tour and steer yourself');
     b2.addEventListener('click', () => { if (act.id) tourApi.pause('manual'); closeDialog(toursDlg); });
     toggle.appendChild(b1); toggle.appendChild(b2);
     const dwellSeg = $('[data-dwell]', body);
     ['short', 'normal', 'long'].forEach((d) => {
-      const b = document.createElement('button'); b.type = 'button'; b.textContent = d; b.setAttribute('aria-pressed', String(get('dwell') === d));
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = DWELL_SAY[d]; b.setAttribute('aria-pressed', String(get('dwell') === d));
       b.addEventListener('click', () => { set('dwell', d); renderTours(); });
       dwellSeg.appendChild(b);
     });
@@ -117,7 +117,7 @@ export function mount(ctx, deps) {
       list.appendChild(b);
     });
     const ss = document.createElement('button'); ss.type = 'button'; ss.className = 'a-tour-item'; ss.style.borderTop = '1px solid rgba(189,166,255,.1)'; ss.style.marginTop = '8px';
-    ss.innerHTML = '<span class="a-t-name">screensaver</span><span class="a-t-blurb">' + esc('loop ' + nameOf('grand') + ', hands off') + '</span>';
+    ss.innerHTML = '<span class="a-t-name">leave it playing</span><span class="a-t-blurb">' + esc(nameOf('grand') + ' on repeat, hands off') + '</span>';
     ss.addEventListener('click', () => { try { const u = new URL(location.href); u.searchParams.set('kiosk', '1'); location.href = u.toString(); } catch (e) {} });
     list.appendChild(ss);
     syncMore(body);
@@ -125,9 +125,10 @@ export function mount(ctx, deps) {
   function openTours() { renderTours(); openDialog(toursDlg); }
 
   /* -------------------------------------------------------------- settings panel */
-  const setDlg = panelShell('atlas-settings', 'settings');
+  const setDlg = panelShell('atlas-settings', 'knobs');
   /* M12: the flight between stops is a crossfade and a stop is a track that holds (the stored values stay slow/quick/warp) */
   const XFADE = { slow: 'long', quick: 'short', warp: 'cut' }, DWELL_L = 'how long each track holds';
+  const DETAIL_SAY = { ultra: 'finest', fine: 'fine', normal: 'plain', bold: 'big' }, DWELL_SAY = { short: 'a breath', normal: 'a verse', long: 'the whole song' };
   function segHtml(key, opts, label, say) {
     let h = '<p class="a-lbl">' + esc(label || key) + '</p><div class="a-seg" role="group" aria-label="' + esc(label || key) + '">';
     opts.forEach((o) => { h += '<button type="button" data-k="' + key + '" data-v="' + o + '">' + esc(say ? say[o] : o) + '</button>'; });
@@ -138,10 +139,10 @@ export function mount(ctx, deps) {
   }
   function buildSettingsBody() {
     const body = $('[data-body]', setDlg);
-    let html = segHtml('detail', ['ultra', 'fine', 'normal', 'bold']) + segHtml('travel', ['slow', 'quick', 'warp'], 'crossfade', XFADE) + segHtml('dwell', ['short', 'normal', 'long'], DWELL_L) + segHtml('textSize', ['small', 'normal', 'large'], 'text size');
-    html += toggleHtml('fade', 'interface fade') + toggleHtml('glow', 'glow') + toggleHtml('labels', 'labels') + toggleHtml('twinkle', 'twinkle');
+    let html = segHtml('detail', ['ultra', 'fine', 'normal', 'bold'], null, DETAIL_SAY) + segHtml('travel', ['slow', 'quick', 'warp'], 'crossfade', XFADE) + segHtml('dwell', ['short', 'normal', 'long'], DWELL_L, DWELL_SAY) + segHtml('textSize', ['small', 'normal', 'large'], 'text size');
+    html += toggleHtml('fade', 'let the words go quiet') + toggleHtml('glow', 'glow') + toggleHtml('labels', 'names') + toggleHtml('twinkle', 'shimmer');
     if (coarse) html += segHtml('pinch', ['atlas', 'page'], 'pinch zooms');
-    html += '<p class="a-grid-read" data-grid></p><p class="a-help-note">v cycles detail &middot; y cycles the crossfade &middot; g toggles glow &middot; ? opens help' + (lowPower ? ' &middot; one dot on this screen is four plays' : '') + '</p>';
+    html += '<p class="a-grid-read" data-grid></p><p class="a-help-note">v cycles detail &middot; y cycles the crossfade &middot; g toggles glow &middot; ? shows what every key does' + (lowPower ? ' &middot; one dot on this screen is four plays' : '') + '</p>';
     body.innerHTML = html;
     body.addEventListener('click', (e) => {
       const b = e.target.closest('[data-k]'); if (!b) return;
@@ -157,7 +158,7 @@ export function mount(ctx, deps) {
       else b.setAttribute('aria-pressed', String(get(k) === b.dataset.v));
     });
     const gr = $('[data-grid]', setDlg);
-    if (gr) { let s = null; try { s = GF && GF.stats && GF.stats(); } catch (e) {} gr.textContent = s && s.cols ? s.cols + ' × ' + s.rows + ' characters' : ''; }
+    if (gr) { let s = null; try { s = GF && GF.stats && GF.stats(); } catch (e) {} gr.textContent = s && s.cols ? s.cols + ' × ' + s.rows + ' marks on this screen' : ''; }
     syncMore($('[data-body]', setDlg));
   }
   buildSettingsBody();
@@ -173,9 +174,9 @@ export function mount(ctx, deps) {
     const rows = [
       ['drag', 'turn or pan the camera'], ['wheel / pinch', 'zoom'], ['double-tap', 'zoom in, wraps to home'],
       ['tap a name', 'go there'], ['→ ↓ ]', 'next stop'], ['← ↑ [', 'previous stop'], ['space p', 'play / pause the tour'],
-      ['. ,', 'next / previous angle'], ['p', 'play / pause the tour'], ['1–9, 0', 'jump to stop n of the active tour'],
+      ['. ,', 'next / previous angle'], ['p', 'play / pause the tour'], ['1–9, 0', 'jump to track n'],
       ['/', 'dig the log (search)'], ['+ = / -', 'zoom in / out'], ['r or esc', 'camera home'], ['h', 'first stop'],
-      ['l', 'wall label'], ['m', 'mute'], ['v / g / y', 'detail / glow / crossfade'], ['?', 'this help'],
+      ['l', 'wall label'], ['m', 'mute'], ['v / g / y', 'detail / glow / crossfade'], ['?', 'what every key does'],
     ];
     let html = '<dl>' + rows.map((r) => '<div class="a-help-row"><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>').join('') + '</dl>';
     html += '<p class="a-help-note">the glyph SHAPE carries who pressed play in every categorical room, not just colour, and the colour code still means what it always meant.' +
@@ -203,13 +204,13 @@ export function mount(ctx, deps) {
   const top = document.getElementById('top');
   let topbar = null;
   if (top) {
-    topbar = document.createElement('nav'); topbar.className = 'atlas-topbar'; topbar.setAttribute('aria-label', 'atlas menu'); topbar.dataset.idle = 'dim';
+    topbar = document.createElement('nav'); topbar.className = 'atlas-topbar'; topbar.setAttribute('aria-label', 'record menu'); topbar.dataset.idle = 'dim';
     topbar.innerHTML = [
-      '<button type="button" class="a-btn" data-a="home">home</button>',
-      '<button type="button" class="a-btn" data-a="atlas">atlas</button>',
-      '<button type="button" class="a-btn" data-a="tours">tours ▾</button>',
-      '<button type="button" class="a-btn" data-a="time">time</button>',
-      '<button type="button" class="a-btn" data-a="settings">settings</button>',
+      '<button type="button" class="a-btn" data-a="home">from the top</button>',
+      '<button type="button" class="a-btn" data-a="atlas">dig /</button>',
+      '<button type="button" class="a-btn" data-a="tours">records ▾</button>',
+      '<button type="button" class="a-btn" data-a="time">the day</button>',
+      '<button type="button" class="a-btn" data-a="settings">knobs</button>',
       '<button type="button" class="a-btn" data-a="help">?</button>',
     ].join('');
     top.appendChild(topbar);
@@ -218,12 +219,12 @@ export function mount(ctx, deps) {
   /* -------------------------------------------------------------- phone dock (W22: §0.2 "dock (44px, lowercase)"
      — the dock is one of the fixed chrome bands the phone budget is built from, so it fully hides at idle
      (data-idle="hide", not "dim": §0.4 lists it alongside the ladder/chip/onboarding) rather than just dimming. */
-  const dock = document.createElement('div'); dock.id = 'atlas-dock'; dock.setAttribute('role', 'navigation'); dock.setAttribute('aria-label', 'atlas dock'); dock.dataset.idle = 'hide';
+  const dock = document.createElement('div'); dock.id = 'atlas-dock'; dock.setAttribute('role', 'navigation'); dock.setAttribute('aria-label', 'transport'); dock.dataset.idle = 'hide';
   /* M11: a transport. prev/play/next drive ctx.tour (off a tour they step the walk), ♪ is #mute (CRIT6A's tab), "more" opens
      a shelf holding every earlier dock item; it floats (absolute), so --atlas-dockh never changes */
   const dbtn = (a, ic, word, extra) => '<button type="button" data-a="' + a + '"' + (extra || '') + '><span class="d-ic" aria-hidden="true">' + ic + '</span>' + word + '</button>';
   dock.innerHTML = '<div class="d-more" id="atlas-dock-more" role="group" aria-label="more" hidden>' + [
-    ['home', '⌂', 'home'], ['atlas', '⌕', 'search'], ['tours', '▸', 'tours'], ['time', '◷', 'time'], ['settings', '⚙︎', 'settings'],
+    ['home', '⌂', 'from the top'], ['atlas', '⌕', 'dig'], ['tours', '◎', 'records'], ['time', '◔', 'the day'], ['settings', '◐', 'knobs'],
     ['help', '?', 'help'], /* R2_VERIFY_1_a11y P1: help's only on-screen path on a phone */
   ].map((r) => dbtn(r[0], r[1], r[2])).join('') + dbtn('label', '▤', 'label', ' class="d-label"') + '</div>' +
     '<div class="d-row">' +

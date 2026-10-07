@@ -106,7 +106,7 @@ let DEPTH_MIN = 0.55;
 const DAY_C = 0.4;
 /* the lock-on sun (VERIFY_r3_beauty P1-8). once the flight to a locked star lands (sky, links, a star), the star blooms
    into a glyph sun on the field's own cell grid: a round disc that spans SUN_D0 to SUN_D1 of the stage's short side at the
-   arrival framing (R2_VERIFY_2 beauty P1-7: about 0.35, the lit body of the frame, as gcdatlas lands on its Moon), by the
+   arrival framing (R2_VERIFY_2 beauty P1-7: about 0.35, the lit body of the frame, as a planetarium lands on a moon), by the
    square root of its plays (the fewest a star has to the most): a textured glyph sphere in the field's own ramp and light
    (sunSprite: near-white at its centre through its falloff classes to its family hue at the limb), a ragged limb, a
    shimmering atmosphere (drawAtmo) and a soft dark falloff round it (moatSprite). it is fixed in the sky, so it grows and
@@ -184,7 +184,7 @@ legendLabel: 'genre families: tap one to pick it out',
 const CSS = `
 html.atlas section[data-room="universe"] .uv-dock{position:absolute;z-index:1;display:flex;flex-direction:column;gap:6px;padding:0;background:none;border:0;border-radius:0;font:500 11px/1.4 var(--mono);color:var(--mute);box-sizing:border-box;pointer-events:auto}
 /* the wide screen's dock (R2_VERIFY_2 beauty P2-8): one borderless row of chips at the stage's foot, each chip its own
-   dark glass (gcdatlas's --panel), and the view's one placard line under it as its caption, out of the dock's own box;
+   dark glass (--panel), and the view's one placard line under it as its caption, out of the dock's own box;
    the rest of the placard reads in "more" */
 html.atlas section[data-room="universe"] .uv-dock.float .uv-b{background-color:rgba(10,1,24,.74)}
 html.atlas section[data-room="universe"] .uv-dock.float .uv-b[aria-pressed="true"],html.atlas section[data-room="universe"] .uv-dock.float .uv-b[aria-checked="true"]{background:linear-gradient(rgba(134,203,254,.12),rgba(134,203,254,.12)),rgba(10,1,24,.74)}
@@ -313,8 +313,7 @@ html.atlas.atlas-idle section[data-room="universe"].is-active .uv-dock:not(.inwa
 html.atlas.uv-sun #atlas-labels .lab.obj.on:not(.lock):not(:hover):not(:focus-visible){opacity:.35}
 html.atlas.uv-sun #atlas-labels .lab-ret{visibility:hidden!important}
 html.atlas #atlas-labels .lab.tag{color:var(--ink)}
-html.atlas #atlas-labels .lab.tag::before{content:"[ ";color:rgba(216,210,234,.5)}
-html.atlas #atlas-labels .lab.tag::after{content:" ]";color:rgba(216,210,234,.5)}
+html.atlas #atlas-labels .lab.tag::before{content:"◦ ";color:rgba(216,210,234,.5)}
 html.atlas #atlas-labels .lab.tag:hover,html.atlas #atlas-labels .lab.tag:focus-visible{color:var(--ice)}
 /* windows high contrast. the wall card (exhibit.html) and the dock opt out of forced colours (forced-color-adjust:none) to
    paint one solid Canvas placard, and that opt-out inherits: any colour this room authors inside them survives onto Canvas
@@ -2080,7 +2079,7 @@ function drawSun(g, t, U) {
   const k = sunK(U, t); if (k <= 0.02) return;
   const G = gridOf(), cw = G.cw, ch = G.ch, full = Math.min(U.rw * S.ss[i], Math.max(ch * SUN_CAP, 1.4 * (U.px0 || 0)));
   if (full < ch * 0.8) return;
-  /* the lock label sits just outside the disc as drawn (gcd's up-right offset from the star's projected centre): once the
+  /* the lock label sits just outside the disc as drawn (an up-right offset from the star's projected centre): once the
      cap holds the disc back from the camera, its world radius shrinks, and the label follows it in */
   const rW = (LOCK_LAB_R * full) / Math.max(1e-6, S.ss[i]); /* the labels put a name's corner at 0.72 r (+6 px) out on the diagonal: at 0.9 of the disc its corner meets the ragged limb */
   if (!U.out && Math.abs(rW - (U.labR || 0)) > 0.04 * rW) { U.labR = rW; try { S.ctx.labels.update('universe', 's' + i, { r: rW }); } catch (e) {} }
@@ -2362,7 +2361,7 @@ function boxBright(l, t, r, b) {
 }
 /* legibility (VERIFY_1 P1-6: "placement rejects boxes over cells above the dense threshold"): a name keeps off a box in
    which more than COVER_DENSE of the cells (field's last frame) are drawn at DENSE_T or over, a solid patch of glyphs; a
-   haze of . and ' under a name is fine (its halo carries it, as gcdatlas's names sit on its starfields). the labels
+   haze of . and ' under a name is fine (its halo carries it, as names sit on any starfield). the labels
    module has the last word: a name it does not draw where it was placed gives that spot up (LAB_BAN_MS) and looks again,
    so the layout converges on what the labels accept whatever their own rule is */
 const DENSE_T = 0.35, COVER_DENSE = 0.3, LAB_BAN_MS = 2500, LAB_DROP_MS = 12000, LAB_DROPS = 3;
@@ -2607,7 +2606,7 @@ function brightRects() {
 export default {
   id: 'universe', track: 'edge-of-the-black-hole', /* R5 R2: 8A keeps all five pentatonic tones under the hover voice (2A left F only). OWNER EAR CHECK; revert: track: 'antares-v2', */
   angles: ANGLES,
-  /* K2: no Sobel rim in any view, so every star and every family cluster is a soft core that grades out to haze (gcd's
+  /* K2: no Sobel rim in any view, so every star and every family cluster is a soft core that grades out to haze (the
      own look). 'large' was tried and measured: at home the laid-out core is one body of well over 40 lit cells, so the
      rim still covered a fifth of the sky's lit cells, and in THREADS a third to a half */
   glyph: { edges: false },

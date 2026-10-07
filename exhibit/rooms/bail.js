@@ -31,7 +31,7 @@ const CSS=`@ .bl-hud{position:absolute;box-sizing:border-box;padding:8px 10px;ba
 const R={
 id:'bail',track:BED,glyph:{edges:false},angles:ANGLES,
 ready:false,ang:'heap',hold:null,drops:[],guess:-1,guessSet:false,revealed:false,litKey:'',nowT:-1,hov:-1,g:null,poured:false,
-ladderNote:()=>'a glyph here is one skip-forward press, not a play',
+ladderNote:()=>'a mark here is one skip-forward press, not a play',
 async mount(root,ctx){
 R.ctx=ctx;R.root=root;
 if(!ctx.atlas||!ctx.atlas.on)return;
@@ -116,7 +116,7 @@ P.color((i)=>(i<R.n?ICE:0x57507a));
 R.place(ctx,!re&&!R.poured);
 R.poured=true;
 R.pushLabels(ctx);if(!re)R.status();
-tr(()=>{ctx.ladder.level('oneplay');ctx.ladder.readout('1 glyph = 1 skip-forward press');});
+tr(()=>{ctx.ladder.level('oneplay');ctx.ladder.readout('1 mark = 1 skip-forward press');});
 R.wire();R.lev('rest');
 R.keysOn(false);R.keysOn(true);
 if(!re&&ctx.tour&&ctx.tour.active&&ctx.tour.active.playing)R.demo(ctx,1200);

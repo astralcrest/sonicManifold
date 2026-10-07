@@ -69,7 +69,7 @@ const FONTS = {
   hi: ['400 11px ' + MONO, 0.06 * 11, 8, false, false],
   lock: ['500 11px ' + MONO, 0.06 * 11, 12, false, false],
   counter: ['400 10.5px ' + MONO, 0.06 * 10.5, 8, false, false],
-  tag: ['400 10.5px ' + MONO, 0.06 * 10.5, 8, true, false], /* universe.js still draws [ ] round a tag */
+  tag: ['400 10.5px ' + MONO, 0.06 * 10.5, 8, true, false], /* a tag carries a leading "◦ " (measured below) */
   region: ['600 11px ' + MONO, 0.14 * 11, 8, false, true],
   regionlock: ['600 11px ' + MONO, 0.14 * 11, 12, false, true],
 }; /* [font, letter-spacing px/char (canvas measureText ignores it), horizontal padding+border, brackets, uppercase] */
@@ -125,12 +125,12 @@ export function mount(ctx, deps) {
     const [font, sp, pad, brackets, upper] = FONTS[style] || FONTS.obj;
     mctx.font = font;
     const t = (upper ? String(text).toUpperCase() : String(text)) + (sig ? '\u00a0' + sig : ''); /* the mark is the label's ::after */
-    w = mctx.measureText(t + (brackets ? '[  ]' : '')).width + (t.length + (brackets ? 4 : 0)) * sp + pad;
+    w = mctx.measureText(t + (brackets ? '◦ ' : '')).width + (t.length + (brackets ? 2 : 0)) * sp + pad;
     w += 3; /* small safety margin: canvas measureText vs rendered CSS text can differ by a px or two */
     widthCache.set(key, w);
     return w;
   }
-  /* the mono webfont may still be loading when the first labels are measured (gcdatlas's own "rebuild after the
+  /* the mono webfont may still be loading when the first labels are measured (the usual "rebuild after the
      webfont loads" lesson, REFERENCE.md §2): drop the cache and re-place once it's actually ready. */
   try { if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(() => { widthCache.clear(); markDirty(); }); } catch (e) {}
 

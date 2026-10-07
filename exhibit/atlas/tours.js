@@ -130,7 +130,7 @@ const SHARE = {
   threshold: { line: 'spotify logged what i played and i assumed the log was a record of me. the queue or shuffle started four fifths of it.', src: ['exhibit.html#threshold.say', 'exhibit/data/wall.json#pct_rounded'] },
   universe: { line: 'my 388 most-played artists, one star each. where one sits means nothing on its own.', src: ['exhibit/data/universe_nodes.json#nodes', 'derive:named_count'] },
   game: { line: 'can you tell who pressed play? play a run, then send the same deck to a friend.', src: ['exhibit/data/whopressed2.json', 'exhibit/rooms/game.js'] },
-  bail: { line: '61% of my skip-forwards came inside 5 s, most in runs.', src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#bins', 'exhibit/data/bail.json#n_in5_in_runs'] },
+  bail: { line: '61% of my skip-forward presses came inside 5 s, most in runs.', src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#bins', 'exhibit/data/bail.json#n_in5_in_runs'] },
   listeners: { line: 'of 100 tagged jumps, do my picks cross genre more than autoplay?', src: ['exhibit/data/twolisteners.json#full_transition_crossing', 'derive:tap_cross_pct', 'derive:auto_cross_pct', 'exhibit/rooms/hundred.js'] },
   chain: { line: 'make a chain: start anywhere and follow a real link. 482 links join 293 of the 388 stars of my sky; on 264 of them i made the jump by hand at least 3 times.', src: ['exhibit/data/universe_edges.json#edges', 'derive:edge_count', 'derive:linked_node_count', 'derive:named_count', 'derive:hand_link_count', 'derive:hand_link_floor'] },
   wall: { line: '19 of every 100 plays started by my hand, 17 by shuffle, 64 by the queue.', src: ['exhibit/data/wall.json#total', 'exhibit/data/wall.json#pct_rounded'] },
@@ -212,7 +212,7 @@ export const TOURS = [
         // two-chunk carousel outlasts the hold (about 5.5 s tail measured at 7 or 8), so the rest is chrome.js's read time
         room: 'bail', angle: 'heap', hold: 8,
         share: SHARE.bail,
-        caption: 'hold, let go when you’d skip. 61% of my skip-forwards came inside 5 s, most in runs.',
+        caption: 'let go when you’d skip. 61% of my skip-forward presses came inside 5 s, most in runs.',
         src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#bins', 'exhibit/data/bail.json#n_in5_in_runs'],
       },
       {

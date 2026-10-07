@@ -99,8 +99,7 @@ html.atlas section[data-room="listeners"] .lst-door .lst-star{font-size:12px;let
    so it stays 10.5px while the graph under it zooms */
 html.atlas section[data-room="listeners"] .lst-tag{transform-origin:0 0;transform:scale(var(--iz,1)) translate(-50%,-100%);font:400 10.5px/1.3 var(--mono);letter-spacing:.06em;color:var(--ice);background:none;border:0;border-radius:0;padding:2px 4px;text-shadow:0 0 6px rgba(10,1,24,.95),0 0 2px rgba(10,1,24,.95)}
 html.atlas section[data-room="listeners"] .lst-tag.below{transform:scale(var(--iz,1)) translate(-50%,0)}
-html.atlas section[data-room="listeners"] .lst-tag::before{content:"[ ";color:rgba(134,203,254,.6)}
-html.atlas section[data-room="listeners"] .lst-tag::after{content:" ]";color:rgba(134,203,254,.6)}
+html.atlas section[data-room="listeners"] .lst-tag::before{content:"◦ ";color:rgba(134,203,254,.6)}
 html.atlas section[data-room="listeners"] .lst-hit{touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 /* phones: toggle and door share one row; every button keeps a 44px target (VERIFY_r3_a11y P1: this override
    dropped both back to 40px under the base 44px rule above — the padding shrinks to fit the row, the target does not) */

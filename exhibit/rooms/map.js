@@ -149,7 +149,7 @@ const CATS = [{ family: 'neutral' }, { family: 'tap' }, { family: 'shuffle' }, {
     /* the named artist under the pointer, or the one the camera is locked on: a label in the atlas's own voice, counter-scaled
        so it stays 10.5px at any zoom (it rides the camera layer, which scales its children) */
     A + '.mtag{position:absolute;left:0;top:0;transform-origin:0 0;transform:scale(var(--iz,1)) translate(9px,calc(-100% - 7px));font:400 10.5px/1.3 var(--mono);letter-spacing:.06em;color:var(--ink);white-space:nowrap;padding:2px 4px;pointer-events:none;text-shadow:0 0 6px rgba(10,1,24,.95),0 0 2px rgba(10,1,24,.95);opacity:0;transition:opacity .25s ease}' +
-    A + '.mtag::before{content:"[ ";color:var(--mute)}' + A + '.mtag::after{content:" ]";color:var(--mute)}' +
+    A + '.mtag::before{content:"◦ ";color:var(--mute)}' +
     A + '.mtag.on{opacity:1}' + A + '.mtag.sel{color:var(--ice)}' + A + '.mtag.sel::before,' + A + '.mtag.sel::after{color:rgba(134,203,254,.6)}' +
     /* R3-a: the shared S block above (mtight .mtog button / .mdial) reverted to HEAD's ?atlas=0 sizing (38px / 34px) for
        ?atlas=0 parity; atlas mode still needs its own 44px touch targets regardless of aspect ratio (not only the phone
@@ -686,7 +686,7 @@ export default {
     const base = (tight ? s.y + s.h - ctl - 8 : s.y + (this.y0 + this.yh) * s.h) - 30;
     /* R5 FIX6: a short tight curve gives the ladder chip its corner column (lazy map.keepout.js, atlas only) */
     if (this.atlasOn && tight && s.h < 360 && !this.kp) this.kp = import('./map.keepout.js' + new URL(import.meta.url).search).then((m) => { this.kom = m; if (this.alive()) this.setLevel(this.level, ctx); }).catch(() => {});
-    const kr = this.kr = this.kom ? this.kom.kr(this, s) : 0, gut = s.w < 430 ? 34 : 50, cw = (s.w - gut - 8 - kr) / 7, bi = this.map.published.bridge_index;
+    const kr = this.kr = this.kom ? this.kom.kr(this, s) : 0, gut = s.w < 430 ? (base - top < 110 ? 46 : 34) : 50, cw = (s.w - gut - 8 - kr) / 7, bi = this.map.published.bridge_index;
     this.cBase = base; this.cTop = top; this.cLeft = s.x + gut; this.cFull = Math.max(24, base - top);
     this.colW = Math.min(24, cw * 0.6);
     /* atlas: a column's glyph block is a whole fraction of the column pitch, so one lattice (pitch blkW, divided into
@@ -980,15 +980,33 @@ export default {
     const vy = vRoom ? ct[lv] - u(10) : ct[lv] + vf + u(8);
     g.font = '700 ' + vf + M; const vw = g.measureText(this.biTxt[lv]).width;
     g.font = '600 ' + f + M;
-    const lw = g.measureText('no difference').width, ly = this.parY - u(7);
-    let lx = x0 + u(6);
-    if (gv[lv] > 0.35 && vy - vf < ly && vy + u(3) > ly - f && cx[lv] - vw / 2 - u(8) < lx + lw && cx[lv] + vw / 2 + u(8) > lx) {
-      lx = cx[lv] + cw * 0.8 + u(10);
-      if (lx + lw > x1) lx = Math.max(x0 + u(6), cx[lv] - cw * 0.8 - u(10) - lw);
+    /* the parity label takes the nearest row above the dashed line that clears the curve, the level's reading, the killed
+       mark and every column; a chart too short for any row names the line in the gutter, under its tick. it is placed off the
+       finished column tops, so it never hops while the columns rise */
+    const lab = 'no difference', lw = g.measureText(lab).width, pk = [x0, x1, top, this.parY, lw, vw, vf, lv, vRoom, f, zf].join();
+    if (this.plK !== pk) {
+      this.plK = pk; this.plP = null;
+      const ct0 = this.colTop, pd = u(3), ob = [], seg = [];
+      for (let i = 0; i < 7; i++) { ob.push([cx[i] - cw * 0.5 - pd, ct0[i] - pd, cw + 2 * pd, 1e4]); if (i) seg.push([cx[i - 1], ct0[i - 1], cx[i], ct0[i]]); }
+      const rvy = vRoom ? ct0[lv] - u(10) : ct0[lv] + vf + u(8);
+      ob.push([cx[lv] - vw / 2 - u(5), rvy - vf - pd, vw + u(10), vf + u(3) + 2 * pd]);
+      ob.push([cx[2] - u(24), ct0[2] - u(8) - u(11) - pd, u(48), u(13) + 2 * pd]);
+      const clr = (x, y, w, h) => !ob.some((o) => x < o[0] + o[2] && x + w > o[0] && y < o[1] + o[3] && y + h > o[1]) &&
+        !seg.some((q) => { const n = Math.max(1, Math.ceil(Math.abs(q[2] - q[0]) / u(3))); for (let k = 0; k <= n; k++) { const px = q[0] + (q[2] - q[0]) * k / n, py = q[1] + (q[3] - q[1]) * k / n; if (px > x - pd && px < x + w + pd && py > y - pd && py < y + h + pd) return true; } return false; });
+      for (let r = 0; r < 6 && !this.plP; r++) {
+        const by = this.parY - u(7) - r * f * 1.3, y = by - f * 0.85;
+        if (y < top - u(2)) break;
+        for (let x = x0 + u(6); x + lw < x1 - u(2); x += u(5)) if (clr(x, y, lw, f * 1.05)) { this.plP = [x, by, r]; break; }
+      }
     }
     g.fillStyle = 'rgba(134,203,254,.96)';
     g.textAlign = 'right'; g.fillText('1.00', x0 - u(8), this.parY + f * 0.36);   /* the tick, in the gutter */
-    g.textAlign = 'left'; g.fillText('no difference', lx, ly);
+    g.textAlign = 'left';
+    if (this.plP) {
+      g.fillText(lab, this.plP[0], this.plP[1]);
+      if (this.plP[2]) { g.save(); g.setLineDash([u(2), u(3)]); g.lineWidth = u(1); g.strokeStyle = 'rgba(134,203,254,.6)'; g.beginPath(); g.moveTo(this.plP[0] + u(4), this.plP[1] + u(3)); g.lineTo(this.plP[0] + u(4), this.parY - u(2)); g.stroke(); g.restore(); }
+    }
+    else { g.font = '600 ' + u(9.5) + M; g.textAlign = 'right'; g.fillText('no diff', x0 - u(8), this.parY + f * 0.36 + u(11)); g.textAlign = 'left'; g.font = '600 ' + f + M; }
     /* the curve itself: one line through the seven column tops */
     g.strokeStyle = 'rgba(134,203,254,' + (red ? 0.85 : 0.75 + bands.mid * 0.25) + ')'; g.lineWidth = u(sm ? 1.8 : 2.2);
     g.beginPath(); for (let i = 0; i < 7; i++) { if (i) g.lineTo(cx[i], ct[i]); else g.moveTo(cx[i], ct[i]); } g.stroke();

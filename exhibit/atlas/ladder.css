@@ -1,8 +1,8 @@
 /* package M7 — the aggregation-scale ladder. mobile-first: base rules are the phone chip + slide-in
-   panel; the landscape/desktop query turns the same DOM into the gcdatlas-style right-edge strip. */
+   panel; the landscape/desktop query turns the same DOM into the right-edge strip. */
 
 /* names, the caption, the marker's own pill and the foot readout show only while the visitor is using the ladder
-   (W30): the desktop strip's box has to fit inside ATL.stage0()'s reserved margin, and no gcdatlas-width name or
+   (W30): the desktop strip's box has to fit inside ATL.stage0()'s reserved margin, and no full-width name or
    "1 glyph ≈ N plays" sentence renders that small, so they wait for a rail hover/focus/drag or the phone sheet.
    the wall, the calendar and the clock lay glyphs out under the strip regardless, so once shown a layered dark
    halo keeps every label readable over the brightest field without drawing a box round each one */
@@ -71,7 +71,7 @@ html.atlas .al-tick:focus-visible{outline:2px solid var(--ice,#86cbfe);outline-o
 
 /* one label row per tick, read leftward off it into the stage (the rail sits close to the viewport's right edge,
    26px in from it, so text growing rightward would run off-screen): [live readout] [value] NAME.
-   the name is gcdatlas's scale name, shown on hover/focus/drag or the phone sheet (W30); only the name takes
+   the name is the scale name, shown on hover/focus/drag or the phone sheet (W30); only the name takes
    the pointer (a click routes), the numbers beside it never block a drag on the field */
 html.atlas .al-lab{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;white-space:nowrap;pointer-events:none;transition:transform .2s ease}
 /* R3 M7-b: the phone sheet only — the name is carried off its tick's true (often crowded) log position onto an
@@ -138,7 +138,7 @@ html.atlas .al-tick:hover .al-name,html.atlas .al-tick:focus-visible .al-name{co
 html.atlas .al-tick:hover::before{background:var(--ice,#86cbfe);width:13px;box-shadow:0 0 8px rgba(134,203,254,.55)}
 
 /* the lit level: the one nearest the live readout (or the universe's own level, or the keyboard's pick), in ice,
-   boxed like gcdatlas's current stop, with the live readout beside it in place of its value */
+   boxed as the current stop, with the live readout beside it in place of its value */
 html.atlas .al-tick.al-sel::before{background:var(--ice,#86cbfe);width:13px;box-shadow:0 0 8px rgba(134,203,254,.55)}
 html.atlas .al-tick.al-sel .al-name{color:var(--ice,#86cbfe);border-color:rgba(134,203,254,.55)}
 html.atlas .al-tick.al-sel.al-now-on .al-val{display:none}
@@ -166,14 +166,14 @@ html.atlas .al-zoom-btn:focus-visible{outline:2px solid var(--ice,#86cbfe);outli
    item 4, B3): the box itself — the rail, its ticks and marker, the always-on .al-mini pill — is now just wide
    enough for that instrument (28px, 10 from the edge; ctx.atlas.insets.right, the box + ladder.js's own 24px
    GUTTER, comes to 62px, comfortably inside ATL.stage0()'s 86.4px reserved margin at 1440, so the shell's own
-   narrowing of stage() is a no-op and every room number lands back within 1px of ?atlas=0). the gcdatlas-style
+   narrowing of stage() is a no-op and every room number lands back within 1px of ?atlas=0). the strip-style
    names, values, caption and readout that used to live in a permanent 160-wide column do not fit that budget at
    any width, so they are drawn exactly where they always were — off the tick, not off this box — and simply
    wait, per ladder.css's base rules, for a rail hover/focus/drag before they render at all (W30: "labels on
    hover/focus"). that is safe precisely because at rest they are opacity:0 and so never actually painted: a
    visitor has to be running their pointer over the instrument, attention already on it, before that reach over
    the stage happens, and the ground below appears with them, over whatever the room drew there in the meantime */
-/* R2-P1 named rail: gcd's rail ("observable universe" down to "Earth") is always legible; W30 made every name
+/* R2-P1 named rail: a scale rail only works when every name is legible; W30 made every name
    invisible at rest to fit the strip's own budget, which lost that. >=1200px, names rest dim instead of gone —
    halo only, no --al-ground (the ground is the hover/open treatment's own full box, one more thing than the
    dimmed rest state needs) — and the lit rung alone reads at full opacity, still boxed (its border-color is
@@ -232,6 +232,13 @@ html.atlas .al-pad{opacity:0;position:absolute;left:-230px;right:0;top:-70px;bot
 html.atlas .atlas-ladder:hover .al-pad,html.atlas .atlas-ladder.al-drag .al-pad{pointer-events:auto}
 html.atlas .al-knob{position:absolute;right:-4px;top:var(--al-ky,50%);width:84px;height:84px;margin-top:-42px;border-radius:50%;cursor:grab;pointer-events:auto;touch-action:none}
 html.atlas .al-track:active .al-knob{cursor:grabbing}
+html.atlas .al-armlive{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+/* M4 tonearm: pivots near the record's top-right; at rest the stylus lies across the rim, lifted it swings off along the top edge */
+html.atlas .al-arm{position:absolute;right:6px;top:6px;width:32px;height:14px;margin:-7px 0 0 0;cursor:pointer;pointer-events:auto;transform-origin:100% 50%;transform:rotate(-45deg);transition:transform .3s cubic-bezier(.3,.7,.3,1)}
+html.atlas .al-arm::before{content:"";position:absolute;inset:-8px -8px -8px -4px}
+html.atlas .al-arm::after{content:"";position:absolute;left:0;right:0;top:50%;height:1.5px;margin-top:-.75px;border-radius:1px;background:var(--ice,#86cbfe);box-shadow:-3px 0 0 0 var(--mint,#21f6bc)}
+html.atlas .atlas-ladder[data-arm="up"] .al-arm{transform:rotate(12deg)}
+html.atlas .atlas-ladder[data-arm="up"] .al-arm::after{opacity:.7;box-shadow:none}
 html.atlas .al-track:focus-visible .al-knob{box-shadow:0 0 0 2px var(--ice,#86cbfe)}
 html.atlas .al-kbody{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(10,1,24,.86) 0,rgba(10,1,24,.86) 56%,rgba(10,1,24,0) 71%);transform-origin:50% 50%;transition:transform .28s cubic-bezier(.3,.7,.3,1)}
 html.atlas .atlas-ladder:hover .al-kbody,html.atlas .atlas-ladder:focus-within .al-kbody,html.atlas .atlas-ladder.al-drag .al-kbody,html.atlas .atlas-ladder.al-open .al-kbody{transform:translateX(calc(-1 * var(--al-kx,44px))) scale(var(--al-s,1.78))}
@@ -265,10 +272,12 @@ html.atlas .al-name{background:none}
 html.atlas .atlas-ladder-chip.al-chip-off{visibility:hidden;pointer-events:none}
 
 @media (prefers-reduced-motion:reduce){
+  html.atlas .al-arm{transition:none}
   html.atlas .atlas-ladder,html.atlas .atlas-ladder-scrim,html.atlas .al-marker,html.atlas .al-mlab,html.atlas .al-mini,html.atlas .al-name,html.atlas .al-val,html.atlas .al-now,html.atlas .al-note,html.atlas .al-cap,html.atlas .al-readout,html.atlas .al-tick::before,html.atlas .atlas-ladder::before,html.atlas .al-lab,html.atlas .al-kp,html.atlas .al-kg,html.atlas .al-kbody,html.atlas .al-voice{transition:none}
 }
 
 @media (forced-colors:active){
+  html.atlas .al-arm::after{forced-color-adjust:none;background:CanvasText;box-shadow:none}
   html.atlas .al-knob{forced-color-adjust:none;background:Canvas}
   html.atlas .al-kg,html.atlas .al-voice,html.atlas .al-mini{forced-color-adjust:none;color:CanvasText;text-shadow:none;opacity:1}
   html.atlas .al-kp i,html.atlas .al-kstops i.al-sel{forced-color-adjust:none;color:Highlight;background:none;text-shadow:none}
