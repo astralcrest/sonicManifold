@@ -1527,6 +1527,42 @@ export function mount(ctx, deps) {
   requestAnimationFrame(() => requestAnimationFrame(() => layoutInfo()));
   if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(() => layoutInfo()).catch(() => {});
 
+  /* freshness: a phone Safari tab restored from memory keeps the old build for hours. on resume, after 20 minutes loaded, one
+     no-store read of exhibit/build.json (bump_exhibit.py writes it with the ?v=) against this page's own shell ?v=; a mismatch
+     offers a reload chip. never reloads by itself; silent offline; not at a tour in progress or in the kiosk. */
+  const fresh = (() => {
+    const own = () => { const l = doc.querySelector('link[rel=modulepreload][href*="shell.js?v="]') || doc.querySelector('script[src*="shell.js?v="]'); const m = l && /shell\.js\?v=([\w.-]+)/.exec(l.getAttribute('href') || l.getAttribute('src') || ''); return m ? m[1] : ''; };
+    const T = { loaded: Date.now(), last: 0, shown: false, busy: false }, AGE = 20 * 60e3, GAP = 10 * 60e3;
+    let chip = null;
+    function show(v) {
+      if (chip) return;
+      chip = doc.createElement('div'); chip.id = 'atlas-fresh'; chip.setAttribute('role', 'status');
+      const go = doc.createElement('button'); go.type = 'button'; go.className = 'af-go'; go.textContent = 'i pushed a newer build \u00b7 reload'; go.addEventListener('click', () => { try { location.reload(); } catch (e) {} });
+      const x = doc.createElement('button'); x.type = 'button'; x.className = 'af-x'; x.setAttribute('aria-label', 'dismiss'); x.textContent = '\u00d7'; x.addEventListener('click', () => { chip.remove(); chip = null; T.dismissed = v; });
+      chip.append(go, x); doc.body.appendChild(chip); T.shown = true;
+    }
+    async function check(o) {
+      o = o || {}; const t = Date.now();
+      if (T.busy || /[?&]kiosk=1\b/.test(location.search)) return 'skip';
+      if (tourDriving()) return 'tour';
+      if (!o.force && (t - T.loaded < AGE || t - T.last < GAP)) return 'early';
+      T.busy = true; T.last = t;
+      try {
+        const r = await fetch(new URL('exhibit/build.json', doc.baseURI).href, { cache: 'no-store' });
+        if (!r.ok) return 'http';
+        const j = await r.json(), v = j && typeof j.v === 'string' ? j.v : '', mine = own();
+        if (!v || !mine || v === mine) return 'same';
+        if (T.dismissed === v) return 'dismissed';
+        if (tourDriving()) return 'tour';
+        show(v); return 'newer';
+      } catch (e) { return 'offline'; } finally { T.busy = false; }
+    }
+    doc.addEventListener('visibilitychange', () => { if (doc.visibilityState === 'visible') check(); });
+    window.addEventListener('pageshow', (e) => { if (e.persisted) check(); });
+    return { check, own, T, get shown() { return !!chip; } };
+  })();
+  api.freshness = fresh;
+
   return api;
 }
 export default { mount };

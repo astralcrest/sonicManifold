@@ -182,6 +182,9 @@ export function mount(ctx, deps) {
       (lowPower ? ' on this screen one dot is four plays.' : '') +
       ' the clock and the universe day view read on one fixed clock all year, not a real local time. the marks after a name, ▮ to ▮▮▮▮▮, are its plays in five steps among the starred artists, in its genre colour; they say nothing about who pressed play. positions in the universe carry no meaning as distance or direction on their own. twinkle and the rare bright glints are decoration everywhere and carry no data.' +
       (coarse ? ' the pinch zooms setting in settings chooses whether two fingers zoom the field or the page.' : '') + '</p>';
+    const sh = document.querySelector('link[rel=modulepreload][href*="shell.js?v="]') || document.querySelector('script[src*="shell.js?v="]');
+    const bv = sh && /shell\.js\?v=([\w.-]+)/.exec(sh.getAttribute('href') || sh.getAttribute('src') || '');
+    if (bv) html += '<p class="a-help-build" data-build>build ' + esc(bv[1]) + '</p>';
     body.innerHTML = html;
   })();
   function openHelp() { openDialog(helpDlg); }

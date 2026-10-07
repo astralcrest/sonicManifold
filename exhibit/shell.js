@@ -17,7 +17,7 @@
    lists them exactly as implemented here.
 */
 
-import { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } from './post.js?v=9';
+import { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } from './post.js?v=10';
 import { LABELS, HINTS, HINTS_ATLAS, HINTS_TOUCH } from './labels.js?v=20';
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';

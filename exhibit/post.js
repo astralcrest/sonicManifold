@@ -54,6 +54,7 @@ function lateRetry() {
 }
 
 /* ------------------------------------------------------------------ the dock */
+const coarse = () => { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } };
 const D = {
   el: null, slot: null, who: null, attr: null, x: null, msg: null,
   ctl: null, wantTid: '', artist: '', open: false, lastFocus: null, ctx: null, playT: 0, h: 0, armT: 0, started: false, armTo: 0,
@@ -124,15 +125,17 @@ const D = {
   },
   /* the browser refused to start it (ios wants a tap inside the player): show spotify's own player in the pill */
   tapToPlay(artist) {
-    if (this.started || !this.open || !this.quiet) return;
-    this.el.classList.add('is-tap'); this.who.textContent = 'tap ▶ to play ' + artist;
+    if (this.started || !this.open) return;
+    if (this.quiet && !this.ready) return;
+    this.el.classList.add('is-tap'); this.who.textContent = 'tap ▶ to ' + (coarse() ? 'hear ' : 'play ') + artist;
+    this.say('');
     if (this.ctx) this.ctx.audio.duck(false);
-    requestAnimationFrame(() => { if (this.quiet) this.place(this.px || 8, this.py || 8); });
+    requestAnimationFrame(() => { if (this.quiet && !coarse()) this.place(this.px || 8, this.py || 8); this.measure(); });
   },
   /* the shell keeps the wall text and every room's controls above whatever the dock is using */
   measure() {
     if (!this.el || !this.ctx) return;
-    const h = this.open && !this.quiet ? Math.ceil(this.el.getBoundingClientRect().height) : 0;
+    const h = this.open && (!this.quiet || this.el.classList.contains('is-tap') && coarse()) ? Math.ceil(this.el.getBoundingClientRect().height) : 0;
     if (h === this.h) return;
     this.h = h;
     if (this.ctx.reserveBottom) this.ctx.reserveBottom(h ? h + 16 : 0);
@@ -152,7 +155,7 @@ const D = {
   },
   show(artist, tid) {
     this.hideAsk();
-    this.artist = artist; this.who.textContent = 'loading ' + artist;
+    this.artist = artist; this.el.classList.remove('is-tap'); this.who.textContent = 'loading ' + artist;
     /* an empty 80px box is a lie about a player being there; collapse the slot until there is an iframe in it.
        once the player is docked there is nothing to ask spotify for, so the line only belongs on the first one */
     this.el.classList.toggle('is-msg', !this.ctl);
@@ -176,7 +179,7 @@ const D = {
   stalled(artist) {
     if (this.started || !this.open) return;
     this.who.textContent = 'could not play ' + artist;
-    this.say('the player loaded but did not start. your browser may be blocking it. the link above opens the track on spotify.');
+    this.say(coarse() ? 'safari wants a tap on the player. the link above opens the track on spotify.' : 'the player loaded but did not start. your browser may be blocking it. the link above opens the track on spotify.');
   },
   fail(artist, tid) {
     clearTimeout(this.armTo); clearTimeout(this.tapTo); this.started = false; this.making = false;
@@ -196,20 +199,23 @@ const D = {
     this.armT = t0 || Date.now(); this.started = false; clearTimeout(this.armTo); clearTimeout(this.tapTo);
     /* R5 watchdog fix: the bed goes down only once the id has resolved and the embed is ready; before that nothing ducks */
     if (this.ctx && this.ready) this.ctx.audio.duck(true);
-    if (this.quiet && this.ready) this.tapTo = setTimeout(() => this.tapToPlay(artist), 3500);
+    const co = coarse();
+    if (co && this.ready) this.tapTo = setTimeout(() => this.tapToPlay(artist), 1300);
+    else if (this.quiet && this.ready) this.tapTo = setTimeout(() => this.tapToPlay(artist), 3500);
     this.armTo = setTimeout(() => {
       if (this.started) return;
       if (this.ctx) this.ctx.audio.duck(false);
-      if (this.quiet) this.tapToPlay(artist); else this.stalled(artist);
-    }, 6000);
+      if (co && this.ready) this.tapToPlay(artist);
+      else if (this.quiet) this.tapToPlay(artist); else this.stalled(artist);
+    }, co ? 2500 : 6000);
   },
-  pending() { return this.open && !this.started && Date.now() - this.armT < 6000; },
+  pending() { return this.open && !this.started && Date.now() - this.armT < (coarse() ? 2500 : 6000); },
   close(restoreFocus) {
     clearTimeout(this.armTo); clearTimeout(this.tapTo); this.started = false; this.byDwell = false;
     if (this.ctl) { try { this.ctl.pause(); } catch (e) {} }
     if (this.ctx) this.ctx.audio.duck(false);
     if (!this.el) return;
-    this.open = false; this.el.classList.remove('is-tap'); if (!this.asking) this.el.classList.add('is-off'); this.msg.hidden = true; this.msg.textContent = '';
+    this.open = false; this.el.classList.remove('is-tap'); this.h = -1; if (!this.asking) this.el.classList.add('is-off'); this.msg.hidden = true; this.msg.textContent = '';
     this.measure();
     const back = this.lastFocus; this.lastFocus = null;
     if (restoreFocus && back && back.isConnected) { try { back.focus({ preventScroll: true }); } catch (e) {} }
@@ -249,6 +255,7 @@ async function playArtist(artist, ctx, trigger, quiet) {
     loads++; lastLoad = Date.now();
     api.createController(host, { uri: 'spotify:track:' + tid, height: 80, width: '100%' }, (ctl) => {
       D.ctl = ctl; D.making = false;
+      { const fr = D.slot.querySelector('iframe'); if (fr && !fr.title) fr.title = 'spotify player'; }
       ctl.addListener('ready', () => {
         D.ready = true; D.slotted();
         if (D.open && D.wantTid !== tid) { try { ctl.loadUri('spotify:track:' + D.wantTid); loads++; lastLoad = Date.now(); } catch (e) {} }
@@ -412,5 +419,10 @@ export const postCSS = `
 .exd.is-quiet.is-tap{width:min(320px,calc(100vw - 16px))}
 .exd.is-quiet.is-tap .exd-slot{position:static;width:auto;height:auto;min-height:80px;margin-top:6px;opacity:1;pointer-events:auto}
 .exd-yes{border-color:#86cbfe;color:#86cbfe}
+@media (pointer:coarse){
+#exdock.exd.is-quiet.is-tap{left:max(10px,env(safe-area-inset-left));right:calc(max(10px,env(safe-area-inset-right)) + 46px);top:auto;bottom:var(--atlas-dockh,calc(8px + env(safe-area-inset-bottom)));width:auto;max-width:540px;margin:0 auto;padding:7px 11px 10px;border-radius:14px;transform:none!important}
+.exd.is-quiet.is-tap .exd-who{flex:1 1 auto;width:auto}
+.exd.is-quiet.is-tap .exd-attr-l{display:none}
+}
 @media (forced-colors:active){.exd.is-quiet{border:1px solid CanvasText}}
 `;

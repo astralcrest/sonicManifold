@@ -366,7 +366,7 @@ html.atlas #atlas-show:focus-visible{outline:2px solid var(--ice);outline-offset
   /* − / + leave the card on phones (W06); the ladder chip/sheet (M7, W31) carries zoom instead */
   html.atlas .ai-zoom{display:none!important}
 
-  html.atlas #atlas-info{gap:0;left:8px;right:8px;bottom:calc(var(--atlas-dockh,0px) + 4px)}
+  html.atlas #atlas-info{gap:0;left:8px;right:8px;bottom:calc(var(--atlas-dockh,0px) + 4px + var(--dockh,0px))}
 
   /* caption: ≤2 lines, no box — a soft scrim gradient instead of the ice left rule, so it reads over live art
      (W06 §0.2). collapses to 0 when there is nothing to say (chrome.js already sets [hidden] when capText is
@@ -524,3 +524,9 @@ html.atlas #atlas-info .ai-end-contact{font-family:var(--serif-voice);font-style
   html.atlas.ai-endcard-open #atlas-dock,html.atlas.ai-endcard-open #atlas-info .ai-mrow{visibility:hidden}
 }
 html.atlas .wg label.ai-voice-p{font:italic 400 1.08em/1.38 var(--serif-voice);letter-spacing:0;text-transform:none}
+
+/* freshness chip (chrome.js): under the top bar, never over the dock or the play row */
+html.atlas #atlas-fresh{position:fixed;z-index:60;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 46px);display:flex;align-items:stretch;max-width:calc(100vw - 24px);border:1px solid rgba(134,203,254,.5);border-radius:3px;background:rgba(10,1,24,.92);font:600 11px/1 var(--mono);letter-spacing:.06em}
+html.atlas #atlas-fresh button{font:inherit;letter-spacing:inherit;color:var(--ice);background:none;border:0;min-height:44px;padding:0 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.atlas #atlas-fresh .af-x{color:var(--mute);min-width:44px;padding:0;border-left:1px solid rgba(134,203,254,.2);font-size:16px}
+html.atlas #atlas-fresh button:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}

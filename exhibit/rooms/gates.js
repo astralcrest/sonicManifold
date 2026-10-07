@@ -80,6 +80,7 @@ pane.style.height = Math.min(ph, s.h * (s.w < 600 ? 0.5 : 0.36)) + 'px';
 const r = strip.getBoundingClientRect(), so = 7, lab = 49; let B = null;
 for (const cols of [13, 7, 5, 4]) {
 const rows = Math.ceil(n / cols), px = r.width / cols, rh = r.height / rows; let dh = rh - lab - 8, dw = dh / 2.1;
+if (px < 34 && cols > 4) continue; /* the short labels ("later", "brick") are 33 px wide: a column narrower than that runs them together */
 if (dw > px * 0.66) { dw = px * 0.66; dh = dw * 2.1; } if (!B || dw * dh > B.a) B = { cols, rows, px, rh, dw, dh, a: dw * dh };
 }
 const { cols, rows, px, rh, dw, dh } = B, d = [], rb = []; btns.forEach((b) => b._t(px < 84));

@@ -90,6 +90,7 @@ html.atlas .a-help-row{display:grid;grid-template-columns:6.4rem 1fr;gap:4px 12p
 html.atlas .a-help-row dt{color:var(--ice);letter-spacing:.02em}
 html.atlas .a-help-row dd{margin:0;color:var(--mute)}
 html.atlas .a-help-note{font:400 11.5px/1.5 var(--mono);color:var(--mute);margin:6px 0 0;padding-top:10px;border-top:1px solid rgba(189,166,255,.12)}
+html.atlas .a-help-build{font:400 10.5px/1.4 var(--mono);color:var(--mute);margin:8px 0 0;letter-spacing:.02em}
 html.atlas .a-grid-read{font:500 11px/1 var(--mono);color:var(--mute);letter-spacing:.04em;margin-top:12px}
 
 /* touch screens and phone widths: every control here is a 44px target, the bar chrome.css's .ai-* controls already

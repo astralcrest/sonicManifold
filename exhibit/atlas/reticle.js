@@ -10,7 +10,7 @@ export function install(ctx, view, G) {
   css.onload = () => { el.hidden = false; }; doc.head.appendChild(css);
   (S0 ? S0.parentNode : doc.body).insertBefore(el, S0 ? S0.nextSibling : null);
   const rd = el.querySelector('s');
-  let on = false, X = 0, Y = 0, cur = null, key = null, hush = false, armed = '', hand = -1e9, /* the visitor's last drag: a pill waits for one */ lastS = 0, raf = 0, side = 1, aa = '', al = '', ko = [], koAt = 0, lit = null, watch = 0, n = 0, why = '';
+  let on = false, X = 0, Y = 0, cur = null, key = null, hush = false, armed = '', hand = -1e9, /* the visitor's last drag: a pill waits for one */ lastS = 0, raf = 0, side = 1, aa = '', al = '', ko = [], koAt = 0, lit = null, litAt = 0, watch = 0, n = 0, why = '';
   const room = () => { const rs = ctx.atlas && ctx.atlas.deps && ctx.atlas.deps.rooms; return (rs && rs[ctx.index]) || null; };
   const over = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 
@@ -23,7 +23,10 @@ export function install(ctx, view, G) {
   /* 50% x 42% of the stage, else the nearest clear spot on three lines */
   function place() {
     keepouts();
-    const s = ctx.stage(), hw = Math.min(BW, s.w) / 2, y0 = s.y + s.h * 0.42;
+    const s = ctx.stage(), hw = Math.min(BW, s.w) / 2;
+    /* a locked star sits at the stage's middle: on a stage under ~480 px (a real iPhone with its toolbars) 42% leaves the sight's
+       arc and name over it, and the star's own lock ring is then suppressed under the sight (R7C). keep 58 px between them */
+    const y0 = s.y + (s.h >= 480 ? s.h * 0.42 : Math.min(s.h * 0.42, s.h * 0.5 - 58));
     for (const f of [0, -1, 1]) {
       const x = s.x + s.w / 2 + f * Math.min(s.w / 4, s.w / 2 - hw);
       for (let d = 0; d <= s.h * 0.3; d += 24) for (const y of d ? [y0 - d, y0 + d] : [y0]) {
@@ -56,7 +59,17 @@ export function install(ctx, view, G) {
     if (why) { if (on) { on = false; el.classList.remove('on'); const g = why === 'gesture'; setCur(null, g); hush = g; } return; }
     if (p[0] !== X || p[1] !== Y) { X = p[0]; Y = p[1]; el.style.transform = 'translate3d(' + Math.round(X) + 'px,' + Math.round(Y) + 'px,0)'; }
     arm(); if (!on) { on = true; el.classList.add('on'); }
+    relit();
     sample();
+  }
+  /* the label under the sight can lay out after the pick (first frame of a room, a label that scrolls into the cap): without this the
+     sight keeps drawing its own copy of the name beside the label's (R7C: "Mickey Singh" twice on a 393x659 phone) */
+  function relit() {
+    if (!cur) return;
+    if (lit && (!lit.isConnected || (!lit.classList.contains('on') && +getComputedStyle(lit).opacity < 0.12))) { lit.classList.remove('vx-on'); lit = null; el.classList.remove('lab'); }
+    if (lit || now() - litAt < 60) return;
+    litAt = now(); const b = labOf(cur);
+    if (b) { lit = b; b.classList.add('vx-on'); el.classList.add('lab'); arm(); }
   }
 
   const voice = (m, id, o) => { try { return (m.hoverVoice && m.hoverVoice(id, o)) || null; } catch (e) { return null; } };
