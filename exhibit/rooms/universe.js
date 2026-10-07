@@ -170,7 +170,7 @@ const COPY0 = {
   brightest: 'the brightest stars', threadList: 'the threads, as a list', famThreads: 'threads ›', readMore: 'the full readout',
   viewsLabel: 'views of the sky', armLabelL: 'whose jumps the lines show', armLabelT: 'whose jumps the threads show',
   nameLine: '{name} · {family}',
-  caveat: 'the export holds very little before february 2022 (253 plays over 44 days). on any date, a quiet or empty day says more about what the export kept than about listening.', /* universe_days_index.json caveat, pinned */
+  caveat: 'the export holds very little before february 2022 (253 plays over 44 days). on any date, a quiet or empty day says more about what the export kept than about listening. runs of three or more empty days from february 2022 on are smoothed: their neighbours\' plays are spread across them, so no multi-day silence is readable here.', /* universe_days_index.json caveat, pinned */
   timeBasis: 'dates read on one fixed clock all year (the export kept no per-play local clock or daylight saving), not a real local time', /* REQUESTS_privacy_copy #1: the day records carry no hours */
   chipSearch: ', all searchable', /* appended to the chip only when the full roster (Tier B) loaded */
   ringSay: 'the rest ring the edge, spaced evenly in order of plays; where one sits on the ring says nothing else about it.', /* the wall's ring clause (ROUND2 R4 item 2), replacing "the rest ring the edge in no order." */

@@ -39,7 +39,7 @@ const ROWS = false; /* the old per-row readouts (lit row, marker pill) are repla
    universe_artists_all `plays`, the 14 family totals, the four complete years). the M7 test re-derives them from
    exhibit/data and fails if a data change moves one. they put the ticks on the log axis from the first frame, so the
    marker and the lit level mean something before the lazy load, which recomputes them and replaces these. */
-const SEED = { day: 97, artist: 110, genre: 19897, year: 20633 };
+const SEED = { day: 95, artist: 110, genre: 19897, year: 20633 };
 
 /* D7 order and the honest §1.9 route table. C1's tours.js LADDER.levels overrides route/name per id below, never the
    order and never an invented value. */
