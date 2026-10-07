@@ -25,35 +25,35 @@ export function mount(ctx, deps) {
 
   const T = {
     nextStop: CC.nextStop || 'up next · {stop} ›',
-    backToTour: CC.backToTour || 'put the needle back · {stop} ›',
+    backToTour: CC.backToTour || 'back to the tour · {stop} ›',
     startAgain: CC.startAgain || 'play it again ›',
-    cameraHome: CC.cameraHome || 'camera home ›',
+    cameraHome: CC.cameraHome || 'back to the whole record ›',
     backTo: CC.backTo || 'back to {stop} ›',
     sideRoom: CC.sideRoom || 'side room',
     enRoute: CC.enRoute || 'crossfading',
     sound: CC.soundChip || '♪ tap for sound',
-    onboard: CC.onboarding || 'hover to hear · hold to loop · drag to turn · / to dig the log',
+    onboard: CC.onboarding || 'hover to hear · hold to loop · drag to turn · / to search the log',
     onboardTouch: CC.onboardingTouch || 'touch to hear · hold to loop · drag to turn',
     pauseTour: CC.pauseTour || '‖ lift the needle',
     playTour: CC.playTour || '▶ drop the needle',
     /* round-2 (W-fix7): the phone merged-row pill carries only a short verb — the destination name is already
        in the caption/tours sheet, repeating it here is what made the row read as noise */
     mpillNext: CC.mpillNext || 'up next ›',
-    mpillBack: CC.mpillBack || 'needle back ›',
+    mpillBack: CC.mpillBack || 'back ›',
     mpillAgain: CC.mpillAgain || 'again ›',
     mpillHome: CC.mpillHome || 'home ›',
     /* W10 tour end card (fallback copy; C2/copy.js may supply `CC.end*`) */
     endHead: CC.endHead || 'end of the record.',
-    endFly: CC.endFly || 'take the wheel ›',
+    endFly: CC.endFly || 'look around ›',
     endExport: CC.endExport || 'run it on your own export ›',
     endReport: CC.endReport || 'the report ›',
     endAgain: CC.endAgain || 'play it again ›',
     contact: CC.contact || 'questions or a dataset of your own · astralcrest',
     overflow: CC.overflow || 'more controls',
     share: CC.shareLabel || 'share',
-    lockedOn: CC.lockedOn || 'needle down',
+    lockedOn: CC.lockedOn || 'on the record',
     freeCamera: CC.freeCamera || '° your hand',
-    paused: (CC.toasts && CC.toasts.tourPaused) || 'you took the wheel · ▶ hands it back to the queue',
+    paused: (CC.toasts && CC.toasts.tourPaused) || 'your hand has it · ▶ hands it back to the queue',
     bar: CC.angleBar || 'bar {k} / {n}',
     shuffle: CC.shuffle || '× shuffle',
     servedKey: CC.servedKey || 'how you reached each stop: ≡ the tour moved on, ° you picked it, × shuffle',
@@ -73,6 +73,7 @@ export function mount(ctx, deps) {
   /* the compact card (`less`) is the default on every screen (VERIFY r3 P1: on desktop the full wall, five paragraphs and
      a chip legend, competed with the art): the dim lines, legends and go-deeper links wait under `more ▾` */
   let lessOn = true;
+  const DQ = matchMedia('(pointer:fine) and (min-width:900px) and (min-aspect-ratio:115/100) and (min-height:481px)'); /* R8 DECK, panels.js's query */
   const compactVP = () => isPortrait() || innerHeight <= 480;
 
   /* ---------------------------------------------------------------- DOM build (mount, no layout, §1.4)
@@ -238,7 +239,7 @@ export function mount(ctx, deps) {
     let done = false;
     try { await navigator.clipboard.writeText(text); done = true; } catch (err) {}
     if (!done) try { const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;top:-99px;opacity:0'; document.body.appendChild(ta); ta.select(); done = document.execCommand('copy'); ta.remove(); } catch (err) {}
-    const msg = done ? 'postcard link copied' : 'select and copy the link';
+    const msg = done ? 'link copied' : 'select and copy the link';
     try { ctx.toast(msg); } catch (err) {} try { ctx.say(msg); } catch (err) {}
   }
 
@@ -316,7 +317,7 @@ export function mount(ctx, deps) {
      browsers when the hovered element is hidden out from under a stationary pointer, which pinned this
      flag `true` forever the first time it was tried. */
   function infoHovered() {
-    try { const bar = doc.querySelector('.atlas-topbar'); return info.matches(':hover') || show.matches(':hover') || !!(bar && bar.matches(':hover')); } catch (e) { return false; }
+    try { const bar = DQ.matches ? topBar : doc.querySelector('.atlas-topbar'); return info.matches(':hover') || show.matches(':hover') || !!(bar && bar.matches(':hover')); } catch (e) { return false; }
   }
   function infoFocused() { return info.contains(doc.activeElement) || doc.activeElement === show; }
   function panelOpen() {
@@ -816,6 +817,8 @@ export function mount(ctx, deps) {
     }
     let s = null; try { s = deps.stage ? deps.stage() : null; } catch (e) {}
     if (!s) return { cx: Math.round(innerWidth / 2), bottom: 22, maxW: innerWidth - 40 };
+    /* R8 DECK: the line rides the deck's upper row, right of the record, when it fits there on one line; else just above the deck */
+    if (DQ.matches) { const v = (k) => parseFloat(getComputedStyle(html).getPropertyValue(k)) || 0; return { cx: Math.round(s.x + s.w / 2), bottom: v('--deckb') + 7, maxW: Math.round(s.w), deck: [info.getBoundingClientRect().right + 24, s.x + s.w, v('--deckh') + 4] }; }
     return { cx: Math.round(s.x + s.w / 2), bottom: 22, maxW: Math.max(240, Math.round(s.w)), band: innerHeight - (s.y + s.h) };
   }
   function keepRects() {
@@ -846,6 +849,7 @@ export function mount(ctx, deps) {
     const keeps = keepRects().filter((k) => !(portrait && k.bottom >= infoTop - 1));
     /* a short landscape band (a phone held sideways: 56px) seats a two-line line lower, so it stays under the stage */
     if (sp.band != null) bottom = clamp(Math.round(sp.band - h - 4), 6, bottom);
+    if (sp.deck) { const x = Math.max(L, sp.deck[0]), up = x + w > sp.deck[1]; el.style.left = Math.round(up ? sp.cx : x + w / 2) + 'px'; el.style.bottom = (up ? sp.deck[2] : bottom) + 'px'; return; }
     for (let guard = 0; guard < 4; guard++) {
       const Bt = innerHeight - bottom, Tp = Bt - h;
       const hit = keeps.filter((k) => k.left < R && k.right > L && k.top < Bt && k.bottom > Tp);
@@ -870,10 +874,10 @@ export function mount(ctx, deps) {
   /* ---------------------------------------------------------------- stepper: a tracklist row + the queue's name (R6 M1)
      on a tour `02 / 16  the log` beside `the long play ▾`, off one `08  the universe`; the merged phone row mirrors it */
   const sideOf = (k, n) => (k <= Math.ceil(n / 2) ? 'a' : 'b');
-  const sideTrack = (k, n) => sideOf(k, n) + k;
+  const sideTrack = (k, n) => (k < 1 ? 'lead-in' : sideOf(k, n) + k);
   function stepLabel() {
     const ts = tourState(), cur = curStop(), nm = cur ? cur.name : '';
-    if (ts && ts.here) return { stop: 'side ' + sideOf(tourPos(ts).k, tourPos(ts).n) + ' · ' + tourPos(ts).k + ' · ' + nm, chip: ts.def ? ts.def.name : ts.a.id, onTour: true };
+    if (ts && ts.here) return { stop: (tourPos(ts).k < 1 ? 'side a · lead-in' : 'side ' + sideOf(tourPos(ts).k, tourPos(ts).n) + ' · ' + tourPos(ts).k) + ' · ' + nm, chip: ts.def ? ts.def.name : ts.a.id, onTour: true };
     if (cur && cur.side) return { stop: T.sideRoom + ' · ' + nm, chip: LP, onTour: false };
     const w = walkStops(), pos = cur ? w.findIndex((s) => s.i === cur.i) : -1;
     return { stop: 'side ' + sideOf(pos < 0 ? 1 : pos + 1, w.length) + ' · ' + (pos < 0 ? 1 : pos + 1) + ' · ' + nm, chip: LP, onTour: false };
@@ -904,8 +908,26 @@ export function mount(ctx, deps) {
     const w = walkStops(), pos = cur ? w.findIndex((x) => x.i === cur.i) : -1;
     return sideTrack(pos < 0 ? 1 : pos + 1, w.length) + '  ' + nm + camSuffix();
   }
+  /* R8 DECK: the record as a tracklist in the deck (a1 … b16, the gate uncounted), the stop playing lit, the next one
+     underlined; a click drops the needle on that track */
+  const tracksEl = doc.getElementById('ai-tracks');
+  let tracksKey = '';
+  function renderTracks(ts, cur) {
+    const def = (ts && ts.def) || tourDef('grand'); if (!tracksEl || !def) return;
+    const g = def.stops[0] && def.stops[0].gate ? 1 : 0, n = def.stops.length - g;
+    const k = ts && ts.here ? ts.a.k : def.stops.findIndex((x, i) => i >= g && cur && x.room === cur.id), key = def.id + k;
+    if (key === tracksKey) return; tracksKey = key;
+    tracksEl.dataset.tour = def.id; tracksEl.setAttribute('aria-label', def.name);
+    const had = tracksEl.contains(document.activeElement); /* a rebuild under the focused track (a search fly, a key step) must not drop focus to the body */
+    tracksEl.innerHTML = '<li class="a-rec" aria-hidden="true">' + def.name.replace(/&/g, '&amp;') + '</li>' + def.stops.map((x, j) => { if (j < g) return ''; const t = sideTrack(j + 1 - g, n), nm = nameOf(x.room);
+      return '<li' + (j === k ? ' class="on"' : j === k + 1 ? ' class="nx"' : '') + '><button type="button" data-tk="' + j + '" aria-label="' + t + ' ' + nm + '"' + (j === k ? ' aria-current="true"' : '') + '><b>' + t + '</b><span> ' + nm + '</span></button></li>'; }).join('');
+    if (had) { const b = tracksEl.querySelector('[aria-current="true"]') || tracksEl.querySelector('button'); if (b) b.focus({ preventScroll: true }); }
+    requestAnimationFrame(() => { const on = tracksEl.querySelector('.on'); tracksEl.scrollLeft = on && on.previousSibling ? on.previousSibling.offsetLeft : 0; }); /* a sync read here flushed style mid-go and re-ran the room fade */
+  }
+  if (tracksEl) tracksEl.addEventListener('click', (e) => { const b = e.target.closest('[data-tk]'); if (b) try { ctx.tour.play(tracksEl.dataset.tour, +b.dataset.tk); } catch (x) {} });
   function renderStop() {
     const s = stepLabel(), ts = tourState(), cur = curStop();
+    renderTracks(ts, cur);
     stopText.textContent = s.stop;
     tourChipT.textContent = s.chip;
     mrowT.textContent = phoneStopLabel(s, ts, cur);
@@ -1408,7 +1430,18 @@ export function mount(ctx, deps) {
     }
     html.classList.toggle('ai-kick', kick);
   }
+  /* R8 DECK: on a desktop the tape, the reach tally and the tools (with more/hide) ride under the liner note, the play key
+     sits between prev and next; every element goes back where it was once the deck is off */
+  const homes = [], linerEl = $('ai-liner');
+  function park(el, to, before) { if (!el || !to || el.parentNode === to) return; if (!homes.some((h) => h[0] === el)) homes.push([el, el.parentNode, el.nextSibling]); to.insertBefore(el, before || null); }
+  function placeDeck() {
+    const bar = topBar && topBar.querySelector('.atlas-topbar');
+    if (DQ.matches) { if (bar) park(topPlay, bar, bar.querySelector('[data-a="next"]')); [tplusEl, servedEl, footEl].forEach((e) => park(e, linerEl)); park(lessBtn, footEl); park(hideBtn, footEl); }
+    else while (homes.length) { const [el, p, n] = homes.pop(); p.insertBefore(el, n && n.parentNode === p ? n : null); }
+  }
+  if (DQ.addEventListener) DQ.addEventListener('change', () => scheduleLayout());
   function layoutInfo() {
+    placeDeck();
     measureDock();
     const portrait = isPortrait();
     if (portrait) {
@@ -1433,10 +1466,11 @@ export function mount(ctx, deps) {
       /* the header's real height varies once search/menus land inside it (§SKELETON M4/M5), so the info
          column's top offset is measured, never hard-coded, to guarantee no overlap (a real bug this caught:
          #top measured 64px tall while the CSS fallback assumed ~50px, so #ai-hide sat partly under it). */
-      const topBottom = topBar ? Math.round(topBar.getBoundingClientRect().bottom) : 64, gap = 12;
-      info.style.top = (topBottom + gap) + 'px'; show.style.top = (topBottom + gap) + 'px';
+      const deck = DQ.matches, brand = deck && topBar && topBar.querySelector('.brand');
+      const topBottom = deck ? (brand ? Math.round(brand.getBoundingClientRect().bottom) : 0) : topBar ? Math.round(topBar.getBoundingClientRect().bottom) : 64, gap = 12;
+      info.style.top = deck ? '' : (topBottom + gap) + 'px'; show.style.top = deck ? '' : (topBottom + gap) + 'px';
       const infoRect = info.getBoundingClientRect();
-      html.style.setProperty('--atlas-infoh', Math.max(60, Math.round(infoRect.bottom)) + 'px');
+      html.style.setProperty('--atlas-infoh', (deck ? 26 : Math.max(60, Math.round(infoRect.bottom))) + 'px');
       /* round-2 fix: a real cap (not 'none') here too, mirroring the portrait branch, so a short landscape
          viewport (a phone held sideways) can never let the unfolded card push itself off-screen with nothing
          to scroll. a no-op everywhere roomy (desktop's own content is always well under this), since it only
@@ -1450,7 +1484,7 @@ export function mount(ctx, deps) {
       const wallReserve = innerHeight <= 480 ? WALL_MIN_LAND : 0;
       const maxH = Math.max(60, Math.round(innerHeight - topBottom - gap - dockH - 8 - wallReserve));
       html.style.setProperty('--atlas-infomaxh', maxH + 'px');
-      writeInsets(topBottom, null);
+      writeInsets(deck ? 0 : topBottom, null);
       const ln = $('ai-liner'); html.style.setProperty('--ai-top', (topBottom + gap) + 'px');
       html.style.setProperty('--ai-linerh', (ln && getComputedStyle(ln).position === 'fixed' ? Math.round(ln.getBoundingClientRect().height) : 0) + 'px');
       wallMore();

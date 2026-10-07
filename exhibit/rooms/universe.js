@@ -2,8 +2,8 @@
    the 388 artists with at least 50 plays are stars: their plays gather around them (a seeded force layout of which
    artists were played back to back for the 245 linked ones, an outer ring for the other 143, spaced evenly in order of
    plays (build_universe.py places them by node id, which is plays order: Spearman(id, ring angle) = 1), and a seeded
-   height slab for both), lying flat so the slow orbit at rest turns it like a record. every other play is dust on a faint
-   outer shell. the views of the same field:
+   height slab for both). R8 lays it on a platter: a flat disc seen tilted, turning at 33 1/3 rpm only while the bed plays
+   (camera.js spin), every other play dust in a band of grooves round the web, a hairline rim with strobe marks. the views:
      sky      every play, no lines
      links    the rate-matched jumps between stars as glyph trails, one arm at a time (GS K3)
      threads  every play pulled into its genre family; the jumps between families as glyph trails, one arm at a time (GS K5)
@@ -13,7 +13,7 @@
      star     fly to one star and read its card
    the stars come from universe_artists_all.json when it ships (Tier B, roster 'B') and otherwise from the Tier-A files
    alone (roster 'A': universe_nodes.json + universe_edges.json, no play counts); the room is whole in either state.
-   positions carry no meaning as distance or direction (GS K4); twinkle and glints are decoration. every number printed
+   positions carry no meaning as distance or direction (GS K4); the rim and its marks are decoration (no twinkle, no glints here). every number printed
    here comes from exhibit/data/universe_*.json. the room only exists in atlas mode (the section is removed at ?atlas=0). */
 
 const V = new URL(import.meta.url).search || '';
@@ -37,7 +37,7 @@ const HOME = { yaw: 0.42, pitch: 0.98, dist: 0.78, look: 'centre' };
 const HOME_T = { yaw: 0, pitch: 0.9, dist: 1.2, look: 'centre' }; /* dist: the fallback; framing() sets S.distT */
 /* the approach: a turn and a fall in from 1.2x home, so the very first frame is already the whole sky filling the stage
    (VERIFY_1 P0-1: from 2.35 the first seconds showed a sky about 150 px across with its names piled on it) */
-const APPROACH = { yaw: -0.5, pitch: 1.22, dist: 1.2, look: 'centre' }; /* 1.2x: home now fits the whole ring inside the stage (P2-9), so the first frame keeps about the size VERIFY_1 accepted at 1.4x */
+const APPROACH = { yaw: -0.5, pitch: 1.08, dist: 1.2, look: 'centre' }; /* 1.2x: home now fits the whole ring inside the stage (P2-9), so the first frame keeps about the size VERIFY_1 accepted at 1.4x */
 const HOME_FILL = 0.75, LONG_FILL = 0.92;
 /* the outer ring's fit (framing): an upright stage keeps its projected half-width at most RING_UP of the stage's width with
    its middle at RING_CY of the stage's height; a wide one keeps its projected radius at most RING_WIDE of the short side.
@@ -67,7 +67,7 @@ const HAZE_EVERY = 5;
    the haze band); coreK / coreRef: the biggest stars' column density is compressed by (coreRef / size)^coreK, a tone
    mapping so a few giants do not set the exposure for the whole sky (a star's size and total ink still grow with its
    plays); pitchWide / pitchUp: home's pitch on a wide stage and on an upright one */
-const TN = { dustKeep: 0.22, dustW: 105, dustOff: 40, dustSun: 3, coreK: 0.45, coreRef: 200, pitchWide: 1.25, pitchUp: 1.3, sigLow: 1.4, skyUp: 0.47, skyWide: 0.49 };
+const TN = { dustKeep: 0.09, dustW: 105, dustOff: 40, dustSun: 3, coreK: 0.45, coreRef: 200, pitchWide: 0.84, pitchUp: 0.98, sigLow: 1.4, skyUp: 0.47, skyWide: 0.49 };
 /* R5 R2 framing: home's sky fills >= 85% of a wide stage's height and of an upright one's width (tests/r5_sky.mjs). the sky's
    ring fits skyWide / skyUp (THREADS keeps RING_WIDE), and both pitches look down more steeply, so the turning disc is rounder
    and taller on the glass (was pitchWide 0.95, pitchUp 1.2, ring 0.46 / 0.44) */
@@ -425,7 +425,7 @@ function setRoster(R) {
   if (S.sun) { S.sun = null; S.sunOld = null; sunClass(false); }
   if (S.placeholder >= R.nA) S.placeholder = -1;
   if (S.sel && S.sel.i >= R.nA) { S.sel = null; try { S.ctx.lock(null); } catch (e) {} }
-  ringOf(R); coreOf(R);
+  platter(R); ringOf(R); coreOf(R);
   if (S.stage) { S.fit = framing(S.stage); }
   if (S.dom) { S.dom.lbStars.textContent = ''; S.dom.lbStars.removeAttribute('aria-activedescendant'); }
   onRoster(!!was);
@@ -505,6 +505,29 @@ function famIndex(name) {
   return AL[n] != null ? AL[n] : -1;
 }
 
+/* the platter (R8): the force layout lies on the disc (its height slab and every star's gaussian pressed to FLAT of their
+   height), and the dust leaves its sphere for a flat band of grooves, DUST_R0 to DUST_R1 from the spindle, GROOVE apart:
+   its angle round the axis is kept, its depth in the old shell picks the groove. clear of the giant box (dustInBox), so
+   nothing lands among the linked stars. once per roster; positions still mean nothing */
+const FLAT = 0.3, DUST_R0 = 0.8, DUST_R1 = 0.95, GROOVE = 0.03;
+function platter(R) {
+  if (!R || R.flat || !R.sky) return; R.flat = true;
+  const X = R.sky, dA = R.dA, pl = R.placed;
+  for (let d = 0; d < R.N; d++) {
+    const o = d * 3, a = dA[d];
+    if (a >= 0 && pl[a] !== 1) { X[o + 1] *= FLAT; continue; }
+    const x = X[o], y = X[o + 1], z = X[o + 2], rs = Math.hypot(x, y, z) || 1, th = Math.atan2(z, x), u = clamp((rs - 0.55) / 0.3, 0, 1);
+    const r = DUST_R0 + Math.round((u * (DUST_R1 - DUST_R0)) / GROOVE) * GROOVE + 0.004 * (y / rs);
+    X[o] = r * Math.cos(th); X[o + 1] = 0.006 * (y / rs); X[o + 2] = r * Math.sin(th);
+  }
+  if (R.cy) for (let i = 0; i < R.cy.length; i++) R.cy[i] *= FLAT;
+}
+/* the turn: the bed playing out loud (not muted, not ducked under a listening post, its deck not paused), on a view of the
+   whole disc. camera.js stops it under a hand, a lock or a trip, and never turns it under reduced motion */
+function bedPlays() { const A = S.ctx && S.ctx.audio, e = A && A.els && A.els[A.cur]; return !!(A && A.on && !A.muted && !A.away && !A.ducked && e && !e.paused); }
+/* the record turns only while the bed plays and the visitor has stepped back (the chrome has faded); a hand over it stops it */
+let reachAt = -1e9;
+const spins = () => S.active && !S.sel && (S.angle === 'sky' || S.angle === 'links' || S.angle === 'threads') && !!(S.ctx.idle && S.ctx.idle.faded) && now() - reachAt > 1500 && bedPlays();
 /* each dot's falloff class: 0 within one sigma of its star, 1 within two, 2 beyond, 3 dust (every non-star play) */
 function ringOf(R) {
   const n = R.N, rg = new Uint8Array(n).fill(DUSTC);
@@ -537,7 +560,7 @@ function framing(st) {
   const portrait = st.w <= st.h;
   /* an upright phone looks down more steeply, so the sky is round and uses the stage's height; a wide stage sees it tilted */
   const up = st.w <= st.h;
-  HOME.pitch = up ? TN.pitchUp : TN.pitchWide; HOME_T.pitch = up ? TN.pitchUp : 0.9;
+  HOME.pitch = up ? TN.pitchUp : TN.pitchWide; HOME_T.pitch = up ? TN.pitchUp : 0.9; APPROACH.pitch = HOME.pitch + 0.24;
   /* THREADS frames its ring of fourteen clusters (the ring plus the largest cluster's reach) the same way */
   let rt = 0.9, rt2 = 1; if (S.R && S.R.clusters) { let m = 0; for (let f = 0; f < 14; f++) m = Math.max(m, S.R.clusters[f * 4 + 3]); rt = 0.78 + 1.2 * m; rt2 = 0.78 + 2 * m; } /* the ring of centres plus a little of the largest cluster: a cluster's haze may run to the edge */
   S.distT = fitDist(st, rt, HOME_T.pitch);
@@ -550,7 +573,7 @@ function framing(st) {
      its projected radius at most RING_WIDE of the short side, in the middle. whatever the yaw. the height is set by the look
      target: home looks at a point S.homeTy under (or over) the middle of the sky, on the orbit's own axis, so the sky turns
      in place and only moves up or down the glass */
-  const sh = Math.min(st.w, st.h), fwR = portrait ? 2 * TN.skyUp : (2 * TN.skyWide * sh) / st.w, fhR = portrait ? LONG_FILL : (2 * TN.skyWide * sh) / st.h, cyR = portrait ? RING_CY : 0.5;
+  const sh = Math.min(st.w, st.h), fwR = portrait ? 2 * TN.skyUp : Math.max((2 * TN.skyWide * sh) / st.w, 2 * TN.skyUp) /* R8 platter + deck: a flat disc's width never grows with a turn, so a wide stage lets it span the upright fill of the width too (the deck's strip made the desk stage landscape and the short-side cap left it at 81%) */, fhR = portrait ? LONG_FILL : (2 * TN.skyWide * sh) / st.h, cyR = portrait ? RING_CY : 0.5;
   let ty = 0, d = 0;
   for (let k = 0; k < 4; k++) {
     d = Math.max(fitDist(st, S.coreR || 0.6, HOME.pitch, 0, 0, ty), fitDist(st, S.ringR || RING_R0, HOME.pitch, fwR, fhR, ty));
@@ -1029,7 +1052,8 @@ function startMorph(to, instant) {
 }
 /* how far the angle morph has run (0..1; 1 when none runs) */
 function morphU(t) { const M = S.morph; return M ? clamp(((t == null ? now() : t) - M.t0) / M.dur, 0, 1) : 1; }
-const labsHeld = () => !!S.morph && morphU() < MORPH_LAB;
+/* and none while the record turns: a name rides its groove only once the platter stops */
+const labsHeld = () => (!!S.morph && morphU() < MORPH_LAB) || (!S.sel && !!S.ctx && S.ctx.view.spin > 0);
 const areaK = () => { const st = S.stage, a = st ? Math.min(st.w, st.h) / 800 : 1; return perDot() * a * a; };
 function hazeKeep() { return Math.round(clamp(areaK() / HAZE_EVERY, 0.02, 1) * 1000) / 1000; }
 /* per play, per screen area, and per cell: when the governor coarsens the lattice (bigger cells hold more dust each), the
@@ -1601,6 +1625,7 @@ function pickCluster(sx, sy) {
   return best;
 }
 function onTap(p) {
+  reachAt = now();
   if (!S.R) return false;
   const touch = p.type === 'touch', i = pickStar(p.sx, p.sy, touch ? 26 : 16);
   if (i >= 0) { focusArtistIdx(i, 'tap'); return true; }
@@ -1612,6 +1637,7 @@ function onTap(p) {
   return false;
 }
 function onHover(p) {
+  reachAt = now();
   if (S.angle === 'threads') {
     S.hoverLine = pickLine(p.sx, p.sy); const f = S.hoverLine ? -1 : pickCluster(p.sx, p.sy);
     if (f !== S.hoverCluster) { S.hoverCluster = f; try { if (f >= 0) { const c = clusterPos(f), q = pt3(c[0], c[1], c[2]); S.ctx.audio.tick('uf:' + f, { fam: famName(f), x: q[0], y: q[1] }); } else S.ctx.audio.tick(null); } catch (e) {} }
@@ -1748,7 +1774,7 @@ function project(t) {
      while the shell's stop-trip crossing runs (W47: it caps every dot's pace), the placed sky tracks the camera exactly
      instead of shearing behind the approach */
   if (!S.placed) { S.placed = true; X.set(TX); Y.set(TY); Pp.ease = Math.max(Pp.ease, 0.35); Pp.swirl = 0; S.readyPend = true; }
-  else if (red || (Pp.morph && Pp.morph.on)) { X.set(TX); Y.set(TY); }
+  else if (red || (Pp.morph && Pp.morph.on) || ctx.view.spin > 0) { X.set(TX); Y.set(TY); } /* a turning platter is one rigid turn: no dot lags it */
 }
 /* the per-dot projection (+ the depth cue: w = base x k, k = kA - kB x depth clamped to [DEPTH_MIN, 1]; a day's lit plays,
    base == keep, keep their weight), in two loops: at rest, and morphing between two layouts. one loop with the morph as a
@@ -1810,8 +1836,22 @@ function passBy(ctx, t) {
   const f = T.from, df = Math.hypot(R.cx[best] - f[0], R.cy[best] - f[1], R.cz[best] - f[2]); if (df < 0.08) return; /* not the star it left */
   T.said = true; try { ctx.toast(tpl(C().passing, { name: R.names[best] }), 1700); } catch (e) {}
 }
+/* the platter's edge (R8): a hairline ellipse just past the ring and on it 108 strobe marks. at 60 frames a second a platter
+   at 33 1/3 moves exactly one mark a frame, so the row stands still once it is up to speed, as a turntable's strobe does
+   under mains light. interface ice, decoration only */
+const RIM_N = 108, RIM_SEG = 120;
+function drawPlatter(g) {
+  if (!S.R || S.angle === 'day' || S.angle === 'star' || sunLit()) return;
+  const r0 = Math.max(DUST_R1, S.ringR || RING_R0) + 0.04, r1 = r0 + 0.035;
+  g.save(); g.lineWidth = 1; g.strokeStyle = 'rgba(134,203,254,.2)'; g.beginPath();
+  for (let j = 0, f = true; j <= RIM_SEG; j++) { const a = (j / RIM_SEG) * 6.2832, p = pt3(r0 * Math.cos(a), 0, r0 * Math.sin(a)); if (p[3] <= 0.05) { f = true; continue; } if (f) g.moveTo(p[0], p[1]); else g.lineTo(p[0], p[1]); f = false; }
+  g.stroke(); g.strokeStyle = 'rgba(134,203,254,.34)'; g.beginPath();
+  for (let j = 0; j < RIM_N; j++) { const a = (j / RIM_N) * 6.2832, c = Math.cos(a), s = Math.sin(a), p = pt3(r0 * c, 0, r0 * s), q = pt3(r1 * c, 0, r1 * s); if (p[3] > 0.05 && q[3] > 0.05) { g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); } }
+  g.stroke(); g.restore();
+}
 function drawOverlay(g, t) {
   const a = S.angle;
+  drawPlatter(g);
   if (a === 'day' && S.D && S.dayK >= 0) drawDayBloom(g);
   if (S.sunOld) drawSun(g, t, S.sunOld);
   const U = S.sun, lit = U && U.lit && S.sel && S.sel.i === U.i;
@@ -2609,7 +2649,7 @@ export default {
   /* K2: no Sobel rim in any view, so every star and every family cluster is a soft core that grades out to haze (the
      own look). 'large' was tried and measured: at home the laid-out core is one body of well over 40 lit cells, so the
      rim still covered a fifth of the sky's lit cells, and in THREADS a third to a half */
-  glyph: { edges: false },
+  glyph: { edges: false, twinkle: false }, /* R8: the platter does not twinkle or glint */
   async mount(root, ctx) {
     S.ctx = ctx; S.root = root; S.sec = root.closest('section'); S.wall = S.sec && S.sec.querySelector('.wall');
     if (!ctx.atlas || !ctx.atlas.on || !S.wall) return;
@@ -2647,7 +2687,7 @@ export default {
     const H0 = S.homeFly, ownHome = wasFlying && !!H0 && ctx.view._in && ctx.view._in.flyingSince(H0.t0) && !ctx.view._in.flyingSince(H0.t1 + 0.01);
     S.fit = framing(S.stage);
     const tc0 = now();
-    ctx.view.configure({ mode: 'orbit3d', distMin: 0.06, distMax: Math.max(2.6, 3.2 * S.fit), home: fitted(HOME), drift: true, speed: 'slow', look: (k) => lookAt(k) });
+    ctx.view.configure({ mode: 'orbit3d', distMin: 0.06, distMax: Math.max(2.6, 3.2 * S.fit), home: fitted(HOME), drift: false, spin: spins, tilt: [0.32, 1.45], speed: 'slow', look: (k) => lookAt(k) });
     const refit = Math.abs(S.fit - fit0) > 1e-3 || Math.abs((S.homeTy || 0) - ty0) > 1e-3;
     if (re && ownHome && refit) homeFly(H0.k);
     else if (re && ownHome) S.homeFly = { t0: tc0, t1: now(), k: H0.k }; /* the camera carried it on (a new start): still ours */
@@ -2845,7 +2885,7 @@ api._dbg = {
     return { bad, star, cls, dust, keptShare: dust ? kept / dust : 0, keep: dustKeep(), dustW: TN.dustW, starW: STAR_W.slice(), depthMin: DEPTH_MIN };
   },
   /* tuning (tests only): set the dust's tunables or the home pitch, then re-frame and re-weight */
-  tune(o) { if (o) { Object.keys(o).forEach((k) => { if (k in TN) TN[k] = +o[k]; if (/^bloom[NRA]$/.test(k)) SKYB[k.slice(5).toLowerCase()] = +o[k]; if (k === 'bloomRLow') SKYB.rLow = +o[k]; if (k === 'bloomALow') SKYB.aLow = +o[k]; if (k === 'bloomOp') SKYB.op = o[k]; if (k === 'bloomHot') SKYB.hot = +o[k]; if (k === 'depthMin') DEPTH_MIN = +o[k];  if (k === 'starW') STAR_W.splice(0, STAR_W.length, ...o[k]); if (k === 'sig0') { SIG0 = +o[k]; S.ring = null; S.painted = ''; } }); S.dustMask = null; if (S.stage) S.fit = framing(S.stage); try { S.ctx.view.configure({ mode: 'orbit3d', distMin: 0.06, distMax: Math.max(2.6, 3.2 * S.fit), home: fitted(HOME), drift: true, speed: 'slow', look: (k) => lookAt(k) }); S.ctx.view.home({ instant: true }); } catch (e) {} weights(); setLabels(); } return Object.assign({ pitch: HOME.pitch, starW: STAR_W.slice(), fit: S.fit }, TN); },
+  tune(o) { if (o) { Object.keys(o).forEach((k) => { if (k in TN) TN[k] = +o[k]; if (/^bloom[NRA]$/.test(k)) SKYB[k.slice(5).toLowerCase()] = +o[k]; if (k === 'bloomRLow') SKYB.rLow = +o[k]; if (k === 'bloomALow') SKYB.aLow = +o[k]; if (k === 'bloomOp') SKYB.op = o[k]; if (k === 'bloomHot') SKYB.hot = +o[k]; if (k === 'depthMin') DEPTH_MIN = +o[k];  if (k === 'starW') STAR_W.splice(0, STAR_W.length, ...o[k]); if (k === 'sig0') { SIG0 = +o[k]; S.ring = null; S.painted = ''; } }); S.dustMask = null; if (S.stage) S.fit = framing(S.stage); try { S.ctx.view.configure({ mode: 'orbit3d', distMin: 0.06, distMax: Math.max(2.6, 3.2 * S.fit), home: fitted(HOME), drift: false, spin: spins, tilt: [0.32, 1.45], speed: 'slow', look: (k) => lookAt(k) }); S.ctx.view.home({ instant: true }); } catch (e) {} weights(); setLabels(); } return Object.assign({ pitch: HOME.pitch, starW: STAR_W.slice(), fit: S.fit }, TN); },
   hud() { const h = document.getElementById('ai-hud'); return h && !h.hidden ? h.textContent : ''; },
   dayDates() { const D = S.D; if (!D) return null; return Array.from(D.date).map(ymd); },
 };

@@ -148,7 +148,7 @@ const CSS = `.cd-bar{display:flex;flex-wrap:wrap;align-items:center;gap:2px 16px
 
 export function bar(host, opts = {}) {
   if (!document.getElementById('cd-css')) { const st = document.createElement('style'); st.id = 'cd-css'; st.textContent = CSS; document.head.appendChild(st); }
-  const L = Object.assign({ save: 'save picture', copy: 'the run-out groove', share: 'share' }, opts.labels || {}), ctx = opts.ctx;
+  const L = Object.assign({ save: 'save image', copy: 'copy as text', share: 'share' }, opts.labels || {}), ctx = opts.ctx;
   const el = document.createElement('div'); el.className = 'cd-bar' + (opts.cls ? ' ' + opts.cls : ''); el.setAttribute('role', 'group'); el.setAttribute('aria-label', opts.label || 'share this card');
   const btn = (k) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'cd-b cd-' + k; b.textContent = L[k]; b.disabled = true; el.appendChild(b); return b; };
   const bS = btn('save'), bC = btn('copy'), bH = btn('share'), st = document.createElement('span');

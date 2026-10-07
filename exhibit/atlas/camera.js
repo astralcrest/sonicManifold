@@ -107,6 +107,11 @@ const NUDGE = 0.5;
 /* mid-flight the view may pull out to PULL_FLOOR of the room's widest zoom, never further */
 const PULL_FLOOR = 0.5;
 /* a stop change lands like the end of a trip (K6): the new room opens pulled back to ARRIVE.pull of its home and glides in */
+/* the platter (R8): a room that is a record (configure's spin) turns at 33 1/3 rpm about its own axis while spin() says the bed
+   plays: up to speed in SPIN_UP s, braked to a stop in SPIN_DOWN s, and stopped dead under a hand (a press, a drag) or a
+   trip. it turns only while the view looks down the axis (no lock, target on it) and never under reduced motion. the turn
+   lives in the drift slot (dyaw), so a hand or a flight bakes it into the pose */
+const W33 = (100 / 3) * TAU / 60, SPIN_UP = 0.8, SPIN_DOWN = 0.25, SPIN_HAND = 900;
 const ARRIVE = { pull: 0.6, dur: { slow: 2.4, quick: 1.8, warp: 0.6 } };
 const SPEEDS = { slow: 'slow', cinematic: 'slow', quick: 'quick', normal: 'quick', warp: 'warp', fast: 'warp' };
 const peakOf = (wRef, w1, du) => { const wm = Math.max(wRef, w1); return wm * (1 + TRIP_K * Math.min(du / wm, HOP_W)); };
@@ -120,7 +125,7 @@ export function createView(ctx) {
     zMin: 1, zMax: 3, dMin: 0.06, dMax: 2.6,
     cx: 0, cy: 0, z: 1, zT: 1, anc: null,                      /* pan (z doubles as the orbit radius scale) */
     yaw: 0, pitch: 0, dist: 1, distT: 1, tx: 0, ty: 0, tz: 0,   /* orbit / orbit3d */
-    dcx: 0, dcy: 0, dyaw: 0, dA: 0, dTau: 0,                    /* idle drift, kept apart from the pose (§2.7) */
+    dcx: 0, dcy: 0, dyaw: 0, dA: 0, dTau: 0, w: 0, handAt: -1e9, /* idle drift, kept apart from the pose (§2.7); w: the platter's turn, rad/s */
     lock: null, manual: false, manualAt: -1e9, settleAt: -1e9, gest: false, hand: false, outToast: false,
     fl: null, dirty: true, why: 'config', lastState: '', cfgAt: 0, resizeAt: 0,
   };
@@ -190,7 +195,8 @@ export function createView(ctx) {
     if (!t && Array.isArray(p.target) && p.target.length === 3 && p.target.every(fin)) t = p.target;
     if (!t && fin(p.x) && fin(p.y)) t = [p.x, p.y, num(p.z3, 0)];
     if (!t) t = [S.tx, S.ty, S.tz];
-    return { yaw: wrapA(num(p.yaw, yaw0)), pitch: clamp(num(p.pitch, S.pitch), -1.52, 1.52), dist: clamp(num(p.dist, S.dist), S.dMin, S.dMax), t: t.map((v) => clamp(v, -1.5, 1.5)) };
+    const tl = S.cfg.tilt; /* a tilted platter is never seen edge-on, whoever sends the pose */
+    return { yaw: wrapA(num(p.yaw, yaw0)), pitch: clamp(num(p.pitch, S.pitch), tl ? tl[0] : -1.52, tl ? tl[1] : 1.52), dist: clamp(num(p.dist, S.dist), S.dMin, S.dMax), t: t.map((v) => clamp(v, -1.5, 1.5)) };
   }
   /* put the camera on q. place() leaves the idle drift running (an ambient move lands under it); jump() is a new pose */
   function place(q) {
@@ -199,7 +205,7 @@ export function createView(ctx) {
     else if (S.mode === 'orbit3d') { S.yaw = q.yaw; S.pitch = q.pitch; S.dist = S.distT = q.dist; S.tx = q.t[0]; S.ty = q.t[1]; S.tz = q.t[2]; }
     dirty('set');
   }
-  function jump(q) { place(q); S.dcx = S.dcy = S.dyaw = 0; S.dA = 0; S.dTau = 0; S.settleAt = now(); }
+  function jump(q) { place(q); S.dcx = S.dcy = S.dyaw = 0; S.dA = 0; S.dTau = 0; S.w = 0; S.settleAt = now(); }
   /* the travel speed: the visitor's own pick always wins (slow is the default); reduced motion reads as quick */
   function speedOf(o) {
     if (tier() >= 5) return 'warp';
@@ -227,7 +233,7 @@ export function createView(ctx) {
     /* a trip that takes over from one in flight keeps that chain's starting view as its reference, so stepping from name
        to name mid-flight never ratchets the view further out */
     const ref = cur && !cur.amb && cur.mode === S.mode ? cur.ref : 0;
-    endFlight(false); if (!amb) bake(); S.anc = null;
+    endFlight(false); if (!amb) { bake(); S.w = 0; } S.anc = null;
     const f = { t0: now(), mode: S.mode, q, key, res: null, pr: null, dur: 0, hop: false, amb, ref: 0, path: null };
     f.pr = new Promise((r) => { f.res = r; });
     const sp = speedOf(o), short = !!o.short || !!o.nudge;
@@ -336,10 +342,12 @@ export function createView(ctx) {
      feels (its own `yaw -= dx` moves a camera position; here the pose rotates the points, so the sign flips) */
   function orbitRaw(dx, dy) {
     if (!keepOrbit()) return;
-    S.yaw = wrapA(S.yaw + dx * 0.005); S.pitch = clamp(S.pitch - dy * 0.005, -1.52, 1.52); dirty('input');
+    const tl = S.cfg.tilt; S.handAt = now(); S.w = 0;
+    S.yaw = wrapA(S.yaw + dx * 0.005); S.pitch = clamp(S.pitch - dy * 0.005, tl ? tl[0] : -1.52, tl ? tl[1] : 1.52); dirty('input');
   }
   function slideRaw(dx, dy) {
     if (S.mode !== 'orbit3d') return;
+    S.handAt = now(); S.w = 0;
     const R = 0.42 * Math.min(S.st.w, S.st.h), s = (2.2 * R) / (2.2 * S.dist), yw = S.yaw + S.dyaw, cy = Math.cos(yw), sy = Math.sin(yw), cp = Math.cos(S.pitch), sp = Math.sin(S.pitch);
     const ax = dx / s, ay = dy / s;
     S.tx = clamp(S.tx - cy * ax + (-sp * sy) * ay, -1.5, 1.5);
@@ -506,9 +514,11 @@ export function createView(ctx) {
       carry = { res: f.res, left: Math.max(0.12, (f.dur - (now() - f.t0)) / 1000), amb: f.amb, hop: f.hop, ref: f.ref, key: f.key, q: mode === 'pan' ? { z: f.q.z, u: (f.q.cx - st.x) / st.w, v: (f.q.cy - st.y) / st.h } : f.q };
     }
     const dr = keep ? { x: S.dcx / S.st.w, y: S.dcy / S.st.h, yaw: S.dyaw, a: S.dA, tau: S.dTau } : null; /* the drift carries on through a relayout */
-    endFlight(false); S.anc = null; S.dcx = S.dcy = S.dyaw = 0; S.dA = 0; S.dTau = 0;
+    const w0 = keep ? S.w : 0;
+    endFlight(false); S.anc = null; S.dcx = S.dcy = S.dyaw = 0; S.dA = 0; S.dTau = 0; S.w = w0;
     let arrive = null;
-    S.cfg = { drift: !!o.drift, wheel: o.wheel !== false, dbl: o.dbl === undefined ? 'zoom' : o.dbl, speed: o.speed || null, look: typeof o.look === 'function' ? o.look : null };
+    const tl = Array.isArray(o.tilt) && o.tilt.length === 2 && o.tilt.every(fin) ? o.tilt : null;
+    S.cfg = { spin: typeof o.spin === 'function' ? o.spin : null, tilt: tl, drift: !!o.drift, wheel: o.wheel !== false, dbl: o.dbl === undefined ? 'zoom' : o.dbl, speed: o.speed || null, look: typeof o.look === 'function' ? o.look : null };
     S.mode = mode; S.cfgAt = now();
     if (mode !== 'none') {
       S.st = readStage(); S.cx0 = S.st.x + S.st.w / 2; S.cy0 = S.st.y + S.st.h / 2;
@@ -645,6 +655,12 @@ export function createView(ctx) {
         if (S.mode === 'pan') { const a = S.dA * 0.006 * S.st.w / S.z; S.dcx = a * Math.sin(S.dTau * 0.2417); S.dcy = a * 0.72 * Math.sin(S.dTau * 0.1698); dirty('drift'); }
         else if (S.mode === 'orbit3d') { S.dyaw += 0.035 * S.dA * dt; dirty('drift'); }
       }
+      if (S.cfg.spin && S.mode === 'orbit3d') {
+        const held = S.gest || S.hand; let on = false;
+        if (!RED && !held && !S.lock && tn - S.handAt > SPIN_HAND && Math.abs(S.tx) < 1e-3 && Math.abs(S.tz) < 1e-3 && tier() < 4 && !document.hidden) { try { on = !!S.cfg.spin(); } catch (e) {} }
+        const w0 = S.w; S.w = on ? Math.min(W33, w0 + (W33 * dt) / SPIN_UP) : held ? 0 : Math.max(0, w0 - (W33 * dt) / SPIN_DOWN);
+        if (S.w > 0 || w0 > 0) { S.dyaw = wrapA(S.dyaw + 0.5 * (w0 + S.w) * dt); dirty('drift'); }
+      }
     }
     const st = state(); if (st !== S.lastState) { S.lastState = st; dirty('state'); }
     if (S.dirty) {
@@ -693,7 +709,7 @@ export function createView(ctx) {
     get target() { return [S.tx, S.ty, S.tz]; },
     get zMin() { return S.mode === 'orbit3d' ? 1 / S.dMax : S.zMin; }, get zMax() { return S.mode === 'orbit3d' ? 1 / S.dMin : S.zMax; },
     get state() { return state(); }, get manual() { return S.manual; }, get lock() { return S.lock; }, get lockLabel() { return S.lock; },
-    get flying() { return !!S.fl && !S.fl.amb; }, get drift() { return !!S.cfg.drift; },
+    get flying() { return !!S.fl && !S.fl.amb; }, get drift() { return !!S.cfg.drift; }, get spin() { return S.w; },
     /* the trip in progress, for the chrome's `en route >>>`: its length (s), whether it is a hop, how far along (0-1).
        an ambient move (a dolly) is not a trip: null */
     get flight() { const f = S.fl; return f && !f.amb ? { dur: f.dur / 1000, hop: !!f.hop, u: clamp((now() - f.t0) / f.dur, 0, 1) } : null; },

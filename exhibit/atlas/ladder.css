@@ -296,3 +296,6 @@ html.atlas .atlas-ladder-chip.al-chip-off{visibility:hidden;pointer-events:none}
 @media print{
   html.atlas .atlas-ladder,html.atlas .atlas-ladder-chip,html.atlas .atlas-ladder-scrim{display:none!important}
 }
+/* R8 DECK: the dial stands on the deck's right end (panels.css html.atlas-deck). ladder.js keeps the knob 150px over the
+   rail's foot so the readout fits under it; over the deck, so its ground covers the deck's own words while it is open */
+html.atlas.atlas-deck .atlas-ladder{top:auto;bottom:6px;height:300px;z-index:7}

@@ -219,7 +219,7 @@ export const TOURS = [
         // TOURS3 (CRIT6 §6): 16 s on the most stunning stop. no scripted strum: tours.js has no demo hook (the strum is kiosk-only)
         room: 'universe', angle: 'sky', hold: 16,
         share: SHARE.universe,
-        caption: 'my {named} most-played artists. where one sits means nothing. press one; it sings.',
+        caption: 'my {named} most-played artists. where one sits means nothing. press one to hear it.',
         src: ['exhibit/data/universe_nodes.json', 'derive:named_count'],
       },
       {
@@ -249,7 +249,7 @@ export const TOURS = [
         // no pose: R5 R2 tuned the room's own home framing to fill >= 85% of the stage; hold 12 lets the kiosk strum finish
         room: 'universe', angle: 'sky', hold: 12,
         share: SHARE.universe,
-        caption: 'each star is an artist i played 50 times or more: {named} of them. colour is genre. where a star sits means nothing. press one and it sings.',
+        caption: 'each star is an artist i played 50 times or more: {named} of them. colour is genre. where a star sits means nothing. press one to hear it.',
         src: ['exhibit.html#universe.say', 'exhibit/data/universe_nodes.json', 'derive:named_count', 'exhibit/data/universe_edges.json'],
       },
       {
@@ -424,7 +424,7 @@ export const TOURS = [
     // R5 §4.3: the 45-second pitch. the id stays 'minute' so the door's #tour=minute links keep working
     id: 'minute',
     name: 'the radio edit',
-    blurb: 'for builders and investors',
+    blurb: 'the short cut, for someone in a hurry',
     capSpeed: 2, capWords: true,
     stops: [
       {
@@ -442,7 +442,7 @@ export const TOURS = [
       {
         room: 'listeners', angle: 'hundred', hold: 7,
         share: SHARE.listeners,
-        caption: 'of 100 tagged jumps, about 70 of mine switch genre, about 66 of the queue\'s. a direction, not a size. loosest rules: a tie.',
+        caption: 'of 100 tagged jumps, about 70 of mine switch genre, about 66 of the queue\'s. loosest rules: a tie.',
         src: S_PAIR.slice(),
       },
       {
@@ -476,7 +476,7 @@ export const TOURS = [
     // R5 §4.4
     id: 'scientists',
     name: 'liner notes for scientists',
-    blurb: 'the claim, the instrument failure, the kill conditions',
+    blurb: 'what i claim, and what i did to try to kill it',
     stops: [
       {
         room: 'threshold', angle: 'whole', gate: true,
@@ -589,7 +589,7 @@ export const TOURS = [
     // R5 §4.5
     id: 'musicians',
     name: 'liner notes for musicians',
-    blurb: 'keys, transitions, the soundtrack, the sky',
+    blurb: 'the tracks i made about this log, and how they mix',
     stops: [
       {
         room: 'threshold', angle: 'whole', gate: true,

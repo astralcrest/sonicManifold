@@ -35,11 +35,11 @@ export function mount(ctx) {
     if (pressed !== undefined) b.setAttribute('aria-pressed', String(pressed));
     return b;
   };
-  const saveBtn = mkBtn('save', 'save the sleeve');
+  const saveBtn = mkBtn('save', 'save image');
   const exposeBtn = mkBtn('expose', 'expose');
   exposeBtn.title = 'one bar of music in one still; drag to paint';
-  const copyBtn = mkBtn('copy', 'the run-out groove');
-  copyBtn.setAttribute('aria-label', 'the run-out groove: copy the marks as text');
+  const copyBtn = mkBtn('copy', 'copy as text');
+  copyBtn.setAttribute('aria-label', 'copy the marks as text');
   const freezeBtn = mkBtn('freeze', 'hold this frame', false);
   const labelsBtn = mkBtn('labels', 'names', true);
   const doneBtn = mkBtn('done', 'done');

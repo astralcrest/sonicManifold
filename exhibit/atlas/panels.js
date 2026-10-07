@@ -83,16 +83,33 @@ export function mount(ctx, deps) {
     return dlg;
   }
 
-  /* -------------------------------------------------------------- tours panel (§4.1)
+  /* -------------------------------------------------------------- shared words (copy.js settings.* first, these are the fallbacks) */
+  const CP = (deps && deps.COPY && deps.COPY.settings) || {};
+  const XFADE = Object.assign({ slow: 'long', quick: 'short', warp: 'cut' }, CP.travelSay);
+  const XSEC = Object.assign({ slow: '1.1 s', quick: '0.7 s', warp: '0.35 s' }, CP.travelSec);
+  const DETAIL_SAY = Object.assign({ ultra: 'finest', fine: 'fine', normal: 'plain', bold: 'big' }, CP.detailNames);
+  const DWELL_SAY = Object.assign({ short: 'a breath', normal: 'a verse', long: 'the whole song' }, CP.dwellNames);
+  const PINCH_SAY = Object.assign({ atlas: 'the atlas', page: 'the page' }, CP.pinchOptions);
+  const SIZE_SAY = { small: 'small', normal: 'normal', large: 'large' };
+  const DWELL_L = CP.holdName || 'hold';
+
+  /* -------------------------------------------------------------- records: a crate of sleeves, flipped by spine (§4.1)
      W23: docked to the right over live art on desktop (panels.css .atlas-panel-dock), the settings/help
-     dialogs keep the centred card treatment — only tours gets the flyout. */
+     dialogs keep the centred card treatment. the running time is the sum of each stop's authored hold plus the
+     angle holds tour.js adds, times the hold knob; a long caption can stretch a stop, so it reads as about. */
   const toursDlg = panelShell('atlas-tours', 'records');
   toursDlg.classList.add('atlas-panel-dock');
   function nameOf(id) { const t = (ctx.tour.list() || []).find((x) => x.id === id); return t ? t.name : id; }
+  function runSecs(id) {
+    const def = ((deps && deps.TOURS) || []).find((x) => x.id === id); if (!def) return 0;
+    const mul = ((deps && deps.DWELL) || {})[get('dwell')] || 1; let s = 0;
+    (def.stops || []).forEach((st) => { s += ((st.hold || 9) + 6 * ((st.then || []).length)) * mul; });
+    return Math.round(s);
+  }
+  const mss = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   function renderTours() {
     const body = $('[data-body]', toursDlg), tourApi = ctx.tour, act = tourApi.active;
-    let html = '<div class="a-pn-row" data-toggle></div><p class="a-lbl">' + DWELL_L + '</p><div class="a-seg" data-dwell></div><div data-list style="margin-top:14px"></div>';
-    body.innerHTML = html;
+    body.innerHTML = '<div class="a-pn-row" data-toggle></div><div class="k-crate" role="group" aria-label="the crate" data-list></div><p class="a-help-note k-hold">tracks hold for ' + esc(DWELL_SAY[get('dwell')] || '') + '. the hold knob changes that.</p>';
     const toggle = $('[data-toggle]', body);
     const b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'a-btn'; b1.style.flex = '1';
     b1.textContent = act.id ? (act.playing ? 'lift the needle' : 'resume ' + nameOf(act.id)) : 'drop the needle';
@@ -100,89 +117,146 @@ export function mount(ctx, deps) {
     const b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'a-btn'; b2.style.flex = '1'; b2.textContent = '° your hand'; b2.setAttribute('aria-label', 'your hand: stop the tour and steer yourself');
     b2.addEventListener('click', () => { if (act.id) tourApi.pause('manual'); closeDialog(toursDlg); });
     toggle.appendChild(b1); toggle.appendChild(b2);
-    const dwellSeg = $('[data-dwell]', body);
-    ['short', 'normal', 'long'].forEach((d) => {
-      const b = document.createElement('button'); b.type = 'button'; b.textContent = DWELL_SAY[d]; b.setAttribute('aria-pressed', String(get('dwell') === d));
-      b.addEventListener('click', () => { set('dwell', d); renderTours(); });
-      dwellSeg.appendChild(b);
-    });
     const list = $('[data-list]', body), tours = tourApi.list();
     if (!tours.length) { const p = document.createElement('p'); p.className = 'a-help-note'; p.textContent = 'the tour list is loading…'; list.appendChild(p); }
-    tours.forEach((t) => {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'a-tour-item';
+    tours.forEach((t, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'a-tour-item'; b.style.setProperty('--k-i', i);
       if (act.id === t.id) b.setAttribute('aria-current', 'true');
-      const seen = tourApi.seen ? tourApi.seen(t.id) : 0;
-      b.innerHTML = '<span class="a-t-name">' + esc(t.name) + '</span><span class="a-t-blurb">' + esc(t.blurb || '') + ' &middot; ' + (t.shown != null ? t.shown : t.stops) + ' stops' + (seen ? ' &middot; seen ' + seen + ' of ' + t.stops : '') + '</span>';
+      const seen = tourApi.seen ? tourApi.seen(t.id) : 0, rs = runSecs(t.id), n = t.shown != null ? t.shown : t.stops;
+      if (rs) b.setAttribute('aria-label', t.name + ', about ' + Math.floor(rs / 60) + ' minutes ' + (rs % 60) + ' seconds');
+      b.innerHTML = '<span class="a-t-name">' + esc(t.name) + '</span>' + (rs ? '<span class="a-t-time" aria-hidden="true">~' + mss(rs) + '</span>' : '') +
+        '<span class="a-t-blurb">' + esc(t.blurb || '') + ' &middot; ' + n + ' stops' + (seen ? ' &middot; seen ' + seen + ' of ' + t.stops : '') + '</span>';
       b.addEventListener('click', () => { tourApi.play(t.id, 0); closeDialog(toursDlg); });
       list.appendChild(b);
     });
-    const ss = document.createElement('button'); ss.type = 'button'; ss.className = 'a-tour-item'; ss.style.borderTop = '1px solid rgba(189,166,255,.1)'; ss.style.marginTop = '8px';
+    const ss = document.createElement('button'); ss.type = 'button'; ss.className = 'a-tour-item k-loop';
     ss.innerHTML = '<span class="a-t-name">leave it playing</span><span class="a-t-blurb">' + esc(nameOf('grand') + ' on repeat, hands off') + '</span>';
     ss.addEventListener('click', () => { try { const u = new URL(location.href); u.searchParams.set('kiosk', '1'); location.href = u.toString(); } catch (e) {} });
     list.appendChild(ss);
+    list.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return;
+      const all = Array.prototype.slice.call(list.querySelectorAll('.a-tour-item')), i = all.indexOf(document.activeElement); if (i < 0) return;
+      e.preventDefault();
+      const j = e.key === 'Home' ? 0 : e.key === 'End' ? all.length - 1 : Math.max(0, Math.min(all.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)));
+      all[j].focus();
+    });
     syncMore(body);
   }
   function openTours() { renderTours(); openDialog(toursDlg); }
 
-  /* -------------------------------------------------------------- settings panel */
+  /* -------------------------------------------------------------- knobs: three rotary dials, a few switches.
+     the stored values and ctx.settings are unchanged; a dial is a slider over the same option lists the old rows used. */
   const setDlg = panelShell('atlas-settings', 'knobs');
-  /* M12: the flight between stops is a crossfade and a stop is a track that holds (the stored values stay slow/quick/warp) */
-  const XFADE = { slow: 'long', quick: 'short', warp: 'cut' }, DWELL_L = 'how long each track holds';
-  const DETAIL_SAY = { ultra: 'finest', fine: 'fine', normal: 'plain', bold: 'big' }, DWELL_SAY = { short: 'a breath', normal: 'a verse', long: 'the whole song' };
-  function segHtml(key, opts, label, say) {
-    let h = '<p class="a-lbl">' + esc(label || key) + '</p><div class="a-seg" role="group" aria-label="' + esc(label || key) + '">';
-    opts.forEach((o) => { h += '<button type="button" data-k="' + key + '" data-v="' + o + '">' + esc(say ? say[o] : o) + '</button>'; });
-    return h + '</div>';
+  const DIALS = {
+    detail: { opts: ['ultra', 'fine', 'normal', 'bold'], name: CP.detail || 'detail', say: (v) => DETAIL_SAY[v] },
+    travel: { opts: ['slow', 'quick', 'warp'], name: CP.crossfade || 'crossfade', say: (v) => XFADE[v], sub: (v) => XSEC[v] },
+    dwell: { opts: ['short', 'normal', 'long'], name: DWELL_L, say: (v) => DWELL_SAY[v] },
+    textSize: { opts: ['small', 'normal', 'large'], name: CP.textSize || 'text size', say: (v) => SIZE_SAY[v] },
+  };
+  const SWITCHES = [['glow', CP.glow || 'glow'], ['sound', CP.sound || 'sound']];
+  const SMALL = [['labels', CP.labels || 'names'], ['twinkle', CP.twinkle || 'shimmer'], ['fade', CP.fade || 'let the words go quiet']];
+  /* a dial sweeps 270 degrees, dead zone at the bottom; i = 0 sits at -135 */
+  const dAng = (i, n) => -135 + (270 * i) / (n - 1);
+  const dPt = (a, r) => [(40 + r * Math.sin((a * Math.PI) / 180)).toFixed(1), (40 - r * Math.cos((a * Math.PI) / 180)).toFixed(1)];
+  const dArc = (a0, a1) => { const p0 = dPt(a0, 29), p1 = dPt(a1, 29); return 'M' + p0[0] + ' ' + p0[1] + 'A29 29 0 ' + (a1 - a0 > 180 ? 1 : 0) + ' 1 ' + p1[0] + ' ' + p1[1]; };
+  function dialHtml(key, small) {
+    const D = DIALS[key], n = D.opts.length; let ticks = '';
+    D.opts.forEach((o, i) => { const p = dPt(dAng(i, n), 36); ticks += '<circle class="k-tick" cx="' + p[0] + '" cy="' + p[1] + '" r="2.2"/><circle class="k-hit" cx="' + p[0] + '" cy="' + p[1] + '" r="8" data-k="' + key + '" data-v="' + o + '"/>'; });
+    return '<div class="k-dialwrap' + (small ? ' k-small' : '') + '"><div class="k-dial" role="slider" tabindex="0" data-dial="' + key + '" aria-label="' + esc(D.name) + '" aria-valuemin="0" aria-valuemax="' + (n - 1) + '">' +
+      '<svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><path class="k-track" d="' + dArc(-135, 135) + '"/><path class="k-arc" d=""/>' + ticks +
+      '<circle class="k-cap" cx="40" cy="40" r="21"/><g class="k-needle"><line x1="40" y1="40" x2="40" y2="23"/></g></svg></div>' +
+      '<span class="k-name">' + esc(D.name) + '</span><span class="k-say" data-say="' + key + '"></span></div>';
   }
-  function toggleHtml(key, label) {
-    return '<div class="a-toggle"><span>' + esc(label) + '</span><button type="button" data-k="' + key + '" data-bool="1">' + (get(key) ? 'on' : 'off') + '</button></div>';
+  function switchHtml(key, label, small) {
+    return '<button type="button" role="switch" class="k-sw' + (small ? ' k-sw-s' : '') + '" data-k="' + key + '" data-bool="1" aria-checked="false"><span class="k-sw-name">' + esc(label) + '</span><span class="k-sw-rail" aria-hidden="true"><span class="k-sw-knob"></span></span><span class="k-sw-st" aria-hidden="true"></span></button>';
+  }
+  function pinchHtml() {
+    return '<button type="button" role="switch" class="k-sw k-sw-s k-pair" data-k="pinch" data-pair="1" aria-checked="false" aria-label="pinch zooms the page"><span class="k-sw-name">' + esc(CP.pinch || 'pinch zooms') + '</span><span class="k-sw-rail" aria-hidden="true"><span class="k-sw-knob"></span></span><span class="k-sw-st" aria-hidden="true"><b data-side="atlas">' + esc(PINCH_SAY.atlas) + '</b> <b data-side="page">' + esc(PINCH_SAY.page) + '</b></span></button>';
+  }
+  const muteEl = () => document.getElementById('mute');
+  function soundOn() {
+    let st = null; try { st = ctx.audio && typeof ctx.audio.state === 'function' ? ctx.audio.state() : null; } catch (e) {}
+    if (st) return st === 'on';
+    const m = muteEl(); return !!m && m.getAttribute('aria-pressed') === 'false';
+  }
+  function setDial(key, i) {
+    const o = DIALS[key].opts, j = Math.max(0, Math.min(o.length - 1, i));
+    if (o[j] !== get(key)) { set(key, o[j]); refreshSettingsUI(); }
   }
   function buildSettingsBody() {
     const body = $('[data-body]', setDlg);
-    let html = segHtml('detail', ['ultra', 'fine', 'normal', 'bold'], null, DETAIL_SAY) + segHtml('travel', ['slow', 'quick', 'warp'], 'crossfade', XFADE) + segHtml('dwell', ['short', 'normal', 'long'], DWELL_L, DWELL_SAY) + segHtml('textSize', ['small', 'normal', 'large'], 'text size');
-    html += toggleHtml('fade', 'let the words go quiet') + toggleHtml('glow', 'glow') + toggleHtml('labels', 'names') + toggleHtml('twinkle', 'shimmer');
-    if (coarse) html += segHtml('pinch', ['atlas', 'page'], 'pinch zooms');
-    html += '<p class="a-grid-read" data-grid></p><p class="a-help-note">v cycles detail &middot; y cycles the crossfade &middot; g toggles glow &middot; ? shows what every key does' + (lowPower ? ' &middot; one dot on this screen is four plays' : '') + '</p>';
-    body.innerHTML = html;
+    body.innerHTML = '<div class="k-dials">' + dialHtml('detail') + dialHtml('travel') + dialHtml('dwell') + '</div>' +
+      '<div class="k-switches">' + SWITCHES.map((s) => switchHtml(s[0], s[1])).join('') + '</div>' +
+      '<div class="k-print"><div class="k-print-dial">' + dialHtml('textSize', true) + '</div><div class="k-print-sw">' + SMALL.map((s) => switchHtml(s[0], s[1], true)).join('') + (coarse ? pinchHtml() : '') + '</div></div>' +
+      '<p class="a-help-note">v, y and g turn detail, crossfade and glow from the keyboard.</p>';
     body.addEventListener('click', (e) => {
       const b = e.target.closest('[data-k]'); if (!b) return;
-      const k = b.dataset.k, v = b.dataset.bool ? get(k) !== true : b.dataset.v;
-      set(k, v);
+      const k = b.dataset.k;
+      if (b.dataset.v) set(k, b.dataset.v);
+      else if (k === 'sound') { const m = muteEl(); if (m) m.click(); setTimeout(refreshSettingsUI, 60); }
+      else if (b.dataset.pair) set(k, get(k) === 'page' ? 'atlas' : 'page');
+      else set(k, get(k) !== true);
       refreshSettingsUI();
+    });
+    body.querySelectorAll('.k-dial').forEach((el) => {
+      const key = el.dataset.dial, D = DIALS[key], n = D.opts.length;
+      el.addEventListener('keydown', (e) => {
+        const i = D.opts.indexOf(get(key)); let j = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') j = i + 1; else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') j = i - 1;
+        else if (e.key === 'Home') j = 0; else if (e.key === 'End') j = n - 1; else if (e.key === 'PageUp') j = i + 1; else if (e.key === 'PageDown') j = i - 1;
+        if (j == null) return; e.preventDefault(); setDial(key, j);
+      });
+      let drag = false;
+      const turn = (e) => {
+        const r = el.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+        if (dx * dx + dy * dy < 36) return;
+        let a = (Math.atan2(dx, -dy) * 180) / Math.PI; if (a > 135 && dx > 0) a = 135; else if (a < -135 || (a > 135 && dx <= 0)) a = -135;
+        setDial(key, Math.round(((a + 135) / 270) * (n - 1)));
+      };
+      el.addEventListener('pointerdown', (e) => { drag = true; try { el.setPointerCapture(e.pointerId); } catch (x) {} turn(e); });
+      el.addEventListener('pointermove', (e) => { if (drag) turn(e); });
+      const up = () => { drag = false; }; el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
     });
   }
   function refreshSettingsUI() {
-    setDlg.querySelectorAll('[data-k]').forEach((b) => {
-      const k = b.dataset.k;
-      if (b.dataset.bool) { const on = get(k) === true; b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'on' : 'off'; }
-      else b.setAttribute('aria-pressed', String(get(k) === b.dataset.v));
+    Object.keys(DIALS).forEach((key) => {
+      const el = setDlg.querySelector('.k-dial[data-dial="' + key + '"]'); if (!el) return;
+      const D = DIALS[key], n = D.opts.length, v = get(key), i = Math.max(0, D.opts.indexOf(v)), a = dAng(i, n), say = D.say(v) + (D.sub ? ' ' + D.sub(v) : '');
+      el.setAttribute('aria-valuenow', String(i)); el.setAttribute('aria-valuetext', say);
+      el.querySelector('.k-needle').style.transform = 'rotate(' + a + 'deg)';
+      el.querySelector('.k-arc').setAttribute('d', i ? dArc(-135, a) : '');
+      el.querySelectorAll('.k-tick').forEach((t, j) => t.classList.toggle('on', j <= i));
+      const s = setDlg.querySelector('[data-say="' + key + '"]'); if (s) s.textContent = say;
     });
-    const gr = $('[data-grid]', setDlg);
-    if (gr) { let s = null; try { s = GF && GF.stats && GF.stats(); } catch (e) {} gr.textContent = s && s.cols ? s.cols + ' × ' + s.rows + ' marks on this screen' : ''; }
+    setDlg.querySelectorAll('button[data-k]').forEach((b) => {
+      const k = b.dataset.k; let on;
+      if (k === 'sound') on = soundOn(); else if (b.dataset.pair) on = get(k) === 'page'; else on = get(k) === true;
+      b.setAttribute('aria-checked', String(on));
+      if (b.dataset.pair) { b.setAttribute('aria-label', 'pinch zooms ' + (on ? PINCH_SAY.page : PINCH_SAY.atlas)); b.querySelectorAll('[data-side]').forEach((s) => s.classList.toggle('on', (s.dataset.side === 'page') === on)); }
+      else { const st = b.querySelector('.k-sw-st'); if (st) st.textContent = on ? 'on' : 'off'; }
+    });
     syncMore($('[data-body]', setDlg));
   }
   buildSettingsBody();
+  refreshSettingsUI();
+  document.addEventListener('atlas:sound', refreshSettingsUI);
+  try { ctx.audio && typeof ctx.audio.onChange === 'function' && ctx.audio.onChange(refreshSettingsUI); } catch (e) {}
+  onChange(() => { if (setDlg.open) refreshSettingsUI(); });
   function openSettings() { refreshSettingsUI(); openDialog(setDlg); }
 
-  /* -------------------------------------------------------------- help overlay (§2.6, every control + the
-     accuracy notes: glyph shape carries provenance, phones draw one dot per four plays, the clock and the
-     universe day view read on one fixed clock all year, universe positions carry no meaning as distance,
-     twinkle/glints are decoration everywhere) */
+  /* -------------------------------------------------------------- help: the back cover. a short paragraph on how to play, one line of keys,
+     then the accuracy notes in small print (glyph shape carries provenance, phones draw one dot per four plays, the clock and the
+     universe day view read on one fixed clock, universe positions carry no meaning as distance, shimmer is decoration) */
   const helpDlg = panelShell('atlas-help', 'help');
   (function buildHelp() {
-    const body = $('[data-body]', helpDlg);
-    const rows = [
-      ['drag', 'turn or pan the camera'], ['wheel / pinch', 'zoom'], ['double-tap', 'zoom in, wraps to home'],
-      ['tap a name', 'go there'], ['→ ↓ ]', 'next stop'], ['← ↑ [', 'previous stop'], ['space p', 'play / pause the tour'],
-      ['. ,', 'next / previous angle'], ['p', 'play / pause the tour'], ['1–9, 0', 'jump to track n'],
-      ['/', 'dig the log (search)'], ['+ = / -', 'zoom in / out'], ['r or esc', 'camera home'], ['h', 'first stop'],
-      ['l', 'wall label'], ['m', 'mute'], ['v / g / y', 'detail / glow / crossfade'], ['?', 'what every key does'],
-    ];
-    let html = '<dl>' + rows.map((r) => '<div class="a-help-row"><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>').join('') + '</dl>';
-    html += '<p class="a-help-note">the glyph SHAPE carries who pressed play in every categorical room, not just colour, and the colour code still means what it always meant.' +
+    const body = $('[data-body]', helpDlg), H = (deps && deps.COPY && deps.COPY.help && deps.COPY.help.back) || {};
+    let html = '<p class="a-back-h">' + esc(H.head || 'how to play this record') + '</p>' +
+      '<p class="a-back-p">' + esc(H.how || 'drag turns it and the wheel or two fingers zoom. tap a name and you are there. the tour plays itself; press space and it is yours, press it again and it carries on.') + '</p>' +
+      '<p class="a-back-k">' + esc(H.keys || '/ dig · space pause · arrows or [ ] step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l names · m sound · e how to read this stop · ? this') + '</p>';
+    html += '<p class="a-help-note">the shape of a glyph says who pressed play in every categorical room, not just colour, and the colour code still means what it always meant.' +
       (lowPower ? ' on this screen one dot is four plays.' : '') +
-      ' the clock and the universe day view read on one fixed clock all year, not a real local time. the marks after a name, ▮ to ▮▮▮▮▮, are its plays in five steps among the starred artists, in its genre colour; they say nothing about who pressed play. positions in the universe carry no meaning as distance or direction on their own. twinkle and the rare bright glints are decoration everywhere and carry no data.' +
-      (coarse ? ' the pinch zooms setting in settings chooses whether two fingers zoom the field or the page.' : '') + '</p>';
+      ' the clock and the universe day view read on one fixed clock all year, not a real local time. the marks after a name, ▮ to ▮▮▮▮▮, are its plays in five steps among the starred artists, in its genre colour; they say nothing about who pressed play. positions in the universe carry no meaning as distance or direction on their own. shimmer is decoration everywhere and carries no data.' +
+      (coarse ? ' the pinch knob chooses whether two fingers zoom the field or the page.' : '') + '</p>';
     const sh = document.querySelector('link[rel=modulepreload][href*="shell.js?v="]') || document.querySelector('script[src*="shell.js?v="]');
     const bv = sh && /shell\.js\?v=([\w.-]+)/.exec(sh.getAttribute('href') || sh.getAttribute('src') || '');
     if (bv) html += '<p class="a-help-build" data-build>build ' + esc(bv[1]) + '</p>';
@@ -192,7 +266,7 @@ export function mount(ctx, deps) {
   ctx.keys.on('?', () => { openHelp(); return true; });
 
   /* -------------------------------------------------------------- v / g / y setting cycles */
-  function cycle(key, opts) { const i = opts.indexOf(get(key)); set(key, opts[(i + 1 + opts.length) % opts.length]); try { ctx.toast(key + ': ' + get(key)); } catch (e) {} }
+  function cycle(key, opts) { const i = opts.indexOf(get(key)); set(key, opts[(i + 1 + opts.length) % opts.length]); try { ctx.toast((key === 'detail' ? (CP.detail || 'detail') + ': ' + DETAIL_SAY[get(key)] : key + ': ' + get(key))); } catch (e) {} }
   ctx.keys.on('v', () => { cycle('detail', ['ultra', 'fine', 'normal', 'bold']); return true; });
   ctx.keys.on('y', () => { const o = ['slow', 'quick', 'warp'], i = o.indexOf(get('travel')); set('travel', o[(i + 1) % 3]); try { ctx.toast('crossfade: ' + XFADE[get('travel')]); } catch (e) {} return true; });
   ctx.keys.on('g', () => { set('glow', !get('glow')); try { ctx.toast('glow: ' + (get('glow') ? 'on' : 'off')); } catch (e) {} return true; });
@@ -203,17 +277,43 @@ export function mount(ctx, deps) {
      for it through to the stage. */
   const top = document.getElementById('top');
   let topbar = null;
+  /* R8 DECK: on a desktop (fine pointer, >=900 wide, landscape) #top leaves the top edge and becomes the deck along the
+     bottom (panels.css, html.atlas-deck): dig, records + the tracklist (chrome.js fills #ai-tracks), prev, the needle,
+     next, the crossfade fader, sound, knobs, ?, and the tonearm dial at the end (chrome.js moves the play key and the
+     dial in). the deck-only keys are display:none everywhere else, so phones and touch screens keep today's row. */
+  const DECKQ = matchMedia('(pointer:fine) and (min-width:900px) and (min-aspect-ratio:115/100) and (min-height:481px)');
+  /* the deck takes the bottom edge: the stage ends DECK_RES above it (deck + the band rooms put their controls in).
+     post.js reserves its own player height through the same call, so the two add up instead of overwriting */
+  const DECK_RES = 136, rb0 = ctx.reserveBottom;
+  let rbPost = 0;
+  const rbApply = () => { if (typeof rb0 === 'function') rb0.call(ctx, rbPost + (DECKQ.matches ? DECK_RES : 0)); };
+  if (typeof rb0 === 'function') ctx.reserveBottom = (px) => { rbPost = Math.max(0, Math.round(px || 0)); rbApply(); };
+  function deckMode() { document.documentElement.classList.toggle('atlas-deck', DECKQ.matches); rbApply(); }
+  deckMode();
+  if (DECKQ.addEventListener) DECKQ.addEventListener('change', deckMode); else if (DECKQ.addListener) DECKQ.addListener(deckMode);
   if (top) {
     topbar = document.createElement('nav'); topbar.className = 'atlas-topbar'; topbar.setAttribute('aria-label', 'record menu'); topbar.dataset.idle = 'dim';
     topbar.innerHTML = [
       '<button type="button" class="a-btn" data-a="home">from the top</button>',
       '<button type="button" class="a-btn" data-a="atlas">dig /</button>',
       '<button type="button" class="a-btn" data-a="tours">records ▾</button>',
+      '<ol class="a-tracks" id="ai-tracks" aria-label="tracklist"></ol>',
+      '<button type="button" class="a-btn a-dk" data-a="prev" aria-label="previous stop">⏮︎</button>',
+      '<button type="button" class="a-btn a-dk" data-a="next" aria-label="next stop">⏭︎</button>',
+      '<span class="a-xf a-dk" role="radiogroup" aria-label="crossfade"><span class="a-xf-l" aria-hidden="true">crossfade</span>' +
+        ['slow', 'quick', 'warp'].map((v) => '<button type="button" role="radio" data-xf="' + v + '" aria-checked="false" aria-label="' + XFADE[v] + '"></button>').join('') +
+        '<span class="a-xf-v" aria-hidden="true"></span></span>',
+      '<span id="mute-top" style="display:contents"></span>',
       '<button type="button" class="a-btn" data-a="time">the day</button>',
       '<button type="button" class="a-btn" data-a="settings">knobs</button>',
       '<button type="button" class="a-btn" data-a="help">?</button>',
     ].join('');
     top.appendChild(topbar);
+    const xfBtns = [...topbar.querySelectorAll('[data-xf]')], xfV = topbar.querySelector('.a-xf-v');
+    const syncXF = () => { const v = get('travel'); xfBtns.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.xf === v))); xfV.textContent = XFADE[v] || ''; };
+    topbar.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-xf]'); if (b) set('travel', b.dataset.xf); });
+    onChange((k) => { if (k === 'travel') syncXF(); });
+    syncXF();
   }
 
   /* -------------------------------------------------------------- phone dock (W22: §0.2 "dock (44px, lowercase)"
@@ -255,7 +355,7 @@ export function mount(ctx, deps) {
   const mqPortrait = matchMedia('(max-aspect-ratio:115/100)');
   function placeMute() {
     const mute = document.getElementById('mute'); if (!mute) return;
-    const target = mqPortrait.matches ? $('#mute-slot', dock) : topbar;
+    const target = mqPortrait.matches ? $('#mute-slot', dock) : (topbar && $('#mute-top', topbar)) || topbar;
     if (target && mute.parentElement !== target) target.appendChild(mute);
   }
   placeMute();

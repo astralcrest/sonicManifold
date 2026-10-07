@@ -13,14 +13,14 @@ export const COPY = {
   },
 
   chrome: {
-    lockedOn: 'needle down',
+    lockedOn: 'on the record',
     freeCamera: '° your hand',
     // R6 M1: the stepper is a tracklist and a tour is the queue (the tour's names live in tours.js)
     nextStop: 'up next · {stop} ›',
-    backToTour: 'put the needle back · {stop} ›',
+    backToTour: 'back to the tour · {stop} ›',
     startAgain: 'play it again ›',
     mpillNext: 'up next ›',
-    mpillBack: 'needle back ›',
+    mpillBack: 'back ›',
     enRoute: 'crossfading',
     angleBar: 'bar {k} / {n}',
     // R6 move 3: how the visitor reached each stop, in the arms' own glyphs (≡ the tour, ° their pick, × shuffle).
@@ -35,11 +35,11 @@ export const COPY = {
     soundOff: 'sound off',
     soundOn: 'sound on',
     // R6 M9: the hint leads with sound
-    onboarding: 'hover to hear · hold to loop · drag to turn · / to dig the log',
+    onboarding: 'hover to hear · hold to loop · drag to turn · / to search the log',
     onboardingTouch: 'touch to hear · hold to loop · drag to turn',
     // W40/W10 tour end card: verbatim source for chrome.js's CC.end*/CC.contact fallbacks (chrome.js ~L40-45).
     endHead: 'end of the record.',
-    endFly: 'take the wheel ›',
+    endFly: 'look around ›',
     endExport: 'run it on your own export ›',
     endReport: 'the report ›',
     endAgain: 'play it again ›',
@@ -47,7 +47,7 @@ export const COPY = {
     toasts: {
       pressAndHold: 'press and hold',
       zoomedOut: 'zoomed all the way out · next stop with → or the pill',
-      tourPaused: 'you took the wheel · ▶ hands it back to the queue',
+      tourPaused: 'your hand has it · ▶ hands it back to the queue',
       sessionNotCounted: "single sessions aren't in the public data; only their totals are",
       linkCopied: 'link copied',
       detailLowered: 'marks made bigger so the music keeps up',
@@ -62,7 +62,8 @@ export const COPY = {
     dwellNames: { short: 'a breath', normal: 'a verse', long: 'the whole song' }, fade: 'let the words go quiet',
     glow: 'glow', labels: 'names', twinkle: 'shimmer', textSize: 'text size', pinch: 'pinch zooms',
     pinchOptions: { atlas: 'the atlas', page: 'the page' },
-    footerGrid: '{cols} × {rows} marks on this screen',
+    crossfade: 'crossfade', holdName: 'hold', sound: 'sound',
+    travelSay: { slow: 'long', quick: 'short', warp: 'cut' }, travelSec: { slow: '1.1 s', quick: '0.7 s', warp: '0.35 s' },
   },
 
   // help overlay: every control, plus the five mandatory accuracy notes (§2.6).
@@ -80,17 +81,22 @@ export const COPY = {
       'e: how to read this stop',
       '?: what every key does',
     ],
+    back: {
+      head: 'how to play this record',
+      how: 'drag turns it and the wheel or two fingers zoom. tap a name and you are there. the tour plays itself; press space and it is yours, press it again and it carries on.',
+      keys: '/ dig · space pause · arrows or [ ] step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l names · m sound · e how to read this stop · ? this',
+    },
     accuracy: [
       'in a categorical room, the shape of a character says who pressed play; colour is not needed to read it.',
       'on a small screen one dot stands for four plays, not one.',
       "the clock and the universe's day view both read on one fixed clock, all year (no per-play timezone or daylight saving was kept), not a real local time.",
       "a star's position in the universe carries no meaning as distance; its depth is a seeded drawing offset unless a 3d layout file ships.",
-      'twinkle and the occasional bright glint are decoration everywhere on this site and carry no data.',
+      'shimmer is decoration everywhere on this site and carries no data.',
     ],
   },
 
   photo: {
-    bar: ['save the sleeve', 'the run-out groove: copy the marks as text', 'hold this frame', 'names', 'done'],
+    bar: ['save image', 'copy the marks as text', 'hold this frame', 'names', 'done'],
     share: 'share',
   },
 
@@ -110,7 +116,7 @@ export const COPY = {
     // R2 C2 #2: "lands somewhere real" contradicted universe.js's own pos1 (a dust artist's dot is a placeholder
     // with no computed position); this says the same thing search actually does without the false claim.
     footer: "names and dates from the log · every result lands somewhere; a dust artist's spot is a placeholder",
-    placeholder: 'dig the log',
+    placeholder: 'search the log',
     seen: 'heard {n} of {total}',
   },
 
@@ -255,4 +261,5 @@ export const SRC = [
   { n: '4', where: 'kill_reconcile.json, tours (grand 9, C1)', src: 'exhibit/data/killit.json#cases (length)' },
   { n: '18', where: 'kill_reconcile.json, labels_proposal.json graveyard.tally', src: 'researcher.html #graveyard <ol> (count of <li>)' },
   { n: '27', where: 'kill_reconcile.json N (distinct union)', src: 'derive: count of kill_reconcile.json rows, i.e. 9 same + 9 killit-only + 9 researcher-only' },
+  { n: '1.1 / 0.7 / 0.35', where: 'settings.travelSec (the crossfade fader and the knobs dial)', src: 'exhibit/shell.js#REC_SEC (a UI timing, not a finding)' },
 ];

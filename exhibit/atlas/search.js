@@ -654,7 +654,7 @@ export function mount(ctx, deps) {
     setTimeout(() => { if (!st.open) panel.hidden = true; }, 220);
     if (document.activeElement === barInput || document.activeElement === sheetInput) blurActive();
     const pf = st.prevFocus; st.prevFocus = null;
-    if (flew === true) { if (st.byKey || !coarseNow()) focusFirst([document.getElementById('ai-tourchip'), document.getElementById('atlas-show')]); }
+    if (flew === true) { if (st.byKey || !coarseNow()) focusFirst([document.getElementById('ai-tourchip'), document.querySelector('#ai-tracks [aria-current="true"]'), document.querySelector('#ai-tracks button'), document.getElementById('atlas-show')]); /* R8 DECK: the stop row is hidden on the desk deck; its current track takes the focus */ }
     else if (pf === barInput) { st.noFocusOpen = true; try { barInput.focus({ preventScroll: true }); } catch (e) {} st.noFocusOpen = false; }
     else focusFirst([pf]);
   }

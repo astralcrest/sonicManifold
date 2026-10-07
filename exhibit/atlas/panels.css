@@ -72,18 +72,65 @@ html.atlas .a-toggle{display:flex;align-items:center;justify-content:space-betwe
 html.atlas .a-toggle button{font:600 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:7px 12px;min-height:32px;cursor:pointer}
 html.atlas .a-toggle button[aria-pressed="true"]{color:var(--ice);border-color:rgba(134,203,254,.5)}
 
-/* tours list (W23: the current tour also carries a 2px ice bar, not just the "›" glyph, since the docked
-   panel now sits beside the live art rather than centred over it, where the extra edge reads better) */
-html.atlas .a-tour-item{display:block;width:100%;text-align:left;background:none;border:0;border-left:2px solid transparent;border-top:1px solid rgba(189,166,255,.1);color:var(--ink);padding:12px 2px 12px 10px;cursor:pointer;border-radius:3px}
+/* tours panel: a crate of sleeves flipped by spine. the current one is pulled out of the stack */
+html.atlas .k-crate{display:flex;flex-direction:column;padding:6px 0 4px 14px}
+html.atlas .a-tour-item{display:grid;grid-template-columns:1fr auto;grid-template-areas:"n t" "b b";align-items:baseline;gap:3px 12px;width:100%;text-align:left;border:0;border-left:2px solid transparent;border-top:1px solid rgba(189,166,255,.14);border-radius:2px 0 0 2px;color:var(--ink);padding:11px 8px 11px 12px;cursor:pointer;background:linear-gradient(90deg,rgba(134,203,254,calc(.025 + var(--k-i,0) * .012)),rgba(134,203,254,0));transition:transform .18s ease-out,background .18s ease-out}
 html.atlas .a-tour-item:first-child{border-top:0}
-html.atlas .a-tour-item:hover,html.atlas .a-tour-item:focus-visible{background:rgba(134,203,254,.06);outline:none}
+html.atlas .a-tour-item:hover,html.atlas .a-tour-item:focus-visible{background:rgba(134,203,254,.08);transform:translateX(-5px);outline:none}
 html.atlas .a-tour-item:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
-html.atlas .a-tour-item[aria-current="true"]{border-left-color:var(--ice)}
-html.atlas .a-tour-item .a-t-name{font:600 14px/1.3 var(--mono);color:var(--ink)}
+html.atlas .a-tour-item[aria-current="true"]{transform:translateX(-14px);border-left-color:var(--ice);background:rgba(134,203,254,.11);box-shadow:-10px 4px 22px rgba(0,0,0,.45);margin:5px 0;border-top-color:transparent;padding-bottom:13px}
+html.atlas .a-tour-item .a-t-name{grid-area:n;font:600 14px/1.3 var(--mono);color:var(--ink)}
 html.atlas .a-tour-item[aria-current="true"] .a-t-name{color:var(--ice)}
-html.atlas .a-tour-item .a-t-name::before{content:"\203A ";color:var(--ice);opacity:0}
-html.atlas .a-tour-item[aria-current="true"] .a-t-name::before{opacity:1}
-html.atlas .a-tour-item .a-t-blurb{display:block;font:400 11.5px/1.4 var(--mono);color:var(--mute);margin-top:3px}
+html.atlas .a-tour-item .a-t-time{grid-area:t;font:500 11.5px/1 var(--mono);color:var(--mute);letter-spacing:.04em}
+html.atlas .a-tour-item .a-t-blurb{grid-area:b;display:block;font:400 11.5px/1.4 var(--mono);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.atlas .a-tour-item[aria-current="true"] .a-t-blurb,html.atlas .a-tour-item:focus-visible .a-t-blurb,html.atlas .a-tour-item:hover .a-t-blurb{white-space:normal;overflow:visible}
+html.atlas .a-tour-item.k-loop{margin-top:10px;border-top:1px dashed rgba(189,166,255,.22);background:none}
+html.atlas .a-tour-item.k-loop .a-t-name{font-weight:500;color:var(--mute)}
+html.atlas .k-hold{margin-top:12px}
+@media (prefers-reduced-motion:reduce){html.atlas .a-tour-item,html.atlas .k-needle,html.atlas .k-sw-knob{transition:none}}
+
+/* knobs: three dials and a few switches, drawn */
+html.atlas .k-dials{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:2px 0 16px}
+html.atlas .k-dialwrap{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;min-width:0}
+html.atlas .k-dial{width:84px;height:84px;border-radius:50%;cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html.atlas .k-dial:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+html.atlas .k-dial svg{display:block;width:100%;height:100%;overflow:visible}
+html.atlas .k-track{fill:none;stroke:rgba(189,166,255,.22);stroke-width:2.5;stroke-linecap:round}
+html.atlas .k-arc{fill:none;stroke:var(--ice);stroke-width:2.5;stroke-linecap:round}
+html.atlas .k-tick{fill:rgba(189,166,255,.4)}
+html.atlas .k-tick.on{fill:var(--ice)}
+html.atlas .k-hit{fill:transparent;cursor:pointer}
+html.atlas .k-cap{fill:rgba(255,255,255,.045);stroke:rgba(240,234,255,.32);stroke-width:1.2}
+html.atlas .k-needle{transform-origin:40px 40px;transition:transform .2s cubic-bezier(.3,1.35,.5,1)}
+html.atlas .k-needle line{stroke:var(--ice);stroke-width:2.8;stroke-linecap:round}
+html.atlas .k-name{font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+html.atlas .k-say{font:500 12.5px/1.3 var(--mono);color:var(--ink);min-height:2.6em}
+html.atlas .k-small .k-dial{width:60px;height:60px}
+html.atlas .k-small .k-say{min-height:0}
+html.atlas .k-switches{display:flex;flex-direction:column;border-top:1px solid rgba(189,166,255,.14)}
+html.atlas .k-sw{display:grid;grid-template-columns:1fr auto 2.4em;align-items:center;gap:12px;width:100%;min-height:46px;padding:6px 2px;background:none;border:0;border-bottom:1px solid rgba(189,166,255,.1);color:var(--ink);font:500 12.5px/1.3 var(--mono);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.atlas .k-sw:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
+html.atlas .k-sw-rail{position:relative;width:52px;height:26px;border:1px solid rgba(240,234,255,.38);border-radius:3px;background:rgba(255,255,255,.04)}
+html.atlas .k-sw-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:2px;background:var(--mute);transition:transform .16s ease-out,background .16s}
+html.atlas .k-sw[aria-checked="true"] .k-sw-rail{border-color:rgba(134,203,254,.6);background:rgba(134,203,254,.1)}
+html.atlas .k-sw[aria-checked="true"] .k-sw-knob{transform:translateX(26px);background:var(--ice)}
+html.atlas .k-sw-st{font:600 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+html.atlas .k-sw[aria-checked="true"] .k-sw-st{color:var(--ice)}
+html.atlas .k-sw-s{min-height:44px;font-size:12px}
+html.atlas .k-sw-s .k-sw-rail{width:38px;height:20px}
+html.atlas .k-sw-s .k-sw-knob{top:2px;left:2px;width:14px;height:14px}
+html.atlas .k-sw-s[aria-checked="true"] .k-sw-knob{transform:translateX(18px)}
+html.atlas .k-pair{grid-template-columns:1fr auto}
+html.atlas .k-pair .k-sw-st{grid-column:1/-1;display:flex;gap:10px;margin-top:-4px;padding-bottom:4px;text-transform:none;letter-spacing:.02em;font-weight:500}
+html.atlas .k-pair .k-sw-st b{font-weight:500;color:var(--mute)}
+html.atlas .k-pair .k-sw-st b.on{color:var(--ice)}
+html.atlas .k-print{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 18px;align-items:center;margin-top:16px}
+html.atlas .k-print-sw{display:flex;flex-direction:column;border-top:1px solid rgba(189,166,255,.1)}
+
+/* help: the back cover */
+html.atlas .a-back-h{font:italic 400 19px/1.25 var(--serif-voice,Georgia,serif);color:var(--ink);margin:0 0 10px}
+html.atlas .a-back-p{font:italic 400 14.5px/1.55 var(--serif-voice,Georgia,serif);color:var(--ink);margin:0 0 12px}
+html.atlas .a-back-k{font:500 11.5px/1.7 var(--mono);color:var(--ice);margin:0 0 6px;letter-spacing:.01em}
 
 /* help */
 html.atlas .a-help-row{display:grid;grid-template-columns:6.4rem 1fr;gap:4px 12px;font:500 12px/1.4 var(--mono);padding:5px 0}
@@ -91,15 +138,14 @@ html.atlas .a-help-row dt{color:var(--ice);letter-spacing:.02em}
 html.atlas .a-help-row dd{margin:0;color:var(--mute)}
 html.atlas .a-help-note{font:400 11.5px/1.5 var(--mono);color:var(--mute);margin:6px 0 0;padding-top:10px;border-top:1px solid rgba(189,166,255,.12)}
 html.atlas .a-help-build{font:400 10.5px/1.4 var(--mono);color:var(--mute);margin:8px 0 0;letter-spacing:.02em}
-html.atlas .a-grid-read{font:500 11px/1 var(--mono);color:var(--mute);letter-spacing:.04em;margin-top:12px}
 
 /* touch screens and phone widths: every control here is a 44px target, the bar chrome.css's .ai-* controls already
    meet (VERIFY r3 P1: .a-btn/.a-pn-close 38px, .a-seg 40px, the on/off toggles 32px) */
 @media (pointer:coarse),(max-width:600px){
-  html.atlas .a-btn,html.atlas .atlas-topbar #mute,html.atlas .a-pn-close,html.atlas .a-seg button{min-height:44px}
-  html.atlas .a-toggle{padding:4px 0}
-  html.atlas .a-toggle button{min-height:44px;min-width:56px}
-}
+  html.atlas .a-btn,html.atlas .atlas-topbar #mute,html.atlas .a-pn-close{min-height:44px}
+  html.atlas .k-sw{min-height:48px}
+  html.atlas .k-dial{min-width:44px;min-height:44px}
+  }
 
 /* forced colours (§9.4). the dock, the menu buttons and the dialogs opt out of forcing to paint an opaque Canvas over
    the field canvas. forced-color-adjust inherits, so every descendant would keep its authored mute/ice/ink on that
@@ -113,6 +159,78 @@ html.atlas .a-grid-read{font:500 11px/1 var(--mono);color:var(--mute);letter-spa
   html.atlas #atlas-dock .d-more{background:Canvas;border-color:CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none}
   html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *::before,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *::after{color:CanvasText;background-color:Canvas;border-color:CanvasText;text-shadow:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
   html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) .a-pn-body{-webkit-mask-image:none;mask-image:none}
-  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :is([aria-pressed="true"],.on),html.atlas .atlas-topbar .a-btn:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on) *{color:HighlightText;background-color:Highlight;border-color:Highlight}
+  html.atlas #atlas-settings :is(.k-track,.k-arc,.k-needle line){stroke:CanvasText}
+  html.atlas #atlas-settings :is(.k-tick,.k-hit){fill:CanvasText}
+  html.atlas #atlas-settings .k-cap{fill:Canvas;stroke:CanvasText}
+  html.atlas #atlas-settings .k-sw-knob{background-color:CanvasText}
+  html.atlas #atlas-settings .k-sw[aria-checked="true"] .k-sw-knob{background-color:HighlightText}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :is([aria-pressed="true"],[aria-checked="true"],.on),html.atlas .atlas-topbar .a-btn:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on) *{color:HighlightText;background-color:Highlight;border-color:Highlight}
   html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :focus-visible,html.atlas .atlas-topbar .a-btn:focus-visible,html.atlas #atlas-dock button:focus-visible{outline-color:Highlight}
+}
+
+/* R8 DECK (desktop: fine pointer, >=900 wide, landscape; panels.js sets html.atlas-deck). no top bar: #top is the deck's
+   lower row along the bottom edge (dig, records, the tracklist, prev / the needle / next, the crossfade fader, sound, knobs,
+   ?, the dial), #atlas-info its upper row (the record playing, up next, the bar). the wordmark runs down the spine, the liner
+   note sits over the deck's left end. the deck-only keys stay display:none everywhere else */
+html.atlas .a-tracks,html.atlas .atlas-topbar .a-dk{display:none}
+html.atlas .atlas-topbar #mute{order:1}
+html.atlas.atlas-deck{--deckb:44px;--deckh:78px}
+html.atlas.atlas-deck body #top{top:auto;bottom:0;height:var(--deckb);min-height:0;padding:0 64px 2px clamp(18px,6vw,80px);gap:10px;justify-content:flex-start;background:none;pointer-events:none}
+html.atlas.atlas-deck body #top::before{content:"";display:block;position:absolute;z-index:-1;left:0;right:0;top:auto;bottom:0;height:var(--deckh);pointer-events:none;background:linear-gradient(180deg,rgba(10,1,24,0) 0,rgba(10,1,24,.9) 18px);border-top:1px solid var(--line);transition:opacity 1s ease-in}
+html.atlas-idle.atlas-deck body #top::before{opacity:.35}
+html.atlas.atlas-deck #top>*{pointer-events:auto}
+html.atlas.atlas-deck #ai-topplay{order:0}
+html.atlas.atlas-deck #top #mute{white-space:nowrap}
+html.atlas.atlas-deck #top .brand{position:fixed;left:calc(clamp(18px,6vw,80px)*.4 - 1px);top:20px;writing-mode:vertical-rl;min-height:0;padding:0;font:400 11.5px/1 var(--mono);letter-spacing:.3em;color:var(--ink)}
+html.atlas.atlas-deck .ai-stop{position:fixed;left:calc(clamp(18px,6vw,80px)*.4);top:calc(var(--ai-top,76px) + 4px);writing-mode:vertical-rl;font:500 10.5px/1 var(--mono);letter-spacing:.24em;color:var(--mute)}
+html.atlas-idle.atlas-deck .ai-stop{opacity:.5;transition:opacity 1s ease-in}
+html.atlas.atlas-deck #top .as-bar{margin:0;width:150px;height:30px}
+html.atlas.atlas-deck .atlas-topbar{margin-left:0;flex:1 1 auto;min-width:0;gap:2px}
+html.atlas.atlas-deck .atlas-topbar :is([data-a="home"],[data-a="atlas"],[data-a="time"]){display:none}
+html.atlas.atlas-deck .atlas-topbar #mute{order:0}
+html.atlas.atlas-deck #top :is(.a-btn,#mute){background:none;border-color:transparent;padding:0 9px;height:32px;min-height:32px;letter-spacing:.06em}
+html.atlas.atlas-deck #top :is(.a-btn,#mute):hover{color:var(--ink);border-color:var(--line)}
+html.atlas.atlas-deck #top .a-dk[data-a]{font-size:14px;padding:0 7px}
+html.atlas.atlas-deck .atlas-topbar .a-dk{display:inline-flex;align-items:center}
+html.atlas.atlas-deck .a-tracks{display:flex;align-items:center;flex:1 1 auto;min-width:0;overflow:hidden;position:relative;margin:0 10px 0 0;padding:0;list-style:none;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+@media (max-width:1279px){html.atlas.atlas-deck .a-xf-l{display:none}html.atlas.atlas-deck #top .as-bar{width:120px}}
+html.atlas #top .a-tracks button{font:500 11px/1 var(--mono);letter-spacing:.04em;color:var(--mute);background:none;border:0;padding:0 4px;height:32px;min-height:32px;cursor:pointer;white-space:nowrap}
+html.atlas #top .a-tracks b{font-weight:500}
+html.atlas #top .a-tracks .a-rec{flex:none;max-width:18ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px;font:italic 400 13.5px/1 var(--serif-voice);letter-spacing:0;text-transform:none;color:var(--ink)}
+html.atlas.atlas-deck #atlas-info #ai-tourchip{display:none} /* only the tour chip: #uf-chip (how to read) shares the class and must stay */
+html.atlas #top .a-tracks span{display:none}
+html.atlas #top .a-tracks .on button{color:var(--mint)}
+html.atlas #top .a-tracks .on span{display:inline;color:var(--ink)}
+html.atlas #top .a-tracks .nx b{color:var(--ink);text-decoration:underline;text-underline-offset:5px}
+html.atlas #top .a-tracks button:hover{color:var(--ink)}
+html.atlas #top .a-tracks button:focus-visible,html.atlas #top .a-xf button:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
+html.atlas.atlas-deck .a-xf{margin:0 8px;font:400 10.5px/1 var(--mono);letter-spacing:.06em;color:var(--mute)}
+html.atlas .a-xf-l{margin-right:6px}
+html.atlas .a-xf-v{margin-left:6px;min-width:5ch;color:var(--ice)}
+html.atlas #top .a-xf button{position:relative;width:18px;height:32px;min-height:32px;padding:0;background:none;border:0;cursor:pointer}
+html.atlas #top .a-xf button::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+html.atlas #top .a-xf button::after{content:"";position:absolute;left:50%;top:50%;width:1px;height:7px;margin:-3.5px 0 0 -.5px;background:var(--mute)}
+html.atlas #top .a-xf button[aria-checked="true"]::after{width:8px;height:14px;margin:-7px 0 0 -4px;border-radius:2px;background:var(--ice)}
+html.atlas.atlas-deck #atlas-info{top:auto;bottom:var(--deckb);left:clamp(18px,6vw,80px);right:auto;width:max-content;max-width:calc(100vw - 260px);height:calc(var(--deckh) - var(--deckb));max-height:none;overflow:visible;padding:0;flex-direction:row;align-items:center;gap:14px}
+html.atlas.atlas-deck #atlas-info .ai-row1{display:contents}
+html.atlas.atlas-deck #atlas-info .ai-row1-sp{display:none}
+html.atlas.atlas-deck #atlas-info .ai-go{order:1}
+html.atlas.atlas-deck #atlas-info .ai-angle{order:2}
+html.atlas.atlas-deck #atlas-info :is(.ai-chip,.ai-pill){border-color:transparent;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:6px 0;min-height:0;letter-spacing:.06em;text-transform:none;font-weight:500}
+html.atlas.atlas-deck #atlas-info .ai-pill{color:var(--ice);text-decoration:underline;text-underline-offset:5px;text-decoration-color:rgba(134,203,254,.4)}
+html.atlas.atlas-deck #atlas-info .ai-liner{position:fixed;left:clamp(18px,6vw,80px);bottom:calc(var(--deckh) + 16px);width:min(30rem,calc(40vw - 74px));display:flex;flex-direction:column;gap:8px;pointer-events:auto}
+html.atlas.atlas-deck #atlas-info .ai-liner .ai-foot{gap:4px 6px}
+html.atlas.atlas-deck #atlas-info .ai-liner{border-top:0;padding-top:0}
+html.atlas.atlas-deck #atlas-info .ai-liner .ai-title{border-top:1px solid var(--ai-line);padding-top:14px}
+html.atlas.atlas-deck #atlas-info .ai-hud{position:fixed;left:clamp(18px,6vw,80px);bottom:calc(var(--deckh) + var(--ai-linerh,0px) + 30px);max-width:min(30rem,calc(40vw - 110px))}
+html.atlas.atlas-deck #atlas-info .ai-end{position:fixed;left:clamp(18px,6vw,80px);bottom:calc(var(--deckh) + 16px)}
+html.atlas.atlas-deck #atlas-show{top:auto;bottom:calc(var(--deckb) + 4px)}
+html.atlas.atlas-deck body section[data-room] .wall{max-height:max(96px,calc(100vh - var(--atlas-infoh,120px) - var(--ai-linerh,0px) - var(--deckh) - 60px))}
+html.atlas.atlas-deck #exdock.exd:not(.is-quiet){bottom:calc(var(--deckh) + 8px)}
+@media (forced-colors:active){
+  html.atlas.atlas-deck body #top::before{forced-color-adjust:none;background:Canvas}
+  html.atlas.atlas-deck #atlas-info .ai-pill{color:CanvasText;text-decoration-color:CanvasText}
+  html.atlas #top .a-xf button::before,html.atlas #top .a-xf button::after{forced-color-adjust:none;background:CanvasText}
+  html.atlas #top .a-xf button[aria-checked="true"]::after{background:Highlight}
+  html.atlas #top .a-tracks .on button{color:Highlight}
 }
