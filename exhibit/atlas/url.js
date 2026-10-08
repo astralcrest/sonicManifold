@@ -55,11 +55,13 @@ export function mount(ctx, deps) {
        tour.js's own play() already parks it paused under reduced motion, so nothing extra is needed here. */
     /* R9 GUIDE: on a touch screen the record waits on the lead-in for a press of play (the transport shows play, which is
        true); it ran itself before while the phone's first paint still showed play. the kiosk and the desk play on as before */
-    if (parsed.kind === 'none') { const hand = !(deps && deps.KIOSK) && !!(window.matchMedia && matchMedia('(pointer: coarse)').matches); try { ctx.tour.play('grand', 0, { autoplay: !hand }); } catch (e) { console.warn('url grand', e); } return; }
+    /* R11: while the shell's ?enter=sound veil is up the tour waits parked; the veil's tap starts it with the sound */
+    const veil = !!(ctx.atlas && ctx.atlas.veil);
+    if (parsed.kind === 'none') { const hand = !(deps && deps.KIOSK) && !!(window.matchMedia && matchMedia('(pointer: coarse)').matches); try { ctx.tour.play('grand', 0, { autoplay: !hand && !veil }); } catch (e) { console.warn('url grand', e); } return; }
     if (parsed.kind === 'tour') {
       const known = ctx.tour.list().some((t) => t.id === parsed.id);
       if (!known) return; /* garbage tour id: stay at the threshold, no error */
-      const autoplay = parsed.play && !reduced;
+      const autoplay = parsed.play && !reduced && !veil;
       try { ctx.tour.play(parsed.id, Math.max(0, parsed.stop - 1), { autoplay }); } catch (e) { console.warn('url tour', e); }
       return;
     }

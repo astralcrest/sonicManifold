@@ -209,3 +209,51 @@ details.pt>p{margin-top:.1rem}
 .xp .grp input[type=range]{flex:1 1 12rem;max-width:18rem}
 .ninety .beat:last-child{margin-bottom:0}
 @media print{details::details-content{content-visibility:visible!important;display:block!important;height:auto!important}}
+
+/* R11: the first screen is a picture and a sentence; folds start closed; the type reads as one designed object */
+:root{--held:var(--ice);--brick:var(--text-faint);--disp:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,21rem);gap:1rem 2.4rem;align-items:center;margin:0 0 1.6rem}
+.hero-copy{min-width:0}
+h1.hl{font:italic 600 clamp(2rem,3vw + 1rem,3.1rem)/1.08 var(--disp);letter-spacing:-.022em;color:var(--text);margin:0 0 1.2rem;max-width:17ch;text-wrap:balance}
+h1.hl num{font-family:inherit;font-style:italic;font-weight:600;font-variant-numeric:lining-nums;color:var(--text)}
+p.title{font:italic 400 clamp(.98rem,.5vw + .85rem,1.2rem)/1.4 var(--disp);color:var(--text-dim);margin:0;max-width:34ch;border-top:1px solid var(--border);padding-top:.9rem}
+figure.rec{margin:0;justify-self:end;width:100%}
+figure.rec canvas{display:block;width:100%;aspect-ratio:1;height:auto;border-radius:50%;box-shadow:0 1.2rem 3rem -1rem rgba(10,4,20,.55),0 0 0 1px rgba(120,100,170,.28)}
+figure.rec figcaption{font:italic .84rem/1.45 var(--disp);color:var(--text-dim);margin:.9rem 0 .35rem;max-width:34ch}
+figure.rec .key{font:500 .66rem/1.5 var(--sans);letter-spacing:.04em;color:var(--text-faint);margin:0;display:flex;flex-wrap:wrap;gap:.1rem .9rem;max-width:none}
+figure.rec .key i{font-style:normal;white-space:nowrap}
+figure.rec .key i::before{content:"";display:inline-block;width:.62em;height:.62em;border-radius:50%;margin-right:.4em;background:var(--c)}
+figure.rec .key .t{--c:#21f6bc}figure.rec .key .s{--c:#f5a623}figure.rec .key .q{--c:#8b6fd6}
+@media (min-width:1400px){figure.rec{margin-right:-3.5rem;width:calc(100% + 3.5rem)}}
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr;gap:1.3rem}
+  h1.hl{font-size:clamp(1.65rem,7.4vw,2.3rem);max-width:none;margin-bottom:.7rem}
+  p.title{font-size:.84rem;padding-top:.55rem;max-width:none}
+  figure.rec{justify-self:center;max-width:15.5rem}
+  figure.rec figcaption{margin-top:.6rem}
+  header.report-head{padding-top:.2rem;margin-bottom:1.2rem}
+  header.report-head::before{margin-bottom:.7rem}
+  .kicker{margin-bottom:.6rem}
+  .head-links{margin-top:0}
+}
+.head-links{display:flex;flex-wrap:wrap;gap:.2rem .1rem;align-items:center}
+button.readall{font:600 .66rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--text);background:none;border:1px solid var(--border);border-radius:2px;padding:.55rem .8rem;min-height:44px;cursor:pointer;margin-left:.6rem}
+button.readall:hover{border-color:var(--accent);color:var(--accent)}
+button.readall[aria-pressed=true]{background:var(--wash)}
+.toc li.all{display:flex;align-items:center;margin-left:.4rem}
+.toc li.all .readall{min-height:32px;padding:.45rem .6rem;margin:0;white-space:nowrap;font-size:.6rem}
+.toc a::after{content:"";width:5px;height:5px;box-sizing:border-box;border-radius:50%;margin-left:.5rem;flex:none;border:1px solid transparent}
+.toc a[data-open=true]::after{background:var(--accent);border-color:var(--accent)}
+.toc a[data-open=false]::after{border-color:var(--text-faint)}
+@media (min-width:1400px){.toc li.all{margin:.8rem 0 0 .9rem}.toc li.all .readall{width:100%}}
+@media (max-width:1399px){.toc ol{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 1rem,#000 calc(100% - 2rem),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 1rem,#000 calc(100% - 2rem),transparent 100%)}}
+.ninety .big{font-family:var(--disp);font-style:italic;font-weight:500;font-size:clamp(1.35rem,2vw + .9rem,2.05rem);line-height:1.22;letter-spacing:-.012em;max-width:26em;position:relative}
+.ninety .big::before{content:"\201C";position:absolute;left:-.62em;top:-.05em;font-size:1.6em;line-height:1;color:var(--text-faint);opacity:.55}
+@media (max-width:560px){.ninety .big::before{display:none}}
+.ninety .big num{font-style:normal}
+.pipe .pk,figcaption{text-transform:lowercase}
+.pipe .pk{letter-spacing:.14em}
+.mnote{font-family:var(--disp);font-style:italic;font-size:.9rem;line-height:1.5}
+.mnote b{font-style:normal}
+@media (prefers-reduced-motion:reduce){figure.rec canvas{transition:none}}
+@media print{.hero{grid-template-columns:1fr 2.2in}button.readall{display:none!important}}

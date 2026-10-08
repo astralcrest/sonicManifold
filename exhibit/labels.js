@@ -225,7 +225,7 @@ export const HINTS = {
 
 /* R5: the atlas says how to listen; the rollback (?atlas=0) keeps HINTS above unchanged. a coarse pointer reads HINTS_TOUCH first */
 export const HINTS_ATLAS = {
-  wall: "press and hold anywhere on the dots · on the pour: swipe down, then drag sideways to slosh · each jar has its own note: high is my hand, low is the queue",
+  wall: "press and hold anywhere on the dots · on the pour: swipe down, then drag sideways to slosh · each jar has its own note: high is my hand, low is the queue · on the press: turn the knob to slip the plates",
   listeners: "hover a cell: the note climbs with the row · my picks in the left ear, autoplay's in the right · space plays the run · on the fade dial, drag or use the arrows: the open fifth holds while the bracket clears 1.00",
   universe: "drag to turn the sky · tap a star · hover to hear it: the note is the genre, lower means more plays. rest on a name to hear the artist.",
   chain: "pick a star, then follow a link. hold a name to hear it. · a hop is a note: same family, same note, else a step or a leap. hand plucked, queue bowed.",

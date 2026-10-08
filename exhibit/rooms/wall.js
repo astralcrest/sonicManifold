@@ -97,6 +97,8 @@ export default {
     cue.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) { const s = ctx.stage(), w = toW(s.x + s.w / 2, s.y + s.h / 2); if (this.A) this.viaCue = true; down(w[0], w[1]); } } });
     cue.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') up(); });
     this.note = P.perDot > 1.5 ? ' on this screen one dot is about ' + Math.round(P.perDot) + ' plays.' : '';
+    /* R11 PRESS: w pulls the press from anywhere; on the press it slips the plates or sets them back in register */
+    if (this.A && ctx.keys && ctx.keys.on) ctx.keys.on('w', () => { if (this.live() && this.riso) this.riso.flip(); else ctx.go('wall', { via: 'key', angle: 'press' }); return true; });
     this.ready = true;
   },
   grid(ctx) {
@@ -333,8 +335,9 @@ export default {
     this._lt = 0;
     if (this.A) this.atlasEnter(ctx);
     if (this.pour) { this.pour.fit(); this.syncAngle(ctx, 'pour'); }
+    if (this.riso) this.riso.fit();
   },
-  leave(ctx) { this.unpour(ctx); this.holding = false; this.press = null; this.viaCue = false; if (this.flood) { cancelAnimationFrame(this.flood); this.flood = 0; } ctx.audio.distant(0); this.teardownSwell(); },
+  leave(ctx) { this.unpour(ctx); this.unpress(); this.holding = false; this.press = null; this.viaCue = false; if (this.flood) { cancelAnimationFrame(this.flood); this.flood = 0; } ctx.audio.distant(0); this.teardownSwell(); },
   /* --- the flood's own sound: a quiet rising filtered-noise swell under the visitor's hand, on top of the shared distant() sweep --- */
   startSwell(ctx) {
     const A = ctx.audio; if (!A.ac || A.muted || this.swellOn) return;
@@ -378,7 +381,7 @@ export default {
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;
     const k = this.A ? 1 / (ctx.view.z || 1) : 1;
-    if (this.A) { ctx0.debug = !!ctx.atlas.debug; this.prec.length = 0; if (this.pour) { this.pour.frame(g, t, k); return this.handDraw(ctx, g, k); } this.drawMargin(g, k, ctx); if (this.press) this.drawPress(g, k); }
+    if (this.A) { ctx0.debug = !!ctx.atlas.debug; this.prec.length = 0; if (this.riso) return; if (this.pour) { this.pour.frame(g, t, k); return this.handDraw(ctx, g, k); } this.drawMargin(g, k, ctx); if (this.press) this.drawPress(g, k); }
     if (this.holding && !this.done) {
       const dt = this._lt ? Math.min(64, t - this._lt) : 16.7; this._lt = t;
       this.r += 0.9 * dt; /* px per second from the frame timestamp, not per frame, so 120 Hz doesn't double the speed */
@@ -425,10 +428,13 @@ export default {
   },
   /* ================================================================ atlas (BUILD_SPEC_V2 §1.4, §3 wall row). nothing
      below runs at ?atlas=0: every entry point is reached only through `this.A` or through the atlas-only room contract. */
-  angles: [{ id: 'unsorted', name: 'unsorted' }, { id: 'flood', name: 'flood' }, { id: 'sorted', name: 'sorted' }, { id: 'pour', name: 'pour' }],
+  angles: [{ id: 'unsorted', name: 'unsorted' }, { id: 'flood', name: 'flood' }, { id: 'sorted', name: 'sorted' }, { id: 'pour', name: 'pour' }, { id: 'press', name: 'the press' }],
   /* R5 R3: the pour angle lives in the lazy wall.pour.js, which owns this.pour while it runs */
   pourIn(ctx, o) { import('./wall.pour.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx, o)).catch((e) => console.warn('pour', e)); return o.instant || ctx.reduced || o.via !== 'tour' ? 0 : 4600; },
   unpour(ctx, re) { if (this.tally) this.tally.stop(); if (this.pour) this.pour.stop(re); },
+  /* R11 PRESS: the press angle (a two-ink print of the whole log) lives in the lazy wall.press.js, which owns this.riso while it is up */
+  pressIn(ctx, o) { import('./wall.press.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx, o)).catch((e) => console.warn('press', e)); return o.instant || ctx.reduced || o.via !== 'tour' ? 0 : 2400; },
+  unpress() { if (this.riso) this.riso.stop(); },
   /* R6 ME: once the pour has landed, the lazy wall.hand.js lifts the song i pressed play on most by hand out of the mint jar */
   handDraw(ctx, g, k) { if (this.tally) return this.tally.draw(g, k); if (this._handP || this.pour.st().ph < 2) return; this._handP = import('./wall.hand.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx)).catch((e) => console.warn('hand', e)); },
   hoverVoice(id) { return this.pour ? this.pour.voice(id) : null; },
@@ -447,7 +453,7 @@ export default {
 
   /* one input path for the pad (and, under a zoom, for the bare field that the wall has grown into): press, hold, drag, tap */
   holdSpec(ctx, field) {
-    const ok = (p) => this.ready && this.live() && (!field || this.inWall(p));
+    const ok = (p) => this.ready && this.live() && !this.riso && (!field || this.inWall(p));
     return {
       hold: {
         delay: HOLD_MS,
@@ -564,7 +570,7 @@ export default {
 
   setAngle(k, ctx, o = {}) {
     if (!this.ready || !this.live() || o.via === 'room') return 0;
-    this.unpour(ctx, 1); if (k === 3) return this.pourIn(ctx, o);
+    this.unpour(ctx, 1); this.unpress(); if (k === 3) return this.pourIn(ctx, o); if (k === 4) return this.pressIn(ctx, o);
     if (this.flood) { cancelAnimationFrame(this.flood); this.flood = 0; }
     const inst = !!o.instant || ctx.reduced;
     if (k === 0) {
@@ -590,7 +596,7 @@ export default {
   /* search, the ladder and labels: {prov: 'tap'|'shuffle'|'served'} flies to that pile; {level: 'play'} is the closest zoom */
   focus(d, ctx) {
     if (!this.ready || !d) return false;
-    this.unpour(ctx, 1);
+    this.unpour(ctx, 1); this.unpress();
     const pv = { tap: 0, tapped: 0, shuffle: 1, shuffled: 1, served: 2, queue: 2 }[d.prov];
     if (pv != null) { this.sortNow(ctx); this.flyPile(ctx, pv); return true; }
     if (d.level === 'play' || d.level === 'one play' || d.level === 'one_play') {
@@ -604,7 +610,7 @@ export default {
   precision() { return this.prec ? this.prec.slice() : []; },
   keepout() {
     const out = [];
-    [this.cue, this.wg, this.pourBtn, this.handEl].forEach((el) => { if (!el || el.hidden) return; const r = el.getBoundingClientRect(); if (r.width && r.height && getComputedStyle(el).opacity !== '0') out.push({ x: r.left, y: r.top, w: r.width, h: r.height }); });
+    [this.cue, this.wg, this.pourBtn, this.handEl, this.riso && this.riso.el].forEach((el) => { if (!el || el.hidden) return; const r = el.getBoundingClientRect(); if (r.width && r.height && getComputedStyle(el).opacity !== '0') out.push({ x: r.left, y: r.top, w: r.width, h: r.height }); });
     return out;
   },
 

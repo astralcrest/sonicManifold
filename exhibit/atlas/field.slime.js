@@ -238,10 +238,17 @@ export function mount(ctx, deps) {
     return m ? (m.hand ? 'tap' : 'both') : null;
   }
   const prevCap = typeof A.capFor === 'function' ? A.capFor : null; /* R10 merge: the bath's line, when the veins hold none */
-  A.capFor = (id, a) => (api.on && live && room === id && wantK ? CAP[wantK] : null) || (prevCap ? prevCap(id, a) : null);
+  /* R11: the room's own line first; the veins speak once the visitor picks an arm, or after it has sat */
+  let roomT = performance.now(), capTm = 0;
+  const veinCap = (id) => (api.on && live && room === id && wantK && (wantK !== 'both' || performance.now() - roomT > 6500) ? CAP[wantK] : null);
+  A.capFor = (id, a) => veinCap(id) || (prevCap ? prevCap(id, a) : null);
   const recap = () => { try { const ta = ctx.tour && ctx.tour.active; if (!(ta && ta.playing)) ctx.caption.clear(); } catch (e) {} };
+  /* the chrome may not dim before the veins' line has typed (same hold as the bath's: no half-fade and relight in quiet mode) */
+  const lineDue = (on) => { try { ctx.idle.hold('veins-line', on); } catch (e) {} };
   function setRoom(id) {
-    const was = live; room = api.room = id; H = null; Hk = ''; live = false; dom = null;
+    const was = live; room = api.room = id; roomT = performance.now(); clearTimeout(capTm); lineDue(false);
+    if (LIVE[id] && api.on) { lineDue(true); capTm = setTimeout(() => { lineDue(false); if (api.on && live) recap(); }, 6600); }
+    H = null; Hk = ''; live = false; dom = null;
     de.classList.remove('fs-live'); cv.style.opacity = T ? SUB : '0';
     if (was) recap();
     if (!LIVE[id] || !api.on) return;

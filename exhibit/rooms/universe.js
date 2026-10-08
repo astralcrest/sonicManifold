@@ -358,7 +358,10 @@ const tpl = (s, o) => String(s).replace(/\{(\w+)\}/g, (m, k) => (o[k] != null ? 
 const P = () => S.ctx.particles;
 const famName = (f) => (S.R && S.R.famOrder[f]) || (S.D && S.D.meta.fam_order[f]) || FAM_FALLBACK[f] || 'untagged';
 const FAM_FALLBACK = ['ambient/lofi', 'classical', 'electronic', 'experimental', 'folk/country', 'funk/disco', 'hip-hop · r&b', 'jazz', 'other', 'pop', 'rock/metal', 'soundtrack', 'world/desi', 'untagged'];
-const famHex = (f) => S.ctx.famColor(famName(f));
+/* ?print=neutral (off unless asked): while the ink bath runs the print goes ice, near-white to ice by family order, and the bath carries the colour */
+const NEUTRAL_Q = /[?&]print=neutral\b/.test(location.search);
+const neutralOn = () => NEUTRAL_Q && !!(S.ctx && S.ctx.atlas && /^(ink|both)$/.test(S.ctx.atlas.fieldMode || '')) && !document.documentElement.classList.contains('ink-off');
+const famHex = (f) => (neutralOn() ? mixHex(0xe6f2ff, 0x86cbfe, (f < 0 ? 0 : f % 14) / 13) : S.ctx.famColor(famName(f)));
 const perDot = () => P().perDot || 1;
 
 /* ------------------------------------------------------------------ data */
@@ -644,7 +647,7 @@ function buildDom(root, ctx) {
   const legend = el('div', 'uv-legend'); legend.setAttribute('role', 'group'); legend.setAttribute('aria-label', c.legendLabel);
   FAM_FALLBACK.forEach((n, f) => {
     const b = el('button', 'uv-b'); b.type = 'button'; b.dataset.f = f; b.setAttribute('aria-pressed', 'false');
-    const i = el('i'); i.style.background = hexc(ctx.famColor(n)); i.setAttribute('aria-hidden', 'true'); b.append(i, document.createTextNode(n));
+    const i = el('i'); i.style.background = hexc(neutralOn() ? famHex(f) : ctx.famColor(n)); i.setAttribute('aria-hidden', 'true'); b.append(i, document.createTextNode(n));
     b.addEventListener('click', () => famChip(f)); legend.appendChild(b);
   });
   const famact = el('p', 'uv-famact'); famact.hidden = true; const toThreads = el('button', 'uv-b', c.famThreads); toThreads.type = 'button'; famact.appendChild(toThreads);
@@ -979,7 +982,7 @@ function paintState() {
   const full = new Uint32Array(14), faint = new Uint32Array(14);
   for (let f = 0; f < 14; f++) { const c = famHex(f) >>> 0; full[f] = c; faint[f] = mixHex(c, bg, 0.35); }
   const U = a === 'threads' || a === 'day' ? null : sunLit();
-  const key = a === 'threads' ? 'thr' : a === 'day' && S.D && S.dayK >= 0 ? 'day:' + S.dayK : U ? 'sun:' + U.i + ':' + U.nb.length : 'sky:' + f0;
+  const key = (a === 'threads' ? 'thr' : a === 'day' && S.D && S.dayK >= 0 ? 'day:' + S.dayK : U ? 'sun:' + U.i + ':' + U.nb.length : 'sky:' + f0) + (neutralOn() ? ':n' : '');
   if (key === S.painted) return;
   S.painted = key;
   Pp.glyphAll(true);

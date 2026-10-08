@@ -11,7 +11,9 @@
    and its readout ride the camera in the cam layer, so the hand is read in world px at any zoom and the readout in the
    hole scales with the dial it belongs to; the line under the dial stays on the glass. dragging the dial turns the hand
    (a room control: the camera never sees it), dragging the field outside it pans, and the wheel zooms over both. the
-   busiest hour gets a [ label ] and the three bands their region names. no idle drift: the numbers hold still. */
+   busiest hour gets a [ label ] and the three bands their region names. no idle drift: the numbers hold still.
+   R11 ROSE: a third angle, the glass (exhibit/atlas/rose.js, loaded the first time it is asked for): the same dial as a
+   rose window lit from outside, plus a quiet chord of the day. the light is the hand: dragging it turns the readout. */
 
 const NUMWORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
   'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen',
@@ -51,6 +53,7 @@ const TAU = 6.283185307179586;
 const AXIS = 32;
 const CATS = [{ family: 'neutral' }, { family: 'tap' }, { family: 'shuffle' }, { family: 'served' }];
 const dbg = { on: false };
+const GLASS_CAP = "my day as glass: each pane is as bright as that hour's plays. drag the light round.";
 
 export default {
   id: 'clock', track: 'cant-resist-the-bite', ready: false, hour: 14, d: null, geo: null,
@@ -75,6 +78,9 @@ export default {
     this.note = root.querySelector('.ck-note');
     /* atlas: the dial and its readout are world-anchored dom (the cam layer); the wheel over the dial zooms the camera */
     if (this.A) { ctx.view.layer(root, [this.wrap]); this.dial.setAttribute('data-atlas-wheel', ''); }
+    /* the glass speaks through the one caption slot, chained after any field layer's own line */
+    const AT = ctx.atlas;
+    if (this.A && AT && !AT.__roseCap) { AT.__roseCap = 1; const prev = typeof AT.capFor === 'function' ? AT.capFor : null; AT.capFor = (id, a) => (prev ? prev(id, a) : null) || (id === 'clock' && a === 'glass' && this.d ? GLASS_CAP : null); }
 
     const slot = root.parentElement && root.parentElement.querySelector('.legend-slot');
     if (slot) ctx.legend(slot, 'prov');
@@ -129,11 +135,13 @@ export default {
       try { this.dial.setPointerCapture(e.pointerId); } catch (err) {}
       this.fromPointer(e, ctx);
     });
-    this.dial.addEventListener('pointermove', (e) => { if (this.drag) this.fromPointer(e, ctx); });
+    this.dial.addEventListener('pointermove', (e) => { if (this.drag) this.fromPointer(e, ctx); else if (this.glass && e.pointerType === 'mouse') this.rose.hoverAt(this.hourAt(e, ctx)); });
+    this.dial.addEventListener('pointerleave', () => { if (this.glass) this.rose.hoverAt(-1); });
     const end = (e) => {
       if (!this.drag) return;
       this.drag = false; this.dial.classList.remove('grab');
       try { this.dial.releasePointerCapture(e.pointerId); } catch (err) {}
+      if (this.glass) this.rose.release();
     };
     this.dial.addEventListener('pointerup', end);
     this.dial.addEventListener('pointercancel', end);
@@ -151,6 +159,7 @@ export default {
       e.preventDefault(); e.stopPropagation();
       this.stopDemo();
       this.set(to, ctx);
+      if (this.glass) this.rose.lightTo(this.hour + 0.5);
     });
 
     this.render();
@@ -275,9 +284,19 @@ export default {
     });
     P.color((i) => C[prov[i]]);
     this.render();
-    if (this.A) this.atlasEnter(ctx);
+    if (this.A) { this.atlasEnter(ctx); this.glassOn(ctx.angle && ctx.angle.get().id === 'glass', ctx); }
   },
 
+  /* the hour under a pointer, or -1 in the hub's dead zone */
+  hourAt(e, ctx) {
+    const g = this.geo; if (!g) return -1;
+    let px = e.clientX, py = e.clientY, dz = 144;
+    if (this.A) { const w = ctx.view.unapply(px, py), z = ctx.view.z || 1; px = w[0]; py = w[1]; dz = 144 / (z * z); }
+    const dx = px - g.cx, dy = py - g.cy;
+    if (dx * dx + dy * dy < dz) return -1;
+    const u = (Math.atan2(dy, dx) + TAU / 4) / TAU;
+    return Math.floor((((u % 1) + 1) % 1) * 24);
+  },
   fromPointer(e, ctx) {
     const g = this.geo; if (!g) return;
     /* atlas: the dial is in world px under the camera; the pointer is unapplied into the same space (identity at home) */
@@ -288,6 +307,7 @@ export default {
     let u = (Math.atan2(dy, dx) + TAU / 4) / TAU;
     u = ((u % 1) + 1) % 1;
     this.set(Math.floor(u * 24), ctx);
+    if (this.glass) { this.rose.lightTo(u * 24, true); this.touched = true; }
   },
 
   set(h, ctx) {
@@ -330,10 +350,11 @@ export default {
       else {
         const k = (t - this.sweep) / 15000;
         if (k >= 1) { this.stopDemo(); this.set(this.homeHour, ctx); }
-        else this.set(Math.floor(k * 24), ctx);
+        else { this.set(Math.floor(k * 24), ctx); if (this.glass) this.rose.lightTo(k * 24); }
       }
     }
 
+    if (this.glass && this.d) this.rose.frame(gx, performance.now(), g, this.hour, k);
     /* the axis: hour ticks and four labels. ice, because ice is the interface and never the data. */
     gx.strokeStyle = 'rgba(134,203,254,.22)'; gx.lineWidth = k;
     for (let q = 0; q < 24; q++) {
@@ -358,6 +379,19 @@ export default {
     }
 
     if (!this.d) { gx.textAlign = 'left'; gx.textBaseline = 'alphabetic'; return; }
+    /* the glass: the light is the hand. until the first touch a ring at the light says what to do with it */
+    if (this.glass) {
+      const S = this.rose.sunAt(g), calm = ctx.reduced || (ctx.atlas && ctx.atlas.gov && ctx.atlas.gov.tier >= 4);
+      if (S && !this.touched) {
+        const f = calm ? 0.5 : (performance.now() % 1800) / 1800, left = Math.cos(S[2]) < 0, s = 'drag the light';
+        gx.strokeStyle = 'rgba(134,203,254,' + (0.9 - 0.75 * f) + ')'; gx.lineWidth = 1.5 * k; gx.beginPath(); gx.arc(S[0], S[1], (12 + 16 * f) * k, 0, TAU); gx.stroke();
+        gx.font = '600 ' + (11 * k) + 'px "JetBrains Mono", ui-monospace, Menlo, monospace'; gx.fillStyle = 'rgba(134,203,254,.95)';
+        const tw = gx.measureText(s).width, St = g.s, x = left ? Math.max(S[0] - 30 * k, St.x + 4 + tw) : Math.min(S[0] + 30 * k, St.x + St.w - 4 - tw);
+        gx.textAlign = left ? 'right' : 'left'; gx.fillText(s, x, S[1] + (Math.sin(S[2]) < 0 ? -18 : 26) * k);
+      }
+      gx.textAlign = 'left'; gx.textBaseline = 'alphabetic';
+      return;
+    }
 
     /* the hand, and the wedge of the hour it is standing in. the hand starts outside the readout so it
        never rules a line through the number it is there to produce. */
@@ -399,7 +433,7 @@ export default {
     gx.textAlign = 'left'; gx.textBaseline = 'alphabetic';
   },
 
-  leave(ctx) { this.stopDemo(); this.drag = false; this.focusH = -1; if (this.dial) this.dial.classList.remove('grab'); if (this.offView) { this.offView(); this.offView = null; } clearTimeout(this.labT); },
+  leave(ctx) { this.glassOn(false, ctx); this.stopDemo(); this.drag = false; this.focusH = -1; if (this.dial) this.dial.classList.remove('grab'); if (this.offView) { this.offView(); this.offView = null; } clearTimeout(this.labT); },
 
   stopDemo() { this.sweep = 0; },
 
@@ -411,7 +445,22 @@ export default {
     this.sweep = performance.now();
   },
   /* ================================================================ atlas (BUILD_SPEC_V2 §1.4, §3 clock row) */
-  angles: [{ id: 'day', name: 'the day' }, { id: 'busiest', name: 'the busiest hour' }],
+  angles: [{ id: 'day', name: 'the day' }, { id: 'busiest', name: 'the busiest hour' }, { id: 'glass', name: 'the glass' }],
+  glass: false, rose: null,
+  /* the glass on or off. the module arrives on the first ask; an angle changed again before it lands wins */
+  glassOn(on, ctx) {
+    on = !!(on && this.A && this.d);
+    this.glassWant = on;
+    if (on && !this.rose) {
+      if (!this.roseP) this.roseP = import('../atlas/rose.js' + (ctx.V || '')).then((m) => { this.rose = m.createRose(ctx, this.d); if (this.glassWant) this.glassOn(true, ctx); }, (e) => { this.roseP = null; console.warn('rose', e); });
+      return;
+    }
+    const was = this.glass;
+    this.glass = on && !!this.rose;
+    if (this.rose) this.rose.set(this.glass);
+    if (this.glass && !was) { this.touched = false; this.set(Math.floor(this.rose.to), ctx); }
+    if (this.A && this.root && this.root.parentElement && this.root.parentElement.classList.contains('is-active')) this.atlasLabels(ctx);
+  },
   focusH: -1,
 
   atlasEnter(ctx) {
@@ -546,7 +595,7 @@ export default {
      instead of across the thick afternoon. on a small dial the readout's keepout hides the hole labels */
   atlasLabels(ctx) {
     if (!this.A || !this.geo || !this.root.parentElement.classList.contains('is-active')) return;
-    if (!this.d) { ctx.labels.set('clock', []); return; }
+    if (!this.d || this.glassWant) { ctx.labels.set('clock', []); return; }
     const g = this.geo, hb = this.homeHour, items = [];
     const inner = (h, f) => { const a = ((h + 0.5) / 24) * TAU - TAU / 4, r = g.rIn * f; return [g.cx + Math.cos(a) * r, g.cy + Math.sin(a) * r]; };
     const b = inner(hb, 0.86);
@@ -575,7 +624,9 @@ export default {
     if (!this.ready || !this.geo) return 0;
     this.stopDemo();
     const inst = !!o.instant || ctx.reduced;
-    if (k === 0) { ctx.view.home({ instant: inst }); return 0; }
+    const glass = this.angles[k] && this.angles[k].id === 'glass';
+    this.glassOn(glass, ctx);
+    if (k === 0 || glass) { ctx.view.home({ instant: inst }); return 0; }
     if (this.d) this.set(this.homeHour, ctx);
     this.flyHour(ctx, this.hour);
     return inst ? 0 : 650;

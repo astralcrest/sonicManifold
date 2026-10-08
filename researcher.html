@@ -8,7 +8,7 @@
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/researcher.html">
 <meta property="og:title" content="Streaming Logs Are Not Preference Logs: technical report">
-<meta property="og:description" content="A 7-year, 97,427-play single-subject log, audited: which summaries survive conditioning on who pressed play. Bridge Index 1.05 [1.03, 1.08], reported as a direction; the leakage catch; 18 retractions on the record.">
+<meta property="og:description" content="A single-subject, 97,427-play log, audited: which summaries survive conditioning on who pressed play. Bridge Index 1.05 [1.03, 1.08], reported as a direction; the leakage catch; 18 retractions on the record.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og-card-researcher.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -18,6 +18,7 @@
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og-card-researcher.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
+<noscript><style>button.readall,.toc li.all{display:none}</style></noscript>
 <link rel="icon" type="image/x-icon" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="/sonicManifold/android-chrome-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/sonicManifold/apple-touch-icon.png">
@@ -396,12 +397,20 @@
 <body>
 <a class="skip" href="#ninety" data-new>jump to the short read</a>
 <div class="prog" aria-hidden="true" data-new></div>
-<nav class="toc" aria-label="on this page" data-new><ol><li><a href="#ninety">short read</a></li><li><a href="#abstract">abstract</a></li><li><a href="#positioning">related</a></li><li><a href="#method">method</a></li><li><a href="#tests">tests</a></li><li><a href="#findings">findings</a></li><li><a href="#graveyard">graveyard</a></li><li><a href="#training-implications">training</a></li><li><a href="#methods-comparison">tools</a></li><li><a href="#limitations">limits</a></li><li><a href="#reproduce">cite</a></li></ol></nav>
+<nav class="toc" aria-label="on this page" data-new><ol><li><a href="#ninety">short read</a></li><li><a href="#abstract">abstract</a></li><li><a href="#positioning">related</a></li><li><a href="#method">method</a></li><li><a href="#tests">tests</a></li><li><a href="#findings">findings</a></li><li><a href="#graveyard">graveyard</a></li><li><a href="#training-implications">training</a></li><li><a href="#methods-comparison">tools</a></li><li><a href="#limitations">limits</a></li><li><a href="#reproduce">cite</a></li><li class="all"><button type="button" class="readall" aria-pressed="false">read everything</button></li></ol></nav>
 <div class="page" role="main">
 
 <header class="report-head" role="presentation">
+  <div class="hero">
+  <div class="hero-copy">
   <p class="kicker" data-new>technical report</p>
-  <h1 class="title">Streaming Logs Are Not Preference Logs: A Single-Subject Provenance Audit of the Human&ndash;Recommender Loop</h1>
+  <h1 class="hl" data-new>i chose between <num>11.5%</num> and <num>19.1%</num> of what i played. this is what survives that.</h1>
+  <p class="title">Streaming Logs Are Not Preference Logs: A Single-Subject Provenance Audit of the Human&ndash;Recommender Loop</p>
+  </div>
+  <figure class="rec" data-new><canvas id="rec" width="640" height="640" role="img" aria-label="a record. one spiral groove holds every play of the log, in order. mint stretches are plays i tapped, amber plays i shuffled, violet plays the platform served."></canvas>
+  <figcaption>one groove, every play in order: mint i tapped, amber i shuffled, violet was served.</figcaption>
+  <p class="key" aria-hidden="true"><i class="t">tapped <num>19.1%</num> (strict <num>11.5%</num>)</i><i class="s">shuffled <num>16.7%</num></i><i class="q">the rest, served</i></p></figure>
+  </div>
   <p class="byline"><span class="pseud">astralcrest</span> &middot; Independent Researcher &middot; astralcrestlab@proton.me</p>
   <p class="head-links">
     <a href="index.html">&larr; sonicManifold</a>
@@ -411,6 +420,7 @@
     <a href="bridge-index.html">run the audit on your own export</a>
     <span class="sep">&middot;</span>
     <span class="pending">PDF/DOI forthcoming</span>
+    <button type="button" class="readall" aria-pressed="false" data-new>read everything</button>
   </p>
 </header>
 
@@ -418,7 +428,8 @@
   <p class="nk">the short read &middot; ninety seconds</p>
   <div class="beat"><p class="bh">1 &middot; what i asked</p><div>
     <p class="big">a play in a streaming log has two authors, me and the recommender. which of my summaries survive when i sort the log by who pressed play?</p>
-    <p>tapped means i pressed play on it. queued means the platform picked the next one. the log is <num>97,427</num> plays from one listener. <a href="#method">the method</a></p></div></div>
+    <p>tapped means i pressed play on it. queued means the platform picked the next one. the log is <num>97,427</num> plays from one listener. <a href="#method">the method</a></p>
+    <div class="xp" id="xp-split" data-new><p class="xq">this panel needs scripts. the provenance classes are listed in the first block below.</p></div></div></div>
   <div class="beat"><p class="bh">2 &middot; how i tried to kill it</p><div>
     <p>thirteen tests, each written down before i saw the result. three fired as kills. two held. four could never have closed. four were added later and did not fire. <a href="#tests">the thirteen, stamped</a></p></div></div>
   <div class="beat"><p class="bh">3 &middot; what stayed</p><div>
@@ -481,7 +492,6 @@
   <h2 class="sec-title"><span style="color:var(--accent)">&#9698;&#9700;</span> Method in one screen</h2>
 <p class="plain" data-new>split the plays into the ones i tapped and the ones the queue played. count how often each kind of step crosses from one genre family to another. the ratio of the two rates is the bridge index. then try to break it.</p>
 <aside class="mnote" data-new><b>aside</b>the first form of this number was <num>1.61</num>, withdrawn. the map i used was trained on the algorithm&rsquo;s own plays.</aside>
-<div class="xp" id="xp-split" data-new><p class="xq">this panel needs scripts. the provenance classes are listed in the first block below.</p></div>
 <div class="killbox" data-new><b>what would kill this</b>
 <p style="margin:0 0 .3rem">the claim that a count-fitted embedding biases a statistic in favour of the majority process needs three conditions, and does not apply without them:</p>
 <ul><li>the two processes differ in adjacency structure.</li><li>the embedding is fit on the same stream the statistic is computed over.</li><li>the statistic conditions on the class label.</li></ul></div>

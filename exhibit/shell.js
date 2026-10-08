@@ -20,7 +20,7 @@
 /* the listening posts and the label text are optional: a blocked or flaky file leaves them off instead of leaving the exhibit unbooted. one retry, then a no-op stand-in */
 const soft = (u, d) => import(u).catch(() => import(u + '&retry=1')).catch(() => d);
 const [PM, LM] = await Promise.all([
-  soft('./post.js?v=11', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}) }),
+  soft('./post.js?v=12', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}) }),
   soft('./labels.js?v=21', { LABELS: {}, HINTS: {}, HINTS_ATLAS: {}, HINTS_TOUCH: {} }),
 ]);
 const { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } = PM;
@@ -2057,6 +2057,55 @@ resize(); P.scatter();
 /* the side room (your own export) stays out of the walk: one quiet link in the finale opens it, or a direct #yours link */
 function openSide(id) { const k = rooms.findIndex((r) => r.id === id && r.el.dataset.side); if (k < 0) return false; rooms[k].el.hidden = false; goK = -1; requestAnimationFrame(() => ctx.go(k)); return true; }
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a) return; const id = a.getAttribute('href').slice(1); if (openSide(id)) { e.preventDefault(); return; } const k = rooms.findIndex((r) => r.id === id); if (k >= 0) { e.preventDefault(); goK = -1; ctx.go(k); } });
+/* R11 AUDIO2: "drop the needle" lands on a new page, and a new page may not start sound by itself (ios least of all: its
+   context waits for a gesture made here). so ?enter=sound puts up one veil, and its tap is that gesture: it unlocks the
+   audio and starts the tour in the same press. until then the tour waits parked (url.js reads ATL.veil), so the deck never
+   shows pause over silence. the tour starts once the context runs (1.5 s at most: a browser that refuses still gets its
+   tour). enter or space does the same, escape and the second button come in quietly */
+const VEILCSS = '#needle-veil{position:fixed;inset:0;z-index:95;background:radial-gradient(110% 80% at 50% 42%,rgba(10,1,24,.74),rgba(10,1,24,.95) 70%);transition:opacity .42s ease;-webkit-tap-highlight-color:transparent}' +
+  '#needle-veil.is-off{opacity:0;pointer-events:none}' +
+  '#needle-veil .nv-go{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0 16px 12vh;box-sizing:border-box;border:0;background:none;color:#f0eaff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(22px,4.5vh,40px);font:italic 400 clamp(25px,6.2vw,42px)/1.15 ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;letter-spacing:.005em;text-shadow:0 2px 18px rgba(10,1,24,.9)}' +
+  '#needle-veil .nv-go:focus{outline:none}#needle-veil .nv-go:focus-visible .nv-t{outline:1px solid rgba(240,234,255,.7);outline-offset:10px;border-radius:2px}' +
+  '#needle-veil .nv-rec{position:relative;width:min(46vw,30vh,210px);aspect-ratio:1/1}' +
+  '#needle-veil .nv-rec::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 50%,#0a0118 0 2.2%,#d8d2ea 2.6% 15%,#9b93b5 15.4% 16.2%,transparent 16.6%),radial-gradient(circle at 57% 40%,rgba(10,1,24,.55) 0 1.6%,transparent 2%),conic-gradient(from 200deg,rgba(255,255,255,0) 0 8%,rgba(255,255,255,.08) 12%,rgba(255,255,255,0) 18% 58%,rgba(255,255,255,.06) 62%,rgba(255,255,255,0) 68%),repeating-radial-gradient(circle at 50% 50%,#0c0716 0 1.5px,#1a1229 1.5px 3px);box-shadow:0 0 0 1px rgba(216,210,234,.16),0 26px 70px rgba(0,0,0,.65);animation:nv-spin 1.8s linear infinite}' +
+  '#needle-veil .nv-arm{position:absolute;right:-16%;top:-4%;width:2px;height:74%;margin-right:-1px;background:linear-gradient(#e9e3f7,#a59dbf);transform-origin:50% 7px;transform:rotate(4deg);transition:transform .42s cubic-bezier(.3,.7,.3,1)}' +
+  '#needle-veil .nv-arm::before{content:"";position:absolute;left:50%;top:0;width:14px;height:14px;margin-left:-7px;box-sizing:border-box;border-radius:50%;background:#1a1229;border:2px solid #d8d2ea}' +
+  '#needle-veil .nv-arm::after{content:"";position:absolute;left:50%;bottom:-3px;width:8px;height:15px;margin-left:-5px;border-radius:2px;background:#d8d2ea;transform:rotate(-14deg)}' +
+  '#needle-veil.is-off .nv-arm{transform:rotate(24deg)}' +
+  '#needle-veil .nv-q{position:absolute;left:50%;bottom:calc(max(20px,env(safe-area-inset-bottom)) + 7vh);transform:translateX(-50%);min-height:44px;padding:0 16px;border:1px solid rgba(216,210,234,.3);border-radius:3px;background:#0d0420;color:rgba(240,234,255,.84);font:500 13px/1 "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.05em;white-space:nowrap;cursor:pointer}' +
+  '#needle-veil .nv-q:focus-visible{outline:1px solid rgba(240,234,255,.8);outline-offset:3px}' +
+  '@keyframes nv-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){#needle-veil .nv-rec::before{animation:none}#needle-veil,#needle-veil .nv-arm{transition:none}}';
+function needleVeil() {
+  ATL.veil = true;
+  const css = document.createElement('style'); css.textContent = VEILCSS; document.head.appendChild(css);
+  const v = document.createElement('div'); v.id = 'needle-veil'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-modal', 'true'); v.setAttribute('aria-label', 'sound');
+  v.innerHTML = '<button type="button" class="nv-go"><span class="nv-rec" aria-hidden="true"><span class="nv-arm"></span></span><span class="nv-t">tap to drop the needle</span></button><button type="button" class="nv-q">or drop it quietly</button>';
+  document.body.appendChild(v);
+  const goB = v.querySelector('.nv-go'), qB = v.querySelector('.nv-q');
+  let done = false;
+  const roll = (t0) => {
+    const T = FAC.tour, dt = performance.now() - t0;
+    if ((A.ac && !A.on && !A.muted && dt < 1500) || (!atlasReady && dt < 20000)) { setTimeout(() => roll(t0), 40); return; }
+    if (T.active && T.active.id && !T.isPlaying()) T.resume();
+  };
+  const go = (quiet) => {
+    if (done) return; done = true;
+    if (quiet) { A.muted = true; muteBtn.setAttribute('aria-pressed', 'true'); muteBtn.textContent = 'sound off'; audioChanged(); } else A.unlock();
+    ATL.veil = false; v.classList.add('is-off'); removeEventListener('keydown', key, true);
+    setTimeout(() => { v.remove(); css.remove(); }, reduced ? 0 : 460);
+    roll(performance.now());
+  };
+  const key = (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    e.stopImmediatePropagation();
+    if (e.key === 'Tab') { e.preventDefault(); (document.activeElement === goB ? qB : goB).focus(); }
+    else if (e.key === 'Escape') { e.preventDefault(); go(true); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(document.activeElement === qB); }
+  };
+  goB.addEventListener('click', () => go(false)); qB.addEventListener('click', () => go(true));
+  addEventListener('keydown', key, true);
+  try { goB.focus({ preventScroll: true }); } catch (e) {}
+}
 let start;
 if (!ATLAS) {
   if (location.hash && rooms.some((r) => '#' + r.id === location.hash && r.el.dataset.side)) rooms.find((r) => '#' + r.id === location.hash).el.hidden = false;
@@ -2098,6 +2147,7 @@ if (!ATLAS) {
     A.unlock();
   };
   ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach((t) => addEventListener(t, arm, { capture: true, passive: true }));
+  if (ATL.enter === 'sound' && !ATL.kiosk && !A.on) needleVeil();
 }
 activate(start, ATLAS ? 'url' : undefined);
 requestAnimationFrame(loop);

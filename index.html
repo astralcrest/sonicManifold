@@ -60,7 +60,7 @@ b,strong{font-weight:600;color:var(--ink)}
 /* ------------------------------------------------------------------ the story: a record that stays, copy that moves past it */
 .story{position:relative}
 .stage{position:sticky;top:0;z-index:3;height:46vh;height:46svh;min-height:250px;max-height:420px;background:var(--bg);overflow:hidden;padding:var(--pt) var(--pr) 0 var(--pl)}
-.stage::before{content:"";position:absolute;left:50%;top:54%;width:130%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 62%);pointer-events:none}
+.stage::before{content:"";position:absolute;left:50%;top:54%;width:130%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(circle,var(--wh,var(--glow)),transparent 62%);pointer-events:none}
 .stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;background:linear-gradient(transparent,var(--bg));pointer-events:none}
 .top{position:relative;z-index:2}
 .fx{position:absolute;left:var(--pl);right:var(--pr);top:clamp(40px,7vh,64px);bottom:34px;min-width:0;min-height:0;container-type:size}
@@ -88,9 +88,27 @@ b,strong{font-weight:600;color:var(--ink)}
 html:not(.needle) .story:has(.cta a:hover) .arm .sw,html:not(.needle) .story:has(.cta a:focus-visible) .arm .sw{transform:rotate(2deg)}
 html.needle .arm .sw{transform:rotate(13.6deg)}
 html.needle .arm{filter:drop-shadow(1px 1.5px 1px rgba(0,0,0,.6))}
+/* r11: the page takes the hue of the hand under the needle; a press blooms ink; the needle is a scrubber */
+.wash{position:fixed;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;background:radial-gradient(70% 55% at var(--wx,24%) var(--wy,20%),var(--wh,transparent),transparent 72%),radial-gradient(60% 50% at calc(100% - var(--wx,24%)) calc(100% - var(--wy,20%)),var(--wh2,transparent),transparent 70%)}
+.js .wash{opacity:1;transition:opacity 1.2s ease}
+#bloom,#gauge{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;pointer-events:none;z-index:1}
+.stage.scrubbing #groove.on{opacity:.34}
+.platter.fast{filter:blur(var(--sm,0px))}
+.scr{display:none;position:absolute;left:var(--pl);right:var(--pr);bottom:21px;width:calc(100% - var(--pl) - var(--pr));height:14px;margin:0;z-index:4;-webkit-appearance:none;appearance:none;background:none;touch-action:pan-y;cursor:ew-resize}
+.js .scr{display:block}
+.scr::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--line),rgba(134,203,254,.38) 50%,var(--line));border-radius:2px}
+.scr::-moz-range-track{height:2px;background:var(--line);border-radius:2px}
+.scr::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;margin-top:-4.5px;border-radius:50%;background:var(--ice);box-shadow:0 0 0 3px rgba(134,203,254,.16),0 0 10px rgba(134,203,254,.5)}
+.scr::-moz-range-thumb{width:11px;height:11px;border:0;border-radius:50%;background:var(--ice);box-shadow:0 0 0 3px rgba(134,203,254,.16)}
+.scr:focus-visible{outline:2px solid var(--ice);outline-offset:3px;border-radius:3px}
+#finding b{display:inline-block;font-variant-numeric:tabular-nums}
+#finding.cnt{color:var(--faint)}
+#finding.cnt b{color:var(--ink)}
+#finding.cnt b+b{color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.wash{transition:none}.scr{cursor:pointer}}
 .foot{position:absolute;left:var(--pl);right:var(--pr);bottom:8px;z-index:2;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .read{margin:0;font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;color:var(--mute);min-width:0;white-space:nowrap}
-.read b{color:var(--mint);font-weight:600;display:inline-block;min-width:6ch;text-align:right;font-variant-numeric:tabular-nums}
+.read b{color:var(--ink);font-weight:600;display:inline-block;width:6.4ch;min-width:6.4ch;text-align:right;font-variant-numeric:tabular-nums}
 /* ------------------------------------------------------------------ the copy */
 .steps{position:relative;z-index:2;padding:0 var(--pr) 0 var(--pl)}
 .step{min-height:42vh;min-height:42svh;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:4vh 0;max-width:34rem}
@@ -98,11 +116,9 @@ html.needle .arm{filter:drop-shadow(1px 1.5px 1px rgba(0,0,0,.6))}
 h1{margin:0;font:italic 600 clamp(32px,10.4vw,54px)/1.04 var(--serif);letter-spacing:-.018em;color:var(--ink);text-wrap:balance}
 h1 .w{display:inline-block;white-space:nowrap}
 h1 .c{display:inline-block;animation:res .95s cubic-bezier(.2,.75,.2,1) both;animation-delay:calc(var(--i) * 26ms + 120ms)}
-h1 .m .c{animation:res .95s cubic-bezier(.2,.75,.2,1) both,hue 9s ease-in-out infinite;animation-delay:calc(var(--i) * 26ms + 120ms),calc(var(--i) * 140ms + 2s)}
-@keyframes res{from{opacity:.07;transform:translateY(.42em) rotate(var(--r,4deg));filter:blur(7px);text-shadow:-.09em 0 var(--mint),.09em 0 var(--violet)}60%{filter:blur(0);text-shadow:-.03em 0 var(--mint),.03em 0 var(--violet)}to{opacity:1;transform:none;filter:none;text-shadow:none}}
-@keyframes hue{0%,100%{color:var(--ink)}30%{color:var(--mint)}55%{color:var(--amber)}80%{color:var(--violet)}}
+@keyframes res{from{opacity:.07;transform:translateY(.42em) rotate(var(--r,4deg));filter:blur(7px);text-shadow:-.09em 0 rgba(134,203,254,.8),.09em 0 rgba(240,234,255,.55)}60%{filter:blur(0);text-shadow:-.03em 0 rgba(134,203,254,.6),.03em 0 rgba(240,234,255,.4)}to{opacity:1;transform:none;filter:none;text-shadow:none}}
 .lede{font-size:clamp(15px,2vw,18px);line-height:1.5;max-width:44ch;margin:0;color:var(--body)}
-#finding b+b{color:var(--ice)}
+#finding b+b{color:var(--ink)}
 .key{color:var(--mute)}
 .key i{font-style:normal;white-space:nowrap;color:var(--body)}
 .key i::before{content:"";display:inline-block;width:.6em;height:.6em;margin:0 .32em 0 .08em;border-radius:50%;background:var(--c)}
@@ -167,8 +183,6 @@ h1 .m .c{animation:res .95s cubic-bezier(.2,.75,.2,1) both,hue 9s ease-in-out in
 .door .go2::after{content:" \25B8";display:inline-block;transition:transform .3s}
 .door:hover,.door:focus-visible,.door.live{border-color:var(--ice);transform:translateY(-3px)}
 .door:hover .go2::after,.door.live .go2::after{transform:translateX(6px)}
-.door[data-k="exhibit"]:hover,.door[data-k="exhibit"].live{border-color:var(--mint)}
-.door[data-k="report"]:hover,.door[data-k="report"].live{border-color:var(--rose)}
 .tours{position:relative;z-index:2;padding:26px var(--pr) 10px var(--pl);max-width:1280px;margin:0 auto}
 .tours .hd{margin:0 0 6px}
 .tours ul{list-style:none;margin:0;padding:0;display:grid;grid:repeat(3,auto)/repeat(2,minmax(0,1fr));column-gap:clamp(14px,7vw,36px)}
@@ -212,7 +226,7 @@ h1{font-size:clamp(46px,5.2vw,96px)}
 @media (min-width:1900px){.doors,.tours,footer{max-width:1600px}}
 @media (max-height:430px) and (max-width:799px){.stage{height:100svh;min-height:0;max-height:none;width:46%;float:left}.steps{margin-left:48%}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.js .rv{opacity:1;transform:none}.js .pips span{transform:none;opacity:1}.js .pips:not(.in) span{transform:none;opacity:1}.gui.done .gfill{width:19%}.gui.done .gmin{width:11.5%}}
-@media (forced-colors:active){
+@media (forced-colors:active){.wash,#bloom{display:none}#finding.cnt,#finding.cnt b,#finding.cnt b+b{color:CanvasText;-webkit-text-fill-color:CanvasText}
 #groove,.hi,#live,.sheen,.arm,.stage::before,.stage::after{display:none}
 .disc,.label{forced-color-adjust:none;background:Canvas;border:1px solid CanvasText;box-shadow:none}
 .hole{forced-color-adjust:none;background:CanvasText;box-shadow:none}
@@ -233,6 +247,7 @@ footer{border-top-color:CanvasText;border-image:none}
 </style>
 </head>
 <body>
+<div class="wash" aria-hidden="true"></div>
 <div class="story" id="top">
 <aside class="stage" data-s="0" aria-label="the record">
 <header class="top"><p class="brand">sonic manifold</p></header>
@@ -245,7 +260,7 @@ footer{border-top-color:CanvasText;border-image:none}
 <canvas id="live"></canvas>
 <div class="label"><span class="hole"></span></div>
 </div>
-<span class="sheen"></span>
+<canvas id="bloom"></canvas><canvas id="gauge"></canvas><span class="sheen"></span>
 </div>
 <svg class="arm" viewBox="0 0 110 100" focusable="false"><g class="sw"><g transform="rotate(-4.09 101 12)">
 <rect class="base" x="98.4" y="3.4" width="5.2" height="4.6" rx="1"/>
@@ -256,6 +271,7 @@ footer{border-top-color:CanvasText;border-image:none}
 </g></g></svg>
 </div>
 </div></div></div>
+<input class="scr" id="scr" type="range" min="0" max="1000" value="620" aria-label="scrub the record: move to any play, the numbers below recount" tabindex="0">
 <div class="foot"><p class="eyebrow">n = 1 &middot; <b>astralcrest</b></p><p class="read" aria-hidden="true">play <b>1</b> of 97,427</p></div>
 </aside>
 
@@ -307,7 +323,7 @@ footer{border-top-color:CanvasText;border-image:none}
 <p class="dsub rv">pick the one that matches why you came. each wakes up when you point at it.</p>
 <div class="dg">
 <div class="dw rv"><a class="door" data-k="exhibit" href="exhibit.html?enter=sound#tour=grand&amp;stop=1"><canvas aria-hidden="true"></canvas><span class="k">for a walk</span><span class="n">the exhibit</span><span class="d">the whole log as one record, with sound under it. start here.</span><span class="go2">step in</span></a></div>
-<div class="dw rv"><a class="door" data-k="lab" href="lab.html"><canvas aria-hidden="true"></canvas><span class="k">for checking</span><span class="n">the lab</span><span class="d">every chart, in order, with the data open. for people who like to check.</span><span class="go2">open it</span></a></div>
+<div class="dw rv"><a class="door" data-k="lab" href="lab.html?from=landing"><canvas aria-hidden="true"></canvas><span class="k">for checking</span><span class="n">the lab</span><span class="d">every chart, in order, with the data open. for people who like to check.</span><span class="go2">open it</span></a></div>
 <div class="dw rv"><a class="door" data-k="report" href="researcher.html"><canvas aria-hidden="true"></canvas><span class="k">for reading</span><span class="n">the report</span><span class="d">what i claim, and what i did to try to kill it.</span><span class="go2">read it</span></a></div>
 </div>
 </section>
@@ -328,7 +344,7 @@ footer{border-top-color:CanvasText;border-image:none}
 <nav class="deeper" aria-label="go deeper" id="deeper">
 <a id="links"></a>
 <p class="hd">go deeper</p>
-<p><a href="lab.html">the lab</a><span class="sep">&middot;</span><a href="researcher.html">the report</a><span class="sep">&middot;</span><a href="bridge-index.html">the probe</a></p>
+<p><a href="lab.html?from=landing">the lab</a><span class="sep">&middot;</span><a href="researcher.html">the report</a><span class="sep">&middot;</span><a href="bridge-index.html">the probe</a></p>
 </nav>
 <p class="fnote">built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a> &middot; old links redirect</p>
 </footer>

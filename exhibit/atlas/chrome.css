@@ -401,21 +401,22 @@ html.atlas #atlas-show:focus-visible{outline:2px solid var(--ice);outline-offset
     -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 14px),transparent)}
 
   /* -------------------------------------------------------------- the merged row (W06, one 44px row) */
-  html.atlas #atlas-info .ai-mrow{display:flex!important;align-items:center;gap:6px;height:44px;padding:0 2px 0 6px;
+  html.atlas #atlas-info .ai-mrow{display:flex!important;align-items:center;gap:6px;height:28px;padding:0 6px;
     background:linear-gradient(180deg,rgba(10,1,24,.55),rgba(10,1,24,.72));border-radius:10px}
-  html.atlas #atlas-info .ai-mplay{flex:0 0 44px;width:44px;height:44px;border-radius:999px;border:1px solid var(--ai-line);
+  html.atlas #atlas-info .ai-mplay,html.atlas #atlas-info .ai-mrow-ov,html.atlas #atlas-info .ai-mpill.ai-mpill-next{display:none!important}
+  html.atlas #atlas-info .ai-mplay-x{flex:0 0 44px;width:44px;height:44px;border-radius:999px;border:1px solid var(--ai-line);
     background:var(--ai-panel);color:var(--ice);font:600 15px/1 var(--mono);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
   html.atlas #atlas-info .ai-mplay:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
   /* the label gets whatever the three fixed-size siblings (play/overflow/pill) leave — min-width is a floor,
      not a target, so it still ellipsises rather than push the row wider than the stage */
   html.atlas #atlas-info .ai-mrow-label{position:relative;flex:1 1 0;min-width:7ch;background:none;border:0;color:var(--ice);text-align:left;
     font:600 11px/1.2 var(--mono);letter-spacing:.04em;text-transform:none;white-space:pre;overflow:hidden;
-    text-overflow:ellipsis;height:44px;padding:0;line-height:44px;cursor:pointer}
+    text-overflow:ellipsis;height:28px;padding:0;line-height:28px;cursor:pointer}
   html.atlas #atlas-info .ai-mrow-ov{flex:0 0 44px;width:44px;height:44px;background:none;border:0;color:var(--mute);
     font:600 18px/1 var(--mono);cursor:pointer}
   html.atlas #atlas-info .ai-mrow-ov:hover,html.atlas #atlas-info .ai-mrow-ov[aria-expanded="true"]{color:var(--ice)}
   html.atlas #atlas-info .ai-mpill{position:relative;isolation:isolate;flex:0 1 auto;font:600 10.5px/1 var(--mono);letter-spacing:.03em;text-transform:none;
-    border-radius:999px;padding:0 12px;height:44px;min-width:44px;cursor:pointer;border:0;background:none;
+    border-radius:999px;padding:0 12px;height:44px;margin:-8px 0;min-width:44px;cursor:pointer;border:0;background:none;
     color:var(--ice);white-space:nowrap;max-width:7.5rem;overflow:hidden;text-overflow:ellipsis}
   html.atlas #atlas-info .ai-mpill::after{content:"";position:absolute;z-index:-1;inset:4px 0;border-radius:999px;
     border:1px solid var(--ai-line);background:var(--ai-panel)}
@@ -423,6 +424,11 @@ html.atlas #atlas-show:focus-visible{outline:2px solid var(--ice);outline-offset
   html.atlas #atlas-info .ai-mpill.ai-mpill-back::after{background:none;border-color:transparent}
   html.atlas #atlas-info .ai-mplay:focus-visible,html.atlas #atlas-info .ai-mrow-label:focus-visible,
   html.atlas #atlas-info .ai-mrow-ov:focus-visible,html.atlas #atlas-info .ai-mpill:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+
+  /* R11 CHROME2: the "…" key is the dock shelf's `tools`; the deck row's own copy stays in the DOM for unfold.js but is never shown */
+  html.atlas #atlas-dock .d-more{flex-wrap:wrap}
+  html.atlas #atlas-dock .d-more button{flex:1 0 20%}
+  html.atlas #atlas-dock .ai-tools[aria-expanded="true"]{color:var(--ice)}
 
   /* -------------------------------------------------------------- the "…" overflow popover (W06/W18) */
   html.atlas #atlas-info .ai-overflow{position:fixed;z-index:8;right:8px;bottom:calc(var(--atlas-dockh,0px) + 52px);
@@ -617,9 +623,9 @@ html.kiosk .ai-coach{display:none}
 
 /* R9 GUIDE (audit P0 3, P2 21): the "how to read" key strip (unfold.js .uf-ks) opened over the room header and the top
    stars on a phone and over the deck strip on the desk. a phone sets it in the lower band, right above the room line
-   (chrome.js writes --ai-infob), over the caption for the few seconds it shows; the desk sets it in the stage's empty top-right corner; a phone on its side, where any
+   (chrome.js writes --ai-infob), above the card (never over its caption) for the few seconds it shows; the desk sets it in the stage's empty top-right corner; a phone on its side, where any
    spot covers the room, does without it (the "how to read" tab still opens the full key). css only: unfold.js is at budget */
-@media (orientation:portrait){html.atlas:not(.atlas-deck) .uf-ks{left:8px!important;right:8px!important;top:auto!important;bottom:calc(var(--ai-infob,160px) + 6px)!important;max-width:none;padding:6px 10px}}
+@media (orientation:portrait){html.atlas:not(.atlas-deck) .uf-ks{left:8px!important;right:8px!important;top:auto!important;bottom:calc(max(var(--ai-infob,160px),var(--ai-infot,0px)) + 6px)!important;max-width:none;padding:6px 10px}}
 html.atlas.atlas-deck .uf-ks{left:auto!important;right:24px!important;top:24px!important;bottom:auto!important}
 @media (orientation:landscape) and (max-height:500px){html.atlas:not(.atlas-deck) .uf-ks{display:none}}
 

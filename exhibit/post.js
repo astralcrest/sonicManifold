@@ -64,11 +64,20 @@ function lateRetry() {
 /* ------------------------------------------------------------------ the dock */
 const coarse = () => { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } };
 /* the arbiter's three states; duck() is the older two-state call, kept for a shell that has no clip() */
-function hush(s) { const A = D.ctx && D.ctx.audio; if (!A) return; if (A.clip) A.clip(s); else A.duck(s !== 'off'); }
+/* R11: once a clip is hot the bed comes back only for a reason: a paused or ended report ('pause'), the dock closing
+   ('close'), or the dock giving up on a player that never said a word ('fail'). never on a timer, never on silence: a
+   blocker or a throttled frame stops the reports while spotify keeps playing. a hidden page keeps it out until seen */
+function hush(s, why) {
+  const A = D.ctx && D.ctx.audio; if (!A) return;
+  if (!A.clip) { A.duck(s !== 'off'); return; }
+  if (s === 'hot') D.later = null;
+  else if (A.clipState === 'hot') { if (!why) return; if (document.hidden) { D.later = s; return; } }
+  A.clip(s);
+}
 const D = {
   el: null, slot: null, who: null, attr: null, x: null, msg: null,
   ctl: null, wantTid: '', artist: '', open: false, lastFocus: null, ctx: null, playT: 0, h: 0, armT: 0, started: false, armTo: 0, failTo: 0,
-  quiet: false, ready: false, loaded: '', playFor: '', evAt: 0, nudT: 0, tapAt: 0, inTo: 0, hotTo: 0, mutTo: 0, visAt: 0, byDwell: false, asking: '', askTo: 0, askAt: null, yes: null, no: null, tapTo: 0, co: false, playAt: 0, dur: 0,
+  quiet: false, ready: false, loaded: '', playFor: '', evAt: 0, nudT: 0, tapAt: 0, inTo: 0, hotTo: 0, hotFor: 0, mutTo: 0, heard: false, later: null, byDwell: false, asking: '', askTo: 0, askAt: null, yes: null, no: null, tapTo: 0, co: false, playAt: 0, dur: 0,
   build(ctx) {
     if (this.el) return this.el;
     this.ctx = ctx;
@@ -222,7 +231,7 @@ const D = {
     this.msg.textContent = 'spotify did not load. it may be blocked on this network, or you may be offline.';
     if (tid) { this.setAttr('open ' + artist + ' on ', 'spotify ↗', 'https://open.spotify.com/track/' + tid); this.attr.hidden = false; }
     else this.attr.hidden = true;
-    hush('off');
+    hush('off', 'fail');
     /* a pill dropped where the finger was sits on top of the card it came from: on a phone it moves to the bottom dock, and every failure leaves by itself after 8 s (the link stays until then) */
     this.el.classList.toggle('is-fail', this.quiet && coarse());
     clearTimeout(this.failTo); this.failTo = setTimeout(() => { if (this.open && !this.started) this.close(false); }, 8000);
@@ -247,7 +256,7 @@ const D = {
        while it may be sounding, so the bed goes out now and waits one preview's length, rather than sitting at -24 dB
        under the clip for six seconds */
     clearTimeout(this.mutTo);
-    if (this.ready) this.mutTo = setTimeout(() => { if (this.open && !this.started && this.evAt < this.armT) { hush('hot'); clearTimeout(this.hotTo); this.hotTo = setTimeout(() => { if (this.evAt < this.armT) hush('off'); }, 32000); } }, 1500);
+    if (this.ready) this.mutTo = setTimeout(() => { if (this.open && !this.started && this.evAt < this.armT) { hush('hot'); this.waitOut(artist); } }, 1500);
     const co = coarse();
     if (co && this.ready) this.tapTo = setTimeout(() => this.tapToPlay(artist), 1300);
     else if (this.quiet && this.ready) this.tapTo = setTimeout(() => this.tapToPlay(artist), 3500);
@@ -255,17 +264,33 @@ const D = {
       if (this.started) return;
       /* R10: spotify said nothing at all since the ask (a blocker eating its messages) while the player is there: it may be
          playing, so the bed stays out for one preview's length rather than coming back over it */
-      if (this.ready && this.evAt < this.armT && !this.co) { hush('hot'); clearTimeout(this.hotTo); this.hotTo = setTimeout(() => { if (this.evAt < this.armT) hush('off'); }, 32000); return; }
+      if (this.ready && this.evAt < this.armT && !this.co) { hush('hot'); if (this.heard) this.mute(artist); this.waitOut(artist); return; }
       if (!this.tapAt) hush('off');
       if (co && this.ready) this.tapToPlay(artist);
       else if (this.quiet) this.tapToPlay(artist); else this.stalled(artist);
     }, co ? 2500 : 6000);
   },
+  /* R11: spotify has said nothing since the ask and the bed is out. a player that has NEVER said a word (a blocker that lets
+     the frame load and eats every message) is the one case the dock gives up on: it says so and the bed comes back, the
+     only way out of a dead frame. one that has talked keeps the bed out until a pause, stop, or a room change */
+  /* one preview's length from the first moment the bed went out for this ask (not restarted by the 6 s check) */
+  waitOut(artist) {
+    if (this.hotFor === this.armT) return;
+    this.hotFor = this.armT; clearTimeout(this.hotTo);
+    this.hotTo = setTimeout(() => { if (this.evAt < this.armT) this.mute(artist); }, 32000);
+  },
+  mute(artist) {
+    if (!this.open || this.started && this.heard) return;
+    if (this.heard) { this.say('spotify stopped answering, so the room stays quiet until you press stop.'); return; }
+    this.who.textContent = 'no word from spotify';
+    this.say("something may be blocking its player. the room's music is back. stop closes it.");
+    hush('off', 'fail');
+  },
   pending() { return this.open && !this.started && Date.now() - this.armT < (coarse() ? 2500 : 6000); },
   close(restoreFocus) {
     clearTimeout(this.armTo); clearTimeout(this.tapTo); clearTimeout(this.failTo); clearTimeout(this.inTo); clearTimeout(this.hotTo); clearTimeout(this.mutTo); this.started = false; this.byDwell = false; this.tapAt = 0;
     if (this.ctl) { try { this.ctl.pause(); } catch (e) {} }
-    hush('off');
+    hush('off', 'close');
     if (!this.el) return;
     this.open = false; this.el.classList.remove('is-tap', 'is-fail'); this.h = -1; if (!this.asking) this.el.classList.add('is-off'); this.msg.hidden = true; this.msg.textContent = '';
     this.measure();
@@ -275,25 +300,24 @@ const D = {
 };
 
 /* R10: a tap on spotify's own player moves focus into its frame, and this window hears blur before spotify reports
-   anything (or ever does, behind a blocker). that is the moment the clip starts: the bed goes out now. if spotify is
-   talking and says nothing within 2.5 s, the tap was not a play (the artwork, a pause) and the bed comes back; if it has
-   never said a word this visit, the bed waits out one preview */
+   anything (or ever does, behind a blocker). that is the moment the clip starts: the bed goes out now.
+   R11: it stays out until spotify says paused or the dock closes (a tap on the artwork keeps the room quiet too: the
+   dock is open and its stop is one tap away; after 4 s of nothing it says why). only a player that has never said a
+   word is given up on, after a preview */
 addEventListener('blur', () => setTimeout(() => {
   const f = D.slot && D.slot.querySelector('iframe');
   if (!f || !D.open || document.activeElement !== f) return;
   D.tapAt = Date.now(); hush('hot'); clearTimeout(D.inTo);
-  const talked = D.evAt > D.armT, at = D.tapAt;
-  D.inTo = setTimeout(() => { if (D.tapAt !== at || D.evAt > at) return; D.tapAt = 0; if (!D.started) hush(D.ready && !D.co && D.pending() ? 'armed' : 'off'); }, talked ? 2500 : 31000);
+  const at = D.tapAt;
+  D.inTo = setTimeout(() => { if (D.tapAt === at && D.evAt < at && !D.started) D.mute(D.artist); }, D.heard ? 4000 : 31000);
 }, 0));
-/* back in view: the hot watchdog waits a few seconds for the embed to speak again before it judges silence */
-document.addEventListener('visibilitychange', () => { if (!document.hidden) D.visAt = Date.now(); });
-setInterval(() => {
-  const A = D.ctx && D.ctx.audio;
-  if (!A || !A.clip || A.clipState !== 'hot' || document.hidden || D.evAt < D.armT || D.tapAt) return;
-  /* a playing embed reports about once a second; four seconds of nothing from one that has talked since the ask means
-     it stopped (one that never talked since the ask is the blocker case: its own timer brings the bed back) */
-  const now = Date.now(); if (now - D.evAt > 4000 && now - D.visAt > 4000 && now - D.armT > 4000) hush('off');
-}, 1000);
+/* R11: the old hot watchdog (four seconds of silence brought the bed back) is gone: silence is what a blocker or a
+   throttled frame sounds like while spotify plays on. a pause said while the page was hidden lands when it is seen */
+document.addEventListener('visibilitychange', () => {
+  const A = D.ctx && D.ctx.audio, s = D.later;
+  if (document.hidden || !s || !A || !A.clip) return;
+  D.later = null; if (A.clipState === 'hot') A.clip(s);
+});
 
 /* resolve an artist to a controller playing them. `trigger` is the control that was clicked, for focus return. */
 async function playArtist(artist, ctx, trigger, quiet) {
@@ -327,7 +351,7 @@ async function playArtist(artist, ctx, trigger, quiet) {
     D.slot.textContent = ''; D.slot.appendChild(host);
     loads++; lastLoad = Date.now();
     api.createController(host, { uri: 'spotify:track:' + tid, height: 80, width: '100%' }, (ctl) => {
-      D.ctl = ctl; D.making = false; D.loaded = tid; D.playFor = '';
+      D.ctl = ctl; D.making = false; D.loaded = tid; D.playFor = ''; D.heard = false;
       { const fr = D.slot.querySelector('iframe'); if (fr && !fr.title) fr.title = 'spotify player'; }
       ctl.addListener('ready', () => {
         D.ready = true; D.slotted();
@@ -338,12 +362,12 @@ async function playArtist(artist, ctx, trigger, quiet) {
         if (D.playFor !== D.loaded) nudge(D.wantTid);
         requestAnimationFrame(() => D.measure());
       });
-      ctl.addListener('playback_started', () => { D.evAt = Date.now(); if (D.open) hush('hot'); });
+      ctl.addListener('playback_started', () => { D.evAt = Date.now(); D.heard = true; if (D.open) hush('hot'); });
       ctl.addListener('playback_update', (e) => {
         const dat = e && e.data; if (!dat) return;
-        const pos = dat.position || 0; D.evAt = Date.now();
+        const pos = dat.position || 0; D.evAt = Date.now(); D.heard = true;
         /* the dock is closed but the embed still plays (a pause that did not take): ask again, and keep the bed out until it stops */
-        if (!D.open) { if (!dat.isPaused) { try { ctl.pause(); } catch (err) {} hush('hot'); } else hush('off'); return; }
+        if (!D.open) { if (!dat.isPaused) { try { ctl.pause(); } catch (err) {} hush('hot'); } else hush('off', 'pause'); return; }
         if (dat.duration > 0) D.dur = dat.duration;
         if (D.co) {
           /* R9: "hearing" only while the embed reports real playback. ios plays for a blink and pauses at 0 when the tap
@@ -354,13 +378,13 @@ async function playArtist(artist, ctx, trigger, quiet) {
           /* R10: playing or starting is 'hot', position 0 included (a tap in the frame starts there). the one exception is
              ios's blink: our own play() from outside the frame reports playing at 0 and pauses again, with no sound */
           const blip = !dat.isPaused && pos === 0 && !D.tapAt && Date.now() - D.nudT < 1500;
-          if (!dat.isPaused) { if (!blip) hush('hot'); } else { D.tapAt = 0; clearTimeout(D.inTo); hush('off'); }
+          if (!dat.isPaused) { if (!blip) hush('hot'); } else { D.tapAt = 0; clearTimeout(D.inTo); hush('off', 'pause'); }
         } else {
         const playing = D.open && !dat.isPaused;
         if (playing && !D.started) { D.started = true; D.playing(D.artist); }
         /* the embed reports paused while it loads: that must not bring the bed back up before the clip has begun.
            R10: playing (buffering included) is 'hot'; paused while the next one loads waits at 'armed' */
-        if (playing) hush('hot'); else { D.tapAt = 0; clearTimeout(D.inTo); hush(D.pending() && D.ready ? 'armed' : 'off'); }
+        if (playing) hush('hot'); else { D.tapAt = 0; clearTimeout(D.inTo); hush(D.pending() && D.ready ? 'armed' : 'off', 'pause'); }
         }
         /* the embed loads paused; one nudge per uri, never a loop */
         if (D.open && dat.isPaused && D.playT && Date.now() - D.playT < 4000 && (dat.position || 0) === 0) { D.playT = 0; setTimeout(() => { if (D.open && !D.started && !D.tapAt) try { D.nudT = Date.now(); ctl.play(); } catch (err) {} }, Math.max(0, D.armT + 320 - Date.now())); }

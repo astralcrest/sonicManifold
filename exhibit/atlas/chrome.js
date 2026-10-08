@@ -131,7 +131,7 @@ export function mount(ctx, deps) {
        instead of reparenting them, so the desktop DOM and its measured metrics never change (W08/W30 gate). */
     '<div class="ai-mrow" id="ai-mrow" hidden>' +
       '<button type="button" class="ai-mplay" id="ai-mplay" aria-pressed="false" aria-label="pause the tour"><span aria-hidden="true" id="ai-mplay-i">&#8214;</span></button>' +
-      '<button type="button" class="ai-mrow-label" id="ai-mrow-label" aria-haspopup="dialog"><span class="ai-meter" id="ai-meter" aria-hidden="true"></span><span id="ai-mrow-t"></span></button>' +
+      '<div class="ai-mrow-label" id="ai-mrow-label"><span class="ai-meter" id="ai-meter" aria-hidden="true"></span><span id="ai-mrow-t"></span></div>' +
       '<button type="button" class="ai-mrow-ov" id="ai-mrow-ov" aria-haspopup="true" aria-expanded="false" aria-label="more controls">&hellip;</button>' +
       '<button type="button" class="ai-mpill" id="ai-mpill" hidden></button>' +
     '</div>' +
@@ -202,7 +202,15 @@ export function mount(ctx, deps) {
   const zoomOut = $('ai-zout'), zoomIn = $('ai-zin'), moreBtn = $('ai-more'), footEl = $('ai-foot');
   const mrow = $('ai-mrow'), mplay = $('ai-mplay'), mplayI = $('ai-mplay-i'), mrowLabel = $('ai-mrow-label'), mrowT = $('ai-mrow-t'), mrowOv = $('ai-mrow-ov'), mpillBtn = $('ai-mpill');
   const overflowEl = $('ai-overflow'), ovLess = $('ai-ov-less'), ovLabel = $('ai-ov-label'), ovShare = $('ai-ov-share'), ovPhoto = $('ai-ov-photo'), ovExpose = $('ai-ov-expose'), ovXray = $('ai-ov-xray'), ovHide = $('ai-ov-hide');
-  mrowOv.setAttribute('aria-label', T.overflow);
+  /* R11 CHROME2: the phone has ONE transport row (the dock). The deck row is the progress line and the room name; its
+     "…" button stays in the DOM (unfold.js places its read tab beside it) but is hidden, and the dock's shelf carries
+     a `tools` key that drives the same popover */
+  mrowOv.setAttribute('aria-label', 'tools'); mrowOv.tabIndex = -1;
+  const toolsBtn = doc.createElement('button'); toolsBtn.type = 'button'; toolsBtn.id = 'ai-tools'; toolsBtn.className = 'ai-tools'; toolsBtn.dataset.a = 'tools';
+  toolsBtn.setAttribute('aria-haspopup', 'true'); toolsBtn.setAttribute('aria-expanded', 'false');
+  toolsBtn.innerHTML = '<span class="d-ic" aria-hidden="true">&hellip;</span>tools';
+  function adoptOv() { const sh = doc.getElementById('atlas-dock-more'); if (sh && toolsBtn.parentNode !== sh) sh.appendChild(toolsBtn); }
+  adoptOv(); [0, 300, 1500].forEach((ms) => setTimeout(adoptOv, ms));
   ovShare.textContent = T.share;
   const shufBtn = $('ai-shuf'), ovShuf = $('ai-ov-shuf'), servedEl = $('ai-served'), endServed = $('ai-end-served');
   shufBtn.textContent = ovShuf.textContent = T.shuffle; tourChipT.textContent = LP;
@@ -227,7 +235,7 @@ export function mount(ctx, deps) {
      "…" first: photo.js hands focus back to whoever held it on open, and the entry itself is gone by then */
   const openPhoto = (then) => {
     const P = ctx.atlas && ctx.atlas.photo; closeOverflow(); if (!P) return;
-    try { mrowOv.focus(); } catch (e) {}
+    try { toolsBtn.focus(); } catch (e) {}
     P.open(); if (then) then(P);
   };
   ovPhoto.addEventListener('click', () => openPhoto());
@@ -344,6 +352,7 @@ export function mount(ctx, deps) {
   const idleAPI = {
     wake() { wake(); },
     hold(key, on) { if (on) idleHold.add(key); else idleHold.delete(key); },
+    why() { const t = now(); return { kiosk: KIOSK, hold: [...idleHold], hov: infoHovered(), foc: infoFocused(), panel: panelOpen(), cap: Math.round(capReadUntil - t), since: Math.round(t - lastInput) }; }, /* R11: names the guard that keeps the chrome lit (harness + console) */
     faded: false,
   };
   ctx.idle = idleAPI;
@@ -1120,7 +1129,7 @@ export function mount(ctx, deps) {
        so desktop's DOM (and atlas_precision --mode=head) never changes shape. round-2 (W-fix7): its text is a
        short verb, not the full "next stop · <name> ›" desktop string — the destination is already the caption. */
     const mtext = shortText || (back ? T.mpillBack : T.mpillNext);
-    mpillBtn.hidden = false; mpillBtn.className = 'ai-mpill' + (back ? ' ai-mpill-back' : '');
+    mpillBtn.hidden = false; mpillBtn.className = 'ai-mpill' + (back ? ' ai-mpill-back' : '') + (!back && !shortText ? ' ai-mpill-next' : '');
     if (mpillBtn.textContent !== mtext) mpillBtn.textContent = mtext;
     mpillBtn.onclick = () => { try { fn(); } catch (e) {} };
   }
@@ -1181,7 +1190,7 @@ export function mount(ctx, deps) {
      label, share, hide) — a lightweight non-modal popover anchored above the merged row, never a second copy
      of #atlas-info's own controls (which stay for desktop/landscape and are simply hidden on phone). */
   function openOverflow() {
-    overflowEl.hidden = false; mrowOv.setAttribute('aria-expanded', 'true');
+    overflowEl.hidden = false; mrowOv.setAttribute('aria-expanded', 'true'); toolsBtn.setAttribute('aria-expanded', 'true');
     wake();
     requestAnimationFrame(() => { try { ovLess.focus(); } catch (e) {} });
     addEventListener('pointerdown', onOverflowOutside, { capture: true });
@@ -1189,13 +1198,14 @@ export function mount(ctx, deps) {
   }
   function closeOverflow() {
     if (overflowEl.hidden) return;
-    overflowEl.hidden = true; mrowOv.setAttribute('aria-expanded', 'false');
+    overflowEl.hidden = true; mrowOv.setAttribute('aria-expanded', 'false'); toolsBtn.setAttribute('aria-expanded', 'false');
     removeEventListener('pointerdown', onOverflowOutside, { capture: true });
     removeEventListener('keydown', onOverflowKey, { capture: true });
   }
-  function onOverflowOutside(e) { if (!overflowEl.contains(e.target) && e.target !== mrowOv) closeOverflow(); }
-  function onOverflowKey(e) { if (e.key === 'Escape') { closeOverflow(); try { mrowOv.focus(); } catch (er) {} } }
-  mrowOv.addEventListener('click', () => { if (overflowEl.hidden) openOverflow(); else closeOverflow(); });
+  function onOverflowOutside(e) { if (!overflowEl.contains(e.target) && e.target !== mrowOv && !toolsBtn.contains(e.target)) closeOverflow(); }
+  function onOverflowKey(e) { if (e.key === 'Escape') { closeOverflow(); try { toolsBtn.focus(); } catch (er) {} } }
+  const flipOv = () => { if (overflowEl.hidden) openOverflow(); else closeOverflow(); };
+  mrowOv.addEventListener('click', flipOv); toolsBtn.addEventListener('click', flipOv);
   ovLess.addEventListener('click', () => { toggleLess(); closeOverflow(); });
   ovLabel.addEventListener('click', () => { closeOverflow(); openLabel(); });
   ovHide.addEventListener('click', () => { closeOverflow(); doHide(); });
@@ -1531,7 +1541,7 @@ export function mount(ctx, deps) {
       html.style.setProperty('--atlas-infomaxh', maxH + 'px');
       const infoRect = info.getBoundingClientRect();
       /* R9 GUIDE: the key strip sits right above the room line (the stop row), over the caption while it shows */
-      { const rl = mrow && mrow.getClientRects().length ? mrow.getBoundingClientRect().top : infoRect.top; html.style.setProperty('--ai-infob', Math.max(0, Math.round(innerHeight - rl)) + 'px'); }
+      { const rl = mrow && mrow.getClientRects().length ? mrow.getBoundingClientRect().top : infoRect.top; html.style.setProperty('--ai-infob', Math.max(0, Math.round(innerHeight - rl)) + 'px'); html.style.setProperty('--ai-infot', Math.max(0, Math.round(innerHeight - infoRect.top)) + 'px'); }
       writeInsets(topBottom0, Math.round(infoRect.top));
       html.style.setProperty('--atlas-wallh', wall ? wall.offsetHeight + 'px' : '0px');
       wallMore();
@@ -1730,8 +1740,23 @@ export function mount(ctx, deps) {
     const h = coachEl.offsetHeight, w = coachEl.offsetWidth;
     /* upright it hangs from the top bar (the key strip takes the lower band); on the desk it sits low in the stage */
     const cx = st.x + st.w / 2, tb = topBar ? Math.round(topBar.getBoundingClientRect().bottom) : 56;
-    const y = isPortrait() ? tb + 10 : st.y + st.h * 0.74 - h / 2;
-    coachEl.style.left = Math.round(clamp(cx - w / 2, 16, innerWidth - w - 16)) + 'px';
+    let y = isPortrait() ? tb + 10 : st.y + st.h * 0.74 - h / 2, x = cx - w / 2;
+    if (!isPortrait()) {
+      /* the room's own boxes (the chain's .ch-hud, the cards) outrank the coach: scan for the nearest free slot, centred first, then either side */
+      const sec = doc.querySelector('section[data-room].is-active'), boxes = [];
+      (sec ? [...sec.querySelectorAll('*'), ...doc.querySelectorAll('body > *:not(#atlas-coach), #ai-liner')] : []).forEach((e) => { if (e === coachEl) return; const r = e.getBoundingClientRect(); if (r.width < 60 || r.height < 24 || r.width * r.height > innerWidth * innerHeight * 0.3) return; const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0 || cs.pointerEvents === 'none' && e.tagName === 'CANVAS') return; boxes.push(r); });
+      const hit = (l, t) => boxes.some((r) => l < r.right + 8 && l + w > r.left - 8 && t < r.bottom + 8 && t + h > r.top - 8);
+      const y0 = clamp(y, 56, innerHeight - h - 16);
+      if (hit(clamp(x, 16, innerWidth - w - 16), y0)) {
+        let best = null;
+        for (const dx of [0, -1, 1]) for (let t = 56; t <= innerHeight - h - 16; t += 12) {
+          const l = clamp(dx === 0 ? x : dx < 0 ? st.x + 24 : st.x + st.w - w - 24, 16, innerWidth - w - 16);
+          if (!hit(l, t)) { const d = Math.abs(t - y0) + Math.abs(dx) * 40; if (!best || d < best.d) best = { d, l, t }; }
+        }
+        if (best) { x = best.l; y = best.t; }
+      }
+    }
+    coachEl.style.left = Math.round(clamp(x, 16, innerWidth - w - 16)) + 'px';
     coachEl.style.top = Math.round(clamp(y, 56, innerHeight - h - 16)) + 'px';
   }
   function coachOff(e) {

@@ -4,10 +4,10 @@
   d.documentElement.classList.add('js');
   var all = function (s, r) { return Array.prototype.slice.call((r || d).querySelectorAll(s)); };
 
-  /* folds: open on desktop, closed on phone; abstract, limits and cite stay open (data-keep) */
-  var phone = mm('(max-width:700px)');
+  /* folds: every technical fold starts closed, so the short read is the page; abstract, limits and cite stay open (data-keep).
+     one control opens or closes the lot; a deep link opens its own fold. */
   all('details.fold,details.pt').forEach(function (x) {
-    if (phone && x.getAttribute('data-keep') === null && !(x.parentElement && x.closest('[data-keep]'))) x.removeAttribute('open');
+    if (x.getAttribute('data-keep') === null && !(x.parentElement && x.closest('[data-keep]'))) x.removeAttribute('open');
   });
   all('details.fold').forEach(function (f) {
     var s = f.querySelector('summary'), w = (f.textContent || '').replace(s.textContent, '').trim().split(/\s+/).length;
@@ -17,6 +17,25 @@
   function hash() { var t = location.hash && d.getElementById(decodeURIComponent(location.hash.slice(1))); if (t) reveal(t); }
   addEventListener('hashchange', hash); hash();
   addEventListener('beforeprint', function () { all('details').forEach(function (x) { x.open = true; }); });
+
+  var folds = all('details.fold'), readBtns = [];
+  var secOf = function (f) { return f.closest('section'); };
+  function sync() {
+    var every = folds.every(function (f) { return f.open; });
+    readBtns.forEach(function (b) { b.setAttribute('aria-pressed', every ? 'true' : 'false'); b.textContent = every ? 'fold it back' : 'read everything'; });
+    all('.toc a').forEach(function (a) {
+      var s = d.getElementById(a.getAttribute('href').slice(1)), f = s && s.querySelector('details.fold');
+      if (f) a.setAttribute('data-open', f.open ? 'true' : 'false'); else a.removeAttribute('data-open');
+    });
+  }
+  function toggleAll() {
+    var every = folds.every(function (f) { return f.open; });
+    all('details.fold,details.pt').forEach(function (x) { x.open = !every || x.hasAttribute('data-keep') || !!x.closest('[data-keep]'); });
+    sync();
+  }
+  all('button.readall').forEach(function (b) { b.onclick = toggleAll; readBtns.push(b); });
+  d.addEventListener('toggle', sync, true);
+  sync();
 
   /* contents: current section, and a progress hairline when css scroll timelines are missing */
   var links = all('.toc a'), cur = null, ol = d.querySelector('.toc ol');
@@ -58,6 +77,64 @@
       var lo = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { lo.disconnect(); go(); } }, { rootMargin: '0px 0px -25% 0px' });
       lo.observe(led);
     } else lis.forEach(function (l) { l.classList.add('in'); });
+  }
+
+  /* the record: every play of the log, in order, as one spiral groove. each run is a month's tapped, shuffled and served plays (counts as on the landing). */
+  var rc = d.getElementById('rec');
+  if (rc && rc.getContext) {
+    var TAP = [3,0,0,0,0,0,7,0,0,0,0,0,4,8,3,1,0,0,1,0,0,0,0,2,4,5,0,0,0,132,218,97,178,160,198,234,122,138,157,281,268,251,295,285,255,117,114,243,65,330,373,286,502,383,416,355,432,301,201,368,356,317,283,232,275,211,499,386,514,330,371,436,444,663,468,986,868,699,838,1243,379],
+      SHU = [0,0,0,0,0,0,40,0,0,0,0,0,7,77,22,8,0,0,0,0,0,0,0,8,7,21,0,3,0,154,37,491,413,427,429,439,736,901,648,385,344,462,479,252,110,189,171,68,0,32,90,132,342,162,396,420,401,356,24,225,370,707,721,379,237,174,724,438,418,346,116,130,555,35,34,49,128,196,403,194,0],
+      SRV = [5,0,0,0,0,0,0,0,0,0,0,0,1,5,5,4,0,0,0,0,0,0,0,0,0,2,0,0,0,1000,1609,647,1018,738,528,1660,690,560,875,1372,1516,1444,1724,1596,1329,527,828,1296,370,1018,1127,702,1634,1294,1483,1008,1263,1051,900,890,889,696,240,657,584,618,1110,973,951,1039,1686,1094,631,1901,1560,3225,2188,2152,2138,3324,1199];
+    var CL = ['#21f6bc', '#f5a623', '#8b6fd6'], runs = [], N = 0, mi, ki, cn;
+    for (mi = 0; mi < TAP.length; mi++) { cn = [TAP[mi], SHU[mi], SRV[mi]]; for (ki = 0; ki < 3; ki++) if (cn[ki]) { runs.push([N, N + cn[ki], ki]); N += cn[ki]; } }
+    var cx = rc.getContext('2d'), D = 0, R1 = 0, R0 = 0, KD = 0, PT = 0, done = 0, lw = 1, TAU = 6.283185307179586;
+    var rad = function (i) { return Math.sqrt(R1 * R1 - KD * i); };
+    var ang = function (i) { return (R1 - rad(i)) * TAU / PT + 0.69; };
+    var seg = function (a, b, k) {
+      var n = Math.max(1, Math.ceil((ang(b) - ang(a)) / 0.05)), j, t, r, x, y;
+      cx.beginPath();
+      for (j = 0; j <= n; j++) {
+        t = a + (b - a) * j / n; r = rad(t); x = D / 2 + r * Math.cos(ang(t)); y = D / 2 + r * Math.sin(ang(t));
+        if (j) cx.lineTo(x, y); else cx.moveTo(x, y);
+      }
+      cx.strokeStyle = CL[k]; cx.stroke();
+    };
+    var upto = function (from, to) {
+      cx.lineWidth = lw; cx.lineCap = 'butt';
+      runs.forEach(function (r) { if (r[1] > from && r[0] < to) seg(Math.max(r[0], from), Math.min(r[1], to), r[2]); });
+    };
+    var dpr = function () { return Math.min(Math.max(window.devicePixelRatio || 1, 2), 3); };
+    var base = function () {
+      var w = rc.getBoundingClientRect().width;
+      if (w < 40) return false;
+      D = rc.width = rc.height = Math.min(Math.round(w * dpr()), 1500);
+      var c = D / 2; R1 = c * 0.955; R0 = c * 0.3; KD = (R1 * R1 - R0 * R0) / N; PT = Math.max(1.4, Math.sqrt(Math.PI * KD)); lw = PT * 0.92;
+      var bg = cx.createRadialGradient(c, c, 0, c, c, c); bg.addColorStop(0, '#0d0718'); bg.addColorStop(0.96, '#08030f'); bg.addColorStop(1, '#2a1f3d');
+      cx.fillStyle = bg; cx.beginPath(); cx.arc(c, c, c * 0.985, 0, TAU); cx.fill();
+      return true;
+    };
+    var label = function () {
+      var c = D / 2;
+      cx.fillStyle = '#1d1230'; cx.beginPath(); cx.arc(c, c, R0 * 0.96, 0, TAU); cx.fill();
+      cx.strokeStyle = 'rgba(189,166,255,.25)'; cx.lineWidth = Math.max(1, D / 600); cx.stroke();
+      cx.fillStyle = '#05010a'; cx.beginPath(); cx.arc(c, c, D * 0.011, 0, TAU); cx.fill();
+    };
+    var still = function () { if (base()) { upto(0, N); label(); done = N; } };
+    if (mm('(prefers-reduced-motion:reduce)')) still();
+    else if (base()) {
+      var t0 = 0, step = function (t) {
+        if (!t0) t0 = t;
+        var u = Math.min(1, (t - t0) / 2200), to = Math.round((1 - Math.pow(1 - u, 3)) * N);
+        upto(done, to); done = to; label();
+        if (u < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+    var rt = 0;
+    addEventListener('resize', function () {
+      clearTimeout(rt);
+      rt = setTimeout(function () { if (Math.abs(rc.getBoundingClientRect().width * dpr() - D) > 2 && D <= 1498) still(); }, 200);
+    });
   }
 
   var NS = 'http://www.w3.org/2000/svg';

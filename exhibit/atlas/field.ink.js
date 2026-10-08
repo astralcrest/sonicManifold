@@ -3,7 +3,7 @@
    then bleeds. families dealt from threshold_grid as the globe deals them (the silent-day blur stays blurred). */
 const { min, max, round, sqrt } = Math;
 const FULL = { threshold: 1, universe: 1, wall: 1, calendar: 1 };
-const RAMP = [[0, .88, 1], [.1, .66, 1], [.18, .42, 1], [.29, .24, 1], [.48, .17, 1], [.66, .17, .96], [.85, .16, .85], [1, .18, .65], [1, .25, .47], [1, .3, .37]];
+const RAMP = [[.2,.8,.25], [.65,.9,.12], [.9,.9,.3], [.1,.6,.62], [.1,.35,.95], [.2,.2,.7], [.55,.1,.85], [.85,.1,.8], [.9,.15,.25], [1,.4,.05]]; /* R11: no hue of the reserved code (mint, amber, violet, rose, ice) */
 const POS = { electronic: 0, classical: .07, 'ambient/lofi': .15, 'folk/country': .24, other: .33, jazz: .42, 'world/desi': .5, experimental: .57, 'rock/metal': .64, soundtrack: .72, pop: .8, 'funk/disco': .88, 'hip-hop · r&b': 1 };
 const SMOKE = [.34, .32, .43], COOL = [0.129,0.965,0.737], ROSE = [0.545,0.435,0.839]; /* the colour code: mint = tapped, violet = served */
 const FAM0 = ['ambient/lofi', 'classical', 'electronic', 'experimental', 'folk/country', 'funk/disco', 'hip-hop · r&b', 'jazz', 'other', 'pop', 'rock/metal', 'soundtrack', 'world/desi', 'untagged'];
@@ -40,7 +40,7 @@ const FS = {
 const PV = '#version 300 es\nprecision highp float;precision highp int;in vec2 p;in vec4 q;in float s;uniform vec3 C[16];uniform float Z;uniform int M;out vec4 k;void main(){gl_Position=vec4(p*2.-1.,0,1);gl_PointSize=max(1.,s*Z);' +
  'k=M==0?(q.x<0.?vec4(0):vec4(C[int(q.x)],q.y)):vec4(q.zw,0,0);}';
 export const TUNE = { diss: .9985, bleed: .1, keep: .85, sheen: 5, curl: 9, drift: 1.6, fly: .1, stir: 16, px: 2 };
-const ST = { on: false, reason: '', room: '', mode: 'fam', tier: 0, frames: 0, drops: 0, ms: new Float32Array(240), mi: 0, hold: false, still: false, dye: 0, sim: 0, iters: 0, gpu: '' };
+const ST = { on: false, hush: false, reason: '', room: '', mode: 'arm', tier: 0, frames: 0, drops: 0, ms: new Float32Array(240), mi: 0, hold: false, still: false, dye: 0, sim: 0, iters: 0, gpu: '' };
 export function stats() {
  const a = Array.from(ST.ms.slice(0, min(ST.mi, 240))).sort((x, y) => x - y), q = (p) => (a.length ? +a[min(a.length - 1, (a.length * p) | 0)].toFixed(3) : 0);
  const o = Object.assign({}, ST, { p50: q(.5), p95: q(.95) }); delete o.ms; return o;
@@ -176,7 +176,18 @@ export function mount(ctx, api) {
   }
   keyEl.classList.toggle('on', !!show);
  }
- function toggle() { ST.mode = ST.mode === 'arm' ? 'fam' : 'arm'; if (ST.mode === 'arm') arm(); caption(); key(true); restart(true); }
+ let userMode = false, roomT = now(), touched = '', capTm = 0, lastRoom = '';
+ /* the bath's own line comes 6.6 s after the room's; until it has typed the chrome may not dim, or a quiet-mode
+    visitor (idle at 6 s) would see the chrome half-fade and relight for that line */
+ const lineDue = (on) => { try { ctx.idle.hold('ink-line', on); } catch (e) {} };
+ /* R11: by hand (mint taps, violet queue) is the default under every key; family dyes only in the universe, whose key names families */
+ function autoMode() {
+  if (ST.room === lastRoom) return; lastRoom = ST.room;
+  roomT = now(); clearTimeout(capTm); lineDue(false);
+  if (ST.on && FULL[ST.room]) { lineDue(true); capTm = setTimeout(() => { lineDue(false); if (ST.on) caption(); }, 6600); }
+  if (!userMode) { ST.mode = ST.room === 'universe' ? 'fam' : 'arm'; if (ST.mode === 'arm') arm(); }
+ }
+ function toggle() { userMode = true; touched = ST.room; ST.mode = ST.mode === 'arm' ? 'fam' : 'arm'; if (ST.mode === 'arm') arm(); caption(); key(true); restart(true); }
  const on = (t, f) => { addEventListener(t, f, { passive: true, capture: true }); offs.push(() => removeEventListener(t, f, true)); };
  on('pointerdown', (e) => {
   PTR.set(e.pointerId, { x: e.clientX, y: e.clientY, mv: 0 });
@@ -199,7 +210,7 @@ export function mount(ctx, api) {
  /* R10 merge: the bath's line goes through the chrome's one caption slot (ctx.atlas.capFor), after any line the veins
     hold while they are live, so a room ever shows one caption and the phone card keeps its height */
  const AT = ctx.atlas, prevCap = AT && typeof AT.capFor === 'function' ? AT.capFor : null;
- const inkCap = (id) => { const sl = AT && AT.slime; if (!ST.on || (sl && sl.on && sl.get && sl.get().live)) return null; return FULL[ST.room] && ST.room === id ? CAP[ST.mode] : null; };
+ const inkCap = (id) => { const sl = AT && AT.slime; if (!ST.on || ST.hush || (sl && sl.on && sl.get && sl.get().live)) return null; if (!FULL[ST.room] || ST.room !== id) return null; /* R11: the room's own line is read first; the bath speaks after it has sat, or once touched, never unprompted on the threshold */ return touched === id || (id !== 'threshold' && now() - roomT > 6500) ? CAP[ST.mode] : null; };
  if (AT) AT.capFor = (id, a) => (prevCap ? prevCap(id, a) : null) || inkCap(id);
  function caption() {
   de.classList.toggle('ink-off', !FULL[ST.room]);
@@ -261,7 +272,7 @@ export function mount(ctx, api) {
   settleT = setTimeout(function chunk() {
    if (!ST.on) return;
    if (!dealt) { settleT = setTimeout(chunk, 200); return; }
-   if (!ST.still || ST.room !== room()) { ST.room = room(); caption(); cur = 0; first = true; ST.still = true; gl.bindFramebuffer(FB, DYE.r.f); gl.clear(gl.COLOR_BUFFER_BIT); }
+   if (!ST.still || ST.room !== room()) { ST.room = room(); autoMode(); caption(); cur = 0; first = true; ST.still = true; gl.bindFramebuffer(FB, DYE.r.f); gl.clear(gl.COLOR_BUFFER_BIT); }
    for (let q = 0; q < 4 && first; q++) points(VD, PB, batch(MAXP), 0, DYE.r, dw, dh);
    if (first) { settleT = setTimeout(chunk, 0); return; }
    for (let q = 0; q < 6; q++) step(.016, 0, 0, 0, {});
@@ -269,12 +280,12 @@ export function mount(ctx, api) {
   }, 450);
  }
  let frameN = 0, slowN = 0, odd = 0, linked = false;
- const offStop = ctx.onStop ? ctx.onStop(() => { ST.room = room(); ST.still = false; caption(); restart(); if (!reduced) vis(); }) : null;
- ST.room = room(); caption(); if (!reduced) requestAnimationFrame(vis);
+ const offStop = ctx.onStop ? ctx.onStop(() => { ST.room = room(); autoMode(); ST.still = false; caption(); restart(); if (!reduced) vis(); }) : null;
+ ST.room = room(); autoMode(); caption(); if (!reduced) requestAnimationFrame(vis);
  const offGov = api.onGov ? api.onGov((k) => { if (k >= 3 && !ST.tier) { ST.tier = 1; size(); } }) : null;
  cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); off('context lost'); });
  function frame(t, dtt) {
-  if (!ST.on) return;
+  if (!ST.on || ST.hush) return;
   if (!linked) { linked = true; for (const k in PR) if (!gl.getProgramParameter(PR[k].p, gl.LINK_STATUS)) { off('shader ' + k); return; } }
   const t0 = now(), dt = min(.033, (dtt || 16) / 1000);
   /* governor: ~2 s under 40 fps drops to 192 dye / 8 passes / no curl, then every other frame, then frozen */
@@ -294,8 +305,10 @@ export function mount(ctx, api) {
  if (reduced) settle();
  function off(why) {
   ST.on = false; ST.reason = why || 'off'; offs.forEach((f) => f()); [offFrame, offStop, offGov, kOff].forEach((f) => f && f());
-  cv.remove(); keyEl.remove(); css.remove(); de.classList.remove('ink-on', 'ink-off'); caption();
+  clearTimeout(capTm); lineDue(false); cv.remove(); keyEl.remove(); css.remove(); de.classList.remove('ink-on', 'ink-off'); caption();
  }
- return { stats, off, toggle };
+ /* R11 PRESS: a room may hush the bath while it covers the stage (no frames, no caption), and wake it again after */
+ const hush = (v) => { ST.hush = !!v; cv.style.visibility = v ? 'hidden' : ''; };
+ return { stats, off, toggle, hush };
 }
 export default { mount, probe, stats };

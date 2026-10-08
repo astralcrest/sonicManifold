@@ -1,8 +1,7 @@
 /* room 0 — every play as one dot on a slowly turning sphere, all one colour: nobody has asked yet who pressed play.
    the sphere breathes with the bass. put a hand through it. tilt the phone and the view leans a little with you.
-   atlas mode (BUILD_SPEC_V2 §3 threshold row): the same sphere, now an orbit stop. a drag turns it (the camera's yaw and
-   pitch add to the slow turn), the wheel or a pinch scales it, the phone tilt still leans on top, and every dot is a
-   glyph. at ?atlas=0 nothing below the `atl` guards runs. */
+   atlas mode: the stop opens on the record (atlas/platter.js, angles 0-2). angle 3 is this sphere as an orbit stop: a
+   drag turns it, a pinch scales it, the tilt leans, every dot a glyph. at ?atlas=0 nothing below the `atl` guards runs. */
 const SHADES = [0x57507a, 0x7d74a6, 0xa79fd0, 0xd8d2ea];
 const TILT0 = 0.3470; /* the fixed axis tilt, radians (cos .94, sin .34) */
 const ROT = 0.122;    /* parallax bound: 7 degrees of extra yaw and of extra tilt at full lean */
@@ -10,8 +9,8 @@ const SHIFT = 0.025;  /* parallax bound: the centre slides at most 2.5% of the s
 const LEAN = 30;      /* degrees of phone tilt that count as a full lean; anything past it is clamped */
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const KIOSK = /[?&]kiosk=1\b/.test(location.search); /* a gallery screen is mounted, not held: never raise the os motion sheet there */
-/* atlas angles (§3): the whole sphere, close in, and edge on (looking down its axis) */
-const POSES = { whole: { yaw: 0, pitch: 0, z: 1 }, close: { pitch: 0.3, z: 1.9 }, edge: { pitch: -1.1, z: 1 } };
+/* atlas angles: the record whole, close in, edge on; the globe pose is the sphere (angle 3) */
+const POSES = { whole: { yaw: 0, pitch: 0, z: 1 }, close: { pitch: 0.3, z: 1.9 }, edge: { pitch: -1.1, z: 1 }, globe: { yaw: 0, pitch: 0, z: 1 } };
 const atlasOn = (ctx) => !!(ctx && ctx.atlas && ctx.atlas.on);
 /* atlas light (§3 threshold; verify r1 P1-8, r2 P1-4). the renderer sums dot weights per glyph cell, and a sphere of dots
    is uniform by construction, so a cell's dot count says nothing: at 3 to 10 dots a cell it is only grain, and it read as
@@ -97,15 +96,15 @@ export default {
   glyph: { edges: true, bleach: true },
   rx: 0, ry: 0, px: 0, py: 0, fit: 0.43, live: false, base: null, last: null, granted: false, denied: false, pending: false,
   atl: false, vyaw: 0, vpit: 0, vz: 1, vdirty: false, offView: null,
-  angles: [{ id: 'whole', name: 'the whole log' }, { id: 'close', name: 'close in' }, { id: 'edge', name: 'edge on' }],
+  angles: [{ id: 'whole', name: 'the record' }, { id: 'close', name: 'close in' }, { id: 'edge', name: 'edge on' }, { id: 'globe', name: 'the globe' }],
   async mount(root, ctx) {
     const n = ctx.particles.n, X = new Float32Array(n), Y = new Float32Array(n), Z = new Float32Array(n);
     if (atlasOn(ctx)) {
-      /* the even lattice first (it also sets the world light), then the log's own layout: waited for briefly, so the first
-         frame is normally the textured planet; a slow grid lands later and the dots glide to their days */
+      /* the lattice (it sets the world light), the globe angle's own layout and the record, waited for briefly */
       this.lattice(ctx, X, Y, Z); this.root = root;
       const got = ctx.data('threshold_grid').then((G) => this.layData(ctx, G)).catch(() => {});
-      await Promise.race([got, new Promise((r) => setTimeout(r, GRID_WAIT))]);
+      const rec = import('../atlas/platter.js' + new URL(import.meta.url).search).then((m) => { this.rec = m.default(this, ctx); if (this.armed && this.atl) this.rec.enter(ctx, root); }).catch((e) => console.warn('platter', e));
+      await Promise.race([Promise.all([got, rec]), new Promise((r) => setTimeout(r, GRID_WAIT))]);
       return;
     }
     for (let i = 0; i < n; i++) {
@@ -117,7 +116,7 @@ export default {
     this.X = X; this.Y = Y; this.Z = Z;
   },
   place(ctx, t, low) {
-    if (this.atl) { this.placeAtlas(ctx, t, low); return; }
+    if (this.atl) { if (this.rec && this.rec.st.on) this.rec.place(ctx, t, low); else this.placeAtlas(ctx, t, low); return; }
     /* ?atlas=0: today's arithmetic, term for term (the off switch stays bit-identical) */
     const P = ctx.particles, s = this.s || (this.s = ctx.stage()), n = P.n, X = this.X, Y = this.Y, Z = this.Z; /* stage() reads layout: once per enter, never per frame */
     const m = Math.min(s.w, s.h), px = this.px, py = this.py;
@@ -477,6 +476,7 @@ export default {
        under it, so the core is drawn a little smaller there (1.23 shell x 1.02 breath still inside the stage) */
     this.fit = innerWidth > innerHeight * 1.15 ? 0.43 : 0.385;
     if (this.atl) this.enterAtlas(ctx, re);
+    if (this.atl && this.rec) this.rec.enter(ctx, this.root, re);
     if (!this.X) return;
     if (this.atl && this.ig) { this.arms(ctx); this.paintArm(ctx, 0, IGN_B); this.ig = 2; if (ctx.reduced) P.c.set(P.tc); }
     else P.color((i) => SHADES[(ctx.hash(i * 11 + 7) * 4) | 0]);
@@ -557,6 +557,7 @@ export default {
   moveLabel(ctx) { if (!this.s) return; const [x, y] = this.labelAt(); ctx.labels.update('threshold', 'plays', { x, y }); this.moveKey(); },
   setAngle(k, ctx, o = {}) {
     const a = this.angles[k]; if (!a || !atlasOn(ctx)) return 0;
+    const R = this.rec, gl = a.id === 'globe'; if (R && R.st.on === gl) { R.form(!gl); this.m = null; ctx.particles.w.fill(255); this.vdirty = true; }
     const pose = POSES[a.id], v = ctx.view;
     if (o.instant || ctx.reduced) { v.set(pose, { instant: true }); return 0; }
     v.flyTo(pose, { speed: 'slow' });
@@ -576,6 +577,7 @@ export default {
   precision() { return []; },
   frame(g, t, bands, w, h, ctx) {
     if (!this.X) return;
+    if (this.rec) this.rec.draw(g, t);
     if (this.ig === 1) this.dissolve();
     if (ctx.reduced) {
       /* reduced motion: no auto-turn, but direct manipulation still answers (the view re-places the sphere at once) */
@@ -593,5 +595,5 @@ export default {
     const k = Math.min(1, dt * 0.005); this.px += (this.rx - this.px) * k; this.py += (this.ry - this.py) * k; /* ~200 ms lag: the view leans, it never snaps */
     this.place(ctx, t, bands.low);
   },
-  leave() { this.disarm(); if (this.offView) { this.offView(); this.offView = null; } if (this.igTo) { clearTimeout(this.igTo); this.igTo = 0; } if (this.key) this.key.style.opacity = '0'; },
+  leave() { if (this.rec) this.rec.leave(); this.disarm(); if (this.offView) { this.offView(); this.offView = null; } if (this.igTo) { clearTimeout(this.igTo); this.igTo = 0; } if (this.key) this.key.style.opacity = '0'; },
 };
