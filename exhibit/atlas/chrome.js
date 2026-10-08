@@ -65,7 +65,7 @@ export function mount(ctx, deps) {
     trackStops: CC.trackStops || '{name} · {n} stops',
     coachHead: CC.coachHead || 'how this plays · {n} stops',
     coachTouch: CC.coachTouch || ['play runs it. swipe for the next.', 'tap a star to pick it.', 'hold one to hear it. drag to turn.'],
-    trackAngle: CC.trackAngle || { 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' },
+    trackAngle: CC.trackAngle || { 'wall.unsorted': 'the pour', 'wall.press': 'the press', 'clock.busiest': 'the dial', 'clock.glass': 'the glass', 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' },
     coachDesk: CC.coachDesk || ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'hover one to hear it. drag to turn.'],
   };
   const fillN = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (k in o ? o[k] : m));
@@ -920,7 +920,7 @@ export function mount(ctx, deps) {
      between fitting and an ellipsis mid-name ("THE RULER CHANG…") — the row is tappable as a whole regardless
      (aria-haspopup carries the affordance), so the glyph is decorative there, not load-bearing. */
   /* R9 GUIDE: the row is the deck's track counter, so it carries the total in plain numbers ("6 / 16  the chain"; the
-     lead-in reads "lead-in · 16 stops"); the numbers sit in their own spans so the total can be set dimmer than the track */
+     lead-in reads "lead-in · 18 stops"); the numbers sit in their own spans so the total can be set dimmer than the track */
   /* one number everywhere: the record's own count. off the record a room still reads as its track on the long play
      (the gate is the lead-in; a room the record plays twice picks the side whose angle is up), so the total never changes */
   function recIndex(def, cur) {
@@ -1662,7 +1662,8 @@ export function mount(ctx, deps) {
     if (via === 'mount' && ctx.tour && ctx.tour.active && ctx.tour.active.id) return; /* a deep-linked tour owns the first caption */
     refreshCaption(true);
   });
-  if (ctx.angle && ctx.angle.onChange) ctx.angle.onChange(() => { renderAngle(); if (!tourOwnsCaption()) refreshCaption(false, true); });
+  /* R12: a room the record plays twice (the wall, the clock, the graveyard) moves the track counter with its angle, off the tour too */
+  if (ctx.angle && ctx.angle.onChange) ctx.angle.onChange(() => { renderStop(); renderAngle(); if (!tourOwnsCaption()) refreshCaption(false, true); });
   let tourWasPlaying = null;
   if (ctx.tour && ctx.tour.onChange) ctx.tour.onChange(() => {
     /* round-2 (W-fix9): starting another tour (the tours panel, a deep link, or our own `start again`) must

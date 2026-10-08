@@ -500,6 +500,9 @@ export default {
       this.gcw = pw * Math.max(1, Math.round(cwT / pw)) / d; this.gch = pw * Math.max(1, Math.round(chT / pw)) / d; }
     ctx.view.configure({ mode: 'pan', zMin: 1, zMax: ZMAX, drift: false, look: (k) => this.look(k) });
     this.atlasLabels(ctx);
+    /* R12: a tour stop or the w key can ask for the press before the wall is ready (a cold jump to it); the late enter
+       pulls the print then, instead of syncing the bar back to the unsorted wall */
+    if (ctx.angle.get().id === 'press') { if (!this.riso) this.pressIn(ctx, { instant: true }); return; }
     this.syncAngle(ctx, this.sorted ? 'sorted' : this.r > 0 ? 'flood' : 'unsorted');
   },
   /* the stepper's angle bar follows what the visitor did by hand (a hold that floods, the sort landing, a reset). the

@@ -233,7 +233,8 @@ export const TOURS = [
   {
     // R5 §4.1: opens on the most stunning stop after the gate; the threads/links coda is retired (the chain replaces it).
     // TOURS3 (R5/CRIT6 §2): threshold, sky, wall, game, bail, listeners, chain, arrivals, clock, map, gates, pile, calendar,
-    // loop, wheel, make, yours (17); the fade and ghost angles left this tour (scientists keeps both)
+    // loop, wheel, make, yours (17); the fade and ghost angles left this tour (scientists keeps both).
+    // R12 UNFOLD: + wall·press after the wall, + clock·glass after the clock (19 with the gate; the record counts 18)
     id: 'grand',
     name: 'the long play',
     blurb: 'from one play to the whole log',
@@ -279,6 +280,14 @@ export const TOURS = [
             src: ['exhibit/rooms/wall.js#flyPile'],
           },
         ],
+      },
+      {
+        // R12 UNFOLD: the press, right after the piles: the same two provenances as a two-ink print (wall.press.js;
+        // the room's own capFor line takes over off the tour). hold 9 after the drum roll lands
+        room: 'wall', angle: 'press', hold: 9,
+        share: SHARE.wall,
+        caption: 'mint plate: my taps. violet plate: the queue. where one ink prints alone, we disagreed.',
+        src: ['exhibit/data/wall.json#tap', 'exhibit/data/wall.json#served', 'exhibit/rooms/wall.press.js'],
       },
       {
         // R5 R1 duel (game fragment, REFEREE2 C3). CRIT6A: the room ends the stop itself (8 s idle, its own demo card, then
@@ -338,6 +347,13 @@ export const TOURS = [
         share: SHARE.clock,
         caption: 'my whole log folded onto one day: midnight at the top, noon at the bottom. the busiest hour is 14:00, on one fixed clock, all year.',
         src: ['exhibit/data/clock.json#hours', 'derive:hour14_total', 'exhibit/data/clock.json#tap_share_by_hour', 'exhibit/labels.js#clock.hour'],
+      },
+      {
+        // R12 UNFOLD: the glass, right after the dial: the same day as 24 panes (rose.js; clock.js's capFor line off the tour)
+        room: 'clock', angle: 'glass', hold: 9,
+        share: SHARE.clock,
+        caption: 'the same day in glass. a pane’s colours: who started its plays. its glow: how many.',
+        src: ['exhibit/data/clock.json#tap', 'exhibit/data/clock.json#shuffle', 'exhibit/data/clock.json#served', 'exhibit/atlas/rose.js'],
       },
       {
         room: 'map', angle: 'm12', then: ['m100', 'curve'],

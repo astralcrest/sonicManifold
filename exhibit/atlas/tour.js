@@ -413,6 +413,15 @@ export function mount(ctx, deps) {
       if (k >= 0 && k !== active.k) { active.k = k; fire(); }
     }
   });
+  /* R12 UNFOLD: a room the record plays twice (wall·unsorted and wall·press, clock·busiest and clock·glass, the doors and
+     the pile) parks a paused tour on the side whose angle is up, so ⏭, j/k and "back to the tour" step on from there */
+  try {
+    ctx.angle.onChange((a) => {
+      if (!active.id || active.playing || !a) return;
+      const def = byId(active.id), cur = currentStopObj(), k = def && cur ? def.stops.findIndex((s) => s.room === cur.id && s.angle === a.id) : -1;
+      if (k >= 0 && k !== active.k) { active.k = k; fire(); }
+    });
+  } catch (e) {}
   try {
     ctx.view.onChange(() => { if (active.id && active.playing && ctx.view.manual) pause('user'); });
   } catch (e) {}

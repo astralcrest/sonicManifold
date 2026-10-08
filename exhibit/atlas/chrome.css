@@ -285,6 +285,8 @@ html.atlas.ai-toast-on #atlas-onboard{opacity:0}
    the wall text */
 html.atlas #atlas-toast{position:fixed;z-index:7;left:50%;bottom:22px;transform:translateX(-50%) translateY(6px);margin:0;width:max-content;font:500 12px/1.45 var(--mono);color:var(--ink);text-align:center;text-wrap:balance;text-shadow:0 0 6px var(--bg),0 0 2px var(--bg),0 0 12px var(--bg);max-width:calc(100vw - 40px);opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease}
 html.atlas #atlas-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+/* R12: the hint is chrome too; at idle it dims with the caption and the title so the picture breathes */
+html.atlas-idle #atlas-toast.on{opacity:.5;transition:opacity 1s ease-in}
 @media (max-aspect-ratio:115/100){
   html.atlas #atlas-toast{background:var(--ai-panel2);border:1px solid var(--ai-line);border-radius:12px;padding:8px 14px;text-shadow:none;max-width:calc(100vw - 32px)}
 }

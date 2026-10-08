@@ -19,7 +19,7 @@ export const LABELS = {
   wall: {
     kicker: 'how this was measured', title: 'the log',
     rows: [
-      ['count', '97,427 logged plays, seven years, one listener.', { atlas: '97,427 logged plays over the whole log, one listener.' }],
+      ['count', '97,427 logged plays, the whole log, one listener.', { atlas: '97,427 logged plays over the whole log, one listener.' }],
       ['split', 'by the export’s own reason_start field, which says what started each play: 19% i tapped, 17% i shuffled, 64% were served.'],
       ['shape', 'the shape of each mark says who pressed play without colour: tally strokes a tap, dice pips a shuffle, conveyor slats the queue. heavier marks hold more plays; hairlines only trace an edge. in text, ° stands for a tap, × a shuffle, ≡ the queue.', { atlasOnly: true }],
       ["the pour", "on the pour angle every play falls into one of three jars by who started it. each jar is big enough to hold the whole log, so its fill line is a share: 19, 17 and 64 of every 100. the counters end at 18,591, 16,262 and 62,574 plays. each glyph cell is filled before the next, so at most one cell per jar is part-full and the drawn shares stay within two points of the plays. tilting the phone or dragging sideways sloshes the jars; it moves the picture, never the counts. the phone sensor is read in this tab only, after your tap, and never stored or sent.", { atlasOnly: true }],
@@ -36,7 +36,7 @@ export const LABELS = {
     rows: [
       ['the ribbon', '81 months, september 2019 to may 2026, left to right. one column per month, stacked by who pressed play, at the real monthly counts from exhibit/data/wall.json.'],
       ['the line', 'october 2023, a changepoint the logger shows in its own vocabulary. the app began recording what started a play differently around it.'],
-      ['the swing', 'the bundled tapped rate reads 11.8% before that line and 22.7% after: 10.9 points, against a stability bar of 3 points written down before the split was run. the claim that my tap rate was flat across seven years died there.', { atlas: 'the bundled tapped rate reads 11.8% before that line and 22.7% after: 10.9 points, against a stability bar of 3 points i wrote down before i ran the split. the claim that my tap rate was flat across the whole log died there.' }],
+      ['the swing', 'the bundled tapped rate reads 11.8% before that line and 22.7% after: 10.9 points, against a stability bar of 3 points written down before the split was run. the claim that my tap rate was flat across the whole log died there.', { atlas: 'the bundled tapped rate reads 11.8% before that line and 22.7% after: 10.9 points, against a stability bar of 3 points i wrote down before i ran the split. the claim that my tap rate was flat across the whole log died there.' }],
       ['what survived', 'the strict reading of a tap, clickrow, playbtn and remote only, is 11.5% and swings 1.87 points. that is the arm the bridge index uses, which is why the headline is not built on the bundled rate.'],
       ['caveat', 'this room is why no claim here compares provenance shares across eras. the cross-sectional split pools the whole window instead.'],
     ],
@@ -74,10 +74,10 @@ export const LABELS = {
   clock: {
     kicker: 'how this was measured', title: 'what held',
     rows: [
-      ['the dial', 'all 97,427 plays placed on the hour they started and folded across the seven years. what i tapped rides the outer band, shuffle under it, the served queue under that. counts from exhibit/data/clock.json.', { atlas: 'all 97,427 plays placed on the hour they started and folded across the whole log. what i tapped rides the outer band, shuffle under it, the served queue under that. counts from exhibit/data/clock.json.' }],
+      ['the dial', 'all 97,427 plays placed on the hour they started and folded across the whole log. what i tapped rides the outer band, shuffle under it, the served queue under that. counts from exhibit/data/clock.json.', { atlas: 'all 97,427 plays placed on the hour they started and folded across the whole log. what i tapped rides the outer band, shuffle under it, the served queue under that. counts from exhibit/data/clock.json.' }],
       ['the hour', 'a fixed utc-7 approximation applied to the whole record. no per-play timezone or daylight-saving information was kept in the export, so this is an approximation of local time and not local time.', { atlas: 'one fixed clock, all year: the export kept no timezone, so this is only roughly local time.' }],
       ['why this room is calm', 'the shape of the day is a count, not a contested claim, and nothing in the audit ever came for it. where the hour does enter a test it goes in as a control: split the headline into six-hour bins and the bins do not separate from one another, though that contrast is underpowered rather than reassuring.'],
-      ['caveat', 'a histogram over seven years hides drift. what counted as night for me early on is not what it counted as later, and the fixed offset is wrong for however much of this was not lived in that timezone.', { atlas: 'a histogram over the whole log hides drift. what counted as night for me early on is not what it counted as later, and wherever i actually was, the dial never moved.' }],
+      ['caveat', 'a histogram over the whole log hides drift. what counted as night for me early on is not what it counted as later, and the fixed offset is wrong for however much of this was not lived in that timezone.', { atlas: 'a histogram over the whole log hides drift. what counted as night for me early on is not what it counted as later, and wherever i actually was, the dial never moved.' }],
     ],
     more: ['lab.html#fig-4', 'the hour against the weekday, in the lab'],
   },
@@ -203,7 +203,7 @@ export const LABELS = {
     rows: [
       ['what it does', 'your extended streaming history json is parsed in this browser tab and sorted on the same field mine was. a tap here is the same bundled reading my 19% is drawn on: track row, play button, remote, or a skip forward or back. the stricter set the bridge index uses (track row, play button, remote only) is printed next to it. served means the track ended and the next one arrived with shuffle off. the categories are copied from the probe, not reinvented here.'],
       ['privacy', 'nothing is uploaded and nothing is stored. no request carries your file anywhere. closing the tab ends it.'],
-      ['the comparison', 'your three shares are drawn beside mine, which are 19% tapped, 17% shuffled and 64% served over 97,427 plays and seven years.', { atlas: 'your three shares are drawn beside mine, which are 19% tapped, 17% shuffled and 64% served over the whole log\'s 97,427 plays.' }],
+      ['the comparison', 'your three shares are drawn beside mine, which are 19% tapped, 17% shuffled and 64% served over 97,427 plays, the whole log.', { atlas: 'your three shares are drawn beside mine, which are 19% tapped, 17% shuffled and 64% served over the whole log\'s 97,427 plays.' }],
       ['limits', 'one listener is one listener. your split describes your log and is not evidence about recommenders in general, and the untagged tail that widens my interval will widen yours.'],
       ["the card", "save picture, copy text or share makes one card: your three shares beside my 19 · 17 · 64, the stricter reading in small type, the pseudonym and the url. no file name, no dates, and no artists unless you tick the box. a split is neither good nor bad."],
     ],

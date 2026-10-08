@@ -42,7 +42,7 @@ export const COPY = {
     trackOf: '{k} / {n}',
     trackLead: 'lead-in · {n} stops',
     trackStops: '{name} · {n} stops',
-    trackAngle: { 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' }, // the record plays the graveyard twice: b10, b11
+    trackAngle: { 'wall.unsorted': 'the pour', 'wall.press': 'the press', 'clock.busiest': 'the dial', 'clock.glass': 'the glass', 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' }, // the record plays the wall, the clock and the graveyard twice: a2 a3, a9 b10, b12 b13
     coachHead: 'how this plays · {n} stops',
     coachTouch: ['play runs it. swipe for the next.', 'tap a star to pick it.', 'hold one to hear it. drag to turn.'],
     coachDesk: ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'hover one to hear it. drag to turn.'],
