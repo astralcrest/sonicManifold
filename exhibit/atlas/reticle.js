@@ -123,7 +123,7 @@ export function install(ctx, view, G) {
   } });
   addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse') return; cancelAnimationFrame(watch);
-    const f = () => { if (G.mode === 'cam' || G.mode === 'pinch') hand = now(); update(false); watch = G.active ? requestAnimationFrame(f) : 0; }; watch = requestAnimationFrame(f);
+    const f = () => { if (G.mode === 'cam' || G.mode === 'pinch' || G.mode === 'drag') hand = now(); /* R10: a drag on a room's own hit layer (the lens) is the visitor's hand too */ update(false); watch = G.active ? requestAnimationFrame(f) : 0; }; watch = requestAnimationFrame(f);
   }, CP);
   addEventListener('pointerup', () => setTimeout(() => update(true), 0), CP);
   addEventListener('resize', () => update(true), { passive: true });

@@ -48,7 +48,7 @@ export function makeDeck(pairs, seed) {
 const newSeed = () => { let s = ''; const r = new Uint32Array(2); tryf(() => crypto.getRandomValues(r)); if (!r[0]) { r[0] = (Math.random() * 4294967296) >>> 0; r[1] = (Math.random() * 4294967296) >>> 0; } s = (r[0].toString(36) + r[1].toString(36)).slice(0, 7); return s || 'deck'; };
 
 export default {
-  id: 'game', track: 'hooked-at-first-taste',
+  id: 'game', track: 'dorian-manifold',
   pool: null, cluster: null, rounds: null, ri: 0, score: 0, answered: false, timer: 0, active: false, pulse: null,
   lx: 0, lxb: 0, lya: 0, lyb: 0, saidTap: 0, wallTapPct: null, demoOn: false, demoT: 0, D: null,
   angles: [{ id: 'round', name: 'the round' }],
@@ -306,7 +306,7 @@ export default {
       leave: () => this.dUnvoice(ctx),
       cursor: (p) => (hit(p) ? 'pointer' : 'grab'),
       drag: this.dragSpec,
-      hold: { delay: 160, press: (p) => { if (p.type === 'mouse') return; const k = hit(p); if (k) this.dVoice(k, ctx, 'glyph', true); }, start() {}, move() {}, end: () => tryf(() => ctx.post.undwell({ keep: true })) },
+      hold: this.dHold((p) => { if (p.type === 'mouse') return; const k = hit(p); if (k) this.dVoice(k, ctx, 'glyph', true); }),
     };
   },
 
@@ -373,7 +373,7 @@ export default {
     if (ctx.gesture && ctx.gesture.bind) ctx.gesture.bind(card, {
       drag: this.dragSpec, dbl: false, wheel: false,
       tap: (p) => { const t = p && p.e && p.e.target; if ((D.phase === 'shown' || D.phase === 'pass') && !(t && t.closest && t.closest('.gd-n'))) this.dNext(ctx); return true; },
-      hold: { delay: 160, press: (p) => { if (p.type === 'mouse') return; const t = document.elementFromPoint(p.sx, p.sy), b = t && t.closest && t.closest('.gd-n'); if (b) this.dVoice(b.dataset.k, ctx, 'label', true); }, start() {}, move() {}, end: () => tryf(() => ctx.post.undwell({ keep: true })) },
+      hold: this.dHold((p) => { if (p.type === 'mouse') return; const t = document.elementFromPoint(p.sx, p.sy), b = t && t.closest && t.closest('.gd-n'); if (b) this.dVoice(b.dataset.k, ctx, 'label', true); }),
     });
     let data = null;
     try { data = await ctx.data('whopressed2'); } catch (e) {}
@@ -384,6 +384,13 @@ export default {
     D.eBase.textContent = 'of the jumps in this pool (my hand on play, a row or a remote, vs the queue running on with shuffle off), ' + data.base.auto_pct + '% were the queue. this deck is half and half on purpose, so always guessing the queue scores like a coin.';
     this.ready = true;
   },
+  /* a press is a tap until 450 ms; a finger that rests, then swipes, still swipes (the hold hands its moves to the drag) */
+  dHold(press) {
+    const D = this.D; let lp = null;
+    return { delay: 450, press: (p) => { lp = p; press(p); }, start: (p) => { lp = p; }, end: () => { lp = null; tryf(() => this.ctx.post.undwell({ keep: true })); if (D.dragOn) this.dragSpec.end(); },
+      move: (p) => { if (!lp) return; const dx = p.sx - lp.sx, dy = p.sy - lp.sy; if (!D.dragOn) { if (Math.hypot(dx, dy) < 6) return; this.dragSpec.start(); } lp = p; this.dragSpec.move(p, dx, dy); } };
+  },
+  noSel(e) { const t = e.target, n = t && (t.nodeType === 1 ? t : t.parentElement); if (!(n && n.closest && n.closest('textarea,input,[contenteditable]'))) e.preventDefault(); },
   dName(k) { const D = this.D; return D && D.cur >= 0 ? D.names[D.pairs[D.cur * 3 + (k === 'a' ? 0 : 1)]] : null; },
   dVoice(k, ctx, kind, touch, noDwell) {
     const D = this.D, nm = this.dName(k); if (!nm) return;
@@ -420,7 +427,8 @@ export default {
       this.offKeys = () => offs.forEach((f) => f());
     }
     this.dTour(ctx);
-    D.kbd.textContent = ctx.coarse ? 'swipe up if i tapped it, down if the queue did · hold a name to hear it' : 't or → i tapped · q or ← it queued · n next · rest on a name to hear it';
+    document.addEventListener('selectstart', this.noSel); tryf(() => ctx.idle.hold('game', true)); /* no long-press selection; no first tap spent waking the chrome */
+    D.kbd.textContent = ctx.coarse ? 'swipe the card up if i tapped it, down if the queue did · tap a name to hear it' : 't or → i tapped · q or ← it queued · n next · rest on a name to hear it';
     if (!this.ready || !D.pairs) { P.scatter && P.scatter(); return; }
     if (!D.seed) {
       const m = /^#game(?:=|&(?:.*&)?s=)([a-z0-9]{1,16})/i.exec(String((ctx.atlas && ctx.atlas.hash0) || ''));
@@ -429,7 +437,7 @@ export default {
   },
   dLeave(ctx) {
     const D = this.D; if (!D) return;
-    clearTimeout(D.revT); clearTimeout(D.autoT); clearTimeout(D.tourT); this.dStopDemo();
+    clearTimeout(D.revT); clearTimeout(D.autoT); clearTimeout(D.tourT); this.dStopDemo(); document.removeEventListener('selectstart', this.noSel); tryf(() => ctx.idle.hold('game', false));
     if (this.offKeys) { this.offKeys(); this.offKeys = null; }
     tryf(() => { ctx.audio.tick(null); ctx.atlas.setLines(null); });
     D.sparkN = 0; this.dClearFx();
@@ -552,7 +560,7 @@ export default {
   },
   dHud() {
     const D = this.D;
-    D.hud.textContent = 'STREAK ' + pad2(D.streak) + ' · ' + D.k + '/' + D.n + (D.n ? ' · A COIN DOES AT LEAST THIS WELL ' + this.dPct(coinTail(D.k, D.n)) + ' OF THE TIME' : ' · SWIPE TO CALL IT') + (D.tempo ? ' · TEMPO' : '');
+    D.hud.textContent = 'STREAK ' + pad2(D.streak) + ' · ' + D.k + '/' + D.n + (D.n ? ' · A COIN DOES AT LEAST THIS WELL ' + this.dPct(coinTail(D.k, D.n)) + ' OF THE TIME' : ' · ' + (D.geo && D.geo.side ? 'DRAG THE CARD ← OR → TO ANSWER' : 'SWIPE THE CARD ↑ OR ↓ TO ANSWER')) + (D.tempo ? ' · TEMPO' : '');
     if (this.ctx) this.dRefit(this.ctx);
   },
   dPct(p) { return p >= 0.9995 ? '100%' : p < 0.001 ? 'UNDER 0.1%' : (p * 100).toFixed(1) + '%'; },
@@ -832,7 +840,8 @@ Q + '.gd-ebase,' + Q + '.gd-ecav{font:400 11px/1.45 var(--mono);color:var(--mute
 Q + '.gd-ebar{display:flex;justify-content:center}' +
 Q + '.gd-thumb{position:absolute;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;border:1.5px solid rgba(134,203,254,.85);background:rgba(134,203,254,.16);pointer-events:none;opacity:0;transition:opacity .2s}' +
 Q + '.gd-thumb.on{opacity:1}' +
-Q + '.gd-low .gd-kbd,' + Q + '.gd-low .gd-kick{display:none}' +
+Q + '.gd-low .gd-kbd{display:none}' +
+Q + '.gd-low .gd-kick{margin-bottom:4px}' +
 Q + '.gd-low .gd-col{gap:6px}' +
 Q + '.gd-low .gd-card{padding:10px 12px 8px}' +
 '@media (pointer:coarse){' + Q + '.gd-row .gd-x{min-height:44px;padding:8px 14px}}' +

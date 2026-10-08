@@ -60,7 +60,15 @@ export function mount(ctx, deps) {
     servedEnd: CC.servedEnd || 'you started {n} of your {total} stops by hand. i started 19 of every 100 plays.',
     tapeWhole: (deps.COPY && deps.COPY.tplus && deps.COPY.tplus.whole) || 'the whole log',
     tapeAt: (deps.COPY && deps.COPY.tplus && deps.COPY.tplus.at) || 'play {n} of {total}',
+    trackOf: CC.trackOf || '{k} / {n}',
+    trackLead: CC.trackLead || 'lead-in · {n} stops',
+    trackStops: CC.trackStops || '{name} · {n} stops',
+    coachHead: CC.coachHead || 'how this plays · {n} stops',
+    coachTouch: CC.coachTouch || ['play runs it. swipe for the next.', 'tap a star to pick it.', 'hold one to hear it. drag to turn.'],
+    trackAngle: CC.trackAngle || { 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' },
+    coachDesk: CC.coachDesk || ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'hover one to hear it. drag to turn.'],
   };
+  const fillN = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (k in o ? o[k] : m));
   const LP = (TOURS.find((t) => t.id === 'grand') || {}).name || 'the long play';
   const fillStop = (s, name) => s.replace('{stop}', name);
 
@@ -123,7 +131,7 @@ export function mount(ctx, deps) {
        instead of reparenting them, so the desktop DOM and its measured metrics never change (W08/W30 gate). */
     '<div class="ai-mrow" id="ai-mrow" hidden>' +
       '<button type="button" class="ai-mplay" id="ai-mplay" aria-pressed="false" aria-label="pause the tour"><span aria-hidden="true" id="ai-mplay-i">&#8214;</span></button>' +
-      '<button type="button" class="ai-mrow-label" id="ai-mrow-label" aria-haspopup="dialog"><span id="ai-mrow-t"></span></button>' +
+      '<button type="button" class="ai-mrow-label" id="ai-mrow-label" aria-haspopup="dialog"><span class="ai-meter" id="ai-meter" aria-hidden="true"></span><span id="ai-mrow-t"></span></button>' +
       '<button type="button" class="ai-mrow-ov" id="ai-mrow-ov" aria-haspopup="true" aria-expanded="false" aria-label="more controls">&hellip;</button>' +
       '<button type="button" class="ai-mpill" id="ai-mpill" hidden></button>' +
     '</div>' +
@@ -763,7 +771,8 @@ export function mount(ctx, deps) {
   async function refreshCaption(force, recheck) {
     const cur = curStop(); if (!cur) return;
     const a = ctx.angle && ctx.angle.get ? ctx.angle.get() : { id: 'main' };
-    const raw = pickCaption(cur, a.id), key = cur.id + '|' + (raw || '');
+    const ov = ctx.atlas && typeof ctx.atlas.capFor === 'function' ? ctx.atlas.capFor(cur.id, a.id) : null; /* R10: a field layer's own line */
+    const raw = ov || pickCaption(cur, a.id), key = cur.id + '|' + (raw || '');
     if (!force && key === capKey) { if (recheck) recheckDup(); return; }
     capKey = key; const my = ++capSeq; capOffRaw = null;
     let text = raw ? await resolveCaption(raw) : null;
@@ -873,8 +882,9 @@ export function mount(ctx, deps) {
 
   /* ---------------------------------------------------------------- stepper: a tracklist row + the queue's name (R6 M1)
      on a tour `02 / 16  the log` beside `the long play ▾`, off one `08  the universe`; the merged phone row mirrors it */
-  const sideOf = (k, n) => (k <= Math.ceil(n / 2) ? 'a' : 'b');
-  const sideTrack = (k, n) => (k < 1 ? 'lead-in' : sideOf(k, n) + k);
+  /* function declarations: the first layout pass reads the stepper before this line runs (webkit TDZ warning, R10) */
+  function sideOf(k, n) { return k <= Math.ceil(n / 2) ? 'a' : 'b'; }
+  function sideTrack(k, n) { return k < 1 ? 'lead-in' : sideOf(k, n) + k; }
   function stepLabel() {
     const ts = tourState(), cur = curStop(), nm = cur ? cur.name : '';
     if (ts && ts.here) return { stop: (tourPos(ts).k < 1 ? 'side a · lead-in' : 'side ' + sideOf(tourPos(ts).k, tourPos(ts).n) + ' · ' + tourPos(ts).k) + ' · ' + nm, chip: ts.def ? ts.def.name : ts.a.id, onTour: true };
@@ -900,37 +910,92 @@ export function mount(ctx, deps) {
      since it has the room) the "▾ · " between the stop count and the room name was often the difference
      between fitting and an ellipsis mid-name ("THE RULER CHANG…") — the row is tappable as a whole regardless
      (aria-haspopup carries the affordance), so the glyph is decorative there, not load-bearing. */
+  /* R9 GUIDE: the row is the deck's track counter, so it carries the total in plain numbers ("6 / 16  the chain"; the
+     lead-in reads "lead-in · 16 stops"); the numbers sit in their own spans so the total can be set dimmer than the track */
+  /* one number everywhere: the record's own count. off the record a room still reads as its track on the long play
+     (the gate is the lead-in; a room the record plays twice picks the side whose angle is up), so the total never changes */
+  function recIndex(def, cur) {
+    if (!def || !cur) return -1;
+    const g = def.stops[0] && def.stops[0].gate ? 1 : 0, a = ctx.angle && ctx.angle.get ? ctx.angle.get().id : '';
+    let k = -1;
+    def.stops.forEach((x, j) => { if (j >= g && x.room === cur.id && (k < 0 || x.angle === a) && !(k >= 0 && def.stops[k].angle === a)) k = j; });
+    return k < 0 && g && def.stops[0].room === cur.id ? 0 : k;
+  }
+  function trackPos(s, ts, cur) {
+    if (s.onTour && ts && ts.a) { const p = tourPos(ts); return { k: p.k, n: p.n }; }
+    const def = (ts && ts.def) || tourDef('grand'); if (!def) return null;
+    const g = def.stops[0] && def.stops[0].gate ? 1 : 0, j = recIndex(def, cur);
+    return j < 0 ? null : { k: Math.max(0, j + 1 - g), n: def.stops.length - g };
+  }
+  /* a room the record plays twice names its side (copy.js trackAngle), so b10 and b11 never read as the same track */
+  function trackName(def, j) {
+    const x = def && def.stops[j]; if (!x) return '';
+    const nm = nameOf(x.room), twice = def.stops.filter((y) => y.room === x.room && !y.gate).length > 1, sub = twice && T.trackAngle && T.trackAngle[x.room + '.' + x.angle];
+    return sub ? nm + ' · ' + sub : nm;
+  }
   function phoneStopLabel(s, ts, cur) {
     const nm = cur ? cur.name : '';
-    const roomy = innerWidth > 400;
-    if (s.onTour && ts && ts.a) return sideTrack(tourPos(ts).k, tourPos(ts).n) + (roomy ? ' ▾  ' : '  ') + nm;
-    if (cur && cur.side) return nm;
-    const w = walkStops(), pos = cur ? w.findIndex((x) => x.i === cur.i) : -1;
-    return sideTrack(pos < 0 ? 1 : pos + 1, w.length) + '  ' + nm + camSuffix();
+    const roomy = innerWidth > 400, p = trackPos(s, ts, cur);
+    if (!p) return { t: '', of: '', rest: nm };
+    const lead = p.k < 1, of = lead ? fillN(T.trackLead, { n: p.n }).replace(/^lead-in/, '') : ' / ' + p.n;
+    const rest = (s.onTour && ts && ts.a ? (roomy ? ' ▾  ' : '  ') : '  ') + nm + (s.onTour && ts && ts.a ? '' : camSuffix());
+    return { t: lead ? 'lead-in' : String(p.k), of, rest };
   }
+  let meterKey = '';
+  function renderCount(s, ts, cur) {
+    const p = trackPos(s, ts, cur), L = phoneStopLabel(s, ts, cur);
+    mrowT.textContent = '';
+    if (L.t) { const b = doc.createElement('b'); b.className = 'ai-trk'; b.textContent = L.t; const o = doc.createElement('span'); o.className = 'ai-of'; o.textContent = L.of; mrowT.append(b, o); }
+    mrowT.append(L.rest);
+    const key = p ? p.k + '/' + p.n : '';
+    if (key !== meterKey) {
+      meterKey = key;
+      meterEl.innerHTML = p ? Array.from({ length: p.n }, (x, j) => '<i' + (j + 1 === p.k ? ' class="on"' : j + 1 < p.k ? ' class="past"' : '') + '></i>').join('') : '';
+      const trk = p && p.k >= 1 ? fillN(T.trackOf, { k: p.k, n: p.n }) : '';
+      html.style.setProperty('--ai-trk', trk ? JSON.stringify(trk) : 'none');
+      if (countEl) { countEl.textContent = p ? (p.k < 1 ? fillN(T.trackLead, { n: p.n }) : trk) : T.sideRoom; }
+    }
+  }
+  const meterEl = $('ai-meter');
+  /* the deck's own counter, ahead of the tracklist (desk); the tracklist itself scrolls, so the total never scrolls away */
+  const countEl = (() => { const tl = doc.getElementById('ai-tracks'); if (!tl || !tl.parentNode) return null; const c = doc.createElement('span'); c.className = 'a-count'; c.id = 'ai-count'; tl.parentNode.insertBefore(c, tl); return c; })();
   /* R8 DECK: the record as a tracklist in the deck (a1 … b16, the gate uncounted), the stop playing lit, the next one
      underlined; a click drops the needle on that track */
-  const tracksEl = doc.getElementById('ai-tracks');
+  var tracksEl = doc.getElementById('ai-tracks'); /* var: ctx.lock() can land before this line runs (a room's first hit); renderTracks then returns and renderAll redraws */
   let tracksKey = '';
   function renderTracks(ts, cur) {
     const def = (ts && ts.def) || tourDef('grand'); if (!tracksEl || !def) return;
     const g = def.stops[0] && def.stops[0].gate ? 1 : 0, n = def.stops.length - g;
-    const k = ts && ts.here ? ts.a.k : def.stops.findIndex((x, i) => i >= g && cur && x.room === cur.id), key = def.id + k;
+    const k = ts && ts.here ? ts.a.k : recIndex(def, cur), key = def.id + k;
     if (key === tracksKey) return; tracksKey = key;
     tracksEl.dataset.tour = def.id; tracksEl.setAttribute('aria-label', def.name);
     const had = tracksEl.contains(document.activeElement); /* a rebuild under the focused track (a search fly, a key step) must not drop focus to the body */
-    tracksEl.innerHTML = '<li class="a-rec" aria-hidden="true">' + def.name.replace(/&/g, '&amp;') + '</li>' + def.stops.map((x, j) => { if (j < g) return ''; const t = sideTrack(j + 1 - g, n), nm = nameOf(x.room);
-      return '<li' + (j === k ? ' class="on"' : j === k + 1 ? ' class="nx"' : '') + '><button type="button" data-tk="' + j + '" aria-label="' + t + ' ' + nm + '"' + (j === k ? ' aria-current="true"' : '') + '><b>' + t + '</b><span> ' + nm + '</span></button></li>'; }).join('');
+    tracksEl.innerHTML = '<li class="a-rec" aria-hidden="true">' + fillN(T.trackStops, { name: def.name, n }).replace(/&/g, '&amp;') + '</li>' + def.stops.map((x, j) => { if (j < g) return ''; const t = sideTrack(j + 1 - g, n), nm = trackName(def, j);
+      return '<li' + (j === k ? ' class="on"' : j === k + 1 ? ' class="nx"' : '') + '><button type="button" data-tk="' + j + '" aria-label="' + t + ' ' + nm + '"' + (j === k ? ' aria-current="true"' : '') + '><b><small>' + t.charAt(0) + '</small>' + t.slice(1) + '</b><span> ' + nm + '</span></button></li>'; }).join('');
     if (had) { const b = tracksEl.querySelector('[aria-current="true"]') || tracksEl.querySelector('button'); if (b) b.focus({ preventScroll: true }); }
     requestAnimationFrame(() => { const on = tracksEl.querySelector('.on'); tracksEl.scrollLeft = on && on.previousSibling ? on.previousSibling.offsetLeft : 0; }); /* a sync read here flushed style mid-go and re-ran the room fade */
   }
-  if (tracksEl) tracksEl.addEventListener('click', (e) => { const b = e.target.closest('[data-tk]'); if (b) try { ctx.tour.play(tracksEl.dataset.tour, +b.dataset.tk); } catch (x) {} });
+  if (tracksEl) tracksEl.addEventListener('click', (e) => { const b = e.target.closest('[data-tk]'); if (!b) return; const dl = tracksEl.closest('dialog'); try { ctx.tour.play(tracksEl.dataset.tour, +b.dataset.tk); } catch (x) {} if (dl) try { dl.close(); } catch (x) {} });
+  /* R9 GUIDE: the same tracklist, every stop numbered and named, rides at the top of the records sheet while it is open
+     (the phone's stop row and dock `records` open it; the desk's records ▾ too), so the whole set reads at once; it goes
+     back to the deck when the sheet closes. records rebuilds its body on every open, so the list is re-seated after */
+  const toursDlg = doc.getElementById('atlas-tours'), tracksHome = tracksEl && [tracksEl.parentNode, tracksEl.nextSibling];
+  function seatTracks() {
+    if (!tracksEl || !toursDlg) return;
+    const body = toursDlg.querySelector('[data-body]');
+    if (toursDlg.open && body) { if (tracksEl.parentNode !== body) { body.insertBefore(tracksEl, body.firstChild); tracksEl.classList.add('a-tracks-all'); tracksEl.scrollLeft = 0; } }
+    else if (tracksEl.parentNode !== tracksHome[0]) { tracksEl.classList.remove('a-tracks-all'); tracksHome[0].insertBefore(tracksEl, tracksHome[1] && tracksHome[1].parentNode === tracksHome[0] ? tracksHome[1] : null); }
+  }
+  if (toursDlg && tracksEl && typeof MutationObserver !== 'undefined') {
+    new MutationObserver(seatTracks).observe(toursDlg, { attributes: true, attributeFilter: ['open'], childList: true, subtree: true });
+    toursDlg.addEventListener('close', seatTracks);
+  }
   function renderStop() {
     const s = stepLabel(), ts = tourState(), cur = curStop();
     renderTracks(ts, cur);
     stopText.textContent = s.stop;
     tourChipT.textContent = s.chip;
-    mrowT.textContent = phoneStopLabel(s, ts, cur);
+    renderCount(s, ts, cur);
     /* round-2 item 4: the desktop title — the same name the phone row carries, on or off a tour (K3's
        tour state changes the STOP prefix/chip, never this) */
     const tn = cur ? cur.name.toUpperCase() : '';
@@ -1074,7 +1139,11 @@ export function mount(ctx, deps) {
           else setPill(T.startAgain, false, () => ctx.tour.play(a.id, 0), T.mpillAgain);
         }
         else setPill(fillStop(T.nextStop, nameOf(def.stops[a.k + 1].room)), false, () => ctx.tour.next());
-      } else setPill(fillStop(T.backToTour, nameOf(ts.sd ? ts.sd.room : cur && cur.id)), true, () => ctx.tour.resume());
+      }
+      /* R9 GUIDE: a touch screen now waits on the lead-in, paused (url.js); there is nothing to go back to there, so the pill
+         offers the first track. the desk keeps its pinned "back to the tour" on a lead-in it paused itself */
+      else if (coarse && a.k === 0 && n > 1 && def.stops[0].gate && ts.here) setPill(fillStop(T.nextStop, nameOf(def.stops[1].room)), false, () => ctx.tour.next());
+      else setPill(fillStop(T.backToTour, nameOf(ts.sd ? ts.sd.room : cur && cur.id)), true, () => ctx.tour.resume());
       return;
     }
     if (st === 'locked' || st === 'free') { setPill(T.cameraHome, false, () => ctx.view.home(), T.mpillHome); return; }
@@ -1150,14 +1219,18 @@ export function mount(ctx, deps) {
     if (onbStopCount > ONB_STOPS) dismissOnboard();
   }
   function dismissOnboard() { if (!onbOn) return; onbOn = false; if (!onbSeenBefore) { onbSeenBefore = true; sSet(ONB_KEY, true); } updatePhoneSlot(); renderLine(); }
+  /* R9 GUIDE: rooms that teach their own first touch (the clock's "drag the hand", the loop's pulsing hold, the wheel's
+     "press a bar") never get the generic line on top, which promises gestures they do not take */
+  const OWN_HINT = new Set(['clock', 'loop', 'wheel']);
+  function onbHere() { const c = onbOn && curStop(); return !!c && !OWN_HINT.has(c.id); }
   function soundWaiting() { return audioState() === 'off' || audioState() === 'arming'; }
   let sndForcedOff = false;
   /* landscape/desktop rendering: unchanged from round 1 */
   function renderLine() {
     if (isPortrait()) { updatePhoneSlot(); return; }
     const snd = !sndForcedOff && soundWaiting();
-    lineOnb.hidden = !onbOn; lineSnd.hidden = !snd;
-    const off = !onbOn && !snd;
+    const onb = onbHere(); lineOnb.hidden = !onb; lineSnd.hidden = !snd;
+    const off = !onb && !snd;
     if (lineEl.hidden !== off) lineEl.hidden = off;
     if (!off) place(lineEl);
   }
@@ -1206,7 +1279,7 @@ export function mount(ctx, deps) {
          between chunks reading one), the hint must never sneak into the shared slot and cut the story off;
          capDoneAt/stopTyping() are only ever reached once the whole carousel finishes, so the existing
          capTyping/capDoneAt check alone would let the hint in during an inter-chunk pause */
-      const hintReady = onbOn && !hudHas && !capCycling && !tourDriving() && !html.classList.contains('atlas-idle') && (!capHas || (!capTyping && now() - capDoneAt >= HINT_DELAY));
+      const hintReady = onbHere() && !hudHas && !capCycling && !tourDriving() && !html.classList.contains('atlas-idle') && (!capHas || (!capTyping && now() - capDoneAt >= HINT_DELAY));
       capEl.classList.toggle('ai-cap-suppressed', hudHas || hintReady);
       if (hudHas) { lineEl.hidden = true; }
       else if (hintReady) {
@@ -1457,6 +1530,8 @@ export function mount(ctx, deps) {
       const maxH = Math.max(60, Math.round(wallTop - gap - topBottom0 - 8));
       html.style.setProperty('--atlas-infomaxh', maxH + 'px');
       const infoRect = info.getBoundingClientRect();
+      /* R9 GUIDE: the key strip sits right above the room line (the stop row), over the caption while it shows */
+      { const rl = mrow && mrow.getClientRects().length ? mrow.getBoundingClientRect().top : infoRect.top; html.style.setProperty('--ai-infob', Math.max(0, Math.round(innerHeight - rl)) + 'px'); }
       writeInsets(topBottom0, Math.round(infoRect.top));
       html.style.setProperty('--atlas-wallh', wall ? wall.offsetHeight + 'px' : '0px');
       wallMore();
@@ -1531,6 +1606,7 @@ export function mount(ctx, deps) {
   }
   new MutationObserver(() => { const d = doc.getElementById('atlas-dock'); if (d && !d.__aiObs) { d.__aiObs = true; if (typeof ResizeObserver !== 'undefined') new ResizeObserver(scheduleLayout).observe(d); else layoutInfo(); } }).observe(body, { childList: true, subtree: true });
   addEventListener('resize', () => { capRefit(); layoutInfo(); });
+  addEventListener('exhibit:dockh', scheduleLayout); /* R9 POST: the phone listening dock reserved or freed the bottom edge */
   /* `less` is the default everywhere, so a rotation keeps the visitor's own choice; what the card folds does change */
   const onVPChange = () => { renderLessBtn(); recheckDup(); capRefit(); layoutInfo(); updatePhoneSlot(); closeOverflow(); };
   ['(max-aspect-ratio:115/100)', '(max-height:480px)'].forEach((q) => { const m = matchMedia(q); if (m.addEventListener) m.addEventListener('change', onVPChange); });
@@ -1538,7 +1614,7 @@ export function mount(ctx, deps) {
   /* ---------------------------------------------------------------- horizontal swipe on the wall card (D4, phone only) */
   let swX = 0, swY = 0, swActive = false;
   function onWallDown(e) { if (!isPortrait()) return; const p = e.touches ? e.touches[0] : e; swX = p.clientX; swY = p.clientY; swActive = true; }
-  function onWallUp(e) { if (!swActive) return; swActive = false; if (!isPortrait()) return; const p = e.changedTouches ? e.changedTouches[0] : e; const dx = p.clientX - swX, dy = p.clientY - swY; if (Math.abs(dx) < 48 || Math.abs(dy) > Math.abs(dx) * 0.58) return; const w = walkStops(), pos = w.findIndex((s) => s.i === ctx.index); if (pos < 0) return; if (dx < 0 && pos < w.length - 1) ctx.go(w[pos + 1].id, { via: 'key' }); else if (dx > 0 && pos > 0) ctx.go(w[pos - 1].id, { via: 'key' }); }
+  function onWallUp(e) { if (!swActive) return; swActive = false; if (!isPortrait()) return; const p = e.changedTouches ? e.changedTouches[0] : e; const dx = p.clientX - swX, dy = p.clientY - swY; if (Math.abs(dx) < 48 || Math.abs(dy) > Math.abs(dx) * 0.58) return; const t = ctx.tour; if (t && typeof t.next === 'function') { try { t[dx < 0 ? 'next' : 'prev'](); } catch (x) {} return; } /* R9 GUIDE: the card steps the same queue as ⏭/⏮ and the counter, never a second order */ const w = walkStops(), pos = w.findIndex((s) => s.i === ctx.index); if (pos < 0) return; if (dx < 0 && pos < w.length - 1) ctx.go(w[pos + 1].id, { via: 'key' }); else if (dx > 0 && pos > 0) ctx.go(w[pos - 1].id, { via: 'key' }); }
   function bindWallSwipe() {
     const wall = activeWall(); if (!wall || wall.__aiSwipe) return; wall.__aiSwipe = true;
     wall.addEventListener('pointerdown', onWallDown, { passive: true });
@@ -1570,7 +1646,9 @@ export function mount(ctx, deps) {
     renderAll();
     const via = ev && ev.via;
     if (via === 'tour' || via === 'key') cueStop(ev, via);
-    if (via === 'tour') return; /* the tour engine types its own caption on arrival */
+    /* R9 GUIDE: the tour engine types its own caption on arrival; until then the last room's words come down (the make
+       room flew in under the wheel's last line) */
+    if (via === 'tour') { const a = ctx.tour && ctx.tour.active; if (a && a.enRoute) { capSeq++; capKey = null; captionSet(''); } return; }
     if (via === 'mount' && ctx.tour && ctx.tour.active && ctx.tour.active.id) return; /* a deep-linked tour owns the first caption */
     refreshCaption(true);
   });
@@ -1635,6 +1713,53 @@ export function mount(ctx, deps) {
     return { check, own, T, get shown() { return !!chip; } };
   })();
   api.freshness = fresh;
+
+  /* ---------------------------------------------------------------- R9 GUIDE: the coach. once a visit (sessionStorage, memory
+     when storage throws), at the first room with stars, a short card says how to move and how to touch, with the total.
+     it never takes a press (pointer-events none: the first tap still lands on the star), leaves on the first input or
+     after 6 s, and never comes back that session. not in the kiosk, not over an open sheet or the end card. */
+  const COACH_KEY = 'sm_atlas_coach_v1', COACH_MS = 6000, STARRY = ['universe', 'chain', 'map', 'listeners'];
+  const ssHas = (k) => { try { return sessionStorage.getItem(k) === '1'; } catch (e) { return !!MEM['ss:' + k]; } };
+  const ssPut = (k) => { MEM['ss:' + k] = true; try { sessionStorage.setItem(k, '1'); } catch (e) {} };
+  let coachEl = null, coachT = 0, coachWait = 0;
+  function coachTotal() { const d = tourDef((ctx.tour && ctx.tour.active && ctx.tour.active.id) || 'grand') || tourDef('grand'); return d ? d.stops.length - (d.stops[0] && d.stops[0].gate ? 1 : 0) : walkStops().length; }
+  function placeCoach() {
+    if (!coachEl) return;
+    let st = null; try { st = ctx.atlas.stage(); } catch (e) {}
+    st = st && st.w ? st : { x: 0, y: 0, w: innerWidth, h: innerHeight };
+    const h = coachEl.offsetHeight, w = coachEl.offsetWidth;
+    /* upright it hangs from the top bar (the key strip takes the lower band); on the desk it sits low in the stage */
+    const cx = st.x + st.w / 2, tb = topBar ? Math.round(topBar.getBoundingClientRect().bottom) : 56;
+    const y = isPortrait() ? tb + 10 : st.y + st.h * 0.74 - h / 2;
+    coachEl.style.left = Math.round(clamp(cx - w / 2, 16, innerWidth - w - 16)) + 'px';
+    coachEl.style.top = Math.round(clamp(y, 56, innerHeight - h - 16)) + 'px';
+  }
+  function coachOff(e) {
+    if (e && e.isTrusted === false) return;
+    clearTimeout(coachT); removeEventListener('pointerdown', coachOff, true); removeEventListener('keydown', coachOff, true); removeEventListener('wheel', coachOff, true); removeEventListener('resize', placeCoach);
+    const el = coachEl; coachEl = null; if (!el) return;
+    el.classList.remove('on'); el.classList.add('off'); setTimeout(() => el.remove(), reduced ? 0 : 420);
+  }
+  function coachMaybe() {
+    if (KIOSK || coachEl || ssHas(COACH_KEY) || panelOpen() || html.classList.contains('ai-endcard-open')) return;
+    const cur = curStop(); if (!cur || STARRY.indexOf(cur.id) < 0) return;
+    /* the colour key (unfold.js .uf-ks, 6 s or the first input) goes first; the coach follows it, never on top of it */
+    if (doc.querySelector('.uf-ks')) { coachWait = setTimeout(coachMaybe, 400); return; }
+    ssPut(COACH_KEY);
+    const n = coachTotal(), lines = coarse ? T.coachTouch : T.coachDesk;
+    const el = coachEl = doc.createElement('div'); el.id = 'atlas-coach'; el.className = 'ai-coach'; el.setAttribute('role', 'note');
+    const k = doc.createElement('p'); k.className = 'ai-coach-k'; k.textContent = fillN(T.coachHead, { n }); el.appendChild(k);
+    lines.forEach((l, i) => { const p = doc.createElement('p'); p.className = 'ai-coach-l'; p.style.setProperty('--i', i); const g = doc.createElement('i'); g.className = 'ai-coach-g g' + [2, 0, 1][i % 3]; g.setAttribute('aria-hidden', 'true'); const t = doc.createElement('span'); t.textContent = l; p.append(g, t); el.appendChild(p); });
+    const bar = doc.createElement('i'); bar.className = 'ai-coach-bar'; bar.setAttribute('aria-hidden', 'true'); el.appendChild(bar);
+    body.appendChild(el); placeCoach();
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (coachEl === el) el.classList.add('on'); }));
+    coachT = setTimeout(coachOff, COACH_MS);
+    setTimeout(() => { if (coachEl !== el) return; addEventListener('pointerdown', coachOff, { capture: true, passive: true }); addEventListener('keydown', coachOff, true); addEventListener('wheel', coachOff, { capture: true, passive: true }); }, 250);
+    addEventListener('resize', placeCoach);
+  }
+  ctx.onStop(() => { clearTimeout(coachWait); if (coachEl) coachOff(); else coachWait = setTimeout(coachMaybe, 900); });
+  coachWait = setTimeout(coachMaybe, 900);
+  api.coach = { show: coachMaybe, hide: coachOff, get on() { return !!coachEl; }, key: COACH_KEY };
 
   return api;
 }

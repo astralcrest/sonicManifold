@@ -107,6 +107,37 @@ function ensure(cells) {
 
 /* a pitch-locked grid keeps the room's cell as asked: declared (`lock`), or a divide grid whose cell is at least its pitch,
    which is a room asking for one cell per pitch (the calendar's months on a phone) */
+/* R9 light: the glint stars. STAR holds x, y, packed ABGR, intensity 0-255 */
+const STAR_MAX = 56, STAR = new Int32Array(STAR_MAX * 5);
+/* R10: in a provenance room (cat) the star keeps its cell's exact hue (the colour code: a whitened arm is a neutral that
+   answers neither question) and never paints over another cell that drew a mark this frame (CST[ci] === stamp) */
+function drawStars(buf, PW, PH, n, aw, cat, CST, stamp, cols, rows, colX0, rowY0) {
+  const th = aw >= 9 ? 2 : 1, gx0 = colX0[0], gy0 = rowY0[0], cw = (colX0[cols] - gx0) / cols, chh = (rowY0[rows] - gy0) / rows;
+  const px = cat ? maxPx : addPx;
+  const free = (x, y, own) => { if (!cat) return true; const cc = Math.floor((x - gx0) / cw), rr = Math.floor((y - gy0) / chh); if (cc < 0 || cc >= cols || rr < 0 || rr >= rows) return true; const ci = rr * cols + cc; return ci === own || CST[ci] !== stamp; };
+  for (let i = 0; i < n; i++) {
+    const si = i * 5, cx = STAR[si], cy = STAR[si + 1], c = STAR[si + 2], I = STAR[si + 3] / 255, own = STAR[si + 4];
+    const len = (aw * (0.8 + 2.6 * I)) | 0, R0 = c & 255, G0 = (c >>> 8) & 255, B0 = (c >>> 16) & 255;
+    for (let d = -len; d <= len; d++) {
+      const f = 1 - (d < 0 ? -d : d) / (len + 1), a = f * f * I * 1.1;
+      for (let k = 0; k < th; k++) {
+        const x = cx + d, y = cy + k;
+        if (x >= 0 && x < PW && y >= 0 && y < PH && free(x, y, own)) px(buf, y * PW + x, R0, G0, B0, a);
+        const x2 = cx + k, y2 = cy + d;
+        if (d !== 0 && x2 >= 0 && x2 < PW && y2 >= 0 && y2 < PH && free(x2, y2, own)) px(buf, y2 * PW + x2, R0, G0, B0, a);
+      }
+    }
+  }
+}
+/* provenance rooms: lighten toward the cell's own colour, never add (an add clips a bright channel to white = neutral) */
+function maxPx(buf, i, R, G, B, a) {
+  if (a > 1) a = 1; const p = buf[i], r = R * a, g = G * a, b = B * a, pr = p & 255, pg = (p >>> 8) & 255, pb = (p >>> 16) & 255;
+  buf[i] = 0xff000000 | ((pb > b ? pb : b) << 16) | ((pg > g ? pg : g) << 8) | (pr > r ? pr : r);
+}
+function addPx(buf, i, R, G, B, a) {
+  const p = buf[i]; let r = (p & 255) + R * a, g = ((p >>> 8) & 255) + G * a, b = ((p >>> 16) & 255) + B * a;
+  buf[i] = 0xff000000 | ((b > 255 ? 255 : b) << 16) | ((g > 255 ? 255 : g) << 8) | (r > 255 ? 255 : r);
+}
 function pitchLocked() {
   const R = S.room, g = R.grid;
   return !!g && (g.lock || (g.fit === 'divide' && R.cell != null && R.cell >= g.pw - 1e-6));
@@ -575,7 +606,7 @@ export const GF = {
       }
       if (dbg) S.catRim.fill(0);
     }
-    let drawn = 0; const DK = drk;
+    let drawn = 0, nStar = 0; const DK = drk;
     for (let k = 0; k < occN; k++) {
       const ci = occ[k], tv = T[ci], ti = (tv * LUTN) | 0;
       if (tv <= TH) continue;
@@ -586,12 +617,16 @@ export const GF = {
       const cy = (ci / cols) | 0, cx = ci - cy * cols;
       if (tv < HAZE) { const d = cx * 0.06711056 + cy * 0.00583715, ign = 52.9829189 * (d - Math.floor(d)); if (ign - Math.floor(ign) > HZ[ti]) continue; }
       const q = Q[ti], h = HS[ci];
-      let glint = false, B0 = BR[ti];
+      let glint = false, B0 = BR[ti], starI = 0;
       if (tw) {
         /* categorical cells breathe +-6% around 0.94, so a full cell never clips; the continuous faint band keeps its own */
-        if (cat) B0 *= 0.94 + 0.06 * SIN[((ts * (0.5 + 1.3 * h) + 6.28 * h) * SK | 0) & 4095];
-        else if (tv < 0.35) B0 *= 1 + 0.05 * (SIN[((ts * (0.5 + 1.3 * h)) * SK | 0) & 4095] + 0.5 * SIN[((ts * (1.7 + 2.3 * h)) * SK | 0) & 4095] + 0.5 * SIN[((ts * (0.11 + 0.23 * h)) * SK | 0) & 4095]);
+        if (cat) B0 *= 0.87 + 0.13 * SIN[((ts * (0.7 + 1.5 * h) + 6.28 * h) * SK | 0) & 4095];
+        else if (tv < 0.35) B0 *= 1 + 0.09 * (SIN[((ts * (0.5 + 1.3 * h)) * SK | 0) & 4095] + 0.5 * SIN[((ts * (1.7 + 2.3 * h)) * SK | 0) & 4095] + 0.5 * SIN[((ts * (0.11 + 0.23 * h)) * SK | 0) & 4095]);
+        else B0 *= 0.88 + 0.12 * SIN[((ts * (0.6 + 1.7 * h) + 6.28 * h) * SK | 0) & 4095];
         glint = SIN[((ts * (0.031 + 0.05 * h) + 6.28 * h) * SK | 0) & 4095] > 0.98851; /* max(sin, 0)^60 > 0.5 */
+        /* R9: a 4-point star on the brightest cells, each on its own slow phase, at most STAR_MAX a frame */
+        starI = 0;
+        if (tv > 0.4 && nStar < STAR_MAX) { const se = SIN[((ts * (0.07 + 0.09 * h) + 17 * h) * SK | 0) & 4095]; if (se > 0.96) starI = (se - 0.96) * 25; }
       }
       let g;
       if (cat) {
@@ -649,6 +684,7 @@ export const GF = {
       } else if (bleachS) { const s = BL[ti]; if (s > 0) { R += (255 - R) * s; Gc += (255 - Gc) * s; Bc += (255 - Bc) * s; } }
       const col = 0xff000000 | ((Bc > 255 ? 255 : Bc) << 16) | ((Gc > 255 ? 255 : Gc) << 8) | (R > 255 ? 255 : R);
       GI[ci] = g; DK[drawn++] = ci;
+      if (starI > 0) { const si = nStar++ * 5; STAR[si] = colX0[cx] + (aw >> 1); STAR[si + 1] = rowY0[cy] + (ah >> 1); STAR[si + 2] = cat ? col : (0xff000000 | ((((col >>> 16) & 255) * 0.5 + 127) << 16) | ((((col >>> 8) & 255) * 0.5 + 127) << 8) | ((col & 255) * 0.5 + 127)); STAR[si + 3] = (starI * 255) | 0; STAR[si + 4] = ci; }
       if (lk >= 0) lDn[lk] = stamp;
       if (dbg) { const kc = pickK[ci] & 7; S.catCells[kc]++; S.catDotsW[kc] += nIn[ci]; }
       const x0 = colX0[cx], y0 = rowY0[cy], s0 = pxStart[g], s1 = pxStart[g + 1];
@@ -660,6 +696,11 @@ export const GF = {
       }
     }
     S.drawn = drawn;
+    if (nStar) {
+      if (!S.cst || S.cst.length < cols * rows) S.cst = new Uint32Array(cols * rows + 64);
+      const CST = S.cst, st = (stamp + 1) >>> 0; if (cat) for (let i = 0; i < drawn; i++) CST[DK[i]] = st;
+      drawStars(buf, PW, PH, nStar, aw, cat, CST, st, cols, rows, colX0, rowY0);
+    }
     /* K1 trails: every trail cell no dot glyph took, in list order. a cell one segment owns alone draws the mark and colour
        its walk chose (lineGlyph, linePacked); a crossing or a pulse recomputes them from the combined weight. tone
        t = t0 + t1 w through the dots' brightness curve. a pulse is the trail's own bright mark at full brightness, the head

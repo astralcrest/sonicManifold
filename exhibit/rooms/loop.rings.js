@@ -89,6 +89,12 @@ export function spin(R, ctx, now) {
   R.spun = 1;
 }
 
+/* R9: at rest the pedals breathe in a wave down the board, so the stop is alive before anyone holds (never 255: that is the lit ring) */
+export function idle(R, ctx, t) {
+  const A = ctx.atlas; if (R.hold || R.rest || ctx.reduced || (A && A.gov && A.gov.tier >= 4)) return;
+  const k = (R.idleK = ((R.idleK | 0) + 1) % R.RS.length), r = R.RS[k]; /* one ring a frame: the cost is spread thin */
+  ctx.particles.w.fill(196 + 48 * Math.sin(t * 2.4 - k * 0.65) | 0, r.off, r.off + r.n);
+}
 export function ringAt(R, sx, sy) {
   if (!R.RS || R.ang !== 'tower') return -1;
   return R.RS.findIndex((q) => abs(sx - q.x) <= R.cw / 2 && sy >= q.y - R.chh / 2 + R.lh / 2 && sy <= q.y + R.chh / 2 + R.lh / 2);

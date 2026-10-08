@@ -1,7 +1,7 @@
 /* R6 thirteen gates: lazy angle of graveyard.js. data: gates.json (extract_gates.py parses researcher.html; referee passes
 1-3). caption verbatim (C1); door strings are the file's own, so C2/C3 live in the data. slammed = fired, opened = ran and
 stood, bricked = could never close, added later = revision (none fired). no dot here is a play. */
-const KIND = { kill: ['slammed', 0, 3000, 'slam'], survive: ['opened', 2, 100, 'open'], brick: ['bricked', 0, 0, 'brick'], revision: ['added later', 1, 12, 'later'] };
+const KIND = { kill: ['slammed', 0, 3000, 'slam'], survive: ['opened', 2, 100, 'open'], brick: ['bricked', 0, 0, 'brick'], revision: ['added later', 1, 12, 'added'] };
 const STONE = 0xd8d2ea, MOUND = 0x7d74a6, SOIL = 0x57507a, LIGHT = 0xf0eaff, ICE = 'rgba(134,203,254,', INK = 'rgba(216,210,234,';
 const KIOSK = /[?&]kiosk=1\b/.test(location.search), now = () => performance.now(), pk = (v) => (0xff000000 | ((v & 0xff) << 16) | (v & 0xff00) | ((v >> 16) & 0xff)) >>> 0;
 let CSS = null;
@@ -36,7 +36,7 @@ const dI = new Uint8Array(N), lst = new Int32Array(N), st0 = new Int32Array(n + 
 const fade = () => pane.classList.toggle('gtf', pane.scrollTop + pane.clientHeight < pane.scrollHeight - 2); pane.addEventListener('scroll', fade);
 const view = () => {
 pane.textContent = '';
-if (sel < 0) { el('p', 'gtc', J.caption, pane); el('p', 'gtt', tally, pane); fade(); return; }
+if (sel < 0) { el('p', 'gtc', 'thirteen tests, each written down before it ran. tap a door for its rule and verdict.', pane); el('p', 'gtt', tally, pane); el('p', 'gtw', J.caption, pane); fade(); return; }
 const d = D[sel], L = lines(d); el('p', 'gth', 'door ' + pad2(d.i) + ' of ' + n + ' · ' + KIND[d.kind][0], pane);
 L.forEach((t, k) => el('p', k === 0 ? '' : k === L.length - 1 || t === power(d) ? 'gtw' : '', t, pane)); fade();
 };
@@ -78,7 +78,7 @@ const s = C.stage(); W.style.cssText = 'left:' + s.x + 'px;top:' + s.y + 'px;wid
 W.classList.toggle('tight', s.w < 600 || s.h < 560);
 pane.style.height = ''; let ph = 0; const s0 = sel; /* one height: the tallest card */
 for (let j = -1; j < n; j++) { sel = j; view(); ph = Math.max(ph, pane.scrollHeight); } sel = s0; view();
-pane.style.height = Math.min(ph, s.h * (s.w < 600 ? (s.h < 340 ? 0.34 : 0.5) : 0.36)) + 'px'; fade();
+pane.style.height = Math.min(ph, s.h * (s.w < 600 ? 0.3 : 0.36)) + 'px'; fade();
 const r = strip.getBoundingClientRect(), so = 7; let B = null;
 for (const cols of [13, 7, 5, 4]) {
 const rows = Math.ceil(n / cols), px = r.width / cols, rh = r.height / rows, lab = px < 84 ? 36 : 49; let dh = rh - lab - 8, dw = dh / 2.1;

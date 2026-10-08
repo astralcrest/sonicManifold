@@ -320,8 +320,7 @@ if(hold){
 const tn=R.tNow(),px=round(X(min(TMAX,tn)))+0.5,pulse=red?0:bands.low*0.3;
 g.strokeStyle=IC+(0.75+pulse)+')';g.lineWidth=2;g.beginPath();g.moveTo(px,ty);g.lineTo(px,yb);g.stroke();g.lineWidth=1;
 g.fillStyle='#86cbfe';g.textAlign=px>x0+R.Wt-60?'right':'left';g.textBaseline='bottom';
-g.font='600 '+(nar?13:15)+MONO;g.fillText(ft(tn),px+(g.textAlign==='right'?-6:6),ty+16);
-if(hold.via==='demo'){g.font='400 10'+MONO;g.fillText('a demo thumb',px+(g.textAlign==='right'?-6:6),ty+30);}
+g.font='600 '+(nar?13:15)+MONO;g.fillText(ft(tn)+(hold.via==='demo'?' · demo':''),px+(g.textAlign==='right'?-6:6),ty+16);
 g.textBaseline='top';
 }
 const D=R.drops,now=performance.now();

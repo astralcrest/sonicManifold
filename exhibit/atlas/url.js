@@ -53,7 +53,9 @@ export function mount(ctx, deps) {
     const parsed = parseHash(ctx.atlas.hash0);
     /* W20 (G5/A-C12b): a bare exhibit.html has nothing to restore, so it lands on the grand tour, playing —
        tour.js's own play() already parks it paused under reduced motion, so nothing extra is needed here. */
-    if (parsed.kind === 'none') { try { ctx.tour.play('grand', 0); } catch (e) { console.warn('url grand', e); } return; }
+    /* R9 GUIDE: on a touch screen the record waits on the lead-in for a press of play (the transport shows play, which is
+       true); it ran itself before while the phone's first paint still showed play. the kiosk and the desk play on as before */
+    if (parsed.kind === 'none') { const hand = !(deps && deps.KIOSK) && !!(window.matchMedia && matchMedia('(pointer: coarse)').matches); try { ctx.tour.play('grand', 0, { autoplay: !hand }); } catch (e) { console.warn('url grand', e); } return; }
     if (parsed.kind === 'tour') {
       const known = ctx.tour.list().some((t) => t.id === parsed.id);
       if (!known) return; /* garbage tour id: stay at the threshold, no error */

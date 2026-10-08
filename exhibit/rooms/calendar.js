@@ -92,7 +92,7 @@ section[data-room=calendar] .cal-range::-moz-range-thumb{width:13px;height:13px;
 @media (max-width:420px){section[data-room=calendar] .cal-split{gap:9px}section[data-room=calendar] .cal-c{font-size:10.5px}section[data-room=calendar] .cal-c::before{width:7px;height:7px;margin-right:5px}}`;
 
 export default {
-  id: 'calendar', track: 'anti-dimmable', ready: false, cur: -1, demoT: 0, mt: 0, t0: 0, focusM: -1, walkT: 0,
+  id: 'calendar', track: 'choose-me-whole', ready: false, cur: -1, demoT: 0, mt: 0, t0: 0, focusM: -1, walkT: 0,
 
   async mount(root, ctx) {
     this.A = !!(ctx.atlas && ctx.atlas.on); this.prec = [];

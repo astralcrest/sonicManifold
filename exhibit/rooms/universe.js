@@ -332,7 +332,9 @@ html.atlas #atlas-labels .lab.tag:hover,html.atlas #atlas-labels .lab.tag:focus-
   html.atlas section[data-room="universe"] .uv-range::-webkit-slider-thumb{background:Canvas;border-color:CanvasText;box-shadow:none}
   html.atlas section[data-room="universe"] .uv-range::-moz-range-thumb{background:Canvas;border-color:CanvasText;box-shadow:none}
 }
-@media (prefers-reduced-motion:reduce){html.atlas section[data-room="universe"] .uv-b,html.atlas section[data-room="universe"] .uv-dock{transition:none}}
+html.atlas section[data-room="universe"] .uv-miss{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:1px solid rgba(134,203,254,.6);pointer-events:none;z-index:1;animation:uvMiss .6s ease-out forwards}
+@keyframes uvMiss{from{transform:scale(.35);opacity:.9}to{transform:scale(1.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){html.atlas section[data-room="universe"] .uv-b,html.atlas section[data-room="universe"] .uv-dock{transition:none}html.atlas section[data-room="universe"] .uv-miss{animation:none;opacity:.45}}
 @media print{html.atlas section[data-room="universe"] .uv-dock,html.atlas section[data-room="universe"] .uv-legend,html.atlas section[data-room="universe"] .uv-more{display:none!important}}
 `;
 
@@ -1627,14 +1629,23 @@ function pickCluster(sx, sy) {
 function onTap(p) {
   reachAt = now();
   if (!S.R) return false;
-  const touch = p.type === 'touch', i = pickStar(p.sx, p.sy, touch ? 26 : 16);
+  const touch = p.type === 'touch', i = pickStar(p.sx, p.sy, touch ? tapR() : 16);
   if (i >= 0) { focusArtistIdx(i, 'tap'); return true; }
   const ln = pickLine(p.sx, p.sy);
   if (ln && ln.kind === 'chord') { focusPair(ln.a, ln.b, 'tap'); return true; }
   if (ln && ln.kind === 'day') { S.dayLine = { a: ln.a, b: ln.b, n: ln.n }; S.sel = null; renderHud(); return true; }
   const f = pickCluster(p.sx, p.sy); if (f >= 0) { focusFamily(f, 'tap'); return true; }
   if (S.sel || S.dayLine || S.chord) { S.sel = null; S.dayLine = null; S.chord = null; S.placeholder = -1; try { S.ctx.lock(null); } catch (e) {} setLabels(); renderHud(); ladder(); }
-  return false;
+  missPulse(p.sx, p.sy);
+  return true; /* R9: empty sky answers with a ring only, and a second tap there never zooms */
+}
+/* R9: a touch picks the glyph it lands on, plus a finger's slop (two cells: 14 px on a phone), not a 26 px disc that grabbed
+   whatever star was nearest */
+function tapR() { return clamp(2 * cellPx(), 12, 18); }
+function missPulse(x, y) {
+  const sec = S.sec; if (!sec) return;
+  const b = sec.getBoundingClientRect(), d = document.createElement('i'); d.className = 'uv-miss'; d.setAttribute('aria-hidden', 'true');
+  d.style.left = (x - b.left) + 'px'; d.style.top = (y - b.top) + 'px'; sec.appendChild(d); setTimeout(() => d.remove(), 650);
 }
 function onHover(p) {
   reachAt = now();
@@ -2780,8 +2791,8 @@ export default {
          finger strums whatever it slides over. a mouse keeps the plain drag (no hold), so a still press never blocks the orbit */
       hold: COARSE ? {
         delay: 500,
-        press: (p) => { if (p.type === 'mouse') return; const i = pickStar(p.sx, p.sy, 26); if (i >= 0) hoverStar(i, 'touch', p.sx, p.sy); },
-        move: (p) => { const i = pickStar(p.sx, p.sy, 26); if (i >= 0 && i !== S.hover) hoverStar(i, 'touch', p.sx, p.sy); },
+        press: (p) => { if (p.type === 'mouse') return; const i = pickStar(p.sx, p.sy, tapR()); if (i >= 0) hoverStar(i, 'touch', p.sx, p.sy); },
+        move: (p) => { const i = pickStar(p.sx, p.sy, tapR()); if (i >= 0 && i !== S.hover) hoverStar(i, 'touch', p.sx, p.sy); },
         end: () => { try { S.ctx.post.undwell({ keep: true }); } catch (e) {} setHover(-1); if (VX && S.labHov < 0) VX.off(); },
       } : undefined,
       cursor: () => (S.hover >= 0 || S.hoverLine || S.hoverCluster >= 0 ? 'pointer' : ''),

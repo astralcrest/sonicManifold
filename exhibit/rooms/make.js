@@ -121,7 +121,10 @@ export default {
       + '@media (min-aspect-ratio:115/100){html.atlas section[data-room="make"] .wall{padding-bottom:0}}'
       /* while this stop is up, its unbracketed labels (the keys, the decks) track like today's key text (.04em, not .14em),
          so a key label's text is the same width as the text it stands in for and sits on it to the pixel */
-      + 'html.atlas.mk-keys #atlas-labels .lab.region{letter-spacing:.04em}';
+      + 'html.atlas.mk-keys #atlas-labels .lab.region{letter-spacing:.04em}'
+      /* R9: the finale's one control, up while the wall and the 81% run (a phone saw four seconds with nothing to press) */
+      + 'section[data-room="make"] .mk-skip{display:none;position:absolute;z-index:2;transform:translateX(-100%);white-space:nowrap;font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ice);background:rgba(10,1,24,.78);border:1px solid var(--ice);border-radius:2px;padding:0 14px;min-height:44px;cursor:pointer}'
+      + 'html.atlas section[data-room="make"] .mk-hide .mk-skip{display:block}';
     document.head.appendChild(st);
     let data = null;
     try { data = await ctx.data('tracks'); } catch (e) {}
@@ -144,13 +147,15 @@ export default {
     const tapPct = Math.round(cnt[0] / n * 100), restPct = 100 - tapPct; /* 19 / 81 — matches wall.json pct_rounded.tap = 19 */
     this.restPct = restPct;
     const word = WORDS[this.tracks.length] || String(this.tracks.length), yrs = atlasOn(ctx) ? 'the whole log' : 'seven years';
+    /* R9: in the atlas the first line says what this stop is before the wall says anything */
+    const first = atlasOn(ctx) ? 'the ' + word + ' tracks i made, and where they came from. first the wall again, sorted.' : 'the wall again. ' + yrs + ', sorted.';
     this.lines = [
-      'the wall again. ' + yrs + ', sorted.',
+      first,
       'the queue or shuffle started all of that. it is leaving.',
       'what is left is the ' + tapPct + '% i tapped. i made ' + word + ' tracks out of the whole log anyway.',
     ];
     /* short screens: middle clause dropped */
-    this.short = ['the wall again. ' + yrs + ', sorted.', 'the queue or shuffle started all of that.', 'what is left is the ' + tapPct + '% i tapped. ' + word + ' tracks.'];
+    this.short = [atlasOn(ctx) ? 'the ' + word + ' tracks i made. first the wall, sorted.' : 'the wall again. ' + yrs + ', sorted.', 'the queue or shuffle started all of that.', 'what is left is the ' + tapPct + '% i tapped. ' + word + ' tracks.'];
     this.closings0 = ['that was the last of the eight rooms. the wheel stays up for as long as you want it.', 'that was the last of the eight rooms.'];
     this.closings = atlasOn(ctx) ? ['that was the last stop. the wheel stays up for as long as you want it.', 'that was the last stop.'] : this.closings0;
     this.longTitle = this.tracks.reduce((m, t) => (t.t.length > m.length ? t.t : m), '');
@@ -171,6 +176,7 @@ export default {
     /* the button disables itself while the blend runs, which would drop keyboard focus to the page: hand it to deck b instead */
     blend.addEventListener('click', () => { const kb = document.activeElement === blend, b = this.cued; this.stopDemo(); this.doBlend(ctx); if (kb && this.blend) (this.chips ? this.chipEls : this.btnEls)[b].focus({ preventScroll: true }); });
     desk.appendChild(blend); this.blendBtn = blend;
+    if (atlasOn(ctx)) { const sk = document.createElement('button'); sk.type = 'button'; sk.className = 'mk-skip'; sk.textContent = 'straight to the wheel ›'; sk.addEventListener('click', () => { this.stopDemo(); this.toWheel(ctx); }); wrap.appendChild(sk); this.skipEl = sk; }
     const ab = document.createElement('p'); ab.className = 'mk-ab'; ab.setAttribute('aria-live', 'off'); desk.appendChild(ab); this.abEl = ab;
     const end = document.createElement('p'); end.className = 'mk-end'; text.appendChild(end);
     /* arriving fills every line at once, on top of the heading focus: nothing is announced until the visitor
@@ -294,6 +300,7 @@ export default {
     /* two resting places for the copy: hard against the bottom of the stage while the beats run (one line, and the
        wall needs every other pixel), and up where the four settled lines start once the wheel is there */
     this.textTop = s.y + s.h - textH; this.beatTop = s.y + s.h - this.lineH;
+    if (this.skipEl) { this.skipEl.style.left = (s.x + s.w) + 'px'; this.skipEl.style.top = (this.beatTop + 4) + 'px'; } /* beside the big 81%, right-aligned */
     this.textEl.style.left = s.x + 'px'; this.textEl.style.width = s.w + 'px';
     this.textEl.style.top = (this.beat > 0 && this.beat < 3 ? this.beatTop : this.textTop) + 'px';
     if (this.beat) this.introEl.textContent = this.line(this.beat - 1); /* a resize can flip the copy between its long and short form */
@@ -893,7 +900,9 @@ export default {
   gestures() { return { drag: 'camera' }; },
   keepout() {
     const el = this.textEl; if (!el) return [];
-    const r = el.getBoundingClientRect(); return r.width && r.height ? [{ x: r.left, y: r.top, w: r.width, h: r.height }] : [];
+    const r = el.getBoundingClientRect(), o = r.width && r.height ? [{ x: r.left, y: r.top, w: r.width, h: r.height }] : [];
+    const k = this.skipEl && this.skipEl.getBoundingClientRect(); if (k && k.width) o.push({ x: k.left, y: k.top, w: k.width, h: k.height });
+    return o;
   },
   precision() { return []; },
   /* ---- kiosk ------------------------------------------------------------------- */

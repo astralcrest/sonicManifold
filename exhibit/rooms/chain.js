@@ -12,9 +12,11 @@ const WB = [0, 1, 1.7, 2.8, 4.6, 7.5]; /* dots per plays quintile: an order, not
 const DUST = 0.32, HOP_MS = 520, MAXHOP = 60, TF = 3, QF = 17, ICE = 0x86cbfe;
 const ANGLES = [{ id: 'all', name: 'every link' }, { id: 'hand', name: 'hand only' }];
 
-const CSS = `@ .ch-hud{position:absolute;transform:translateY(-100%);box-sizing:border-box;padding:8px 10px;background:rgba(10,1,24,.8);border:1px solid rgba(134,203,254,.24);border-radius:12px;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
-@ .ch-line{font:400 12px/1.45 var(--mono);color:var(--ink);margin:0 2px 4px;min-height:2.9em}
+const CSS = `@ .ch-hud{position:absolute;transform:translateY(-100%);box-sizing:border-box;padding:8px 10px;background:rgba(10,1,24,.8);border:1px solid rgba(134,203,254,.24);border-radius:12px;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+@ .ch-line{font:400 12px/1.45 var(--mono);color:var(--ink);margin:0 2px 3px;min-height:1.45em}
 @ .ch-line b{font-weight:600;color:var(--ice)}
+@ .ch-cue{font:400 10.5px/1.4 var(--mono);color:var(--mute);margin:0 2px 6px;min-height:2.8em}
+@ .ch-cue.act{color:var(--ice)}
 @ .ch-h{color:#21f6bc}
 @ .ch-q{color:#8b6fd6}
 @ .ch-path{font:400 10.5px/1.4 var(--mono);color:var(--mute);margin:0 2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl;text-align:left}
@@ -23,7 +25,8 @@ const CSS = `@ .ch-hud{position:absolute;transform:translateY(-100%);box-sizing:
 @ .ch-row button{font:600 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);background:rgba(134,203,254,.06);border:1px solid rgba(134,203,254,.26);border-radius:999px;padding:0 11px;min-height:44px;min-width:44px;cursor:pointer;white-space:nowrap}
 @ .ch-row button:hover{color:var(--ink);border-color:var(--ice)}
 @ .ch-row button[aria-pressed="true"]{color:var(--ink);background:rgba(134,203,254,.18);box-shadow:inset 0 0 0 1px var(--ice)}
-@ .ch-row button:disabled{opacity:.38;cursor:default}
+@ .ch-row button[aria-disabled="true"]{opacity:.38;cursor:default}
+@ .ch-row button.on{color:var(--ink);border-color:var(--ice);box-shadow:0 0 0 3px rgba(134,203,254,.2)}
 @ .ch-row button:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
 @ .ch-hud.kb{outline:2px solid var(--ice);outline-offset:2px}
 @ .ch-row .ch-go{color:var(--ice);border-color:rgba(134,203,254,.6)}
@@ -31,16 +34,17 @@ const CSS = `@ .ch-hud{position:absolute;transform:translateY(-100%);box-sizing:
 @ .ch-kb{display:none;font:400 10.5px/1.3 var(--mono);color:var(--ice);margin:0 2px 6px}
 @ .ch-hud.kb .ch-kb,@ .ch-out{display:block}
 @ .ch-out{width:100%;box-sizing:border-box;margin:0 0 6px;font:400 11px/1.4 var(--mono);color:var(--ink);background:rgba(10,1,24,.9);border:1px solid rgba(134,203,254,.3);border-radius:6px;padding:6px}
-@ .ch-hud.cmp .ch-line{font-size:11px;line-height:1.38;margin-bottom:3px}
+@ .ch-hud.cmp .ch-line{font-size:11px;line-height:1.38;margin-bottom:2px}
+@ .ch-hud.cmp .ch-cue{font-size:10px;margin-bottom:5px}
 @ .ch-hud.cmp .ch-row{gap:4px;flex-wrap:nowrap}
 @ .ch-hud.sd .ch-row{flex-wrap:wrap}
 @ .ch-hud.cmp .ch-row button{padding:0 9px;letter-spacing:.03em}
-@media (max-height:480px) and (min-aspect-ratio:115/100){@ .ch-line{min-height:0;margin-bottom:3px}}
+@media (max-height:480px) and (min-aspect-ratio:115/100){@ .ch-line,@ .ch-cue{min-height:0;margin-bottom:3px}}
 @media (forced-colors:active){@ .ch-hud{border:1px solid CanvasText}@ .ch-row button[aria-pressed="true"]{forced-color-adjust:none;background:Highlight;color:HighlightText}}`.replace(/@ /g, 'html.atlas section[data-room="chain"] ');
 
 export default {
-	id: 'chain', track: 'save-her', glyph: { edges: false }, angles: ANGLES,
-	ready: false, chain: [], hand: false, sel: 0, hov: -1, cands: [], hopT: -1e9, riffT: -1, riffStep: 200, ended: '', urlDone: false, dirtyL: true, kb: false,
+	id: 'chain', track: 'latent-dimension', glyph: { edges: false }, angles: ANGLES,
+	ready: false, chain: [], ht: [], hand: false, sel: 0, hov: -1, cands: [], hopT: -1e9, riffT: -1, ended: '', urlDone: false, dirtyL: true, kb: false,
 
 	async mount(root, ctx) {
 		this.ctx = ctx; this.root = root;
@@ -52,7 +56,7 @@ export default {
 		const nodes = N.nodes, n = this.n = nodes.length, edges = E.edges, m = this.m = edges.length, U = (f) => Uint16Array.from(edges, f);
 		this.name = nodes.map((d) => d.name);
 		this.fam = Uint8Array.from(nodes, (d) => clamp(d.family | 0, 0, 13));
-		this.bk = Uint8Array.from(nodes, (d) => clamp(d.plays_bucket | 0, 1, 5));
+		this.bk = Uint8Array.from(nodes, (d) => clamp(d.plays_bucket | 0, 1, 5)); this.ts = Float32Array.from(nodes, (d) => +d.tap_share || 0);
 		/* universe layout, middle spread (r -> sqrt r), order kept */
 		const warp = (d, c) => { const dx = d.xy[0] - 0.5, dy = d.xy[1] - 0.5, r = Math.hypot(dx, dy) || 1e-6; return 0.5 + (c ? dy : dx) * 0.455 * Math.sqrt(Math.min(r, 0.5) / 0.455) / r; };
 		this.ux = Float32Array.from(nodes, (d) => warp(d, 0)); this.uy = Float32Array.from(nodes, (d) => warp(d, 1));
@@ -74,11 +78,13 @@ export default {
 		const lb = this.lb = root.appendChild(el('div', 'ch-lb')), hud = this.hud = root.appendChild(el('div', 'ch-hud')), at = (e, k, v) => { e.setAttribute(k, v); return e; };
 		lb.tabIndex = 0; at(lb, 'role', 'listbox'); at(lb, 'aria-label', 'the chain: pick a star');
 		this.line = at(hud.appendChild(el('p', 'ch-line')), 'aria-live', 'polite');
+		this.cueEl = hud.appendChild(el('p', 'ch-cue'));
 		at(hud.appendChild(el('p', 'ch-kb', '← → pick a link · enter hops · backspace undoes')), 'aria-hidden', 'true');
 		this.path = at(hud.appendChild(el('p', 'ch-path')), 'aria-hidden', 'true');
 		const o = this.out = at(hud.appendChild(el('textarea', 'ch-out')), 'aria-label', 'your chain as text, to copy'); o.readOnly = true; o.rows = 3; o.hidden = true;
 		const row = hud.appendChild(el('div', 'ch-row'));
-		const btn = (lab, f, c) => { const b = row.appendChild(el('button', c || '')); b.type = 'button'; if (lab) at(b, 'aria-label', lab); b.addEventListener('click', () => { this.stopDemo(); f(); }); return b; };
+		/* a dim pill still answers: it says in the box why it is asleep (aria-disabled, never disabled) */
+		const btn = (lab, f, c) => { const b = row.appendChild(el('button', c || '')); b.type = 'button'; if (lab) at(b, 'aria-label', lab); b.addEventListener('click', () => { this.snd(); this.stopDemo(); if (b.getAttribute('aria-disabled') === 'true') this.cue(this.why(b), 1); else f(); }); return b; };
 		this.bUndo = btn('undo the last hop', () => this.undo());
 		this.bHand = btn('hand only: show only links i crossed by hand', () => this.setHand(!this.hand, true));
 		this.bRiff = btn('riff: play the chain back as notes', () => this.riff());
@@ -91,9 +97,10 @@ export default {
 
 	layout(ctx) {
 		const s = this.st = ctx.stage(), side = s.h < 340 && s.w > s.h * 1.25, cmp = side || s.w < 420 || s.h < 470;
-		const hw = side ? Math.min(260, s.w * 0.5) : s.w, gw = s.w - (side ? hw + 8 : 0), bh = Math.max(80, s.h - (side ? 0 : Math.min(s.h * 0.3, cmp ? 104 : 112)));
-		const S = this.S = Math.min(gw, bh) * 0.96, ox = s.x + (gw - S) / 2, oy = s.y + (bh - S) / 2;
-		for (let i = 0; i < this.n; i++) { this.px[i * 2] = ox + this.ux[i] * S; this.px[i * 2 + 1] = oy + this.uy[i] * S; }
+		const hw = side ? clamp(s.w * 0.36, 170, 250) : s.w, gw = this.gw = s.w - (side ? hw + 8 : 0), bh = this.bh = Math.max(80, s.h - (side ? 0 : Math.min(s.h * 0.3, cmp ? 112 : 120)));
+		/* the sky takes its box, stretched at most 1.45 to 1: a short landscape phone no longer gets a quarter of the screen */
+		const S = this.S = Math.min(gw, bh) * 0.96, K = side ? 1.45 : 1, SX = this.SX = Math.min(gw * 0.96, S * K), SY = this.SY = Math.min(bh * 0.96, S * K), ox = s.x + (gw - SX) / 2, oy = s.y + (bh - SY) / 2;
+		for (let i = 0; i < this.n; i++) { this.px[i * 2] = ox + this.ux[i] * SX; this.px[i * 2 + 1] = oy + this.uy[i] * SY; }
 		this.box = { x: ox, y: oy };
 		const h = this.hud.style; this.hud.classList.toggle('cmp', cmp); this.hud.classList.toggle('sd', side);
 		h.left = (s.x + s.w - hw) + 'px'; h.top = (s.y + s.h) + 'px'; h.width = hw + 'px';
@@ -117,6 +124,9 @@ export default {
 		this.placeDots(ctx);
 		P.glyphAll(true); P.glyphMode('cont', { colour: 'sample', edges: false });
 		this.hand = false; this.bHand.setAttribute('aria-pressed', 'false'); /* shell enters on angle 0 */
+		document.addEventListener('selectstart', this.noSel); /* an iOS long press on a star never selects the page */
+		tryf(() => ctx.idle.hold('chain', true)); /* a game: the chrome stays up, so no first tap is spent waking it */
+		if (ctx.audio.on) this.snd();
 		if (!this.urlDone) { this.urlDone = true; this.fromHash(ctx); }
 		this.after(ctx, 'url');
 	},
@@ -133,7 +143,7 @@ export default {
 				dn[i] = lo;
 			}
 		}
-		const dn = this.dn, col = FAMS.map((f) => ctx.famColor(f) >>> 0), fog = ctx.PAL.fog, fam = this.fam, cx = bx.x + S / 2, cy = bx.y + S / 2;
+		const dn = this.dn, col = FAMS.map((f) => ctx.famColor(f) >>> 0), fog = ctx.PAL.fog, fam = this.fam, cx = bx.x + this.SX / 2, cy = bx.y + this.SY / 2;
 		P.targetPx((i) => {
 			const k = dn[i], d = k === 65535, r = d ? S * 0.24 * Math.sqrt(-2 * Math.log(1 - h(i * 5 + 2) * 0.995)) : Math.sqrt(h(i * 13 + 5)) * S * (0.004 + bk[k] * 0.0034), a = h(i * 17 + 9) * 6.283;
 			return [(d ? cx : px[k * 2]) + Math.cos(a) * r, (d ? cy : px[k * 2 + 1]) + Math.sin(a) * r];
@@ -148,6 +158,7 @@ export default {
 		for (let i = 0; i < N; i++) { const k = dn[i]; w[i] = k === 65535 ? (on ? 10 : 50) : lit[k] === 2 ? 255 : lit[k] ? 110 : 16; }
 	},
 
+	noSel(e) { const t = e.target, n = t && (t.nodeType === 1 ? t : t.parentElement); if (!(n && n.closest && n.closest('textarea,input,[contenteditable]'))) e.preventDefault(); },
 	cur() { return this.chain.length ? this.chain[this.chain.length - 1] : -1; },
 	ek(a, b) { return this.ekey.get(a * 4096 + b); },
 	candsOf(i) {
@@ -163,27 +174,41 @@ export default {
 	links() { const L = []; for (let k = 0; k < this.m; k++) if (!this.hand || this.et[k]) L.push(k); return L; },
 	start(i, ctx, via) {
 		if (!this.ready || !(i >= 0 && i < this.n)) return;
-		this.chain = [i]; this.clear(); this.note(i, 0); this.after(ctx, via);
+		this.chain = [i]; this.ht = [performance.now()]; this.clear(); this.sing(0, 0); this.after(ctx, via);
+		this.fit(ctx);
+	},
+	/* phone: frame the star and its lit links above the box, so the links read as links and not as one knot */
+	fit(ctx) {
+		const c = this.cur(), px = this.px, s = this.st; if (c < 0 || !this.cmp || !s) return false;
+		let x0 = px[c * 2], x1 = x0, y0 = px[c * 2 + 1], y1 = y0;
+		const d = (j) => Math.hypot(px[j * 2] - x0, px[j * 2 + 1] - y0), J = this.cands.map((o) => o.j).sort((a, b) => d(a) - d(b));
+		for (const j of J.slice(0, Math.ceil(J.length * 0.75))) { const x = px[j * 2], y = px[j * 2 + 1]; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } /* the near three quarters: a hub's far links run off the edge, still lit */
+		const z = clamp(Math.min(this.gw * 0.7 / (x1 - x0 + 30), this.bh * 0.62 / (y1 - y0 + 30)), 1, 3.2);
+		tryf(() => ctx.view.flyTo({ wx: (x0 + x1) / 2 - (this.gw - s.w) / 2 / z, wy: (y0 + y1) / 2 - (this.bh - s.h) / 2 / z, z }, { speed: 'warp' }));
+		return true;
 	},
 	clear() { this.ended = ''; this.riffT = -1; this.hopT = -1e9; this.out.hidden = true; },
 	hopTo(j, ctx, via) {
 		ctx = ctx || this.ctx; const i = this.cur(), k = this.ek(i, j);
 		if (i < 0) { this.start(j, ctx, via); return true; }
 		if (this.chain.includes(j) || k == null || (this.hand && !this.et[k]) || this.chain.length > MAXHOP) return false;
-		this.chain.push(j); this.clear(); this.hopT = performance.now();
+		this.chain.push(j); this.clear(); this.ht[this.chain.length - 1] = this.hopT = performance.now();
 		const b = ctx.audio.beat && ctx.audio.beat(4);
-		this.note(j, b ? b.next - b.now : 0);
+		this.sing(this.chain.length - 1, b ? b.next - b.now : 0);
 		tryf(() => ctx.buzz(8));
-		this.after(ctx, via); this.follow(ctx, j);
+		this.after(ctx, via); if (!this.fit(ctx)) this.follow(ctx, j);
 		return true;
 	},
 	undo() {
 		if (!this.chain.length) return;
-		this.chain.pop(); this.clear();
-		this.ctx.audio.note(-1, { dur: 0.25, vol: 0.035, type: 'triangle' });
+		const g = this.name[this.chain.pop()]; this.clear();
+		this.nt(-1, 0.25, 's');
 		this.after(this.ctx, 'undo');
+		this.cue('undid ' + g + (this.chain.length ? '. back at ' + this.name[this.cur()] + '.' : '. no chain now.'), 1);
+		this.home();
 	},
-	reset(say) { this.chain = []; this.clear(); this.after(this.ctx, say ? 'new' : null); },
+	reset(say) { this.chain = []; this.ht = []; this.clear(); this.after(this.ctx, say ? 'new' : null); if (say) this.home(); },
+	home() { if (!this.fit(this.ctx) && this.cmp) tryf(() => this.ctx.view.home()); },
 	surprise() { const L = this.starts; this.start(L[(Math.random() * Math.min(L.length, 120)) | 0], this.ctx, 'surprise'); },
 	setHand(on, user) {
 		if (on === this.hand || !this.ready) return;
@@ -192,20 +217,22 @@ export default {
 		const id = on ? 'hand' : 'all';
 		if (user) tryf(() => { const a = this.ctx.angle.get(); if (a && a.id !== id) this.ctx.angle.set(id, { via: 'room' }); });
 		this.after(this.ctx, 'hand');
+		if (user) this.cue(on ? 'hand only: ' + (this.chain.length ? this.cands.length : this.links().length) + ' links i crossed by hand stay lit.' : 'hand off: every link counts again.', 1);
 	},
 	setAngle(k) { const a = ANGLES[k]; if (a) this.setHand(a.id === 'hand', false); return 0; },
 	after(ctx, via) {
 		this.cands = this.candsOf(this.cur()); this.sel = 0;
 		if (this.chain.length && !this.cands.length) this.ended = this.chain.length > 1 ? 'dead' : this.deg[this.chain[0]] ? 'nohand' : 'none';
-		if (this.ended === 'dead' && via !== 'url' && via !== 'undo') ctx.audio.note(-5, { dur: 1.1, vol: 0.05 });
+		if (this.ended === 'dead' && via !== 'url' && via !== 'undo') this.nt(-5, 1.1, 'q');
 		this.refresh(ctx, via);
 	},
 	refresh(ctx, via) {
 		if (!this.ready) return;
 		const L = this.chain.length;
 		this.weigh(ctx); this.dirtyL = true; this.status(via); this.pushLabels(ctx); if (this.kb) this.fillList();
-		this.bUndo.disabled = !L; this.bRiff.disabled = this.bSend.disabled = L < 2;
-		this.labels();
+		const dim = (b, v) => b.setAttribute('aria-disabled', String(v));
+		dim(this.bUndo, !L); dim(this.bRiff, L < 2); dim(this.bSend, L < 2);
+		this.labels(); if (via !== 'keep') this.cue(this.next());
 		tryf(() => ctx.hud(L ? 'chain · ' + (L - 1) + (L === 2 ? ' hop' : ' hops') + ' · at ' + this.name[this.cur()] : null));
 	},
 
@@ -214,29 +241,72 @@ export default {
 		const add = (t, c) => ln.appendChild(c ? el(c === 'b' ? 'b' : 'span', c === 'b' ? '' : c, t) : document.createTextNode(t));
 		const cnt = (v, fl) => (v ? fmt(v) + (v === 1 ? ' time' : ' times') : 'fewer than ' + fl + ' times');
 		ln.textContent = ''; this.path.textContent = this.chain.map((i) => nm[i]).join(' → ');
-		if (!L) { add('pick a star to start, or press '); add('surprise', 'b'); add('. its links light up; follow one.'); if (via === 'new') this.say('chain cleared. pick a star to start.'); return; }
+		if (!L) { add('no chain yet. tap any star to start one, or press '); add('surprise', 'b'); add('.'); if (via === 'new') this.say('chain cleared. tap a star to start.'); return; }
 		if (L === 1) {
-			add('start: '); add(nm[c], 'b');
-			add(this.ended === 'none' ? '. no link from here clears the floor. pick another star.' : this.ended === 'nohand' ? '. no hand link from here. turn off hand only, or pick another star.' : '. ' + nc + (nc === 1 ? ' link lights up' : ' links light up') + '. pick one.');
+			add(via === 'surprise' ? 'surprise: you start at ' : 'you started at '); add(nm[c], 'b');
+			add(this.ended === 'none' ? '. no link from here clears the floor.' : this.ended === 'nohand' ? '. no hand link from here.' : '. ' + nc + (nc === 1 ? ' link lit.' : ' links lit.'));
 		} else {
 			const a = this.chain[L - 2], k = this.ek(a, c);
-			add('between '); add(nm[a], 'b'); add(' and '); add(nm[c], 'b'); add(': i made the jump ');
-			add('by hand ' + cnt(this.et[k], TF), 'ch-h'); add('; '); add('the queue made it ' + cnt(this.eq[k], QF), 'ch-q'); add('. ');
-			if (this.ended) add('dead end: every link from here is already in your chain. play the riff, or send it.');
+			add('hop ' + (L - 1) + ': '); add(nm[a], 'b'); add(' → '); add(nm[c], 'b'); add('. i made the jump ');
+			add('by hand ' + cnt(this.et[k], TF), 'ch-h'); add('; '); add('the queue made it ' + cnt(this.eq[k], QF), 'ch-q'); add('.');
+			if (this.ended) add(' dead end.');
 		}
-		if (via && via !== 'url') this.say(L === 1 ? 'start: ' + nm[c] + '. ' + (nc ? nc + ' links.' : 'no links.') : 'hop ' + (L - 1) + ': ' + nm[c] + '. ' + ln.textContent.replace(/^between .*?: /, '') + (this.ended ? '' : ' ' + nc + ' links onward.'));
+		if (via && via !== 'url') this.say(L === 1 ? 'start: ' + nm[c] + '. ' + (nc ? nc + ' links.' : 'no links.') : ln.textContent + (this.ended ? '' : ' ' + nc + ' links onward.'));
 	},
+	/* the cue: under the line, what comes next, why a pill sleeps, or what the last pill just did (ice) */
+	next() {
+		const L = this.chain.length, nc = this.cands.length, e = this.ended;
+		if (!L) return 'the bars after a name: how much i played them. undo, riff and send wake once you start.';
+		if (e === 'none' || e === 'nohand') return (e === 'nohand' ? 'turn hand off, or ' : '') + 'press new and pick another star.';
+		if (e) return 'every link from here is in your chain. riff it, send it, or undo a hop.';
+		if (L === 1 && this.mute()) return 'tap a lit star to hop. sound is off: turn it on to hear each hop as a note.';
+		return L === 1 ? 'tap a lit star to hop. hold any star to hear it. riff and send wake after one hop.' : nc + (nc === 1 ? ' link' : ' links') + ' lit: tap one to hop on. riff plays your chain, send shares it.';
+	},
+	mute() { const A = this.ctx.audio; return !A || !A.ac || A.muted || !A.on; },
+	cue(t, act) { const c = this.cueEl; if (!c) return; c.textContent = t; c.classList.toggle('act', !!act); },
+	why(b) { return b === this.bUndo ? 'nothing to undo yet. tap a star first.' : (b === this.bRiff ? 'riff' : 'send') + (this.chain.length ? ' needs one hop: tap a lit star.' : ' needs a chain: tap a star, then a lit one.'); },
 	say(t) { tryf(() => this.ctx.say(t)); },
 
-	deg5(i) { const f = this.fam[i]; return f === 13 ? 0 : f % 5; },
-	note(i, at) { this.ctx.audio.note(this.deg5(i) - (this.bk[i] === 5 ? 5 : 0), { at: Math.max(0, at || 0), dur: 0.55, vol: 0.06, type: 'triangle' }); },
-	riffText() { return this.chain.map((i) => PENT[this.deg5(i)]).join(' '); },
+	/* R10 C3: the chain as steps on the pentatonic ladder (0 = D4). the step from the last note is how far the genre moved
+	   round the family ring (the legend's order): same family the same note (an octave on the third in a row), one family
+	   over a step, two a third, three or four a fifth, five or six a leap. inside F3..A5, turning back at the edges.
+	   a link i crossed by hand is struck, one only the queue made is bowed, both: both */
+	mel() {
+		let p = 0, r = 0; const o = [];
+		this.chain.forEach((j, q) => {
+			if (!q) return o.push([0, 's']);
+			const i = this.chain[q - 1], k = this.ek(i, j), a = this.fam[i], b = this.fam[j], s = a > 12 || b > 12 ? 1 : (b - a + 19) % 13 - 6;
+			let v = [0, 1, 2, 3, 3, 6, 6][Math.abs(s)], u = s < 0 ? -1 : 1;
+			r = v ? 0 : r + 1; if (r > 1) { v = 5; r = 0; }
+			if (p + u * v > 8 || p + u * v < -4) u = -u;
+			p += u * v; o.push([p, this.et[k] ? (this.eq[k] ? 'b' : 's') : 'q', !v]);
+		});
+		return o;
+	},
+	/* the voices (atlas/sonic.js) arrive with the first gesture in the room; until then a hop is the shell's plain note */
+	snd() { const c = this.ctx; if (!this.sp) this.sp = import('../atlas/sonic.js' + (c.V || '')).then((m) => (this.so = m.install(c.audio, c)), () => { this.sp = null; }); return this.so; },
+	sing(q, at) {
+		const m = this.mel()[q], s = this.snd(), i = this.chain[q]; if (!m) return;
+		if (s) { s.play(m[0], m[1], at, { soft: m[2] }); s.pulse(this.px[i * 2], this.px[i * 2 + 1], at * 1000, this.kc(m[1])); }
+		else this.ctx.audio.note(m[0], { at: Math.max(0, at || 0), dur: 0.55, vol: 0.06, type: 'triangle' });
+	},
+	nt(st, d, k) { const s = this.so; if (s) s.play(st, k, 0, { dur: d, vol: 0.6 }); else this.ctx.audio.note(st, { dur: d, vol: 0.04, type: 'triangle' }); },
+	/* a dot under the bow: one of its star's plays, tapped in the star's own tap share of its dots (a hash picks which); haze is silent */
+	arm(d) { const k = this.dn[d]; return k === 65535 || k == null ? -1 : this.ctx.hash(d * 11 + 7) < this.ts[k] ? 0 : 1; },
+	kc(k) { const P = this.ctx.PAL; return k === 'q' ? P.violet : k === 'b' ? ICE : P.tap; },
+	riffText() { return this.mel().map((m) => PENT[(m[0] % 5 + 5) % 5]).join(' '); },
+	/* the riff replays the walk at the pace it was walked: each gap between two hops, held to 120..900 ms (a chain from a
+	   link, with no pace, goes on the bed's half beat) */
 	riff() {
-		const L = this.chain.length, A = this.ctx.audio; if (L < 2) return;
-		const b = A.beat && A.beat(2), st = b ? b.len : 0.2, at0 = b ? b.next - b.now : 0.05;
-		this.chain.forEach((i, q) => this.note(i, at0 + q * st));
-		this.riffStep = st * 1000; this.riffT = performance.now() + at0 * 1000;
+		const L = this.chain.length, A = this.ctx.audio, h = this.ht, s = this.snd(); if (L < 2) return;
+		const b = A.beat && A.beat(2), st = b ? b.len * 1000 : 200; let ms = b ? (b.next - b.now) * 1000 : 50;
+		const at = this.riffAt = this.chain.map((_, q) => (ms += q ? clamp(h[q] - h[q - 1] || st, 120, 900) : 0)), M = this.mel();
+		if (s) { s.walk(M.map((m, q) => [m[0], m[1], m[2], at[q]])); this.chain.forEach((i, q) => s.pulse(this.px[i * 2], this.px[i * 2 + 1], at[q], this.kc(M[q][1]))); }
+		else M.forEach((m, q) => A.note(m[0], { at: at[q] / 1000, dur: 0.55, vol: 0.06, type: 'triangle' }));
+		this.riffT = performance.now();
 		this.say('the riff: ' + this.riffText());
+		const b0 = this.bRiff; b0.classList.add('on'); clearTimeout(this.riffOff); this.riffOff = setTimeout(() => b0.classList.remove('on'), at[L - 1] + 550);
+		const r = this.riffText(); this.cue('riff: ' + (r.length > 40 ? r.slice(0, 39) + '…' : r) + (this.mute() ? '. silent: sound is off. turn it on to hear it.' : '. one note a star, ' + (this.ht[1] ? 'at the pace you walked.' : 'on the beat.')), 1);
 	},
 	hoverVoice(id) { const i = /^n\d+$/.test(id) ? +id.slice(1) : this.byName.get(String(id).toLowerCase()); return i >= 0 && i < this.n ? this.voice(i) : null; },
 	voice(i) { return { fam: FAMS[this.fam[i]], plays: this.bk[i] > 4 ? 400 : 100, artist: this.name[i] }; },
@@ -245,10 +315,11 @@ export default {
 	shareText() { return (this.chain.length - 1) + ' hops through astralcrest\'s sky: ' + this.path.textContent + '. riff: ' + this.riffText() + '. build your own:'; },
 	async share() {
 		if (this.chain.length < 2) return;
-		const text = this.shareText(), url = this.link();
-		try { if (navigator.share) { await navigator.share({ title: 'the chain · sonic manifold', text, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
-		try { await navigator.clipboard.writeText(text + ' ' + url); this.ctx.toast('chain copied · paste it to a friend'); return; } catch (e) {}
-		const o = this.out; o.hidden = false; o.value = text + ' ' + url; o.focus(); o.select();
+		const text = this.shareText(), url = this.link(), c = (t) => this.cue(t, 1);
+		c('send: opening the share sheet.');
+		try { if (navigator.share) { await navigator.share({ title: 'the chain · sonic manifold', text, url }); c('sent. the link rebuilds your chain and plays its riff.'); return; } } catch (e) { if (e && e.name === 'AbortError') { c('send: closed, nothing sent.'); return; } }
+		try { await navigator.clipboard.writeText(text + ' ' + url); c('copied your chain and its link. paste it to a friend.'); return; } catch (e) {}
+		const o = this.out; o.hidden = false; o.value = text + ' ' + url; o.focus(); o.select(); c('copy the text above and paste it to a friend.');
 	},
 	fromHash(ctx) {
 		const m = /^#chain(?:=|&(?:.*&)?r=)([\d.]+)/.exec(String((ctx.atlas && ctx.atlas.hash0) || ''));
@@ -256,9 +327,9 @@ export default {
 	},
 	applyIds(ids, ctx) {
 		if (!(ids[0] >= 0 && ids[0] < this.n)) return false;
-		this.chain = [ids[0]]; this.clear();
+		this.chain = [ids[0]]; this.ht = []; this.clear();
 		for (let q = 1; q < ids.length && q <= MAXHOP; q++) { const b = ids[q], k = this.ek(this.cur(), b); if (k == null || this.chain.includes(b)) break; if (!this.et[k]) this.setHand(false); this.chain.push(b); }
-		this.after(ctx, 'url');
+		this.after(ctx, 'url'); this.fit(ctx);
 		if (this.chain.length > 1) setTimeout(() => { if (this.active()) this.riff(); }, ctx.reduced ? 0 : 900);
 		return true;
 	},
@@ -272,7 +343,7 @@ export default {
 	pick(wx, wy) { const i = this.ready ? this.nodeAt(wx, wy, 26) : -1; return i < 0 ? null : { label: this.name[i], wx: this.px[i * 2], wy: this.px[i * 2 + 1], focus: { artist: this.name[i] } }; },
 	tapAt(p, ctx) {
 		if (!this.ready) return;
-		this.stopDemo();
+		this.stopDemo(); this.snd();
 		const i = this.nodeAt(p.wx, p.wy, 26); if (i < 0) return;
 		if (!this.chain.length) this.start(i, ctx, 'tap'); else this.labelGo(i);
 	},
@@ -280,7 +351,7 @@ export default {
 		const c = this.cur(); this.stopDemo();
 		if (c < 0) return this.start(i, this.ctx, 'label');
 		if (i === c || this.hopTo(i, this.ctx, 'label')) return;
-		tryf(() => this.ctx.toast((this.chain.includes(i) ? this.name[i] + ' is already in your chain' : 'no ' + (this.hand ? 'hand ' : '') + 'link from ' + this.name[c] + ' to ' + this.name[i]) + ' · pick a lit star', 2200));
+		this.cue((this.chain.includes(i) ? this.name[i] + ' is already in your chain.' : 'no ' + (this.hand ? 'hand ' : '') + 'link from ' + this.name[c] + ' to ' + this.name[i] + '.') + ' tap a lit star, or new.', 1);
 	},
 	dwell(i, ctx, x, y, extra) {
 		this.hov = i; const P = ctx.post;
@@ -296,7 +367,16 @@ export default {
 			hover: (p) => at(this.nodeAt(p.wx, p.wy, 22)),
 			leave: () => this.dwell(-1, ctx),
 			cursor: (p) => (this.ready && this.nodeAt(p.wx, p.wy, 26) >= 0 ? 'pointer' : 'grab'),
-			hold: { delay: 160, press: (p) => { const i = p.type === 'mouse' ? -1 : this.nodeAt(p.wx, p.wy, 26); if (i >= 0) at(i, 0, { force: true }); }, start() {}, move() {}, end: () => { if (ctx.post.undwell) ctx.post.undwell({ keep: true }); } },
+			/* the hold arms at 400 ms, inside the 450 ms tap window, so no press falls between the two; a hold let go before the hear pill came up is still a tap */
+			/* R10: a long press on the chain's first star replays it; held still, then dragged, the finger bows the dots */
+			hold: { delay: 400, press:(p) => { const k = this.nodeAt(p.wx, p.wy, 26), i = this.pi = this.chain.length > 1 && k === this.chain[0] ? -2 : p.type === 'mouse' ? -1 : k; this.pp = [p.sx, p.sy]; this.bw = 0; this.snd(); if (i >= 0) at(i, 0, { force: true }); },
+				start: () => { if (this.pi === -2) this.riff(); },
+				move: (p) => { const s = this.so; if (!s) return; if (!this.bw) { this.bw = 1; this.hov = -1; tryf(() => ctx.post.undwell()); } s.bow(p, (d) => this.arm(d)); },
+				end: (p, cancelled) => {
+				const i = this.pi, s = ctx.post.state ? ctx.post.state() : {}; this.hov = -1; this.pi = -1; if (this.so) this.so.bowEnd();
+				if (ctx.post.undwell) ctx.post.undwell({ keep: true });
+				if (!cancelled && i >= 0 && Math.hypot(p.sx - this.pp[0], p.sy - this.pp[1]) < 12 && !s.open && s.asking !== this.voice(i).artist) this.tapAt(p, ctx);
+			} },
 		};
 	},
 	list() { return this.chain.length ? this.cands.map((c) => c.j) : this.starts; },
@@ -320,7 +400,7 @@ export default {
 	},
 	key(e) {
 		if (e.altKey || e.ctrlKey || e.metaKey) return;
-		const L = this.list(), n = L.length, k = e.key; let s = this.sel;
+		this.snd(); const L = this.list(), n = L.length, k = e.key; let s = this.sel;
 		if (k === 'ArrowRight' || k === 'ArrowDown') s = n ? (s + 1) % n : 0;
 		else if (k === 'ArrowLeft' || k === 'ArrowUp') s = n ? (s - 1 + n) % n : 0;
 		else if (k === 'Home') s = 0;
@@ -342,7 +422,7 @@ export default {
 		if (!this.ready || !desc) return false;
 		if (Array.isArray(desc.chain)) return this.applyIds(desc.chain.map(Number), ctx);
 		const i = desc.artist == null ? null : this.byName.get(String(desc.artist).toLowerCase()); if (i == null) return false;
-		this.start(i, ctx, 'focus'); this.follow(ctx, i, true); return true;
+		this.start(i, ctx, 'focus'); if (!this.cmp) this.follow(ctx, i, true); return true;
 	},
 	follow(ctx, i, always) {
 		const v = ctx.view, s = this.st, x = this.px[i * 2], y = this.px[i * 2 + 1], q = v.apply(x, y), mx = s.w * 0.18, my = s.h * 0.18;
@@ -361,7 +441,7 @@ export default {
 		}
 	},
 	hopP(t) { return this.ctx.reduced ? 1 : 1 - Math.pow(1 - clamp((t - this.hopT) / HOP_MS, 0, 1), 3); },
-	riffPos(t) { if (this.riffT < 0) return -1; const r = (t - this.riffT) / this.riffStep; if (r > this.chain.length) this.riffT = -1; return r < 0 || r > this.chain.length ? -1 : r; },
+	riffPos(t) { const a = this.riffAt, e = t - this.riffT; if (this.riffT < 0 || !a) return -1; let q = 0; while (q + 1 < a.length && a[q + 1] <= e) q++; const r = q + (e - a[q]) / ((a[q + 1] || a[q] + 400) - a[q]); if (r > a.length) this.riffT = -1; return r < 0 || r > a.length ? -1 : r; },
 
 	frame(g, t, bands, w, h, ctx) {
 		if (!this.ready) return;
@@ -376,7 +456,7 @@ export default {
 		g.globalAlpha = 1; g.lineCap = 'round';
 		if (c < 0) {
 			/* hi-dpi: web bitmap per zoom, on og's grid; 2nd blit = beat */
-			const hb = bands.high * 0.857, T = g.getTransform(), k = T.a, { x, y } = this.box, D = Math.ceil(this.S * k) + 1, key = [k, this.hand, x, y, D] + '', cv = this.wc || (this.wc = el('canvas'));
+			const hb = bands.high * 0.857, T = g.getTransform(), k = T.a, { x, y } = this.box, D = Math.ceil(Math.max(this.SX, this.SY) * k) + 1, key = [k, this.hand, x, y, D] + '', cv = this.wc || (this.wc = el('canvas'));
 			const web = (o, A) => { o.lineWidth = lw * 0.8; o.strokeStyle = rgbs(ICE, A); o.beginPath(); for (const q of this.links()) { const a = this.ea[q] * 2, b = this.eb[q] * 2; o.moveTo(px[a], px[a + 1]); o.lineTo(px[b], px[b + 1]); } o.stroke(); };
 			if (devicePixelRatio < 2 || D > 2048 || this.wk !== key && this.wk2 !== key) { this.wk2 = key; web(g, 0.07 * (1 + hb)); }
 			else {
@@ -385,11 +465,11 @@ export default {
 			}
 		} else {
 			const x0 = px[c * 2], y0 = px[c * 2 + 1], sj = this.kb && this.cands[this.sel] ? this.cands[this.sel].j : -1;
-			g.lineWidth = lw * 1.1;
+			g.lineWidth = lw * (this.cmp ? 1.5 : 1.2);
 			for (const { j } of this.cands) {
 				const on = j === sj || j === this.hov;
-				g.strokeStyle = rgbs(ICE, on ? 0.9 : 0.34 + bands.high * 0.2); g.beginPath(); g.moveTo(x0, y0); g.lineTo(px[j * 2], px[j * 2 + 1]); g.stroke();
-				ring(g, px[j * 2], px[j * 2 + 1], (on ? 7 : 4.5) * lw);
+				g.strokeStyle = rgbs(ICE, on ? 0.95 : 0.55 + bands.high * 0.25); g.beginPath(); g.moveTo(x0, y0); g.lineTo(px[j * 2], px[j * 2 + 1]); g.stroke();
+				ring(g, px[j * 2], px[j * 2 + 1], (on ? 7 : 5) * lw);
 			}
 		}
 		this.segs(t, z, (x0, y0, x1, y1, col, q) => {
@@ -405,6 +485,7 @@ export default {
 		if (c >= 0) ring(g, px[c * 2], px[c * 2 + 1], (9 + (ctx.reduced ? 0 : Math.sin(t * 0.006) * 2) + bands.low * 4) * lw);
 		const i = this.hov; g.lineWidth = lw;
 		if (i >= 0 && i !== c) ring(g, px[i * 2], px[i * 2 + 1], 7 * lw);
+		if (this.so) this.so.draw(g, t, lw);
 	},
 	comet(g, x0, y0, x1, y1, cols, lw, p) {
 		const dx = x1 - x0, dy = y1 - y0;
@@ -417,7 +498,8 @@ export default {
 	},
 
 	leave(ctx) {
-		this.stopDemo(); this.hov = -1; this.riffT = -1; this.dirtyL = true; this.wc = this.wk = null;
+		this.stopDemo(); this.hov = -1; this.riffT = -1; this.dirtyL = true; this.wc = this.wk = null; if (this.so) this.so.stop();
+		document.removeEventListener('selectstart', this.noSel); tryf(() => ctx.idle.hold('chain', false));
 		tryf(() => { ctx.stopPosts(); ctx.audio.tick(null); });
 	},
 
@@ -427,7 +509,7 @@ export default {
 		const rnd = () => (seed = (Math.imul(seed, 1103515245) + 12345) >>> 0) / 4294967296, T = this._demoT = [], at = (ms, f) => T.push(setTimeout(() => { if (this.active()) f(); }, ms));
 		at(600, () => this.start(this.starts[0], ctx, 'demo'));
 		for (let s = 1; s <= 5; s++) at(600 + s * 1500, () => { if (this.cands.length) this.hopTo(this.cands[(rnd() * this.cands.length) | 0].j, ctx, 'demo'); });
-		at(9900, () => this.riff());
+		at(9900, () => { this.ht = []; this.riff(); }); /* a kiosk walk has no pace: its riff is on the beat */
 	},
 	stopDemo() { if (this._demoT) { this._demoT.forEach(clearTimeout); this._demoT = null; } },
 };

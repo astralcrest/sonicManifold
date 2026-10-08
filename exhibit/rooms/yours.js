@@ -275,7 +275,7 @@ section[data-room=yours] .y-open:focus-visible{outline:2px solid var(--mint);out
 /* ------------------------------------------------------------------ the room */
 
 export default {
-  id: 'yours', track: 'choose-me-whole',
+  id: 'yours', track: 'save-her',
   ready: false, state: 'idle', theirs: null, demo: false,
   mineN: 97427, mineP: [19, 17, 64], mineStrict: 11.5, /* fallback if wall.json fails; real values read in mount() */
 

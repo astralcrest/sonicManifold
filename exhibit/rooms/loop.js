@@ -18,6 +18,9 @@ const CSS = `@ .lp-hud{position:absolute;box-sizing:border-box;padding:8px 10px;
 @ .lp-hold{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ice);background:rgba(134,203,254,.08);border:1px solid rgba(134,203,254,.55);border-radius:999px;padding:0 16px;min-height:44px;min-width:44px;cursor:pointer;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 @ .lp-hold[aria-pressed="true"]{background:rgba(134,203,254,.24);color:var(--ink)}
 @ .lp-hold:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+@ .lp-hold.lp-cue{animation:lpCue 1.9s ease-in-out infinite}
+@keyframes lpCue{50%{box-shadow:0 0 0 8px rgba(134,203,254,.16);border-color:var(--ice)}}
+@media (prefers-reduced-motion:reduce){@ .lp-hold.lp-cue{animation:none}}
 @ .lp-mine{margin:0;font:400 10.5px/1.4 var(--mono);color:var(--mute)}
 @ .lp-kb{display:none;position:absolute;left:10px;bottom:100%;margin:0 0 6px;font:400 10.5px/1.3 var(--mono);color:var(--ice);background:rgba(10,1,24,.86)}
 @ .lp-hud.kb .lp-kb{display:block}
@@ -55,7 +58,7 @@ build(root, ctx) {
 const hud = this.hud = root.appendChild(el('div', 'lp-hud')), at = (e, k, v) => { e.setAttribute(k, v); return e; };
 at(hud.appendChild(el('p', 'lp-kb', 'space or enter: hold · esc: cancel · ← →: the rings, ten plays or more')), 'aria-hidden', 'true');
 this.line = hud.appendChild(el('p', 'lp-line'));
-const row = hud.appendChild(el('div', 'lp-row')), b = this.btn = row.appendChild(el('button', 'lp-hold', 'hold to loop'));
+const row = hud.appendChild(el('div', 'lp-row')), b = this.btn = row.appendChild(el('button', 'lp-hold lp-cue', 'hold to loop'));
 b.type = 'button'; at(b, 'aria-pressed', 'false');
 at(b, 'aria-label', 'hold to keep the bar looping, let go to step off. arrow keys: the rings, ten plays or more');
 on(b, 'pointerdown', (e) => { if (e.button > 0) return; e.preventDefault(); tr(() => b.setPointerCapture(e.pointerId)); this.begin('button'); });
@@ -152,7 +155,7 @@ return b && e && !e.paused && e.dataset.t === BED && isFinite(e.duration) && e.d
 },
 begin(via) {
 const ctx = this.ctx;
-if (via !== 'demo') { this.stopDemo(); tr(() => { if (ctx.tour.active.playing) ctx.tour.pause('user'); }); }
+if (via !== 'demo') { this.btn.classList.remove('lp-cue'); this.stopDemo(); tr(() => { if (ctx.tour.active.playing) ctx.tour.pause('user'); }); }
 if (!this.ready || this.hold || !this.active()) return;
 if (this.ang !== 'tower') tr(() => ctx.angle.set('tower', { via: 'room' }));
 const A = ctx.audio, b = tr(() => A.beat(2)) || null, mode = this.pickMode(b);
@@ -237,7 +240,7 @@ const s = this.ctx.audio, snd = s.on && !s.muted;
 if (this.hold) return;
 this.line.textContent = this.ang === 'ten'
 ? fmt(this.nTen) + ' songs my log counts 10 times or more: one glyph each, no titles. hold to go back to the rings.'
-: 'hold anywhere, this button or space: the bar loops while you hold, and every loop steps out one ring.' + (snd ? '' : ' sound is off; the rings still count.');
+: (this.nar ? 'hold anywhere: the bar loops, and each loop lights the next ring.' : 'hold anywhere, or space: the bar loops while you hold, and each loop steps out one ring.') + (snd ? '' : ' sound is off; the rings still count.');
 },
 hoverVoice(id) { const k = /^r\d+$/.test(id) ? +id.slice(1) : -1, r = this.RS && this.RS[k]; return r ? { deg: k, plays: r.n, kind: 'label' } : null; },
 showRing(k, tap) {
@@ -281,7 +284,7 @@ g.fillText(fmt(this.nTen) + ' songs · 10 or more counted plays each', this.cx, 
 return;
 }
 if (this.hold && this.loopsAt(now) !== this.hold.k) this.pump();
-this.RG.spin(this, ctx, now);
+this.RG.spin(this, ctx, now); this.RG.idle(this, ctx, t);
 g.globalAlpha = 1; this.RG.draw(this, g, ctx, now); g.textBaseline = 'top';
 },
 leave(ctx) {

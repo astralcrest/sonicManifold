@@ -35,195 +35,214 @@ if(!own[base])location.replace('lab.html'+h);
 <meta name="twitter:title" content="sonic manifold: a record of who pressed play">
 <meta name="twitter:description" content="97,427 plays over the whole log, one listener. play it through: who pressed play, every artist in the log, and eighteen of my own findings killed, retracted or withdrawn along the way.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og.png">
+<script>document.documentElement.className="js"</script>
 <style>
 /* JetBrains Mono (OFL): a door-only subset (U+0020-007E and a few marks, wght 100-800, no ligatures, no hinting)
    inlined, so the whole first load stays under 60 KB; the atlas loads its own */
 @font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url(data:font/woff2;base64,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) format("woff2")}
-:root{color-scheme:dark;--bg:#0a0118;--ink:#f0eaff;--body:rgba(240,234,255,.88);--mute:#a49bbd;--faint:#6d6486;--ice:#86cbfe;--line:rgba(189,166,255,.19);--halo:0 0 9px #0a0118,0 0 3px #0a0118,0 0 1px #0a0118;--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--pt:max(16px,env(safe-area-inset-top));--pr:max(18px,env(safe-area-inset-right));--pb:max(14px,env(safe-area-inset-bottom));--pl:max(18px,env(safe-area-inset-left));--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6}
+:root{color-scheme:dark;--bg:#0a0118;--ink:#f0eaff;--body:rgba(240,234,255,.88);--mute:#a49bbd;--faint:#6d6486;--ice:#86cbfe;--line:rgba(189,166,255,.19);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--pt:max(16px,env(safe-area-inset-top));--pr:max(18px,env(safe-area-inset-right));--pb:max(14px,env(safe-area-inset-bottom));--pl:max(18px,env(safe-area-inset-left));--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff7a9c;--glow:rgba(139,111,214,.22)}
+/* capable screens get the wide-gamut hues; everything else keeps the sRGB ones above. the ice stays an exact sRGB value */
+@supports (color:oklch(0 0 0)){:root{--mint:oklch(.88 .17 168);--amber:oklch(.8 .16 72);--violet:oklch(.64 .15 295);--rose:oklch(.74 .17 10);--glow:oklch(.4 .13 295/.3)}}
+@media (color-gamut:p3){@supports (color:oklch(0 0 0)){:root{--mint:oklch(.9 .25 165);--amber:oklch(.83 .2 70);--violet:oklch(.66 .22 292);--rose:oklch(.76 .22 8);--glow:oklch(.42 .2 295/.38)}}}
+@view-transition{navigation:auto}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.28s}
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;height:100%;overscroll-behavior:none}
-html{-webkit-text-size-adjust:100%}
-body{background:var(--bg);color:var(--body);font:400 15px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;height:100vh;height:100dvh}
+html{-webkit-text-size-adjust:100%;background:var(--bg);scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--body);font:400 15px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
 a{color:var(--ice);text-underline-offset:3px}
 a:hover{color:#bfe4ff}
 :focus-visible{outline:2px solid var(--ice);outline-offset:3px;border-radius:3px}
 b,strong{font-weight:600;color:var(--ink)}
-/* portrait: the record on top, the copy under it; wide: the record left, the copy in a column on the right */
-.wrap{position:relative;height:100vh;height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top" "fx" "main" "foot";row-gap:clamp(8px,1.6vh,18px);padding:var(--pt) var(--pr) var(--pb) var(--pl)}
-.top,main,footer{position:relative;z-index:2}
-.top{grid-area:top;display:flex;align-items:baseline;justify-content:space-between;gap:6px 16px}
-/* the atlas's wordmark, exactly (exhibit.html #top a + atlas/chrome.css #top .brand), minus its back arrow */
 .brand{margin:0;font:300 clamp(14px,1.3vw,19px)/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
 .eyebrow{margin:0;font:500 10.5px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
 .eyebrow b{color:var(--ice);font-weight:600}
-/* the record. .fx is a size container, so the disc, its label and the headline printed on the label all scale with the
-   room the copy leaves: --d the disc, --f the headline, --L the label (never so small the headline cannot sit above
-   the spindle). the deck is 1.1 discs wide: the tonearm rests in the last tenth */
-.fx{grid-area:fx;position:relative;min-width:0;min-height:0;container-type:size}
-.rec{--d:min(100cqh,calc(100cqw / 1.1));--f:max(13px,calc(var(--d) * .042));--L:max(calc(var(--d) * .42),calc(var(--f) * 9.9));--cx:calc(50cqw - var(--d) * .05);position:absolute;left:0;top:0;width:100%;height:100%}
-.deck{position:absolute;left:calc(50cqw - var(--d) * .55);top:calc(50cqh - var(--d) / 2);width:calc(var(--d) * 1.1);height:var(--d)}
+.hd{font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+/* ------------------------------------------------------------------ the story: a record that stays, copy that moves past it */
+.story{position:relative}
+.stage{position:sticky;top:0;z-index:3;height:46vh;height:46svh;min-height:250px;max-height:420px;background:var(--bg);overflow:hidden;padding:var(--pt) var(--pr) 0 var(--pl)}
+.stage::before{content:"";position:absolute;left:50%;top:54%;width:130%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 62%);pointer-events:none}
+.stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;background:linear-gradient(transparent,var(--bg));pointer-events:none}
+.top{position:relative;z-index:2}
+.fx{position:absolute;left:var(--pl);right:var(--pr);top:clamp(40px,7vh,64px);bottom:34px;min-width:0;min-height:0;container-type:size}
+.rec{--d:min(100cqh,calc(100cqw / 1.1));--L:calc(var(--d) * .4);position:absolute;inset:0}
+.tilt{position:absolute;inset:0;--tx:0;--ty:0;transform:perspective(1100px) rotateX(calc(var(--ty) * 1deg)) rotateY(calc(var(--tx) * 1deg));will-change:transform}
+.deck{position:absolute;left:calc(50cqw - var(--d) * .55);top:calc(50cqh - var(--d) / 2);width:calc(var(--d) * 1.1);height:var(--d);touch-action:pan-y}
 .disc{position:absolute;left:0;top:0;width:var(--d);height:var(--d);border-radius:50%;background:radial-gradient(circle,#0d0718 0,#06020c 72%,#0c0616 96.6%,#2a1f3d 97.6%,#120b1e 98.6%,#05010a 100%);box-shadow:0 1.6vmin 4.4vmin rgba(0,0,0,.6),0 0 0 1px rgba(189,166,255,.07)}
-.platter{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%}
-#groove{position:absolute;left:0;top:0;width:100%;height:100%;display:block;border-radius:50%;opacity:0;transition:opacity .9s ease-out}
+.platter{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform}
+.platter canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+#groove{opacity:0;transition:opacity .9s ease-out}
 #groove.on{opacity:1}
-/* the light on the vinyl stays put while the record turns */
-.sheen{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;pointer-events:none;background:conic-gradient(from 18deg,transparent 0 7%,rgba(226,216,255,.075) 12%,transparent 18% 49%,rgba(226,216,255,.06) 56%,transparent 62%)}
+.hi{opacity:0;transition:opacity .5s ease-out}
+#live{pointer-events:none}
+.stage[data-s="2"] #groove.on,.stage[data-s="3"] #groove.on,.stage[data-s="4"] #groove.on{opacity:.2}
+.stage[data-s="2"] .hi[data-k="0"],.stage[data-s="3"] .hi[data-k="1"],.stage[data-s="4"] .hi[data-k="2"],.stage[data-lock] .hi[data-k="0"]{opacity:1}
+.stage[data-lock][data-s="1"] #groove.on{opacity:.2}
+.sheen{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;pointer-events:none;background:conic-gradient(from 18deg,transparent 0 7%,rgba(226,216,255,.085) 12%,transparent 18% 49%,rgba(226,216,255,.07) 56%,transparent 62%);transform:rotate(calc(var(--tx) * 6deg))}
 .label{position:absolute;left:50%;top:50%;width:var(--L);height:var(--L);margin:calc(var(--L) / -2) 0 0 calc(var(--L) / -2);border-radius:50%;background:radial-gradient(circle,#24173a 0,#1d1230 70%,#170e27 100%);box-shadow:inset 0 0 0 1px rgba(189,166,255,.2),inset 0 0 0 calc(var(--L) * .035) #1a102b,inset 0 0 0 calc(var(--L) * .035 + 1px) rgba(189,166,255,.12)}
-.hole{position:absolute;left:50%;top:50%;width:calc(var(--f) * .5);height:calc(var(--f) * .5);margin:calc(var(--f) * -.25) 0 0 calc(var(--f) * -.25);border-radius:50%;background:#05010a;box-shadow:0 0 0 1px rgba(189,166,255,.28)}
-/* the headline is printed above the spindle hole, the artist line below it, as on a label. they sit over the label and
-   stay still when the record turns, so the words never spin */
-.rec h1{position:absolute;left:calc(var(--cx) - var(--L) * .49);width:calc(var(--L) * .98);bottom:calc(50cqh + var(--f) * .5);margin:0;font:italic 600 var(--f)/1.07 var(--serif);letter-spacing:-.015em;text-align:center;color:var(--ink)}
-.rec .eyebrow{position:absolute;left:calc(var(--cx) - var(--L) * .45);width:calc(var(--L) * .9);top:calc(50cqh + var(--f) * .62);text-align:center;white-space:nowrap;font-size:clamp(8px,calc(var(--f) * .28),11px);letter-spacing:.1em}
-/* a record too small to print the headline on (a short phone): the headline sits beside it */
-@container (max-height:200px){
-.rec{--L:calc(var(--d) * .42);--cx:calc(100cqw - var(--d) * .6);display:flex;flex-direction:column;justify-content:center;gap:6px;padding-right:calc(var(--d) * 1.1 + 12px)}
-.deck{left:auto;right:0}
-.rec h1,.rec .eyebrow{position:static;width:auto;text-align:left}
-.rec h1{font-size:clamp(16px,5.4cqw,24px);text-wrap:balance}
-.rec h1 br{display:none}
-.rec .eyebrow{font-size:9.5px}
-}
-/* the tonearm: a line drawing in the deck's own units (the disc is 100 across), resting off the record. the needle
-   drops onto the first groove, where the oldest play is */
+.hole{position:absolute;left:50%;top:50%;width:calc(var(--d) * .022);height:calc(var(--d) * .022);margin:calc(var(--d) * -.011) 0 0 calc(var(--d) * -.011);border-radius:50%;background:#05010a;box-shadow:0 0 0 1px rgba(189,166,255,.28)}
 .arm{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;filter:drop-shadow(5px 8px 3px rgba(0,0,0,.55));transition:filter .25s ease-out .42s}
 .arm .sw{transform-box:view-box;transform-origin:101px 12px;transition:transform .42s cubic-bezier(.45,0,.3,1)}
 .arm .tube{fill:none;stroke:#a49bbd;stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
 .arm .base{fill:#160d26;stroke:#a49bbd;stroke-width:1.2px;vector-effect:non-scaling-stroke}
 .arm .tip{fill:var(--ice)}
-html:not(.needle) .wrap:has(.cta a:hover) .arm .sw,html:not(.needle) .wrap:has(.cta a:focus-visible) .arm .sw{transform:rotate(2deg)}
+html:not(.needle) .story:has(.cta a:hover) .arm .sw,html:not(.needle) .story:has(.cta a:focus-visible) .arm .sw{transform:rotate(2deg)}
 html.needle .arm .sw{transform:rotate(13.6deg)}
 html.needle .arm{filter:drop-shadow(1px 1.5px 1px rgba(0,0,0,.6))}
-main{grid-area:main;display:flex;flex-direction:column;min-width:0;gap:clamp(8px,1.5vh,16px)}
-.lede{font-size:clamp(13.5px,2vw,17px);line-height:1.5;max-width:52ch;margin:0;color:var(--body)}
-/* the page's one accent: the 19% (the second figure in the finding) */
+.foot{position:absolute;left:var(--pl);right:var(--pr);bottom:8px;z-index:2;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.read{margin:0;font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;color:var(--mute);min-width:0;white-space:nowrap}
+.read b{color:var(--mint);font-weight:600;display:inline-block;min-width:6ch;text-align:right;font-variant-numeric:tabular-nums}
+/* ------------------------------------------------------------------ the copy */
+.steps{position:relative;z-index:2;padding:0 var(--pr) 0 var(--pl)}
+.step{min-height:42vh;min-height:42svh;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:4vh 0;max-width:34rem}
+.s0{min-height:0;padding-top:14px;gap:14px}
+h1{margin:0;font:italic 600 clamp(32px,10.4vw,54px)/1.04 var(--serif);letter-spacing:-.018em;color:var(--ink);text-wrap:balance}
+h1 .w{display:inline-block;white-space:nowrap}
+h1 .c{display:inline-block;animation:res .95s cubic-bezier(.2,.75,.2,1) both;animation-delay:calc(var(--i) * 26ms + 120ms)}
+h1 .m .c{animation:res .95s cubic-bezier(.2,.75,.2,1) both,hue 9s ease-in-out infinite;animation-delay:calc(var(--i) * 26ms + 120ms),calc(var(--i) * 140ms + 2s)}
+@keyframes res{from{opacity:.07;transform:translateY(.42em) rotate(var(--r,4deg));filter:blur(7px);text-shadow:-.09em 0 var(--mint),.09em 0 var(--violet)}60%{filter:blur(0);text-shadow:-.03em 0 var(--mint),.03em 0 var(--violet)}to{opacity:1;transform:none;filter:none;text-shadow:none}}
+@keyframes hue{0%,100%{color:var(--ink)}30%{color:var(--mint)}55%{color:var(--amber)}80%{color:var(--violet)}}
+.lede{font-size:clamp(15px,2vw,18px);line-height:1.5;max-width:44ch;margin:0;color:var(--body)}
 #finding b+b{color:var(--ice)}
-/* the key to the groove: a swatch before each word, the words carry the meaning */
 .key{color:var(--mute)}
 .key i{font-style:normal;white-space:nowrap;color:var(--body)}
 .key i::before{content:"";display:inline-block;width:.6em;height:.6em;margin:0 .32em 0 .08em;border-radius:50%;background:var(--c)}
 .key .t{--c:var(--mint)}
 .key .s{--c:var(--amber)}
 .key .q{--c:var(--violet)}
-.cta{margin:clamp(4px,1vh,10px) 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
+.kick{margin:0;font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.big{margin:0;font:italic 500 clamp(26px,7.4vw,40px)/1.1 var(--serif);color:var(--ink);text-wrap:balance}
+.big.key i{font-size:1em;color:var(--ink)}
+.big.key i::before{width:.5em;height:.5em;margin-right:.28em}
+.small{margin:0;font-size:clamp(14px,1.8vw,16px);line-height:1.55;color:var(--body);max-width:40ch}
+.cta{margin:6px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
 .cta a{font:600 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;min-height:44px;white-space:nowrap}
-/* the way in is the atlas's own chip (chrome.css .ai-tourchip): an ice outline; the quiet one is plain text */
 .cta a.go{color:var(--ice);border:1px solid rgba(134,203,254,.62);border-radius:3px;padding:0 16px;background:rgba(134,203,254,.05)}
 .cta a.go:hover{border-color:var(--ice);background:rgba(134,203,254,.12);color:#bfe4ff}
 .cta a.quiet{color:var(--mute)}
-.cta a.quiet:hover,.tours a:hover .nm,.tours a:hover ::after{color:var(--ice)}
-/* tours in tours.js order, a borderless mono list; each blurb is the link's aria-description (a visible, aria-hidden
-   line on wide screens) */
-.tours{margin-top:clamp(2px,.6vh,8px)}
-.hd{font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
-.tours .hd{margin:0 0 4px}
-.tours ul{list-style:none;margin:0;padding:0;display:grid;grid:repeat(3,auto)/auto-flow max-content;column-gap:clamp(14px,7vw,36px)}
-.tours a{display:flex;align-items:center;min-height:30px;text-decoration:none;white-space:nowrap}
-.nm{font:500 9.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--body)}
-/* the \203A is not read (empty alt text; the first content is the fallback) */
+.cta a.quiet:hover{color:var(--ice)}
+/* the guess: the page's first question. hidden without script, since it needs one */
+.gui{display:none}
+.js .gui{display:block;max-width:30rem}
+.gtrack{position:relative;height:34px;margin:6px 0 2px;-webkit-mask:repeating-linear-gradient(90deg,#000 0 calc(1% - 1.5px),transparent calc(1% - 1.5px) 1%);mask:repeating-linear-gradient(90deg,#000 0 calc(1% - 1.5px),transparent calc(1% - 1.5px) 1%);background:rgba(189,166,255,.16)}
+.gfill,.gmin{position:absolute;left:0;top:0;bottom:0;width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+.gfill{background:var(--mint);opacity:.55}
+.gmin{background:var(--mint)}
+.gui.done .gfill{width:19%}
+.gui.done .gmin{width:11.5%;transition-delay:.35s}
+.gmark{position:absolute;top:-4px;bottom:-4px;left:50%;width:2px;margin-left:-1px;background:var(--ice);box-shadow:0 0 12px var(--ice);pointer-events:none}
+.gui.done .gmark{opacity:.7;background:var(--ice)}
+.gwrap{position:relative}
+.gr{display:block;width:100%;margin:0;height:44px;background:none;-webkit-appearance:none;appearance:none;position:absolute;left:0;top:-4px;opacity:0;cursor:grab;touch-action:pan-y}
+.gui.done .gr{pointer-events:none}
+.gbtn{font:600 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;min-height:44px;padding:0 16px;color:var(--ice);border:1px solid rgba(134,203,254,.62);border-radius:3px;background:rgba(134,203,254,.05);cursor:pointer}
+.gbtn:hover{border-color:var(--ice);background:rgba(134,203,254,.12)}
+.gui .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px}
+.gv{font:600 22px/1 var(--mono);color:var(--ice);min-width:3.4ch;font-variant-numeric:tabular-nums}
+.gres{margin:10px 0 0;min-height:4.6em;font-size:15px;line-height:1.5;color:var(--body)}
+.gres:empty{min-height:0}
+.pips{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0}
+.pips span{width:12px;height:22px;border-radius:2px;background:var(--rose);transform-origin:bottom;transition:transform .5s cubic-bezier(.3,1.6,.5,1) calc(var(--n) * 55ms),opacity .5s calc(var(--n) * 55ms)}
+.pips span.h{background:none;box-shadow:inset 0 0 0 1.5px var(--rose)}
+.js .pips:not(.in) span{transform:scaleY(.1);opacity:.2}
+.fnote2{margin:0;font:400 11px/1.65 var(--mono);color:#a49bbd;max-width:56ch}
+.fnote2 a{color:var(--ice)}
+/* reveals: native scroll-driven where the browser has it, an observer class where not */
+.js .rv{opacity:.001;transform:translateY(22px)}
+.js .rv.in{opacity:1;transform:none;transition:opacity .7s ease-out,transform .8s cubic-bezier(.2,.7,.2,1)}
+@supports (animation-timeline:view()){.js .rv{opacity:1;transform:none;animation:rvin linear both;animation-timeline:view();animation-range:entry 4% entry 52%}}
+@keyframes rvin{from{opacity:.001;transform:translateY(26px)}to{opacity:1;transform:none}}
+/* ------------------------------------------------------------------ the doors */
+.doors{position:relative;z-index:2;padding:clamp(40px,8vh,90px) var(--pr) 20px var(--pl);max-width:1280px;margin:0 auto}
+.doors h2{margin:0 0 6px;font:italic 600 clamp(28px,6.4vw,52px)/1.05 var(--serif);color:var(--ink)}
+.dsub{margin:0 0 22px;color:var(--mute);max-width:46ch}
+.dg{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.dw{display:flex;min-width:0}
+.dw .door{flex:1;min-width:0}
+.door{position:relative;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;background:linear-gradient(180deg,rgba(24,14,42,.7),rgba(10,1,24,.9));text-decoration:none;color:var(--body);overflow:hidden;transition:border-color .25s,transform .35s cubic-bezier(.2,.7,.2,1);view-transition-name:none}
+.door canvas{display:block;width:100%;height:120px;border-bottom:1px solid var(--line);background:radial-gradient(circle at 74% 50%,rgba(139,111,214,.14),transparent 70%)}
+.door .k{padding:14px 16px 0;font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.door .n{padding:2px 16px 0;font:italic 600 clamp(26px,5vw,34px)/1.1 var(--serif);color:var(--ink)}
+.door .d{padding:6px 16px 16px;font-size:14px;line-height:1.5;color:var(--body);flex:1}
+.door .go2{padding:0 16px 14px;font:600 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ice)}
+.door .go2::after{content:" \25B8";display:inline-block;transition:transform .3s}
+.door:hover,.door:focus-visible,.door.live{border-color:var(--ice);transform:translateY(-3px)}
+.door:hover .go2::after,.door.live .go2::after{transform:translateX(6px)}
+.door[data-k="exhibit"]:hover,.door[data-k="exhibit"].live{border-color:var(--mint)}
+.door[data-k="report"]:hover,.door[data-k="report"].live{border-color:var(--rose)}
+.tours{position:relative;z-index:2;padding:26px var(--pr) 10px var(--pl);max-width:1280px;margin:0 auto}
+.tours .hd{margin:0 0 6px}
+.tours ul{list-style:none;margin:0;padding:0;display:grid;grid:repeat(3,auto)/repeat(2,minmax(0,1fr));column-gap:clamp(14px,7vw,36px)}
+.tours a{display:flex;align-items:center;min-height:30px;text-decoration:none}
+.nm{font:500 10px/1.25 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--body)}
 .nm::after,.bl::after{content:"\a0\203A";content:"\a0\203A"/"";color:var(--faint)}
 .bl{display:none}
-footer{grid-area:foot;min-width:0;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:clamp(8px,1.6vh,14px)}
+.tours a:hover .nm,.tours a:hover ::after{color:var(--ice)}
+footer{position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);margin:22px var(--pr) 0 var(--pl);padding:14px 0 var(--pb);max-width:1280px}
 .deeper p{margin:0}
 .deeper .hd{margin:0 0 6px}
 .deeper a{font:500 12px/1.5 var(--mono);color:var(--ice)}
-.deeper a:hover{color:#bfe4ff}
 .deeper .sep{color:var(--faint);margin:0 8px}
 .fnote{margin:0;font:400 10.5px/1.6 var(--mono);color:var(--mute);max-width:78ch}
 .fnote a{color:var(--mute)}
 .fnote a:hover{color:var(--ink)}
-.fnote2{margin:0;font:400 10.5px/1.6 var(--mono);color:#857ca0;max-width:80ch}
-@media (max-width:480px){
-.tours ul{grid:repeat(3,auto)/repeat(2,minmax(0,1fr))}
-.tours a{white-space:normal}
-.nm{line-height:1.25}
-.deeper{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px}
-.deeper .hd{margin:0}
-.deeper #links{position:absolute}
-.deeper .sep{margin:0 6px}
-}
-@media (max-width:380px){
-.nm{letter-spacing:0}
-}
-@media (max-width:340px){
-.brand{letter-spacing:.12em}
-.tours ul{column-gap:12px}
-.cta a{letter-spacing:.06em}
-.cta a.go{padding:0 11px}
-}
-/* short portrait screens: the key keeps its three swatches, the copy tightens */
-@media (max-height:760px) and (max-aspect-ratio:1/1){
-.key .k1{display:none}
-.tours a{min-height:25px}
-.fnote,.fnote2{font-size:10px;line-height:1.5}
-}
-@media (max-height:620px) and (max-aspect-ratio:1/1){
-.wrap{row-gap:7px}
-main{gap:6px}
-.lede{font-size:13px}
-.cta{margin-top:0}
-.cta a{min-height:40px}
-footer{gap:5px;padding-top:7px}
-.deeper .hd{margin:0}
-.fnote,.fnote2{font-size:9.5px;line-height:1.45}
-}
-@media (min-width:700px) and (min-aspect-ratio:1/1){
-.wrap{grid-template-columns:minmax(0,1fr) clamp(300px,36vw,620px);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top" "fx main" "fx foot";column-gap:clamp(20px,3.4vw,64px);padding-left:max(var(--pl),clamp(18px,3vw,56px))}
-main{align-self:center}
-.lede{font-size:clamp(14px,1.35vw,20px)}
-.key{font-size:clamp(13px,1.1vw,16px)}
-}
-/* wide: name over blurb in two columns */
-@media (min-width:700px) and (min-aspect-ratio:1/1) and (min-height:560px){
-.tours ul{grid:auto-flow/repeat(2,minmax(0,1fr));gap:2px 24px;max-width:600px}
-.tours a{display:block;min-height:0;padding:5px 0;white-space:normal}
+@media (max-width:340px){.brand{letter-spacing:.12em}.cta a{letter-spacing:.06em}.cta a.go{padding:0 11px}}
+/* wide: the record stays on the left, the copy scrolls past it on the right */
+@media (min-width:800px) and (min-aspect-ratio:6/5){
+.story{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(340px,.82fr);column-gap:clamp(20px,3vw,56px)}
+.stage{height:100vh;height:100svh;max-height:none;min-height:0;background:none;align-self:start;padding-left:max(var(--pl),clamp(18px,3vw,56px));grid-column:1;grid-row:1}
+.stage::after{display:none}
+.stage::before{width:110%}
+.fx{top:clamp(52px,9vh,84px);bottom:48px}
+.steps{grid-column:2;grid-row:1;padding-right:max(var(--pr),clamp(18px,3vw,56px))}
+.step{min-height:80vh;min-height:80svh;padding:8vh 0}
+.s0{min-height:100vh;min-height:100svh}
+h1{font-size:clamp(46px,5.2vw,96px)}
+.big{font-size:clamp(32px,3.6vw,56px)}
+.lede{font-size:clamp(16px,1.35vw,21px)}
+.doors,.tours,footer{margin-left:auto;margin-right:auto}
+.dg{grid-template-columns:repeat(3,minmax(0,1fr))}
+.door canvas{height:clamp(130px,12vw,190px)}
+.tours ul{grid:auto-flow/repeat(3,minmax(0,1fr));gap:4px 28px}
+.tours a{display:block;min-height:0;padding:7px 0}
 .nm{font-size:10.5px;letter-spacing:.1em;color:var(--ink)}
 .nm::after{content:none}
 .bl{display:block;margin-top:4px;font:400 11px/1.35 var(--mono);color:var(--mute)}
-.tours a:hover .bl{color:var(--body)}
 }
-@media (max-height:430px){
-.wrap{row-gap:6px;padding-top:10px;padding-bottom:8px}
-main{gap:5px}
-.lede{font-size:11.5px}
-.key .k1{display:none}
-.cta{margin-top:4px;gap:8px}
-.cta a{font-size:10px;min-height:36px}
-.tours{margin-top:2px}
-.tours .hd{margin:0}
-.tours ul{display:flex;flex-wrap:wrap;column-gap:14px}
-.tours a{min-height:24px}
-footer{gap:4px;padding-top:6px}
-.deeper .hd{margin-bottom:3px}
-.fnote,.fnote2{font-size:9.5px;line-height:1.4}
-}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-/* forced colours: every text colour is a system colour. chromium resolves -webkit-text-fill-color against the authored
-   colour (axe read dark ink on white), the primary CTA loses its edge. the record keeps its outline and its label */
+@media (min-width:560px) and (max-width:799px){.dg{grid-template-columns:repeat(3,minmax(0,1fr))}.door .d{font-size:13px}}
+@media (min-width:1900px){.doors,.tours,footer{max-width:1600px}}
+@media (max-height:430px) and (max-width:799px){.stage{height:100svh;min-height:0;max-height:none;width:46%;float:left}.steps{margin-left:48%}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.js .rv{opacity:1;transform:none}.js .pips span{transform:none;opacity:1}.js .pips:not(.in) span{transform:none;opacity:1}.gui.done .gfill{width:19%}.gui.done .gmin{width:11.5%}}
 @media (forced-colors:active){
-#groove,.sheen,.arm{display:none}
+#groove,.hi,#live,.sheen,.arm,.stage::before,.stage::after{display:none}
 .disc,.label{forced-color-adjust:none;background:Canvas;border:1px solid CanvasText;box-shadow:none}
 .hole{forced-color-adjust:none;background:CanvasText;box-shadow:none}
 .key i::before{forced-color-adjust:none;background:CanvasText}
 body{background:Canvas;color:CanvasText}
-.brand,.eyebrow,.eyebrow b,h1,.rec h1,.rec .eyebrow,.lede,.lede b,#finding b+b,.key,.key i,.tours .hd,.nm,.bl,.deeper .hd,.deeper .sep,.fnote,.fnote2{color:CanvasText;-webkit-text-fill-color:CanvasText}
-a,.cta a.go,.cta a.quiet,.tours a,.tours a .nm,.deeper a,.fnote a{color:LinkText;-webkit-text-fill-color:LinkText}
-.cta a.go{background:Canvas;border:2px solid LinkText;box-shadow:none}
+.stage{background:Canvas}
+.brand,.eyebrow,.eyebrow b,h1,h1 .c,.lede,.lede b,#finding b+b,.key,.key i,.kick,.big,.small,.read,.read b,.hd,.nm,.bl,.deeper .hd,.deeper .sep,.fnote,.fnote2,.door .k,.door .n,.door .d,.dsub,.doors h2,.gv,.gres{color:CanvasText;-webkit-text-fill-color:CanvasText;text-shadow:none;animation:none}
+a,.cta a.go,.cta a.quiet,.tours a,.tours a .nm,.deeper a,.fnote a,.fnote2 a,.door,.door .go2,.gbtn{color:LinkText;-webkit-text-fill-color:LinkText}
+.door{border:1px solid LinkText;background:Canvas}
+.cta a.go,.gbtn{background:Canvas;border:2px solid LinkText;box-shadow:none}
+.gtrack{background:GrayText}.gfill,.gmin,.pips span{forced-color-adjust:none;background:CanvasText}
 footer{border-top-color:CanvasText;border-image:none}
 :focus-visible{outline:2px solid Highlight}
 }
+
+.jsonly{display:none}.js .jsonly{display:inline}
+@media (max-width:420px){.foot .eyebrow{font-size:9px;letter-spacing:.1em}.read{font-size:9.5px;letter-spacing:.04em}}
 </style>
 </head>
 <body>
-<div class="wrap" id="top">
-<header class="top">
-<p class="brand">sonic manifold</p>
-</header>
-
-<div class="fx" id="record"><div class="rec">
+<div class="story" id="top">
+<aside class="stage" data-s="0" aria-label="the record">
+<header class="top"><p class="brand">sonic manifold</p></header>
+<div class="fx" id="record"><div class="rec"><div class="tilt">
 <div class="deck" aria-hidden="true">
 <div class="disc">
 <div class="platter">
 <canvas id="groove"></canvas>
+<canvas class="hi" data-k="0"></canvas><canvas class="hi" data-k="1"></canvas><canvas class="hi" data-k="2"></canvas>
+<canvas id="live"></canvas>
 <div class="label"><span class="hole"></span></div>
 </div>
 <span class="sheen"></span>
@@ -236,17 +255,62 @@ footer{border-top-color:CanvasText;border-image:none}
 <circle class="tip" cx="98.4" cy="81.6" r=".6"/>
 </g></g></svg>
 </div>
-<h1>i didn&rsquo;t <br>press play on <br>most of my music.</h1>
-<p class="eyebrow">n = 1 &middot; <b>astralcrest</b></p>
-</div></div>
+</div></div></div>
+<div class="foot"><p class="eyebrow">n = 1 &middot; <b>astralcrest</b></p><p class="read" aria-hidden="true">play <b>1</b> of 97,427</p></div>
+</aside>
 
-<main id="argument">
+<main id="argument" class="steps">
+<section class="step s0">
+<h1><span class="w"><span class="c" style="--i:0;--r:3deg">i</span></span> <span class="w"><span class="c" style="--i:2;--r:5deg">d</span><span class="c" style="--i:3;--r:-3deg">i</span><span class="c" style="--i:4;--r:4deg">d</span><span class="c" style="--i:5;--r:-5deg">n</span><span class="c" style="--i:6;--r:2deg">&rsquo;</span><span class="c" style="--i:7;--r:-2deg">t</span></span> <span class="w"><span class="c" style="--i:9;--r:-4deg">p</span><span class="c" style="--i:10;--r:5deg">r</span><span class="c" style="--i:11;--r:-3deg">e</span><span class="c" style="--i:12;--r:4deg">s</span><span class="c" style="--i:13;--r:-5deg">s</span></span> <span class="w"><span class="c" style="--i:15;--r:-2deg">p</span><span class="c" style="--i:16;--r:3deg">l</span><span class="c" style="--i:17;--r:-4deg">a</span><span class="c" style="--i:18;--r:5deg">y</span></span> <span class="w"><span class="c" style="--i:20;--r:4deg">o</span><span class="c" style="--i:21;--r:-5deg">n</span></span> <span class="w m"><span class="c" style="--i:23;--r:-2deg">m</span><span class="c" style="--i:24;--r:3deg">o</span><span class="c" style="--i:25;--r:-4deg">s</span><span class="c" style="--i:26;--r:5deg">t</span></span> <span class="w m"><span class="c" style="--i:28;--r:4deg">o</span><span class="c" style="--i:29;--r:-5deg">f</span></span> <span class="w m"><span class="c" style="--i:31;--r:-2deg">m</span><span class="c" style="--i:32;--r:3deg">y</span></span> <span class="w m"><span class="c" style="--i:34;--r:5deg">m</span><span class="c" style="--i:35;--r:-3deg">u</span><span class="c" style="--i:36;--r:4deg">s</span><span class="c" style="--i:37;--r:-5deg">i</span><span class="c" style="--i:38;--r:2deg">c</span><span class="c" style="--i:39;--r:-2deg">.</span></span></h1>
 <p class="lede" id="finding"><b>97,427</b> plays in the whole log. <b>19%</b> i tapped (11.5% by the strictest reading); the rest the queue served or shuffle picked.</p>
-<p class="lede key"><span class="k1">every play is one tick in the groove, wound month by month from the rim to the label: </span><i class="t">i tapped</i> <i class="s">shuffle picked</i> <i class="q">the queue served</i></p>
 <p class="cta">
 <a class="go" id="enter" href="exhibit.html?enter=sound#tour=grand&amp;stop=1">drop the needle &#9656;</a>
 <a class="quiet" id="enter-quiet" href="exhibit.html?enter=quiet#tour=grand&amp;stop=1">drop it quietly</a>
 </p>
+</section>
+
+<section class="step" id="guess">
+<p class="kick rv">first, a guess</p>
+<p class="big rv">how much of it did i choose?</p>
+<p class="small key rv">every play is one tick in the groove, wound month by month from the rim to the label. <span class="jsonly">touch the record to read it.</span></p>
+<div class="gui rv" id="gui">
+<div class="gwrap"><div class="gtrack"><span class="gfill"></span><span class="gmin"></span></div><span class="gmark" id="gm"></span>
+<input class="gr" id="gr" type="range" min="0" max="100" value="50" step="1" aria-label="your guess: the percent of plays i started with a tap"></div>
+<div class="row"><span class="gv" id="gv" aria-hidden="true">50%</span><button type="button" class="gbtn" id="gl">lock it in</button></div>
+<p class="gres" id="gres" aria-live="polite"></p>
+</div>
+</section>
+
+<section class="step"><p class="kick rv">who pressed play</p>
+<p class="big key rv"><i class="t">i tapped</i></p>
+<p class="small rv">a stroke across the groove. these are the plays i started myself.</p></section>
+
+<section class="step">
+<p class="big key rv"><i class="s">shuffle picked</i></p>
+<p class="small rv">two pips in the groove. i hit shuffle and it picked, not me.</p></section>
+
+<section class="step">
+<p class="big key rv"><i class="q">the queue served</i></p>
+<p class="small rv">a slat along the groove. the largest share of the record.</p></section>
+
+<section class="step" id="kills">
+<p class="kick rv">then i went after it</p>
+<p class="big rv">i tried to kill my own findings.</p>
+<div class="pips rv" aria-hidden="true"><span style="--n:0"></span><span style="--n:1"></span><span style="--n:2"></span><span style="--n:3"></span><span style="--n:4"></span><span style="--n:5"></span><span style="--n:6"></span><span style="--n:7"></span><span style="--n:8"></span><span style="--n:9"></span><span style="--n:10"></span><span style="--n:11"></span><span style="--n:12"></span><span style="--n:13"></span><span style="--n:14"></span><span style="--n:15"></span><span class="h" style="--n:16"></span><span class="h" style="--n:17"></span></div>
+<p class="fnote2 rv">the report lists eighteen findings killed, retracted or withdrawn; the graveyard shows sixteen. every kill condition i pre-declared was written down before i saw the result; the post-hoc ones are labelled. <a href="lab.html#graveyard">see the graveyard</a></p>
+</section>
+</main>
+</div>
+
+<section class="doors" id="doors" aria-labelledby="dh">
+<h2 id="dh" class="rv">three ways in</h2>
+<p class="dsub rv">pick the one that matches why you came. each wakes up when you point at it.</p>
+<div class="dg">
+<div class="dw rv"><a class="door" data-k="exhibit" href="exhibit.html?enter=sound#tour=grand&amp;stop=1"><canvas aria-hidden="true"></canvas><span class="k">for a walk</span><span class="n">the exhibit</span><span class="d">the whole log as one record, with sound under it. start here.</span><span class="go2">step in</span></a></div>
+<div class="dw rv"><a class="door" data-k="lab" href="lab.html"><canvas aria-hidden="true"></canvas><span class="k">for checking</span><span class="n">the lab</span><span class="d">every chart, in order, with the data open. for people who like to check.</span><span class="go2">open it</span></a></div>
+<div class="dw rv"><a class="door" data-k="report" href="researcher.html"><canvas aria-hidden="true"></canvas><span class="k">for reading</span><span class="n">the report</span><span class="d">what i claim, and what i did to try to kill it.</span><span class="go2">read it</span></a></div>
+</div>
+</section>
 
 <nav class="tours" aria-label="tours" id="tours">
 <p class="hd">tours</p>
@@ -259,84 +323,17 @@ footer{border-top-color:CanvasText;border-image:none}
 <li><a href="exhibit.html?enter=sound#tour=artists&amp;stop=1" aria-description="the views i'd frame and hang"><span class="nm">liner notes for artists &amp; designers</span><span class="bl" aria-hidden="true">the views i'd frame and hang</span></a></li>
 </ul>
 </nav>
-</main>
 
-<footer id="kills">
+<footer>
 <nav class="deeper" aria-label="go deeper" id="deeper">
 <a id="links"></a>
 <p class="hd">go deeper</p>
 <p><a href="lab.html">the lab</a><span class="sep">&middot;</span><a href="researcher.html">the report</a><span class="sep">&middot;</span><a href="bridge-index.html">the probe</a></p>
 </nav>
 <p class="fnote">built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a> &middot; old links redirect</p>
-<p class="fnote2">the report lists eighteen findings killed, retracted or withdrawn; the graveyard shows sixteen. every kill condition i pre-declared was written down before i saw the result; the post-hoc ones are labelled.</p>
 </footer>
 
-</div>
-<script>
-/* the door's record: every play in the log wound into one groove, the oldest at the rim and the newest by the label,
-   each tick marked by who pressed play (mint i tapped, amber shuffle, violet the queue: exhibit/shell.js PROV_CHIP).
-   the order is month by month: the three counts per month of exhibit/data/wall.json, embedded (the door fetches
-   nothing). the log's order inside a month is not on the client, so each month's ticks are dealt in a fixed shuffle
-   that keeps its exact counts. shape as well as colour: a tap is a stroke across the groove, a shuffle two pips, the
-   queue a slat along it. drawn once into image data; the record only turns when the needle drops */
-(function(){
-var TAP=[3,0,0,0,0,0,7,0,0,0,0,0,4,8,3,1,0,0,1,0,0,0,0,2,4,5,0,0,0,132,218,97,178,160,198,234,122,138,157,281,268,251,295,285,255,117,114,243,65,330,373,286,502,383,416,355,432,301,201,368,356,317,283,232,275,211,499,386,514,330,371,436,444,663,468,986,868,699,838,1243,379],SHU=[0,0,0,0,0,0,40,0,0,0,0,0,7,77,22,8,0,0,0,0,0,0,0,8,7,21,0,3,0,154,37,491,413,427,429,439,736,901,648,385,344,462,479,252,110,189,171,68,0,32,90,132,342,162,396,420,401,356,24,225,370,707,721,379,237,174,724,438,418,346,116,130,555,35,34,49,128,196,403,194,0],SRV=[5,0,0,0,0,0,0,0,0,0,0,0,1,5,5,4,0,0,0,0,0,0,0,0,0,2,0,0,0,1000,1609,647,1018,738,528,1660,690,560,875,1372,1516,1444,1724,1596,1329,527,828,1296,370,1018,1127,702,1634,1294,1483,1008,1263,1051,900,890,889,696,240,657,584,618,1110,973,951,1039,1686,1094,631,1901,1560,3225,2188,2152,2138,3324,1199];
-var $=function(s){return document.querySelector(s);},disc=$('.disc'),cv=$('#groove'),lab=$('.label'),plat=$('.platter'),root=document.documentElement;
-if(!cv||!cv.getContext||!disc||!lab||!plat)return;
-var reduce=false;
-try{reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
-var NM=TAP.length,N=0,m,i,j,k;
-for(m=0;m<NM;m++)N+=TAP[m]+SHU[m]+SRV[m];
-/* play by play in month order: 0 tapped, 1 shuffle, 2 the queue */
-var ARM=new Uint8Array(N),MON=new Uint8Array(N),seed=0x2f6b4e1d;
-function rnd(){seed=seed+0x6d2b79f5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;}
-for(m=0,i=0;m<NM;m++){var a0=i,c=[TAP[m],SHU[m],SRV[m]];
-for(k=0;k<3;k++)for(j=0;j<c[k];j++){ARM[i]=k;MON[i++]=m;}
-for(j=i-1;j>a0;j--){var q=a0+Math.floor(rnd()*(j-a0+1)),t=ARM[j];ARM[j]=ARM[q];ARM[q]=t;}}
-/* image data words (a b g r): mint, amber, violet */
-var COL=new Uint32Array([0xe6bcf621,0xe623a6f5,0xe6d66f8b]);
-/* the needle lands 39.3 degrees round from the right of the disc, on the first groove (95.4% of the radius) */
-var TH0=0.6857,ms=0,G={};
-function draw(){
-var r=disc.getBoundingClientRect();if(r.width<40)return;
-var t0=performance.now(),dpr=Math.min(Math.max(window.devicePixelRatio||1,2),3),D=Math.round(r.width*dpr),c=D/2;
-if(cv.width!==D){cv.width=D;cv.height=D;}
-var g=cv.getContext('2d'),img=g.createImageData(D,D),px=new Uint32Array(img.data.buffer);
-/* equal groove area per play: r falls as the square root, the angle turns once per groove pitch */
-var R1=c*0.954,R0=Math.min(R1*0.85,lab.getBoundingClientRect().width/2*dpr+c*0.05),KD=(R1*R1-R0*R0)/N,A=Math.PI*KD,p=Math.max(1.25,Math.sqrt(A)),s=A/p,TW=6.283185307179586/p,
-K=R1*R1,pr=R1,cs=Math.cos(TH0),sn=Math.sin(TH0),x,y,rr,dl,cd,sd,t2,col,w,u,v,a,b,o,bx,by,x0,y0,
-/* each tick is a small box in the groove's own frame (half-lengths along, across), raster stepped at 0.7 px; the pips
-   are two boxes off the diagonal. the angle advances by a small rotation per play (no trig in the loop) */
-BA=[s*0.22,s*0.19,s*0.4],BB=[p*0.4,p*0.19,p*0.22],OA=s*0.22,OB=p*0.22;
-for(i=0;i<N;i++){rr=Math.sqrt(K-KD*(i+0.5));dl=(pr-rr)*TW;pr=rr;cd=1-dl*dl*0.5;sd=dl-dl*dl*dl/6;t2=cs*cd+sn*sd;sn=sn*cd-cs*sd;cs=t2;
-if((i&4095)===0){t2=1/Math.sqrt(cs*cs+sn*sn);cs*=t2;sn*=t2;}
-t2=rr+(Math.imul(i,0x9e3779b1)/4294967296)*p*0.9;x=c+t2*cs;y=c+t2*sn;w=ARM[i];col=COL[w];a=BA[w];b=BB[w];
-for(o=(w===1?1:0);o>=(w===1?-1:0);o-=2){x0=x+o*(OB*cs-OA*sn);y0=y+o*(OA*cs+OB*sn);
-for(u=-a;u<=a;u+=0.7){bx=x0-u*sn;by=y0+u*cs;for(v=-b;v<=b;v+=0.7)px[((by+v*sn)|0)*D+((bx+v*cs)|0)]=col;}}}
-g.putImageData(img,0,0);
-cv.className='on';
-ms=performance.now()-t0;G={d:D,dpr:dpr,r0:R0,r1:R1,pitch:p,step:s,turns:(R1-R0)/p};
-}
-/* drop the needle: the arm swings onto the first groove, the record comes up to 33 1/3, then the exhibit */
-var busy=0,ang=0,raf=0;
-function spin(t0){var last=t0;function f(now){var e=now-t0,v=e<400?0:Math.min(1,(e-400)/650);ang+=v*0.2*(now-last);last=now;plat.style.transform='rotate('+ang.toFixed(2)+'deg)';raf=requestAnimationFrame(f);}raf=requestAnimationFrame(f);}
-function drop(e){
-if(e.defaultPrevented||e.button>0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
-var href=this.href;e.preventDefault();if(busy)return;busy=1;
-root.classList.add('needle');
-var go=function(){if(busy===1){busy=2;location.href=href;}};
-if(reduce){setTimeout(go,200);return;}
-spin(performance.now());setTimeout(go,1150);
-}
-['#enter','#enter-quiet'].forEach(function(s){var a=$(s);if(a)a.addEventListener('click',drop);});
-/* back from the exhibit (bfcache): the needle is lifted again */
-addEventListener('pageshow',function(e){if(e.persisted){busy=0;cancelAnimationFrame(raf);ang=0;plat.style.transform='';root.classList.remove('needle');}});
-var rt=0;
-function relayout(){clearTimeout(rt);rt=setTimeout(draw,G.d?120:0);}
-if('ResizeObserver' in window)new ResizeObserver(relayout).observe(disc);else{addEventListener('resize',relayout,{passive:true});relayout();}
-window.__door={n:N,months:NM,arm:ARM,month:MON,draw:draw,ms:function(){return ms;},geom:function(){return G;},angle:function(){return ang;},state:function(){return busy;},th0:TH0,
-counts:function(){var o=[0,0,0];for(var z=0;z<N;z++)o[ARM[z]]++;return o;}};
-})();
-</script>
+<script>var TAP=[3,0,0,0,0,0,7,0,0,0,0,0,4,8,3,1,0,0,1,0,0,0,0,2,4,5,0,0,0,132,218,97,178,160,198,234,122,138,157,281,268,251,295,285,255,117,114,243,65,330,373,286,502,383,416,355,432,301,201,368,356,317,283,232,275,211,499,386,514,330,371,436,444,663,468,986,868,699,838,1243,379],SHU=[0,0,0,0,0,0,40,0,0,0,0,0,7,77,22,8,0,0,0,0,0,0,0,8,7,21,0,3,0,154,37,491,413,427,429,439,736,901,648,385,344,462,479,252,110,189,171,68,0,32,90,132,342,162,396,420,401,356,24,225,370,707,721,379,237,174,724,438,418,346,116,130,555,35,34,49,128,196,403,194,0],SRV=[5,0,0,0,0,0,0,0,0,0,0,0,1,5,5,4,0,0,0,0,0,0,0,0,0,2,0,0,0,1000,1609,647,1018,738,528,1660,690,560,875,1372,1516,1444,1724,1596,1329,527,828,1296,370,1018,1127,702,1634,1294,1483,1008,1263,1051,900,890,889,696,240,657,584,618,1110,973,951,1039,1686,1094,631,1901,1560,3225,2188,2152,2138,3324,1199];</script>
+<script src="landing.js" defer></script>
 </body>
 </html>

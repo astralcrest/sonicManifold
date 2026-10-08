@@ -20,8 +20,8 @@
 /* the listening posts and the label text are optional: a blocked or flaky file leaves them off instead of leaving the exhibit unbooted. one retry, then a no-op stand-in */
 const soft = (u, d) => import(u).catch(() => import(u + '&retry=1')).catch(() => d);
 const [PM, LM] = await Promise.all([
-  soft('./post.js?v=10', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}) }),
-  soft('./labels.js?v=20', { LABELS: {}, HINTS: {}, HINTS_ATLAS: {}, HINTS_TOUCH: {} }),
+  soft('./post.js?v=11', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}) }),
+  soft('./labels.js?v=21', { LABELS: {}, HINTS: {}, HINTS_ATLAS: {}, HINTS_TOUCH: {} }),
 ]);
 const { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } = PM;
 const { LABELS, HINTS, HINTS_ATLAS, HINTS_TOUCH } = LM;
@@ -43,6 +43,12 @@ export const ATLAS = !/[?&]atlas=0\b/.test(location.search);
 const DEBUG = /[?&]atlasdebug=1\b/.test(location.search);
 const NOGLYPH = /[?&]glyph=0\b/.test(location.search);
 const NODRIFT = /[?&]drift=0\b/.test(location.search);
+/* R10: the field's skin. 'glyph' = the print alone; 'ink' screens the dye bath (atlas/field.ink.js) under the print; 'slime'
+   grows the physarum veins (atlas/field.slime.js) on the links; 'both' = ink and slime. ?field= picks; FIELD_DEFAULT is the
+   one line that flips the default */
+const FIELD_DEFAULT = 'both';
+const FIELD = ATLAS && !NOGLYPH ? ((/[?&]field=(ink|slime|both|glyph|dots)\b/.exec(location.search) || [])[1] || FIELD_DEFAULT).replace('dots', 'glyph') : 'glyph';
+const INK_ON = FIELD === 'ink' || FIELD === 'both', SLIME_ON = FIELD === 'slime' || FIELD === 'both';
 const HASH0 = location.hash; /* read before anything rewrites it: url.js parses the deep link once, after it mounts */
 /* a module whose fetch fails (a dropped connection, a lossy phone link, a burst of parallel requests reset) is asked for
    twice more, 0.3 s and 0.6 s later, under a changed url: the page remembers a failed module by its url, so the same url
@@ -164,8 +170,15 @@ const over = $('#overlay');
 const fg = field.getContext('2d', { alpha: false });
 /* bloom: every device starts with it; the governor in loop() takes it away from any that cannot hold the frame rate */
 const glow = $('#glow'); let gg = glow && !reduced ? glow.getContext('2d') : null; if (glow && !gg) glow.remove();
-const GDIV = lowPower ? 6 : 4, canvasBlur = !!gg && 'filter' in gg; /* safari has no canvas filter: blur the element instead */
-if (gg && !canvasBlur) { if (lowPower) { gg = null; glow.remove(); } else glow.style.filter = 'blur(7px)'; } /* css blur on a live canvas is a slow path on older webkit: phones without canvas filter get no bloom at all */
+const GDIV = lowPower ? 6 : 4, canvasBlur = !!gg && 'filter' in gg; 
+/* R9: no canvas filter (safari): the halo comes from a second, much smaller copy drawn back over the first, so a phone blooms too */
+if (gg && !canvasBlur && !ATLAS) { if (lowPower) { gg = null; glow.remove(); } else glow.style.filter = 'blur(7px)'; }
+const GT = gg && ATLAS ? document.createElement('canvas') : null, gt = GT ? GT.getContext('2d') : null; if (gt) { gt.imageSmoothingEnabled = true; gg.imageSmoothingEnabled = true; }
+/* R9: a static nebula between the field and the overlay: depth for the print to sit on. css only; the field's pixels are untouched */
+if (ATLAS && !NOGLYPH) {
+  const st = document.createElement('style'); st.textContent = '#neb{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;opacity:.9;background:radial-gradient(38vmax 30vmax at 28% 34%,rgba(120,92,255,.12),transparent 70%),radial-gradient(34vmax 26vmax at 74% 62%,rgba(40,190,214,.09),transparent 70%),radial-gradient(26vmax 22vmax at 60% 22%,rgba(255,92,170,.08),transparent 70%),radial-gradient(30vmax 24vmax at 20% 80%,rgba(255,176,86,.045),transparent 70%)}@media (forced-colors:active){#neb{display:none}}';
+  document.head.appendChild(st); const nb = document.createElement('div'); nb.id = 'neb'; nb.setAttribute('aria-hidden', 'true'); (glow || field).after(nb);
+}
 /* pointer: dots part around it, a press leaves a ripple */
 const PT = { x: -999, y: -999, on: false, ripples: [] };
 addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' || PT.down) { PT.x = e.clientX; PT.y = e.clientY; PT.on = true; PT.last = performance.now(); } }, { passive: true });
@@ -346,7 +359,7 @@ function resize() {
   ODPR = devicePixelRatio || 1; og.setTransform(ODPR, 0, 0, ODPR, 0, 0);
   img = fg.createImageData(PW, PH); buf32 = new Uint32Array(img.data.buffer);
   if (ATLAS) { const q = ODPR / DPR; field.style.imageRendering = q >= 2 && Math.abs(q - Math.round(q)) < 1e-6 ? 'pixelated' : ''; } /* binary glyph masks stay crisp on a 3x phone */
-  if (gg) { glow.width = Math.max(2, (PW / GDIV) | 0); glow.height = Math.max(2, (PH / GDIV) | 0); }
+  if (gg) { glow.width = Math.max(2, (PW / GDIV) | 0); glow.height = Math.max(2, (PH / GDIV) | 0); if (GT) { GT.width = Math.max(2, (glow.width / 4) | 0); GT.height = Math.max(2, (glow.height / 4) | 0); } }
   if (ATLAS) { gfConfigure(); skyAtlas(); SKY.room = -1; }
   /* atlas: this re-enter must not re-home the camera; ATL.reenter tells the camera to re-apply its stored pose (§1.5) */
   if (ATLAS) ATL.reenter = true;
@@ -829,7 +842,7 @@ function drawField(t, bands) {
   if (SKY.at) drawSky(buf32, t, glyphOn ? nIn : null, gx0, gy0, invCw, invCh, cols, rows); /* after the dots, so it knows where they are; the glyphs land over it */
   if (glyphOn) { try { GF.render(buf32, PW, PH, t, { reduced, twinkle: !reduced && ATL.gov.tier < 4 && settingOn('twinkle') && roomGlyph().twinkle !== false, edges: ATL.gov.tier < 4, occN: on, lines: LINES, gain: FLS.gain }); } catch (e) { if (!drawField.warned) { drawField.warned = 1; console.warn('GF.render', e); } } }
   fg.putImageData(img, 0, 0);
-  if (gg && !glowOff) { glow.style.opacity = (0.72 + Math.min(0.28, bands.mid * 0.9)).toFixed(3); gg.globalCompositeOperation = 'copy'; if (canvasBlur) gg.filter = 'blur(2px)'; gg.drawImage(field, 0, 0, glow.width, glow.height); if (canvasBlur) gg.filter = 'none'; gg.globalCompositeOperation = 'difference'; gg.fillStyle = '#0a0118'; gg.fillRect(0, 0, glow.width, glow.height); /* take the background back out, so only the dots bloom */ }
+  if (gg && !glowOff) { glow.style.opacity = (0.72 + Math.min(0.28, bands.mid * 0.9)).toFixed(3); gg.globalCompositeOperation = 'copy'; if (canvasBlur) gg.filter = 'blur(2px)'; gg.drawImage(field, 0, 0, glow.width, glow.height); if (canvasBlur) gg.filter = 'none'; gg.globalCompositeOperation = 'difference'; gg.fillStyle = '#0a0118'; gg.fillRect(0, 0, glow.width, glow.height); if (GT) { gt.globalCompositeOperation = 'copy'; gt.drawImage(glow, 0, 0, GT.width, GT.height); gg.globalCompositeOperation = 'lighter'; gg.globalAlpha = cols > 0 ? 0.2 + 0.55 * Math.max(0, 1 - 2.2 * on / (cols * rows)) : 0.7; gg.drawImage(GT, 0, 0, glow.width, glow.height); gg.globalAlpha = 1; } /* take the background back out, so only the dots bloom */ }
 }
 
 /* ------------------------------------------------------------------ audio */
@@ -839,7 +852,12 @@ function drawField(t, bands) {
    pointerdown: activation comes with the touch's pointerup/touchend) leaves the context suspended, and the next gesture
    tries again; the beds start the moment the context reports running (settle) */
 const A = {
-  ac: null, gain: null, an: null, els: [], srcs: [], g: [], cur: -1, want: null, on: false, muted: false, ducked: false, fft: null, primed: [false, false], away: false,
+  ac: null, gain: null, an: null, els: [], srcs: [], g: [], cur: -1, want: null, on: false, muted: false, fft: null, primed: [false, false], away: false,
+  /* R10 the arbiter: one owner of the speakers. 'off' = the bed; 'armed' = a clip was asked for and its player is ready
+     (the bed waits at -24 dB); 'hot' = the clip is playing or starting (the bed is silent, its decks pause, no interface
+     tone sounds). post.js sets it; only post.js ends 'hot' (a paused report, a failure, the dock closing) */
+  clipState: 'off', hotT: 0, keyHold: 0, keyT: 0,
+  get ducked() { return this.clipState !== 'off'; },
   unlock() {
     if (this.ac) { this.resume(); this.prime(); this.settle(); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
@@ -849,7 +867,9 @@ const A = {
     /* everything leaves through one limiter. interface tones have their own bus, which ducks under a listening post too */
     this.lim = this.ac.createDynamicsCompressor(); this.lim.threshold.value = -6; this.lim.knee.value = 4; this.lim.ratio.value = 12; this.lim.attack.value = 0.003; this.lim.release.value = 0.2;
     this.sfx = this.ac.createGain(); this.sfx.gain.value = 1;
-    this.gain.connect(this.lp); this.lp.connect(this.an); this.sfx.connect(this.an); this.an.connect(this.lim); this.lim.connect(this.ac.destination);
+    /* R10: unpitched sound (the flight's whoosh) has its own bus: it is held under a clip but not through a change of key */
+    this.nfx = this.ac.createGain(); this.nfx.gain.value = 1;
+    this.gain.connect(this.lp); this.lp.connect(this.an); this.sfx.connect(this.an); this.nfx.connect(this.an); this.an.connect(this.lim); this.lim.connect(this.ac.destination);
     this.ac.addEventListener('statechange', () => this.settle());
     for (let k = 0; k < 2; k++) {
       const el = new Audio(); el.preload = 'auto'; el.loop = true;
@@ -887,36 +907,86 @@ const A = {
      over 1.5 s; both ramps are linear in dB, so neither end is heard as a step */
   level() {
     if (!this.gain) return;
-    const t = this.ac.currentTime, gp = this.gain.gain, want = this.muted ? 0 : this.ducked ? BED * DUCK : BED, v = gp.value;
+    const hot = this.clipState === 'hot', t = this.ac.currentTime, gp = this.gain.gain, want = this.muted || hot ? 0 : this.clipState === 'armed' ? BED * DUCK : BED, v = gp.value;
     gp.cancelScheduledValues(t); gp.setValueAtTime(v, t);
-    if (!this.muted && v > 1e-4 && Math.abs(v - want) > 1e-4) gp.exponentialRampToValueAtTime(want, t + (want < v ? 0.3 : 1.5));
+    /* R10: a clip owns the speakers outright: the bed goes to a true zero in 250 ms (-24 dB was still audible under a quiet
+       clip), and back from zero it rises on the equal-power curve over 1.5 s */
+    if (hot) gp.linearRampToValueAtTime(0, t + 0.25);
+    else if (!this.muted && v <= 1e-4 && this.wasHot) curve(gp, t + 0.01, 1.5, true, want);
+    else if (!this.muted && v > 1e-4 && Math.abs(v - want) > 1e-4) gp.exponentialRampToValueAtTime(want, t + (want < v ? 0.3 : 1.5));
     else gp.setTargetAtTime(want, t, 0.25);
-    this.sfx.gain.setTargetAtTime(this.muted ? 0 : this.ducked ? 0.2 : 1, t, 0.1);
+    this.wasHot = false;
+    this.buses();
   },
-  /* a phone pauses <audio> when the tab goes to the background and does not start it again by itself */
-  rearm() { if (this.cur >= 0 && !this.muted && this.els[this.cur].paused) this.els[this.cur].play().catch(() => {}); },
+  /* the tone bus: silent when muted, under a playing clip, and while two beds in different keys overlap (a tone snapped to
+     the incoming key would rub against the outgoing one); quiet under an armed clip. the noise bus only minds the clip */
+  buses() {
+    if (!this.sfx) return;
+    const t = this.ac.currentTime, hot = this.clipState === 'hot', hold = t < this.keyHold - 0.02;
+    this.sfx.gain.setTargetAtTime(this.muted || hot || hold ? 0 : this.clipState === 'armed' ? 0.2 : 1, t, hot || hold ? 0.03 : 0.1);
+    this.nfx.gain.setTargetAtTime(this.muted || hot ? 0 : 1, t, 0.05);
+  },
+  holdKeys(sec) {
+    if (!this.ac) return;
+    this.keyHold = Math.max(this.keyHold, this.ac.currentTime + sec); this.buses();
+    clearTimeout(this.keyT); this.keyT = setTimeout(() => this.buses(), (this.keyHold - this.ac.currentTime) * 1000 + 40);
+  },
+  /* R10: 'off' | 'armed' | 'hot'. hot pauses both decks once the bed has reached zero; leaving it starts the current deck
+     again where it stopped and lets the bed rise */
+  clip(st) {
+    st = st === 'hot' || st === 'armed' ? st : 'off';
+    if (st === this.clipState) return;
+    const was = this.clipState; this.clipState = st; clearTimeout(this.hotT);
+    if (st === 'hot') this.hotT = setTimeout(() => { if (this.clipState === 'hot') this.els.forEach((e, k) => { if (!e.paused) { this.keep(k); e.pause(); } }); }, 320);
+    else if (was === 'hot') { this.wasHot = true; this.rearm(); }
+    this.level(); audioChanged();
+  },
+  /* a phone pauses <audio> when the tab goes to the background and does not start it again by itself. never under a clip */
+  rearm() { if (this.cur >= 0 && !this.muted && this.clipState !== 'hot' && this.els[this.cur].paused) this.els[this.cur].play().catch(() => {}); },
+  /* where each bed was when its deck let go of it, so a return picks it up there (R10) */
+  keep(k) { const e = this.els[k]; if (e && e.dataset.t && e.currentTime > 0) LAST[e.dataset.t] = { pos: e.currentTime, at: performance.now() }; },
   /* gen[k] goes up every time deck k is handed a new track, so a timer or event from an older request can tell it lost */
   gen: [0, 0], reqT: -1e9, coT: 0,
-  play(track, xf = 0.9) {
+  /* xf (make.js passes it: 0.6 same key, 0.9 near, 1.8 far) sets the kind of change; a room change passes none and the
+     kind comes from the keys of the bed sounding now and the one asked for (bedRel) */
+  play(track, xf) {
     this.want = track; this.wantXf = xf; if (!this.on || !track) return;
     if (this.cur >= 0 && this.els[this.cur].dataset.t === track) return;
     const now = performance.now(), busy = now - this.reqT < 350 || this.coT; this.reqT = now;
     /* a burst of room changes (held keys, a dot, a kiosk handover) starts only the bed it ends on */
     if (busy) { clearTimeout(this.coT); this.coT = setTimeout(() => { this.coT = 0; this.commit(this.want, this.wantXf); }, 350); return; }
-    return this.commit(track, xf) || fadeLen(xf);
+    return this.commit(track, xf) || fadeLen(xf || 0.9);
   },
   commit(track, xf) {
     if (!track || (this.cur >= 0 && this.els[this.cur].dataset.t === track)) return;
-    /* the new bed goes on whichever deck is quieter; the louder one holds where it is and becomes the outgoing bed */
-    let nx = 0, old = -1;
-    if (this.cur >= 0) { const a = this.cur, b = 1 - a; nx = this.g[a].gain.value < this.g[b].gain.value ? a : b; old = 1 - nx; }
-    const el = this.els[nx], g = this.g[nx].gain, gen = ++this.gen[nx], t = this.ac.currentTime, L = fadeLen(xf);
+    const from = this.cur >= 0 ? this.els[this.cur].dataset.t : '', rel = !from ? 'first' : xf > 0 ? (xf <= 0.6 ? 'same' : xf <= 0.9 ? 'near' : 'far') : bedRel(from, track);
+    const T = shape(rel, from, track);
+    /* R10: a deck that still holds this bed (a quick way back) turns round where it is: no reload, no restart from 0 */
+    let nx = this.els.findIndex((e) => e.dataset.t === track), old = -1;
+    const kept = nx >= 0;
+    if (!kept) { nx = 0; if (this.cur >= 0) { const a = this.cur, b = 1 - a; nx = this.g[a].gain.value < this.g[b].gain.value ? a : b; } }
+    if (this.cur >= 0) old = 1 - nx;
+    const el = this.els[nx], g = this.g[nx].gain, gen = ++this.gen[nx], t = this.ac.currentTime;
+    if (!kept) this.keep(nx); /* the bed this deck is giving up, before it is renamed */
+    let loaded = false;
     if (old >= 0) hold(this.g[old].gain, t);
+    /* the two beds' keys differ: interface tones wait until the outgoing one is gone */
+    if (T.hold > 0) this.holdKeys(T.hold);
+    /* under a playing clip nothing is heard, so the change is made at once and silently: the new bed waits, paused, at
+       full deck level for the clip to end */
+    if (this.clipState === 'hot') {
+      if (old >= 0) { this.keep(old); const og = this.g[old].gain; og.cancelScheduledValues(t); og.setValueAtTime(0, t); this.els[old].pause(); }
+      if (!kept) this.load(el, track); else el.pause();
+      g.cancelScheduledValues(t); g.setValueAtTime(1, t); el.dataset.t = track; this.cur = nx;
+      return T.total;
+    }
     /* the deck being reused may still be sounding: swapping its src while audible is a click, so take it to silence
        first, no steeper than 0.0125 of full level per 10 ms */
-    const hv = g.value, hot = hv > 0.001, out = hot ? Math.max(0.04, hv * 0.8) : 0;
-    g.cancelScheduledValues(t); g.setValueAtTime(hot ? hv : 0, t); if (hot) g.linearRampToValueAtTime(0, t + out);
+    const hv = g.value, loud = !kept && hv > 0.001, out = loud ? Math.max(0.04, hv * 0.8) : 0;
+    if (!kept) { g.cancelScheduledValues(t); g.setValueAtTime(loud ? hv : 0, t); if (loud) g.linearRampToValueAtTime(0, t + out); }
     el.dataset.t = track; this.cur = nx;
+    /* far keys: the outgoing bed leaves now, over about a bar, and the new one waits through a beat of silence */
+    if (rel === 'far' && old >= 0) { curve(this.g[old].gain, t + 0.01, T.out, false); this.park(old, this.gen[old], T.out * 1000 + 250); }
     const start = () => {
       if (this.gen[nx] !== gen) return;
       let fb = 0, done = false;
@@ -925,31 +995,46 @@ const A = {
         if (done) return; done = true; clearTimeout(fb); el.removeEventListener('playing', fade);
         if (this.gen[nx] !== gen || this.cur !== nx) return;
         /* equal power: in = sin, out = cos over the same span, so the two beds sum to constant loudness with no dip in
-           the middle, and the outgoing one ends at exactly zero before it is paused */
+           the middle, and the outgoing one ends at exactly zero before it is paused. a two-step change staggers them */
         const t2 = this.ac.currentTime + 0.01;
-        curve(g, t2, L, true);
-        if (old >= 0) { curve(this.g[old].gain, t2, L, false); this.park(old, this.gen[old], L * 1000 + 250); }
+        curve(g, t2 + T.delay, T.inL, true);
+        if (old >= 0 && rel !== 'far') { curve(this.g[old].gain, t2, T.out, false); this.park(old, this.gen[old], T.out * 1000 + 250); }
       };
+      if (!kept && !loaded) this.load(el, track);
+      /* a kept deck that is still running has nothing to wait for */
+      if (kept && !el.paused) { fade(); return; }
       el.addEventListener('playing', fade); fb = setTimeout(fade, 1500);
-      el.src = 'audio/bed/' + track + '.mp3'; el.currentTime = 0;
-      el.play().catch(() => { const again = () => { removeEventListener('pointerdown', again); if (this.cur === nx && this.gen[nx] === gen) el.play().catch(() => {}); }; addEventListener('pointerdown', again, { once: true }); });
+      if (this.clipState === 'hot') { done = true; clearTimeout(fb); el.removeEventListener('playing', fade); g.cancelScheduledValues(this.ac.currentTime); g.setValueAtTime(1, this.ac.currentTime); return; }
+      el.play().catch(() => { const again = () => { removeEventListener('pointerdown', again); if (this.cur === nx && this.gen[nx] === gen && this.clipState !== 'hot') el.play().catch(() => {}); }; addEventListener('pointerdown', again, { once: true }); });
     };
-    if (hot) setTimeout(start, out * 1000 + 30); else start();
-    return L;
+    /* far: the new bed is loaded now (so it is ready) and started after the outgoing bar and the beat of silence */
+    if (rel === 'far' && old >= 0) { if (!kept && !loud) { this.load(el, track); loaded = true; } setTimeout(() => { if (this.gen[nx] === gen) start(); }, (T.out + T.gap) * 1000); }
+    else if (loud) setTimeout(start, out * 1000 + 30); else start();
+    return T.total;
+  },
+  /* hand a deck a bed, at the place it last left off (within ten minutes) or at its mix-in point, on its own beat grid */
+  load(el, track) {
+    const want = 'audio/bed/' + track + '.mp3';
+    const fresh = !el.src || el.src.indexOf(want) < 0;
+    if (fresh) el.src = want;
+    const pos = resumeAt(track), seek = () => { try { if (Math.abs(el.currentTime - pos) > 0.05) el.currentTime = pos; } catch (e) {} };
+    /* a new src still reports the old file's readyState until its own metadata arrives, so a seek now would land on the
+       old file and be lost: a fresh load seeks on its metadata */
+    if (fresh || el.readyState < 1) el.addEventListener('loadedmetadata', seek, { once: true }); else seek();
   },
   /* pause a deck once it is silent, and only if nobody has handed it a new track since */
   park(k, gen, ms) {
     setTimeout(() => {
       if (this.gen[k] !== gen || this.cur === k) return;
       if (this.g[k].gain.value > 0.001) { this.park(k, gen, 300); return; }
-      this.els[k].pause();
+      this.keep(k); this.els[k].pause();
     }, ms);
   },
   mute(m) { this.muted = m; this.level(); audioChanged(); },
   /* interface tones: D minor pentatonic, quiet, skipped when muted. step 0 = D4, five steps an octave.
      each tone is moved to the nearest one that is also in the key of the bed that is playing (see inKey below) */
   note(step, o = {}) {
-    if (!this.ac || this.muted || !this.on) return;
+    if (!this.ac || this.muted || !this.on || this.clipState === 'hot') return;
     const SC = [0, 3, 5, 7, 10], oct = Math.floor(step / 5), semi = snap(SC[((step % 5) + 5) % 5] + 12 * oct, this.bedKey());
     const t = this.ac.currentTime + (o.at || 0), osc = this.ac.createOscillator(), g = this.ac.createGain(), dur = o.dur || 0.5;
     osc.type = o.type || 'sine'; osc.frequency.value = 293.66 * Math.pow(2, semi / 12);
@@ -960,7 +1045,7 @@ const A = {
   pitches() { return inKey(this.bedKey()); },
   bedKey() { return this.cur >= 0 && KEYS ? KEYS[this.els[this.cur].dataset.t] || null : null; },
   /* the embed repeats its state several times a second: only a change restarts the ramp, so a return is never stretched */
-  duck(d) { d = !!d; if (d === this.ducked) return; this.ducked = d; this.level(); },
+  duck(d) { if (d) { if (this.clipState === 'off') this.clip('armed'); } else if (this.clipState === 'armed') this.clip('off'); },
   /* 0 = open, 1 = distant (the graveyard plays its track from the next room over) */
   distant(k) { if (!this.lp) { this.wantDistant = k; return; } this.lp.frequency.setTargetAtTime(k > 0 ? 20000 * Math.pow(0.03, k) : 20000, this.ac.currentTime, 0.5); },
   bands() {
@@ -975,14 +1060,14 @@ const A = {
    reduced motion (a flight is a jump there) */
 let NOISE = null;
 A.whoosh = function (sec) {
-  if (!this.ac || this.muted || !this.on || reduced || REC.on || !(sec > 0)) return;
+  if (!this.ac || this.muted || !this.on || reduced || REC.on || !(sec > 0) || this.clipState === 'hot') return;
   const ac = this.ac, d = clamp(sec, 0.3, 6), t = ac.currentTime + 0.01;
   if (!NOISE) { const len = ac.sampleRate * 2, b = ac.createBuffer(1, len, ac.sampleRate), ch = b.getChannelData(0); for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1; NOISE = b; }
   const src = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain();
   src.buffer = NOISE; src.loop = true; bp.type = 'bandpass'; bp.Q.value = 0.8;
   bp.frequency.setValueAtTime(320, t); bp.frequency.exponentialRampToValueAtTime(1400, t + d * 0.45); bp.frequency.exponentialRampToValueAtTime(420, t + d);
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.03, t + d * 0.45); g.gain.linearRampToValueAtTime(0, t + d);
-  src.connect(bp); bp.connect(g); g.connect(this.sfx); src.start(t); src.stop(t + d + 0.05);
+  src.connect(bp); bp.connect(g); g.connect(this.nfx || this.sfx); src.start(t); src.stop(t + d + 0.05);
 };
 /* R5 L1: the one hover voice (atlas/voice.js, about 6 KB) arrives on the first pointer move, key or touch. a tick asked
    for before it lands plays when it lands (only the newest one). API: R5/L1/API.md */
@@ -996,12 +1081,13 @@ function loadVoice() {
   return voiceP;
 }
 A.tick = function (target, o) {
+  if (target != null && this.clipState === 'hot') return undefined;
   if (VOICE) return VOICE.tick(target, o);
   voiceQ = target == null ? null : [target, o]; loadVoice(); return undefined;
 };
 /* R7D M7: a stop's own note (atlas/voice.js cue); loads the voice if a visitor reaches a stop before touching anything */
 A.cue = function (k, n, end) {
-  if (!this.ac || this.muted || !this.on) return;
+  if (!this.ac || this.muted || !this.on || this.clipState === 'hot') return;
   if (VOICE) { try { VOICE.cue(k, n, end); } catch (e) {} return; }
   loadVoice(); const q = [k, n, end]; voiceP && voiceP.then((v) => { if (v && v.cue) { try { v.cue(q[0], q[1], q[2]); } catch (e) {} } });
 };
@@ -1034,14 +1120,45 @@ const BED = 0.85, DUCK = 0.063; /* -24 dB */
 /* a crossfade's length follows the room change: same key 1.3 s, a neighbour 2 s, a long way round 4 s. make.js draws its
    blend line for xf * 2200 ms, so the two stay in step */
 function fadeLen(xf) { return Math.max(0.5, (xf || 0.9) * 2.2); }
+/* R10: how two beds relate, by the tones their keys share. a camelot number names one set of seven tones (nA and nB are
+   relatives, the same set); one step round the wheel changes one tone. so: 'same' key; 'near' = the same set or one tone
+   apart (relative, neighbour, or the diagonal n B to n-1 A); 'boost' = two steps; 'far' = three or more */
+function bedRel(a, b) {
+  const ka = KEYS && KEYS[a], kb = KEYS && KEYS[b];
+  if (!ka || !kb) return 'near';
+  if (ka === kb) return 'same';
+  const d = Math.abs(parseInt(ka, 10) - parseInt(kb, 10)) % 12, n = Math.min(d, 12 - d);
+  return n <= 1 ? 'near' : n === 2 ? 'boost' : 'far';
+}
+/* the shape of each change, in seconds. same key: an equal-power blend over 1.3 s. near: the same blend over 2 s. boost:
+   the outgoing bed starts down at once and the new one comes in 0.7 s later, so two keys two steps apart overlap only
+   low. far: the outgoing bed leaves over about a bar of its own tempo, a beat of silence (0.3 to 0.6 s), then the new bed
+   rises from its mix-in point over 0.9 s. hold = how long interface tones wait (until the outgoing bed is gone) */
+function shape(rel, from, to) {
+  const m = META && META[from + '.mp3'], bpm = m && m.bpm > 0 ? m.bpm : 110, beat = 60 / bpm;
+  if (rel === 'same') return { inL: 1.3, out: 1.3, delay: 0, gap: 0, hold: 0, total: 1.3 };
+  if (rel === 'near' || rel === 'first') { const sameSet = rel === 'first' || (KEYS && KEYS[from] && KEYS[to] && parseInt(KEYS[from], 10) === parseInt(KEYS[to], 10)); return { inL: 2, out: 2, delay: 0, gap: 0, hold: sameSet ? 0 : 2, total: 2 }; }
+  if (rel === 'boost') return { inL: 1.6, out: 2.2, delay: 0.7, gap: 0, hold: 2.2, total: 2.3 };
+  const out = clamp(4 * beat, 1.4, 2.4), gap = clamp(beat, 0.3, 0.6);
+  return { inL: 0.9, out, delay: 0, gap, hold: out + gap, total: out + gap + 0.9 };
+}
+/* where a bed starts: where it was left within the last ten minutes (not in its last 8 s), else its mix-in point; both
+   moved onto its own beat grid (bed_meta b0 + whole beats) so it enters on a beat */
+const LAST = {};
+function resumeAt(track) {
+  const m = META && META[track + '.mp3'], L = LAST[track];
+  let pos = L && performance.now() - L.at < 600000 && (!m || L.pos < m.dur - 8) ? L.pos : m && m.mixin > 0 && m.mixin < 12 ? m.mixin : 0;
+  if (m && m.bpm > 0 && pos > 0) { const b = 60 / m.bpm, k = Math.round((pos - m.b0) / b); pos = Math.max(0, m.b0 + k * b); }
+  return pos;
+}
 function hold(p, t) { const v = p.value; p.cancelScheduledValues(t); p.setValueAtTime(v, t); }
 /* a quarter sine from the param's current value, up to 1 or down to 0. 100 points a second: never more than 0.012 of
    full level between neighbours, and the last point is an exact zero */
-function curve(p, t, L, up) {
+function curve(p, t, L, up, top = 1) {
   const v = p.value, n = Math.max(64, Math.ceil(L * 100)), c = new Float32Array(n);
-  const a0 = up ? Math.asin(clamp(v, 0, 1)) : 0;
-  for (let i = 0; i < n; i++) { const u = i / (n - 1); c[i] = up ? Math.sin(a0 + (Math.PI / 2 - a0) * u) : v * Math.cos((Math.PI / 2) * u); }
-  c[n - 1] = up ? 1 : 0;
+  const a0 = up ? Math.asin(clamp(v / top, 0, 1)) : 0;
+  for (let i = 0; i < n; i++) { const u = i / (n - 1); c[i] = up ? top * Math.sin(a0 + (Math.PI / 2 - a0) * u) : v * Math.cos((Math.PI / 2) * u); }
+  c[n - 1] = up ? top : 0;
   p.cancelScheduledValues(t - 0.01); p.setValueAtTime(v, t - 0.01);
   /* firefox cannot cancel a value curve once it has begun (the next room change would throw), so there the same curve
      goes in as short straight ramps, which it can cancel */
@@ -1105,13 +1222,8 @@ let goK = -1, goT = 0;
 /* a jump of more than one room (a dot, home, end, walk it again): the scroll passes every room in between, and none of them
    should wake, fetch its track and go back to sleep in the same half second. only the destination is let in. */
 let jumpTo = -1, jumpT = 0, jumpTimer = 0, lastScroll = 0;
-/* camelot distance between two of my tracks decides how long the rooms dissolve into each other */
+/* camelot keys of my tracks (exhibit/data/tracks.json): bedRel() reads them to choose how two beds change over */
 let KEYS = null;
-function xfade(from, to) {
-  if (!KEYS || !from || !to || !KEYS[from] || !KEYS[to]) return 0.9;
-  const a = KEYS[from], b = KEYS[to], na = parseInt(a, 10), nb = parseInt(b, 10), same = a.slice(-1) === b.slice(-1), d = Math.min((na - nb + 12) % 12, (nb - na + 12) % 12);
-  return a === b ? 0.6 : (d === 0 || (same && d === 1)) ? 0.9 : 1.8;
-}
 const ctx = {
   /* a room that demonstrates itself has shown the visitor what to do: no idle hint after that */
   acted(id) { acted.add(id); clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on'); },
@@ -1428,7 +1540,7 @@ async function activateRoom(i, via, instant) {
   const trip = ATLAS && !!prev && !reduced && !instant && !rec, m0 = trip ? fieldMatrix() : null;
   if (ATLAS) { ATL.arrive = null; ATL.trip = null; }
   if (ATLAS) atlasPreEnter();
-  if (r.mod) { if (r.mod.track) A.play(r.mod.track, xfade(prev && prev.mod && prev.mod.track, r.mod.track)); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
+  if (r.mod) { if (r.mod.track) A.play(r.mod.track); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
   layMark();
   if (ATLAS) MORPH.hk = trip && !!(prev.mod && prev.mod.hueTrip);
   if (trip) stopTrip(m0, via, performance.now(), tripSec());
@@ -2048,9 +2160,13 @@ async function mountAtlas() {
     p.dataset.failed = 'chrome';
   }
   atlasReady = true; window.__exhibit.atlasReady = true; readyRes();
+  ATL.fieldMode = FIELD;
+  if (SLIME_ON) setTimeout(() => importRetry('./atlas/field.slime.js' + V).then((m) => { ATL.field = m.mount(ctx, deps); }).catch((e) => console.warn('field.slime', e)), 120);
   { const bf = document.getElementById('atlas-bootfail'); if (bf && !LOADFAIL.length && bf.dataset.failed !== 'chrome') bf.remove(); }
   /* every module learns where the visitor is standing (a stop may have been entered before they mounted) */
   const r = rooms[active]; if (r) { const ev = { i: active, id: r.id, prev: null, via: 'mount' }; STOPFNS.slice().forEach((f) => { try { f(ev); } catch (e) { console.warn('onStop', e); } }); }
+  /* the ink layer loads after the atlas is up (its own module, its own canvas); without WebGL2 or a half-float target it stays off */
+  if (INK_ON) setTimeout(() => importRetry('./atlas/field.ink.js' + V).then((m) => { ATL.ink = (m.mount || m.default.mount)(ctx, { P, rooms, reduced, lowPower, matrix: fieldMatrix, onGov: ATL.onGov }) || null; }).catch((e) => console.warn('field ink', e)), 300);
   if (KIOSK) { try { FAC.tour.play('grand', 0); } catch (e) { console.warn('kiosk', e); } } /* tour.js is the only autoplay driver in atlas mode (§1.10) */
 }
 /* R7 perf: the first stop is interactive before the atlas modules start loading (they would share a slow link and a busy main

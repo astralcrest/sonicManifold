@@ -47,7 +47,7 @@ function makeNoise(ac) {
   return buf;
 }
 export default {
-  id: 'wall', track: 'autotropic',
+  id: 'wall', track: 'tryin',
   ready: false, holding: false, r: 0, cx: 0, cy: 0, done: false, sorted: false, cell: 2, rows: 1, cols: 1, ox: 0, oy: 0, cap: 0,
   swellOn: false, swell: null,
   async mount(root, ctx) {

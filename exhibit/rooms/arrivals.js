@@ -46,7 +46,7 @@ const CSS = `@ .ar-hud{font:400 12px/1.45 var(--mono);color:var(--ink);--b:rgba(
 @media (forced-colors:active){@ .ar-hud,@ .ar-ls{border:1px solid CanvasText}@ [aria-pressed=true],@ .ar-hud button.ar-ok{forced-color-adjust:none;background:Highlight;color:HighlightText}}`.replace(/@ /g, 'html.atlas section[data-room="arrivals"] ');
 
 export default {
-id: 'arrivals', track: 'tryin', glyph: { edges: false }, angles: ANGLES, ladderNote: 'artist sizes are not play counts',
+id: 'arrivals', track: 'cant-resist-the-bite', glyph: { edges: false }, angles: ANGLES, ladderNote: 'artist sizes are not play counts',
 ready: false, L: 0, cur: 0, run: false, speed: 1, done: false, guess: false, pq: -1, sel: -1, hov: -1,
 names: null, lower: null, nodes: null, score: [0, 0, 0], tickT: 0, stT: 0, lastT: 0, anim: null, opt: -1, spK: 0,
 async mount(root, ctx) {
@@ -97,7 +97,7 @@ buildUI(root) {
  this.pt = hud.appendChild(el('div', 'ar-pt'));
  this.idle();
 },
-idle() { this.pt.textContent = ''; this.pt.appendChild(el('p', 'ar-hint', (this.ctx.coarse ? 'hold' : 'hover') + ' a glyph to hear it; ' + (this.ctx.coarse ? 'tap' : 'click') + ' to name it.')); },
+idle() { this.pt.textContent = ''; this.pt.appendChild(el('p', 'ar-hint', (this.ctx.coarse ? 'hold' : 'hover') + ' a glyph to hear it; ' + (this.ctx.coarse ? 'tap' : 'click') + ' to name it.' + (this.guess ? '' : ' guess turns it into a game: who played it first?'))); },
 layout(ctx) {
  const s = this.st = ctx.stage(), side = s.h < 340 && s.w > s.h * 1.25, cmp = side || s.w < 460 || s.h < 470;
  const hw = side ? Math.min(280, s.w * 0.5) : Math.min(s.w, 620), h = this.hud.style;

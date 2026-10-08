@@ -59,6 +59,18 @@ html.atlas .ai-caption.ai-cap-open .ai-cap-x::before{content:"\25B4"}
 html.atlas .ai-caption.ai-cap-typing .ai-cap-x{visibility:hidden}
 html.atlas .ai-caption.ai-cap-cut .ai-cap-ghost::after{content:"_\00a0\25BE"}
 html.atlas .ai-caption.ai-cap-open .ai-cap-ghost::after{content:"_\00a0\25B4"}
+/* R9 GUIDE: the mark was a bare ▾ nobody saw; it is now a small tab in the deck's own words ("the rest ▾", "fold ▴"),
+   and the ghost reserves its width the same way, so the box still has its final size before typing starts */
+html.atlas .ai-caption.ai-cap-cut .ai-cap-x,html.atlas .ai-caption.ai-cap-open .ai-cap-x{display:inline-block;margin-left:.8ch;padding:0 7px;border:1px solid rgba(134,203,254,.5);border-radius:9px;font:600 .8em/1.55 var(--mono);letter-spacing:.06em;font-style:normal;vertical-align:.08em;background:rgba(134,203,254,.08)}
+html.atlas .ai-caption.ai-cap-cut .ai-cap-x::before{content:"the rest \25BE"}
+html.atlas .ai-caption.ai-cap-open .ai-cap-x::before{content:"fold \25B4"}
+html.atlas .ai-caption.ai-cap-cut .ai-cap-ghost::after{content:"_\00a0the rest \25BE";padding-right:16px;font-size:.8em;letter-spacing:.06em}
+html.atlas .ai-caption.ai-cap-open .ai-cap-ghost::after{content:"_\00a0fold \25B4";padding-right:16px;font-size:.8em;letter-spacing:.06em}
+/* a 320 px screen has no room for the words without cutting the caption shorter; it keeps the bare mark, lit */
+@media (max-width:340px){html.atlas .ai-caption.ai-cap-cut .ai-cap-x,html.atlas .ai-caption.ai-cap-open .ai-cap-x{display:inline;margin-left:.6ch;padding:0;border:0;background:none;font:inherit;font-weight:700;letter-spacing:0}
+  html.atlas .ai-caption.ai-cap-cut .ai-cap-x::before{content:"\25BE"}html.atlas .ai-caption.ai-cap-open .ai-cap-x::before{content:"\25B4"}
+  html.atlas .ai-caption.ai-cap-cut .ai-cap-ghost::after{content:"_\00a0\25BE";padding-right:0;font-size:inherit;letter-spacing:0}html.atlas .ai-caption.ai-cap-open .ai-cap-ghost::after{content:"_\00a0\25B4";padding-right:0;font-size:inherit;letter-spacing:0}}
+@media (hover:hover){html.atlas .ai-caption.ai-cap-cut:hover .ai-cap-x,html.atlas .ai-caption.ai-cap-open:hover .ai-cap-x{background:rgba(134,203,254,.2);color:var(--ink)}}
 html.atlas .ai-caption.ai-cap-cut,html.atlas .ai-caption.ai-cap-open{cursor:pointer}
 /* R6 move 2, karaoke: while a caption types, the whole sentence waits dim underneath and the typed words light over it
    (the two layers share one layout). reduced motion never types; forced colours keep the plain caption */
@@ -533,3 +545,101 @@ html.atlas #atlas-fresh{position:fixed;z-index:60;left:50%;transform:translateX(
 html.atlas #atlas-fresh button{font:inherit;letter-spacing:inherit;color:var(--ice);background:none;border:0;min-height:44px;padding:0 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 html.atlas #atlas-fresh .af-x{color:var(--mute);min-width:44px;padding:0;border-left:1px solid rgba(134,203,254,.2);font-size:16px}
 html.atlas #atlas-fresh button:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
+
+/* R9 GUIDE: a long press never selects. the field, its names, the chrome and the room boxes are touch surfaces, not text;
+   the card (.wall), the ladder's prose, the unfold leaf, the sheets' prose and every field you type in stay selectable */
+html.atlas body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html.atlas section[data-room] .wall,html.atlas .al-cap,html.atlas .al-note,html.atlas .al-readout,html.atlas .uf-in,html.atlas .uf-t3,
+html.atlas .atlas-panel p,html.atlas .atlas-panel dd,html.atlas #label,html.atlas input,html.atlas textarea,html.atlas [contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+
+/* R9 GUIDE: the stop row is the deck's track counter: "a6 / 16" with a meter of every stop over it */
+html.atlas #atlas-info .ai-mrow-label .ai-trk{font-weight:700;color:var(--ice)}
+html.atlas #atlas-info .ai-mrow-label .ai-of{color:var(--mute);font-weight:500}
+html.atlas #atlas-info .ai-meter{position:absolute;left:0;right:6px;top:7px;height:2px;display:flex;gap:2px;pointer-events:none}
+html.atlas #atlas-info .ai-meter i{flex:1 1 0;min-width:2px;border-radius:1px;background:rgba(134,203,254,.2)}
+html.atlas #atlas-info .ai-meter i.past{background:rgba(134,203,254,.5)}
+html.atlas #atlas-info .ai-meter i.on{background:var(--mint);box-shadow:0 0 6px rgba(33,246,188,.75)}
+html.atlas #top .a-count{display:none}
+html.atlas.atlas-deck #top .a-count{display:inline-block;flex:none;margin:0 8px 0 2px;font:600 11px/32px var(--mono);letter-spacing:.06em;color:var(--ice);white-space:nowrap}
+
+/* R9 GUIDE: in the records sheet the same tracklist shows every stop, numbered and named, the one playing lit */
+html.atlas #atlas-tours .a-tracks.a-tracks-all{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px 10px;margin:0 0 14px;padding:0 0 12px;list-style:none;border-bottom:1px solid var(--ai-line);-webkit-mask-image:none;mask-image:none;overflow:visible}
+html.atlas #atlas-tours .a-tracks-all .a-rec{grid-column:1/-1;margin:0 0 4px;font:600 10px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ice)}
+html.atlas #atlas-tours .a-tracks-all button{display:flex;gap:8px;align-items:center;width:100%;min-height:44px;padding:6px 4px;background:none;border:0;border-radius:4px;text-align:left;font:500 12px/1.3 var(--mono);color:var(--mute);cursor:pointer}
+html.atlas #atlas-tours .a-tracks-all b{flex:0 0 3.2ch;font-weight:600;color:var(--ice)}
+html.atlas #atlas-tours .a-tracks-all span{color:var(--ink)}
+html.atlas #atlas-tours .a-tracks-all .on button{background:rgba(33,246,188,.1)}
+html.atlas #atlas-tours .a-tracks-all .on b,html.atlas #atlas-tours .a-tracks-all .on span{color:var(--mint)}
+html.atlas #atlas-tours .a-tracks-all button:hover{background:rgba(134,203,254,.08)}
+html.atlas #atlas-tours .a-tracks-all button:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
+
+/* R9 GUIDE: each room's own box carries its track on its top edge, like an index tab (chrome.js writes --ai-trk) */
+html.atlas{--ai-trk:none}
+html.atlas section[data-room].is-active :is(.ch-hud,.bl-hud,.ar-hud,.lp-hud,.wh-hud,.gd-card)::before{content:var(--ai-trk);position:absolute;z-index:1;top:0;left:12px;transform:translateY(-50%);padding:0 6px;border:1px solid var(--ai-line);border-radius:3px;background:#0a0118;font:600 9px/14px var(--mono);letter-spacing:.14em;color:var(--ice);white-space:pre;pointer-events:none;text-transform:none}
+
+/* R9 GUIDE: the coach. a glass card over the field, three lines with a moving glyph each, a fuse that burns down */
+html.atlas .ai-coach{position:fixed;z-index:40;box-sizing:border-box;width:min(340px,calc(100vw - 32px));padding:14px 16px 16px;border:1px solid rgba(134,203,254,.42);border-radius:14px;
+  background:radial-gradient(120% 140% at 0 0,rgba(134,203,254,.13),transparent 60%),rgba(10,1,24,.88);-webkit-backdrop-filter:blur(8px) saturate(1.3);backdrop-filter:blur(8px) saturate(1.3);
+  box-shadow:0 0 0 1px rgba(0,0,0,.45),0 24px 60px rgba(0,0,0,.6),0 0 42px rgba(134,203,254,.16);pointer-events:none;overflow:hidden;
+  opacity:0;transform:translateY(10px) scale(.97);transition:opacity .35s ease-out,transform .45s cubic-bezier(.2,.9,.25,1.2)}
+html.atlas .ai-coach.on{opacity:1;transform:none}
+html.atlas .ai-coach.off{opacity:0;transform:translateY(-6px) scale(.98);transition:opacity .38s ease-in,transform .38s ease-in}
+html.atlas .ai-coach p{margin:0}
+html.atlas .ai-coach-k{font:600 10px/1.2 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ice);margin-bottom:10px!important}
+html.atlas .ai-coach-l{display:flex;align-items:center;gap:12px;min-height:30px;font:500 13px/1.4 var(--mono);color:var(--ink);opacity:0;transform:translateX(-6px)}
+html.atlas .ai-coach.on .ai-coach-l{animation:ai-coach-in .45s ease-out forwards;animation-delay:calc(.15s + var(--i) * .35s)}
+html.atlas .ai-coach-g{position:relative;flex:0 0 22px;height:22px;border-radius:50%}
+html.atlas .ai-coach-g.g0{background:radial-gradient(circle,var(--mint) 0 3px,transparent 4px)}
+html.atlas .ai-coach-g.g0::after{content:"";position:absolute;inset:3px;border-radius:50%;border:1.5px solid var(--mint);animation:ai-coach-ping 1.4s ease-out infinite}
+html.atlas .ai-coach-g.g1{background:conic-gradient(var(--orchid) var(--ai-hold,0%),rgba(189,166,255,.18) 0);-webkit-mask:radial-gradient(circle,transparent 6px,#000 7px);mask:radial-gradient(circle,transparent 6px,#000 7px);animation:ai-coach-hold 1.8s linear infinite}
+html.atlas .ai-coach-g.g2::before{content:"›";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 18px/1 var(--mono);color:var(--ice);animation:ai-coach-nudge 1.1s ease-in-out infinite}
+html.atlas .ai-coach-bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--mint),var(--ice),var(--orchid));transform-origin:left;transform:scaleX(1)}
+html.atlas .ai-coach.on .ai-coach-bar{animation:ai-coach-fuse 6s linear forwards}
+@property --ai-hold{syntax:'<percentage>';inherits:false;initial-value:0%}
+@keyframes ai-coach-in{to{opacity:1;transform:none}}
+@keyframes ai-coach-ping{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.5);opacity:0}}
+@keyframes ai-coach-hold{0%{--ai-hold:0%}70%,100%{--ai-hold:100%}}
+@keyframes ai-coach-nudge{0%,100%{transform:translateX(-3px)}50%{transform:translateX(4px)}}
+@keyframes ai-coach-fuse{to{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){
+  html.atlas .ai-coach,html.atlas .ai-coach.off{transform:none;transition:opacity .2s linear}
+  html.atlas .ai-coach.on .ai-coach-l{animation:none;opacity:1;transform:none}
+  html.atlas .ai-coach-g::after,html.atlas .ai-coach-g::before,html.atlas .ai-coach-g.g1{animation:none}
+  html.atlas .ai-coach-g.g1{--ai-hold:70%}
+  html.atlas .ai-coach.on .ai-coach-bar{animation:none}
+}
+@media (forced-colors:active){
+  html.atlas .ai-coach{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}
+  html.atlas .ai-coach-l,html.atlas .ai-coach-k{color:CanvasText}
+  html.atlas section[data-room].is-active :is(.ch-hud,.bl-hud,.ar-hud,.lp-hud,.wh-hud,.gd-card)::before{forced-color-adjust:none;background:Canvas;color:CanvasText;border-color:CanvasText}
+}
+html.kiosk .ai-coach{display:none}
+
+/* R9 GUIDE (audit P0 3, P2 21): the "how to read" key strip (unfold.js .uf-ks) opened over the room header and the top
+   stars on a phone and over the deck strip on the desk. a phone sets it in the lower band, right above the room line
+   (chrome.js writes --ai-infob), over the caption for the few seconds it shows; the desk sets it in the stage's empty top-right corner; a phone on its side, where any
+   spot covers the room, does without it (the "how to read" tab still opens the full key). css only: unfold.js is at budget */
+@media (orientation:portrait){html.atlas:not(.atlas-deck) .uf-ks{left:8px!important;right:8px!important;top:auto!important;bottom:calc(var(--ai-infob,160px) + 6px)!important;max-width:none;padding:6px 10px}}
+html.atlas.atlas-deck .uf-ks{left:auto!important;right:24px!important;top:24px!important;bottom:auto!important}
+@media (orientation:landscape) and (max-height:500px){html.atlas:not(.atlas-deck) .uf-ks{display:none}}
+
+/* R9 GUIDE (audit P0 2, H3): the hint slot (the toast, the onboarding line, the coach) never draws over an open
+   listening post. hook: html.exd-open, set by post.js while #exdock is open; the :has() rule covers a post.js that
+   does not set it yet */
+html.atlas.exd-open #atlas-toast,html.atlas.exd-open #atlas-info #atlas-onboard,html.atlas.exd-open .ai-coach{visibility:hidden!important;opacity:0!important}
+html.atlas:has(#exdock:not(.is-off):not([hidden])) #atlas-toast,html.atlas:has(#exdock:not(.is-off):not([hidden])) .ai-coach{visibility:hidden!important;opacity:0!important}
+
+/* R9 GUIDE (audit P1 12, H7): a ladder chip with no words was a bare dot in an empty pill (bail, chain, loop); no words, no chip */
+html.atlas .atlas-ladder-chip:has(.al-chip-txt:empty){visibility:hidden;pointer-events:none}
+
+/* R9 GUIDE (audit P1 8): a track reads as its place on the record: the number counts 1 to 16 straight through, like the
+   counter, and the side letter is set small and dim beside it (the text stays "b10" for a screen reader and the gates) */
+html.atlas .a-tracks b small{font-size:.78em;opacity:.55;margin-right:1px;font-weight:500}
+@media (forced-colors:active){
+  html.atlas #atlas-tours .a-tracks-all :is(.a-rec,b,small,span){forced-color-adjust:none;color:CanvasText;background-color:Canvas}
+  html.atlas #atlas-tours .a-tracks-all .on :is(b,small,span),html.atlas #atlas-tours .a-tracks-all .on button{color:HighlightText;background-color:Highlight}
+  html.atlas body #atlas-dock .d-row>[data-a="play"] .d-ic{color:CanvasText}
+  html.atlas .ai-caption .ai-cap-x{border-color:CanvasText;background:Canvas;color:CanvasText}
+}
+
+/* R10: the ink bath and the slime veins both speak through ctx.atlas.capFor (one caption per room; veins first) */

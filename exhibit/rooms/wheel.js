@@ -53,7 +53,7 @@ const CSS = `@ .wh-hud{position:absolute;box-sizing:border-box;padding:10px 12px
 @media print{@ .wh-play,@ .wh-rg{display:none}}`.replace(/@ /g, 'html.atlas section[data-room="wheel"] ');
 
 export default {
-  id: 'wheel', track: 'tryin', glyph: { edges: false }, angles: ANGLES, reticle: false,
+  id: 'wheel', track: 'save-her', glyph: { edges: false }, angles: ANGLES, reticle: false,
   /* the ladder prints no play count here: every bar is a share of runs, and the dots only fill the shapes */
   ladderNote: 'the bars are shares',
   ready: false, view: 'agg', r: 0, hov: -1, kb: -1, lit: -2, run: null, cnt: null, on: false, flash: -1e9, demoT: null, introT: 0,
@@ -293,7 +293,7 @@ export default {
     e.preventDefault(); e.stopPropagation(); this.stopDemo(); this.kbTo(b);
   },
   gestures(ctx) {
-    const at = (p, via, force) => { this.ptr = p.type || via; if (this.ready) this.setHov(this.barAt(p.sx, p.sy), ctx, via, force); };
+    const at = (p, via, force) => { this.ptr = p.type || via; this.touched = true; if (this.ready) this.setHov(this.barAt(p.sx, p.sy), ctx, via, force); };
     return {
       hover: (p) => at(p, 'mouse'),
       /* a lifted finger also "leaves": on touch the bar stays lit until the next press */
@@ -346,6 +346,20 @@ export default {
     if (G.ind) { g.textAlign = 'left'; g.fillStyle = 'rgba(216,210,234,.5)'; g.fillText('plays in a run', G.bx, G.yh); }
     const box = (b, a, lw) => { if (b < 0) return; const [x, y, ww, hh] = this.barRect(b); g.strokeStyle = 'rgba(134,203,254,' + a + ')'; g.lineWidth = lw; g.strokeRect(x - 3, y - 3, ww + 6, hh + 6); };
     box(pk, 0.95, 2); if (this.hov !== pk) box(this.hov, 0.9, 1.6);
+    /* R9: alive at rest. a slow scan crosses the skylines every few seconds, and until the first touch a ring on the
+       tallest bar says where to press (both still under reduced motion and a struggling governor) */
+    const calm = ctx.reduced || (ctx.atlas && ctx.atlas.gov && ctx.atlas.gov.tier >= 4);
+    if (!run && this.hov < 0 && !calm) {
+      const ph = (now % 5600) / 2000;
+      if (ph < 1) { const x = G.x0 + (x1 - G.x0) * ph, a = Math.sin(ph * Math.PI), y0 = hb - Math.max(...sh[0]) * G.U - 8, y1 = mb + Math.max(...sh[1]) * G.U + 8, gr = g.createLinearGradient(x - 22, 0, x + 22, 0);
+        gr.addColorStop(0, 'rgba(134,203,254,0)'); gr.addColorStop(0.5, 'rgba(134,203,254,' + (0.22 * a) + ')'); gr.addColorStop(1, 'rgba(134,203,254,0)');
+        g.fillStyle = gr; g.fillRect(x - 22, y0, 44, y1 - y0); const k = Math.floor((x - G.x0) / G.colW); if (k >= 0 && k < NB) { box(k, 0.5 * a, 1); box(NB + k, 0.5 * a, 1); } }
+    }
+    if (!this.touched) {
+      const [x, y, ww, hh] = this.barRect(0), cx = x + ww / 2, cy = y + Math.min(hh / 2, 40), q = calm ? 0.5 : (now % 1800) / 1800, r = 14 + 14 * q;
+      g.strokeStyle = 'rgba(134,203,254,' + (0.85 * (1 - q) + 0.1) + ')'; g.lineWidth = 1.5; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+      g.textAlign = 'left'; g.fillStyle = 'rgba(134,203,254,.95)'; g.fillText('press a bar', Math.min(cx + 32, x1 - 80), cy);
+    }
     g.restore();
   },
 

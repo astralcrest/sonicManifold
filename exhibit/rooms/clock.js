@@ -53,7 +53,7 @@ const CATS = [{ family: 'neutral' }, { family: 'tap' }, { family: 'shuffle' }, {
 const dbg = { on: false };
 
 export default {
-  id: 'clock', track: 'too-fiery-hot', ready: false, hour: 14, d: null, geo: null,
+  id: 'clock', track: 'cant-resist-the-bite', ready: false, hour: 14, d: null, geo: null,
   hrOf: null, drag: false, lastTick: 0, sweep: 0,
 
   async mount(root, ctx) {
@@ -125,7 +125,7 @@ export default {
     this.dial.addEventListener('pointerdown', (e) => {
       if (!this.d) return;
       this.stopDemo();
-      this.drag = true; this.dial.classList.add('grab');
+      this.drag = true; this.touched = true; this.dial.classList.add('grab');
       try { this.dial.setPointerCapture(e.pointerId); } catch (err) {}
       this.fromPointer(e, ctx);
     });
@@ -380,6 +380,21 @@ export default {
     gx.lineCap = 'butt';
     gx.fillStyle = '#c3e4ff';
     gx.beginPath(); gx.arc(cx + Math.cos(am) * rTip, cy + Math.sin(am) * rTip, 3.2 * k, 0, TAU); gx.fill();
+    /* R9: alive at rest. a glint walks the rim once every nine seconds and, until the first touch, a ring at the hand's tip
+       says what to do with it (both held still under reduced motion and a struggling governor) */
+    const calm = ctx.reduced || (ctx.atlas && ctx.atlas.gov && ctx.atlas.gov.tier >= 4), now = performance.now();
+    if (!calm && !this.drag && !this.sweep) {
+      const ga = ((now % 9000) / 9000) * TAU - TAU / 4, gr = gx.createRadialGradient(cx + Math.cos(ga) * (outer + 5), cy + Math.sin(ga) * (outer + 5), 0, cx + Math.cos(ga) * (outer + 5), cy + Math.sin(ga) * (outer + 5), 18 * k);
+      gr.addColorStop(0, 'rgba(195,228,255,.55)'); gr.addColorStop(1, 'rgba(134,203,254,0)');
+      gx.strokeStyle = gr; gx.lineWidth = 3 * k; gx.beginPath(); gx.arc(cx, cy, outer + 5, ga - 0.22, ga + 0.05); gx.stroke();
+    }
+    if (!this.touched && this.A) {
+      const tx = cx + Math.cos(am) * rTip, ty = cy + Math.sin(am) * rTip, f = calm ? 0.5 : (now % 1800) / 1800, left = Math.cos(am) < 0;
+      gx.strokeStyle = 'rgba(134,203,254,' + (0.9 - 0.75 * f) + ')'; gx.lineWidth = 1.5 * k; gx.beginPath(); gx.arc(tx, ty, (9 + 14 * f) * k, 0, TAU); gx.stroke();
+      gx.font = '600 ' + (11 * k) + 'px "JetBrains Mono", ui-monospace, Menlo, monospace'; gx.fillStyle = 'rgba(134,203,254,.95)';
+      const tw = gx.measureText('drag the hand').width, S = g.s, x = left ? Math.max(tx - 26 * k, S.x + 4 + tw) : Math.min(tx + 26 * k, S.x + S.w - 4 - tw), lo = left ? x > tx - 16 * k : x < tx + 16 * k;
+      gx.textAlign = left ? 'right' : 'left'; gx.fillText('drag the hand', x, ty + (lo ? 34 : 14) * k);
+    }
 
     gx.textAlign = 'left'; gx.textBaseline = 'alphabetic';
   },
@@ -536,10 +551,12 @@ export default {
     const inner = (h, f) => { const a = ((h + 0.5) / 24) * TAU - TAU / 4, r = g.rIn * f; return [g.cx + Math.cos(a) * r, g.cy + Math.sin(a) * r]; };
     const b = inner(hb, 0.86);
     items.push({ id: 'busiest', text: 'busiest hour', kind: 'obj', x: b[0], y: b[1], r: 0, pri: 9, go: (c) => { c.angle.set('busiest', { via: 'tap' }); } });
-    const q = this.wedge(19, 0.02);
-    items.push({ id: 'band2', text: 'the queue', kind: 'region', x: q[0], y: q[1] + 2, r: 0, pri: 6 });
+    /* R9: THE QUEUE left the hole (the readout's keepout pushed it onto the evening ring on a phone) for the thin
+       early-morning side with the other two band names, anchored in the middle of its own band at 03:00 */
+    const c = this.d, q = this.wedge(3, c.served[3] / (this.tot[3] || 1) / 2);
+    items.push({ id: 'band2', text: 'the queue', kind: 'region', x: q[0] + 2, y: q[1], r: 0, pri: 6 });
     /* each anchored on the outer edge of its own band, where it meets the next band out (or the dial's rim) */
-    const c = this.d, f2 = (c.served[5] + c.shuffle[5]) / (this.tot[5] || 1), sh = this.wedge(5, f2);
+    const f2 = (c.served[5] + c.shuffle[5]) / (this.tot[5] || 1), sh = this.wedge(5, f2);
     items.push({ id: 'band1', text: 'shuffle', kind: 'region', x: sh[0] + 2, y: sh[1], r: 0, pri: 5 });
     /* the rim at 07:00 when the name fits beside the dial; on a narrow phone, the rim just past midnight, where the
        name runs along the top of the ring instead (region text measures ~8.2 px a character at 11 px, .14em) */

@@ -37,6 +37,15 @@ export const COPY = {
     // R6 M9: the hint leads with sound
     onboarding: 'hover to hear · hold to loop · drag to turn · / to search the log',
     onboardingTouch: 'touch to hear · hold to loop · drag to turn',
+    // R9 GUIDE: the track counter (stop row, deck, room boxes) and the first-visit coach, once a visit, at the first
+    // room with stars. every promise is a gesture the rooms bind (gesture.js tap/hold/drag; the card swipe and ⏭ step the queue)
+    trackOf: '{k} / {n}',
+    trackLead: 'lead-in · {n} stops',
+    trackStops: '{name} · {n} stops',
+    trackAngle: { 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' }, // the record plays the graveyard twice: b10, b11
+    coachHead: 'how this plays · {n} stops',
+    coachTouch: ['play runs it. swipe for the next.', 'tap a star to pick it.', 'hold one to hear it. drag to turn.'],
+    coachDesk: ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'hover one to hear it. drag to turn.'],
     // W40/W10 tour end card: verbatim source for chrome.js's CC.end*/CC.contact fallbacks (chrome.js ~L40-45).
     endHead: 'end of the record.',
     endFly: 'look around ›',
