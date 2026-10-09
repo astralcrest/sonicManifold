@@ -90,7 +90,7 @@ return { n: g['50'], kk: 49, L: 50, cap: true };
 repAt(L) { let r = 0; this.F.forEach((f) => { if (f.lo >= L) r += f.R; }); return r; },
 reach(k) {
 const r = this.nAt(k);
-if (!r) return 'the first loop had not come round yet. hold until the bar starts over.';
+if (!r) return 'the first loop had not come around yet. hold until the bar starts over.';
 let s = 'my log shows ' + fmt(r.n) + ' streaks of at least ' + lp(r.kk) + ' (' + (r.cap ? '50 or more' : r.L) + ' plays in a row).';
 if (r.snap) s += ' past 14 plays the rings jump to 20, then 50, so the count stays on the last ring passed.';
 if (r.cap) s += ' the rings stop counting there.';
@@ -165,7 +165,7 @@ if (mode === 'bar') { h.el = A.els[A.cur]; h.e0 = h.el.currentTime; }
 this.rest = null; this.pr(true); this.tag.hidden = true; this.hov = -1; this.pz = null;
 tr(() => ctx.audio.tick(null));
 this.litKey = ''; this.weigh(ctx);
-this.line.textContent = (via === 'demo' ? 'a demo hand is holding. ' : '') + 'holding: the bar plays, and comes round again while you hold.';
+this.line.textContent = (via === 'demo' ? 'a demo hand is holding. ' : '') + 'holding: the bar plays, and comes around again while you hold.';
 this.tm = setInterval(() => this.pump(), 25); this.pump();
 },
 loopsAt(t) { const h = this.hold; return h ? floor((t - h.p0) / h.barMs) : 0; },
@@ -210,7 +210,7 @@ return k;
 cancel() {
 if (!this.hold) return;
 this.endHold(); this.home();
-this.line.textContent = 'cancelled. hold again when you are ready.'; this.mine.textContent = '';
+this.line.textContent = 'canceled. hold again when you are ready.'; this.mine.textContent = '';
 },
 /* a press let go before 380 ms on the field is a tap: no hold is counted, the ring under it plays its count */
 tapEnd(p) { this.endHold(); this.home(); this.status(); this.showRing(this.RG.ringAt(this, p.sx, p.sy), true); },

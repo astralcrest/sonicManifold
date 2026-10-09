@@ -307,8 +307,8 @@ export default {
     const st = this.done ? 2 : this.r > 0 ? 1 : 0;
     /* write only on a real change: #wall-say and #wall-verdict are live, and a same-text rewrite (every enter()) is read out again */
     const put = (el, s) => { if (el.textContent !== s) el.textContent = s; };
-    put(this.say, st === 0 ? 'this is what a streaming log says my taste is: one dot for every play, all of them the same colour.'
-      : st === 1 ? 'the same wall, coloured by who pressed play. left to right is ' + (this.A ? 'the whole log.' : 'seven years.')
+    put(this.say, st === 0 ? 'this is what a streaming log says my taste is: one dot for every play, all of them the same color.'
+      : st === 1 ? 'the same wall, colored by who pressed play. left to right is the whole log.'
       : '19% i tapped. 17% i shuffled. 64% was served to me.');
     /* round 2, W(overclaim): "mostly a profile of an algorithm" read as a causal claim the data doesn't carry. served
        (63.5%) is an upper bound on algorithm — it is everything the log can't tell apart from an algorithm, including my
@@ -624,7 +624,7 @@ export default {
     if (t - (this._hudT || 0) < 100) return; this._hudT = t;
     const per = ctx.particles.perDot || 1, n = Math.min(this.total || 97427, Math.round(this.nLit * per)), all = this.total || 97427;
     const c = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    try { ctx.hud((per > 1.5 ? 'about ' : '') + c(n) + ' of ' + c(all) + ' plays coloured by who pressed play'); this._hudOn = true; } catch (e) {}
+    try { ctx.hud((per > 1.5 ? 'about ' : '') + c(n) + ' of ' + c(all) + ' plays colored by who pressed play'); this._hudOn = true; } catch (e) {}
   },
 
   /* the block's edge: one glyph cell of dark field round it, fading out (overlay, world px, a cell wide at any zoom). the

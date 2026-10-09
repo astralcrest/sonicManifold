@@ -181,7 +181,7 @@
    "ledger": "242",
    "name": "Label-permutation test",
    "rule": "Kill if the observed index falls inside the permutation null's 5th-95th percentile band (or one-sided p > 0.05).",
-   "verdict": "Did not fire, and it could have: the observed index sits outside the whole permutation null, which centres on 1.002. It tests the within-session part of the headline, not all of it.",
+   "verdict": "Did not fire, and it could have: the observed index sits outside the whole permutation null, which centers on 1.002. It tests the within-session part of the headline, not all of it.",
    "number": null,
    "low_power": false,
    "public_row": null

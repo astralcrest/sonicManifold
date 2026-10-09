@@ -215,7 +215,7 @@ return s;
 cancel(){
 if(!R.hold)return;
 R.hold=null;R.pr(false);R.lev('rest');
-R.litKey='';R.weigh(R.ctx);R.line.textContent='cancelled. hold again when you are ready.';
+R.litKey='';R.weigh(R.ctx);R.line.textContent='canceled. hold again when you are ready.';
 },
 key(e,onBtn){
 const k=e.key,t=e.target;

@@ -124,7 +124,7 @@ function tick() {
   try { st = at.GF && !at.GF.stub ? at.GF.stats() : null; gc = at.glyphCfg(); sky = at.sky(); } catch (e) {}
   const dots = P ? n0(P.n) + ' dots' + (P.perDot > 1.01 ? ' (one per ' + f(P.perDot, 0) + ' plays)' : '') : 'n/a', grid = st ? st.cols + '×' + st.rows : 'n/a';
   T('how', 'how this frame is drawn: ' + (P ? n0(P.n) : 'n/a') + ' dots → ' + grid + ' density grid → a glyph per lit cell → ' +
-    (gc ? (gc.mode === 'cat' ? 'one colour per category' : 'colour sampled from its dots') : 'colour n/a') + '; this frame ' + f(S.last) + ' ms');
+    (gc ? (gc.mode === 'cat' ? 'one color per category' : 'color sampled from its dots') : 'color n/a') + '; this frame ' + f(S.last) + ' ms');
   T('fr', 'every ' + f(S.p50) + ' ms, p95 ' + f(S.p95) + ' (last ' + filled + ' frames' + (RM.matches ? '; reduced motion: 4 redraws a second' : '') + ')');
   T('wk', 'p50 ' + f(S.w50) + ' · p95 ' + f(S.w95) + ' ms (frame start to the room drawn)');
   T('fd', dots + (st ? ' → ' + grid + ' cells of ' + f(st.cellCss) + ' px · ' + n0(st.occ) + ' lit · ' + n0(st.drawn) + ' drawn' + (sky && sky.n ? ' · ' + n0(sky.n) + ' groove marks' : '') : ' · grid n/a'));
@@ -143,7 +143,7 @@ function tick() {
   T('st', (r ? r.id : 'n/a') + (a && a.n > 1 ? ' · angle ' + (a.k + 1) + '/' + a.n + ' ' + (a.name || a.id) : ''));
   const ta = c.tour && c.tour.active;
   T('tr', ta && ta.id ? ta.id + ' · stop ' + (ta.k + 1) + '/' + ta.n + ' · ' + (ta.playing ? 'playing' : 'paused') : 'none');
-  T('yo', 'dpr ' + f(devicePixelRatio, 2) + ' · ' + innerWidth + '×' + innerHeight + ' · reduced motion ' + onoff(RM) + ' · forced colours ' + onoff(FC));
+  T('yo', 'dpr ' + f(devicePixelRatio, 2) + ' · ' + innerWidth + '×' + innerHeight + ' · reduced motion ' + onoff(RM) + ' · forced colors ' + onoff(FC));
   spark();
   const s = 'frame p95 ' + Math.round(S.p95) + ' ms, governor tier ' + gt + ', stop ' + (r ? r.id : 'n/a');
   if (t0 - liveT >= 1000 && s !== lastLive && filled >= 30) { lastLive = s; liveT = t0; Q.sr.textContent = s; S.lives++; }

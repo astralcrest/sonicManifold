@@ -314,7 +314,7 @@ export const TOURS = [
         // no pose: R5 R2 tuned the room's own home framing to fill >= 85% of the stage; hold 12 lets the kiosk strum finish
         room: 'universe', angle: 'sky', hold: 12,
         share: SHARE.universe,
-        caption: 'each star is an artist i played 50 times or more: {named} of them. colour is genre. where a star sits means nothing. press one to hear it.',
+        caption: 'each star is an artist i played 50 times or more: {named} of them. color is genre. where a star sits means nothing. press one to hear it.',
         src: ['exhibit.html#universe.say', 'exhibit/data/universe_nodes.json', 'derive:named_count', 'exhibit/data/universe_edges.json'],
       },
       {
@@ -323,7 +323,7 @@ export const TOURS = [
         room: 'wall', angle: 'unsorted', hold: 7,
         share: SHARE.wall,
         pose: { z: 1 },
-        caption: '97,427 plays, all one colour for now. guess before they pour: of every 100, how many did i start by hand?',
+        caption: '97,427 plays, all one color for now. guess before they pour: of every 100, how many did i start by hand?',
         src: ['exhibit/data/wall.json#total'],
         then: [
           {
@@ -416,7 +416,7 @@ export const TOURS = [
         // R12 UNFOLD: the glass, right after the dial: the same day as 24 panes (rose.js; clock.js's capFor line off the tour)
         room: 'clock', angle: 'glass', hold: 9,
         share: SHARE.clock,
-        caption: 'the same day in glass. a pane’s colours: who started its plays. its glow: how many.',
+        caption: 'the same day in glass. a pane’s colors: who started its plays. its glow: how many.',
         src: ['exhibit/data/clock.json#tap', 'exhibit/data/clock.json#shuffle', 'exhibit/data/clock.json#served', 'exhibit/atlas/rose.js'],
       },
       {
@@ -706,7 +706,7 @@ export const TOURS = [
         // R5 R2 fragment: the sky caption keeps "means nothing" in every tour
         room: 'universe', angle: 'sky', hold: 12,
         share: SHARE.universe,
-        caption: '{named} artists as stars. the colour is the genre family; no colour here is decoration. where one sits means nothing on its own.',
+        caption: '{named} artists as stars. the color is the genre family; no color here is decoration. where one sits means nothing on its own.',
         src: ['exhibit/data/universe_nodes.json', 'derive:named_count', 'exhibit/labels.js#threshold.colours'],
       },
       {
@@ -719,7 +719,7 @@ export const TOURS = [
         // R5 N3 arrivals: the rain (REFEREE_APPLIED P1-C1, REFEREE2 P1-C3)
         room: 'arrivals', angle: 'rain', hold: 10,
         share: SHARE.arrivals,
-        caption: 'every artist in my log, falling in the order of their first full play. colour = who started that play.',
+        caption: 'every artist in my log, falling in the order of their first full play. color = who started that play.',
         src: ['exhibit/data/arrivals.json'],
       },
       {

@@ -368,9 +368,9 @@ export function mount(ctx, deps) {
     let html = '<p class="a-back-h">' + esc(H.head || 'how to play this record') + '</p>' +
       '<p class="a-back-p">' + esc(H.how || 'drag turns it and the wheel or two fingers zoom. tap a name and you are there. the tour plays itself; press space and it is yours, press it again and it carries on.') + '</p>' +
       '<p class="a-back-k">' + esc(H.keys || '/ dig · space pause · arrows or [ ] step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l names · m sound · e how to read this stop · ? this') + '</p>';
-    html += '<p class="a-help-note">the shape of a glyph says who pressed play in every categorical room, not just colour, and the colour code still means what it always meant.' +
+    html += '<p class="a-help-note">the shape of a glyph says who pressed play in every categorical room, not just color, and the color code still means what it always meant.' +
       (lowPower ? ' on this screen one dot is four plays.' : '') +
-      ' the clock and the universe day view read on one fixed clock all year, not a real local time. the marks after a name, ▮ to ▮▮▮▮▮, are its plays in five steps among the starred artists, in its genre colour; they say nothing about who pressed play. positions in the universe carry no meaning as distance or direction on their own. shimmer is decoration everywhere and carries no data.' +
+      ' the clock and the universe day view read on one fixed clock all year, not a real local time. the marks after a name, ▮ to ▮▮▮▮▮, are its plays in five steps among the starred artists, in its genre color; they say nothing about who pressed play. positions in the universe carry no meaning as distance or direction on their own. shimmer is decoration everywhere and carries no data.' +
       (coarse ? ' the pinch knob chooses whether two fingers zoom the field or the page.' : '') + '</p>';
     const sh = document.querySelector('link[rel=modulepreload][href*="shell.js?v="]') || document.querySelector('script[src*="shell.js?v="]');
     const bv = sh && /shell\.js\?v=([\w.-]+)/.exec(sh.getAttribute('href') || sh.getAttribute('src') || '');

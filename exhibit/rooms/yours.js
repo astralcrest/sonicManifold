@@ -151,7 +151,7 @@ const int = (n) => Number(n || 0).toLocaleString('en-US');
 
 const PRIVACY = 'your file is read here in this tab. nothing is uploaded, nothing is stored, and closing the tab forgets it.';
 const ASK = 'drop your extended streaming history json here, or';
-const WAIT = 'spotify takes a few days to send an export: account, then privacy, then tick extended streaming history. the short account-data file will not do, it has no reason_start in it.';
+const WAIT = 'spotify takes a few days to send an export: account, then privacy, then check extended streaming history. the short account-data file will not do, it has no reason_start in it.';
 const DEMOTAG = 'demo data. i invented these plays in this tab just now, so they are nobody.';
 const DEMOTAG_S = 'demo data. i invented these plays just now.';
 const SHORT = 'nothing is uploaded.';

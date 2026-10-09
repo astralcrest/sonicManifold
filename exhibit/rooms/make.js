@@ -146,7 +146,7 @@ export default {
     this.order = order; this.tapCount = cnt[0];
     const tapPct = Math.round(cnt[0] / n * 100), restPct = 100 - tapPct; /* 19 / 81 — matches wall.json pct_rounded.tap = 19 */
     this.restPct = restPct;
-    const word = WORDS[this.tracks.length] || String(this.tracks.length), yrs = atlasOn(ctx) ? 'the whole log' : 'seven years';
+    const word = WORDS[this.tracks.length] || String(this.tracks.length), yrs = 'the whole log';
     /* R9: in the atlas the first line says what this stop is before the wall says anything */
     const first = atlasOn(ctx) ? 'the ' + word + ' tracks i made, and where they came from. first the wall again, sorted.' : 'the wall again. ' + yrs + ', sorted.';
     this.lines = [
@@ -384,8 +384,8 @@ export default {
   worstAb() {
     const t = this.longTitle;
     const c = this.tight
-      ? ['blending into ' + t + '. a long way round. sound is off.', 'b: ' + t + ' · 12B. relative major/minor, 172 to 129 bpm.', 'a: ' + t + ' · 12B · 172 bpm. tap a second.']
-      : ['blending ' + t + ' into ' + t + '. a long way round: the engine dissolves instead of blending. sound is off.', 'deck b: ' + t + ' (12B). a long way round: the engine dissolves instead of blending. 172 to 129 bpm.'];
+      ? ['blending into ' + t + '. a long way around. sound is off.', 'b: ' + t + ' · 12B. relative major/minor, 172 to 129 bpm.', 'a: ' + t + ' · 12B · 172 bpm. tap a second.']
+      : ['blending ' + t + ' into ' + t + '. a long way around: the engine dissolves instead of blending. sound is off.', 'deck b: ' + t + ' (12B). a long way around: the engine dissolves instead of blending. 172 to 129 bpm.'];
     return c.reduce((m, v) => (v.length > m.length ? v : m), '');
   },
   /* the wall grid from room 01, duplicated here on purpose (rooms do not import each other) so the
@@ -471,8 +471,8 @@ export default {
     const d = Math.min((a.num - b.num + 12) % 12, (b.num - a.num + 12) % 12), same = a.letter === b.letter;
     if (a.k === b.k) return { xf: 0.6, words: 'same key', full: 'same key, so the blend is direct.' };
     if (d === 0) return { xf: 0.9, words: 'relative major/minor', full: 'relative major and minor, so the blend holds.' };
-    if (same && d === 1) return { xf: 0.9, words: 'one step round the wheel', full: 'one step round the wheel, so the blend is clean.' };
-    return { xf: 1.8, words: 'a long way round', full: 'a long way round: the engine dissolves instead of blending.' };
+    if (same && d === 1) return { xf: 0.9, words: 'one step around the wheel', full: 'one step around the wheel, so the blend is clean.' };
+    return { xf: 1.8, words: 'a long way around', full: 'a long way around: the engine dissolves instead of blending.' };
   },
   bpmLine(i, j) { const a = this.tracks[i].bpm, b = this.tracks[j].bpm; return a === b ? 'both at ' + a + ' bpm.' : a + ' to ' + b + ' bpm.'; },
   /* a visitor's tap on a cluster. deck a is already loaded once the wheel settles, so a tap loads deck b,

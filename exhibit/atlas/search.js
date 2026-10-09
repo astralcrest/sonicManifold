@@ -46,7 +46,7 @@ const CASE_LABELS = [
   'by play, hip-hop/r&b is over-tapped beyond bucket-size noise',
 ];
 const GROUP_ORDER = ['stops', 'tours', 'artists', 'tracks', 'genres', 'dates'];
-const GROUP_TITLE = { stops: 'STOPS', tours: 'TOURS', artists: 'ARTISTS', tracks: 'TRACKS', genres: 'GENRES / TAGS', dates: 'DAYS / MONTHS / YEARS' };
+const GROUP_TITLE = { stops: 'STOPS', tours: 'THE TOUR', artists: 'ARTISTS', tracks: 'TRACKS', genres: 'GENRES / TAGS', dates: 'DAYS / MONTHS / YEARS' };
 const CAP_PER_GROUP = 8, CAP_TOTAL = 40;
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -440,7 +440,7 @@ export function mount(ctx, deps) {
   function buildBrowseGroups() {
     const groups = [];
     if (idx.stops.length) groups.push({ key: 'stops', title: 'STOPS', items: idx.stops.map((s, i) => ({ kind: 'stop', label: s.label, sub: 'stop', num: pad2(i + 1), route: { stop: s.id } })) });
-    if (idx.tours.length) groups.push({ key: 'tours', title: 'TOURS', items: idx.tours.map((t) => ({ kind: 'tour', label: t.name, sub: plural(t.shown != null ? t.shown : (t.stops || t.n || 0), 'stop'), route: { tourPlay: t.id } })) });
+    if (idx.tours.length) groups.push({ key: 'tours', title: 'THE TOUR', items: idx.tours.map((t) => ({ kind: 'tour', label: t.name, sub: plural(t.shown != null ? t.shown : (t.stops || t.n || 0), 'stop'), route: { tourPlay: t.id } })) });
     if (!idx.starsReady) {
       groups.push({ key: 'stars', title: 'STARS', items: [{ kind: 'loading', label: TXT.loadingStars, sub: '', route: null }] });
     } else if (idx.stars.length) {

@@ -161,7 +161,7 @@ export default {
        with the raw jump counts beside them. the drawn picture is counts; this is what the number compares. */
     const strip = el('div', 'lst-strip');
     strip.setAttribute('role', 'img');
-    strip.setAttribute('aria-label', 'of every 100 jumps to a new artist, mine cross into another scene ' + tap1 + ' times and autoplay’s ' + auto1 + '. ' + tap1 + ' against ' + auto1 + ' is the bridge index: ' + ratio + ', a direction, not a size. i made ' + fmt(nTap) + ' of those jumps in ' + (isAtlas(ctx) ? 'the whole log' : 'seven years') + ', autoplay made ' + fmt(nAuto) + '. autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.');
+    strip.setAttribute('aria-label', 'of every 100 jumps to a new artist, mine cross into another scene ' + tap1 + ' times and autoplay’s ' + auto1 + '. ' + tap1 + ' against ' + auto1 + ' is the bridge index: ' + ratio + ', a direction, not a size. i made ' + fmt(nTap) + ' of those jumps in the whole log, autoplay made ' + fmt(nAuto) + '. autoplay drew more lines because it made about five times as many jumps. the rate is what the number compares.');
     strip.appendChild(el('p', 'lst-strip-h', 'of every 100 jumps to a new artist, how many cross into another scene'));
     const strRow = (who, jumps, pct, shown, colour) => {
       const line = el('div', 'lst-line');
@@ -185,8 +185,8 @@ export default {
     /* the colour code, in one more disclosure ("the colours") rather than new always-on lines: on a short phone stage the
        graph already meets the wall text at its tightest point, so nothing here may add height unconditionally.
        the sentence covers what a screen reader needs; the chips below it are aria-hidden decoration of the same fact. */
-    const clr = fines.appendChild(el('details', 'lst-fine')); clr.appendChild(el('summary', '', 'the colours'));
-    clr.appendChild(el('p', 'lst-cav', 'each cluster is coloured by genre family, grey for no public tag. the bridge lines are coloured by who pressed play: mint for my taps, violet for autoplay.'));
+    const clr = fines.appendChild(el('details', 'lst-fine')); clr.appendChild(el('summary', '', 'the colors'));
+    clr.appendChild(el('p', 'lst-cav', 'each cluster is colored by genre family, gray for no public tag. the bridge lines are colored by who pressed play: mint for my taps, violet for autoplay.'));
     /* no provenance chips here: only two line colours appear and the toggle buttons carry them */
     ctx.legend(clr, 'fam', { items: d.communities });
     clr.open = false; /* closed everywhere: open, the ten family chips pushed the wall into the label button */

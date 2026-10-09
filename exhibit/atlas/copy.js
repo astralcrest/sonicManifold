@@ -96,7 +96,7 @@ export const COPY = {
       keys: '/ dig · space pause · arrows or [ ] step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l names · m sound · e how to read this stop · ? this',
     },
     accuracy: [
-      'in a categorical room, the shape of a character says who pressed play; colour is not needed to read it.',
+      'in a categorical room, the shape of a character says who pressed play; color is not needed to read it.',
       'on a small screen one dot stands for four plays, not one.',
       "the clock and the universe's day view both read on one fixed clock, all year (no per-play timezone or daylight saving was kept), not a real local time.",
       "a star's position in the universe carries no meaning as distance; its depth is a seeded drawing offset unless a 3d layout file ships.",
@@ -160,10 +160,10 @@ export const COPY = {
   // edge glyph, never a served-family shape), and missing `≣` and the trailing edge-glyph disambiguation.
   // Now byte-identical to labels.js's `shape` string (this field is unused/dead elsewhere — labels.js hardcodes
   // its own copy rather than importing COPY.glyphLegend — so keep the two in sync by hand if either changes).
-  glyphLegend: 'the shape of each mark says who pressed play without colour: tally strokes a tap, dice pips a shuffle, conveyor slats the queue. heavier marks hold more plays; hairlines only trace an edge. in text, ° stands for a tap, × a shuffle, ≡ the queue.',
+  glyphLegend: 'the shape of each mark says who pressed play without color: tally strokes a tap, dice pips a shuffle, conveyor slats the queue. heavier marks hold more plays; hairlines only trace an edge. in text, ° stands for a tap, × a shuffle, ≡ the queue.',
 
   // §7 front door alternate h1 (D13/H16 owner-checkpoint flag #4; F1 applies it, the old line stays as a comment token there).
-  doorH1: "I didn't press play on most of my music.",
+  doorH1: "i didn't press play on most of my music.",
 
   universe: {
     // §8.1 wall text — already live in exhibit.html verbatim; reproduced here so R4/labels can quote it without
@@ -196,12 +196,12 @@ export const COPY = {
 
     // links angle (§8.3)
     armSelectorLinks: ['MY TAPS', 'THE QUEUE', 'BOTH'],
-    bothPlacard: 'both arms in one grey. pick one to see who started each line.',
+    bothPlacard: 'both arms in one gray. pick one to see who started each line.',
     // K3 placard — DECLARED DEVIATION #2 from GATE_science.md's own K3 text ("...5x more transitions in the raw
     // log."): this exact wording, with "about" and "between these artists", is BUILD_SPEC_V2 §8.3's placard.
     k3Placard: 'line counts and widths are rates at equal sample size; autoplay has about 5x more transitions between these artists in the raw log.',
     // fog placard, verbatim (UNIVERSE_SPEC §7 / GATE_science K5, sourced main.tex L382).
-    fogPlacard: "untagged jumps shown as fog. more of autoplay's than of my taps' are untagged (about 41% vs 34%), so fog density is a tagging gap, not a behaviour.",
+    fogPlacard: "untagged jumps shown as fog. more of autoplay's than of my taps' are untagged (about 41% vs 34%), so fog density is a tagging gap, not a behavior.",
 
     // threads angle (§8.3, the owner's "genre-combo network")
     armSelectorThreads: ['MY TAPS', 'SHUFFLE', 'THE QUEUE'],

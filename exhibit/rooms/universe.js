@@ -137,8 +137,8 @@ const COPY0 = {
   passing: 'passing {name}', /* a long flight goes past a real star (§13: pass-by toast) */
   chip: '{named} artists as stars ({play_share}% of plays) · {dust} more as dust', /* §8.3 chip; {dust} counted from the file that loaded */
   k3: 'line counts and widths are rates at equal sample size; autoplay has about 5x more transitions between these artists in the raw log.', /* §8.3, GS K3 (19,538 / 3,643 = 5.4) */
-  both: 'both arms in one grey. pick one to see who started each line.', /* §8.3; LINK_ARMS has two arms (my taps, the queue) and both (VERIFY_1 honesty P2) */
-  fog: 'untagged jumps shown as fog. more of autoplay’s than of my taps’ are untagged (about 41% vs 34%), so fog density is a tagging gap, not a behaviour.', /* US §7 / GS K5 */
+  both: 'both arms in one gray. pick one to see who started each line.', /* §8.3; LINK_ARMS has two arms (my taps, the queue) and both (VERIFY_1 honesty P2) */
+  fog: 'untagged jumps shown as fog. more of autoplay’s than of my taps’ are untagged (about 41% vs 34%), so fog density is a tagging gap, not a behavior.', /* US §7 / GS K5 */
   k5: '{a} → {b}, {arm}: {n} transitions ({pct}% of that arm’s transitions in this window)', /* US §7 / GS K5 template */
   k5window: 'window: every month from {from} to {to}', /* the weft's own span (universe_bridges.json months with transitions) */
   ring: 'the ring is a drawing order of the fourteen families, not a similarity.', /* help/§8.3: "a drawing order, not a similarity" */
@@ -170,7 +170,7 @@ const COPY0 = {
   brightest: 'the brightest stars', threadList: 'the threads, as a list', famThreads: 'threads ›', readMore: 'the full readout',
   viewsLabel: 'views of the sky', armLabelL: 'whose jumps the lines show', armLabelT: 'whose jumps the threads show',
   nameLine: '{name} · {family}',
-  caveat: 'the export holds very little before february 2022 (253 plays over 44 days). on any date, a quiet or empty day says more about what the export kept than about listening. runs of three or more empty days from february 2022 on are smoothed: their neighbours\' plays are spread across them, so no multi-day silence is readable here.', /* universe_days_index.json caveat, pinned */
+  caveat: 'the export holds very little before february 2022 (253 plays over 44 days). on any date, a quiet or empty day says more about what the export kept than about listening. runs of three or more empty days from february 2022 on are smoothed: their neighbors\' plays are spread across them, so no multi-day silence is readable here.', /* universe_days_index.json caveat, pinned */
   timeBasis: 'dates read on one fixed clock all year (the export kept no per-play local clock or daylight saving), not a real local time', /* REQUESTS_privacy_copy #1: the day records carry no hours */
   chipSearch: ', all searchable', /* appended to the chip only when the full roster (Tier B) loaded */
   ringSay: 'the rest ring the edge, spaced evenly in order of plays; where one sits on the ring says nothing else about it.', /* the wall's ring clause (ROUND2 R4 item 2), replacing "the rest ring the edge in no order." */

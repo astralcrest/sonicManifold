@@ -1100,7 +1100,7 @@ export function mount(ctx, deps) {
     const p = ctx.atlas && ctx.atlas.panels;
     if (p && typeof p.open === 'function') { p.open('tours'); return; }
     if (p && p.tours && typeof p.tours.open === 'function') { p.tours.open(); return; }
-    toast('tours menu is not ready yet');
+    toast('the tour sheet is not ready yet');
   }
   tourChip.addEventListener('click', openToursPanel);
   mrowLabel.addEventListener('click', openToursPanel);
