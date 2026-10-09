@@ -228,7 +228,7 @@ export default {
   id: 'graveyard', track: 'no-masks-ad-infinitum',
   ready: false, state: 'idle', curCase: -1, pileRect: null, settleAt: 0,
   atl: false, graves: [], buriedT: [], binTop: null, cellCss: 6, cellT: -1e9, hudT: 0, hudPct: -1,
-  angles: [{ id: 'ground', name: 'the ground' }, { id: 'kill', name: 'a kill' }, { id: 'survive', name: 'a survivor' }, { id: 'gates', name: 'thirteen gates' }],
+  angles: [{ id: 'ground', name: 'the ground' }, { id: 'kill', name: 'a kill' }, { id: 'survive', name: 'a survivor' }, { id: 'gates', name: 'seventeen gates' }],
   ladderNote: (a) => (a === 'gates' ? 'the doors are drawn to shape' : undefined),
   async mount(root, ctx) {
     this.root = root;
@@ -1056,7 +1056,7 @@ export default {
     if (a.id === 'ground') { this.cancelAuto(ctx); this._autoDone = true; if (this.state !== 'idle') this.again(ctx, false); ctx.view.home({}); return 0; }
     return this.forceRun(ctx, ANGLE_CASE[a.id]);
   },
-  /* R6 gates: the thirteen gates live in the lazy gates.js, which owns this.gates while it runs */
+  /* R6 gates: the seventeen gates live in the lazy gates.js, which owns this.gates while it runs */
   gIn(ctx, o) { if (this.gates) return 0; this.cancelAuto(ctx); this._autoDone = true; import('./gates.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx, o)).catch((e) => console.warn('gates', e)); return o.instant || ctx.reduced ? 0 : 5600; },
   ung(ctx, quiet) { const G = this.gates; if (G) { this.gates = null; G.stop(ctx); if (!quiet) this.ground(ctx); } },
   focusGrave(g, ctx, fly) {

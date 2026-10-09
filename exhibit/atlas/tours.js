@@ -146,13 +146,13 @@ const SHARE = {
 };
 
 /* R5 R6 gates: gates.json `caption`, verbatim, split at its sentence breaks (REFEREE2 C1); no digits */
-const GATES1 = 'the thirteen tests the headline faced, each written down before it ran, as doors.';
+const GATES1 = 'the seventeen tests the headline faced, each written down before it ran, as doors.';
 const GATES2 = 'three slammed: two killed readings of the headline (its first form, its \'agency\' reading), one killed an embedding arm; the headline\'s direction stayed.';
-const GATES3 = 'four could never have closed, and two more were set too high to close: writing a test down first fixes the order, not the power.';
+const GATES3 = 'four could never have closed, and four more were set too high to close: writing a test down first fixes the order, not the power.';
 /* R6 CAPTION8: the grand tour's plain-words gates (the verbatim gates.json three stay on the scientists tour) */
 const GATES1P = 'before each test of my main finding ran, i wrote down what result would kill it. each door is one test.';
 const GATES2P = 'three doors slammed: they killed two readings of the finding and a map-based version. the plain direction stayed.';
-const GATES3P = 'four doors could never have closed, and i set two too high to close. writing a test down first fixes the order, not its strength.';
+const GATES3P = 'four doors could never have closed, and i set four more too high to close. writing a test down first fixes the order, not its strength.';
 /* R5 R5 ghost: the referee's cap (REFEREE_APPLIED "exact copy"), split at its sentence break; the second line carries the 1.05 hedge */
 const GHOST1 = 'a made-up world where both kinds of song change genre equally often. a map trained the same way still sees a gap. that\'s one reason my headline uses no map.';
 const GHOST2 = 'one reason the headline uses no map: 1.05 [1.03, 1.08], a direction, not a size: how the untagged jumps are handled moves it 1.00 to 1.13; the loosest or 50-play definitions read 1.01.';
@@ -328,7 +328,7 @@ export const TOURS = [
         then: [
           {
             angle: 'pour',
-            caption: 'mint: i picked it, 19 in 100. amber: shuffle, 17. violet: it just played on next, 64.',
+            caption: 'mint: i picked it, 19 in 100. amber: shuffle picked it, 17. violet: it just played on next, 64.',
             src: ['exhibit/data/wall.json#total', 'exhibit/data/wall.json#pct_rounded', 'exhibit/labels.js#wall.the pour'],
           },
           {
@@ -719,7 +719,7 @@ export const TOURS = [
         // R5 N3 arrivals: the rain (REFEREE_APPLIED P1-C1, REFEREE2 P1-C3)
         room: 'arrivals', angle: 'rain', hold: 10,
         share: SHARE.arrivals,
-        caption: 'every artist in my log, falling in the order of their first full play. color = who started that play.',
+        caption: 'every named artist in my log, falling in the order of their first full play. color = who started that play.',
         src: ['exhibit/data/arrivals.json'],
       },
       {

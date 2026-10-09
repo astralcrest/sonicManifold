@@ -173,7 +173,7 @@ export const COPY = {
     // W40/W54: Tier-A-true base sentence — no "find by name", no "step through the days" (those describe
     // Tier-B files that may be 404 this round). R4 appends the day/search clause only once Tier B loads.
     say: 'every artist i played at least 50 times is a star. where a star sits means nothing on its own: the linked ones come from a seeded layout of what i played back to back, and the rest ring the edge in order of plays. the other artists are dust. drag to turn it, tap a star.',
-    sayDim1: '19 in every 100 plays i tapped, 17 arrived shuffled, 64 the queue served (a few of those started some other way). in this view a tap means the strict set (play button, click, remote): 11.5 in every 100.',
+    sayDim1: '19 in every 100 plays i tapped, 17 shuffle picked, 64 the queue served (a few of those started some other way). in this view a tap means the strict set (play button, click, remote): 11.5 in every 100.',
     // sayDim2 == index.caveat, read live from universe_days_index.json by R4; not retyped here to avoid drift.
 
     // W40: no "all searchable" claim in the Tier-A base (dust isn't searchable until universe_artists_all.json

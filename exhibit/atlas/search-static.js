@@ -100,11 +100,12 @@ export const STOP_ALIASES = {
   'how fragile': { stop: 'listeners', angle: 'fade' },
   'the 2x2': { stop: 'listeners', angle: 'fade' },
   'conditions': { stop: 'listeners', angle: 'fade' },
-  /* R5 pass 2: the thirteen gates */
+  /* R5 pass 2: the gates (R14: seventeen, the paper's count) */
   'gates': { stop: 'graveyard', angle: 'gates' },
   'the gates': { stop: 'graveyard', angle: 'gates' },
-  'thirteen gates': { stop: 'graveyard', angle: 'gates' },
-  'the thirteen gates': { stop: 'graveyard', angle: 'gates' },
+  'seventeen gates': { stop: 'graveyard', angle: 'gates' },
+  'the seventeen gates': { stop: 'graveyard', angle: 'gates' },
+  'seventeen tests': { stop: 'graveyard', angle: 'gates' },
   'doors': { stop: 'graveyard', angle: 'gates' },
   'the doors': { stop: 'graveyard', angle: 'gates' },
   'gauntlet': { stop: 'graveyard', angle: 'gates' },

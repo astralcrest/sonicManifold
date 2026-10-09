@@ -358,10 +358,25 @@ const tpl = (s, o) => String(s).replace(/\{(\w+)\}/g, (m, k) => (o[k] != null ? 
 const P = () => S.ctx.particles;
 const famName = (f) => (S.R && S.R.famOrder[f]) || (S.D && S.D.meta.fam_order[f]) || FAM_FALLBACK[f] || 'untagged';
 const FAM_FALLBACK = ['ambient/lofi', 'classical', 'electronic', 'experimental', 'folk/country', 'funk/disco', 'hip-hop · r&b', 'jazz', 'other', 'pop', 'rock/metal', 'soundtrack', 'world/desi', 'untagged'];
-/* ?print=neutral (off unless asked): while the ink bath runs the print goes ice, near-white to ice by family order, and the bath carries the colour */
-const NEUTRAL_Q = /[?&]print=neutral\b/.test(location.search);
-const neutralOn = () => NEUTRAL_Q && !!(S.ctx && S.ctx.atlas && /^(ink|both)$/.test(S.ctx.atlas.fieldMode || '')) && !document.documentElement.classList.contains('ink-off');
+/* R14 HUE (B, neutral print): while the ink bath is live here the print goes ice, near-white to ice by family order, and the
+   dye alone carries the family hue (the bath reads each dot's family from ctx.atlas.uniFam, never from its colour). the
+   family legend's chips then show the dye's colours. no bath (glyph, refused, lost): the family hues stay. ?print=hue keeps them */
+const HUE_Q = /[?&]print=hue\b/.test(location.search), AT_ = () => (S.ctx && S.ctx.atlas) || {};
+/* the bath is live here: asked for (ink|both), mounted (html.ink-on: WebGL2 and a half-float target said yes) and painting this room */
+const bathOn = () => { const de = document.documentElement; return !HUE_Q && /^(ink|both)$/.test(AT_().fieldMode || '') && de.classList.contains('ink-on') && !de.classList.contains('ink-off'); };
+const inkOf = (n) => { const h = AT_().inkHex; return h ? h(n) : null; };
+const neutralOn = bathOn;
 const famHex = (f) => (neutralOn() ? mixHex(0xe6f2ff, 0x86cbfe, (f < 0 ? 0 : f % 14) / 13) : S.ctx.famColor(famName(f)));
+const keyHex = (n) => { const c = neutralOn() ? inkOf(n) : null; return c != null ? c : S.ctx.famColor(n); };
+const printSig = () => (neutralOn() ? 'n' + (AT_().inkV | 0) : 'h');
+/* the print's colour changes under the room (the bath mounts 300 ms after the atlas, its palette lands with threshold_grid, it may
+   turn itself off): repaint the dots, the legend's chips and the liner marks once per change */
+function printSync() {
+  const k = printSig(); if (k === S.printK) return; S.printK = k;
+  if (S.R) paint();
+  const d = S.dom; if (d && d.legend) [...d.legend.children].forEach((b) => { const i = b.querySelector('i'); if (i) i.style.background = hexc(keyHex(FAM_FALLBACK[+b.dataset.f])); });
+  try { const r = AT_().relabel; if (r) r(); } catch (e) {}
+}
 const perDot = () => P().perDot || 1;
 
 /* ------------------------------------------------------------------ data */
@@ -424,6 +439,8 @@ function rosterGone() { S.failed = true; if (S.active) { try { S.ctx.hud(null); 
 function setRoster(R) {
   if (!R || S.R === R) return;
   const was = S.R; S.R = R; S.rosterKind = R.kind; S.tierA = R.kind === 'A' && !!S.rosterFail;
+  /* R14 HUE: each dot's family for the ink bath, by index, so the dye never has to read it off the print's colour */
+  try { if (S.ctx && S.ctx.atlas) S.ctx.atlas.uniFam = { F: R.dFam, names: Array.from({ length: 14 }, (_, f) => famName(f)) }; } catch (e) {}
   if (R.kind === 'B') S.tierA = false;
   /* everything cached against the old roster's dots goes */
   S.painted = ''; S.dayXYZ = null; S.dayMoved = null; S.dayF = null; S.pRange = null; S.ring = null; S.dustMask = null; S.hazeMask = null; S.projDirty = true; S.gcache = null;
@@ -647,7 +664,7 @@ function buildDom(root, ctx) {
   const legend = el('div', 'uv-legend'); legend.setAttribute('role', 'group'); legend.setAttribute('aria-label', c.legendLabel);
   FAM_FALLBACK.forEach((n, f) => {
     const b = el('button', 'uv-b'); b.type = 'button'; b.dataset.f = f; b.setAttribute('aria-pressed', 'false');
-    const i = el('i'); i.style.background = hexc(neutralOn() ? famHex(f) : ctx.famColor(n)); i.setAttribute('aria-hidden', 'true'); b.append(i, document.createTextNode(n));
+    const i = el('i'); i.style.background = hexc(keyHex(n)); i.setAttribute('aria-hidden', 'true'); b.append(i, document.createTextNode(n));
     b.addEventListener('click', () => famChip(f)); legend.appendChild(b);
   });
   const famact = el('p', 'uv-famact'); famact.hidden = true; const toThreads = el('button', 'uv-b', c.famThreads); toThreads.type = 'button'; famact.appendChild(toThreads);
@@ -982,7 +999,7 @@ function paintState() {
   const full = new Uint32Array(14), faint = new Uint32Array(14);
   for (let f = 0; f < 14; f++) { const c = famHex(f) >>> 0; full[f] = c; faint[f] = mixHex(c, bg, 0.35); }
   const U = a === 'threads' || a === 'day' ? null : sunLit();
-  const key = (a === 'threads' ? 'thr' : a === 'day' && S.D && S.dayK >= 0 ? 'day:' + S.dayK : U ? 'sun:' + U.i + ':' + U.nb.length : 'sky:' + f0) + (neutralOn() ? ':n' : '');
+  const key = (a === 'threads' ? 'thr' : a === 'day' && S.D && S.dayK >= 0 ? 'day:' + S.dayK : U ? 'sun:' + U.i + ':' + U.nb.length : 'sky:' + f0) + ':' + printSig();
   if (key === S.painted) return;
   S.painted = key;
   Pp.glyphAll(true);
@@ -2684,6 +2701,7 @@ export default {
   enter(ctx) {
     if (!ctx.atlas || !ctx.atlas.on || !S.dom) return;
     const Pp = ctx.particles, re = !!ctx.atlas.reenter;
+    ctx.atlas.printHex = (n) => { if (!S.active) return null; const f = famIndex(n); return f < 0 ? null : famHex(f); }; /* R14 HUE: the liner marks wear the print's colour */
     S.stage = ctx.stage();
     if (!re) {
       S.active = true; S.entered = now(); S.frameMs.length = 0; S.angle = 'sky'; S.sel = null; S.chord = null; S.famHi = -1; S.hover = -1; S.placeholder = -1; S.dayLine = null; S.playing = false; S.sun = S.sunOld = null; sunClass(false);
@@ -2747,6 +2765,7 @@ export default {
   },
   frame(g, t, bands, w, h, ctx) {
     if (!S.active || !S.R) return;
+    printSync();
     const t0 = now();
     if (S.readyPend) roomReady(); /* the field has drawn this entry's placed, framed sky once */
     try {

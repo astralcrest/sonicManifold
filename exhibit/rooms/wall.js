@@ -309,7 +309,7 @@ export default {
     const put = (el, s) => { if (el.textContent !== s) el.textContent = s; };
     put(this.say, st === 0 ? 'this is what a streaming log says my taste is: one dot for every play, all of them the same color.'
       : st === 1 ? 'the same wall, colored by who pressed play. left to right is the whole log.'
-      : '19% i tapped. 17% i shuffled. 64% was served to me.');
+      : '19% i tapped. 17% shuffle picked. 64% was served to me.');
     /* round 2, W(overclaim): "mostly a profile of an algorithm" read as a causal claim the data doesn't carry. served
        (63.5%) is an upper bound on algorithm — it is everything the log can't tell apart from an algorithm, including my
        own albums and playlists running on with shuffle off (main.tex L360/L394(iii): context_uri is absent, so a

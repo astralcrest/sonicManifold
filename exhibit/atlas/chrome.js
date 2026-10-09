@@ -901,12 +901,25 @@ export function mount(ctx, deps) {
     /* R7B: upright, the hint sits in the card's band over the caption. R13 CHROME3: its foot rests on the deck row (or
        the dock, or the safe area when the row is folded away), never on them: a line taller than the caption's band
        grows up over the stage instead of down across `2 / 16` and the dock's keys */
+    if (el === toastEl) el.style.display = el.style.webkitLineClamp = el.style.overflow = el.style.webkitBoxOrient = ''; /* R14: a clamp from the last line never sizes this one */
     if (el === toastEl && isPortrait() && !html.classList.contains('atlas-hidden')) {
       const eh = el.offsetHeight, mr = mrow.getClientRects().length ? mrow.getBoundingClientRect() : null;
       const dk = doc.getElementById('atlas-dock'), dkTop = dk && dk.getClientRects().length ? dk.getBoundingClientRect().top : innerHeight;
       const foot = Math.min(mr && mr.height ? mr.top : info.getBoundingClientRect().bottom, dkTop) - 4;
       const topLimit = (topBar ? topBar.getBoundingClientRect().bottom : 56) + 4;
-      el.style.bottom = Math.round(innerHeight - Math.max(topLimit + eh, foot)) + 'px'; return;
+      el.style.bottom = Math.round(innerHeight - Math.max(topLimit + eh, foot)) + 'px';
+      /* R14 GRAVE_HINT: the line grows up from its foot and used to run over a room's own keepouts (the doors' two buttons).
+         it now stops at the lowest keepout above it that it would touch: a line too long for what is left is clamped to the
+         lines that fit, never drawn over the room's controls */
+      const ft = foot - eh, er = el.getBoundingClientRect();
+      const under = keepRects().filter((k) => k.bottom > ft && k.bottom <= foot && k.right > er.left && k.left < er.right);
+      if (under.length) {
+        const cs = getComputedStyle(el), lh = parseFloat(cs.lineHeight) || 17, pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0) + (parseFloat(cs.borderTopWidth) || 0) * 2;
+        const room = foot - Math.max(...under.map((k) => k.bottom)) - 2, lines = Math.max(1, Math.floor((room - pad) / lh));
+        el.style.display = '-webkit-box'; el.style.webkitBoxOrient = 'vertical'; el.style.webkitLineClamp = String(lines); el.style.overflow = 'hidden';
+        el.style.bottom = Math.round(innerHeight - foot) + 'px';
+      }
+      return;
     }
     const sb = (parseFloat(getComputedStyle(el).scrollMarginBottom) || 0) + 4;
     let bottom = Math.max(sp.bottom, sb);

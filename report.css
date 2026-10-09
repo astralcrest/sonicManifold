@@ -124,7 +124,7 @@ details.pt>p{margin-top:.1rem}
 .method-cmp table th,.method-cmp table td{color:inherit}
 .method-cmp tbody td{color:#a8abb2}
 
-/* ledger of thirteen */
+/* ledger of seventeen (the paper's scoreboard) */
 .ledger-wrap{margin:1.4rem 0 2.4rem}
 .ledger-wrap>h3{font:500 1.35rem/1.2 var(--serif);margin:0 0 .5rem}
 .legend{display:flex;flex-wrap:wrap;gap:.5rem .9rem;margin:.8rem 0 1.1rem;font:.78rem/1.2 var(--sans);color:var(--text-dim)}

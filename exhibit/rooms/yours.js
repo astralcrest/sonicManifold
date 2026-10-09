@@ -350,7 +350,7 @@ export default {
   lineHTML(who, _n, p, tail) {
     const e = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
     return '<b>' + e(who) + '</b><span class="t">' + p[0] + '% tapped</span><span class="n"> · </span>'
-      + '<span class="s">' + p[1] + '% shuffled</span><span class="n"> · </span>'
+      + '<span class="s">' + p[1] + '% shuffle picked</span><span class="n"> · </span>'
       + '<span class="v">' + p[2] + '% served</span><span class="n"> · ' + e(tail) + '</span>';
   },
 
@@ -450,7 +450,7 @@ export default {
     const strict = Math.round((1000 * acc.tapStrict) / acc.nQual) / 10;
     this.theirs = { p: p, n: acc.nQual, strict: strict, top: acc.top || [], f: [acc.tap / acc.nQual, acc.shuffle / acc.nQual, acc.served / acc.nQual] };
 
-    this.live.textContent = int(acc.nQual) + ' of your plays ran past thirty seconds. ' + p[0] + '% tapped, ' + p[1] + '% shuffled, ' + p[2] + '% served.';
+    this.live.textContent = int(acc.nQual) + ' of your plays ran past thirty seconds. ' + p[0] + '% tapped, ' + p[1] + '% shuffle picked, ' + p[2] + '% served.';
     this.tag.hidden = !isDemo;
     this.them.innerHTML = this.lineHTML(isDemo ? 'demo' : 'yours', acc.nQual + '', p, int(acc.nQual) + ' plays past thirty seconds');
 
@@ -494,11 +494,11 @@ export default {
       const M = this.mineP, who = this.demo ? 'demo' : 'you', top = this.topc.checked && t.top.length ? t.top.join(' · ') : '';
       const seg = (w, q) => [[w, 'ice'], ['  '], [q[0], 'tap'], [' · ', 'mute'], [q[1], 'shuffle'], [' · ', 'mute'], [q[2], 'served']];
       const st = (q) => ({ counts: q, colors: ['tap', 'shuffle', 'served'], glyphs: ['o', 'x', '='] });
-      const text = CARD_TITLE + '. ' + (this.demo ? 'an invented demo listener: ' : 'me: ') + t.p[0] + '% tapped · ' + t.p[1] + '% shuffled · ' + t.p[2] + '% served'
+      const text = CARD_TITLE + '. ' + (this.demo ? 'an invented demo listener: ' : 'me: ') + t.p[0] + '% tapped · ' + t.p[1] + '% shuffle picked · ' + t.p[2] + '% served'
         + (top ? ' (top 3: ' + top + ')' : '') + '. astralcrest: ' + M.join(' · ') + '. ' + NEUTRAL
         + ' find yours, the file never leaves your tab: https://astralcrest.github.io/sonicManifold/exhibit.html#yours';
       this.bar.set({
-        kicker: 'tapped · shuffled · served, % of plays', title: CARD_TITLE, demo: this.demo,
+        kicker: 'tapped · shuffle picked · served, % of plays', title: CARD_TITLE, demo: this.demo,
         hero: [{ segs: seg(who.toUpperCase(), t.p), strip: st(t.p) }, { segs: seg('ASTRALCREST', M), strip: st(M) }],
         note: top ? (this.demo ? 'demo top 3: ' : 'my top 3: ') + top : '',
         fine: 'a skip button counts as a tap on both sides. stricter reading (track row, play button, remote only): ' + who + ' '

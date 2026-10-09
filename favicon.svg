@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><title>sonic manifold</title>
+<defs><linearGradient id="gv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bda6ff"/><stop offset="1" stop-color="#8b6fd6"/></linearGradient></defs><circle cx="14" cy="18" r="13.2" fill="#04000a"/>
+<circle cx="14" cy="18" r="8.6" fill="none" stroke="url(#gv)" stroke-width="5.2"/>
+<circle cx="14" cy="18" r="8.6" fill="none" stroke="#04000a" stroke-opacity=".7" stroke-width=".9"/>
+<circle cx="14" cy="18" r="12.45" fill="none" stroke="#86cbfe" stroke-width="1.5"/>
+<circle cx="14" cy="18" r="1.9" fill="#86cbfe"/>
+<path d="M28.09 6.52 L24.04 19.11 L22.53 20.79" fill="none" stroke="#0a0118" stroke-width="4.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M28.09 6.52 L24.04 19.11 L22.53 20.79" fill="none" stroke="#86cbfe" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

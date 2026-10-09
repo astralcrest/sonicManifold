@@ -139,6 +139,8 @@ export function mount(ctx, api) {
    PAL.set(c, f * 3);
   });
   PAL.set(COOL, 42); PAL.set(ROSE, 45);
+  /* R14 HUE: the universe reads a family's dye colour from here (its key, or its print); untagged has no dye hue (null) */
+  const AT0 = ctx.atlas; if (AT0) { AT0.inkHex = (nm) => { const f = FAMN.indexOf(nm); return f < 0 || POS[nm] == null ? null : (round(PAL[f * 3] * 255) << 16) | (round(PAL[f * 3 + 1] * 255) << 8) | round(PAL[f * 3 + 2] * 255); }; AT0.inkV = (AT0.inkV | 0) + 1; }
  }
  palette(FAM0);
  /* families dealt as the globe deals them: famI by index (index = place in time), famT through the stride */
@@ -256,16 +258,19 @@ export function mount(ctx, api) {
  function restart(keep) { cur = 0; first = true; gatherN = 0; dropped = 0; if (!keep) fadeT = now(); if (reduced) settle(); }
  const room = () => { const r = api.rooms && api.rooms[ctx.index]; return r ? r.id : ''; };
  const mat = () => { const M = api.matrix(); return M ? [M[0], M[4], M[5]] : [1, 0, 0]; };
+ /* R14 HUE: the universe hands over each dot's family (ctx.atlas.uniFam), so the dye names a dot's family whatever colour its print wears */
+ let ufS = null, ufN = null, ufO = null;
+ const ufMap = () => { const u = ctx.atlas && ctx.atlas.uniFam; if (!u || !u.F || u.F.length < n) return null; if (u !== ufS || FAMN !== ufN) { ufS = u; ufN = FAMN; ufO = { F: u.F, m: u.names.map((nm) => { const k = FAMN.indexOf(nm); return k < 0 ? 13 : k; }) }; } return ufO; };
  function batch(budget) {
   const [ma, me, mf] = mat(), W = innerWidth, Hh = innerHeight, thr = ST.room === 'threshold', uni = ST.room === 'universe' && TCF, ar = ST.mode === 'arm';
-  const X = P.x, Y = P.y, TX = P.tx, WT = P.w, GM = P.glyph, TC = P.tc, PO = P.prov, sz = (low ? 3.4 : 2.6) / min(dw, dh), wk = low ? .9 : .55;
+  const X = P.x, Y = P.y, TX = P.tx, WT = P.w, GM = P.glyph, TC = P.tc, PO = P.prov, sz = (low ? 3.4 : 2.6) / min(dw, dh), wk = low ? .9 : .55, UF = uni ? ufMap() : null;
   let m = 0, seen = 0;
   while (m < budget && seen < budget * 3) {
    const i = thr ? ordT[cur] : cur; if (++cur >= n) { cur = 0; first = false; } seen++;
    if (TX[i] < -40) continue;
    const w = GM[i] ? WT[i] / 255 : 1; if (w <= .02) continue;
    const sx = X[i] * ma + me, sy = Y[i] * ma + mf; if (sx < -8 || sy < -8 || sx > W + 8 || sy > Hh + 8) continue;
-   let c; if (ar) c = (thr ? armT[i] : PO[i]) ? 15 : 14; else { c = thr ? famT[i] : famI[i]; if (uni) { const u = TCF.get(TC[i]); if (u !== undefined) c = u; } }
+   let c; if (ar) c = (thr ? armT[i] : PO[i]) ? 15 : 14; else { c = thr ? famT[i] : famI[i]; if (uni) { const u = UF ? UF.m[UF.F[i]] : TCF.get(TC[i]); if (u !== undefined) c = u; } }
    const o = m * 7; PB[o] = sx / W; PB[o + 1] = 1 - sy / Hh; PB[o + 2] = c; PB[o + 3] = min(.95, (.35 + .65 * w) * wk); PB[o + 4] = PB[o + 5] = 0; PB[o + 6] = sz * (.8 + .5 * w); m++;
   }
   ST.drops += m; dropped += m; return m;

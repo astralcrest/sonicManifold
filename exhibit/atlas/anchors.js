@@ -322,7 +322,7 @@ export function mount(ctx, deps) {
     ctx.data('universe_nodes').then((d) => {
       ((d && d.nodes) || []).forEach((n) => {
         const k = String(n.name).toLowerCase(), c = ctx.famColor ? ctx.famColor(FAMN[n.family] || 'untagged') : 0x9a9aa2;
-        if (!SIG.has(k)) SIG.set(k, { s: '▮'.repeat(Math.max(1, Math.min(5, n.plays_bucket | 0))), c: '#' + ((c >>> 0) & 0xffffff).toString(16).padStart(6, '0') });
+        if (!SIG.has(k)) SIG.set(k, { s: '▮'.repeat(Math.max(1, Math.min(5, n.plays_bucket | 0))), c: '#' + ((c >>> 0) & 0xffffff).toString(16).padStart(6, '0'), f: FAMN[n.family] || 'untagged' });
       });
       relabel();
     }).catch(() => {});
@@ -342,9 +342,12 @@ export function mount(ctx, deps) {
     try { ctx.need('universe').then((a) => { uniApi = a; }).catch(() => {}); } catch (e) {}
   }
   const sigOf = (item) => { const g = item.kind === 'obj' ? SIG.get(item.low) : null; return g ? g.s : ''; };
+  /* R14 HUE: the room that owns the print (the universe) may recolour a family's mark (ctx.atlas.printHex), and asks for a relabel when it does */
+  const fh = (g) => { let c = null; try { const p = ctx.atlas.printHex; c = p ? p(g.f) : null; } catch (e) {} return c == null ? g.c : '#' + ((c >>> 0) & 0xffffff).toString(16).padStart(6, '0'); };
+  if (ctx.atlas) ctx.atlas.relabel = relabel;
   function lin(el, item) {
     const g = item.kind === 'obj' ? SIG.get(item.low) : null, m = g ? META.get(item.low) : null;
-    if (g) { el.dataset.sig = g.s; el.style.setProperty('--fh', g.c); } else if (el.dataset.sig) { delete el.dataset.sig; el.style.removeProperty('--fh'); }
+    if (g) { el.dataset.sig = g.s; el.style.setProperty('--fh', fh(g)); } else if (el.dataset.sig) { delete el.dataset.sig; el.style.removeProperty('--fh'); }
     if (m) el.dataset.meta = m; else if (el.dataset.meta) delete el.dataset.meta;
   }
 

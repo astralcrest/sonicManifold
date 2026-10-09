@@ -8,7 +8,7 @@
    (the per-day records, the full roster, the tracks) are never named here. the round-5 pass-2 stops and angles (rooms/bail,
    loop, arrivals, wheel, fade, gates, map.ghost .js; data/bail, loops, arrivals, wheel_agg, whopressed2, bi_conditions, gates,
    ghost .json) are cached on first use by the .js/.json stale-while-revalidate rule below, under the new VERSION */
-var VERSION = 'sm-v22';
+var VERSION = 'sm-v23';
 
 self.addEventListener('install', function () { self.skipWaiting(); });
 

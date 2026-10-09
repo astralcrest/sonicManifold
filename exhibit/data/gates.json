@@ -1,14 +1,16 @@
 {
- "source": "researcher.html (gauntlet caption, scoreboards, table) + AUDIT_LEDGER public row numbers",
+ "source": "researcher.html (gauntlet caption, scoreboards, table, #tests ledger) + AUDIT_LEDGER public row numbers; doors 14-17 and the count of seventeen from the paper's scoreboard (R14 GATES17 gates17.json)",
  "src_id": "researcher.html#gauntlet-cap",
- "total": 13,
+ "total": 17,
  "tally": {
   "fired_kills": 3,
   "substituted_passed": 1,
   "unreachable": 4,
   "informative_survivor": 1,
   "added_in_revision": 4,
-  "pre_revision": 9
+  "added_after_revision": 4,
+  "pre_revision": 9,
+  "low_power": 4
  },
  "scoreboards": {
   "retrospective": {
@@ -185,7 +187,51 @@
    "number": null,
    "low_power": false,
    "public_row": null
+  },
+  {
+   "i": 14,
+   "kind": "revision",
+   "ledger": "272",
+   "name": "Novelty split",
+   "rule": "Split each jump by whether its destination artist was new to the log; fire if the interval for artists already in the log includes 1.",
+   "verdict": "Did not fire. Among artists i had already played, my taps still cross more often. Novelty may still play a part: the contrast i declared was underpowered, and splits i didn't declare do separate.",
+   "number": "returning artists [1.0235, 1.0778]; first plays of an artist are about 3% of the jumps",
+   "low_power": false,
+   "public_row": null
+  },
+  {
+   "i": 15,
+   "kind": "revision",
+   "ledger": "273",
+   "name": "Qualification filter",
+   "rule": "Drop the 30-second filter and rerun; fire if the unfiltered interval includes 1, or if a second limb on the gap between kept and abandoned plays fires.",
+   "verdict": "Did not fire. With no filter at all, the interval still clears 1. The second limb could fire only in a band 0.0014 wide, and the filter is not neutral: the direction comes from songs i kept playing.",
+   "number": "no filter [1.0121, 1.0619]",
+   "low_power": true,
+   "public_row": null
+  },
+  {
+   "i": 16,
+   "kind": "revision",
+   "ledger": "274",
+   "name": "Unit of analysis",
+   "rule": "Reweight by session and by day instead of by jump; fire if either weighted interval includes 1.",
+   "verdict": "Did not fire. Weighted by session or by day, the interval stays above 1, and inside sessions that hold both kinds my taps cross more. The weighted values measure something else, so they are not a bigger effect.",
+   "number": "session-weighted [1.0669, 1.1248]; day-weighted [1.0745, 1.1435]",
+   "low_power": false,
+   "public_row": null
+  },
+  {
+   "i": 17,
+   "kind": "revision",
+   "ledger": "275",
+   "name": "Artist influence",
+   "rule": "Delete artists one at a time, then greedily; fire if one deletion takes the interval to 1, or if three or fewer artists do.",
+   "verdict": "Did not fire. No single artist carries it; it takes eight to erase the interval. The three-artist bar sat below anything an evenly spread effect produces, and the effect is more concentrated than an even one.",
+   "number": "eight artists, 8.0% of my scored taps, to erase the interval",
+   "low_power": true,
+   "public_row": null
   }
  ],
- "caption": "the thirteen tests the headline faced, each written down before it ran, as doors. three slammed: two killed readings of the headline (its first form, its 'agency' reading), one killed an embedding arm; the headline's direction stayed. four could never have closed, and two more were set too high to close: writing a test down first fixes the order, not the power."
+ "caption": "the seventeen tests the headline faced, each written down before it ran, as doors. three slammed: two killed readings of the headline (its first form, its 'agency' reading), one killed an embedding arm; the headline's direction stayed. four could never have closed, and four more were set too high to close: writing a test down first fixes the order, not the power."
 }
