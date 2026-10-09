@@ -1848,7 +1848,7 @@ function passBy(ctx, t) {
   for (let i = 0; i < S.ns; i++) { if (i === T.to) continue; const dx = R.cx[i] - tg[0], dy = R.cy[i] - tg[1], dz = R.cz[i] - tg[2], d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = i; } }
   if (best < 0) return;
   const f = T.from, df = Math.hypot(R.cx[best] - f[0], R.cy[best] - f[1], R.cz[best] - f[2]); if (df < 0.08) return; /* not the star it left */
-  T.said = true; try { ctx.toast(tpl(C().passing, { name: R.names[best] }), 1700); } catch (e) {}
+  T.said = true; try { ctx.toast(tpl(C().passing, { name: R.names[best] }), 1700, { wait: true }); } catch (e) {}
 }
 /* the platter's edge (R8): a hairline ellipse just past the ring and on it 108 strobe marks. at 60 frames a second a platter
    at 33 1/3 moves exactly one mark a frame, so the row stands still once it is up to speed, as a turntable's strobe does

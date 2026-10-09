@@ -9,6 +9,10 @@
 const TAU = 6.283185307179586, R0F = 0.34, TH0 = 0.6857, LEAN = 0.42, SPIN = 0.00008;
 let GAP = 2.15, BAND = 0.22; /* glyph rows from one turn of the groove to the next; the groove's width as a share of that */
 const PD = 1.24, PA = -0.62, AL = 1.0; /* the arm: its pivot sits PD radii out at angle PA (upper right), AL radii long */
+/* r13: the platter is heavy. it follows the hand and the camera at most WMAX (45 rpm, rad/ms) and eases in over about 70 ms,
+   so a hard swipe never flings the groove faster than a record turns. the lamp sits up and to the right (LX, LY): the groove
+   catches it in two narrow lobes on that axis, the label's paper takes a soft highlight, the arm casts its shadow down-left */
+const WMAX = 270 * Math.PI / 180 / 1000, LAMP = -0.506, LW = [0.24, 0.12, 0.05];
 const THESIS = "i didn't press play on most of my music.";
 const WIDE = '(min-width:1024px) and (min-aspect-ratio:115/100) and (min-height:560px)';
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -26,7 +30,7 @@ export default function platter(room, ctx) {
   const U = new Float32Array(n), C = new Float32Array(n), S = new Float32Array(n), KD = (1 - R0F * R0F) / n;
   const COL = ctx.PROV.map(lit);
   let turns = 0, TW = 0;
-  const st = { on: true, turns: 0, k: 0, n: 1, r: 1, rs: 1, cx: 0, cy: 0, R: 0, kk: 1, a: 0, sx: 0, sy: 0, at: 0, mini: false };
+  const st = { on: true, turns: 0, k: 0, n: 1, r: 1, rs: 1, cx: 0, cy: 0, R: 0, kk: 1, a: 0, sx: 0, sy: 0, at: 0, mini: false, w: 0, pt: 0, a0: null, fe: 16.7, ms: 0 };
   /* the groove: play i at radius sqrt(1 - KD (i + .5)) (r^2 falls linearly, so every play gets the same area), and the
      angle falls as the groove runs in, the way a stylus reads it while the record turns clockwise. each dot sits across
      the groove's width by a fixed hash, so a turn of the groove is a band of glyphs with dark land either side */
@@ -51,7 +55,11 @@ export default function platter(room, ctx) {
   function place(ctx, t, low) {
     if (!turns) fitTurns(Math.min(room.s.w, room.s.h) * room.fit);
     geom(low);
-    const a = st.a = (red ? 0 : t * SPIN) + (room.vyaw || 0) + room.px * 0.08, ca = Math.cos(a), sa = Math.sin(a);
+    const at = (red ? 0 : t * SPIN) + (room.vyaw || 0) + room.px * 0.08, dt = st.pt ? Math.min(64, Math.max(0, t - st.pt)) : 0; st.pt = t;
+    let a = at;
+    if (!red && st.a0 !== null && dt > 0) { let d = (at - st.a0) % TAU; if (d > Math.PI) d -= TAU; else if (d < -Math.PI) d += TAU; const m = WMAX * dt; a = st.a0 + clamp(d * (1 - Math.exp(-dt / 70)), -m, m); }
+    if (dt > 0) { st.w = st.a0 === null ? 0 : Math.abs(a - st.a0) / dt * 57295.8; st.fe += (dt - st.fe) * 0.05; }
+    st.a = st.a0 = a; const ca = Math.cos(a), sa = Math.sin(a);
     const TX = P.tx, TY = P.ty, cx = st.cx, cy = st.cy, R = st.R, Rk = R * st.kk;
     for (let i = 0; i < n; i++) { const u = U[i], c = C[i], s = S[i]; TX[i] = cx + R * u * (c * ca - s * sa); TY[i] = cy + Rk * u * (s * ca + c * sa); }
     /* reduced motion re-places on a lattice change (threshold.relaid): this is the lattice these targets are for */
@@ -77,7 +85,18 @@ export default function platter(room, ctx) {
     g.lineWidth = lw; g.strokeStyle = 'rgba(216,210,234,.22)';
     g.beginPath(); g.ellipse(cx, cy, R * 1.04, R * 1.04 * kk, 0, 0, TAU); g.stroke();
     g.strokeStyle = 'rgba(216,210,234,.16)'; g.beginPath(); g.ellipse(cx, cy, R * R0F * 0.9, R * R0F * 0.9 * kk, 0, 0, TAU); g.stroke();
-    g.fillStyle = 'rgba(216,210,234,.55)'; g.beginPath(); g.ellipse(cx, cy, R * 0.016, R * 0.016 * kk, 0, 0, TAU); g.fill();
+    const t0 = performance.now(), lite = st.fe > 25 || (ctx.atlas && ctx.atlas.gov && ctx.atlas.gov.tier >= 3);
+    /* the label sits proud of the groove: a soft occlusion ring, the paper lit from the lamp's side, the spindle a metal glint */
+    const LR = R * R0F * 0.9, lx = Math.cos(LAMP), ly = Math.sin(LAMP);
+    g.strokeStyle = 'rgba(4,0,10,.32)'; g.lineWidth = Math.max(2, R * 0.03); g.beginPath(); g.ellipse(cx, cy, LR + R * 0.012, (LR + R * 0.012) * kk, 0, 0, TAU); g.stroke();
+    const lg = g.createRadialGradient(cx + lx * LR * 0.45, cy + ly * LR * 0.45 * kk, 0, cx, cy, LR);
+    lg.addColorStop(0, 'rgba(58,44,88,.5)'); lg.addColorStop(0.55, 'rgba(30,20,50,.42)'); lg.addColorStop(1, 'rgba(16,9,30,.5)');
+    g.fillStyle = lg; g.beginPath(); g.ellipse(cx, cy, LR, LR * kk, 0, 0, TAU); g.fill();
+    g.fillStyle = 'rgba(4,0,10,.5)'; g.beginPath(); g.ellipse(cx - R * 0.006, cy + R * 0.009 * kk, R * 0.02, R * 0.02 * kk, 0, 0, TAU); g.fill();
+    const sg = g.createRadialGradient(cx + lx * R * 0.006, cy + ly * R * 0.006, 0, cx, cy, R * 0.018);
+    sg.addColorStop(0, 'rgba(250,246,255,.95)'); sg.addColorStop(0.5, 'rgba(164,155,189,.75)'); sg.addColorStop(1, 'rgba(60,50,84,.7)');
+    g.fillStyle = sg; g.beginPath(); g.ellipse(cx, cy, R * 0.016, R * 0.016 * kk, 0, 0, TAU); g.fill();
+    st.gl = 0; if (!lite) glints(g, R, kk, cx, cy, lw);
     /* the stylus on the screen, then the plays just read: clockwise of it, since the record carries them past */
     const sv = stylus(st.rs), sx = cx + R * sv[0], sy = cy + R * kk * sv[1]; st.sx = sx; st.sy = sy;
     const hd = under(st.rs, sv[2] - st.a), span = Math.max(60, Math.round(TAU * 2 * st.rs / (TW * KD) * 0.3)), ig = room.ig === 2;
@@ -98,12 +117,46 @@ export default function platter(room, ctx) {
     g.globalCompositeOperation = 'source-over';
     arm(g, cx + R * PD * Math.cos(PA), cy + R * kk * PD * Math.sin(PA), sx, sy, R, lw, 0.9);
     g.restore();
+    st.ms = performance.now() - t0;
+  }
+  /* the lamp on the groove: each turn of the spiral, where it crosses the lamp's axis (both lobes), drawn as a short arc in three
+     widths, so the sheen has a bright core and soft shoulders. the arcs are the spiral itself at the record's angle, so as the
+     record turns they creep along the axis by one groove a turn: the light follows the rotation. past ~50 deg/s the turns also
+     blur into rings, as a spinning record's grooves do */
+  function glints(g, R, kk, cx, cy, lw) {
+    const T = turns, bw = Math.max(lw, BAND * (1 - R0F) / T * R * 0.9), sp = Math.max(0, Math.min(1, (st.w - 50) / 170));
+    g.globalCompositeOperation = 'lighter'; g.lineCap = 'round'; st.gl = 0;
+    for (let p = 0; p < 3; p++) {
+      const hw = LW[p], al = [0.1, 0.18, 0.34][p]; g.beginPath();
+      for (let lobe = 0; lobe < 2; lobe++) {
+        const ph = LAMP + lobe * Math.PI;
+        for (let j = -1; j <= T + 1; j++) {
+          let first = true;
+          for (let q = -3; q <= 3; q++) {
+            const f = ph + hw * q / 3, r = 1 - (TH0 + st.a - f + TAU * j - TAU * Math.floor((TH0 + st.a - ph) / TAU)) * (1 - R0F) / (TAU * T);
+            if (r < R0F || r > 1) { first = true; continue; }
+            const x = cx + R * r * Math.cos(f), y = cy + R * kk * r * Math.sin(f);
+            if (first) { g.moveTo(x, y); first = false; } else { g.lineTo(x, y); st.gl++; }
+          }
+        }
+      }
+      g.lineWidth = bw * (p === 0 ? 1.6 : p === 1 ? 1.1 : 0.7); g.strokeStyle = 'rgba(240,234,255,' + al + ')'; g.stroke();
+    }
+    if (sp > 0) {
+      g.lineWidth = bw * 1.3; g.strokeStyle = 'rgba(216,210,234,' + (sp * 0.16).toFixed(3) + ')'; g.beginPath();
+      for (let j = 0; j < T; j++) { const r = 1 - (j + 0.5) * (1 - R0F) / T; g.moveTo(cx + R * r, cy); g.ellipse(cx, cy, R * r, R * r * kk, 0, 0, TAU); }
+      g.stroke();
+    }
+    g.globalCompositeOperation = 'source-over';
   }
   /* the arm from its pivot to the stylus: a counterweight behind the pivot, the tube, a short angled headshell */
   function arm(g, px, py, sx, sy, R, lw, al) {
     const dx = sx - px, dy = sy - py, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, hc = 0.16 * R, ha = 0.42;
     const hx = sx - hc * (ux * Math.cos(ha) + uy * Math.sin(ha)), hy = sy - hc * (uy * Math.cos(ha) - ux * Math.sin(ha));
-    g.lineCap = 'round'; g.strokeStyle = 'rgba(10,1,24,.75)'; g.lineWidth = lw * 6;
+    const ox = -0.05 * R, oy = 0.075 * R, bx = px - ux * R * 0.2, by = py - uy * R * 0.2;
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    for (let k = 0; k < 2; k++) { g.strokeStyle = k ? 'rgba(2,0,8,.3)' : 'rgba(2,0,8,.14)'; g.lineWidth = lw * (k ? 4 : 10); g.beginPath(); g.moveTo(bx + ox, by + oy); g.lineTo(hx + ox * 0.18, hy + oy * 0.18); g.lineTo(sx, sy); g.stroke(); }
+    g.strokeStyle = 'rgba(10,1,24,.75)'; g.lineWidth = lw * 6;
     g.beginPath(); g.moveTo(px - ux * R * 0.2, py - uy * R * 0.2); g.lineTo(hx, hy); g.lineTo(sx, sy); g.stroke();
     g.strokeStyle = 'rgba(134,203,254,' + al + ')'; g.lineWidth = lw * 2.4;
     g.beginPath(); g.moveTo(px - ux * R * 0.12, py - uy * R * 0.12); g.lineTo(hx, hy); g.stroke();
@@ -182,6 +235,6 @@ export default function platter(room, ctx) {
     },
     form(on) { st.on = on; },
     leave() { st.on = false; if (th) th.style.opacity = '0'; miniShow(true); },
-    get thesis() { return th; }, get mini() { return mini && mini.box; },
+    get thesis() { return th; }, get mini() { return mini && mini.box; }, WMAX,
   };
 }

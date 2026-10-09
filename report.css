@@ -152,7 +152,7 @@ details.pt>p{margin-top:.1rem}
 
 /* explorables */
 .xp{border:1px solid var(--border);border-radius:3px;background:var(--wash);padding:1rem 1.1rem 1.1rem;margin:1.2rem 0 1.6rem;font-family:var(--sans)}
-.xp>h3{font:600 .66rem/1.4 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin:0 0 .3rem}
+.xp>h2{font:600 .66rem/1.4 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin:0 0 .3rem}
 .xp>p.xq{font:500 1.02rem/1.4 var(--serif);color:var(--text);margin:0 0 .8rem}
 .xp svg{display:block;width:100%;height:auto;touch-action:none}
 .xp .dot{fill:var(--ice);transition:fill .15s}.xp .dot.t{fill:var(--accent)}
@@ -211,7 +211,7 @@ details.pt>p{margin-top:.1rem}
 @media print{details::details-content{content-visibility:visible!important;display:block!important;height:auto!important}}
 
 /* R11: the first screen is a picture and a sentence; folds start closed; the type reads as one designed object */
-:root{--held:var(--ice);--brick:var(--text-faint);--disp:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif}
+:root{--held:var(--ice);--brick:var(--text-faint);--disp:ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
 .hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,21rem);gap:1rem 2.4rem;align-items:center;margin:0 0 1.6rem}
 .hero-copy{min-width:0}
 h1.hl{font:italic 600 clamp(2rem,3vw + 1rem,3.1rem)/1.08 var(--disp);letter-spacing:-.022em;color:var(--text);margin:0 0 1.2rem;max-width:17ch;text-wrap:balance}
@@ -257,3 +257,43 @@ button.readall[aria-pressed=true]{background:var(--wash)}
 .mnote b{font-style:normal}
 @media (prefers-reduced-motion:reduce){figure.rec canvas{transition:none}}
 @media print{.hero{grid-template-columns:1fr 2.2in}button.readall{display:none!important}}
+
+/* R13 coherence: the house code. numbers in ink, the interface in ice, one rose, the three hands, a night tint for the condition band */
+@media screen{:root{--accent:#86cbfe;--mono-num:var(--text);--rose:#ff6e9c;--kill:#ff6e9c;--held:var(--text);--brick:var(--text-faint);--dnf:var(--text-faint);--ht:#21f6bc;--hs:#f5a623;--hq:#8b6fd6;--nv:#4a3a86;--sl-fog:#a6a69f;--sl-on:#86cbfe;--sl-line:var(--border)}}
+@media screen and (prefers-color-scheme:dark){:root{--bg:#0f0c18;--bg-raised:#17131f;--border:#2d2839;--wash:#18141f}}
+@media screen and (prefers-color-scheme:light){:root{--accent:#1f5f86;--rose:#b02a58;--kill:#b02a58;--ht:#0a7d5f;--hs:#9a5c00;--hq:#5b41ad;--nv:#d3c8ee;--sl-fog:#5c5446;--sl-on:#1f5f86}}
+.g-held .stamp{background:none}
+.xp .dot{fill:var(--hq)}.xp .dot.t{fill:var(--ht)}.xp .dot.s{fill:var(--hs)}.xp .dot.n{fill:var(--border)}
+.xp .band.up{fill:var(--nv)}.xp .band.br{fill:var(--text-faint);opacity:.45}
+.pipe .pp-n,.pipe .pp-big{fill:#ecebf2}.pipe .pp-k{fill:#86cbfe}
+p.kill,.claim-card p.kill{font:italic 600 1.08rem/1.35 var(--disp);color:var(--text);letter-spacing:-.005em}
+p.plain.kill{font-size:1.2rem;margin-bottom:.4rem}
+html:not(.js) figure.rec canvas{background:radial-gradient(circle,#0a0118 0 29%,transparent 29.5%),repeating-radial-gradient(circle,rgba(134,203,254,.5) 0 1px,#0d0718 1px 4px);border:1px solid rgba(134,203,254,.3)}
+.toc .tocb{display:none}
+@media (max-width:700px){
+  .js .toc .tocb{display:flex;align-items:center;gap:.55em;width:100%;min-height:44px;padding:0 1rem;background:none;border:0;font:600 .68rem/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);cursor:pointer}
+  .js .toc .tocb b{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .js .toc .tocb i{font-style:normal;transition:transform .2s}.js .toc.open .tocb i{transform:rotate(180deg)}
+  .js .toc:not(.open) ol{display:none}
+  .js .toc.open ol{flex-direction:column;overflow:visible;-webkit-mask-image:none;mask-image:none;padding:0 .4rem .5rem}
+  .js .toc.open a{min-height:40px;border-bottom:0;border-left:2px solid transparent}
+  .js .toc.open a[aria-current=true]{border-left-color:var(--accent)}
+}
+/* the plate re-inked on cream: same drawing, the paper's own ground */
+@media screen and (prefers-color-scheme:light){
+  .pipe{--bg-raised:#efe8da;--border:#d6cdbb;--text:#26211a;--text-faint:#5c5446;--text-dim:#4a4337;background:#efe8da;box-shadow:0 0 0 1px #d6cdbb,0 0 0 7px var(--bg),0 0 0 8px var(--border);color-scheme:light}
+  .pipe .pk{color:#5c5446}
+  .pipe .pp-t,.pipe [fill="#9a9fa8"],.pipe [style*="fill:#9a9fa8"]{fill:#4a4337!important}
+  .pipe .pp-h,.pipe .pp-n,.pipe .pp-big,.pipe [fill="#d8dade"]{fill:#26211a}.pipe .pp-k{fill:#1f5f86}
+  .pipe [stroke="#d8dade"],.pipe [stroke="#9a9fa8"]{stroke:#26211a}
+  .pipe [stroke="#8b9099"]{stroke:#6e6556}.pipe [fill="#8b9099"]{fill:#8a8070}
+  .pipe [stroke="#5a5f68"]{stroke:#b3a78f}.pipe [stroke="#3a3f47"]{stroke:#cbbfa6}
+  .pipe [fill="#15181c"]{fill:#efe8da}.pipe [fill="#23272d"]{fill:#e2d8c4}
+  .pipe [stroke="#86cbfe"]{stroke:#1f5f86}
+  .pipe [fill="#21f6bc"]{fill:#0a7d5f}.pipe [stroke="#21f6bc"]{stroke:#0a7d5f}
+  .pipe [fill="#8b6fd6"]{fill:#5b41ad}.pipe [stroke="#8b6fd6"]{stroke:#5b41ad}
+  .pipe [fill="#f5a623"]{fill:#9a5c00}
+  .pipe [fill="#ff6e9c"],.pipe [style*="fill:#ff6e9c"]{fill:#b02a58!important}.pipe [stroke="#ff6e9c"]{stroke:#b02a58}
+  .method-cmp{--bg-raised:#efe8da;--text-dim:#4a4337;--text-faint:#5c5446;--accent:#1f5f86;color-scheme:light}
+  .method-cmp tbody td{color:#3a342b}
+}

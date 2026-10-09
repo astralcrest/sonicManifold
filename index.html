@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <script>
-/* deep-link shim: #tour=… and #atlas forward into the atlas; the door's own ids stay; everything
-   else forwards to the lab exactly as before (old shared index.html#graveyard etc. meant the lab) */
+/* deep-link shim: #tour=…, #atlas and #notes (the liner notes) forward into the atlas; the door's own ids stay (#tours is the
+   two quiet lines under the doors now); everything else forwards to the lab as before (old index.html#graveyard meant the lab) */
 (function(){
 var h=location.hash;if(!h)return;
 var base=h.split('?')[0];
-if(base.slice(0,6)==='#tour='||base==='#atlas'){location.replace('exhibit.html'+h);return;}
+if(base.slice(0,6)==='#tour='||base==='#atlas'||base==='#notes'){location.replace('exhibit.html'+h);return;}
 var own={'#argument':1,'#finding':1,'#kills':1,'#links':1,'#top':1,'#tours':1,'#deeper':1};
 if(!own[base])location.replace('lab.html'+h);
 })();
@@ -27,20 +27,20 @@ if(!own[base])location.replace('lab.html'+h);
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/">
 <meta property="og:title" content="sonic manifold: a record of who pressed play">
-<meta property="og:description" content="97,427 plays over the whole log, one listener. play it through: who pressed play, every artist in the log, and eighteen of my own findings killed, retracted or withdrawn along the way.">
+<meta property="og:description" content="97,427 plays over the whole log, one listener. play it through: who pressed play, every artist in the log, and the findings i tried to kill. eighteen claims withdrawn. sixteen are graves you can visit. 0 of 11 new candidates survived unqualified.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="sonic manifold: a record of who pressed play">
-<meta name="twitter:description" content="97,427 plays over the whole log, one listener. play it through: who pressed play, every artist in the log, and eighteen of my own findings killed, retracted or withdrawn along the way.">
+<meta name="twitter:description" content="97,427 plays over the whole log, one listener. play it through: who pressed play, every artist in the log, and the findings i tried to kill. eighteen claims withdrawn. sixteen are graves you can visit. 0 of 11 new candidates survived unqualified.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <script>document.documentElement.className="js"</script>
 <style>
 /* JetBrains Mono (OFL): a door-only subset (U+0020-007E and a few marks, wght 100-800, no ligatures, no hinting)
    inlined, so the whole first load stays under 60 KB; the atlas loads its own */
 @font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url(data:font/woff2;base64,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) format("woff2")}
-:root{color-scheme:dark;--bg:#0a0118;--ink:#f0eaff;--body:rgba(240,234,255,.88);--mute:#a49bbd;--faint:#6d6486;--ice:#86cbfe;--line:rgba(189,166,255,.19);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--pt:max(16px,env(safe-area-inset-top));--pr:max(18px,env(safe-area-inset-right));--pb:max(14px,env(safe-area-inset-bottom));--pl:max(18px,env(safe-area-inset-left));--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff7a9c;--glow:rgba(139,111,214,.22)}
+:root{color-scheme:dark;--bg:#0a0118;--ink:#f0eaff;--body:rgba(240,234,255,.88);--mute:#a49bbd;--faint:#6d6486;--ice:#86cbfe;--line:rgba(189,166,255,.19);--mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--pt:max(16px,env(safe-area-inset-top));--pr:max(18px,env(safe-area-inset-right));--pb:max(14px,env(safe-area-inset-bottom));--pl:max(18px,env(safe-area-inset-left));--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff6e9c;--glow:rgba(139,111,214,.22)}
 /* capable screens get the wide-gamut hues; everything else keeps the sRGB ones above. the ice stays an exact sRGB value */
 @supports (color:oklch(0 0 0)){:root{--mint:oklch(.88 .17 168);--amber:oklch(.8 .16 72);--violet:oklch(.64 .15 295);--rose:oklch(.74 .17 10);--glow:oklch(.4 .13 295/.3)}}
 @media (color-gamut:p3){@supports (color:oklch(0 0 0)){:root{--mint:oklch(.9 .25 165);--amber:oklch(.83 .2 70);--violet:oklch(.66 .22 292);--rose:oklch(.76 .22 8);--glow:oklch(.42 .2 295/.38)}}}
@@ -59,15 +59,18 @@ b,strong{font-weight:600;color:var(--ink)}
 .hd{font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
 /* ------------------------------------------------------------------ the story: a record that stays, copy that moves past it */
 .story{position:relative}
-.stage{position:sticky;top:0;z-index:3;height:46vh;height:46svh;min-height:250px;max-height:420px;background:var(--bg);overflow:hidden;padding:var(--pt) var(--pr) 0 var(--pl)}
-.stage::before{content:"";position:absolute;left:50%;top:54%;width:130%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(circle,var(--wh,var(--glow)),transparent 62%);pointer-events:none}
+.stage{position:sticky;top:calc(-1 * var(--hh,96px));z-index:3;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;padding:var(--pt) var(--pr) 34px var(--pl)}
+.fx::before{content:"";position:absolute;left:50%;top:50%;width:calc(130% + 36px);aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(circle,var(--wh,var(--glow)),transparent 62%);pointer-events:none}
 .stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;background:linear-gradient(transparent,var(--bg));pointer-events:none}
 .top{position:relative;z-index:2}
-.fx{position:absolute;left:var(--pl);right:var(--pr);top:clamp(40px,7vh,64px);bottom:34px;min-width:0;min-height:0;container-type:size}
+.fx{position:relative;flex:none;margin-top:6px;height:calc(46svh - 72px);min-height:178px;max-height:348px;min-width:0;container-type:size}
 .rec{--d:min(100cqh,calc(100cqw / 1.1));--L:calc(var(--d) * .4);position:absolute;inset:0}
 .tilt{position:absolute;inset:0;--tx:0;--ty:0;transform:perspective(1100px) rotateX(calc(var(--ty) * 1deg)) rotateY(calc(var(--tx) * 1deg));will-change:transform}
 .deck{position:absolute;left:calc(50cqw - var(--d) * .55);top:calc(50cqh - var(--d) / 2);width:calc(var(--d) * 1.1);height:var(--d);touch-action:pan-y}
-.disc{position:absolute;left:0;top:0;width:var(--d);height:var(--d);border-radius:50%;background:radial-gradient(circle,#0d0718 0,#06020c 72%,#0c0616 96.6%,#2a1f3d 97.6%,#120b1e 98.6%,#05010a 100%);box-shadow:0 1.6vmin 4.4vmin rgba(0,0,0,.6),0 0 0 1px rgba(189,166,255,.07)}
+.disc{position:absolute;left:0;top:0;width:var(--d);height:var(--d);border-radius:50%;background:radial-gradient(circle,#0d0718 0,#06020c 72%,#0c0616 96.6%,#2a1f3d 97.6%,#120b1e 98.6%,#05010a 100%);box-shadow:-.7vmin 1.6vmin 4.4vmin rgba(0,0,0,.62),0 0 0 1px rgba(189,166,255,.07)}
+/* r13 the lamp sits up and to the right: the rim takes the hand's hue as a halo, the label sits proud (a soft occlusion ring), its paper catches the lamp, the spindle glints; none of it turns with the platter */
+.disc::before{content:"";position:absolute;inset:-7%;border-radius:50%;pointer-events:none;opacity:.6;background:radial-gradient(circle closest-side,transparent 87.4%,var(--wh,transparent) 89.2%,transparent 97%)}
+.disc::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(circle closest-side at 50.35% 49.65%,rgba(240,234,255,.62) 0,rgba(196,186,236,.22) 1.1%,transparent 2.2%),radial-gradient(circle closest-side at 55.5% 44.5%,rgba(226,216,255,.085) 0,transparent 26%),radial-gradient(circle closest-side,transparent 39.6%,rgba(4,0,10,.42) 40.4%,rgba(4,0,10,.12) 43%,transparent 47%),radial-gradient(circle closest-side,transparent 95.2%,rgba(240,234,255,.07) 96.5%,transparent 98%)}
 .platter{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform}
 .platter canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 #groove{opacity:0;transition:opacity .9s ease-out}
@@ -80,20 +83,24 @@ b,strong{font-weight:600;color:var(--ink)}
 .sheen{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;pointer-events:none;background:conic-gradient(from 18deg,transparent 0 7%,rgba(226,216,255,.085) 12%,transparent 18% 49%,rgba(226,216,255,.07) 56%,transparent 62%);transform:rotate(calc(var(--tx) * 6deg))}
 .label{position:absolute;left:50%;top:50%;width:var(--L);height:var(--L);margin:calc(var(--L) / -2) 0 0 calc(var(--L) / -2);border-radius:50%;background:radial-gradient(circle,#24173a 0,#1d1230 70%,#170e27 100%);box-shadow:inset 0 0 0 1px rgba(189,166,255,.2),inset 0 0 0 calc(var(--L) * .035) #1a102b,inset 0 0 0 calc(var(--L) * .035 + 1px) rgba(189,166,255,.12)}
 .hole{position:absolute;left:50%;top:50%;width:calc(var(--d) * .022);height:calc(var(--d) * .022);margin:calc(var(--d) * -.011) 0 0 calc(var(--d) * -.011);border-radius:50%;background:#05010a;box-shadow:0 0 0 1px rgba(189,166,255,.28)}
-.arm{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;filter:drop-shadow(5px 8px 3px rgba(0,0,0,.55));transition:filter .25s ease-out .42s}
+.arm{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;filter:drop-shadow(-5px 8px 2.5px rgba(2,0,8,.85));transition:filter .25s ease-out .42s}
 .arm .sw{transform-box:view-box;transform-origin:101px 12px;transition:transform .42s cubic-bezier(.45,0,.3,1)}
 .arm .tube{fill:none;stroke:#a49bbd;stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
 .arm .base{fill:#160d26;stroke:#a49bbd;stroke-width:1.2px;vector-effect:non-scaling-stroke}
 .arm .tip{fill:var(--ice)}
 html:not(.needle) .story:has(.cta a:hover) .arm .sw,html:not(.needle) .story:has(.cta a:focus-visible) .arm .sw{transform:rotate(2deg)}
 html.needle .arm .sw{transform:rotate(13.6deg)}
-html.needle .arm{filter:drop-shadow(1px 1.5px 1px rgba(0,0,0,.6))}
+html.needle .arm{filter:drop-shadow(-1.5px 2px 1px rgba(2,0,8,.65))}
 /* r11: the page takes the hue of the hand under the needle; a press blooms ink; the needle is a scrubber */
 .wash{position:fixed;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;opacity:0;background:radial-gradient(70% 55% at var(--wx,24%) var(--wy,20%),var(--wh,transparent),transparent 72%),radial-gradient(60% 50% at calc(100% - var(--wx,24%)) calc(100% - var(--wy,20%)),var(--wh2,transparent),transparent 70%)}
 .js .wash{opacity:1;transition:opacity 1.2s ease}
 #bloom,#gauge{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;pointer-events:none;z-index:1}
 .stage.scrubbing #groove.on{opacity:.34}
 .platter.fast{filter:blur(var(--sm,0px))}
+#blur,#spec{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;pointer-events:none;opacity:0}
+#spec{transform:rotate(calc(var(--tx,0) * 6deg + var(--lw,0deg)));will-change:transform;transition:opacity 1.6s ease-out}
+#spec.on{opacity:1}
+.stage[data-s="2"] #spec.on,.stage[data-s="3"] #spec.on,.stage[data-s="4"] #spec.on,.stage.scrubbing #spec.on{opacity:.4}
 .scr{display:none;position:absolute;left:var(--pl);right:var(--pr);bottom:21px;width:calc(100% - var(--pl) - var(--pr));height:14px;margin:0;z-index:4;-webkit-appearance:none;appearance:none;background:none;touch-action:pan-y;cursor:ew-resize}
 .js .scr{display:block}
 .scr::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--line),rgba(134,203,254,.38) 50%,var(--line));border-radius:2px}
@@ -102,7 +109,7 @@ html.needle .arm{filter:drop-shadow(1px 1.5px 1px rgba(0,0,0,.6))}
 .scr::-moz-range-thumb{width:11px;height:11px;border:0;border-radius:50%;background:var(--ice);box-shadow:0 0 0 3px rgba(134,203,254,.16)}
 .scr:focus-visible{outline:2px solid var(--ice);outline-offset:3px;border-radius:3px}
 #finding b{display:inline-block;font-variant-numeric:tabular-nums}
-#finding.cnt{color:var(--faint)}
+#finding.cnt{color:var(--mute)}
 #finding.cnt b{color:var(--ink)}
 #finding.cnt b+b{color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.wash{transition:none}.scr{cursor:pointer}}
@@ -112,11 +119,10 @@ html.needle .arm{filter:drop-shadow(1px 1.5px 1px rgba(0,0,0,.6))}
 /* ------------------------------------------------------------------ the copy */
 .steps{position:relative;z-index:2;padding:0 var(--pr) 0 var(--pl)}
 .step{min-height:42vh;min-height:42svh;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:4vh 0;max-width:34rem}
-.s0{min-height:0;padding-top:14px;gap:14px}
-h1{margin:0;font:italic 600 clamp(32px,10.4vw,54px)/1.04 var(--serif);letter-spacing:-.018em;color:var(--ink);text-wrap:balance}
-h1 .w{display:inline-block;white-space:nowrap}
-h1 .c{display:inline-block;animation:res .95s cubic-bezier(.2,.75,.2,1) both;animation-delay:calc(var(--i) * 26ms + 120ms)}
-@keyframes res{from{opacity:.07;transform:translateY(.42em) rotate(var(--r,4deg));filter:blur(7px);text-shadow:-.09em 0 rgba(134,203,254,.8),.09em 0 rgba(240,234,255,.55)}60%{filter:blur(0);text-shadow:-.03em 0 rgba(134,203,254,.6),.03em 0 rgba(240,234,255,.4)}to{opacity:1;transform:none;filter:none;text-shadow:none}}
+.s0{min-height:0;padding-top:10px;padding-bottom:3vh;gap:12px}
+.cap{color:var(--mute)}
+h1{margin:10px 0 0;font:italic 600 clamp(25px,7.1vw,34px)/1.08 var(--serif);letter-spacing:-.012em;color:var(--ink);text-wrap:balance;max-width:21ch}
+.sub{margin:7px 0 0;font-size:clamp(14px,3.9vw,16px);line-height:1.4;color:var(--body);max-width:38ch;text-wrap:pretty}
 .lede{font-size:clamp(15px,2vw,18px);line-height:1.5;max-width:44ch;margin:0;color:var(--body)}
 #finding b+b{color:var(--ink)}
 .key{color:var(--mute)}
@@ -140,11 +146,19 @@ h1 .c{display:inline-block;animation:res .95s cubic-bezier(.2,.75,.2,1) both;ani
 .gui{display:none}
 .js .gui{display:block;max-width:30rem}
 .gtrack{position:relative;height:34px;margin:6px 0 2px;-webkit-mask:repeating-linear-gradient(90deg,#000 0 calc(1% - 1.5px),transparent calc(1% - 1.5px) 1%);mask:repeating-linear-gradient(90deg,#000 0 calc(1% - 1.5px),transparent calc(1% - 1.5px) 1%);background:rgba(189,166,255,.16)}
-.gfill,.gmin{position:absolute;left:0;top:0;bottom:0;width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+.gfill,.gmin,.gsh,.gq{position:absolute;left:0;top:0;bottom:0;width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+.gsh{left:19%;background:var(--amber);opacity:.8;transition-delay:.5s}
+.gq{left:36%;background:var(--violet);opacity:.8;transition-delay:.65s}
+.inked .gfill{width:19%}
+.inked .gmin{width:11.5%;transition-delay:.35s}
+.inked .gsh{width:17%}
+.inked .gq{width:64%}
+.split{margin:8px 0 0;font:500 12px/1.5 var(--mono);letter-spacing:.02em}
+.split i{margin-right:.7em}
+.split span{color:var(--mute)}
 .gfill{background:var(--mint);opacity:.55}
 .gmin{background:var(--mint)}
-.gui.done .gfill{width:19%}
-.gui.done .gmin{width:11.5%;transition-delay:.35s}
+.gui.peek .gv{color:var(--mint)}
 .gmark{position:absolute;top:-4px;bottom:-4px;left:50%;width:2px;margin-left:-1px;background:var(--ice);box-shadow:0 0 12px var(--ice);pointer-events:none}
 .gui.done .gmark{opacity:.7;background:var(--ice)}
 .gwrap{position:relative}
@@ -167,35 +181,28 @@ h1 .c{display:inline-block;animation:res .95s cubic-bezier(.2,.75,.2,1) both;ani
 .js .rv.in{opacity:1;transform:none;transition:opacity .7s ease-out,transform .8s cubic-bezier(.2,.7,.2,1)}
 @supports (animation-timeline:view()){.js .rv{opacity:1;transform:none;animation:rvin linear both;animation-timeline:view();animation-range:entry 4% entry 52%}}
 @keyframes rvin{from{opacity:.001;transform:translateY(26px)}to{opacity:1;transform:none}}
-/* ------------------------------------------------------------------ the doors */
-.doors{position:relative;z-index:2;padding:clamp(40px,8vh,90px) var(--pr) 20px var(--pl);max-width:1280px;margin:0 auto}
-.doors h2{margin:0 0 6px;font:italic 600 clamp(28px,6.4vw,52px)/1.05 var(--serif);color:var(--ink)}
-.dsub{margin:0 0 22px;color:var(--mute);max-width:46ch}
-.dg{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
-.dw{display:flex;min-width:0}
-.dw .door{flex:1;min-width:0}
-.door{position:relative;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;background:linear-gradient(180deg,rgba(24,14,42,.7),rgba(10,1,24,.9));text-decoration:none;color:var(--body);overflow:hidden;transition:border-color .25s,transform .35s cubic-bezier(.2,.7,.2,1);view-transition-name:none}
-.door canvas{display:block;width:100%;height:120px;border-bottom:1px solid var(--line);background:radial-gradient(circle at 74% 50%,rgba(139,111,214,.14),transparent 70%)}
-.door .k{padding:14px 16px 0;font:600 10px/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
-.door .n{padding:2px 16px 0;font:italic 600 clamp(26px,5vw,34px)/1.1 var(--serif);color:var(--ink)}
-.door .d{padding:6px 16px 16px;font-size:14px;line-height:1.5;color:var(--body);flex:1}
-.door .go2{padding:0 16px 14px;font:600 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ice)}
-.door .go2::after{content:" \25B8";display:inline-block;transition:transform .3s}
-.door:hover,.door:focus-visible,.door.live{border-color:var(--ice);transform:translateY(-3px)}
-.door:hover .go2::after,.door.live .go2::after{transform:translateX(6px)}
-.tours{position:relative;z-index:2;padding:26px var(--pr) 10px var(--pl);max-width:1280px;margin:0 auto}
-.tours .hd{margin:0 0 6px}
-.tours ul{list-style:none;margin:0;padding:0;display:grid;grid:repeat(3,auto)/repeat(2,minmax(0,1fr));column-gap:clamp(14px,7vw,36px)}
-.tours a{display:flex;align-items:center;min-height:30px;text-decoration:none}
-.nm{font:500 10px/1.25 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--body)}
-.nm::after,.bl::after{content:"\a0\203A";content:"\a0\203A"/"";color:var(--faint)}
-.bl{display:none}
-.tours a:hover .nm,.tours a:hover ::after{color:var(--ice)}
-footer{position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);margin:22px var(--pr) 0 var(--pl);padding:14px 0 var(--pb);max-width:1280px}
-.deeper p{margin:0}
-.deeper .hd{margin:0 0 6px}
-.deeper a{font:500 12px/1.5 var(--mono);color:var(--ice)}
-.deeper .sep{color:var(--faint);margin:0 8px}
+/* r13: one way in. the long play is the drop button; under the doors only the short cut and the liner notes, as two quiet lines */
+.tours{position:relative;z-index:2;padding:2px var(--pr) 0 var(--pl);max-width:1280px;margin:0 auto;display:flex;flex-direction:column}
+.tours a{display:flex;align-items:center;min-height:44px;padding:2px 0;font:400 14px/1.35 var(--sans);color:var(--mute);text-decoration:none}
+.tours a b{font-weight:500;color:var(--ice);white-space:nowrap}
+.tours a:hover{color:var(--body)}
+.tours a:hover b{color:#bfe4ff}
+footer{position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);margin:12px var(--pr) 0 var(--pl);padding:14px 0 var(--pb);max-width:1280px}
+html.chipped footer{padding-bottom:calc(var(--pb) + 96px)}
+/* r13: the needle run's chip. during the run it says what is happening and fills as the page goes by; after a cancel it is the way in */
+.chip{position:fixed;z-index:9;left:var(--pl);right:var(--pr);bottom:calc(var(--pb) + 10px);margin:0 auto;width:-webkit-fit-content;width:fit-content;display:flex;align-items:center;gap:10px;min-height:44px;padding:0 18px 0 15px;border:1px solid rgba(134,203,254,.62);border-radius:23px;background:rgba(10,1,24,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 12px 32px rgba(0,0,0,.55),0 0 22px rgba(134,203,254,.12);color:var(--ice);text-decoration:none;font:600 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;white-space:nowrap;overflow:hidden;transition:opacity .35s,transform .45s cubic-bezier(.2,.7,.2,1),visibility 0s}
+.chip[hidden]{display:none}
+.chip::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--ice);box-shadow:0 0 10px var(--ice)}
+.chip:hover{color:#bfe4ff;border-color:var(--ice)}
+.chip .ln{display:none;white-space:normal;padding:7px 0;font:italic 500 15px/1.2 var(--serif);letter-spacing:0;text-transform:none;color:var(--ink)}
+.chip.run{pointer-events:none}
+.chip.run .ln{display:block}
+.chip.run .dr{display:none}
+.chip.run::before{animation:tip 1.1s ease-in-out infinite alternate}
+@keyframes tip{to{opacity:.35;box-shadow:0 0 3px var(--ice)}}
+.chip i{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,rgba(134,203,254,.4),var(--ice));transform-origin:0 50%;transform:scaleX(var(--p,0))}
+.chip:not(.run) i{display:none}
+.chip.away{opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .25s,transform .3s,visibility 0s .3s}
 .fnote{margin:0;font:400 10.5px/1.6 var(--mono);color:var(--mute);max-width:78ch}
 .fnote a{color:var(--mute)}
 .fnote a:hover{color:var(--ink)}
@@ -203,54 +210,83 @@ footer{position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;bo
 /* wide: the record stays on the left, the copy scrolls past it on the right */
 @media (min-width:800px) and (min-aspect-ratio:6/5){
 .story{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(340px,.82fr);column-gap:clamp(20px,3vw,56px)}
-.stage{height:100vh;height:100svh;max-height:none;min-height:0;background:none;align-self:start;padding-left:max(var(--pl),clamp(18px,3vw,56px));grid-column:1;grid-row:1}
+.stage{top:0;height:100vh;height:100svh;background:none;align-self:start;padding-left:max(var(--pl),clamp(18px,3vw,56px));padding-bottom:48px;grid-column:1;grid-row:1}
 .stage::after{display:none}
-.stage::before{width:110%}
-.fx{top:clamp(52px,9vh,84px);bottom:48px}
+.fx::before{width:110%}
+.fx{flex:1 1 0;height:auto;min-height:0;max-height:none;margin-top:clamp(10px,2vh,24px)}
+.top{max-width:44rem}
 .steps{grid-column:2;grid-row:1;padding-right:max(var(--pr),clamp(18px,3vw,56px))}
 .step{min-height:80vh;min-height:80svh;padding:8vh 0}
 .s0{min-height:100vh;min-height:100svh}
-h1{font-size:clamp(46px,5.2vw,96px)}
+h1{font-size:clamp(26px,min(3.1vw,5.8vh),58px);max-width:23ch}
+.sub{font-size:clamp(15px,min(1.25vw,2.3vh),20px);max-width:44ch}
+.s0 .cap{font:italic 400 clamp(18px,1.5vw,25px)/1.4 var(--serif);color:var(--ink);max-width:28ch}
+.ways{font-size:17px}
+.kill{font-size:12px}
 .big{font-size:clamp(32px,3.6vw,56px)}
 .lede{font-size:clamp(16px,1.35vw,21px)}
-.doors,.tours,footer{margin-left:auto;margin-right:auto}
-.dg{grid-template-columns:repeat(3,minmax(0,1fr))}
-.door canvas{height:clamp(130px,12vw,190px)}
-.tours ul{grid:auto-flow/repeat(3,minmax(0,1fr));gap:4px 28px}
-.tours a{display:block;min-height:0;padding:7px 0}
-.nm{font-size:10.5px;letter-spacing:.1em;color:var(--ink)}
-.nm::after{content:none}
-.bl{display:block;margin-top:4px;font:400 11px/1.35 var(--mono);color:var(--mute)}
+.tours,footer{margin-left:auto;margin-right:auto}
+.tours{flex-direction:row;flex-wrap:wrap;column-gap:clamp(24px,3vw,48px);padding-top:8px}
+.tours a{font-size:15px}
+.chip{left:auto;right:max(var(--pr),clamp(18px,3vw,56px));margin:0}
 }
-@media (min-width:560px) and (max-width:799px){.dg{grid-template-columns:repeat(3,minmax(0,1fr))}.door .d{font-size:13px}}
-@media (min-width:1900px){.doors,.tours,footer{max-width:1600px}}
-@media (max-height:430px) and (max-width:799px){.stage{height:100svh;min-height:0;max-height:none;width:46%;float:left}.steps{margin-left:48%}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.js .rv{opacity:1;transform:none}.js .pips span{transform:none;opacity:1}.js .pips:not(.in) span{transform:none;opacity:1}.gui.done .gfill{width:19%}.gui.done .gmin{width:11.5%}}
+@media (min-width:1900px){.tours,footer{max-width:1600px}}
+@media (max-height:430px) and (max-width:799px){.stage{top:0;height:100svh;width:46%;float:left}.fx{flex:1 1 0;height:auto;min-height:0}h1{font-size:20px}.sub{display:none}.steps{margin-left:48%}}
+.lite .rv{opacity:1!important;transform:none!important;animation:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.js .rv{opacity:1;transform:none}.js .pips span{transform:none;opacity:1}.js .pips:not(.in) span{transform:none;opacity:1}.inked .gfill{width:19%}.inked .gmin{width:11.5%}}
 @media (forced-colors:active){.wash,#bloom{display:none}#finding.cnt,#finding.cnt b,#finding.cnt b+b{color:CanvasText;-webkit-text-fill-color:CanvasText}
-#groove,.hi,#live,.sheen,.arm,.stage::before,.stage::after{display:none}
+#groove,.hi,#live,.sheen,.arm,.fx::before,.stage::after,#blur,#spec,.disc::before,.disc::after{display:none}
 .disc,.label{forced-color-adjust:none;background:Canvas;border:1px solid CanvasText;box-shadow:none}
 .hole{forced-color-adjust:none;background:CanvasText;box-shadow:none}
 .key i::before{forced-color-adjust:none;background:CanvasText}
 body{background:Canvas;color:CanvasText}
 .stage{background:Canvas}
-.brand,.eyebrow,.eyebrow b,h1,h1 .c,.lede,.lede b,#finding b+b,.key,.key i,.kick,.big,.small,.read,.read b,.hd,.nm,.bl,.deeper .hd,.deeper .sep,.fnote,.fnote2,.door .k,.door .n,.door .d,.dsub,.doors h2,.gv,.gres{color:CanvasText;-webkit-text-fill-color:CanvasText;text-shadow:none;animation:none}
-a,.cta a.go,.cta a.quiet,.tours a,.tours a .nm,.deeper a,.fnote a,.fnote2 a,.door,.door .go2,.gbtn{color:LinkText;-webkit-text-fill-color:LinkText}
-.door{border:1px solid LinkText;background:Canvas}
-.cta a.go,.gbtn{background:Canvas;border:2px solid LinkText;box-shadow:none}
-.gtrack{background:GrayText}.gfill,.gmin,.pips span{forced-color-adjust:none;background:CanvasText}
+.brand,.eyebrow,.eyebrow b,h1,.lede,.lede b,#finding b+b,.key,.key i,.kick,.big,.small,.read,.read b,.hd,.chip .ln,.deeper .hd,.deeper .sep,.fnote,.fnote2,.sub,.wl,.ways i,.split,.kill,.gv,.gres{color:CanvasText;-webkit-text-fill-color:CanvasText;text-shadow:none;animation:none}
+a,.cta a.go,.cta a.quiet,.tours a,.tours a b,.chip,.deeper a,.fnote a,.fnote2 a,.ways a,.gbtn{color:LinkText;-webkit-text-fill-color:LinkText}
+.cta a.go,.gbtn,.chip{background:Canvas;border:2px solid LinkText;box-shadow:none}
+.chip::before,.chip i{forced-color-adjust:none;background:LinkText;box-shadow:none}
+.gtrack{background:GrayText}.gfill,.gmin,.gsh,.gq,.pips span{forced-color-adjust:none;background:CanvasText}
 footer{border-top-color:CanvasText;border-image:none}
 :focus-visible{outline:2px solid Highlight}
 }
 
+/* r13 coherence: the record is one ice ink until the guess locks; then the hands bleed in from the label out */
+#ice{-webkit-mask-image:radial-gradient(circle closest-side,transparent var(--b,0%),#000 calc(var(--b,0%) + 9%));mask-image:radial-gradient(circle closest-side,transparent var(--b,0%),#000 calc(var(--b,0%) + 9%))}
+#groove.bleed{-webkit-mask-image:radial-gradient(circle closest-side,#000 var(--b,0%),transparent calc(var(--b,0%) + 9%));mask-image:radial-gradient(circle closest-side,#000 var(--b,0%),transparent calc(var(--b,0%) + 9%))}
+.stage[data-lock][data-s="1"] #ice,.stage.scrubbing #ice{opacity:.3}
+#finding .pp{display:grid;margin-top:4px}
+#finding .pp>span{grid-area:1/1}
+#finding .pre{visibility:hidden;color:var(--mute)}
+.js:not(.inked) #finding .pre{visibility:visible}
+.js:not(.inked) #finding .post,.js:not(.inked) .split{visibility:hidden}
+/* the kill tally, cut into the record: eighteen rose scratches across the outer groove, the two without a grave left open */
+.s18{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;opacity:0;transition:opacity .5s}
+.s18 path{fill:none;stroke:var(--rose);stroke-width:.45;stroke-linecap:round;opacity:0;transition:opacity .2s ease-out calc(var(--n) * 60ms)}
+.s18 path.h{stroke-dasharray:.8 .6;stroke-width:.34}
+.stage[data-s="5"] .s18{opacity:1}
+.stage[data-s="5"] .s18 path{opacity:1}
+.stage[data-s="5"] #groove.on{opacity:.5}
+.ways{margin:0;font:400 15px/1.5 var(--sans);color:var(--mute)}
+.ways a{display:inline-block;padding:9px 0;color:var(--ice);text-decoration:none;font-weight:500}
+.ways a:hover{color:#bfe4ff;text-decoration:underline}
+.ways i{font-style:normal;margin:0 .3em;opacity:.6}
+.rep{display:inline}
+.rep a{padding-bottom:2px}
+.kill{display:block;max-width:40ch;margin-top:6px;padding-left:9px;border-left:2px solid var(--rose);font:400 11px/1.5 var(--mono);color:var(--mute);text-wrap:pretty}
+/* no script: a still record in one ink, so the disc is never blank */
+html:not(.js) .platter{border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 2.4px,rgba(134,203,254,.3) 2.4px 3.4px);-webkit-mask-image:radial-gradient(circle closest-side,transparent 41%,#000 42%,#000 95%,transparent 95.6%);mask-image:radial-gradient(circle closest-side,transparent 41%,#000 42%,#000 95%,transparent 95.6%)}
+footer .sleeve{padding-left:0;padding-right:0;padding-bottom:0;border-top:0;max-width:none}
 .jsonly{display:none}.js .jsonly{display:inline}
-@media (max-width:420px){.foot .eyebrow{font-size:9px;letter-spacing:.1em}.read{font-size:9.5px;letter-spacing:.04em}}
+@media (max-width:420px){.foot .eyebrow{font-size:10px;letter-spacing:.08em}.read{font-size:10px;letter-spacing:.03em}.chip .ln{font-size:14px}.chip{padding:0 14px 0 13px;gap:9px}}
 </style>
 </head>
 <body>
 <div class="wash" aria-hidden="true"></div>
 <div class="story" id="top">
-<aside class="stage" data-s="0" aria-label="the record">
-<header class="top"><p class="brand">sonic manifold</p></header>
+<header class="stage" data-s="0">
+<div class="top"><p class="brand">sonic manifold</p>
+<h1>my listening log isn&rsquo;t a record of me. the app pressed play on most of it.</h1>
+<p class="sub">so anything that learns my taste from it learns the app&rsquo;s, too.</p></div>
 <div class="fx" id="record"><div class="rec"><div class="tilt">
 <div class="deck" aria-hidden="true">
 <div class="disc">
@@ -259,8 +295,9 @@ footer{border-top-color:CanvasText;border-image:none}
 <canvas class="hi" data-k="0"></canvas><canvas class="hi" data-k="1"></canvas><canvas class="hi" data-k="2"></canvas>
 <canvas id="live"></canvas>
 <div class="label"><span class="hole"></span></div>
+<svg class="s18" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path style="--n:0" d="M46.8 9.3L41.4 4.4"/><path style="--n:1" d="M63.8 11.9L71.6 8.7"/><path style="--n:2" d="M73.9 17.9L73.3 9.3"/><path style="--n:3" d="M86.4 31.0L95.1 36.3"/><path style="--n:4" d="M88.8 40.5L93.5 32.3"/><path style="--n:5" d="M90.6 54.1L95.3 62.9"/><path style="--n:6" d="M86.0 67.6L94.4 62.0"/><path style="--n:7" d="M78.4 79.5L77.0 88.1"/><path style="--n:8" d="M63.8 88.8L70.8 91.9"/><path style="--n:9" d="M53.8 90.3L49.6 97.2"/><path style="--n:10" d="M34.4 87.6L37.0 94.3"/><path style="--n:11" d="M22.7 79.7L14.1 79.6"/><path style="--n:12" d="M16.7 73.8L16.2 82.4"/><path style="--n:13" d="M9.8 58.7L3.0 53.3"/><path style="--n:14" d="M10.3 47.1L3.8 51.0"/><path style="--n:15" d="M15.6 28.4L15.9 18.7"/><path class="h" style="--n:16" d="M24.6 17.7L15.4 18.1"/><path class="h" style="--n:17" d="M36.1 10.9L41.6 4.6"/></svg>
 </div>
-<canvas id="bloom"></canvas><canvas id="gauge"></canvas><span class="sheen"></span>
+<canvas id="blur"></canvas><canvas id="spec"></canvas><canvas id="bloom"></canvas><canvas id="gauge"></canvas><span class="sheen"></span>
 </div>
 <svg class="arm" viewBox="0 0 110 100" focusable="false"><g class="sw"><g transform="rotate(-4.09 101 12)">
 <rect class="base" x="98.4" y="3.4" width="5.2" height="4.6" rx="1"/>
@@ -273,27 +310,29 @@ footer{border-top-color:CanvasText;border-image:none}
 </div></div></div>
 <input class="scr" id="scr" type="range" min="0" max="1000" value="620" aria-label="scrub the record: move to any play, the numbers below recount" tabindex="0">
 <div class="foot"><p class="eyebrow">n = 1 &middot; <b>astralcrest</b></p><p class="read" aria-hidden="true">play <b>1</b> of 97,427</p></div>
-</aside>
+</header>
 
 <main id="argument" class="steps">
 <section class="step s0">
-<h1><span class="w"><span class="c" style="--i:0;--r:3deg">i</span></span> <span class="w"><span class="c" style="--i:2;--r:5deg">d</span><span class="c" style="--i:3;--r:-3deg">i</span><span class="c" style="--i:4;--r:4deg">d</span><span class="c" style="--i:5;--r:-5deg">n</span><span class="c" style="--i:6;--r:2deg">&rsquo;</span><span class="c" style="--i:7;--r:-2deg">t</span></span> <span class="w"><span class="c" style="--i:9;--r:-4deg">p</span><span class="c" style="--i:10;--r:5deg">r</span><span class="c" style="--i:11;--r:-3deg">e</span><span class="c" style="--i:12;--r:4deg">s</span><span class="c" style="--i:13;--r:-5deg">s</span></span> <span class="w"><span class="c" style="--i:15;--r:-2deg">p</span><span class="c" style="--i:16;--r:3deg">l</span><span class="c" style="--i:17;--r:-4deg">a</span><span class="c" style="--i:18;--r:5deg">y</span></span> <span class="w"><span class="c" style="--i:20;--r:4deg">o</span><span class="c" style="--i:21;--r:-5deg">n</span></span> <span class="w m"><span class="c" style="--i:23;--r:-2deg">m</span><span class="c" style="--i:24;--r:3deg">o</span><span class="c" style="--i:25;--r:-4deg">s</span><span class="c" style="--i:26;--r:5deg">t</span></span> <span class="w m"><span class="c" style="--i:28;--r:4deg">o</span><span class="c" style="--i:29;--r:-5deg">f</span></span> <span class="w m"><span class="c" style="--i:31;--r:-2deg">m</span><span class="c" style="--i:32;--r:3deg">y</span></span> <span class="w m"><span class="c" style="--i:34;--r:5deg">m</span><span class="c" style="--i:35;--r:-3deg">u</span><span class="c" style="--i:36;--r:4deg">s</span><span class="c" style="--i:37;--r:-5deg">i</span><span class="c" style="--i:38;--r:2deg">c</span><span class="c" style="--i:39;--r:-2deg">.</span></span></h1>
-<p class="lede" id="finding"><b>97,427</b> plays in the whole log. <b>19%</b> i tapped (11.5% by the strictest reading); the rest the queue served or shuffle picked.</p>
+<p class="small key cap">every play is one tick in the groove, wound month by month from the rim to the label. the needle plays it back in eighteen stops.</p>
 <p class="cta">
 <a class="go" id="enter" href="exhibit.html?enter=sound#tour=grand&amp;stop=1">drop the needle &#9656;</a>
 <a class="quiet" id="enter-quiet" href="exhibit.html?enter=quiet#tour=grand&amp;stop=1">drop it quietly</a>
 </p>
+<nav class="ways" id="doors" aria-label="straight to the evidence"><span class="wl">or go straight to:</span> <a class="door" data-k="lab" href="lab.html?from=landing">the lab</a> <i aria-hidden="true">&middot;</i> <span class="rep"><a class="door" data-k="report" href="researcher.html">the report</a> <span class="kill">eighteen claims withdrawn. sixteen are graves you can visit. 0 of 11 new candidates survived unqualified.</span></span></nav>
 </section>
 
 <section class="step" id="guess">
-<p class="kick rv">first, a guess</p>
+<p class="kick">first, a guess</p>
 <p class="big rv">how much of it did i choose?</p>
-<p class="small key rv">every play is one tick in the groove, wound month by month from the rim to the label. <span class="jsonly">touch the record to read it.</span></p>
+<p class="lede" id="finding"><b>97,427</b> plays in the whole log. <span class="pp"><span class="pre">who pressed play on each one? guess before the record tells you.</span><span class="post"><b>19%</b> i tapped; 11.5% by the strictest reading, because the app changed what it logs in october 2023.</span></span></p>
 <div class="gui rv" id="gui">
-<div class="gwrap"><div class="gtrack"><span class="gfill"></span><span class="gmin"></span></div><span class="gmark" id="gm"></span>
+<div class="gwrap"><div class="gtrack"><span class="gfill"></span><span class="gmin"></span><span class="gsh"></span><span class="gq"></span></div><span class="gmark" id="gm"></span>
 <input class="gr" id="gr" type="range" min="0" max="100" value="50" step="1" aria-label="your guess: the percent of plays i started with a tap"></div>
 <div class="row"><span class="gv" id="gv" aria-hidden="true">50%</span><button type="button" class="gbtn" id="gl">lock it in</button></div>
+<p class="split key"><i class="t">i tapped 19</i> <i class="s">shuffle 17</i> <i class="q">the queue 64</i> <span>of every 100 plays</span></p>
 <p class="gres" id="gres" aria-live="polite"></p>
+<p class="small key jsonly">the record stays one ink until you guess, scroll on, or wait. touch it to read it.</p>
 </div>
 </section>
 
@@ -302,52 +341,33 @@ footer{border-top-color:CanvasText;border-image:none}
 <p class="small rv">a stroke across the groove. these are the plays i started myself.</p></section>
 
 <section class="step">
-<p class="big key rv"><i class="s">shuffle picked</i></p>
-<p class="small rv">two pips in the groove. i hit shuffle and it picked, not me.</p></section>
+<p class="big key rv"><i class="s">shuffle</i></p>
+<p class="small rv">two pips in the groove. i hit shuffle; the order was its, not mine.</p></section>
 
 <section class="step">
-<p class="big key rv"><i class="q">the queue served</i></p>
-<p class="small rv">a slat along the groove. the largest share of the record.</p></section>
+<p class="big key rv"><i class="q">the queue</i></p>
+<p class="small rv">a slat along the groove. the app served the next song by itself: the largest share of the record.</p></section>
 
 <section class="step" id="kills">
 <p class="kick rv">then i went after it</p>
 <p class="big rv">i tried to kill my own findings.</p>
 <div class="pips rv" aria-hidden="true"><span style="--n:0"></span><span style="--n:1"></span><span style="--n:2"></span><span style="--n:3"></span><span style="--n:4"></span><span style="--n:5"></span><span style="--n:6"></span><span style="--n:7"></span><span style="--n:8"></span><span style="--n:9"></span><span style="--n:10"></span><span style="--n:11"></span><span style="--n:12"></span><span style="--n:13"></span><span style="--n:14"></span><span style="--n:15"></span><span class="h" style="--n:16"></span><span class="h" style="--n:17"></span></div>
-<p class="fnote2 rv">the report lists eighteen findings killed, retracted or withdrawn; the graveyard shows sixteen. every kill condition i pre-declared was written down before i saw the result; the post-hoc ones are labelled. <a href="lab.html#graveyard">see the graveyard</a></p>
+<p class="fnote2 rv">every kill condition i pre-declared was written down before i saw the result; the post-hoc ones are labeled. <a href="exhibit.html#graveyard">visit the graves</a> &middot; <a href="researcher.html#graveyard">the report&rsquo;s list</a></p>
 </section>
 </main>
 </div>
 
-<section class="doors" id="doors" aria-labelledby="dh">
-<h2 id="dh" class="rv">three ways in</h2>
-<p class="dsub rv">pick the one that matches why you came. each wakes up when you point at it.</p>
-<div class="dg">
-<div class="dw rv"><a class="door" data-k="exhibit" href="exhibit.html?enter=sound#tour=grand&amp;stop=1"><canvas aria-hidden="true"></canvas><span class="k">for a walk</span><span class="n">the exhibit</span><span class="d">the whole log as one record, with sound under it. start here.</span><span class="go2">step in</span></a></div>
-<div class="dw rv"><a class="door" data-k="lab" href="lab.html?from=landing"><canvas aria-hidden="true"></canvas><span class="k">for checking</span><span class="n">the lab</span><span class="d">every chart, in order, with the data open. for people who like to check.</span><span class="go2">open it</span></a></div>
-<div class="dw rv"><a class="door" data-k="report" href="researcher.html"><canvas aria-hidden="true"></canvas><span class="k">for reading</span><span class="n">the report</span><span class="d">what i claim, and what i did to try to kill it.</span><span class="go2">read it</span></a></div>
-</div>
-</section>
 
-<nav class="tours" aria-label="tours" id="tours">
-<p class="hd">tours</p>
-<ul>
-<li><a href="exhibit.html?enter=sound#tour=ninety&amp;stop=1" aria-description="for a phone and a minute and a half"><span class="nm">the single</span><span class="bl" aria-hidden="true">for a phone and a minute and a half</span></a></li>
-<li><a href="exhibit.html?enter=sound#tour=grand&amp;stop=1" aria-description="from one play to the whole log"><span class="nm">the long play</span><span class="bl" aria-hidden="true">from one play to the whole log</span></a></li>
-<li><a href="exhibit.html?enter=sound#tour=minute&amp;stop=1" aria-description="the short cut, for someone in a hurry"><span class="nm">the radio edit</span><span class="bl" aria-hidden="true">the short cut, for someone in a hurry</span></a></li>
-<li><a href="exhibit.html?enter=sound#tour=scientists&amp;stop=1" aria-description="what i claim, and what i did to try to kill it"><span class="nm">liner notes for scientists</span><span class="bl" aria-hidden="true">what i claim, and what i did to try to kill it</span></a></li>
-<li><a href="exhibit.html?enter=sound#tour=musicians&amp;stop=1" aria-description="the tracks i made about this log, and how they mix"><span class="nm">liner notes for musicians</span><span class="bl" aria-hidden="true">the tracks i made about this log, and how they mix</span></a></li>
-<li><a href="exhibit.html?enter=sound#tour=artists&amp;stop=1" aria-description="the views i'd frame and hang"><span class="nm">liner notes for artists &amp; designers</span><span class="bl" aria-hidden="true">the views i'd frame and hang</span></a></li>
-</ul>
+<nav class="tours" aria-label="other ways in" id="tours">
+<a href="exhibit.html?enter=sound#tour=ninety&amp;stop=1"><span>in a hurry? <b>the ninety-second cut &#9656;</b></span></a>
+<a href="exhibit.html#notes"><span>liner notes for <b>scientists &middot; musicians &middot; artists &#9656;</b></span></a>
 </nav>
 
 <footer>
-<nav class="deeper" aria-label="go deeper" id="deeper">
-<a id="links"></a>
-<p class="hd">go deeper</p>
-<p><a href="lab.html?from=landing">the lab</a><span class="sep">&middot;</span><a href="researcher.html">the report</a><span class="sep">&middot;</span><a href="bridge-index.html">the probe</a></p>
-</nav>
 <p class="fnote">built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a> &middot; old links redirect</p>
+<div class="deeper" id="deeper"><a id="links"></a><nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i><a href="exhibit.html" data-p="exhibit.html">the exhibit</a></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">colophon</a></span><a class="up" href="#top">lift the needle &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav></div>
 </footer>
+<a class="chip" id="chip" href="exhibit.html?enter=sound#tour=grand&amp;stop=1" hidden><span class="ln"></span><span class="dr">drop the needle &#9656;</span><i aria-hidden="true"></i></a>
 
 <script>var TAP=[3,0,0,0,0,0,7,0,0,0,0,0,4,8,3,1,0,0,1,0,0,0,0,2,4,5,0,0,0,132,218,97,178,160,198,234,122,138,157,281,268,251,295,285,255,117,114,243,65,330,373,286,502,383,416,355,432,301,201,368,356,317,283,232,275,211,499,386,514,330,371,436,444,663,468,986,868,699,838,1243,379],SHU=[0,0,0,0,0,0,40,0,0,0,0,0,7,77,22,8,0,0,0,0,0,0,0,8,7,21,0,3,0,154,37,491,413,427,429,439,736,901,648,385,344,462,479,252,110,189,171,68,0,32,90,132,342,162,396,420,401,356,24,225,370,707,721,379,237,174,724,438,418,346,116,130,555,35,34,49,128,196,403,194,0],SRV=[5,0,0,0,0,0,0,0,0,0,0,0,1,5,5,4,0,0,0,0,0,0,0,0,0,2,0,0,0,1000,1609,647,1018,738,528,1660,690,560,875,1372,1516,1444,1724,1596,1329,527,828,1296,370,1018,1127,702,1634,1294,1483,1008,1263,1051,900,890,889,696,240,657,584,618,1110,973,951,1039,1686,1094,631,1901,1560,3225,2188,2152,2138,3324,1199];</script>
 <script src="landing.js" defer></script>

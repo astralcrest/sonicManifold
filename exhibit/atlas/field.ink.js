@@ -70,9 +70,11 @@ export function mount(ctx, api) {
  const gl = pr.gl, de = document.documentElement, now = () => performance.now();
  const css = mk('style');
  css.textContent = '#ink{z-index:0;mix-blend-mode:screen;opacity:0;transition:opacity 1.2s}html.ink-on #neb{opacity:.35}' +
-    '#ink-key{position:fixed;left:4%;right:4%;bottom:calc(env(safe-area-inset-bottom) + 10px);z-index:40;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;' +
-  'margin:0;padding:6px;font:10px/1.5 var(--mono);color:var(--ink);background:#0a0118c8;pointer-events:none;opacity:0;transition:opacity .4s}' +
-  '#ink-key.on{opacity:1}#ink-key i{display:inline-block;width:9px;height:9px;margin-right:4px;border-radius:50%}#ink-key em{flex-basis:100%;text-align:center;font-style:normal;color:var(--mute)}';
+    '#ink-key{position:fixed;left:4%;right:4%;top:0;z-index:40;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;scroll-margin:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);visibility:hidden;' +
+  'margin:0;padding:6px;font:10px/1.5 var(--mono);color:var(--ink);background:#0a0118c8;pointer-events:none;opacity:0;transition:opacity .4s,visibility 0s .4s}' +
+  '#ink-key.on{opacity:1;visibility:visible;transition:opacity .4s}#ink-key i{display:inline-block;width:9px;height:9px;margin-right:4px;border-radius:50%}#ink-key em{flex-basis:100%;text-align:center;font-style:normal;color:var(--mute)}' +
+  /* R13 CHROME3: the key is the visitor's own (a hold, two fingers, i): while it shows, the line slot under the stage gives way */
+  '';
  document.head.appendChild(css);
  const ref = $('atlas-footground') || $('overlay');
  ref.parentNode.insertBefore(cv, ref); de.classList.add('ink-on'); ST.on = true;
@@ -167,13 +169,47 @@ export function mount(ctx, api) {
  }
  const PTR = new Map(), offs = [], splats = []; let held = 0, two = null, keyT = 0;
  const keyEl = mk('p'); keyEl.id = 'ink-key'; keyEl.setAttribute('aria-hidden', 'true'); document.body.appendChild(keyEl);
+ /* R13 CHROME3: the key sat at the foot of the screen at z 40, straight across the phone dock's keys (and the desk deck, and
+    the line under a sideways stage). it now sits on the chrome, never in it: upright just above the card (and the dock), sideways
+    and on the desk in the band under the stage (inside the stage's foot when that band is too short), centred on the stage,
+    stepping up over any of the room's own controls. it stays for its read time even after a short hold */
+ let keyHide = 0, keyShown = 0, keyNeed = 0;
+ function placeKey() {
+  const W = innerWidth, H = innerHeight, st = keyEl.style, kh = keyEl.offsetHeight;
+  let s = null; try { s = ctx.stage(); } catch (e) {}
+  if (!s || !(s.w > 0)) s = { x: 0, y: 0, w: W, h: H };
+  const box = (e) => { if (!e || !e.getClientRects().length) return null; const c = getComputedStyle(e); return c.visibility === 'hidden' || c.display === 'none' || +c.opacity < 0.05 ? null : e.getBoundingClientRect(); };
+  const tb = box($('top')), topLim = (tb && tb.bottom < H / 2 ? tb.bottom : 0) + 4;
+  const kcs = getComputedStyle(keyEl), sab = parseFloat(kcs.scrollMarginBottom) || 0, sal = parseFloat(kcs.scrollMarginLeft) || 0, sar = parseFloat(kcs.scrollMarginRight) || 0;
+  let x0 = max(8 + sal, round(s.x)), x1 = min(W - 8 - sar, round(s.x + s.w));
+  /* a narrow landscape stage (659 wide: 165 px) would stack the thirteen families into a tower; widen the band round it, clear of the card column */
+  if (W > H * 1.15 && x1 - x0 < 360) { const ir = box($('atlas-info')), lo = max(8 + sal, ir && ir.right < W / 2 ? round(ir.right) + 8 : 0), hi = W - 8 - sar, ww = min(360, hi - lo); x0 = round(max(lo, min((x0 + x1) / 2 - ww / 2, hi - ww))); x1 = x0 + ww; }
+  st.left = x0 + 'px'; st.right = (W - x1) + 'px';
+  let foot = H - sab - 4;
+  for (const e of [$('atlas-dock'), de.classList.contains('atlas-deck') ? $('top') : null]) { const r = box(e); if (r && r.top > H / 2) foot = min(foot, r.top - 6); }
+  let top;
+  if (W <= H * 1.15) { const r = box($('atlas-info')) || box($('atlas-show')); top = min(foot, r && r.top > H / 3 ? r.top - 6 : foot) - kh; }
+  else { top = s.y + s.h + 4; if (top + kh > foot) top = s.y + s.h - kh - 6; }
+  const sec = document.querySelector('section[data-room].is-active'), L = x0, R = x1;
+  const keeps = [...(sec ? sec.querySelectorAll('button,[data-keepout],input,select,[class*="hud"]') : []), ...document.querySelectorAll('.atlas-ladder-chip,#exdock:not(.is-off),#atlas-toast.on,#atlas-onboard:not([hidden]),.uf-ks.on')].map(box).filter((r) => r && r.width && r.height && r.left < R && r.right > L);
+  for (let g = 0; g < 10; g++) { const hit = keeps.filter((r) => r.top < top + kh + 4 && r.bottom > top - 4); if (!hit.length) break; top = min(...hit.map((r) => r.top)) - kh - 6; }
+  st.top = round(max(topLim, min(top, H - sab - kh - 2))) + 'px';
+ }
+ function keyCheck() {
+  if (!keyEl.classList.contains('on')) return;
+  if (!ST.hold && now() - keyT > 4000 && now() - keyShown >= keyNeed) key(false); else { placeKey(); keyHide = setTimeout(keyCheck, 200); } /* the stage and the panels can move under it (a listening post opening) */
+ }
  function key(show) {
+  clearTimeout(keyHide);
   if (show) {
-   const rgb = (f) => 'rgb(' + [0, 1, 2].map((j) => round(PAL[f * 3 + j] * 255)).join(',') + ')', am = ST.mode === 'arm';
+   const rgb = (f) => 'rgb(' + [0, 1, 2].map((j) => round(PAL[f * 3 + j] * 255)).join(',') + ')', am = ST.mode === 'arm', was = keyEl.textContent;
    keyEl.innerHTML = (am ? [[14, 'i tapped'], [15, 'the queue']] : FAMN.map((nm, f) => [f, nm])).map(([f, nm]) => '<span><i style="background:' + rgb(f) + '"></i>' + nm + '</span>').join('') +
     '<em>hold to slow it · two fingers or i: ' + (am ? 'by family' : 'by hand') + '</em>';
    keyT = now();
+   if (!keyEl.classList.contains('on') || was !== keyEl.textContent) { keyShown = keyT; keyNeed = 1500 + (keyEl.textContent.length + 40) * 28; }
+   placeKey(); keyHide = setTimeout(keyCheck, 200);
   }
+  de.classList.toggle('ink-key-on', !!show);
   keyEl.classList.toggle('on', !!show);
  }
  let userMode = false, roomT = now(), touched = '', capTm = 0, lastRoom = '';
@@ -298,14 +334,13 @@ export function mount(ctx, api) {
   const md = dealt && gatherN > 6 ? batch(min(MAXP, Math.ceil(n / (first ? (low ? 110 : 150) : (low ? 540 : 700))))) : 0;
   step(dt, t, stirs(moving), md, ctx.audio && ctx.audio.bands ? ctx.audio.bands() : {});
   show(); ST.frames++;
-  if (!ST.hold && keyEl.classList.contains('on') && now() - keyT > 4000) key(false);
   ST.ms[ST.mi++ % 240] = now() - t0;
  }
  const offFrame = reduced ? null : ctx.onFrame(frame);
  if (reduced) settle();
  function off(why) {
   ST.on = false; ST.reason = why || 'off'; offs.forEach((f) => f()); [offFrame, offStop, offGov, kOff].forEach((f) => f && f());
-  clearTimeout(capTm); lineDue(false); cv.remove(); keyEl.remove(); css.remove(); de.classList.remove('ink-on', 'ink-off'); caption();
+  clearTimeout(capTm); clearTimeout(keyHide); lineDue(false); cv.remove(); keyEl.remove(); css.remove(); de.classList.remove('ink-on', 'ink-off', 'ink-key-on'); caption();
  }
  /* R11 PRESS: a room may hush the bath while it covers the stage (no frames, no caption), and wake it again after */
  const hush = (v) => { ST.hush = !!v; cv.style.visibility = v ? 'hidden' : ''; };

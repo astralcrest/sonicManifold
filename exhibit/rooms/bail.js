@@ -82,7 +82,7 @@ const hw=side?min(250,s.w*0.4):min(s.w,640);
 R.hud.classList.toggle('cmp',side||nar);
 H.width=hw+'px';H.left=(side?s.x+s.w-hw:s.x+(s.w-hw)/2)+'px';
 const hh=R.hud.offsetHeight||110;
-H.top=(side?s.y+max(0,(s.h-hh)/2):s.y+s.h-hh)+'px';
+H.top=(side?s.y+max(0,(s.h-hh)/2):s.y+s.h)+'px';H.transform=side?'':'translateY(-100%)';/* R13: hung from the stage foot, a line added later (the keys line, a longer readout) grows the panel up, not down into the card */
 const pad=nar?12:26,x0=R.x0=s.x+pad,Wt=R.Wt=(side?s.w-hw-12:s.w)-pad*2;
 R.yb=side?s.y+s.h-26:s.y+s.h-hh-30;R.ty=s.y+30;
 R.F=nar?0.7:0.74;R.TW=(1-R.F)*Wt/3;

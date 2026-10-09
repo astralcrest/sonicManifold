@@ -158,8 +158,8 @@ export function mount(ctx, deps) {
     if (idx.toursReady) return;
     let list = [];
     try { list = ctx.tour.list() || []; } catch (e) {}
-    if (!list.length) list = (deps.TOURS || []).map((t) => ({ id: t.id, name: t.name, blurb: t.blurb, stops: (t.stops || []).length }));
-    idx.tours = list;
+    if (!list.length) list = (deps.TOURS || []).map((t) => ({ id: t.id, name: t.name, blurb: t.blurb, of: t.of, note: t.note, stops: (t.stops || []).length }));
+    idx.tours = list.filter((t) => !t.of && !t.note); /* R13 ONE TOUR: the cuts and the liner notes are not tours of their own */
     idx.toursReady = true;
   }
   function buildFindings(killit) {

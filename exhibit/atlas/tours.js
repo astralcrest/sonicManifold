@@ -159,77 +159,141 @@ const GHOST2 = 'one reason the headline uses no map: 1.05 [1.03, 1.08], a direct
 /* the bridge-index ratio with its conditions (bi REFEREE2 C-4 / tours brief: never a bare "a third of jumps" rate) */
 const TAPS1 = '69.9 ÷ 66.3 = 1.05, likely 1.03 to 1.08, the bridge index: a direction, not a size. how untagged jumps are handled moves it 1.00 to 1.13; loosest or 50-play definitions read 1.01.';
 
-export const TOURS = [
-  {
-    // R5 §4.2: the pocket tour. every caption <= 90 chars, typed twice as fast, whole words only (76 s authored; TOURS3
-    // re-paced it per CRIT6 §6, see the stop notes)
-    id: 'ninety',
-    name: 'the single',
-    blurb: 'for a phone and a minute and a half',
-    capSpeed: 2, capWords: true,
-    stops: [
-      {
-        room: 'threshold', angle: 'whole', hold: 6, gate: true,
-        share: SHARE.threshold,
-        caption: '97,427 plays in my log. i assumed i started them. who actually did?',
-        src: ['exhibit/data/wall.json#total'],
-      },
-      {
-        // light and preloaded, so the 858 KB universe stays off the first stop; under via:'tour' the heap pours at once.
-        // TOURS3 (CRIT6 §6): the tour's arrival waits out the pour (wall.js pourIn 4.6 s), so hold 3 = a 3 s tail once it lands
-        room: 'wall', angle: 'pour', hold: 3,
-        share: SHARE.wall,
-        caption: '19 of every 100 plays started by my hand, 17 by shuffle, 64 by the queue.',
-        src: ['exhibit/data/wall.json#pct_rounded'],
-      },
-      {
-        // R5 R1 duel. CRIT6A: the room ends the stop itself (game.js dTour: 8 s idle, its own demo card, then tour.js
-        // holdLeft advances at about 12.5 s; each visitor call keeps it open 12 s more, three calls max). hold 15 = the ceiling
-        room: 'game', angle: 'round', hold: 15,
-        share: SHARE.game,
-        caption: 'your turn: swipe who pressed play, me or the queue. a coin gets half.',
-        src: S_GAME.slice(),
-      },
-      {
-        room: 'listeners', angle: 'hundred', hold: 8,
-        share: SHARE.listeners,
-        caption: 'of 100 tagged jumps, about 70 of mine switch genre. when the queue runs on, about 66.',
-        src: S_PAIR.slice(),
-        then: [{
-          angle: 'taps',
-          caption: '1.05, likely 1.03 to 1.08: a direction, not a size; untagged jumps move it 1.00 to 1.13.',
-          src: S_BI.slice(),
-        }, {
-          // TOURS3 (CRIT6 §4 P1, V4 P2-2): the other two conditions on 1.05, a second step over the same picture (90-char cap)
-          angle: 'taps',
-          caption: 'the loosest or 50-play definitions read 1.01. that\'s how fragile it is.',
-          src: ['exhibit/labels.js#threshold.finding', 'exhibit/data/bi_conditions.json'],
-        }],
-      },
-      {
-        // R5 N1 bail (REFEREE_APPLIED #2: "skip-forward presses", never "skips"). TOURS3 (CRIT6 §6): the demo thumb lets go
-        // about 3.8 s after arrival (bail.js demo 1200 + 2600 ms); hold 8 leaves a 4 s tail. on a 390 phone the caption's
-        // two-chunk carousel outlasts the hold (about 5.5 s tail measured at 7 or 8), so the rest is chrome.js's read time
-        room: 'bail', angle: 'heap', hold: 8,
-        share: SHARE.bail,
-        caption: 'let go when you’d skip. 61% of my skip-forward presses came inside 5 s, most in runs.',
-        src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#bins', 'exhibit/data/bail.json#n_in5_in_runs'],
-      },
-      {
-        // TOURS3 (CRIT6 §6): 16 s on the most stunning stop. no scripted strum: tours.js has no demo hook (the strum is kiosk-only)
-        room: 'universe', angle: 'sky', hold: 16,
-        share: SHARE.universe,
-        caption: 'my {named} most-played artists. where one sits means nothing. press one to hear it.',
-        src: ['exhibit/data/universe_nodes.json', 'derive:named_count'],
-      },
-      {
-        room: 'yours', angle: 'bars', hold: 8,
-        share: SHARE.yours,
-        caption: 'find your own split: drop your export, nothing leaves your tab.',
-        src: ['exhibit.html#yours.say'],
-      },
-    ],
+/* R13 ONE TOUR (the owner, on her phone: "so many tours everywhere ... make it easier"): there is one tour, the long play.
+   the single and the radio edit are no longer tours of their own: they are LENGTHS of the long play, the same record with
+   stops skipped (ids `ninety` and `minute` stay, so #tour=ninety and #tour=minute still land, now in the long play at that
+   length). each cut below lists the long-play stops it keeps, keyed by the long play's room·angle; `true` keeps the long
+   play's own stop, an object is the cut's own stop (the old single's and radio edit's stops, verbatim: their short
+   captions, holds and pacing). buildCut() walks the long play in order and stamps each kept stop with `g`, its index on
+   the long play, so tour.js can move a visitor between lengths without losing their place.
+   the three liner notes are no longer tours either: they are NOTES on the long play's stops (`note: true`), read in the
+   notes sheet (panels.js, #notes) and offered on a stop as "note ›" when the chosen reader has a line for that room. their
+   stops keep their room, angle, caption, then, src and share exactly as written: moved, not rewritten. */
+
+/* the ninety-second cut (was "the single", R5 §4.2 + TOURS3): the gate plus six; every caption <= 90 chars, typed twice as
+   fast, whole words only (76 s authored). its wall pours at once (no unsorted question); its universe holds 16 s */
+const NINETY_AT = {
+  'threshold·whole': {
+    room: 'threshold', angle: 'whole', hold: 6, gate: true,
+    share: SHARE.threshold,
+    caption: '97,427 plays in my log. i assumed i started them. who actually did?',
+    src: ['exhibit/data/wall.json#total'],
   },
+  'wall·unsorted': {
+    // light and preloaded, so the 858 KB universe stays off the first stop; under via:'tour' the heap pours at once.
+    // TOURS3 (CRIT6 §6): the tour's arrival waits out the pour (wall.js pourIn 4.6 s), so hold 3 = a 3 s tail once it lands
+    room: 'wall', angle: 'pour', hold: 3,
+    share: SHARE.wall,
+    caption: '19 of every 100 plays started by my hand, 17 by shuffle, 64 by the queue.',
+    src: ['exhibit/data/wall.json#pct_rounded'],
+  },
+  'game·round': {
+    // R5 R1 duel. CRIT6A: the room ends the stop itself (game.js dTour: 8 s idle, its own demo card, then tour.js
+    // holdLeft advances at about 12.5 s; each visitor call keeps it open 12 s more, three calls max). hold 15 = the ceiling
+    room: 'game', angle: 'round', hold: 15,
+    share: SHARE.game,
+    caption: 'your turn: swipe who pressed play, me or the queue. a coin gets half.',
+    src: S_GAME.slice(),
+  },
+  'listeners·hundred': {
+    room: 'listeners', angle: 'hundred', hold: 8,
+    share: SHARE.listeners,
+    caption: 'of 100 tagged jumps, about 70 of mine switch genre. when the queue runs on, about 66.',
+    src: S_PAIR.slice(),
+    then: [{
+      angle: 'taps',
+      caption: '1.05, likely 1.03 to 1.08: a direction, not a size; untagged jumps move it 1.00 to 1.13.',
+      src: S_BI.slice(),
+    }, {
+      // TOURS3 (CRIT6 §4 P1, V4 P2-2): the other two conditions on 1.05, a second step over the same picture (90-char cap)
+      angle: 'taps',
+      caption: 'the loosest or 50-play definitions read 1.01. that\'s how fragile it is.',
+      src: ['exhibit/labels.js#threshold.finding', 'exhibit/data/bi_conditions.json'],
+    }],
+  },
+  'bail·heap': {
+    // R5 N1 bail (REFEREE_APPLIED #2: "skip-forward presses", never "skips"). TOURS3 (CRIT6 §6): the demo thumb lets go
+    // about 3.8 s after arrival (bail.js demo 1200 + 2600 ms); hold 8 leaves a 4 s tail. on a 390 phone the caption's
+    // two-chunk carousel outlasts the hold (about 5.5 s tail measured at 7 or 8), so the rest is chrome.js's read time
+    room: 'bail', angle: 'heap', hold: 8,
+    share: SHARE.bail,
+    caption: 'let go when you’d skip. 61% of my skip-forward presses came inside 5 s, most in runs.',
+    src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#bins', 'exhibit/data/bail.json#n_in5_in_runs'],
+  },
+  'universe·sky': {
+    // TOURS3 (CRIT6 §6): 16 s on the most stunning stop. no scripted strum: tours.js has no demo hook (the strum is kiosk-only)
+    room: 'universe', angle: 'sky', hold: 16,
+    share: SHARE.universe,
+    caption: 'my {named} most-played artists. where one sits means nothing. press one to hear it.',
+    src: ['exhibit/data/universe_nodes.json', 'derive:named_count'],
+  },
+  'yours·bars': {
+    room: 'yours', angle: 'bars', hold: 8,
+    share: SHARE.yours,
+    caption: 'find your own split: drop your export, nothing leaves your tab.',
+    src: ['exhibit.html#yours.say'],
+  },
+};
+
+/* the radio edit (was the 45 s pitch, R5 §4.3): its seven stops verbatim behind the ninety-second cut's gate, plus three
+   long-play stops kept as the long play has them (the press, the arrivals, the loop): ten after the gate */
+const MINUTE_AT = {
+  'threshold·whole': NINETY_AT['threshold·whole'],
+  'universe·sky': {
+    room: 'universe', angle: 'sky', hold: 6,
+    share: SHARE.universe,
+    caption: 'my {named} most-played artists, one star each. where one sits means nothing on its own.',
+    src: ['exhibit/data/universe_nodes.json', 'derive:named_count'],
+  },
+  'wall·unsorted': {
+    room: 'wall', angle: 'pour', hold: 6,
+    share: SHARE.wall,
+    caption: '81 of every 100 plays started without my hand. and that\'s the generous reading.',
+    src: ['exhibit/data/wall.json#pct_rounded', 'exhibit.html#make.say'],
+  },
+  'wall·press': true,
+  'game·round': {
+    // R5 R1 duel: the result card's link deals a friend the same deck (exhibit.html#game&s=<seed>)
+    room: 'game', angle: 'round', hold: 7,
+    share: SHARE.game,
+    caption: 'can you tell who pressed play? play a run, then send the same deck to a friend.',
+    src: S_GAME.slice(),
+  },
+  'bail·heap': {
+    room: 'bail', angle: 'heap', hold: 6,
+    share: SHARE.bail,
+    caption: '61% of my skip-forward presses came inside five seconds, most in runs.',
+    src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#n_in5_in_runs'],
+  },
+  'listeners·hundred': {
+    room: 'listeners', angle: 'hundred', hold: 7,
+    share: SHARE.listeners,
+    caption: 'of 100 tagged jumps, about 70 of mine switch genre, about 66 of the queue\'s. loosest rules: a tie.',
+    src: S_PAIR.slice(),
+  },
+  'arrivals·rain': true,
+  'calendar·line': {
+    room: 'calendar', angle: 'line', hold: 7,
+    share: SHARE.calendar,
+    caption: 'the logger itself moved: my tapped share jumped 10.9 points in october 2023, when the app changed how it records a start.',
+    src: ['exhibit.html#calendar.say', 'exhibit.html#calendar.say.dim'],
+  },
+  'loop·tower': true,
+  'yours·bars': {
+    room: 'yours', angle: 'bars', hold: 6,
+    share: SHARE.yours,
+    caption: 'run yours: drop your spotify export here. nothing leaves your tab.',
+    src: ['exhibit.html#yours.say'],
+  },
+};
+
+function buildCut(id, label, blurb, at) {
+  const G = TOURS[0], stops = [];
+  G.stops.forEach((s, g) => { const o = at[s.room + '·' + s.angle]; if (o) stops.push(Object.assign({}, o === true ? s : o, { g })); });
+  return { id, name: G.name, cut: label, of: G.id, blurb, capSpeed: 2, capWords: true, stops };
+}
+
+export const TOURS = [
   {
     // R5 §4.1: opens on the most stunning stop after the gate; the threads/links coda is retired (the chain replaces it).
     // TOURS3 (R5/CRIT6 §2): threshold, sky, wall, game, bail, listeners, chain, arrivals, clock, map, gates, pile, calendar,
@@ -437,61 +501,10 @@ export const TOURS = [
     // TODO(R5 §4.1 holds): bar-aware holds (ctx.audio.beat) and downbeat cinema cuts are wave-3 items, not built
   },
   {
-    // R5 §4.3: the 45-second pitch. the id stays 'minute' so the door's #tour=minute links keep working
-    id: 'minute',
-    name: 'the radio edit',
-    blurb: 'the short cut, for someone in a hurry',
-    capSpeed: 2, capWords: true,
-    stops: [
-      {
-        room: 'universe', angle: 'sky', hold: 6,
-        share: SHARE.universe,
-        caption: 'my {named} most-played artists, one star each. where one sits means nothing on its own.',
-        src: ['exhibit/data/universe_nodes.json', 'derive:named_count'],
-      },
-      {
-        room: 'wall', angle: 'pour', hold: 6,
-        share: SHARE.wall,
-        caption: '81 of every 100 plays started without my hand. and that\'s the generous reading.',
-        src: ['exhibit/data/wall.json#pct_rounded', 'exhibit.html#make.say'],
-      },
-      {
-        room: 'listeners', angle: 'hundred', hold: 7,
-        share: SHARE.listeners,
-        caption: 'of 100 tagged jumps, about 70 of mine switch genre, about 66 of the queue\'s. loosest rules: a tie.',
-        src: S_PAIR.slice(),
-      },
-      {
-        // R5 R1 duel: the result card's link deals a friend the same deck (exhibit.html#game&s=<seed>)
-        room: 'game', angle: 'round', hold: 7,
-        share: SHARE.game,
-        caption: 'can you tell who pressed play? play a run, then send the same deck to a friend.',
-        src: S_GAME.slice(),
-      },
-      {
-        room: 'bail', angle: 'heap', hold: 6,
-        share: SHARE.bail,
-        caption: '61% of my skip-forward presses came inside five seconds, most in runs.',
-        src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#n_in5_in_runs'],
-      },
-      {
-        room: 'calendar', angle: 'line', hold: 7,
-        share: SHARE.calendar,
-        caption: 'the logger itself moved: my tapped share jumped 10.9 points in october 2023, when the app changed how it records a start.',
-        src: ['exhibit.html#calendar.say', 'exhibit.html#calendar.say.dim'],
-      },
-      {
-        room: 'yours', angle: 'bars', hold: 6,
-        share: SHARE.yours,
-        caption: 'run yours: drop your spotify export here. nothing leaves your tab.',
-        src: ['exhibit.html#yours.say'],
-      },
-    ],
-  },
-  {
     // R5 §4.4
     id: 'scientists',
     name: 'liner notes for scientists',
+    note: true,
     blurb: 'what i claim, and what i did to try to kill it',
     stops: [
       {
@@ -605,6 +618,7 @@ export const TOURS = [
     // R5 §4.5
     id: 'musicians',
     name: 'liner notes for musicians',
+    note: true,
     blurb: 'the tracks i made about this log, and how they mix',
     stops: [
       {
@@ -679,6 +693,7 @@ export const TOURS = [
     // R5 §4.6
     id: 'artists',
     name: 'liner notes for artists & designers',
+    note: true,
     blurb: 'the views i\'d frame and hang',
     stops: [
       {
@@ -742,6 +757,8 @@ export const TOURS = [
     ],
   },
 ];
+/* the long play first, its two lengths next (their ids are the deep links), the notes last */
+TOURS.splice(1, 0, buildCut('ninety', 'the ninety-second cut', 'for a phone and a minute and a half', NINETY_AT), buildCut('minute', 'the radio edit', 'the short cut, for someone in a hurry', MINUTE_AT));
 
 // ids match exhibit/atlas/ladder.js's own LEVELS exactly (no underscores: 'oneplay', 'sevenyears') —
 // ladder.js merges this array over its own D7 defaults by `id`, so an id it doesn't recognise is

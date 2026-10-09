@@ -283,7 +283,7 @@ export default {
     cs.opacity = '.75';
     /* wide screens have headroom above the wall: the pill sits there, top-left of the stage */
     cs.transform = ''; cs.left = (s.x + 46) + 'px'; cs.top = (s.y - 26) + 'px';
-    const hdr = [document.querySelector('#top a'), document.getElementById('labelbtn'), document.getElementById('mute')].filter((el) => el && !el.hidden).map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height);
+    const hdr = [...document.querySelectorAll('#top a, #top button')].filter((el) => el && !el.hidden) /* R13: every header control (the atlas menu too: `again` sat on `dig /` sideways) */.map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height);
     const hit = (a, b) => a.left < b.right + 4 && a.right > b.left - 4 && a.top < b.bottom + 4 && a.bottom > b.top - 4;
     const rw = this.cue.getBoundingClientRect(); if (!hdr.some((b) => hit(rw, b))) return;
     /* on a phone the header is right there, and a tap on the pill landed on the back link. so the pill goes inside the

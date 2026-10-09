@@ -27,6 +27,23 @@ export function mount(ctx, deps) {
   if (!ctx.atlas || !ctx.atlas.on) return null;
   const { TOURS = [], DWELL = { short: 0.45, normal: 1, long: 1.7 }, KIOSK, reduced, P } = deps || {};
   const byId = (id) => TOURS.find((t) => t.id === id) || null;
+  /* R13 ONE TOUR: the long play is the only tour. tours.js carries its two shorter LENGTHS as defs of their own (`of:
+     'grand'`, stops stamped `g` = their index on the long play) so the stepper, the count and the caption speed read from
+     the def being played, and the liner notes as `note` defs that never play: play(<note id>) is the long play with that
+     reader's notes on (the lens). a length the visitor picks moves them to the next kept stop, never back to the start */
+  const RECORD = 'grand';
+  const isLen = (d) => !!d && (d.id === RECORD || d.of === RECORD);
+  const gOf = (d, k) => { const x = d && d.stops && d.stops[k]; return x && x.g != null ? x.g : k; };
+  function remap(fromId, k, toId) {
+    const to = byId(toId); if (!to || !to.stops.length) return 0;
+    const from = byId(fromId), g = from ? gOf(from, k) : k;
+    const j = to.stops.findIndex((x, i) => gOf(to, i) >= g);
+    return j < 0 ? to.stops.length - 1 : j;
+  }
+  let pref = null; /* the length picked this visit (a def id), or null for the whole record: the needle drops at it */
+  let lenNow = RECORD; /* the length being played (or, with nothing playing, the one picked) */
+  const LENS_KEY = 'sm_atlas_lens_v1';
+  let lens = null; try { const v = sessionStorage.getItem(LENS_KEY); const d = v && byId(v); if (d && d.note) lens = v; } catch (e) {}
 
   /* R6: why = the last pause's reason ('user' | 'manual' | 'end' ...), hand = a step the visitor asked for (next/prev) is in flight */
   const active = { id: null, k: 0, n: 0, playing: false, angleK: 0, angleN: 1, holding: 0, enRoute: false, why: null, hand: false };
@@ -55,7 +72,10 @@ export function mount(ctx, deps) {
   function loadSeen() { try { const v = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; } }
   function saveSeen(obj) { try { localStorage.setItem(SEEN_KEY, JSON.stringify(obj)); } catch (e) {} }
   let seenMap = loadSeen();
-  function markSeen(id, k) { const s = new Set(seenMap[id] || []); s.add(k); seenMap[id] = [...s]; saveSeen(seenMap); }
+  function markSeen(id, k) {
+    const d = byId(id); if (d && d.of) { k = gOf(d, k); id = d.of; } /* a length counts on the long play's own stops */
+    const s = new Set(seenMap[id] || []); s.add(k); seenMap[id] = [...s]; saveSeen(seenMap);
+  }
   function seenCount(id) { return (seenMap[id] || []).length; }
 
   /* -------------------------------------------------------------- token resolution (§4.2). every number
@@ -176,8 +196,8 @@ export function mount(ctx, deps) {
     return new Promise((resolve) => {
       let elapsed = 0, h = null;
       if (main) {
-        if (pend && pend.my === my && pend.k === active.k) ms = pend.left;
-        pend = null; h = lead = { my, k: active.k, set(left) { ms = elapsed + left; } };
+        if (pend && pend.my === my && pend.k === active.k) ms = pend.min ? Math.max(ms, pend.left) : pend.left;
+        pend = null; h = lead = { my, k: active.k, set(left) { ms = elapsed + left; }, min(left) { ms = Math.max(ms, elapsed + left); } };
       }
       const off = ctx.onFrame((t, dt) => {
         if (my !== epoch) { off(); if (lead === h) lead = null; resolve(); return; }
@@ -192,6 +212,14 @@ export function mount(ctx, deps) {
     if (!active.id || !active.playing || !(left >= 0)) return false;
     if (lead && lead.my === epoch && lead.k === active.k) lead.set(left);
     else pend = { my: epoch, k: active.k, left };
+    return true;
+  }
+  /* R13 CHROME3: "this stop lasts at least ms more": a line the chrome puts up mid-stop (the colour key) gets its read time
+     before the tour turns the page; never shortens the authored hold */
+  function holdAtLeast(left) {
+    if (!active.id || !active.playing || !(left >= 0)) return false;
+    if (lead && lead.my === epoch && lead.k === active.k) lead.min(left);
+    else if (!(pend && pend.my === epoch && pend.k === active.k && !pend.min)) pend = { my: epoch, k: active.k, left: Math.max(left, pend && pend.my === epoch && pend.k === active.k ? pend.left : 0), min: true };
     return true;
   }
   /* R3 M4-a: kicks off a caption WITHOUT blocking the caller on its full typing/carousel — the entrance
@@ -344,10 +372,36 @@ export function mount(ctx, deps) {
   }
 
   /* -------------------------------------------------------------- public API */
-  function list() { return TOURS.map((t) => { const S = t.stops || []; return { id: t.id, name: t.name, blurb: t.blurb, stops: S.length, shown: S.length - (S[0] && S[0].gate ? 1 : 0) }; }); }
+  function list() { return TOURS.map((t) => { const S = t.stops || []; return { id: t.id, name: t.name, blurb: t.blurb, stops: S.length, shown: S.length - (S[0] && S[0].gate ? 1 : 0), cut: t.cut || null, of: t.of || null, note: !!t.note }; }); }
+  /* R13: the lengths of the one tour (the whole record first), and the reader whose notes ride along */
+  function lengths() { return list().filter((t) => t.id === RECORD || t.of === RECORD).map((t) => ({ id: t.id, label: t.cut, n: t.shown })); }
+  function length() { return lenNow; }
+  function setLength(id) {
+    const to = byId(id); if (!isLen(to)) return;
+    pref = id === RECORD ? null : id; lenNow = id;
+    const cur = byId(active.id);
+    if (isLen(cur) && active.id !== id) play(id, remap(active.id, active.k, id), { autoplay: active.playing });
+    else fire();
+  }
+  function setLens(id) {
+    const d = id ? byId(id) : null, v = d && d.note ? id : null;
+    if (v === lens) return;
+    lens = v; try { if (v) sessionStorage.setItem(LENS_KEY, v); else sessionStorage.removeItem(LENS_KEY); } catch (e) {}
+    fire(); emit('lens', v);
+  }
   function play(id, k, opts) {
-    const def = byId(id); if (!def || !def.stops || !def.stops.length) return;
+    let def = byId(id); if (!def) return;
     opts = opts || {};
+    /* a reader's notes (#tour=scientists|musicians|artists) are the long play at the current length with that lens on; the
+       notes sheet opens once over it, so the record waits on that stop for a press of play */
+    if (def.note) {
+      setLens(def.id);
+      const NP = ctx.atlas && ctx.atlas.panels && ctx.atlas.panels.notes;
+      if (NP && typeof NP.open === 'function') { opts = Object.assign({}, opts, { autoplay: false }); setTimeout(() => { try { NP.open(def.id); } catch (e) {} }, 0); }
+      k = remap(RECORD, k || 0, pref || RECORD); def = byId(pref || RECORD); if (!def) return; id = def.id;
+    } else if (id === RECORD && pref && byId(pref)) { k = remap(RECORD, k || 0, pref); id = pref; def = byId(id); }
+    if (!def.stops || !def.stops.length) return;
+    if (isLen(def)) lenNow = def.id; /* said at once, so a sheet re-drawn in the same tick shows the length being played */
     clearTimeout(manualTimer);
     const my = ++epoch;
     let wantPlay = opts.autoplay !== false;
@@ -384,7 +438,8 @@ export function mount(ctx, deps) {
     return Promise.resolve(true);
   }
   const api = {
-    list, active, play, pause, resume, toggle, isPlaying, holdLeft,
+    list, active, play, pause, resume, toggle, isPlaying, holdLeft, holdAtLeast,
+    lengths, length, setLength, lens: () => lens, setLens,
     next: () => stepTour(1), prev: () => stepTour(-1),
     onChange(fn) { return sub(CHANGEFNS, fn); },
     on, resolveCaption, effectiveStopCount,

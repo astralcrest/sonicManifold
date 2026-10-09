@@ -667,7 +667,7 @@ export function mount(ctx, deps) {
       setOff(false);
       const cw = chip.getBoundingClientRect().width || 80;
       const hx = Math.round(innerWidth - 12 - cw);
-      if (force || chipKey !== 'home') { chipKey = 'home'; chip.style.left = hx + 'px'; chip.style.top = '-6px'; chip.style.right = 'auto'; }
+      if (force || chipKey !== 'home') { chipKey = 'home'; chip.style.left = hx + 'px'; chip.style.top = 'calc(env(safe-area-inset-top, 0px) - 6px)'; /* R13: below a notch, level with the masthead's own padded row */ chip.style.right = 'auto'; }
       else if (parseInt(chip.style.left, 10) !== hx) chip.style.left = hx + 'px';
       return;
     }
@@ -679,6 +679,8 @@ export function mount(ctx, deps) {
     const sec = document.querySelector('section[data-room].is-active');
     if (sec) sec.querySelectorAll('[data-keepout]').forEach((el) => push(visibleRect(el)));
     if (sec) textObstacles(sec).forEach(push);
+    /* R13: a room's own panel (the arrivals' and the wheel's side cards) is one box, not just its lines: an empty corner of it is still on it */
+    if (sec) sec.querySelectorAll('[class*="hud"],[class*="card"],[class*="panel"]').forEach((el) => { if (el.closest('.wall')) return; const q = visibleRect(el); if (q && (q.right - q.left) * (q.bottom - q.top) < st.w * st.h * 0.5) obs.push(q); });
     /* the hint toast (#atlas-toast) lives outside the room's section, so the walk never saw it: it is a hard obstacle while shown */
     if (document.documentElement.classList.contains('ai-toast-on')) {
       toastQ = visibleRect(document.getElementById('atlas-toast'));
@@ -729,7 +731,7 @@ export function mount(ctx, deps) {
     }
     const clearOfDOM = (y, L = obs) => !L.some((o) => x < o.right && x + w > o.left && y < o.bottom && y + h > o.top);
     const up = walk(-1);
-    let y = up.y;
+    let y = up.y, xAlt = null;
     /* switching to the downward result only ever trades DOWN, never trades ink for a worse ink problem: full
        clearance (!down.blocked) is always accepted; a DOM-only clearance is accepted only when climbing was
        ALREADY compromised by this stop's own canvas ink (upInk) — the actual bug this fixes (a DOM obstacle
@@ -744,13 +746,26 @@ export function mount(ctx, deps) {
          panel with empty corners: yours' is) with the least ink, then clear of the boxes too, then nearest the corner. ink is padded
          vertically only: the chip is pinned to the corner's x, so a stroke beside it (the calendar's october line) could never be
          walked off, and padding sideways only made every y look blocked */
-      else { let best = Infinity; for (let yy = yMax; yy >= st.y; yy -= INK_STEP) if (clearOfDOM(yy, hard)) { const n = 2 * overlayInk(x, yy - INK_PAD, x + w, yy + h + INK_PAD) + !clearOfDOM(yy); if (n < best) { best = n; y = yy; } } }
+      else {
+        /* R13: the 8 px grid missed a gap that is exactly a chip tall (the game's, between its strip and its card); every box edge is a candidate too */
+        const ys = []; for (let yy = yMax; yy >= st.y; yy -= INK_STEP) ys.push(yy); hard.forEach((o) => { for (const e of [Math.ceil(o.bottom), Math.floor(o.top - h), Math.ceil(o.bottom) + 4, Math.floor(o.top - h) - 4]) if (e >= st.y && e <= yMax) ys.push(e); });
+        let best = Infinity; for (const yy of ys) if (clearOfDOM(yy, hard)) { const n = 2 * overlayInk(x, yy - INK_PAD, x + w, yy + h + INK_PAD) + !clearOfDOM(yy); if (n < best) { best = n; y = yy; } }
+        /* R13: a room panel down the stage's right edge (the wheel's, the arrivals' and the game's in landscape) fills the whole
+           column; the stage's left edge is the other corner the chip may hold */
+        if (best === Infinity || !clearOfDOM(y)) {
+          /* inside a panel's empty corner is still on the panel: any column further left wins when it is clear of the boxes too */
+          const lim = best === Infinity ? Infinity : 1, xs = []; for (let xx = x - 12; xx > st.x + CHIP_GAP; xx -= 12) xs.push(xx); xs.push(st.x + CHIP_GAP);
+          const clr = (xx, yy, L) => !L.some((o) => xx < o.right + 4 && xx + w > o.left - 4 && yy < o.bottom + 4 && yy + h > o.top - 4);
+          for (const xx of xs) { for (const yy of ys) if (clr(xx, yy, hard) && (lim === Infinity || clr(xx, yy, obs))) { const n = overlayInk(xx, yy - INK_PAD, xx + w, yy + h + INK_PAD) + (clr(xx, yy, obs) ? 0 : 1); if (n < Math.min(best, lim)) { best = n; y = yy; xAlt = xx; } } if (best === 0) break; }
+        }
+      }
     }
-    const xC = Math.max(12, Math.min(x, innerWidth - 12 - w)); y = Math.max(st.y, 12, Math.min(y, innerHeight - 12 - h));
+    const xC = Math.max(12, Math.min(xAlt != null ? xAlt : x, innerWidth - 12 - w)); y = Math.max(st.y, 12, Math.min(y, innerHeight - 12 - h));
     const nx = Math.round(xC), ny = Math.round(y), key = nx + ',' + ny;
     /* while the hint is up the chip clears it where the stage has room; where there is no room that is clear of both the hint and the
        room's own text it steps out of the way for the hint's few seconds rather than sit on either */
-    setOff(!!toastQ && hard.some((o) => nx < o.right && nx + w > o.left && ny < o.bottom && ny + h > o.top));
+    /* R13: the same when no spot on the stage is clear of the room's text at all (the game's card fills a 659 phone's stage) */
+    setOff(hard.some((o) => nx < o.right && nx + w > o.left && ny < o.bottom && ny + h > o.top));
     if (!force && key === chipKey) return;
     chipKey = key;
     chip.style.left = nx + 'px'; chip.style.top = ny + 'px'; chip.style.right = 'auto';

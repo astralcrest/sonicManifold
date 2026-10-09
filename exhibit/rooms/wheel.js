@@ -34,6 +34,8 @@ const CSS = `@ .wh-hud{position:absolute;box-sizing:border-box;padding:10px 12px
 @ .wh-hud.cmp .wh-n{font-size:30px}
 @ .wh-hud.cmp .wh-s{margin-bottom:6px;font-size:10.5px}
 @ .wh-hud.cmp .wh-row{margin-bottom:6px;flex-wrap:nowrap}
+@ .wh-hud.sd .wh-row{flex-wrap:wrap}
+@ .wh-hud.sd .wh-play{padding:0 14px;font-size:15px}
 @ .wh-hud.cmp .wh-rg button{padding:0 9px}
 @ .wh-hud.cmp .wh-play{padding:0 11px}
 @ .wh-hud.cmp .wh-leg{font-size:10.5px;line-height:1.45;margin-bottom:4px}
@@ -139,8 +141,10 @@ export default {
   layout(ctx) {
     const s = this.st = ctx.stage(), side = s.h < 440 && s.w > s.h * 1.2, nar = !side && s.w < 600, cmp = this.cmp = side || nar || s.h < 560;
     const hs = this.hud.style; this.hud.classList.toggle('cmp', cmp); this.hud.classList.toggle('sh', nar && s.h < 340);
-    const hw = side ? Math.min(260, s.w * 0.44) : nar ? s.w : Math.min(318, s.w * 0.42);
+    /* R13: on a phone on its side the panel was 154 px: the play button ran off the right edge and the caveat ran under the bottom edge; wider, wrapping, and the play button down to its glyph (its name stays in aria-label) */
+    const hw = side ? Math.min(260, Math.max(212, s.w * 0.44)) : nar ? s.w : Math.min(318, s.w * 0.42);
     hs.width = hw + 'px'; hs.left = (s.x + s.w - hw) + 'px'; hs.top = s.y + 'px';
+    this.hud.classList.toggle('sd', side); this.pbT.textContent = side ? '' : 'play the shapes'; this.pb.setAttribute('aria-label', 'play the shapes');
     this.copy();
     const hH = this.hud.offsetHeight || 220;
     let bx = s.x, by = s.y + 4, bw = s.w, bh = s.h - 10;

@@ -43,7 +43,7 @@ export const COPY = {
     trackLead: 'lead-in · {n} stops',
     trackStops: '{name} · {n} stops',
     trackAngle: { 'wall.unsorted': 'the pour', 'wall.press': 'the press', 'clock.busiest': 'the dial', 'clock.glass': 'the glass', 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' }, // the record plays the wall, the clock and the graveyard twice: a2 a3, a9 b10, b12 b13
-    coachHead: 'how this plays · {n} stops',
+    coachHead: 'one tour · {n} stops · short cuts inside', // R13 ONE TOUR: the coach says what the records sheet says
     coachTouch: ['play runs it. swipe for the next.', 'tap a star to pick it.', 'hold one to hear it. drag to turn.'],
     coachDesk: ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'hover one to hear it. drag to turn.'],
     // W40/W10 tour end card: verbatim source for chrome.js's CC.end*/CC.contact fallbacks (chrome.js ~L40-45).
@@ -102,6 +102,24 @@ export const COPY = {
       "a star's position in the universe carries no meaning as distance; its depth is a seeded drawing offset unless a 3d layout file ships.",
       'shimmer is decoration everywhere on this site and carries no data.',
     ],
+  },
+
+  // R13 ONE TOUR (the owner: "so many tours everywhere ... make it easier"): one tour, said once, in the records sheet
+  // (panels.js). the single and the radio edit are its lengths; the three liner notes are notes on its stops (#notes).
+  tour: {
+    what: 'one tour: the long play, {n} stops, from one play to the whole log. it plays itself; touch anything and your hand has it, ▶ hands it back. short cuts inside.',
+    hurry: 'in a hurry?',
+    all: 'all {n}',
+    cut: '{label} · {n}',
+    notesLink: 'liner notes for scientists · musicians · artists ›',
+    notesHead: 'liner notes',
+    notesWhat: 'notes on the same {n} stops, written for three kinds of reader. pick one and a note › waits under the caption wherever that reader has a line.',
+    notesPlay: '▶ play the long play with these notes',
+    notesOff: 'notes off',
+    noteChip: 'note ›',
+    seeIt: 'see it ›',
+    loop: 'leave it playing',
+    loopSub: '{name} on repeat, hands off',
   },
 
   photo: {

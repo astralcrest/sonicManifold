@@ -344,7 +344,7 @@ export function mount(ctx, deps) {
     const t = now(), tourOn = !!(ctx.tour && ctx.tour.active && ctx.tour.active.playing);
     let bt = null; try { bt = ctx.audio && typeof ctx.audio.beat === 'function' ? ctx.audio.beat() : null; } catch (e) {}
     const threshold = bt && bt.len > 0 ? Math.min(12000, Math.max(3000, 8 * bt.len * 1000)) : (tourOn ? 4000 : 6000);
-    const idle = !KIOSK && !idleHold.size && !infoHovered() && !infoFocused() && !panelOpen() && t > capReadUntil && (t - lastInput) > threshold;
+    const idle = !KIOSK && !idleHold.size && !infoHovered() && !infoFocused() && !panelOpen() && !capTyping && !doc.querySelector(".uf-ks.on") && t > capReadUntil && !(hintShown() && t < hintUntil) && (t - lastInput) > threshold;
     html.classList.toggle('atlas-idle', idle);
     idleAPI.faded = idle;
   }
@@ -370,6 +370,7 @@ export function mount(ctx, deps) {
   const CAP_LINES = 2; /* W06 §0.2: the phone caption is capped at two lines now (was three) */
   const WALL_MIN_LAND = 112; /* round-2 item 2: guaranteed wall room in short landscape, see layoutInfo() */
   let capToken = 0, lastStopT = 0, capSaid = true, capTyping = false, capOpen = false, capDoneAt = 0;
+  let toastUntil = 0, hintUntil = 0, capPend = 0; /* R13: when the toast and the onboarding hint have had their read time; captions in flight */
   let capText = '', capFull = '', capShown = '';
   let capCycling = false; /* round-2 item 3: the hands-off multi-chunk carousel (typeChunks) is mid-run */
   const capCompact = () => lessOn && compactVP();
@@ -502,13 +503,15 @@ export function mount(ctx, deps) {
   }
   function typeCharsInto(text, myToken, showCursor, cps) {
     const vp = voicePlan(text);
-    capT.textContent = ''; cursorEl.hidden = vp ? true : !showCursor; capTyping = true; capEl.classList.add('ai-cap-typing');
+    capT.textContent = ''; cursorEl.hidden = vp ? true : !showCursor; capTyping = true; capEl.classList.add('ai-cap-typing'); html.classList.remove('atlas-idle'); /* R13: a new line never types into the idle fade (autoplay, the wall's pour) */
     const delay = 1000 / cps, t0 = now();
     return new Promise((resolve) => {
-      let i = 0, w = 0;
+      let i = 0, w = 0, was = 0;
       function step() {
         if (myToken !== capToken) { resolve(false); return; }
-        const j = vp ? vp.ends[w++] : nextCut(text, i), n = j - i; i = j; capT.textContent = text.slice(0, i);
+        if (capCovered(t0)) { i = 0; w = 0; capT.textContent = ''; was = 1; setTimeout(step, slotHeld() + 40); return; }
+        if (was) { was = 0; setTimeout(step, 220); return; } /* let the card fade back in before the first letter */ /* R13: a toast took the slot mid-line; start the line again once it leaves */
+        const j = html.classList.contains('ai-toast-on') ? text.length : vp ? vp.ends[w++] : nextCut(text, i), n = j - i; /* a toast beside the card: set the line down whole, never two typers at once */ i = j; capT.textContent = text.slice(0, i);
         if (i >= text.length) {
           capTyping = false; capEl.classList.remove('ai-cap-typing');
           if (vp) setTimeout(() => resolve(myToken === capToken), Math.max(0, text.length * delay - (now() - t0))); else resolve(true);
@@ -516,7 +519,10 @@ export function mount(ctx, deps) {
         }
         setTimeout(step, vp ? vp.step : delay * n);
       }
-      if (vp && vp.lead > 0) setTimeout(step, vp.lead); else step();
+      /* R13: upright on a tour, the first letter waits 200 ms: the angle the tour just set brings its room's hud a frame or six
+         later (the wall's pour counter), and a line already under way flashed its first word before the hud took the slot */
+      const lead = Math.max(vp && vp.lead > 0 ? vp.lead : 0, isPortrait() && tourDriving() ? 200 : 0);
+      if (lead > 0) setTimeout(step, lead); else step();
     });
   }
   /* holds until `until`, bailing out the moment this caption is superseded, opened by a tap, or the card
@@ -537,7 +543,7 @@ export function mount(ctx, deps) {
      post-caption hold, sized from the FULL raw text's length, is pure extra margin on top of a guaranteed-
      complete read, not the only thing standing between a visitor and a cut-off story). */
   async function typeChunks(chunks, myToken, cps, showCursor) {
-    capCycling = true;
+    capCycling = myToken;
     try {
       for (let idx = 0; idx < chunks.length; idx++) {
         if (myToken !== capToken || capOpen || !capCompact()) return;
@@ -546,7 +552,7 @@ export function mount(ctx, deps) {
         /* set BEFORE typing starts (matching the single-shot path): readTime already covers the typing
            animation itself plus a reading buffer after, so idle-fade stays suppressed for the whole chunk,
            not just its post-typing pause */
-        capReadUntil = now() + readTime(chunk);
+        capReadUntil = now() + readTime(chunk) + 400; /* R13: + the piece's own fade in, so the read time is all readable */
         const ok = await typeCharsInto(chunk, myToken, showCursor, cps);
         if (!ok) return;
         if (idx === 0) sayLater(capFull, myToken); /* announced once, in full, regardless of what is on screen */
@@ -554,7 +560,7 @@ export function mount(ctx, deps) {
         if (!proceed) return;
       }
       stopTyping();
-    } finally { capCycling = false; }
+    } finally { if (capCycling === myToken) capCycling = false; } /* R13: a superseded carousel never clears the live one's flag (the hint cut it mid-read) */
   }
   /* lay the current capText out for this card (measured with the caption displayed); returns what goes on screen */
   function layoutCap() {
@@ -590,7 +596,30 @@ export function mount(ctx, deps) {
     const shown = layoutCap(); capT.textContent = shown; cursorEl.hidden = true; syncPrintCaption(capFull);
   }
   function captionClear() { captionSet(''); }
+  /* R13 CHROME3: a caption never types under a line that is still being read (a toast over the card, or the onboarding hint
+     holding the phone slot): it waits for that line's read time, then types where it can be seen */
+  function hintShown() { return !lineEl.hidden && !lineOnb.hidden; }
+  /* R13: ?enter=sound puts the needle veil (shell.js, z 95) over everything; nothing types under it, and the first line waits out its fade */
+  function veilUp() { const v = doc.getElementById('needle-veil'); return !!v && (!v.classList.contains('is-off') || +getComputedStyle(v).opacity > 0.05); }
+  /* R13: upright, a room's hud takes the caption's slot (updatePhoneSlot): the wall's pour counter came back with the tour's
+     second step over the pour and the line typed three letters under it. a line waits out a passing hud (up to 6 s from its
+     start; a room that keeps its hud up still gets its line, as before) */
+  function hudCovers(t0) { return isPortrait() && t0 != null && now() - t0 < 6000 && !hudEl.hidden && !!hudEl.textContent.trim(); }
+  function capCovered(t0) { return (isPortrait() && html.classList.contains('ai-toast-on')) || veilUp() || hudCovers(t0); }
+  /* R13 merge fix: a room that keeps its hud up (the arrivals counter) must not hold the slot for good; the passing-hud wait is
+     hudCovers(t0) in the typing step (6 s bounded), so slotHeld carries no hud term */
+  function slotHeld() { const t = now(); return Math.max(veilUp() ? 300 : 0, html.classList.contains('ai-toast-on') ? Math.max(0, toastUntil - t) + 340 : 0, hintShown() && isPortrait() ? hintUntil - t : 0, 0); }
+  /* R13: off a tour, a line nobody asked for (a field layer's, a room's recheck) never replaces the caption mid-read: it waits for
+     the one on screen (every piece of a carousel) to have had its read time; a press, a key or a new stop replaces it at once */
+  let capWait = 0;
   function captionType(text, opts) {
+    const tn = now(), tq = (opts && opts.tq) || tn;
+    const auto = !!text && !!capText && text !== capText && !tourOwnsCaption() && tn - lastInput > 900 && tn - lastStopT > 1500;
+    const readHeld = auto && tn - tq < 15000 ? Math.max(capReadUntil - tn, capCycling || capTyping ? 250 : 0, 0) : 0;
+    if (readHeld > 0) { const my = ++capWait, o2 = Object.assign({}, opts, { tq }); return new Promise((r) => setTimeout(r, Math.min(readHeld, 1000) + 40)).then(() => (my === capWait ? captionType(text, o2) : undefined)); }
+    capWait++;
+    const held = text ? slotHeld() : 0;
+    if (held > 0) { const my = ++capToken; stopTyping(); return new Promise((r) => setTimeout(r, held + 40)).then(() => (my === capToken ? captionType(text, opts) : undefined)); }
     const o = opts || {}, showCursor = o.cursor !== false, cps = o.cps || 55; /* W14: default typing speed 55 cps (was 36) */
     capWords = !!o.words;
     capToken++; const myToken = capToken; text = text || '';
@@ -612,14 +641,16 @@ export function mount(ctx, deps) {
     const shown = layoutCap();
     if (!shown) { capT.textContent = ''; cursorEl.hidden = true; if (capFull) sayLater(capFull, myToken); return Promise.resolve(); }
     const vp = voicePlan(shown);
-    capT.textContent = ''; cursorEl.hidden = vp ? true : !showCursor; capTyping = true; capEl.classList.add('ai-cap-typing');
+    capT.textContent = ''; cursorEl.hidden = vp ? true : !showCursor; capTyping = true; capEl.classList.add('ai-cap-typing'); html.classList.remove('atlas-idle'); /* R13: a new line never types into the idle fade (autoplay, the wall's pour) */
     const delay = 1000 / cps, t0 = now();
     capReadUntil = now() + readTime(shown); /* the read-time formula already paces reading at the typing rate (28 ms a character) */
     return new Promise((resolve) => {
-      let i = 0, w = 0;
+      let i = 0, w = 0, was = 0;
       function step() {
         if (myToken !== capToken) { resolve(); return; }
-        const j = vp ? vp.ends[w++] : nextCut(shown, i), n = j - i; i = j; capT.textContent = shown.slice(0, i);
+        if (capCovered(t0)) { i = 0; w = 0; capT.textContent = ''; was = 1; setTimeout(step, slotHeld() + 40); return; }
+        if (was) { was = 0; capReadUntil = now() + 220 + readTime(shown); setTimeout(step, 220); return; }
+        const j = html.classList.contains('ai-toast-on') ? shown.length : vp ? vp.ends[w++] : nextCut(shown, i), n = j - i; /* a toast beside the card: set the line down whole, never two typers at once */ i = j; capT.textContent = shown.slice(0, i);
         if (i >= shown.length) {
           stopTyping(); sayLater(capFull, myToken);
           /* the tour's hold is sized on character speed: a played line keeps the same total, so the promise still resolves when typing would have */
@@ -628,7 +659,8 @@ export function mount(ctx, deps) {
         }
         setTimeout(step, vp ? vp.step : delay * n);
       }
-      if (vp && vp.lead > 0) setTimeout(step, vp.lead); else step();
+      const lead = Math.max(vp && vp.lead > 0 ? vp.lead : 0, isPortrait() && tourDriving() ? 200 : 0); /* R13: as typeCharsInto */
+      if (lead > 0) setTimeout(step, lead); else step();
     });
   }
   /* the card's size or `less` changed: lay the caption out again in place (never retyped; a caption still typing keeps
@@ -669,8 +701,10 @@ export function mount(ctx, deps) {
       if (!tourOwnsCaption()) { refreshCaption(true); return; }
       capSeq++; capKey = null; capOffRaw = null; markDup(''); captionSet(text);
     },
+    /* R13: off a tour, a field layer's clear() asks the chrome to look again (capFor); it no longer restarts the same line from
+       its first letter mid-read when nothing new is due (the bath's 6.6 s recheck re-typed every starry room's caption) */
     clear() {
-      if (!tourOwnsCaption()) { refreshCaption(true); return; }
+      if (!tourOwnsCaption()) { refreshCaption(false); return; }
       capSeq++; capKey = null; capOffRaw = null; markDup(''); captionClear();
     },
   };
@@ -777,7 +811,10 @@ export function mount(ctx, deps) {
     if (t !== capText) { if (capTyping) captionType(t, { cursor: !reduced, full: capOffRaw }); else captionSet(t, capOffRaw); }
     markDup(t);
   }
-  async function refreshCaption(force, recheck) {
+  /* R13: capPend counts the off-tour captions still being resolved for this stop (data, the room's mount), so the onboarding
+     hint never takes the slot a moment before the caption arrives and cuts it */
+  async function refreshCaption(force, recheck) { capPend++; try { return await refreshCaption0(force, recheck); } finally { capPend--; } }
+  async function refreshCaption0(force, recheck) {
     const cur = curStop(); if (!cur) return;
     const a = ctx.angle && ctx.angle.get ? ctx.angle.get() : { id: 'main' };
     const ov = ctx.atlas && typeof ctx.atlas.capFor === 'function' ? ctx.atlas.capFor(cur.id, a.id) : null; /* R10: a field layer's own line */
@@ -843,6 +880,14 @@ export function mount(ctx, deps) {
     const out = [];
     const sec = doc.querySelector('section[data-room].is-active');
     if (sec) sec.querySelectorAll('[data-keepout]').forEach((el) => { const r = el.getBoundingClientRect(); if (r.width && r.height) out.push(r); });
+    /* R13: sideways, a room's own panel (the wheel's side hud, a card) is text the line must not land on either */
+    if (sec && !isPortrait()) sec.querySelectorAll('[class*="hud"],[class*="card"],[class*="panel"]').forEach((el) => {
+      if (el.closest('.wall') || el.parentElement.closest('[class*="hud"],[class*="card"],[class*="panel"]')) return;
+      const r = el.getBoundingClientRect(); if (r.width < 24 || r.height < 16 || r.width * r.height > innerWidth * innerHeight * 0.35) return;
+      const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || +cs.opacity < 0.05) return; out.push(r);
+    });
+    /* R13: a line arriving while the coach is up steps round it; the coach was jumping out from under a fresh toast mid-read */
+    { const c = doc.getElementById('atlas-coach'); if (c && c.classList.contains('on')) { const r = c.getBoundingClientRect(); if (r.width && r.height) out.push(r); } }
     try {
       const r = deps.rooms && deps.rooms[ctx.index], mod = r && r.mod;
       if (mod && typeof mod.keepout === 'function') (mod.keepout(ctx) || []).forEach((k) => out.push({ left: k.x, top: k.y, right: k.x + k.w, bottom: k.y + k.h }));
@@ -853,20 +898,25 @@ export function mount(ctx, deps) {
     const sp = lineSpot();
     if (el === toastEl && sp.band != null) sp.maxW = Math.min(sp.maxW, 620);
     el.style.left = sp.cx + 'px'; el.style.maxWidth = sp.maxW + 'px';
-    /* R7B: upright, the hint sits in the card's band over the caption, never above the card on the room's labels */
+    /* R7B: upright, the hint sits in the card's band over the caption. R13 CHROME3: its foot rests on the deck row (or
+       the dock, or the safe area when the row is folded away), never on them: a line taller than the caption's band
+       grows up over the stage instead of down across `2 / 16` and the dock's keys */
     if (el === toastEl && isPortrait() && !html.classList.contains('atlas-hidden')) {
-      const it = info.getBoundingClientRect().top, eh = el.offsetHeight, mt = mrow.getBoundingClientRect().top || innerHeight;
-      const tp = Math.max(0, Math.min(Math.max(it, mt - eh), innerHeight - dockH - 4 - eh));
-      el.style.bottom = Math.round(innerHeight - tp - eh) + 'px'; return;
+      const eh = el.offsetHeight, mr = mrow.getClientRects().length ? mrow.getBoundingClientRect() : null;
+      const dk = doc.getElementById('atlas-dock'), dkTop = dk && dk.getClientRects().length ? dk.getBoundingClientRect().top : innerHeight;
+      const foot = Math.min(mr && mr.height ? mr.top : info.getBoundingClientRect().bottom, dkTop) - 4;
+      const topLimit = (topBar ? topBar.getBoundingClientRect().bottom : 56) + 4;
+      el.style.bottom = Math.round(innerHeight - Math.max(topLimit + eh, foot)) + 'px'; return;
     }
-    let bottom = sp.bottom;
+    const sb = (parseFloat(getComputedStyle(el).scrollMarginBottom) || 0) + 4;
+    let bottom = Math.max(sp.bottom, sb);
     /* upright, a keepout that runs down into the card itself is a room reserving room for the chrome to move into
        (universe: its card grows), not something drawn on the stage; only keepouts inside the stage push the line up */
     const portrait = isPortrait(), infoTop = portrait ? info.getBoundingClientRect().top : Infinity;
     const w = el.offsetWidth, h = el.offsetHeight, L = sp.cx - w / 2, R = sp.cx + w / 2;
     const keeps = keepRects().filter((k) => !(portrait && k.bottom >= infoTop - 1));
     /* a short landscape band (a phone held sideways: 56px) seats a two-line line lower, so it stays under the stage */
-    if (sp.band != null) bottom = clamp(Math.round(sp.band - h - 4), 6, bottom);
+    if (sp.band != null) bottom = clamp(Math.round(sp.band - h - 4), Math.max(6, sb), bottom);
     if (sp.deck) { const x = Math.max(L, sp.deck[0]), up = x + w > sp.deck[1]; el.style.left = Math.round(up ? sp.cx : x + w / 2) + 'px'; el.style.bottom = (up ? sp.deck[2] : bottom) + 'px'; return; }
     for (let guard = 0; guard < 4; guard++) {
       const Bt = innerHeight - bottom, Tp = Bt - h;
@@ -875,18 +925,54 @@ export function mount(ctx, deps) {
       bottom = Math.round(innerHeight - Math.min(...hit.map((k) => k.top)) + 8);
     }
     const topLimit = (topBar ? topBar.getBoundingClientRect().bottom : 64) + 4;
-    el.style.bottom = Math.max(0, Math.min(bottom, Math.round(innerHeight - topLimit - h))) + 'px';
+    const fin = Math.max(sb, Math.min(bottom, Math.round(innerHeight - topLimit - h)));
+    /* R13: sideways, a room whose own panels fill the stage from its foot to its top (the map: the curve's controls under, its
+       figures down the right) left the line stepped up onto that panel's text. when no clear spot remains over the stage, the
+       line goes to the free band under the text column instead (it only wraps there); with no room there either it stays put */
+    const clash = (b, l, r, hh) => keeps.some((k) => k.left < r && k.right > l && k.top < innerHeight - b && k.bottom > innerHeight - b - hh);
+    if (!portrait && !sp.deck && clash(fin, L, R, h)) {
+      const ir = info.getBoundingClientRect(); let s2 = null; try { s2 = deps.stage ? deps.stage() : null; } catch (e) {}
+      const L2 = Math.round(ir.left), R2 = Math.round(Math.max(ir.right, s2 ? Math.min(s2.x - 12, ir.left + 340) : ir.right));
+      if (ir.width && R2 - L2 >= 140) {
+        el.style.left = Math.round((L2 + R2) / 2) + 'px'; el.style.maxWidth = (R2 - L2) + 'px';
+        const h2 = el.offsetHeight, b2 = Math.max(sb, 22), w2 = el.offsetWidth, l2 = (L2 + R2) / 2 - w2 / 2;
+        if (innerHeight - b2 - h2 >= ir.bottom + 6 && !clash(b2, l2, l2 + w2, h2)) { el.style.bottom = b2 + 'px'; return; }
+        el.style.left = sp.cx + 'px'; el.style.maxWidth = sp.maxW + 'px';
+      }
+      /* last, the strip under both the column and the room's panels, across the whole width (the wheel's side hud at 659) */
+      const dk = doc.getElementById('atlas-dock'), dr = dk && dk.getClientRects().length ? dk.getBoundingClientRect() : null;
+      const floor = Math.max(ir.bottom, ...keeps.map((k) => k.bottom)) + 4, b3 = Math.max(sb, dr && dr.height ? innerHeight - dr.top + 4 : 6);
+      el.style.left = Math.round(innerWidth / 2) + 'px'; el.style.maxWidth = Math.min(620, innerWidth - 32) + 'px';
+      const h3 = el.offsetHeight;
+      if (innerHeight - b3 - h3 >= floor) { el.style.bottom = b3 + 'px'; return; }
+      el.style.left = sp.cx + 'px'; el.style.maxWidth = sp.maxW + 'px';
+    }
+    el.style.bottom = fin + 'px';
   }
 
-  let toastT = 0, toastU = 0;
+  let toastT = 0, toastU = 0, toastQ = null, toastQT = 0, toastRead = 0;
   /* the slot's caption, hint and hud come back only once the toast has finished fading (.3s), or both read at once */
-  function hideToast() { clearTimeout(toastT); toastEl.classList.remove('on'); clearTimeout(toastU); toastU = setTimeout(() => html.classList.remove('ai-toast-on'), 300); }
-  function toast(text, ms) {
+  function hideToast() { clearTimeout(toastT); toastUntil = 0; toastRead = 0; toastEl.classList.remove('on'); clearTimeout(toastU); toastU = setTimeout(() => html.classList.remove('ai-toast-on'), 300); }
+  /* R13 CHROME3: one reader at a time. a line nobody asked for (a room's idle hint, a star passed in flight, the governor's
+     step down: callers pass { wait: true }) waits until the caption has typed and had its read time, the onboarding hint has
+     had its own, no field line is due and the last toast has had its own; a reply to the visitor (and any plain ctx.toast)
+     shows at once. every toast stays at least its read time (1500 + (len + 40) * 28 ms) */
+  function lineDue() { return idleHold.has('ink-line') || idleHold.has('veins-line'); }
+  function toastWait() { const t = now(); return Math.max(capTyping ? 400 : 0, capReadUntil - t, hintShown() ? hintUntil - t : 0, lineDue() ? 400 : 0, 0); }
+  function toast(text, ms, opt) {
+    clearTimeout(toastQT); toastQ = null;
+    const user = now() - lastInput < 900;
+    if (opt && opt.wait && !user && text) {
+      const w = Math.max(toastWait(), toastEl.classList.contains('on') && toastEl.textContent !== text ? toastRead - now() : 0), t0 = opt.t0 || now();
+      if (w > 0) { if (now() - t0 > 15000) return; const q = toastQ = { k: ctx.index }; toastQT = setTimeout(() => { if (toastQ === q && ctx.index === q.k) toast(text, ms, { wait: true, t0 }); }, Math.min(w, 2000) + 60); return; }
+    }
     clearTimeout(toastT); clearTimeout(toastU); toastEl.textContent = text || ''; toastEl.classList.toggle('ai-voice-p', isVoice(text));
     place(toastEl);
     toastEl.classList.add('on'); html.classList.add('ai-toast-on');
-    toastT = setTimeout(hideToast, ms == null ? 2600 : ms);
+    const hold = Math.max(ms == null ? 2600 : ms, readTime(text) + 400); /* + its .3 s fade in */
+    toastUntil = now() + hold; toastRead = now() + readTime(text) + 300; toastT = setTimeout(hideToast, hold);
   }
+  function dropToastQ() { clearTimeout(toastQT); toastQ = null; }
   ctx.toast = toast;
 
   /* ---------------------------------------------------------------- stepper: a tracklist row + the queue's name (R6 M1)
@@ -1289,10 +1375,16 @@ export function mount(ctx, deps) {
          between chunks reading one), the hint must never sneak into the shared slot and cut the story off;
          capDoneAt/stopTyping() are only ever reached once the whole carousel finishes, so the existing
          capTyping/capDoneAt check alone would let the hint in during an inter-chunk pause */
-      const hintReady = onbHere() && !hudHas && !capCycling && !tourDriving() && !html.classList.contains('atlas-idle') && (!capHas || (!capTyping && now() - capDoneAt >= HINT_DELAY));
+      /* R13 CHROME3: the hint waits for the caption's read time (not just 2.5 s after the last keystroke: a short line was cut
+         at 2.5 of its 3.7 s), for a caption still being fetched for this stop, for a field line that is due, and for any
+         toast; once up it keeps the slot for its own read time, and the caption that arrives meanwhile waits (slotHeld) */
+      const t = now(), holding = hintShown() && t < hintUntil;
+      const hintReady = onbHere() && !hudHas && !tourDriving() && (holding || (!capCycling && !html.classList.contains('atlas-idle') && !capPend && !lineDue() &&
+        !toastEl.classList.contains('on') && t - lastStopT >= 1500 && (!capHas || (!capTyping && t >= Math.max(capDoneAt + HINT_DELAY, capReadUntil)))));
       capEl.classList.toggle('ai-cap-suppressed', hudHas || hintReady);
       if (hudHas) { lineEl.hidden = true; }
       else if (hintReady) {
+        if (!hintShown()) hintUntil = t + readTime(lineOnb.textContent) + 400;
         lineOnb.hidden = false; lineSnd.hidden = true;
         lineEl.hidden = false; lineEl.style.left = lineEl.style.bottom = lineEl.style.maxWidth = '';
       } else lineEl.hidden = true;
@@ -1566,9 +1658,16 @@ export function mount(ctx, deps) {
          (the graveyard's rule line), became permanently unreachable. WALL_MIN_LAND is carved out of the
          card's own budget FIRST, so the wall is always left something real to open into; the card keeps
          scrolling internally for the rest (unchanged mechanism, chrome.css's overflow-y:auto). */
-      const wallReserve = innerHeight <= 480 ? WALL_MIN_LAND : 0;
-      const maxH = Math.max(60, Math.round(innerHeight - topBottom - gap - dockH - 8 - wallReserve));
+      /* R13: only what the wall really holds (most rooms' compact wall is empty sideways): reserving the full 112 for nothing
+         crushed the typed caption to one clipped line under the pill in 7 of 15 rooms at 844x390 */
+      const lw = activeWall(), wallReserve = innerHeight <= 480 ? Math.min(WALL_MIN_LAND, lw ? lw.scrollHeight : WALL_MIN_LAND) : 0;
+      let maxH = Math.max(60, Math.round(innerHeight - topBottom - gap - dockH - 8 - wallReserve));
       html.style.setProperty('--atlas-infomaxh', maxH + 'px');
+      /* R13: the card scrolls when it runs out of height; its edge now falls between two rows, never through one (the tour's
+         `up next` pill was cut in half at 659x393) */
+      { const inf = $('atlas-info'); if (inf && inf.scrollHeight > inf.clientHeight + 1) { const ir = inf.getBoundingClientRect(), kids = []; (function walk(n) { for (const k of n.children) { if (getComputedStyle(k).display === 'contents') walk(k); else kids.push(k); } })(inf);
+        let cut = maxH; for (const k of kids) { const r = k.getBoundingClientRect(); if (!r.height || k.classList.contains('ai-caption')) continue; const t = r.top - ir.top + inf.scrollTop, b = r.bottom - ir.top + inf.scrollTop; if (t < cut - 1 && b > cut + 1 && t > 40) cut = Math.floor(t) - 2; }
+        if (cut < maxH) { maxH = cut; html.style.setProperty('--atlas-infomaxh', maxH + 'px'); } } }
       writeInsets(deck ? 0 : topBottom, null);
       const ln = $('ai-liner'); html.style.setProperty('--ai-top', (topBottom + gap) + 'px');
       html.style.setProperty('--ai-linerh', (ln && getComputedStyle(ln).position === 'fixed' ? Math.round(ln.getBoundingClientRect().height) : 0) + 'px');
@@ -1646,7 +1745,7 @@ export function mount(ctx, deps) {
   ctx.onStop((ev) => {
     lastStopT = now();
     capOffRaw = null; markDup(''); /* the last room's caption is never measured against this room's wall */
-    hideToast(); /* the last room's hint or toast must never sit over the next one */
+    hideToast(); dropToastQ(); /* the last room's hint or toast must never sit over the next one */
     closeOverflow();
     /* round-2 (W-fix9): a room change always takes the end card down, regardless of whether K3's `end` event
        is available — this used to be wired only inside the event-path branch below */
@@ -1732,29 +1831,47 @@ export function mount(ctx, deps) {
   const COACH_KEY = 'sm_atlas_coach_v1', COACH_MS = 6000, STARRY = ['universe', 'chain', 'map', 'listeners'];
   const ssHas = (k) => { try { return sessionStorage.getItem(k) === '1'; } catch (e) { return !!MEM['ss:' + k]; } };
   const ssPut = (k) => { MEM['ss:' + k] = true; try { sessionStorage.setItem(k, '1'); } catch (e) {} };
-  let coachEl = null, coachT = 0, coachWait = 0;
+  let coachEl = null, coachT = 0, coachWait = 0, coachObs = []; const coachHid = new Map();
   function coachTotal() { const d = tourDef((ctx.tour && ctx.tour.active && ctx.tour.active.id) || 'grand') || tourDef('grand'); return d ? d.stops.length - (d.stops[0] && d.stops[0].gate ? 1 : 0) : walkStops().length; }
   function placeCoach() {
     if (!coachEl) return;
     let st = null; try { st = ctx.atlas.stage(); } catch (e) {}
     st = st && st.w ? st : { x: 0, y: 0, w: innerWidth, h: innerHeight };
+    /* R13: sideways, the coach is never wider than the room right of the card (659: 401 px) */
+    if (!isPortrait()) { const ir = $('atlas-info'), r = ir && ir.getBoundingClientRect(), room = Math.floor(innerWidth - 16 - (r && r.width && r.right < innerWidth / 2 ? r.right + 9 : 16)); coachEl.style.maxWidth = room >= 240 ? room + 'px' : ''; }
     const h = coachEl.offsetHeight, w = coachEl.offsetWidth;
     /* upright it hangs from the top bar (the key strip takes the lower band); on the desk it sits low in the stage */
     const cx = st.x + st.w / 2, tb = topBar ? Math.round(topBar.getBoundingClientRect().bottom) : 56;
     let y = isPortrait() ? tb + 10 : st.y + st.h * 0.74 - h / 2, x = cx - w / 2;
     if (!isPortrait()) {
+      /* R13: a phone on its side has no slot clear of the card, the line, the room panel and the ladder chip at once; the chip steps out for the coach's few seconds */
+      { const c = doc.querySelector('.atlas-ladder-chip'); if (c) c.classList.toggle('al-coach-off', innerHeight <= 480); }
       /* the room's own boxes (the chain's .ch-hud, the cards) outrank the coach: scan for the nearest free slot, centred first, then either side */
-      const sec = doc.querySelector('section[data-room].is-active'), boxes = [];
-      (sec ? [...sec.querySelectorAll('*'), ...doc.querySelectorAll('body > *:not(#atlas-coach), #ai-liner')] : []).forEach((e) => { if (e === coachEl) return; const r = e.getBoundingClientRect(); if (r.width < 60 || r.height < 24 || r.width * r.height > innerWidth * innerHeight * 0.3) return; const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0 || cs.pointerEvents === 'none' && e.tagName === 'CANVAS') return; boxes.push(r); });
-      const hit = (l, t) => boxes.some((r) => l < r.right + 8 && l + w > r.left - 8 && t < r.bottom + 8 && t + h > r.top - 8);
+      const sec = doc.querySelector('section[data-room].is-active'), boxes = [], room = [], roomEl = [];
+      (sec ? [...sec.querySelectorAll('*'), ...doc.querySelectorAll('body > *:not(#atlas-coach), #ai-liner')] : []).forEach((e) => { if (e === coachEl || e.closest('.atlas-sight')) return; /* the pointer's sight follows the finger; never an obstacle */ const r = e.getBoundingClientRect(); if (r.width < 24 || r.height < 8 || r.width * r.height > innerWidth * innerHeight * 0.3 || (e.ownerSVGElement && e.tagName !== 'svg')) return; /* R13: one-line room readouts (13 px) count too */ const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0 || cs.pointerEvents === 'none' && e.tagName === 'CANVAS') return; (sec.contains(e) ? room : boxes).push(r); if (sec.contains(e)) roomEl.push(e); });
+      doc.querySelectorAll('#atlas-info, #atlas-onboard:not([hidden]), #atlas-toast.on, .atlas-ladder-chip:not(.al-coach-off), #exdock:not(.is-off), #ink-key.on, #atlas-dock').forEach((e) => { const r = e.getBoundingClientRect(); if (r.width && r.height && getComputedStyle(e).visibility !== 'hidden') boxes.push(r); }); /* R13: the chrome's own lines too */
+      const over = (r, l, t) => l < r.right + 8 && l + w > r.left - 8 && t < r.bottom + 8 && t + h > r.top - 8;
+      const hit = (l, t) => boxes.some((r) => over(r, l, t)) || room.some((r) => over(r, l, t));
       const y0 = clamp(y, 56, innerHeight - h - 16);
       if (hit(clamp(x, 16, innerWidth - w - 16), y0)) {
-        let best = null;
-        for (const dx of [0, -1, 1]) for (let t = 56; t <= innerHeight - h - 16; t += 12) {
-          const l = clamp(dx === 0 ? x : dx < 0 ? st.x + 24 : st.x + st.w - w - 24, 16, innerWidth - w - 16);
-          if (!hit(l, t)) { const d = Math.abs(t - y0) + Math.abs(dx) * 40; if (!best || d < best.d) best = { d, l, t }; }
+        let best = null, part = null;
+        const x0 = clamp(x, 16, innerWidth - w - 16);
+        const ls = []; for (let l = 16; l <= innerWidth - w - 16; l += 12) ls.push(l); ls.push(innerWidth - w - 16); boxes.forEach((r) => { const e = Math.ceil(r.right + 9); if (e <= innerWidth - w - 16) ls.push(e); });
+        for (const l of ls) for (let t = 56; t <= innerHeight - h - 16; t += 12) {
+          if (boxes.some((r) => over(r, l, t))) continue;
+          const d = Math.abs(t - y0) + Math.abs(l - x0) * 0.5;
+          if (!room.some((r) => over(r, l, t))) { if (!best || d < best.d) best = { d, l, t }; continue; }
+          /* no slot clear of everything: the least room content under it, never the chrome's */
+          const a = room.reduce((n, r) => n + Math.max(0, Math.min(r.right, l + w) - Math.max(r.left, l)) * Math.max(0, Math.min(r.bottom, t + h) - Math.max(r.top, t)), 0);
+          if (!part || a < part.a || (a === part.a && d < part.d)) part = { a, d, l, t };
         }
         if (best) { x = best.l; y = best.t; }
+        else if (part) {
+          /* R13 (a phone on its side, the chain): the coach is the one card up for its few seconds; the room panel under it steps
+             out until the first tap, rather than read through the glass */
+          x = part.l; y = part.t; const lim = innerWidth * innerHeight * 0.3;
+          roomEl.forEach((e) => { const r = e.getBoundingClientRect(); if (!over(r, x, y)) return; let c = e; while (c.parentElement && c.parentElement !== sec) { const q = c.parentElement.getBoundingClientRect(); if (q.width * q.height > lim) break; c = c.parentElement; } if (!coachHid.has(c)) { coachHid.set(c, c.style.visibility); c.style.visibility = 'hidden'; } });
+        }
       }
     }
     coachEl.style.left = Math.round(clamp(x, 16, innerWidth - w - 16)) + 'px';
@@ -1763,6 +1880,8 @@ export function mount(ctx, deps) {
   function coachOff(e) {
     if (e && e.isTrusted === false) return;
     clearTimeout(coachT); removeEventListener('pointerdown', coachOff, true); removeEventListener('keydown', coachOff, true); removeEventListener('wheel', coachOff, true); removeEventListener('resize', placeCoach);
+    coachHid.forEach((v, c) => { c.style.visibility = v; }); coachHid.clear(); { const c = doc.querySelector('.atlas-ladder-chip.al-coach-off'); if (c) c.classList.remove('al-coach-off'); }
+    coachObs.forEach((o) => o.disconnect()); coachObs = [];
     const el = coachEl; coachEl = null; if (!el) return;
     el.classList.remove('on'); el.classList.add('off'); setTimeout(() => el.remove(), reduced ? 0 : 420);
   }
@@ -1779,12 +1898,61 @@ export function mount(ctx, deps) {
     const bar = doc.createElement('i'); bar.className = 'ai-coach-bar'; bar.setAttribute('aria-hidden', 'true'); el.appendChild(bar);
     body.appendChild(el); placeCoach();
     requestAnimationFrame(() => requestAnimationFrame(() => { if (coachEl === el) el.classList.add('on'); }));
-    coachT = setTimeout(coachOff, COACH_MS);
+    /* R13: it stays its read time when that is longer than 6 s, and keeps re-finding a free slot while the room's own boxes settle
+       (sideways, the chain's .ch-hud grew in over it a moment after it landed) */
+    const coachMs = Math.max(COACH_MS, readTime(el.textContent) + 600); el.style.setProperty('--ai-coach-ms', coachMs + 'ms'); /* the fuse burns as long as it stays */
+    coachT = setTimeout(coachOff, coachMs);
+    (function rep() { if (coachEl !== el) return; placeCoach(); setTimeout(rep, 300); })();
+    /* the poll left a 300 ms window: a room panel that fills in or grows under the coach (the chain's "no chain yet") moves it in the
+       same frame, before the overlap is painted (mutation and resize callbacks both run ahead of paint) */
+    { const sec = doc.querySelector('section[data-room].is-active');
+      if (sec) {
+        const mo = new MutationObserver(() => placeCoach()); mo.observe(sec, { childList: true, subtree: true, characterData: true }); coachObs.push(mo);
+        /* the panels themselves too: a room lays its hud out by style (the chain's top/left on a resize), which neither observer above sees */
+        const pans = sec.querySelectorAll('[class*="hud"],[class*="card"],[class*="panel"]'), ma = new MutationObserver(() => placeCoach()); pans.forEach((e) => ma.observe(e, { attributes: true, attributeFilter: ['style', 'class'] })); coachObs.push(ma);
+        if (typeof ResizeObserver === 'function') { const ro = new ResizeObserver(() => placeCoach()); pans.forEach((e) => ro.observe(e)); coachObs.push(ro); }
+      } }
     setTimeout(() => { if (coachEl !== el) return; addEventListener('pointerdown', coachOff, { capture: true, passive: true }); addEventListener('keydown', coachOff, true); addEventListener('wheel', coachOff, { capture: true, passive: true }); }, 250);
     addEventListener('resize', placeCoach);
   }
-  ctx.onStop(() => { clearTimeout(coachWait); if (coachEl) coachOff(); else coachWait = setTimeout(coachMaybe, 900); });
+  /* R13: the coach is about the whole walk, not this stop: autoplay turning the page leaves it up for its read time; a visitor's own move still folds it */
+  ctx.onStop(() => { clearTimeout(coachWait); if (coachEl) { if (now() - lastInput < 900) coachOff(); } else coachWait = setTimeout(coachMaybe, 900); });
   coachWait = setTimeout(coachMaybe, 900);
+  /* R13 CHROME3: the colour key (unfold.js .uf-ks) steps off the room's own controls and panels (upright: above them; the desk: left
+     of a panel in the stage's top-right corner, the wheel's) and stays its read time (1500 + (len + 40) * 28 ms) unless the visitor
+     moves or the stop changes. unfold.js is at its byte budget, so both are finished here */
+  function ksStep(m) {
+    const deck = html.classList.contains('atlas-deck'), up = !deck && matchMedia('(orientation:portrait)').matches, sec = doc.querySelector('section[data-room].is-active');
+    if (!sec || (!deck && !up)) return;
+    for (let g = 0; g < 4; g++) {
+      const q = m.getBoundingClientRect();
+      const o = [...sec.querySelectorAll('button,[data-keepout],input,select,[class*=hud],[class*=dock],.cue')].map((e) => e.getBoundingClientRect()).filter((e) => e.width && e.height && e.left < q.right && e.right > q.left && e.top < q.bottom && e.bottom > q.top);
+      if (!o.length) break;
+      if (up) m.style.setProperty('bottom', innerHeight - Math.min(...o.map((e) => e.top)) + 6 + 'px', 'important');
+      else m.style.setProperty('right', innerWidth - Math.min(...o.map((e) => e.left)) + 8 + 'px', 'important');
+    }
+  }
+  function ksHold(m) {
+    const t0 = now(), k = ctx.index, need = readTime(m.textContent) + 600 /* its fade in, as the coach */, own = Element.prototype.remove;
+    const left = () => (ctx.index !== k || now() - lastInput < 900 ? 0 : need - (now() - t0));
+    /* on the tour, the stop waits for it (autoplay turned the page 3.7 s in); while it shows it keeps stepping off what a room
+       brings in after it landed (the wall's "again" cue) */
+    try { const U = ctx.tour; if (U && U.holdAtLeast && U.isPlaying && U.isPlaying()) U.holdAtLeast(need + 400); } catch (e) {}
+    (function rep() { if (!m.isConnected) return; ksStep(m); setTimeout(rep, 300); })();
+    /* unfold's own 6 s timer drops .on and removes the strip 300 ms later: put .on back (in the same task, so nothing fades) and
+       hold the removal until the read time is up */
+    new MutationObserver(() => { if (!m.dataset.ks && !m.classList.contains('on') && m.isConnected && left() > 300) { m.dataset.ks = '1'; m.classList.add('on'); } }).observe(m, { attributes: true, attributeFilter: ['class'] });
+    m.remove = () => {
+      const l = left(); if (!(l > 0 && m.dataset.ks)) { own.call(m); return; }
+      let done = 0; const fold = () => { if (done++) return; ['pointerdown', 'keydown'].forEach((t) => removeEventListener(t, fold, true)); m.classList.remove('on'); setTimeout(() => own.call(m), 300); };
+      ['pointerdown', 'keydown'].forEach((t) => addEventListener(t, fold, true)); ctx.onStop(fold); setTimeout(fold, l);
+    };
+  }
+  /* a playing tour reads through its captions, which say what the colours mean stop by stop; the first-visit key on arrival
+     (autoplay's or a `]`) was a second reader over the typing line, and autoplay's idle fade took it before it could be read,
+     so it stays down, before it paints. the visitor's own hold, two fingers or i mid-stop still bring it */
+  const tourAlone = () => { try { const U = ctx.tour; return !!(U && U.isPlaying && U.isPlaying()) && (now() - lastInput > 900 || now() - lastStopT < 4000); } catch (e) { return false; } };
+  new MutationObserver((rs) => rs.forEach((r) => r.addedNodes.forEach((n) => { if (n.classList && n.classList.contains('uf-ks')) { if (tourAlone()) { Element.prototype.remove.call(n); return; } doc.querySelectorAll('.uf-ks').forEach((o) => { if (o !== n) Element.prototype.remove.call(o); }); /* a new strip supersedes a held one */ ksStep(n); ksHold(n); } }))).observe(doc.body, { childList: true });
   api.coach = { show: coachMaybe, hide: coachOff, get on() { return !!coachEl; }, key: COACH_KEY };
 
   return api;

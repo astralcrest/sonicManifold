@@ -87,7 +87,47 @@ html.atlas .a-tour-item[aria-current="true"] .a-t-blurb,html.atlas .a-tour-item:
 html.atlas .a-tour-item.k-loop{margin-top:10px;border-top:1px dashed rgba(189,166,255,.22);background:none}
 html.atlas .a-tour-item.k-loop .a-t-name{font-weight:500;color:var(--mute)}
 html.atlas .k-hold{margin-top:12px}
-@media (prefers-reduced-motion:reduce){html.atlas .a-tour-item,html.atlas .k-needle,html.atlas .k-sw-knob{transition:none}}
+/* R13 ONE TOUR: the sheet says what the tour is (.k-what), then how long you want it (.k-lens: the long play and its two
+   cuts, one radio row each, the kept count big), then the way into the liner notes. the notes sheet (#atlas-notes): three
+   reader tabs, each stop's room in ice, the lines in the caption's own voice, `see it ›` under each */
+html.atlas .k-what{font:400 15px/1.5 var(--serif-voice,Georgia,serif);color:var(--ink);margin:0 0 14px;max-width:44ch}
+html.atlas .k-lead{display:flex;flex-direction:column}
+html.atlas .k-lead .a-pn-row{margin-bottom:4px}
+html.atlas .k-hurry{margin-top:16px}
+html.atlas .k-lens{display:flex;flex-direction:column;border-top:1px solid rgba(189,166,255,.14);margin:0 0 14px}
+html.atlas .k-len{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;width:100%;min-height:46px;padding:8px 10px 8px 12px;text-align:left;cursor:pointer;color:var(--ink);background:none;border:0;border-left:3px solid transparent;border-bottom:1px solid rgba(189,166,255,.1);-webkit-tap-highlight-color:transparent;transition:background .16s ease-out,border-color .16s ease-out}
+html.atlas .k-len:hover{background:rgba(134,203,254,.06)}
+html.atlas .k-len:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
+html.atlas .k-len[aria-checked="true"]{border-left-color:var(--ice);background:linear-gradient(90deg,rgba(134,203,254,.16),rgba(134,203,254,.02))}
+html.atlas .k-len-n{font:600 13.5px/1.25 var(--mono);color:var(--mute)}
+html.atlas .k-len[aria-checked="true"] .k-len-n{color:var(--ice)}
+html.atlas .k-len-t{font:500 11.5px/1 var(--mono);letter-spacing:.04em;color:var(--mute)}
+html.atlas .a-tour-item.k-notes-link{grid-template-areas:"n";grid-template-columns:1fr;border-left-color:rgba(134,203,254,.35);min-height:46px}
+html.atlas .a-tour-item.k-notes-link .a-t-name{color:var(--ice);font-weight:500}
+html.atlas .a-pn-body>.k-notes-link{margin-top:14px}
+html.atlas .k-lead>.k-notes-link{margin:0 0 16px}
+html.atlas .n-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:0 0 12px}
+html.atlas .n-tab{min-height:44px;padding:8px 4px;font:600 10.5px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:rgba(10,1,24,.5);border:1px solid var(--line);border-radius:3px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.atlas .n-tab:hover{color:var(--ink)}
+html.atlas .n-tab:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+html.atlas .n-tab[aria-selected="true"]{color:var(--bg,#0a0118);background:var(--ice);border-color:var(--ice)}
+html.atlas .n-tab.n-lens:not([aria-selected="true"]){color:var(--ice);border-color:rgba(134,203,254,.5)}
+html.atlas .n-blurb{font:500 11.5px/1.45 var(--mono);color:var(--mute);margin:0 0 10px}
+html.atlas .n-note{padding:12px 0 10px 12px;border-top:1px solid rgba(189,166,255,.14);border-left:2px solid transparent;transition:border-color .2s ease-out,background .2s ease-out}
+html.atlas .n-note.n-here{border-left-color:var(--ice);background:linear-gradient(90deg,rgba(134,203,254,.1),rgba(134,203,254,0))}
+html.atlas .n-at{font:600 10px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 6px}
+html.atlas .n-at b{font-weight:600;color:var(--ice)}
+html.atlas .n-l{font:400 15px/1.45 var(--serif-voice,Georgia,serif);color:var(--ink);margin:0 0 6px;max-width:46ch}
+html.atlas .n-see{display:inline-flex;align-items:center;min-height:36px;padding:4px 0;margin-top:2px;background:none;border:0;font:600 10.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ice);cursor:pointer}
+html.atlas .n-see:hover{text-decoration:underline;text-underline-offset:3px}
+html.atlas .n-see:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+html.atlas .n-act{margin-top:14px;gap:6px}
+/* the note chip: a small ice tab beside or above the caption (placed by panels.js), only while a lens has a line here */
+html.atlas .atlas-note{position:fixed;left:0;top:0;z-index:7;display:inline-flex;align-items:center;min-height:32px;padding:6px 11px;font:600 11px/1 var(--mono);letter-spacing:.08em;color:var(--ice);background:rgba(10,1,24,.78);border:1px solid rgba(134,203,254,.55);border-radius:3px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,.4);-webkit-tap-highlight-color:transparent;transition:opacity .25s ease-out}
+html.atlas .atlas-note[hidden]{display:none}
+html.atlas .atlas-note:hover{background:rgba(134,203,254,.14)}
+html.atlas .atlas-note:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){html.atlas .a-tour-item,html.atlas .k-needle,html.atlas .k-sw-knob,html.atlas .k-len,html.atlas .n-note,html.atlas .atlas-note{transition:none}}
 
 /* knobs: three dials and a few switches, drawn */
 html.atlas .k-dials{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:2px 0 16px}
@@ -145,6 +185,7 @@ html.atlas .a-help-build{font:400 10.5px/1.4 var(--mono);color:var(--mute);margi
   html.atlas .a-btn,html.atlas .atlas-topbar #mute,html.atlas .a-pn-close{min-height:44px}
   html.atlas .k-sw{min-height:48px}
   html.atlas .k-dial{min-width:44px;min-height:44px}
+  html.atlas .n-see,html.atlas .atlas-note{min-height:44px}
   }
 
 /* forced colours (§9.4). the dock, the menu buttons and the dialogs opt out of forcing to paint an opaque Canvas over
@@ -157,15 +198,18 @@ html.atlas .a-help-build{font:400 10.5px/1.4 var(--mono);color:var(--mute);margi
   html.atlas dialog.atlas-panel,html.atlas .atlas-topbar .a-btn,html.atlas #atlas-dock{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none}
   html.atlas #atlas-dock :is(.d-row,.d-more)>button,html.atlas #atlas-dock :is(.d-row,.d-more)>button *{color:CanvasText;background-color:transparent}
   html.atlas #atlas-dock .d-more{background:Canvas;border-color:CanvasText;backdrop-filter:none;-webkit-backdrop-filter:none}
-  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *::before,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) *::after{color:CanvasText;background-color:Canvas;border-color:CanvasText;text-shadow:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
-  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) .a-pn-body{-webkit-mask-image:none;mask-image:none}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help,#atlas-notes) *,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help,#atlas-notes) *::before,html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help,#atlas-notes) *::after{color:CanvasText;background-color:Canvas;border-color:CanvasText;text-shadow:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help,#atlas-notes) .a-pn-body{-webkit-mask-image:none;mask-image:none}
   html.atlas #atlas-settings :is(.k-track,.k-arc,.k-needle line){stroke:CanvasText}
   html.atlas #atlas-settings :is(.k-tick,.k-hit){fill:CanvasText}
   html.atlas #atlas-settings .k-cap{fill:Canvas;stroke:CanvasText}
+  html.atlas .atlas-note{forced-color-adjust:none;background:Canvas;color:LinkText;border-color:LinkText;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+  html.atlas #atlas-notes .n-tab[aria-selected="true"]{background-color:Highlight;color:HighlightText;border-color:Highlight}
+  html.atlas :is(#atlas-tours,#atlas-notes) :is(.k-len[aria-checked="true"],.n-note.n-here){border-left-color:Highlight}
   html.atlas #atlas-settings .k-sw-knob{background-color:CanvasText}
   html.atlas #atlas-settings .k-sw[aria-checked="true"] .k-sw-knob{background-color:HighlightText}
-  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :is([aria-pressed="true"],[aria-checked="true"],.on),html.atlas .atlas-topbar .a-btn:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on) *{color:HighlightText;background-color:Highlight;border-color:Highlight}
-  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help) :focus-visible,html.atlas .atlas-topbar .a-btn:focus-visible,html.atlas #atlas-dock button:focus-visible{outline-color:Highlight}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help,#atlas-notes) :is([aria-pressed="true"],[aria-checked="true"],.on),html.atlas .atlas-topbar .a-btn:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on),html.atlas #atlas-dock :is(.d-row,.d-more)>button:is([aria-pressed="true"],.on) *{color:HighlightText;background-color:Highlight;border-color:Highlight}
+  html.atlas :is(#atlas-tours,#atlas-settings,#atlas-help,#atlas-notes) :focus-visible,html.atlas .atlas-topbar .a-btn:focus-visible,html.atlas #atlas-dock button:focus-visible{outline-color:Highlight}
 }
 
 /* R8 DECK (desktop: fine pointer, >=900 wide, landscape; panels.js sets html.atlas-deck). no top bar: #top is the deck's

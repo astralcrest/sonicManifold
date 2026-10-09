@@ -38,12 +38,21 @@
   sync();
 
   /* contents: current section, and a progress hairline when css scroll timelines are missing */
-  var links = all('.toc a'), cur = null, ol = d.querySelector('.toc ol');
+  var links = all('.toc a'), cur = null, ol = d.querySelector('.toc ol'), nav = d.querySelector('.toc'), tb = null;
+  /* phone: the eleven tabs fold behind one line, contents plus where you are */
+  if (nav && ol) {
+    tb = d.createElement('button'); tb.type = 'button'; tb.className = 'tocb'; tb.setAttribute('aria-expanded', 'false');
+    tb.innerHTML = 'contents <i aria-hidden="true">&#9662;</i> <b></b>'; nav.insertBefore(tb, ol);
+    var shut = function () { nav.classList.remove('open'); tb.setAttribute('aria-expanded', 'false'); };
+    tb.onclick = function () { var o = nav.classList.toggle('open'); tb.setAttribute('aria-expanded', o ? 'true' : 'false'); };
+    nav.addEventListener('click', function (e) { if (e.target.closest('a')) shut(); });
+    d.addEventListener('keydown', function (e) { if (e.key === 'Escape' && nav.classList.contains('open')) { shut(); tb.focus(); } });
+  }
   function mark(id) {
     if (id === cur) return; cur = id;
     links.forEach(function (a) {
       var on = a.getAttribute('href') === '#' + id;
-      if (on) { a.setAttribute('aria-current', 'true'); if (ol && ol.scrollWidth > ol.clientWidth) ol.scrollLeft = a.offsetLeft - 48; } else a.removeAttribute('aria-current');
+      if (on) { a.setAttribute('aria-current', 'true'); if (tb) tb.lastChild.textContent = a.textContent; if (ol && ol.scrollWidth > ol.clientWidth) ol.scrollLeft = a.offsetLeft - 48; } else a.removeAttribute('aria-current');
     });
   }
   var secs = links.map(function (a) { return d.getElementById(a.getAttribute('href').slice(1)); }).filter(Boolean);
@@ -139,13 +148,13 @@
 
   var NS = 'http://www.w3.org/2000/svg';
   function el(n, a, p) { var e = d.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
-  function shell(root, h, q) { root.innerHTML = '<h3>' + h + '</h3><p class="xq">' + q + '</p>'; }
+  function shell(root, h, q) { root.innerHTML = '<h2>' + h + '</h2><p class="xq">' + q + '</p>'; }
 
   /* 1. what counts as a tap: drag the line. every figure here is on the page. */
   var sp = d.getElementById('xp-split');
   if (sp) {
-    shell(sp, 'drag the line', 'where does tapped end and queued begin?');
-    var svg = el('svg', { viewBox: '0 0 600 100', role: 'img', 'aria-label': 'one hundred dots, one per percent of plays. tapped dots are gold, queued dots are blue, plays that are neither are grey.' }, null);
+    shell(sp, 'drag the line', 'where does tapped end and served begin?');
+    var svg = el('svg', { viewBox: '0 0 600 100', role: 'img', 'aria-label': 'one hundred dots, one per percent of plays. tapped dots are mint, shuffle dots amber, queue dots violet, and plays that are neither are gray.' }, null);
     sp.appendChild(svg);
     var dots = [];
     for (var i = 0; i < 100; i++) dots.push(el('circle', { cx: 12 + (i % 25) * 24, cy: 12 + Math.floor(i / 25) * 25, r: 8.5, 'class': 'dot' }, svg));
@@ -162,11 +171,11 @@
     var draw = function () {
       var p = +rg.value;
       if (Math.abs(p - 11.5) < 0.45) p = rg.value = 11.5; else if (Math.abs(p - 19.1) < 0.45) p = rg.value = 19.1;
-      dots.forEach(function (c, i) { c.setAttribute('class', 'dot' + (i + 0.5 < p ? ' t' : '')); c.style.fill = i + 0.5 < p ? '' : (i >= 19.8 ? '' : 'var(--border)'); });
+      dots.forEach(function (c, i) { var x = i + 0.5; c.setAttribute('class', 'dot' + (x < p ? ' t' : x < 19.8 ? ' n' : x < 36.5 ? ' s' : '')); });
       var m = p === 11.5 ? 'strict taps: <b>clickrow, playbtn and remote</b>, 11.5% of plays. this is the arm the headline uses.'
-        : p === 19.1 ? 'bundled taps add <b>backbtn and fwdbtn</b>, 19.1% of plays. that share is not stable across the 2023-10 logger change: 11.8% before, 22.7% after. the strict set is the one that holds.'
+        : p === 19.1 ? 'bundled taps add <b>backbtn and fwdbtn</b>, 19.1% of plays. that share is not stable across the october 2023 logger change: 11.8% before, 22.7% after. the strict set is the one that holds.'
         : 'the log has no cut here. it has two: the strict set and the bundled set.';
-      out.innerHTML = m + ' <em>queued plays are 80.2% either way. 0.5% are ambiguous and left out.</em>';
+      out.innerHTML = m + ' <em>served plays are 80.2% either way: 16.7% shuffle-driven autoadvance, 63.5% the queue. 0.5% are ambiguous and left out.</em>';
     };
     rg.addEventListener('input', draw); draw();
   }
@@ -176,7 +185,7 @@
   if (br) {
     var S = [
       ['holds under', 'the headline', 1.03, 1.08, 'u', 'the interval sits above 1: the deliberate steps cross more.'],
-      ['holds under', 'before the 2023-09 changepoint', 1.022, 1.100, 'u', 'the interval sits above 1 before the logging changepoint.'],
+      ['holds under', 'before the 2023 logger change', 1.022, 1.100, 'u', 'the interval sits above 1 for plays before 2023-09-01, the era cut set just ahead of the october 2023 logger change.'],
       ['holds under', 'after it', 1.018, 1.088, 'u', 'the interval sits above 1 after it too.'],
       ['holds under', 'iOS only', 1.046, 1.124, 'u', 'the interval sits above 1 within iOS.'],
       ['holds under', 'macOS only', 1.008, 1.077, 'u', 'the interval sits above 1 within macOS, close to the line.'],

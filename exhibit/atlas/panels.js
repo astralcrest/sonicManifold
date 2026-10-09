@@ -4,7 +4,7 @@
    time every later module (including tour.js in this same package) reads it.
 
    Returned shape, for chrome.js and anyone else that needs to open these panels programmatically:
-     { settings: {get,set,onChange}, tours:{open,close,isOpen}, settingsPanel:{open,close,isOpen}, help:{open,close,isOpen} }
+     { settings: {get,set,onChange}, tours:{open,close,isOpen}, settingsPanel:{open,close,isOpen}, help:{open,close,isOpen}, notes:{open(reader?, room?),close,isOpen}, open(name) }
 */
 export function mount(ctx, deps) {
   if (!ctx.atlas || !ctx.atlas.on) return null;
@@ -93,23 +93,44 @@ export function mount(ctx, deps) {
   const SIZE_SAY = { small: 'small', normal: 'normal', large: 'large' };
   const DWELL_L = CP.holdName || 'hold';
 
-  /* -------------------------------------------------------------- records: a crate of sleeves, flipped by spine (§4.1)
-     W23: docked to the right over live art on desktop (panels.css .atlas-panel-dock), the settings/help
-     dialogs keep the centred card treatment. the running time is the sum of each stop's authored hold plus the
-     angle holds tour.js adds, times the hold knob; a long caption can stretch a stop, so it reads as about. */
-  const toursDlg = panelShell('atlas-tours', 'records');
+  /* -------------------------------------------------------------- records: the one tour (R13 ONE TOUR)
+     W23: docked to the right over live art on desktop (panels.css .atlas-panel-dock), the settings/help dialogs keep the
+     centred card treatment. the owner, on her phone: "so many tours everywhere ... make it easier". this sheet is the ONE
+     place that says what the tour is: a paragraph, the needle and your hand, the lengths (the single and the radio edit
+     are short cuts of the long play now, not records of their own), the tracklist chrome.js seats here, and the way into
+     the liner notes. the running time is the sum of each stop's authored hold plus the angle holds tour.js adds, times
+     the hold knob; a long caption can stretch a stop, so it reads as about. */
+  const TC = Object.assign({
+    what: 'one tour: the long play, {n} stops, from one play to the whole log. it plays itself; touch anything and your hand has it, ▶ hands it back. short cuts inside.',
+    hurry: 'in a hurry?', all: 'all {n}', cut: '{label} · {n}', notesLink: 'liner notes for scientists · musicians · artists ›',
+    notesHead: 'liner notes', notesWhat: 'notes on the same {n} stops, written for three kinds of reader. pick one and a note › waits under the caption wherever that reader has a line.',
+    notesPlay: '▶ play the long play with these notes', notesOff: 'notes off', noteChip: 'note ›', seeIt: 'see it ›',
+    loop: 'leave it playing', loopSub: '{name} on repeat, hands off',
+  }, (deps && deps.COPY && deps.COPY.tour) || {});
+  const fill = (s, o) => String(s).replace(/\{(\w+)\}/g, (m, k) => (o[k] != null ? o[k] : m));
+  const TOURS = (deps && deps.TOURS) || [];
+  const tourById = (id) => TOURS.find((x) => x.id === id) || null;
+  const toursDlg = panelShell('atlas-tours', 'the tour');
   toursDlg.classList.add('atlas-panel-dock');
   function nameOf(id) { const t = (ctx.tour.list() || []).find((x) => x.id === id); return t ? t.name : id; }
   function runSecs(id) {
-    const def = ((deps && deps.TOURS) || []).find((x) => x.id === id); if (!def) return 0;
+    const def = tourById(id); if (!def) return 0;
     const mul = ((deps && deps.DWELL) || {})[get('dwell')] || 1; let s = 0;
     (def.stops || []).forEach((st) => { s += ((st.hold || 9) + 6 * ((st.then || []).length)) * mul; });
     return Math.round(s);
   }
   const mss = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  const recCount = () => { const t = (ctx.tour.list() || []).find((x) => x.id === 'grand'); return t ? t.shown : 0; };
+  /* chrome.js seats the tracklist as the body's first child while the sheet is open; the paragraph, the needle and the
+     lengths go back above it, so the sheet reads what the tour is before it lists the stops */
+  function leadFirst() { const body = $('[data-body]', toursDlg), lead = body && $('[data-lead]', body); if (lead && body.firstChild !== lead) body.insertBefore(lead, body.firstChild); }
+  if (typeof MutationObserver !== 'undefined') new MutationObserver(leadFirst).observe($('[data-body]', toursDlg), { childList: true });
   function renderTours() {
     const body = $('[data-body]', toursDlg), tourApi = ctx.tour, act = tourApi.active;
-    body.innerHTML = '<div class="a-pn-row" data-toggle></div><div class="k-crate" role="group" aria-label="the crate" data-list></div><p class="a-help-note k-hold">tracks hold for ' + esc(DWELL_SAY[get('dwell')] || '') + '. the hold knob changes that.</p>';
+    const lens = typeof tourApi.lengths === 'function' ? tourApi.lengths() : [], cur = typeof tourApi.length === 'function' ? tourApi.length() : 'grand';
+    body.innerHTML = '<div class="k-lead" data-lead><p class="k-what">' + esc(fill(TC.what, { n: recCount() })) + '</p><div class="a-pn-row" data-toggle></div>' +
+      (lens.length > 1 ? '<p class="a-lbl k-hurry" id="k-hurry-l">' + esc(TC.hurry) + '</p><div class="k-lens" role="radiogroup" aria-labelledby="k-hurry-l" data-lens></div>' : '') + '</div>' +
+      '<div class="k-crate" data-list></div><p class="a-help-note k-hold">tracks hold for ' + esc(DWELL_SAY[get('dwell')] || '') + '. the hold knob changes that.</p>';
     const toggle = $('[data-toggle]', body);
     const b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'a-btn'; b1.style.flex = '1';
     b1.textContent = act.id ? (act.playing ? 'lift the needle' : 'resume ' + nameOf(act.id)) : 'drop the needle';
@@ -117,32 +138,126 @@ export function mount(ctx, deps) {
     const b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'a-btn'; b2.style.flex = '1'; b2.textContent = '° your hand'; b2.setAttribute('aria-label', 'your hand: stop the tour and steer yourself');
     b2.addEventListener('click', () => { if (act.id) tourApi.pause('manual'); closeDialog(toursDlg); });
     toggle.appendChild(b1); toggle.appendChild(b2);
-    const list = $('[data-list]', body), tours = tourApi.list();
-    if (!tours.length) { const p = document.createElement('p'); p.className = 'a-help-note'; p.textContent = 'the tour list is loading…'; list.appendChild(p); }
-    tours.forEach((t, i) => {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'a-tour-item'; b.style.setProperty('--k-i', i);
-      if (act.id === t.id) b.setAttribute('aria-current', 'true');
-      const seen = tourApi.seen ? tourApi.seen(t.id) : 0, rs = runSecs(t.id), n = t.shown != null ? t.shown : t.stops;
-      if (rs) b.setAttribute('aria-label', t.name + ', about ' + Math.floor(rs / 60) + ' minutes ' + (rs % 60) + ' seconds');
-      b.innerHTML = '<span class="a-t-name">' + esc(t.name) + '</span>' + (rs ? '<span class="a-t-time" aria-hidden="true">~' + mss(rs) + '</span>' : '') +
-        '<span class="a-t-blurb">' + esc(t.blurb || '') + ' &middot; ' + n + ' stops' + (seen ? ' &middot; seen ' + seen + ' of ' + t.stops : '') + '</span>';
-      b.addEventListener('click', () => { tourApi.play(t.id, 0); closeDialog(toursDlg); });
-      list.appendChild(b);
-    });
+    const lg = $('[data-lens]', body);
+    if (lg) {
+      lens.forEach((L) => {
+        const b = document.createElement('button'), on = L.id === cur, rs = runSecs(L.id);
+        b.type = 'button'; b.className = 'k-len'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1; b.dataset.len = L.id;
+        b.innerHTML = '<span class="k-len-n">' + esc(L.label ? fill(TC.cut, { label: L.label, n: L.n }) : fill(TC.all, { n: L.n })) + '</span>' + (rs ? '<span class="k-len-t">~' + mss(rs) + '</span>' : '');
+        if (rs) b.setAttribute('aria-label', (L.label ? L.label + ', ' + L.n : 'all ' + L.n) + ' stops, about ' + Math.floor(rs / 60) + ' minutes ' + (rs % 60) + ' seconds');
+        b.addEventListener('click', () => { try { tourApi.setLength(L.id); } catch (e) {} renderTours(); const f = $('.k-len[aria-checked="true"]', toursDlg); if (f) f.focus(); });
+        lg.appendChild(b);
+      });
+      lg.addEventListener('keydown', (e) => {
+        const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!d) return;
+        e.preventDefault();
+        const all = [...lg.querySelectorAll('.k-len')], i = all.indexOf(document.activeElement), j = (i + d + all.length) % all.length;
+        all[j].click();
+      });
+    }
+    const list = $('[data-list]', body);
+    const nl = document.createElement('button'); nl.type = 'button'; nl.className = 'a-tour-item k-notes-link'; nl.dataset.notes = '';
+    nl.innerHTML = '<span class="a-t-name">' + esc(TC.notesLink) + '</span>';
+    nl.addEventListener('click', () => { closeDialog(toursDlg); openNotes(); });
+    $('[data-lead]', body).appendChild(nl);
     const ss = document.createElement('button'); ss.type = 'button'; ss.className = 'a-tour-item k-loop';
-    ss.innerHTML = '<span class="a-t-name">leave it playing</span><span class="a-t-blurb">' + esc(nameOf('grand') + ' on repeat, hands off') + '</span>';
+    ss.innerHTML = '<span class="a-t-name">' + esc(TC.loop) + '</span><span class="a-t-blurb">' + esc(fill(TC.loopSub, { name: nameOf('grand') })) + '</span>';
     ss.addEventListener('click', () => { try { const u = new URL(location.href); u.searchParams.set('kiosk', '1'); location.href = u.toString(); } catch (e) {} });
     list.appendChild(ss);
-    list.addEventListener('keydown', (e) => {
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return;
-      const all = Array.prototype.slice.call(list.querySelectorAll('.a-tour-item')), i = all.indexOf(document.activeElement); if (i < 0) return;
-      e.preventDefault();
-      const j = e.key === 'Home' ? 0 : e.key === 'End' ? all.length - 1 : Math.max(0, Math.min(all.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)));
-      all[j].focus();
-    });
+    leadFirst();
     syncMore(body);
   }
   function openTours() { renderTours(); openDialog(toursDlg); }
+
+  /* -------------------------------------------------------------- liner notes (R13): the three readers' notes on the long
+     play's stops, one tab each. the lines are tours.js's own, moved there verbatim from the three liner-note tours; a tab
+     picked here (or a #tour=scientists|musicians|artists link) is the lens: on a stop where that reader has a line, a small
+     "note ›" waits under the caption and opens this sheet at that room. `see it ›` takes the visitor to the very view a
+     note was written over (the fade, the ghost and the survivor are angles the long play itself does not visit). */
+  const NOTES = TOURS.filter((t) => t.note);
+  const notesDlg = panelShell('atlas-notes', TC.notesHead);
+  notesDlg.classList.add('atlas-panel-dock');
+  const readerOf = (t) => String(t.name || t.id).replace(/^liner notes for /, '');
+  const roomName = (id) => { const s = (ctx.stops || []).find((x) => x.id === id); return s ? s.name : id; };
+  const ANG = (deps && deps.COPY && deps.COPY.chrome && deps.COPY.chrome.trackAngle) || {};
+  const tourLens = () => { try { return ctx.tour && typeof ctx.tour.lens === 'function' ? ctx.tour.lens() : null; } catch (e) { return null; } };
+  let notesTab = null, notesSeq = 0;
+  function resolveLine(raw) {
+    const r = ctx.tour && typeof ctx.tour.resolveCaption === 'function' ? ctx.tour.resolveCaption(raw, {}) : Promise.resolve(raw);
+    return Promise.resolve(r).then((t) => (t == null ? raw : t)).catch(() => raw);
+  }
+  function noteLines(st) { return [st.caption].concat((st.then || []).map((th) => (th && typeof th === 'object' && th.caption) || '')).filter(Boolean); }
+  async function renderNotes(id, room) {
+    const body = $('[data-body]', notesDlg), def = tourById(id) && tourById(id).note ? tourById(id) : tourById(tourLens()) || NOTES[0];
+    if (!def) return;
+    notesTab = def.id;
+    const my = ++notesSeq, lensNow = tourLens();
+    const twice = (r) => def.stops.filter((x) => x.room === r).length > 1;
+    const lines = await Promise.all(def.stops.map((st) => Promise.all(noteLines(st).map(resolveLine))));
+    if (my !== notesSeq) return;
+    body.innerHTML = '<p class="k-what">' + esc(fill(TC.notesWhat, { n: recCount() })) + '</p>' +
+      '<div class="n-tabs" role="tablist" aria-label="readers">' + NOTES.map((t) => '<button type="button" role="tab" class="n-tab' + (t.id === lensNow ? ' n-lens' : '') + '" id="n-tab-' + t.id + '" data-tab="' + t.id + '" aria-controls="n-panel" aria-selected="' + (t.id === def.id) + '" tabindex="' + (t.id === def.id ? 0 : -1) + '">' + esc(readerOf(t)) + '</button>').join('') + '</div>' +
+      '<div class="n-panel" id="n-panel" role="tabpanel" aria-labelledby="n-tab-' + def.id + '" data-n-ready><p class="n-blurb">' + esc(def.blurb || '') + '</p>' +
+      def.stops.map((st, k) => '<div class="n-note" data-room="' + esc(st.room) + '" data-angle="' + esc(st.angle) + '"><p class="n-at"><b>' + esc(roomName(st.room)) + '</b>' + (twice(st.room) ? ' · ' + esc(ANG[st.room + '.' + st.angle] || st.angle) : '') + '</p>' +
+        lines[k].map((t) => '<p class="n-l">' + esc(t) + '</p>').join('') + '<button type="button" class="n-see" data-see="' + k + '">' + esc(TC.seeIt) + '</button></div>').join('') + '</div>' +
+      '<div class="a-pn-row n-act"><button type="button" class="a-btn" data-nplay style="flex:1">' + esc(TC.notesPlay) + '</button>' + (lensNow ? '<button type="button" class="a-btn" data-noff>' + esc(TC.notesOff) + '</button>' : '') + '</div>';
+    const tabs = [...body.querySelectorAll('.n-tab')];
+    tabs.forEach((b) => b.addEventListener('click', () => { try { ctx.tour.setLens(b.dataset.tab); } catch (e) {} renderNotes(b.dataset.tab).then(() => { const f = $('#n-tab-' + b.dataset.tab, notesDlg); if (f) f.focus(); }); }));
+    $('.n-tabs', body).addEventListener('keydown', (e) => {
+      const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!d) return;
+      e.preventDefault(); const i = tabs.indexOf(document.activeElement); tabs[(i + d + tabs.length) % tabs.length].click();
+    });
+    body.querySelectorAll('[data-see]').forEach((b) => b.addEventListener('click', () => {
+      const st = def.stops[+b.dataset.see]; closeDialog(notesDlg);
+      try { if (ctx.tour.isPlaying()) ctx.tour.pause('manual'); } catch (e) {}
+      try { ctx.go(st.room, { angle: st.angle, via: 'key' }); } catch (e) {}
+    }));
+    $('[data-nplay]', body).addEventListener('click', () => {
+      try { ctx.tour.setLens(def.id); const a = ctx.tour.active; if (a.id) ctx.tour.resume(); else ctx.tour.play('grand', 0); } catch (e) {}
+      closeDialog(notesDlg);
+    });
+    const off = $('[data-noff]', body); if (off) off.addEventListener('click', () => { try { ctx.tour.setLens(null); } catch (e) {} renderNotes(def.id); });
+    if (room) {
+      const sec = body.querySelector('.n-note[data-room="' + room + '"]');
+      if (sec) { body.querySelectorAll('.n-note[data-room="' + room + '"]').forEach((x) => x.classList.add('n-here')); body.scrollTop = Math.max(0, sec.offsetTop - body.offsetTop - 12); }
+    }
+    syncMore(body);
+  }
+  function openNotes(id, room) {
+    const p = renderNotes(id || notesTab, room);
+    if (!notesDlg.open) openDialog(notesDlg);
+    return p.then(() => { if (room) return; const body = $('[data-body]', notesDlg); body.scrollTop = 0; syncMore(body); });
+  }
+  /* the note chip: rides just under/after the caption (chrome.js's #ai-caption, read, never written), only while the lens has
+     a line for the room on screen. it reads geometry on a slow tick (only while a lens is on), so it follows the caption
+     whatever chrome.js does with it */
+  const noteBtn = document.createElement('button'); noteBtn.type = 'button'; noteBtn.id = 'atlas-note'; noteBtn.className = 'atlas-note'; noteBtn.dataset.idle = 'dim'; noteBtn.hidden = true;
+  noteBtn.textContent = TC.noteChip; document.body.appendChild(noteBtn);
+  const curRoom = () => { const s = (ctx.stops || []).find((x) => x.i === ctx.index); return s ? s.id : null; };
+  noteBtn.addEventListener('click', () => { const L = tourLens(); if (L) openNotes(L, curRoom()); });
+  let noteT = 0;
+  function placeNote() {
+    const L = tourLens(), def = L && tourById(L), room = curRoom(), cap = document.getElementById('ai-caption');
+    const has = !!(def && room && def.stops.some((x) => x.room === room));
+    const r = cap && !cap.hidden ? cap.getBoundingClientRect() : null;
+    const show = has && r && r.height > 4 && r.width > 4 && !document.querySelector('dialog[open]') && !document.documentElement.classList.contains('ai-endcard-open');
+    if (!show) { if (!noteBtn.hidden) noteBtn.hidden = true; return; }
+    noteBtn.setAttribute('aria-label', TC.noteChip.replace(/\s*›\s*$/, '') + ': ' + readerOf(def) + ' on ' + roomName(room));
+    if (noteBtn.hidden) noteBtn.hidden = false;
+    const w = noteBtn.offsetWidth, h = noteBtn.offsetHeight;
+    let x, y;
+    if (innerWidth - r.right >= w + 24) { x = r.right + 10; y = r.bottom - h; } else { x = r.right - w; y = r.top - h - 6; }
+    noteBtn.style.left = Math.round(Math.max(8, Math.min(innerWidth - w - 8, x))) + 'px';
+    noteBtn.style.top = Math.round(Math.max(8, Math.min(innerHeight - h - 8, y))) + 'px';
+  }
+  function noteTick() { clearInterval(noteT); noteT = 0; placeNote(); if (tourLens()) noteT = setInterval(placeNote, 400); }
+  try { ctx.onStop(() => setTimeout(placeNote, 0)); } catch (e) {}
+  addEventListener('resize', placeNote, { passive: true });
+  [toursDlg, notesDlg].forEach((d) => d.addEventListener('close', placeNote));
+  /* the landing's `exhibit.html#notes` (and #notes=musicians): the sheet, over the record parked on its lead-in */
+  let wantNotes = null;
+  { const m = /^#notes(?:=([a-z]+))?(?:&|$)/.exec((ctx.atlas && ctx.atlas.hash0) || location.hash || ''); if (m) wantNotes = { tab: m[1] && tourById(m[1]) && tourById(m[1]).note ? m[1] : null }; }
+  addEventListener('hashchange', () => { const m = /^#notes(?:=([a-z]+))?/.exec(location.hash); if (m) openNotes(m[1] && tourById(m[1]) && tourById(m[1]).note ? m[1] : null); });
 
   /* -------------------------------------------------------------- knobs: three rotary dials, a few switches.
      the stored values and ctx.settings are unchanged; a dial is a slider over the same option lists the old rows used. */
@@ -259,8 +374,10 @@ export function mount(ctx, deps) {
       (coarse ? ' the pinch knob chooses whether two fingers zoom the field or the page.' : '') + '</p>';
     const sh = document.querySelector('link[rel=modulepreload][href*="shell.js?v="]') || document.querySelector('script[src*="shell.js?v="]');
     const bv = sh && /shell\.js\?v=([\w.-]+)/.exec(sh.getAttribute('href') || sh.getAttribute('src') || '');
+    html += '<button type="button" class="a-tour-item k-notes-link" data-notes><span class="a-t-name">' + esc(TC.notesLink) + '</span></button>';
     if (bv) html += '<p class="a-help-build" data-build>build ' + esc(bv[1]) + '</p>';
     body.innerHTML = html;
+    $('[data-notes]', body).addEventListener('click', () => { closeDialog(helpDlg); openNotes(); });
   })();
   function openHelp() { openDialog(helpDlg); }
   ctx.keys.on('?', () => { openHelp(); return true; });
@@ -296,7 +413,7 @@ export function mount(ctx, deps) {
     topbar.innerHTML = [
       '<button type="button" class="a-btn" data-a="home">from the top</button>',
       '<button type="button" class="a-btn" data-a="atlas">dig /</button>',
-      '<button type="button" class="a-btn" data-a="tours">records ▾</button>',
+      '<button type="button" class="a-btn" data-a="tours">the tour ▾</button>',
       '<ol class="a-tracks" id="ai-tracks" aria-label="tracklist"></ol>',
       '<button type="button" class="a-btn a-dk" data-a="prev" aria-label="previous stop">⏮︎</button>',
       '<button type="button" class="a-btn a-dk" data-a="next" aria-label="next stop">⏭︎</button>',
@@ -324,7 +441,7 @@ export function mount(ctx, deps) {
      a shelf holding every earlier dock item; it floats (absolute), so --atlas-dockh never changes */
   const dbtn = (a, ic, word, extra) => '<button type="button" data-a="' + a + '"' + (extra || '') + '><span class="d-ic" aria-hidden="true">' + ic + '</span>' + word + '</button>';
   dock.innerHTML = '<div class="d-more" id="atlas-dock-more" role="group" aria-label="more" hidden>' + [
-    ['home', '⌂', 'from the top'], ['atlas', '⌕', 'dig'], ['tours', '◎', 'records'], ['time', '◔', 'the day'], ['settings', '◐', 'knobs'],
+    ['home', '⌂', 'from the top'], ['atlas', '⌕', 'dig'], ['tours', '◎', 'the tour'], ['time', '◔', 'the day'], ['settings', '◐', 'knobs'],
     ['help', '?', 'help'], /* R2_VERIFY_1_a11y P1: help's only on-screen path on a phone */
   ].map((r) => dbtn(r[0], r[1], r[2])).join('') + dbtn('label', '▤', 'label', ' class="d-label"') + '</div>' +
     '<div class="d-row">' +
@@ -347,7 +464,11 @@ export function mount(ctx, deps) {
   }
   /* panels mounts before tour.js replaces the ctx.tour facade: subscribe once the real engine is there */
   let tourHooked = null;
-  function hookTour() { const t = ctx.tour; if (t && t !== tourHooked && typeof t.onChange === 'function' && typeof t.isPlaying === 'function') { tourHooked = t; try { t.onChange(syncPlay); } catch (e) {} } syncPlay(); }
+  function hookTour() {
+    const t = ctx.tour; if (t && t !== tourHooked && typeof t.onChange === 'function' && typeof t.isPlaying === 'function') { tourHooked = t; try { t.onChange(syncPlay); if (typeof t.on === 'function') t.on('lens', noteTick); } catch (e) {} noteTick(); }
+    syncPlay();
+    if (wantNotes && t && typeof t.lengths === 'function') { const w = wantNotes; wantNotes = null; try { if (!t.active.id) t.play('grand', 0, { autoplay: false }); } catch (e) {} openNotes(w.tab); }
+  }
   try { ctx.onStop(hookTour); } catch (e) {}
   [0, 400, 1500, 4000].forEach((ms) => setTimeout(hookTour, ms));
 
@@ -426,6 +547,8 @@ export function mount(ctx, deps) {
     tours: { open: openTours, close: () => closeDialog(toursDlg), get isOpen() { return toursDlg.open; } },
     settingsPanel: { open: openSettings, close: () => closeDialog(setDlg), get isOpen() { return setDlg.open; } },
     help: { open: openHelp, close: () => closeDialog(helpDlg), get isOpen() { return helpDlg.open; } },
+    notes: { open: openNotes, close: () => closeDialog(notesDlg), get isOpen() { return notesDlg.open; } },
+    open(n) { const d = { tours: { open: openTours }, settings: { open: openSettings }, help: { open: openHelp }, notes: { open: openNotes } }[n]; if (d) d.open(); },
   };
 }
 export default { mount };

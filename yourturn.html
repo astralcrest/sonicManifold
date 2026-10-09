@@ -3,87 +3,103 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>your turn — audit your own listening · sonic manifold</title>
-<meta name="description" content="Drop in your Spotify Extended Streaming History and see how much of your listening was actually you vs. the algorithm. Runs entirely in your browser — nothing is uploaded.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0118">
+<title>your turn &middot; sonic manifold</title>
+<meta name="description" content="drop in your Spotify extended streaming history and see how much of your listening you tapped and how much shuffle and the queue served. it runs in your browser; nothing is uploaded.">
 <meta name="robots" content="index, follow, noai, noimageai">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<noscript><style>#drop{display:none}</style></noscript>
 <style>
   :root{
-    --bg:#0a0118; --panel:#15082d; --ink:#f0eaff; --dim:#a394c9;
-    --mint:#21f6bc; --rose:#ff6e9c; --ice:#86cbfe; --gold:#fffa6a; --orchid:#df95ff;
-    --line:#241043;
+    --bg:#0a0118; --panel:#15082d; --ink:#f0eaff; --dim:#a49bbd;
+    --mint:#21f6bc; --amber:#f5a623; --violet:#8b6fd6; --rose:#ff6e9c; --ice:#86cbfe;
+    --line:#241043; --hair:rgba(134,203,254,.32);
+    --serif:ui-serif,"Iowan Old Style","Palatino Linotype",Georgia,serif;
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);
     font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased;}
   body{background:radial-gradient(1200px 700px at 50% -10%, rgba(40,18,74,.7), var(--bg) 60%);min-height:100vh;}
-  .wrap{max-width:880px;margin:0 auto;padding:clamp(28px,6vw,72px) 20px 96px;}
-  a{color:var(--mint);text-decoration:none;border-bottom:1px solid rgba(33,246,188,.3)}
-  .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--mint);margin:0 0 12px;opacity:.9}
-  h1{font-family:ui-serif,Georgia,serif;font-size:clamp(30px,6vw,52px);line-height:1.08;letter-spacing:-.02em;margin:0 0 14px;color:var(--ink)}
-  h1 .grad{background:linear-gradient(100deg,var(--mint),var(--orchid),var(--rose));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .lede{font-size:clamp(14px,2.2vw,16.5px);line-height:1.65;color:var(--dim);max-width:60ch;margin:0 0 30px}
-  .privacy{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.55;color:#bdf3df;
-    background:rgba(33,246,188,.06);border:1px solid rgba(33,246,188,.22);border-radius:12px;padding:12px 14px;margin:0 0 26px;max-width:60ch}
-  .privacy b{color:#dffaef}
+  .wrap{max-width:880px;margin:0 auto;padding:clamp(28px,6vw,72px) 20px 72px;}
+  a{color:var(--ice);text-decoration:none;border-bottom:1px solid rgba(134,203,254,.35)}
+  a:hover{border-bottom-color:var(--ice)}
+  a:focus-visible{outline:1.5px solid var(--ice);outline-offset:3px;border-bottom-color:transparent}
+  .sleeve a{border-bottom:0}
+  .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--ice);margin:0 0 12px}
+  h1{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(32px,6vw,54px);line-height:1.08;letter-spacing:-.01em;margin:0 0 16px;color:var(--ink)}
+  .lede{font-size:clamp(14px,2.2vw,16.5px);line-height:1.65;color:var(--dim);max-width:60ch;margin:0 0 14px}
+  .lede b{color:var(--ink);font-weight:600}
+  .turns{font-size:12px;line-height:1.7;color:var(--dim);max-width:62ch;margin:0 0 28px}
+  .turns b{color:var(--ink);font-weight:600}
+  .privacy{font-size:12.5px;line-height:1.6;color:var(--dim);border:1px solid var(--hair);border-radius:12px;padding:12px 14px;margin:0 0 26px;max-width:60ch}
+  .privacy b{color:var(--ink)}
   /* dropzone */
-  #drop{border:1.5px dashed rgba(155,107,255,.45);border-radius:18px;padding:clamp(28px,6vw,52px) 24px;text-align:center;
+  #drop{border:1.5px dashed var(--hair);border-radius:18px;padding:clamp(28px,6vw,52px) 24px;text-align:center;
     background:linear-gradient(180deg,rgba(32,16,58,.45),rgba(18,8,38,.45));transition:border-color .2s,background .2s;cursor:pointer}
-  #drop.over{border-color:var(--mint);background:rgba(33,246,188,.08)}
+  #drop.over{border-color:var(--ice);background:rgba(134,203,254,.07)}
   #drop .big{font-size:clamp(16px,3vw,20px);color:var(--ink);margin:0 0 8px}
   #drop .small{font-size:12.5px;color:var(--dim);margin:0}
   #file{display:none}
   .btn{display:inline-block;margin-top:14px;padding:10px 20px;border-radius:999px;font:600 12.5px/1 'JetBrains Mono',monospace;
-    letter-spacing:.12em;text-transform:uppercase;color:#0a0118;background:linear-gradient(100deg,var(--mint),#7fe9cd);border:0;cursor:pointer}
-  .status{font-size:12.5px;color:var(--gold);margin:16px 0 0;min-height:18px}
+    letter-spacing:.12em;text-transform:uppercase;color:#0a0118;background:var(--ice);border:0;cursor:pointer}
+  .btn:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
+  .status{font-size:12.5px;color:var(--dim);margin:16px 0 0;min-height:18px}
   .err{color:var(--rose)}
+  .nojs{font-size:12.5px;line-height:1.6;color:var(--ink);border:1px dashed var(--hair);border-radius:12px;padding:14px 16px;margin:0}
   /* results */
   #out{display:none;margin-top:40px}
-  .hero-num{font-family:ui-serif,Georgia,serif;font-size:clamp(56px,15vw,128px);line-height:.95;letter-spacing:-.03em;margin:6px 0 2px;
-    background:linear-gradient(100deg,var(--mint),var(--ice));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-num{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(56px,15vw,128px);line-height:.95;letter-spacing:-.02em;margin:6px 0 2px;color:var(--mint)}
   .hero-cap{font-size:14px;color:var(--dim);margin:0 0 4px}
-  .hero-sub{font-size:13px;color:#9d92bb;margin:0 0 30px;max-width:54ch;line-height:1.6}
+  .hero-sub{font-size:13px;color:var(--dim);margin:0 0 30px;max-width:54ch;line-height:1.6}
+  .hero-sub b{color:var(--ink)}
   .bar{display:flex;height:34px;border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:0 0 10px}
   .bar span{display:block;height:100%}
   .legend{display:flex;flex-wrap:wrap;gap:14px 22px;font-size:12.5px;color:var(--dim);margin:0 0 36px}
   .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:middle}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:0 0 30px}
-  .card{background:linear-gradient(180deg,rgba(32,16,58,.6),rgba(18,8,38,.6));border:1px solid rgba(138,217,192,.2);border-radius:14px;padding:18px}
-  .card h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--orchid);margin:0 0 12px}
+  .card{background:linear-gradient(180deg,rgba(32,16,58,.6),rgba(18,8,38,.6));border:1px solid rgba(189,166,255,.19);border-radius:14px;padding:18px}
+  .card h3{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ice);margin:0 0 12px}
   .row{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(36,16,67,.6)}
   .row:last-child{border-bottom:0}
   .row .v{color:var(--mint);font-weight:600;white-space:nowrap}
-  .row .v.dim{color:var(--rose)}
+  .row .v.dim{color:var(--violet)}
   .stat{font-size:13px;color:var(--dim);line-height:1.7}
   .stat b{color:var(--ink);font-size:18px}
-  .foot{font-size:12px;color:#8c81a8;line-height:1.7;margin:34px 0 0;max-width:62ch}
-  .foot a{color:var(--ice)}
-  .note{font-size:12px;color:var(--gold);background:rgba(255,250,106,.06);border:1px solid rgba(255,250,106,.2);border-radius:10px;padding:11px 13px;margin:18px 0 0;line-height:1.55}
+  #means b{font-size:inherit}
+  .foot{font-size:12px;color:var(--dim);line-height:1.7;margin:34px 0 0;max-width:62ch}
+  .foot b{color:var(--ink);font-weight:600}
+  .note{font-size:12px;color:var(--dim);border:1px solid var(--hair);border-radius:10px;padding:11px 13px;margin:18px 0 0;line-height:1.6}
+  .note b{color:var(--ink)}
+  @media (forced-colors:active){.btn{border:1px solid ButtonText}}
 /* printed: ink on white. the tokens carry most of it; the few literal hues are named here. */
 @media print{
   :root{color-scheme:light;--bg:#fff;--panel:#fff;--ink:#111;--dim:#333;
-    --mint:#0a6a54;--rose:#9c1c4a;--ice:#0b4e7d;--gold:#7a4f06;--orchid:#453380;--line:#999}
+    --mint:#0a6a54;--amber:#7a4f06;--violet:#453380;--rose:#9c1c4a;--ice:#0b4e7d;--line:#999;--hair:#999}
   html,body{background:#fff!important;color:#111}
   body::before,body::after{display:none!important}
   h1,h2,h3{color:#111;-webkit-text-fill-color:#111;background:none}
   p,li,dt,dd,td,th,span,small,em,strong,b,code,figcaption,div{color:#111}
   a{color:#111;text-decoration:underline}
   .note b,.note code,.privacy b,.stat b,p.foot,button,input{color:#111}
+  .sleeve{display:none!important}
 }
 </style>
 </head>
-<body>
-<div class="wrap">
-  <p class="eyebrow">sonic manifold &middot; your turn</p>
-  <h1>How much of your listening<br>was <span class="grad">actually you?</span></h1>
-  <p class="lede">I spent seven years auditing my own Spotify history to separate the songs I <em>chose</em> from the ones the algorithm fed me. Here&rsquo;s the same first cut, on yours. Drop in your <b>Extended Streaming History</b> and find out in a few seconds.</p>
+<body id="top">
+<main class="wrap">
+  <p class="eyebrow">your turn &middot; the guide</p>
+  <h1>how much of your listening<br>was actually you?</h1>
+  <p class="lede">i went through six and a half years of my own Spotify log to separate the plays i tapped from the ones shuffle and the queue served. here is the same first cut, on yours. drop in your <b>extended streaming history</b> and see in a few seconds.</p>
+  <p class="turns">your turn, three ways: <a href="bridge-index.html">the probe</a> measures &middot; <b>the guide</b> walks you through your export (this page) &middot; <a href="exhibit.html">the exhibit</a> lets you play with mine.</p>
 
-  <div class="privacy">
-    <span>&#128274;</span>
-    <span><b>Nothing leaves your browser.</b> Your file is read and analysed entirely on this page, on your device. There is no upload, no server, no storage, no analytics. Close the tab and it&rsquo;s gone. (View source &mdash; it&rsquo;s one file.)</span>
-  </div>
+  <p class="privacy"><b>nothing leaves your browser.</b> your file is read and analyzed on this page, on your device. no upload, no server, no storage, no analytics. close the tab and it&rsquo;s gone. (view source: it&rsquo;s one file.)</p>
 
-  <div id="drop" role="button" tabindex="0" aria-label="Drop your Spotify history files here or click to choose">
-    <p class="big">drop your Spotify history <code>.json</code> files here</p>
+  <noscript><p class="nojs">this part needs javascript; the report reads fine without it &rarr; <a href="researcher.html">the report</a></p></noscript>
+  <div id="drop">
+    <p class="big">drop your Spotify <code>.json</code> files here</p>
     <p class="small">or</p>
     <button class="btn" id="pick" type="button">choose files</button>
     <input id="file" type="file" accept=".json,application/json" multiple>
@@ -91,12 +107,12 @@
   </div>
 
   <div class="note">
-    <b>How to get the file:</b> Spotify &rarr; Account &rarr; Privacy &rarr; <b>&ldquo;Extended streaming history&rdquo;</b> &rarr; request. It arrives by email in a few days as a zip; unzip it and drop the <code>Streaming_History_Audio_*.json</code> files here. (The basic &ldquo;Account data&rdquo; export has no intent labels, so it can only show hours &mdash; the extended one is the one that works.)
+    <b>how to get the file:</b> spotify.com &rarr; account &rarr; privacy &rarr; download your data &rarr; tick <b>&ldquo;extended streaming history&rdquo;</b>. it arrives by email, usually within days (Spotify says up to 30), as a zip; unzip it and drop the <code>Streaming_History_Audio_*.json</code> files here. the short &ldquo;account data&rdquo; export is not enough: it has no <code>reason_start</code>, so it can only show hours.
   </div>
 
   <div id="out">
-    <p class="hero-cap">of your finished plays, you actually pressed play on</p>
-    <div class="hero-num" id="heroNum">&mdash;</div>
+    <p class="hero-cap">of your finished plays, you pressed play on</p>
+    <div class="hero-num" id="heroNum">&ndash;</div>
     <p class="hero-sub" id="heroSub"></p>
 
     <div class="bar" id="bar"></div>
@@ -104,11 +120,11 @@
 
     <div class="grid">
       <div class="card">
-        <h3>the songs you chose</h3>
+        <h3>the artists you tap</h3>
         <div id="topTap"></div>
       </div>
       <div class="card">
-        <h3>served, but you rarely reach for it</h3>
+        <h3>served often, rarely tapped</h3>
         <div id="topServed"></div>
       </div>
     </div>
@@ -128,11 +144,12 @@
   </div>
 
   <p class="foot">
-    This is the opening move of a bigger study: <a href="./index.html">sonic manifold</a> &mdash; seven years of one listener&rsquo;s history, audited with ~30 methods, about half of which survived. The full version separates genre <em>served</em> from genre <em>chosen</em>, maps the listening as a network, and recovers intent from timing alone. This page runs only the first, portable cut on your data.
-    <br><br>Built by <b>Astralcrest</b>, independent researcher. Nothing here is stored or sent.
+    this is the opening move of a bigger study: <a href="./">sonic manifold</a>, six and a half years of one listener&rsquo;s log, audited. eighteen claims withdrawn. sixteen are graves you can visit. 0 of 11 new candidates survived unqualified. <a href="researcher.html#graveyard">visit the graves &rarr;</a> this page runs only the first, portable cut on your data; <a href="bridge-index.html">the probe</a> computes your bridge index.
+    <br><br>built by astralcrest, one listener, on my own data. nothing here is stored or sent.
   </p>
-</div>
+</main>
 
+<nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i><a href="exhibit.html" data-p="exhibit.html">the exhibit</a></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">colophon</a></span><a class="up" href="#top">lift the needle &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav>
 <script>
 (function(){
   "use strict";
@@ -154,8 +171,8 @@
 
   function handleFiles(files){
     var jsons = [].slice.call(files).filter(function(f){ return /\.json$/i.test(f.name); });
-    if(!jsons.length){ status.className='status err'; status.textContent='No .json files found. Drop the Streaming_History_Audio_*.json files.'; return; }
-    status.className='status'; status.textContent='Reading '+jsons.length+' file'+(jsons.length>1?'s':'')+'…';
+    if(!jsons.length){ status.className='status err'; status.textContent='no .json files found. drop the Streaming_History_Audio_*.json files.'; return; }
+    status.className='status'; status.textContent='reading '+jsons.length+' file'+(jsons.length>1?'s':'')+'…';
     var plays=[], done=0, errs=0;
     jsons.forEach(function(f){
       var r=new FileReader();
@@ -173,16 +190,16 @@
   }
 
   function finish(plays, errs){
-    if(!plays.length){ status.className='status err'; status.textContent='Couldn’t parse any plays. Make sure these are the JSON files from the Spotify export.'; return; }
+    if(!plays.length){ status.className='status err'; status.textContent='couldn’t read any plays. make sure these are the .json files from the Spotify export.'; return; }
     // detect extended format (has reason_start). basic export uses endTime/artistName.
     var hasIntent = plays.some(function(p){ return p && ('reason_start' in p); });
     var hasExtFields = plays.some(function(p){ return p && ('ms_played' in p); });
     if(!hasExtFields){
       status.className='status err';
-      status.textContent='This looks like the BASIC account-data export (no intent labels). Request the "Extended streaming history" instead — that’s the one with the chose-vs-served signal.';
+      status.textContent='this looks like the short “account data” export (no reason_start). request the extended streaming history instead: that’s the one that says who pressed play.';
       return;
     }
-    status.textContent='Analysing '+fmt(plays.length)+' rows…';
+    status.textContent='analyzing '+fmt(plays.length)+' rows…';
     setTimeout(function(){ analyse(plays, hasIntent); }, 30);
   }
 
@@ -206,7 +223,7 @@
       else if(rs==='trackdone'){ nAuto++; servedBy[artist]=(servedBy[artist]||0)+1; }
       else { nOther++; }
     }
-    if(!nQual){ status.className='status err'; status.textContent='No plays over 30 seconds found.'; return; }
+    if(!nQual){ status.className='status err'; status.textContent='no plays over 30 seconds found.'; return; }
 
     var youPct = pct(nTap, nQual);
     var hours = totalMs/3600000;
@@ -231,19 +248,19 @@
     status.textContent='';
     $('out').style.display='block';
     if(!d.hasIntent){
-      $('heroNum').textContent='—';
-      $('heroSub').innerHTML='These files don’t carry the <b>reason_start</b> intent label, so the chose-vs-served split isn’t available — only the totals below. Request the <b>Extended</b> streaming history for the full cut.';
+      $('heroNum').textContent='–';
+      $('heroSub').innerHTML='these files don’t carry <b>reason_start</b>, so the tapped-or-served split isn’t available, only the totals below. request the <b>extended</b> streaming history for the full cut.';
     } else {
       $('heroNum').textContent = d.youPct.toFixed(0)+'%';
       var servedPct = (100 - d.youPct);
-      $('heroSub').innerHTML = 'The other <b>'+servedPct.toFixed(0)+'%</b> kept playing without you pressing anything — autoplay, shuffle, and app-start carrying you from one track to the next. On my own seven years that split was <b>19 / 81</b>.';
+      $('heroSub').innerHTML = 'the other <b>'+servedPct.toFixed(0)+'%</b> played on without you pressing anything: shuffle, the queue running on, and the app starting things up. on my own six and a half years the split was <b>19 / 81</b>.';
     }
 
     // bar
-    var segs=[['you chose', d.nTap, 'var(--mint)'],
-              ['autoplay', d.nAuto, 'var(--orchid)'],
-              ['shuffle', d.nShuf, 'var(--ice)'],
-              ['app / other', d.nOther, '#5b4d7a']];
+    var segs=[['you tapped', d.nTap, 'var(--mint)'],
+              ['shuffle', d.nShuf, 'var(--amber)'],
+              ['the queue', d.nAuto, 'var(--violet)'],
+              ['the app / other', d.nOther, '#5b4d7a']];
     var bar='', leg='';
     segs.forEach(function(s){
       var w=pct(s[1], d.nQual);
@@ -255,31 +272,31 @@
     // top tapped
     $('topTap').innerHTML = d.topTap.length ? d.topTap.map(function(t){
       return '<div class="row"><span>'+esc(t[0])+'</span><span class="v">'+fmt(t[1])+'</span></div>';
-    }).join('') : '<div class="stat">No deliberate taps found.</div>';
+    }).join('') : '<div class="stat">no taps found.</div>';
 
     // served but rarely chosen
     $('topServed').innerHTML = d.served.length ? d.served.map(function(o){
-      return '<div class="row"><span>'+esc(o.a)+'</span><span class="v dim">'+(o.tapRate*100).toFixed(0)+'% chosen</span></div>';
-    }).join('') : '<div class="stat">Not enough repeat plays to tell.</div>';
+      return '<div class="row"><span>'+esc(o.a)+'</span><span class="v dim">'+(o.tapRate*100).toFixed(0)+'% tapped</span></div>';
+    }).join('') : '<div class="stat">not enough repeat plays to tell.</div>';
 
     // numbers
     $('nums').innerHTML =
       '<b>'+fmt(d.nQual)+'</b> finished plays (&ge;30s)<br>'+
       '<b>'+Math.round(d.hours).toLocaleString()+'</b> hours<br>'+
       '<b>'+fmt(d.nArtists)+'</b> artists<br>'+
-      (d.haveSkip? '<b>'+pct(d.nSkip,d.nQual).toFixed(0)+'%</b> skipped' : '');
+      (d.haveSkip? '<b>'+pct(d.nSkip,d.nQual).toFixed(0)+'%</b> cut short by a next-press' : '');
 
     // meaning
     if(d.hasIntent){
       var av = d.served.length? esc(d.served[0].a) : 'one artist';
       $('means').innerHTML =
-        'The mint slice is the part that was a <b>choice</b>. Everything else is provenance — the platform deciding, you riding along.<br><br>'+
-        'The right-hand list is your <b>aversion hint</b>: artists served to you a lot that you almost never start yourself (your top one: '+av+'). On the full study this same gap, at the <em>genre</em> level, is the headline finding.';
+        'the mint slice is the part you <b>tapped</b>. everything else is who pressed play when you didn’t: shuffle and the queue deciding, you riding along.<br><br>'+
+        'the second list is your <b>aversion hint</b>: artists served to you a lot that you almost never start yourself (your top one: '+av+'). the full study looks at the same gap at the <em>genre</em> level.';
     } else {
-      $('means').innerHTML='Request the Extended export to unlock the chose-vs-served split.';
+      $('means').innerHTML='request the extended export to see the tapped-or-served split.';
     }
 
-    $('foot').innerHTML='This is a first cut — the same intent split the full study starts from. It does <b>not</b> yet compute your genre served-vs-chosen ratio, your listening network, or the timing-only intent detector; those need reference data I haven’t shipped to your browser yet. If you’d share an anonymised export to help validate the method across more than one listener, the contact is on the <a href="./index.html">main page</a>.';
+    $('foot').innerHTML='this is a first cut: the same who-pressed-play split the full study starts from. it does <b>not</b> compute your genre served-or-tapped ratio or your listening network; those need reference data i haven’t shipped to your browser. <a href="bridge-index.html">the probe</a> computes your bridge index. if you’d share an anonymized export to help test the method on more than one listener, the contact is on <a href="./">the landing</a>.';
     $('out').scrollIntoView({behavior:'smooth', block:'start'});
   }
 

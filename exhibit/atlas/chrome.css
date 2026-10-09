@@ -182,6 +182,11 @@ html.atlas.ai-less section[data-room].is-active .wall .row{display:none}
 @media (min-aspect-ratio:115/100) and (max-height:480px){
   html.atlas.ai-less #atlas-info .ai-tourchip,html.atlas.ai-less #atlas-info .ai-zoom{display:none}
   html.atlas #atlas-info .ai-pill{white-space:normal;text-wrap:balance;text-align:left;letter-spacing:.03em}
+  /* R13: the typed caption never gives up its lines to the flex column (it shrank to 7-19px under the pill); a card that
+     still runs long scrolls inside itself instead */
+  html.atlas #atlas-info .ai-liner,html.atlas #atlas-info .ai-caption{flex-shrink:0}
+  html.atlas #atlas-info .ai-stop{white-space:normal;min-width:0;flex:1 1 100%;line-height:1.3} /* R13: "side a · 7 · the map t" ran out of a 154px column, cut mid-word */
+  html.atlas #atlas-info{width:min(30rem,calc(40vw - 70px))} /* R13: 40 px wider on a phone on its side (154 -> 194 at 659): the kicker and the pill fit; the stage starts 30 px past it (shell.js) */
 }
 @media (max-aspect-ratio:115/100){
   /* one line for the upright stop row: the camera chip takes the tour chip's place (tours stay one tap away in the dock) */
@@ -240,6 +245,21 @@ html.atlas h1{background:none;-webkit-background-clip:border-box;background-clip
    the field must never draw through it (a zoomed room, the universe's threads, the clock's busiest hour): the bar gets
    a ground that fades into the stage. above the labels layer, so no [ name ] sits under the menu either. */
 html.atlas #top{background:linear-gradient(180deg,rgba(10,1,24,.97) 0,rgba(10,1,24,.97) 58%,rgba(10,1,24,0) 100%)}
+/* R13: a landscape phone's notch and rounded corners eat the bar's ends (sound off, the brand): the side padding clears the safe area */
+html.atlas #top{padding-left:max(clamp(14px,4vw,28px),env(safe-area-inset-left));padding-right:max(clamp(14px,4vw,28px),env(safe-area-inset-right))}
+/* R13: a phone on its side ran the menu off the right edge (659 wide: the day, knobs, ? and sound off unreachable; 844 with
+   the notch: sound off under the corner). the row tightens there, a narrow one keeps only the brand's arrow (the name
+   stays its accessible text), and whatever still cannot fit scrolls sideways inside the menu rather than off the glass */
+@media (min-aspect-ratio:115/100) and (max-height:480px){
+  html.atlas:not(.atlas-deck) #top button{padding:0 6px;letter-spacing:.02em}
+  html.atlas:not(.atlas-deck) #top .atlas-topbar{gap:2px;flex:0 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain}
+  html.atlas:not(.atlas-deck) #top .atlas-topbar::-webkit-scrollbar{display:none}
+  html.atlas:not(.atlas-deck) #top .atlas-topbar>*{flex:none}
+}
+@media (min-aspect-ratio:115/100) and (max-height:480px) and (max-width:760px){
+  html.atlas:not(.atlas-deck) #top .brand{font-size:0;letter-spacing:0;padding:0 6px}
+  html.atlas:not(.atlas-deck) #top .brand .b-back{font-size:15px}
+}
 /* the wordmark: light, tracked; it dims with the rest of the title row at idle (§1.12) */
 html.atlas #top .brand{font-weight:300;font-size:clamp(14px,1.3vw,19px);letter-spacing:.2em;line-height:1;transition:opacity .25s ease-out}
 html.atlas-idle #top .brand{opacity:.5;transition:opacity 1s ease-in}
@@ -283,6 +303,8 @@ html.atlas.ai-toast-on #atlas-onboard{opacity:0}
 /* ------------------------------------------------------------------ toast: the same slot as the bottom line (placed by
    chrome.js, above any room control panel). landscape: unboxed; portrait: opaque, so it never sits illegibly on top of
    the wall text */
+/* R13: the safe area's foot, read by chrome.js place() (a sideways phone's home bar sat over a two-line toast) */
+html.atlas #atlas-toast,html.atlas #atlas-onboard{scroll-margin-bottom:env(safe-area-inset-bottom,0px)}
 html.atlas #atlas-toast{position:fixed;z-index:7;left:50%;bottom:22px;transform:translateX(-50%) translateY(6px);margin:0;width:max-content;font:500 12px/1.45 var(--mono);color:var(--ink);text-align:center;text-wrap:balance;text-shadow:0 0 6px var(--bg),0 0 2px var(--bg),0 0 12px var(--bg);max-width:calc(100vw - 40px);opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease}
 html.atlas #atlas-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 /* R12: the hint is chrome too; at idle it dims with the caption and the title so the picture breathes */
@@ -542,7 +564,7 @@ html.atlas #atlas-info .ai-end-contact{font-family:var(--serif-voice);font-style
 @media (min-aspect-ratio:115/100){html.atlas #atlas-toast{background:rgba(10,1,24,.86);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-radius:8px;padding:6px 14px;text-shadow:none}}
 @media (max-aspect-ratio:115/100){
   html.atlas #atlas-toast{background:var(--bg);width:calc(100vw - 16px);max-width:none!important}
-  html.atlas.ai-toast-on #atlas-info .ai-caption,html.atlas.ai-toast-on #atlas-info .ai-hud,html.atlas.ai-toast-on #uf-tab{opacity:0}
+  html.atlas.ai-toast-on #atlas-info .ai-caption,html.atlas.ai-toast-on #atlas-info .ai-hud,html.atlas.ai-toast-on #uf-tab{opacity:0;transition:opacity .15s ease-out} /* R13: out at once, even from idle's slow 1 s fade (it showed through the arriving toast) */
   html.atlas #atlas-info .ai-end{height:auto;max-height:calc(100% - 52px);background:var(--bg);border-top:1px solid var(--ai-line)}
   html.atlas.ai-endcard-open #atlas-dock,html.atlas.ai-endcard-open #atlas-info .ai-mrow{visibility:hidden}
 }
@@ -584,6 +606,8 @@ html.atlas #atlas-tours .a-tracks-all button:focus-visible{outline:2px solid var
 /* R9 GUIDE: each room's own box carries its track on its top edge, like an index tab (chrome.js writes --ai-trk) */
 html.atlas{--ai-trk:none}
 html.atlas section[data-room].is-active :is(.ch-hud,.bl-hud,.ar-hud,.lp-hud,.wh-hud,.gd-card)::before{content:var(--ai-trk);position:absolute;z-index:1;top:0;left:12px;transform:translateY(-50%);padding:0 6px;border:1px solid var(--ai-line);border-radius:3px;background:#0a0118;font:600 9px/14px var(--mono);letter-spacing:.14em;color:var(--ice);white-space:pre;pointer-events:none;text-transform:none}
+/* R13: the arrivals' side card scrolls (overflow:auto), which cut the tab off at its top edge; there it rides inside, pinned to the top */
+html.atlas section[data-room].is-active .ar-hud.side::before{position:sticky;display:table;top:0;left:auto;transform:none;margin:0 0 6px}
 
 /* R9 GUIDE: the coach. a glass card over the field, three lines with a moving glyph each, a fuse that burns down */
 html.atlas .ai-coach{position:fixed;z-index:40;box-sizing:border-box;width:min(340px,calc(100vw - 32px));padding:14px 16px 16px;border:1px solid rgba(134,203,254,.42);border-radius:14px;
@@ -593,6 +617,9 @@ html.atlas .ai-coach{position:fixed;z-index:40;box-sizing:border-box;width:min(3
 html.atlas .ai-coach.on{opacity:1;transform:none}
 html.atlas .ai-coach.off{opacity:0;transform:translateY(-6px) scale(.98);transition:opacity .38s ease-in,transform .38s ease-in}
 html.atlas .ai-coach p{margin:0}
+html.atlas .atlas-ladder-chip.al-coach-off{visibility:hidden}
+/* R13: a phone on its side has ~250 px between the masthead and the stage foot; the full coach (144 px) found no slot clear of the room's own panel */
+@media (min-aspect-ratio:115/100) and (max-height:480px){html.atlas .ai-coach{padding:9px 12px 10px;width:min(400px,calc(100vw - 32px))}html.atlas .ai-coach-k{margin-bottom:5px!important}html.atlas .ai-coach-l{min-height:24px;font-size:12px;line-height:1.3;gap:10px}html.atlas .ai-coach-g{flex-basis:18px;height:18px}}
 html.atlas .ai-coach-k{font:600 10px/1.2 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ice);margin-bottom:10px!important}
 html.atlas .ai-coach-l{display:flex;align-items:center;gap:12px;min-height:30px;font:500 13px/1.4 var(--mono);color:var(--ink);opacity:0;transform:translateX(-6px)}
 html.atlas .ai-coach.on .ai-coach-l{animation:ai-coach-in .45s ease-out forwards;animation-delay:calc(.15s + var(--i) * .35s)}
@@ -602,7 +629,7 @@ html.atlas .ai-coach-g.g0::after{content:"";position:absolute;inset:3px;border-r
 html.atlas .ai-coach-g.g1{background:conic-gradient(var(--orchid) var(--ai-hold,0%),rgba(189,166,255,.18) 0);-webkit-mask:radial-gradient(circle,transparent 6px,#000 7px);mask:radial-gradient(circle,transparent 6px,#000 7px);animation:ai-coach-hold 1.8s linear infinite}
 html.atlas .ai-coach-g.g2::before{content:"›";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 18px/1 var(--mono);color:var(--ice);animation:ai-coach-nudge 1.1s ease-in-out infinite}
 html.atlas .ai-coach-bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--mint),var(--ice),var(--orchid));transform-origin:left;transform:scaleX(1)}
-html.atlas .ai-coach.on .ai-coach-bar{animation:ai-coach-fuse 6s linear forwards}
+html.atlas .ai-coach.on .ai-coach-bar{animation:ai-coach-fuse var(--ai-coach-ms,6s) linear forwards}
 @property --ai-hold{syntax:'<percentage>';inherits:false;initial-value:0%}
 @keyframes ai-coach-in{to{opacity:1;transform:none}}
 @keyframes ai-coach-ping{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.5);opacity:0}}

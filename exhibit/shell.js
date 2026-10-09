@@ -320,7 +320,9 @@ function stageAtlas(home) {
     /* `hide` puts the info card and the wall text away: the field takes the width they held (the photo view).
        the camera keeps its pose across the relayout, so the object glides over to the new centre */
     if (HID.on) { const x = 48; return { x, y: top, w: W - x - (ins.right > 0 ? ins.right : right), h }; }
-    const x = Math.max(W * 0.4, 430);
+    /* R13: a phone on its side (659 wide) kept a 165 px stage behind the 430 floor and every room panel piled into it; under 720 the
+       stage starts 30 px past the card column (chrome.css: left 6vw, width 40vw - 70) instead */
+    const x = W < 720 ? Math.max(W * 0.4, W * 0.46 - 40) : Math.max(W * 0.4, 430);
     let w = W - x - right;
     /* the ladder's column (ladder.js publishes insets.right in the landscape strip, 0 elsewhere): the stage ends where it
        begins, never narrower than 320px. D3 holds only while that column fits in the margin this stage already leaves
@@ -1778,7 +1780,7 @@ function armHint() {
   hintT = setTimeout(() => {
     if (rooms[active].id !== id || acted.has(id)) return;
     /* atlas: the stage belongs to the field, labels and chips; the hint is one toast line at the bottom, never during a tour */
-    if (ATLAS) { const ta = FAC.tour.active; if (!(ta && ta.playing) && toastBandClear()) FAC.toast(hintOf(id), 5200); return; }
+    if (ATLAS) { const ta = FAC.tour.active; if (!(ta && ta.playing) && toastBandClear()) FAC.toast(hintOf(id), 5200, { wait: true }); return; }
     const s = stage();
     hintEl.textContent = hintOf(id);
     hintEl.style.maxWidth = Math.min(480, s.w, W - 32) + 'px';
@@ -2029,7 +2031,7 @@ const tourOn = () => { const ta = FAC.tour.active; return !!(ta && ta.playing); 
 function govSay(msg) {
   if (tourOn()) { govPend = msg; return; }
   govPend = null;
-  if (!document.documentElement.classList.contains('ai-endcard-open')) FAC.toast(msg); /* a step down under the end card: not said there either */
+  if (!document.documentElement.classList.contains('ai-endcard-open')) FAC.toast(msg, undefined, { wait: true }); /* a step down under the end card: not said there either */
 }
 const govEnd = () => { clearTimeout(govT); govT = 0; govPend = null; };
 if (ATLAS) FAC.tour.onChange(() => {
