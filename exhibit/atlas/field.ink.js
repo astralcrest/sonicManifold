@@ -3,12 +3,13 @@
    then bleeds. families dealt from threshold_grid as the globe deals them (the silent-day blur stays blurred). */
 const { min, max, round, sqrt } = Math;
 const FULL = { threshold: 1, universe: 1, wall: 1, calendar: 1 };
-const RAMP = [[.2,.8,.25], [.65,.9,.12], [.9,.9,.3], [.1,.6,.62], [.1,.35,.95], [.2,.2,.7], [.55,.1,.85], [.85,.1,.8], [.9,.15,.25], [1,.4,.05]]; /* R11: no hue of the reserved code (mint, amber, violet, rose, ice) */
-const POS = { electronic: 0, classical: .07, 'ambient/lofi': .15, 'folk/country': .24, other: .33, jazz: .42, 'world/desi': .5, experimental: .57, 'rock/metal': .64, soundtrack: .72, pop: .8, 'funk/disco': .88, 'hip-hop · r&b': 1 };
+/* R15 HUE_DYE: the 10-stop wheel is gone. a family's dye is its FAM pastel (shell.js), one palette with the universe legend and
+   the lab's family charts; the wheel's red and purple stops, paled toward white, read as rose and violet. disp lifts chroma by
+   LIFT around luma, so the palette holds each pastel's pre-image and the bath draws the pastel itself */
+const LIFT = 1.55;
 const SMOKE = [.34, .32, .43], COOL = [0.129,0.965,0.737], ROSE = [0.545,0.435,0.839]; /* the colour code: mint = tapped, violet = served */
 const FAM0 = ['ambient/lofi', 'classical', 'electronic', 'experimental', 'folk/country', 'funk/disco', 'hip-hop · r&b', 'jazz', 'other', 'pop', 'rock/metal', 'soundtrack', 'world/desi', 'untagged'];
 const CAP = { fam: 'one dye per family, dropped in the order i played. a picture of order, not a measurement.', arm: 'mint where i tapped, violet where the queue played. a picture of order, not a measurement.' };
-function ramp(t) { const x = max(0, min(1, t)) * 9, k = min(8, x | 0), f = x - k, a = RAMP[k], b = RAMP[k + 1]; return [0, 1, 2].map((j) => a[j] + (b[j] - a[j]) * f); }
 const VS = '#version 300 es\nin vec2 a;out vec2 v;void main(){v=a*.5+.5;gl_Position=vec4(a,0,1);}';
 const H = '#version 300 es\nprecision highp float;precision mediump sampler2D;in vec2 v;out vec4 o;uniform vec2 T;';
 const NB = (S) => ['-vec2(T.x,0)', '+vec2(T.x,0)', '-vec2(0,T.y)', '+vec2(0,T.y)'].map((d) => 'texture(' + S + ',v' + d + ')'), [L, R, B, A] = NB('V'), [cL, cR, cB, cA] = NB('C'), [dL, dR, dB, dA] = NB('D');
@@ -30,7 +31,7 @@ const FS = {
   'if(q.a>m.a)m=q;q=texture(D,c+vec2(0,T.y));if(q.a>m.a)m=q;q=texture(D,c-vec2(0,T.y));if(q.a>m.a)m=q;d+=(m-d)*bl*max(0.,m.a*kp-d.a);o=d*ds;}',
  /* chroma, sheen, a bright front, and a pale vein where two dyes meet (the crossing) */
  disp: H + 'uniform sampler2D D;uniform float I,g;vec3 h(vec4 c){return c.rgb/max(c.a,.002);}void main(){vec4 d=texture(D,v),l=' + dL + ',r=' + dR + ',b=' + dB + ',u=' + dA + ';' +
-  'float a=d.a;vec3 c=h(d);c=clamp(mix(vec3(dot(c,vec3(.3,.55,.15))),c,1.55),0.,1.);' +
+  'float a=d.a;vec3 c=h(d);c=clamp(mix(vec3(dot(c,vec3(.3,.55,.15))),c,' + LIFT + '),0.,1.);' +
   'float s=(length(h(l)-h(r))+length(h(b)-h(u)))*min(min(l.a,r.a),min(b.a,u.a));vec2 G=vec2(r.a-l.a,u.a-b.a);' +
   'float df=dot(normalize(vec3(-G*g,1)),vec3(-.42,.5,.76)),i=1.-exp(-a*2.4);' +
   'vec3 e=c*i*(.5+.62*df)+vec3(.9,.86,1)*(pow(max(df,0.),30.)*i*.22+smoothstep(.18,.75,s)*.5);e*=1.+.8*smoothstep(.03,.22,length(G))*(1.-a);' +
@@ -130,17 +131,21 @@ export function mount(ctx, api) {
   gl.drawArrays(gl.TRIANGLES, 0, 3);
  }
  const f1 = (o, nm, x) => gl.uniform1f(U(o, nm), x);
- const PAL = new Float32Array(48); let FAMN = FAM0, TOT = null;
+ /* PAL feeds the shader; INK is the colour as drawn (the pastel, dimmed), which the keys and inkHex show */
+ const PAL = new Float32Array(48), INK = new Float32Array(48); let FAMN = FAM0, TOT = null;
+ const tagged = (nm) => nm !== 'untagged' && !!ctx.FAM && Object.prototype.hasOwnProperty.call(ctx.FAM, nm);
  function palette(names) {
   FAMN = names;
   names.forEach((nm, f) => {
-   let c = POS[nm] != null ? ramp(POS[nm]) : SMOKE;
-   if (TOT && POS[nm] != null) { const k = .42 * (1 - min(1, 1.6 * sqrt(TOT[f] / max(...TOT)))); c = c.map((x) => x + (1 - x) * k); }
-   PAL.set(c, f * 3);
+   if (!tagged(nm)) { PAL.set(SMOKE, f * 3); INK.set(SMOKE, f * 3); return; }
+   /* a small family dims toward the ground, never toward white */
+   const h = ctx.famColor(nm) >>> 0, k = TOT ? .42 * (1 - min(1, 1.6 * sqrt(TOT[f] / max(...TOT)))) : 0;
+   const c = [16, 8, 0].map((s) => (((h >> s) & 255) / 255) * (1 - k)), l = .3 * c[0] + .55 * c[1] + .15 * c[2];
+   INK.set(c, f * 3); PAL.set(c.map((x) => l + (x - l) / LIFT), f * 3);
   });
-  PAL.set(COOL, 42); PAL.set(ROSE, 45);
+  PAL.set(COOL, 42); PAL.set(ROSE, 45); INK.set(COOL, 42); INK.set(ROSE, 45);
   /* R14 HUE: the universe reads a family's dye colour from here (its key, or its print); untagged has no dye hue (null) */
-  const AT0 = ctx.atlas; if (AT0) { AT0.inkHex = (nm) => { const f = FAMN.indexOf(nm); return f < 0 || POS[nm] == null ? null : (round(PAL[f * 3] * 255) << 16) | (round(PAL[f * 3 + 1] * 255) << 8) | round(PAL[f * 3 + 2] * 255); }; AT0.inkV = (AT0.inkV | 0) + 1; }
+  const AT0 = ctx.atlas; if (AT0) { AT0.inkHex = (nm) => { const f = FAMN.indexOf(nm); return f < 0 || !tagged(nm) ? null : (round(INK[f * 3] * 255) << 16) | (round(INK[f * 3 + 1] * 255) << 8) | round(INK[f * 3 + 2] * 255); }; AT0.inkV = (AT0.inkV | 0) + 1; }
  }
  palette(FAM0);
  /* families dealt as the globe deals them: famI by index (index = place in time), famT through the stride */
@@ -204,7 +209,7 @@ export function mount(ctx, api) {
  function key(show) {
   clearTimeout(keyHide);
   if (show) {
-   const rgb = (f) => 'rgb(' + [0, 1, 2].map((j) => round(PAL[f * 3 + j] * 255)).join(',') + ')', am = ST.mode === 'arm', was = keyEl.textContent;
+   const rgb = (f) => 'rgb(' + [0, 1, 2].map((j) => round(INK[f * 3 + j] * 255)).join(',') + ')', am = ST.mode === 'arm', was = keyEl.textContent;
    keyEl.innerHTML = (am ? [[14, 'i tapped'], [15, 'the queue']] : FAMN.map((nm, f) => [f, nm])).map(([f, nm]) => '<span><i style="background:' + rgb(f) + '"></i>' + nm + '</span>').join('') +
     '<em>hold to slow it · two fingers or i: ' + (am ? 'by family' : 'by hand') + '</em>';
    keyT = now();

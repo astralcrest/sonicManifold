@@ -36,7 +36,7 @@ const dI = new Uint8Array(N), lst = new Int32Array(N), st0 = new Int32Array(n + 
 const fade = () => pane.classList.toggle('gtf', pane.scrollTop + pane.clientHeight < pane.scrollHeight - 2); pane.addEventListener('scroll', fade);
 const view = () => {
 pane.textContent = '';
-if (sel < 0) { el('p', 'gtc', 'seventeen tests, each written down before it ran. tap a door for its rule and verdict.', pane); el('p', 'gtt', tally, pane); el('p', 'gtw', J.caption, pane); fade(); return; }
+if (sel < 0) { el('p', 'gtc', 'seventeen tests, each written down before it ran. pick a door for its rule and verdict.', pane); el('p', 'gtt', tally, pane); el('p', 'gtw', J.caption, pane); fade(); return; }
 const d = D[sel], L = lines(d); el('p', 'gth', 'door ' + pad2(d.i) + ' of ' + n + ' · ' + KIND[d.kind][0], pane);
 L.forEach((t, k) => el('p', k === 0 ? '' : k === L.length - 1 || t === power(d) ? 'gtw' : '', t, pane)); fade();
 };

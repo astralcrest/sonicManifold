@@ -519,7 +519,7 @@ function lookAt(k) {
 }
 function famIndex(name) {
   const s = String(name || '').toLowerCase().trim(); if (!s) return -1;
-  const L = S.R ? S.R.famOrder : FAM_FALLBACK;
+  const L = S.R && S.R.famOrder && S.R.famOrder.length ? S.R.famOrder : FAM_FALLBACK;
   let k = L.indexOf(s); if (k >= 0) return k;
   const norm = (x) => x.replace(/[^a-z]/g, '');
   const n = norm(s); k = L.findIndex((x) => norm(x) === n); if (k >= 0) return k;
@@ -2701,7 +2701,7 @@ export default {
   enter(ctx) {
     if (!ctx.atlas || !ctx.atlas.on || !S.dom) return;
     const Pp = ctx.particles, re = !!ctx.atlas.reenter;
-    ctx.atlas.printHex = (n) => { if (!S.active) return null; const f = famIndex(n); return f < 0 ? null : famHex(f); }; /* R14 HUE: the liner marks wear the print's colour */
+    ctx.atlas.printHex = (n) => { if (!S.active) return null; const f = famIndex(n); return f < 0 ? null : keyHex(famName(f)); }; /* R15 HUE_DYE: the liner marks follow the dye, one palette with the legend */
     S.stage = ctx.stage();
     if (!re) {
       S.active = true; S.entered = now(); S.frameMs.length = 0; S.angle = 'sky'; S.sel = null; S.chord = null; S.famHi = -1; S.hover = -1; S.placeholder = -1; S.dayLine = null; S.playing = false; S.sun = S.sunOld = null; sunClass(false);

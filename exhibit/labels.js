@@ -235,7 +235,7 @@ export const HINTS_ATLAS = {
   arrivals: "watch them arrive. type one of yours. · each landing ticks in its genre's note; space pauses the rain, drag scrubs it",
   loop: "hold to keep it looping. let go to step off. · space works too · press anywhere on the board · hover or tap a pedal to hear its count",
   wheel: "two shapes: runs started by hand, runs not. flip the ruler. · hover a bar: the note climbs with the run's length, by hand a triangle, not by hand a sine an octave lower · space plays both",
-  graveyard: "pick a finding and watch the null fall · on the gates: hover a door for its rule and verdict, arrow keys walk them · a slam is the lowest note, an open door rings higher, a brick is a muted tick",
+  graveyard: "pick a finding and watch the null fall · on the gates, hover a door or use the arrow keys",
   map: "drag the dial: the map moves, my plays do not · on the ghost: my curve sings on a triangle, the ghost a sine an octave under it, the headline one a held D.",
 };
 export const HINTS_TOUCH = {

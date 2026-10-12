@@ -1,4 +1,4 @@
-/* room 7: tap a claim. the field falls into a null histogram (amber: a null is chance), then my
+/* room 7: tap a claim. the field falls into a null histogram (ice: a null is chance, nothing known), then my
    real number drops in last as one ink mark. buried = killed, outside = survived.
    data: exhibit/data/killit.json.
    atlas (BUILD_SPEC_V2 §3): at rest a glyph cemetery, one grave per buried finding, each named by a label (two that
@@ -575,9 +575,10 @@ export default {
     if (this.atl && user) ctx.view.home({}); /* a card pressed while the camera sits on a grave: bring the whole pile into view */
     if (ctx.reduced) { this.state = 'settled'; this.settle(ctx); } else { this.state = 'running'; this.runStart = performance.now(); this.hudPct = -1; }
   },
-  /* a null is chance, so the pile is amber, pulled a quarter of the way to the background so the
-     whole pile never shouts louder than the one mark that decides it */
-  nullHue(ctx) { return mix(ctx.PAL.amber, ctx.PAL.bg, 0.25); },
+  /* a null is chance, nothing known, so the pile is ice (R15: it wore amber, which the code reserves for
+     shuffle), pulled a quarter of the way to the background so the whole pile never shouts louder than
+     the one mark that decides it */
+  nullHue(ctx) { return mix(ctx.PAL.ice, ctx.PAL.bg, 0.25); },
   markCard(i) { const bs = this.cd.querySelectorAll('button'); for (let k = 0; k < bs.length; k++) { bs[k].classList.toggle('on', k === i); if (this.drop && i >= 0) bs[k].classList.toggle('cur', k === i); } this.preRule(); },
   /* atlas: the foot's rule line is the rule of the claim on the picker line (the first until another runs), in its own
      words; a run hides it (.gv-more.ran), since the plate then prints the same rule under its verdict */
