@@ -522,6 +522,10 @@ if (chip) {
 }
 window.__needle = { running: function () { return !!run; }, path: function () { return run ? [run.P.Y, run.P.D, run.T, run.pk] : null; }, line: RUNLINE, key: RUNK };
 ['#enter', '#enter-quiet'].forEach(function (s) { var a = $(s); if (a) a.addEventListener('click', drop); });
+/* only the lab opts into cross-document view transitions (the exhibit does not, see exhibit.html); for any other
+   destination chrome creates the inbound transition anyway, aborts it there, and prints the rejection as a page error on
+   the new page. so the swap is skipped here for every destination but the lab, and the promises nothing needs are caught */
+['pageswap', 'pagereveal'].forEach(function (ev) { addEventListener(ev, function (e) { var t = e.viewTransition; if (!t) return; var to = (e.activation && e.activation.entry && e.activation.entry.url) || ''; if (ev === 'pageswap' && !/\/lab(\.html|\/)?(\?|#|$)/.test(to)) { try { t.skipTransition(); } catch (x) {} } [t.ready, t.updateCallbackDone, t.finished].forEach(function (p) { if (p && p.catch) p.catch(function () {}); }); }); });
 addEventListener('pageshow', function (e) { if (e.persisted) { busy = 0; ang = 0; plat.style.transform = ''; root.classList.remove('needle'); armOff = 0; armTh = -99; if (!reduce) start(); } });
 var rt = 0, FX = $('.fx');
 function hh() { if (FX) stage.style.setProperty('--hh', Math.max(0, FX.offsetTop - 4) + 'px'); }

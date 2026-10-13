@@ -856,7 +856,10 @@ export function mount(ctx, deps) {
   ctx.hud = hud;
 
   let lockLabel = null;
-  function lock(label) { lockLabel = label || null; renderCamChip(); }
+  /* ctx.lock lands below and replays a call queued before mount at once, while the deck's consts further down are still
+     in their TDZ; so the label waits for the first renderAll, which draws the chip anyway */
+  let deckUp = false;
+  function lock(label) { lockLabel = label || null; if (deckUp) renderCamChip(); }
   ctx.lock = lock;
 
   /* ---------------------------------------------------------------- the bottom line and the toast: where they sit
@@ -1793,7 +1796,7 @@ export function mount(ctx, deps) {
   });
   if (ctx.onFrame) ctx.onFrame(() => { pollView(); barTick(); });
 
-  renderAll(); renderTplus(); renderLine(); idleTick();
+  deckUp = true; renderAll(); renderTplus(); renderLine(); idleTick();
   /* the initial synchronous layoutInfo() can run before webfonts/late content have settled .wall's real height
      (a real race this caught: a zero-wait read straight after mount saw a stale, too-short wall rect), so the
      first couple of frames and the webfonts promise get a follow-up pass */
