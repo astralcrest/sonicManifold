@@ -16,7 +16,10 @@ const PLAN = [
   /* R5 INT2: the atlas duel reads whopressed2 through ctx.data; the rollback deck (whopressed.json) is never read in the atlas */
   ['data', 'whopressed2'],
   /* R5 PERF2: the stops whose mount is code-fetch bound on a phone (clock 556, graveyard 653, listeners 583 ms cold) */
-  ['mod', '../rooms/listeners.js'], ['mod', '../rooms/hundred.js'], ['mod', '../rooms/fade.js'], ['data', 'twolisteners'],
+  /* R17: hundred.js and fade.js left this list. they are not rooms: listeners.js imports both on its atlas mount, alongside
+     listeners.atlas.js, which was never warmed, so that mount waited on a cold fetch anyway. warming them cost every phone
+     ~40 KB and two "preloaded but not used" warnings in webkit on every load that never reached the listeners */
+  ['mod', '../rooms/listeners.js'], ['data', 'twolisteners'],
   /* R5 PERF2 pass 2: then the data those mounts wait on, in grand-tour order (~24 KB gz: arrivals 17, twolisteners 5, killit 1.4, clock 0.8) */
   ['data', 'arrivals'],
   ['mod', '../rooms/clock.js'], ['data', 'clock'], ['mod', '../rooms/graveyard.js'], ['mod', '../rooms/gates.js'], ['data', 'killit'],

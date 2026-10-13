@@ -31,7 +31,7 @@ html.atlas #atlas-dock #mute[aria-pressed="true"]{color:var(--mute)} /* CRIT6A: 
 @media (max-width:359px){html.atlas #atlas-dock .d-label{display:none}}
 /* M11: the transport (⏮ ▶/‖ ⏭ ♪ ⋯) and its "more" shelf, which floats over the field above the row (absolute: opening it
    never changes the dock's measured height). ice only, like every other chrome control */
-html.atlas #atlas-dock .d-more{position:absolute;left:0;right:0;bottom:100%;display:flex;border-top:1px solid var(--line);background:linear-gradient(0deg,rgba(6,2,16,.95),rgba(6,2,16,.86));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+html.atlas #atlas-dock .d-more{position:absolute;left:0;right:0;bottom:100%;display:flex;border-top:1px solid var(--line);background:linear-gradient(0deg,rgba(6,2,16,.97),rgba(6,2,16,.94));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 html.atlas #atlas-dock .d-more[hidden]{display:none}
 html.atlas #atlas-dock.d-open{z-index:8} /* the open shelf sits over the stepper row (#atlas-info, z 6-7) */
 html.atlas #atlas-dock .d-row>[data-a="play"] .d-ic{color:var(--ice)}

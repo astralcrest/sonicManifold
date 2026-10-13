@@ -1901,12 +1901,14 @@ export function mount(ctx, deps) {
     const el = coachEl; coachEl = null; if (!el) return;
     el.classList.remove('on'); el.classList.add('off'); setTimeout(() => el.remove(), reduced ? 0 : 420);
   }
-  function coachMaybe() {
+  function coachMaybe(waited) {
     if (KIOSK || coachEl || ssHas(COACH_KEY) || panelOpen() || html.classList.contains('ai-endcard-open')) return;
     const cur = curStop(); if (!cur || STARRY.indexOf(cur.id) < 0) return;
     /* the colour key (unfold.js .uf-ks, 6 s or the first input) goes first; the coach follows it, never on top of it */
-    if (doc.querySelector('.uf-ks')) { coachWait = setTimeout(coachMaybe, 400); return; }
+    if (doc.querySelector('.uf-ks')) { coachWait = setTimeout(() => coachMaybe(true), 400); return; }
     ssPut(COACH_KEY);
+    /* R17: the key left because of a tap (a label, a star): that tap was the coach's first input, so it never comes up over the field */
+    if (waited === true && now() - lastInput < 1200) return;
     const n = coachTotal(), lines = coarse ? T.coachTouch : T.coachDesk;
     const el = coachEl = doc.createElement('div'); el.id = 'atlas-coach'; el.className = 'ai-coach'; el.setAttribute('role', 'note');
     const k = doc.createElement('p'); k.className = 'ai-coach-k'; k.textContent = fillN(T.coachHead, { n }); el.appendChild(k);

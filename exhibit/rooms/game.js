@@ -560,8 +560,13 @@ export default {
   },
   dHud() {
     const D = this.D;
-    D.hud.textContent = 'STREAK ' + pad2(D.streak) + ' · ' + D.k + '/' + D.n + (D.n ? ' · A COIN DOES AT LEAST THIS WELL ' + this.dPct(coinTail(D.k, D.n)) + ' OF THE TIME' : ' · ' + (D.geo && D.geo.side ? 'DRAG THE CARD ← OR → TO ANSWER' : 'SWIPE THE CARD ↑ OR ↓ TO ANSWER')) + (D.tempo ? ' · TEMPO' : '');
+    D.hud.textContent = this.dHudText();
     if (this.ctx) this.dRefit(this.ctx);
+  },
+  /* a short stage (a phone on its side) drops the how-to tail: the two answer buttons already say it, and the full line wrapped onto the ladder chip */
+  dHudText() {
+    const D = this.D, low = this.wrap && this.wrap.classList.contains('gd-low');
+    return 'STREAK ' + pad2(D.streak) + ' · ' + D.k + '/' + D.n + (D.n ? ' · A COIN DOES AT LEAST THIS WELL ' + this.dPct(coinTail(D.k, D.n)) + ' OF THE TIME' : low ? '' : ' · ' + (D.geo && D.geo.side ? 'DRAG THE CARD ← OR → TO ANSWER' : 'SWIPE THE CARD ↑ OR ↓ TO ANSWER')) + (D.tempo ? ' · TEMPO' : '');
   },
   dPct(p) { return p >= 0.9995 ? '100%' : p < 0.001 ? 'UNDER 0.1%' : (p * 100).toFixed(1) + '%'; },
   async dEnd(ctx) {
@@ -601,7 +606,9 @@ export default {
     const dpr = Math.min(2, devicePixelRatio || 1), fx = D.fx; fx.width = Math.round(s.w * dpr); fx.height = Math.round(s.h * dpr); fx.style.width = s.w + 'px'; fx.style.height = s.h + 'px'; D.fxDpr = dpr;
     if (D.col.hidden) return; /* the result panel is up: the pair keeps its last places */
     const side = s.w >= 600 && s.w > s.h * 0.92, low = s.h < 430;
+    const wasLow = this.wrap.classList.contains('gd-low');
     this.wrap.classList.toggle('gd-side', side); this.wrap.classList.toggle('gd-low', low);
+    if (wasLow !== low) D.hud.textContent = this.dHudText();
     const gw = side ? Math.min(380, Math.max(250, s.w * 0.4)) : Math.min(380, s.w - 8);
     D.col.style.width = gw + 'px';
     const GF = ctx.atlas && ctx.atlas.GF, cc = (GF && GF.info && +GF.info().cellCss) || 6;
@@ -841,10 +848,11 @@ Q + '.gd-ebar{display:flex;justify-content:center}' +
 Q + '.gd-thumb{position:absolute;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;border:1.5px solid rgba(134,203,254,.85);background:rgba(134,203,254,.16);pointer-events:none;opacity:0;transition:opacity .2s}' +
 Q + '.gd-thumb.on{opacity:1}' +
 Q + '.gd-low .gd-kbd{display:none}' +
+Q + '.gd-low .gd-hud{max-width:calc(100% - 16px);padding:2px 8px;border-radius:4px;background:#0a0118eb;box-shadow:0 0 0 1px rgba(134,203,254,.22);text-shadow:none}' +
 Q + '.gd-low .gd-kick{margin-bottom:4px}' +
 Q + '.gd-low .gd-col{gap:6px}' +
 Q + '.gd-low .gd-card{padding:10px 12px 8px}' +
-'@media (pointer:coarse){' + Q + '.gd-row .gd-x{min-height:44px;padding:8px 14px}}' +
+'@media (pointer:coarse){' + Q + '.gd-row .gd-x{min-height:44px;padding:8px 14px}' + Q + '.gd-n{position:relative}' + Q + '.gd-n::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;margin-top:-22px}' + Q + ':not(.gd-low)>.gd-hud{border-radius:2px;background:#0a0118d9;box-shadow:0 0 0 4px #0a0118d9;text-shadow:none}}' +
 '@media (max-width:400px){' + Q + '.gd-hud{font-size:10px;letter-spacing:.05em}' + Q + '.gd-row .btn{min-width:0;flex:1 1 0}' + Q + '.gd-row{width:100%;flex-wrap:nowrap}}' +
 '@media (prefers-reduced-motion:reduce){' + Q + '.gd-card{transition:none}}' +
 '@media (forced-colors:active){' + Q + '.gd-card,' + Q + '.gd-end{border:1px solid CanvasText}' + Q + '.gd-ring rect{stroke:CanvasText}' + Q + '.gd-stamp{forced-color-adjust:none;background:Highlight;color:HighlightText}}').replace(/@G/g, 'section[data-room="game"]');

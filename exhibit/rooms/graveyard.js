@@ -131,6 +131,7 @@ const CSS_A = [
   S_ + '.gv-cards{flex:0 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}',
   S_ + '.gv-card{display:flex;align-items:center;min-height:44px;width:100%;padding:0 4px;border:0;border-radius:4px;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}',
   S_ + '.gv-card>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+  S_ + '.gv-cards:not(.open) .gv-card>span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4}',
   S_ + '.gv-card:hover>span{text-decoration:underline;text-decoration-color:var(--ice);text-underline-offset:3px}',
   S_ + '.gv-tag{color:var(--mute)}',
   S_ + '.gv-card:focus-visible,' + S_ + '.gv-drop:focus-visible,' + S_ + '.gv-again:focus-visible,' + S_ + '.gv-sixteen:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}',

@@ -464,6 +464,10 @@ export function mount(ctx, deps) {
     if (n.lock !== lock) { n.lock = lock; n.el.classList.toggle('lock', lock); }
     n.rect = rect;
     n.el.style.transform = 'translate3d(' + Math.round(rect.left) + 'px,' + Math.round(rect.top) + 'px,0)';
+    /* the plays line under a name (::before, 10px mono, ~6.4 px a character) is wider than a short name: near the right edge it
+       shifts left to stay on screen (393 and 360 clipped "781 plays · first 2022-0…") */
+    { const m = n.el.dataset.meta, mx = m ? Math.min(0, Math.max(8 - rect.left, innerWidth - 8 - rect.left - m.length * 6.4 - 16)) : 0, v = mx ? Math.round(mx) + 'px' : '';
+      if (n.mx !== v) { n.mx = v; if (v) n.el.style.setProperty('--mx', v); else n.el.style.removeProperty('--mx'); } }
     if (!n.on) { n.on = true; n.el.style.transition = ''; requestAnimationFrame(() => { if (n.on) n.el.classList.add('on'); }); }
     return n;
   }

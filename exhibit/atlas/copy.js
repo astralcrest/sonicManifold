@@ -94,7 +94,11 @@ export const COPY = {
       head: 'how to play this record',
       how: 'drag turns it and the wheel or two fingers zoom. tap a name and you are there. the tour plays itself; press space and it is yours, press it again and it carries on.',
       keys: '/ dig · space pause · arrows or [ ] step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l names · m sound · e how to read this stop · ? this',
+      // R17: a phone has no keyboard; the same two slots in taps (panels.js picks these when the pointer is coarse)
+      howTouch: 'drag to turn, pinch to zoom, tap a name to go there. a touch pauses the tour; ▶ resumes.',
+      keysTouch: 'play pauses · prev, next step · ‹ › angles · read ⌃ explains the stop · more has the rest',
     },
+    knobs: { note: 'v, y and g turn detail, crossfade and glow from the keyboard.', noteTouch: 'tap a mark on a dial to set it, or drag it round. one tap flips a switch.' },
     accuracy: [
       'in a categorical room, the shape of a character says who pressed play; color is not needed to read it.',
       'on a small screen one dot stands for four plays, not one.',

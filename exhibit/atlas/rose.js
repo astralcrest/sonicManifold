@@ -167,7 +167,7 @@ export function createRose(ctx, d) {
       gx.drawImage(R.L, x0, y0, D, D);
       if (R.hover >= 0 && R.paths[R.hover]) { gx.save(); gx.translate(geo.cx, geo.cy); gx.clip(R.paths[R.hover]); gx.globalAlpha = 0.85; gx.drawImage(R.Lt, -half, -half, D, D); gx.restore(); }
       /* the window's colours thrown past it, on the far side from the light, and a bloom over the lit glass */
-      gx.globalCompositeOperation = 'lighter';
+      gx.globalCompositeOperation = 'screen'; /* R17: additive doubled the amber panes into yellow by day */
       /* the glass streams outward: the lit, blurred window drawn bigger and fainter five times (a radial blur), each
          step pushed a little away from the light, so the colours fan out into the room on the far side */
       const ux = -Math.cos(S[2]) * r.Rw, uy = -Math.sin(S[2]) * r.Rw, nS = calm ? 2 : 5;

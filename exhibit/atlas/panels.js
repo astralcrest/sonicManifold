@@ -299,11 +299,11 @@ export function mount(ctx, deps) {
     if (o[j] !== get(key)) { set(key, o[j]); refreshSettingsUI(); }
   }
   function buildSettingsBody() {
-    const body = $('[data-body]', setDlg);
+    const body = $('[data-body]', setDlg), KN = deps && deps.COPY && deps.COPY.help && deps.COPY.help.knobs;
     body.innerHTML = '<div class="k-dials">' + dialHtml('detail') + dialHtml('travel') + dialHtml('dwell') + '</div>' +
       '<div class="k-switches">' + SWITCHES.map((s) => switchHtml(s[0], s[1])).join('') + '</div>' +
       '<div class="k-print"><div class="k-print-dial">' + dialHtml('textSize', true) + '</div><div class="k-print-sw">' + SMALL.map((s) => switchHtml(s[0], s[1], true)).join('') + (coarse ? pinchHtml() : '') + '</div></div>' +
-      '<p class="a-help-note">v, y and g turn detail, crossfade and glow from the keyboard.</p>';
+      '<p class="a-help-note">' + esc((KN && (coarse ? KN.noteTouch : KN.note)) || 'v, y and g turn detail, crossfade and glow from the keyboard.') + '</p>';
     body.addEventListener('click', (e) => {
       const b = e.target.closest('[data-k]'); if (!b) return;
       const k = b.dataset.k;
@@ -366,8 +366,8 @@ export function mount(ctx, deps) {
   (function buildHelp() {
     const body = $('[data-body]', helpDlg), H = (deps && deps.COPY && deps.COPY.help && deps.COPY.help.back) || {};
     let html = '<p class="a-back-h">' + esc(H.head || 'how to play this record') + '</p>' +
-      '<p class="a-back-p">' + esc(H.how || 'drag turns it and the wheel or two fingers zoom. tap a name and you are there. the tour plays itself; press space and it is yours, press it again and it carries on.') + '</p>' +
-      '<p class="a-back-k">' + esc(H.keys || '/ dig · space pause · arrows or [ ] step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l names · m sound · e how to read this stop · ? this') + '</p>';
+      '<p class="a-back-p">' + esc((coarse && H.howTouch) || H.how || 'drag turns it and the wheel or two fingers zoom. tap a name and you are there. the tour plays itself; press space and it is yours, press it again and it carries on.') + '</p>' +
+      '<p class="a-back-k">' + esc((coarse && H.keysTouch) || H.keys || '/ dig · space pause · arrows or [ ] step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l names · m sound · e how to read this stop · ? this') + '</p>';
     html += '<p class="a-help-note">the shape of a glyph says who pressed play in every categorical room, not just color, and the color code still means what it always meant.' +
       (lowPower ? ' on this screen one dot is four plays.' : '') +
       ' the clock and the universe day view read on one fixed clock all year, not a real local time. the marks after a name, ▮ to ▮▮▮▮▮, are its plays in five steps among the starred artists, in its genre color; they say nothing about who pressed play. positions in the universe carry no meaning as distance or direction on their own. shimmer is decoration everywhere and carries no data.' +
@@ -453,7 +453,15 @@ export function mount(ctx, deps) {
     '</div>';
   document.body.appendChild(dock);
   const moreEl = $('#atlas-dock-more', dock), moreBtn = $('[data-a="more"]', dock), playBtn = $('[data-a="play"]', dock);
-  function setMore(on) { moreEl.hidden = !on; moreBtn.setAttribute('aria-expanded', String(on)); moreBtn.classList.toggle('on', on); dock.classList.toggle('d-open', on); }
+  function setMore(on) { moreEl.hidden = !on; moreBtn.setAttribute('aria-expanded', String(on)); moreBtn.classList.toggle('on', on); dock.classList.toggle('d-open', on); liftCap(on); }
+  /* R17: the shelf covered the caption's last line on a phone: while it is open the caption box steps up just clear of it */
+  function liftCap(on) {
+    const info = document.getElementById('atlas-info'); if (!info) return;
+    info.style.translate = '';
+    const cap = on && info.querySelector('.ai-caption'), c = cap && cap.getBoundingClientRect(), m = on && moreEl.getBoundingClientRect();
+    const d = c && c.height && m.height ? Math.ceil(c.bottom + 6 - m.top) : 0;
+    if (d > 0) info.style.translate = '0 ' + -d + 'px';
+  }
   document.addEventListener('pointerdown', (e) => { if (!moreEl.hidden && !dock.contains(e.target)) setMore(false); }, { capture: true, passive: true });
   dock.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !moreEl.hidden) { e.stopPropagation(); setMore(false); try { moreBtn.focus(); } catch (x) {} } });
   /* the play key says what a press will do: ▶ play, ‖ pause */

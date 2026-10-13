@@ -120,7 +120,7 @@ details.pt>p{margin-top:.1rem}
 .pipe .pk{color:#8b9099}
 .seecap{font:italic .88rem/1.5 var(--serif);color:var(--text-dim);max-width:60ch;margin:0 0 2.6rem 8px}
 .seecap b{font:600 .64rem/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;font-style:normal;color:var(--accent);margin-right:.6rem}
-.method-cmp{--bg-raised:#15181c;--text-dim:#9a9fa8;--text-faint:#8b9099;--accent:#c4a06a;color-scheme:dark}
+.method-cmp{--bg-raised:#15181c;--text-dim:#9a9fa8;--text-faint:#8b9099;color-scheme:dark}
 .method-cmp table th,.method-cmp table td{color:inherit}
 .method-cmp tbody td{color:#a8abb2}
 
@@ -162,7 +162,7 @@ details.pt>p{margin-top:.1rem}
 .xp .out em{font-style:normal;color:var(--text-dim)}
 .xp .grp{display:flex;flex-wrap:wrap;gap:.4rem;margin:.2rem 0 .6rem;align-items:center}
 .xp .grp>span{font:600 .62rem/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint);flex:0 0 100%}
-.xp button{font:600 .78rem/1.1 var(--sans);color:var(--text);background:transparent;border:1px solid var(--border);border-radius:99px;padding:.7rem .9rem;min-height:44px;cursor:pointer}
+.xp button{font:600 .78rem/1.1 var(--sans);color:var(--text);background:transparent;border:1px solid var(--chip-line,var(--border));border-radius:99px;padding:.7rem .9rem;min-height:44px;cursor:pointer}
 .xp button[aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
 .xp .band{transition:x .35s,width .35s,fill .25s}
 @media (prefers-reduced-motion:reduce){.xp .band,.xp .dot{transition:none}}
@@ -174,7 +174,7 @@ details.pt>p{margin-top:.1rem}
 
 /* colours the inline sheet hard-codes */
 @media (prefers-color-scheme:light){
-  .disp-survived{color:#14573f;border-color:#6aa890}.disp-caveated{color:#6b4d1a;border-color:#b39a68}.disp-killed{color:#6a2a3e;border-color:#c98aa1}
+  .disp-survived{color:#14573f;border-color:#6aa890}.disp-caveated{color:#6b4d1a;border-color:#8a6a2e}.disp-killed{color:#6a2a3e;border-color:#b05a7a}
   .head-links a,.claim-card .jump a{text-decoration-color:color-mix(in srgb,var(--accent) 50%,transparent)}
   ::selection{background:rgba(122,90,34,.22)}
   .claim-card .cv em{color:var(--text)}
@@ -204,7 +204,7 @@ details.pt>p{margin-top:.1rem}
 .ninety .bh{font-variant-numeric:lining-nums}
 .gk{display:block;margin-top:.3rem;font:600 .6rem/1.2 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint)}
 .g-dnf .stamp{border-style:dashed;box-shadow:none}
-.wtag{font:700 .6rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border);padding:.12rem .3rem;margin-left:.2rem;text-decoration:line-through;white-space:nowrap}
+.wtag{font:700 .6rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--chip-line,var(--border));padding:.12rem .3rem;margin-left:.2rem;text-decoration:line-through;white-space:nowrap}
 .xp .axl2{display:flex;justify-content:space-between;font:.72rem var(--sans);color:var(--text-faint);margin:-.3rem 0 .6rem;max-width:none}
 .xp .grp input[type=range]{flex:1 1 12rem;max-width:18rem}
 .ninety .beat:last-child{margin-bottom:0}
@@ -223,7 +223,7 @@ figure.rec figcaption{font:italic .84rem/1.45 var(--disp);color:var(--text-dim);
 figure.rec .key{font:500 .66rem/1.5 var(--sans);letter-spacing:.04em;color:var(--text-faint);margin:0;display:flex;flex-wrap:wrap;gap:.1rem .9rem;max-width:none}
 figure.rec .key i{font-style:normal;white-space:nowrap}
 figure.rec .key i::before{content:"";display:inline-block;width:.62em;height:.62em;border-radius:50%;margin-right:.4em;background:var(--c)}
-figure.rec .key .t{--c:#21f6bc}figure.rec .key .s{--c:#f5a623}figure.rec .key .q{--c:#8b6fd6}
+figure.rec .key .t{--c:var(--key-t,#21f6bc)}figure.rec .key .s{--c:var(--key-s,#f5a623)}figure.rec .key .q{--c:var(--key-q,#8b6fd6)}
 @media (min-width:1400px){figure.rec{margin-right:-3.5rem;width:calc(100% + 3.5rem)}}
 @media (max-width:760px){
   .hero{grid-template-columns:1fr;gap:1.3rem}
@@ -237,7 +237,7 @@ figure.rec .key .t{--c:#21f6bc}figure.rec .key .s{--c:#f5a623}figure.rec .key .q
   .head-links{margin-top:0}
 }
 .head-links{display:flex;flex-wrap:wrap;gap:.2rem .1rem;align-items:center}
-button.readall{font:600 .66rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--text);background:none;border:1px solid var(--border);border-radius:2px;padding:.55rem .8rem;min-height:44px;cursor:pointer;margin-left:.6rem}
+button.readall{font:600 .66rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--text);background:none;border:1px solid var(--chip-line,var(--border));border-radius:2px;padding:.55rem .8rem;min-height:44px;cursor:pointer;margin-left:.6rem}
 button.readall:hover{border-color:var(--accent);color:var(--accent)}
 button.readall[aria-pressed=true]{background:var(--wash)}
 .toc li.all{display:flex;align-items:center;margin-left:.4rem}
@@ -248,7 +248,7 @@ button.readall[aria-pressed=true]{background:var(--wash)}
 @media (min-width:1400px){.toc li.all{margin:.8rem 0 0 .9rem}.toc li.all .readall{width:100%}}
 @media (max-width:1399px){.toc ol{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 1rem,#000 calc(100% - 2rem),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 1rem,#000 calc(100% - 2rem),transparent 100%)}}
 .ninety .big{font-family:var(--disp);font-style:italic;font-weight:500;font-size:clamp(1.35rem,2vw + .9rem,2.05rem);line-height:1.22;letter-spacing:-.012em;max-width:26em;position:relative}
-.ninety .big::before{content:"\201C";position:absolute;left:-.62em;top:-.05em;font-size:1.6em;line-height:1;color:var(--text-faint);opacity:.55}
+.ninety .big::before{content:"\201C";position:absolute;left:-.62em;top:-.05em;font-size:1.6em;line-height:1;color:var(--text-faint);opacity:var(--quote-o,.55)}
 @media (max-width:560px){.ninety .big::before{display:none}}
 .ninety .big num{font-style:normal}
 .pipe .pk,figcaption{text-transform:lowercase}
@@ -261,9 +261,9 @@ button.readall[aria-pressed=true]{background:var(--wash)}
 /* R13 coherence: the house code. numbers in ink, the interface in ice, one rose, the three hands, a night tint for the condition band */
 @media screen{:root{--accent:#86cbfe;--mono-num:var(--text);--rose:#ff6e9c;--kill:#ff6e9c;--held:var(--text);--brick:var(--text-faint);--dnf:var(--text-faint);--ht:#21f6bc;--hs:#f5a623;--hq:#8b6fd6;--nv:#4a3a86;--sl-fog:#a6a69f;--sl-on:#86cbfe;--sl-line:var(--border)}}
 @media screen and (prefers-color-scheme:dark){:root{--bg:#0f0c18;--bg-raised:#17131f;--border:#2d2839;--wash:#18141f}}
-@media screen and (prefers-color-scheme:light){:root{--accent:#1f5f86;--rose:#b02a58;--kill:#b02a58;--ht:#0a7d5f;--hs:#9a5c00;--hq:#5b41ad;--nv:#d3c8ee;--sl-fog:#5c5446;--sl-on:#1f5f86}}
+@media screen and (prefers-color-scheme:light){:root{--accent:#1f5f86;--rose:#b02a58;--kill:#b02a58;--ht:#0a7d5f;--hs:#9a5c00;--hq:#5b41ad;--nv:#7562bb;--sl-fog:#5c5446;--sl-on:#1f5f86}}
 .g-held .stamp{background:none}
-.xp .dot{fill:var(--hq)}.xp .dot.t{fill:var(--ht)}.xp .dot.s{fill:var(--hs)}.xp .dot.n{fill:var(--border)}
+.xp .dot{fill:var(--hq)}.xp .dot.t{fill:var(--ht)}.xp .dot.s{fill:var(--hs)}.xp .dot.n{fill:var(--mark-n,var(--border))}
 .xp .band.up{fill:var(--nv)}.xp .band.br{fill:var(--text-faint);opacity:.45}
 .pipe .pp-n,.pipe .pp-big{fill:#ecebf2}.pipe .pp-k{fill:#86cbfe}
 p.kill,.claim-card p.kill{font:italic 600 1.08rem/1.35 var(--disp);color:var(--text);letter-spacing:-.005em}
@@ -297,3 +297,11 @@ html:not(.js) figure.rec canvas{background:radial-gradient(circle,#0a0118 0 29%,
   .method-cmp{--bg-raised:#efe8da;--text-dim:#4a4337;--text-faint:#5c5446;--accent:#1f5f86;color-scheme:light}
   .method-cmp tbody td{color:#3a342b}
 }
+/* R17: the tool table wears no gold (amber is shuffle's alone) and no fade: its header takes the h2 ink, the swipe cue the faint ink, in both modes */
+:root{--mc-th:var(--text);--mc-swipe:var(--text-faint);--mc-mask:none}
+/* R17 light: the paper's own inks for the parts that hard-code night colors. every token below falls back to the dark value */
+@media screen and (prefers-color-scheme:light){:root{
+  --mc-head:var(--text);--mc-name:var(--text);
+  --key-t:#0a7d5f;--key-s:#9a5c00;--key-q:#5b41ad;
+  --chip-line:#7d7262;--mark-n:#857a69;--quote-o:.85}}
+@media print{:root{--mc-head:#111;--mc-name:#111;--mc-th:#333;--mc-swipe:#444;--mc-mask:none}}

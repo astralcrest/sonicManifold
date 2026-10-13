@@ -115,7 +115,7 @@ export default function platter(room, ctx) {
     rg.addColorStop(0, 'rgba(255,255,255,.9)'); rg.addColorStop(0.3, 'rgba(134,203,254,.35)'); rg.addColorStop(1, 'rgba(134,203,254,0)');
     g.fillStyle = rg; g.fillRect(sx - R * 0.09, sy - R * 0.09, R * 0.18, R * 0.18);
     g.globalCompositeOperation = 'source-over';
-    arm(g, cx + R * PD * Math.cos(PA), cy + R * kk * PD * Math.sin(PA), sx, sy, R, lw, 0.9);
+    { const nv = document.getElementById('needle-veil'); if (!nv || nv.classList.contains('is-off')) arm(g, cx + R * PD * Math.cos(PA), cy + R * kk * PD * Math.sin(PA), sx, sy, R, lw, 0.9); } /* R17: one tonearm while ?enter=sound's veil is up */
     g.restore();
     st.ms = performance.now() - t0;
   }

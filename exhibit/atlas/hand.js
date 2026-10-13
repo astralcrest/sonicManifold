@@ -106,5 +106,5 @@ addEventListener('pointerup', onUp, { capture: true, passive: true });
 addEventListener('pointercancel', onUp, { capture: true, passive: true });
 
 /* the loader hands over the press that woke it, which came before this module existed */
-export function first(e) { if (e && e.target && e.target.id === 'atlas-stage') press(e); }
+export function first(e, up) { if (e && e.target && e.target.id === 'atlas-stage') { press(e); if (up) onUp(up); } }
 export function stats() { return { ...S, subscribed: !!unF, down: down.size, canvas: !!cv, reduced: RM.matches }; }
