@@ -373,6 +373,8 @@ export function mount(ctx, deps) {
     let html = '<p class="a-back-h">' + esc(H.head || 'how to play this record') + '</p>' +
       '<p class="a-back-p">' + esc((coarse && H.howTouch) || H.how || 'drag turns it, the wheel zooms, a click on a name takes you there. the tour plays itself. space pauses it; it also waits while this is open.') + '</p>' +
       '<p class="a-back-p a-back-hear">' + esc((coarse && H.hearTouch) || H.hear || 'to hear an artist, rest on a name. it asks once; nothing loads from spotify until you say yes.') + '</p>' +
+      /* R18 wave 3 (V8): the click note and the idle rings only run for a fine pointer without reduced motion; the line follows them */
+      ((!coarse && H.play && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) ? '<p class="a-back-p a-back-play">' + esc(H.play) + '</p>' : '') +
       '<p class="a-back-k">' + esc((coarse && H.keysTouch) || H.keys || '/ dig · space or p pause · arrows, [ ] or j k step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l the wall label · m sound · e how to read this stop · ? this') + '</p>' + keyHTML();
     html += '<p class="a-help-note">where plays sort by who started them, shape says it too: ° tap, × shuffle, ≡ queue.' +
       ((P && P.perDot > 1) ? ' on this screen one dot is three plays.' : '') +

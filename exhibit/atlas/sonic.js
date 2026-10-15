@@ -54,7 +54,7 @@ export function install(A, ctx) {
   /* one note. at = seconds from now. o.vol scales the level, o.soft is a repeat (quieter), o.dur overrides the length */
   S.play = (deg, kind, at, o = {}) => {
     if (S.why()) return null;
-    graph();
+    graph(); if (A.sounded) A.sounded(); /* R18 V8: the field's own idle play yields to a voice */
     const ac = A.ac, t = slot(ac.currentTime + Math.max(0, at || 0) + 0.005), semi = S.semi(deg), fr = D4 * Math.pow(2, semi / 12);
     const osc = ac.createOscillator(), lp = ac.createBiquadFilter(), g = ac.createGain(), G = g.gain, F = lp.frequency;
     const k = kind === 'q' || kind === 'b' ? kind : 's', d = o.dur || (k === 's' ? 1.1 : k === 'q' ? 1.5 : 1.4);

@@ -104,6 +104,8 @@ export const COPY = {
       how: 'drag turns it, the wheel zooms, a click on a name takes you there. the tour plays itself. space pauses it; it also waits while this is open.',
       // R18 INTUIT: help never said how to hear a song (FRESH_EYES #3). the posts' gesture and their ask-once rule, in one line
       hear: 'to hear an artist, rest the pointer on a name. it asks once; nothing loads from spotify until you say yes.',
+      // R18 wave 3 (V8): the field answers a click in the dark and plays itself when left alone. desk only, said once here
+      play: 'click the dark for a note. leave the field alone and it plays on its own.',
       keys: '/ dig · space or p pause · arrows, [ ] or j k step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l the wall label · m sound · e how to read this stop · ? this',
       // R17: a phone has no keyboard; the same two slots in taps (panels.js picks these when the pointer is coarse)
       howTouch: 'drag to turn, pinch to zoom, tap a name to go there. a touch pauses the tour; ▶ resumes.',

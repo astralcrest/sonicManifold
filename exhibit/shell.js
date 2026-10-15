@@ -219,12 +219,91 @@ if (ATLAS && !NOGLYPH) {
   document.head.appendChild(st); const nb = document.createElement('div'); nb.id = 'neb'; nb.setAttribute('aria-hidden', 'true'); (glow || field).after(nb);
 }
 /* pointer: dots part around it, a press leaves a ripple */
-const PT = { x: -999, y: -999, on: false, ripples: [] };
+const PT = { x: -999, y: -999, on: false, ripples: [], v8: -1e9 };
 addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' || PT.down) { PT.x = e.clientX; PT.y = e.clientY; PT.on = true; PT.last = performance.now(); } }, { passive: true });
 addEventListener('pointerdown', (e) => { PT.down = true; PT.x = e.clientX; PT.y = e.clientY; PT.on = true; PT.last = performance.now(); if (ATLAS) { PT.dx = e.clientX; PT.dy = e.clientY; PT.dt = PT.last; } else if (!reduced && PT.ripples.length < 6) PT.ripples.push({ x: e.clientX, y: e.clientY, t: performance.now() }); }, { passive: true });
-/* atlas: a ripple marks a tap or a hold (the pointer stayed within 6 px), never a drag */
-const ptOff = (e) => { if (ATLAS && PT.down && e && e.type === 'pointerup' && !reduced && PT.ripples.length < 6 && !(GEST && GEST.dragging) && Math.abs(e.clientX - PT.dx) < 6 && Math.abs(e.clientY - PT.dy) < 6) PT.ripples.push({ x: PT.dx, y: PT.dy, t: performance.now() }); PT.down = false; if (!e || e.pointerType !== 'mouse') PT.on = false; };
+/* atlas: a ripple marks a tap or a hold (the pointer stayed within 6 px), never a drag, nor a click V8 already answered */
+const ptOff = (e) => { if (ATLAS && PT.down && e && e.type === 'pointerup' && !reduced && performance.now() - PT.v8 > 100 && PT.ripples.length < 6 && !(GEST && GEST.dragging) && Math.abs(e.clientX - PT.dx) < 6 && Math.abs(e.clientY - PT.dy) < 6) PT.ripples.push({ x: PT.dx, y: PT.dy, t: performance.now() }); PT.down = false; if (!e || e.pointerType !== 'mouse') PT.on = false; };
 addEventListener('pointerup', ptOff, { passive: true }); addEventListener('pointercancel', ptOff, { passive: true }); document.addEventListener('mouseleave', () => { PT.on = false; });
+/* R18 V8 · THE FIELD PLAYS ITSELF (desktop: a fine pointer only). a click on empty field (no dot in the 3 x 3 cells around it,
+   not the ui, no flight started by it) sends out a mint ring, 0 to 60 px over 1.6 s, and one soft note (-24 dBFS) in the
+   bed's key, higher the higher the click. after 20 s with no input while the bed plays (the tour paused or over), a violet
+   ring rises from a served dot on a bar line of the bed, 2 to 4 s apart, with a quieter note (-30 dBFS), until the first
+   input. no note while a clip plays or the sound is muted (the rings still draw); none of it under reduced motion, on a
+   touch screen or at ?atlas=0 */
+const V8 = { on: ATLAS && !reduced && !coarse && matchMedia('(pointer: fine)').matches, idle: 20000, act: performance.now(), next: 0, clicks: 0, idles: 0, notes: 0 };
+if (V8.on) ['pointermove', 'pointerdown', 'wheel', 'keydown'].forEach((ty) => addEventListener(ty, () => { V8.act = performance.now(); }, { capture: true, passive: true }));
+function bedPlaying() { if (!A.on || A.cur < 0 || A.clipState === 'hot') return false; const el = A.els[A.cur]; return !!el && !el.paused; }
+function v8Note(y, at, vol) {
+  if (!A.ac || !A.on || A.muted || A.clipState === 'hot') return null;
+  V8.notes++; return A.note(Math.round((1 - clamp(y / (H || 1), 0, 1)) * 7), { vol, dur: 1.6, at }) || null;
+}
+/* a dot under the click: last frame's glyph cells (the 3 x 3 around it), else the frame buffer within 6 px */
+function v8Busy(sx, sy) {
+  const b = !NOGLYPH && !GF.stub && SKIN !== 'light' ? GF.buffers() : null;
+  if (b && b.cols) {
+    const cx = Math.floor((sx * DPR - b.gx0) * b.invCw), cy = Math.floor((sy * DPR - b.gy0) * b.invCh);
+    for (let y = cy - 1; y <= cy + 1; y++) for (let x = cx - 1; x <= cx + 1; x++) if (x >= 0 && y >= 0 && x < b.cols && y < b.rows && b.nIn[y * b.cols + x] > 0) return true;
+    return false;
+  }
+  const r = Math.round(6 * DPR), px = Math.round(sx * DPR), py = Math.round(sy * DPR);
+  for (let y = Math.max(0, py - r); y <= Math.min(PH - 1, py + r); y++) for (let x = Math.max(0, px - r); x <= Math.min(PW - 1, px + r); x++) if (buf32[y * PW + x] !== BG) return true;
+  return false;
+}
+/* from the stage's tap (bindStage), after the room's own tap did nothing: a categorical stop's empty cell is data, so not there */
+function v8Click(p, f0) {
+  if (!V8.on || !p || !p.e || (p.e.pointerType !== 'mouse' && p.e.pointerType !== 'pen') || GCFG.mode === 'cat') return;
+  let f1 = null; try { f1 = VIEW.flight; } catch (e) {}
+  if ((f1 && (!f0 || f1.u < f0.u)) || v8Busy(p.sx, p.sy)) return; /* the click hit something: a dot, or a target that flew */
+  const t = performance.now(); PT.v8 = t; V8.clicks++;
+  if (PT.ripples.length < 6) PT.ripples.push({ x: p.sx, y: p.sy, t, k: 1, i: -1, o: null });
+  v8Note(p.sy, 0, 0.063);
+}
+/* the first bar line of the bed at least `from` ms from now (a free 0-2 s later without a bed grid) */
+function v8Line(from) {
+  const g = deckGrid(), now = performance.now(); if (!g) return now + from + Math.random() * 2000;
+  let p = g.pos + (from / 1000) * g.rate; if (g.dur > 0) p %= g.dur;
+  return now + from + (1000 * barMath(p, g.b0, g.bpm, g.dur).toBar) / g.rate;
+}
+function v8Pick() {
+  const F = FL, PR = P.prov;
+  for (let q = 0; q < 64; q++) {
+    const i = (Math.random() * N) | 0;
+    if (PR[i] !== 2 || P.tx[i] < -40 || P.w[i] === 0 || (F.lift && SFR[i] >= F.PA[2])) continue;
+    let x = P.x[i], y = P.y[i]; if (F.pan) { x = x * F.ma + F.me; y = y * F.ma + F.mf; }
+    if (x > 24 && y > 24 && x < W - 24 && y < H - 24) return i;
+  }
+  return -1;
+}
+/* input (or the tour, a clip, a paused bed): the ring waiting for its bar line goes, and so does its note */
+function v8Stop(now) {
+  V8.next = 0;
+  for (let k = PT.ripples.length - 1; k >= 0; k--) { const rp = PT.ripples[k]; if (rp.k === 2 && rp.t > now) { if (rp.o) { try { rp.o.stop(); } catch (e) {} } PT.ripples.splice(k, 1); } }
+}
+function v8Idle() {
+  const now = performance.now();
+  let tour = false; try { tour = !!(ctx.tour.active && ctx.tour.active.playing); } catch (e) {}
+  if (now - V8.act < V8.idle || tour || REC.on || ATL.gov.tier >= 4 || GCFG.mode === 'cat' || !bedPlaying()) { if (V8.next) v8Stop(now); return; }
+  if (!V8.next) V8.next = v8Line(0);
+  if (now < V8.next - 150) return;
+  const at = V8.next; V8.next = v8Line(Math.max(0, at - now) + 2000);
+  const i = v8Pick(); if (i < 0) return;
+  V8.idles++;
+  const rp = { x: 0, y: 0, t: at, k: 2, i, o: null }; PT.ripples.push(rp);
+  let y = P.y[i]; if (FL.pan) y = y * FL.ma + FL.mf;
+  rp.o = v8Note(y, Math.max(0, at - now) / 1000, 0.0316);
+}
+/* a V8 ring: k 1 the click's (mint, where it was), k 2 the idle one (violet, riding its dot); 0 to 60 px over 1.6 s */
+function v8Ring(rp, k) {
+  const a = (performance.now() - rp.t) / 1600;
+  if (a >= 1) { PT.ripples.splice(k, 1); return; }
+  if (a < 0) return;
+  let x = rp.x, y = rp.y;
+  if (rp.i >= 0) { x = P.x[rp.i]; y = P.y[rp.i]; if (FL.pan) { x = x * FL.ma + FL.me; y = y * FL.ma + FL.mf; } }
+  const f = (1 - a) * (1 - a), e = 1 - f * (1 - a);
+  og.strokeStyle = rp.k === 1 ? 'rgba(33,246,188,' + (0.75 * f).toFixed(3) + ')' : 'rgba(139,111,214,' + (0.8 * f).toFixed(3) + ')';
+  og.lineWidth = 1.5; og.beginPath(); og.arc(x, y, 1 + e * 59, 0, 6.283); og.stroke();
+}
 const og = over.getContext('2d');
 let W = 0, H = 0, PW = 0, PH = 0, DPR = 1, ODPR = 1, img = null, buf32 = null, FU8 = null;
 const BG = 0xff18010a; /* #0a0118 as little-endian ABGR */
@@ -803,7 +882,8 @@ function warmField(b) {
    {low, mid, high} stands in for the audio; .burn = ms of busy work inside the timed block */
 const FL_MS = new Float32Array(120);
 const FLS = { on: ATLAS && !NOGLYPH && !reduced, reason: !ATLAS ? 'atlas=0' : NOGLYPH ? 'glyph=0' : reduced ? 'reduced motion' : '',
-  live: false, gain: 1, hook: false, bands: null, burn: 0, n: 0, p95: 0, mean: 0, twinkles: 0, seeded: false, nl: 0, lm: 0, ld: 0, hm: 0, hd: 0, twT: -1e9, twEl: null, labs: null, k: 0 };
+  live: false, gain: 1, hook: false, bands: null, burn: 0, n: 0, p95: 0, mean: 0, twinkles: 0, seeded: false, nl: 0, lm: 0, ld: 0, hm: 0, hd: 0, twT: -1e9, twEl: null, labs: null, k: 0,
+  mm: 0, md: 0, ms: 0, pend: false, up: new Uint8Array(3), oT: new Float64Array(3).fill(-1e9), onsets: new Uint32Array(3), fl: null }; /* R18 V5: the mid band's stats, onsets per band, the flares (FLR) */
 let flFC = false;
 if (FLS.on) {
   try { const mq = matchMedia('(forced-colors: active)'); flFC = mq.matches; mq.addEventListener('change', (e) => { flFC = e.matches; }); } catch (e) {}
@@ -811,7 +891,7 @@ if (FLS.on) {
   st.textContent = '@keyframes fl-tw{0%{color:#86cbfe;text-shadow:0 0 7px rgba(134,203,254,.95),0 0 2px #86cbfe}100%{}}html.atlas .lab.obj.on.flt::before,html.atlas .lab.obj.on.flt::after{animation:fl-tw .5s ease-out}';
   document.head.appendChild(st);
 }
-function flOff(reason) { const S = FLS; S.on = false; S.live = false; S.reason = reason; S.gain = 1; if (S.twEl) { S.twEl.classList.remove('flt'); S.twEl = null; } }
+function flOff(reason) { const S = FLS; S.on = false; S.live = false; S.pend = false; FLR.n = 0; FLR.pw.fill(0); S.reason = reason; S.gain = 1; if (S.twEl) { S.twEl.classList.remove('flt'); S.twEl = null; } }
 function flTwinkle(t) {
   const S = FLS;
   if (!S.labs) { const L = document.getElementById('atlas-labels'); if (!L) return; S.labs = L.getElementsByClassName('obj'); }
@@ -825,23 +905,148 @@ function flTwinkle(t) {
 /* once a frame, before the glyph pass: sets FLS.gain (1 whenever the layer is not live) */
 function fieldListen(t, bands) {
   const S = FLS, sb = S.bands;
-  if (GCFG.mode === 'cat' || flFC || ATL.gov.tier >= 4 || !(sb || (A.on && !A.muted && A.an)) || !settingOn('twinkle')) {
-    S.live = false;
+  if (GCFG.mode === 'cat' || flFC || ATL.gov.tier >= 4 || A.clipState === 'hot' || !(sb || (A.on && !A.muted && A.an)) || !settingOn('twinkle')) {
+    S.live = false; S.pend = false; FLR.n = 0; FLR.pw.fill(0); /* R18 V5: and during a clip (C41) no onset drives a visual */
     if (S.twEl) { S.twEl.classList.remove('flt'); S.twEl = null; }
     if (S.gain !== 1) { S.gain = GCFG.mode === 'cat' || flFC ? 1 : S.gain + (1 - S.gain) * 0.3; if (Math.abs(S.gain - 1) < 0.002) S.gain = 1; }
     return;
   }
-  const t0 = performance.now(), b = sb || bands, lo = +b.low || 0, hi = +b.high || 0;
+  const t0 = performance.now(), b = sb || bands, lo = +b.low || 0, mi = +b.mid || 0, hi = +b.high || 0;
   S.live = true; S.hook = GF.gainHook === true;
-  if (!S.seeded) { S.seeded = true; S.lm = lo; S.hm = hi; }
+  if (!S.seeded) { S.seeded = true; S.lm = lo; S.mm = mi; S.hm = hi; }
   S.lm += (lo - S.lm) * (S.nl < 100 ? 1 / ++S.nl : 0.01); S.ld += (Math.abs(lo - S.lm) - S.ld) * 0.02; /* a plain mean at first, so a bed fading in is not one long swell */
   let x = (lo - S.lm) / (2 * S.ld + 0.02); x = x < -1 ? -1 : x > 1 ? 1 : x;
   if (S.hook) S.gain += (1 + 0.06 * x - S.gain) * 0.3; /* no gain hook in the glyph pass yet: no breath (the sky alone breathing would not be uniform) */
+  const dm = mi - S.mm; S.mm += dm * 0.02; S.md += (Math.abs(dm) - S.md) * 0.02;
   const dh = hi - S.hm; S.hm += dh * 0.02; S.hd += (Math.abs(dh) - S.hd) * 0.02;
   if (S.twEl && t - S.twT > 500) { S.twEl.classList.remove('flt'); S.twEl = null; }
   if (dh > 1.6 * S.hd + 0.015 && t - S.twT > 220) flTwinkle(t);
+  /* R18 V5: each band's onsets on the same running stats: a rising edge past 1.6 deviations, re-armed under 0.8 of that, 140 ms apart */
+  flOnset(t, 0, lo - S.lm, 1.6 * S.ld + 0.015); flOnset(t, 1, dm, 1.6 * S.md + 0.015); flOnset(t, 2, dh, 1.6 * S.hd + 0.015);
+  if (FLR.pw[0] | FLR.pw[1] | FLR.pw[2]) flFill(t);
   if (S.burn > 0) { const e = t0 + S.burn; while (performance.now() < e); }
-  if (S.n < 120) { FL_MS[S.n++] = performance.now() - t0; if (S.n === 120) { let sm = 0; for (let k = 0; k < 120; k++) sm += FL_MS[k]; S.mean = sm / 120; FL_MS.sort(); S.p95 = FL_MS[114]; if (S.p95 > 0.3) flOff('self-check: p95 ' + S.p95.toFixed(3) + ' ms > 0.3 ms'); } }
+  S.ms = performance.now() - t0; S.pend = true; /* flEnd finishes the sample once the glyph pass is down and the flares are on it */
+}
+/* after the glyph pass: the flares, then this frame's sample for the self-check (the listen block and its flares share the 0.3 ms) */
+function flEnd(t, gb) {
+  const S = FLS; let ms = S.ms; S.pend = false;
+  if (FLR.n) { if (gb) { const t1 = performance.now(); flDraw(t, gb); ms += performance.now() - t1; } else FLR.n = 0; }
+  if (S.n < 120) { FL_MS[S.n++] = ms; if (S.n === 120) { let sm = 0; for (let k = 0; k < 120; k++) sm += FL_MS[k]; S.mean = sm / 120; FL_MS.sort(); S.p95 = FL_MS[114]; if (S.p95 > 0.3) flOff('self-check: p95 ' + S.p95.toFixed(3) + ' ms > 0.3 ms'); } }
+}
+/* R18 V5 · PROVENANCE FLARES. an onset in one band of the bed lifts the mark of the kind of play that band stands for over a
+   few visible dots of that kind, for 160 ms at 1.3x their cell: low -> up to 40 served dots, a slat (violet); mid -> up to 24
+   shuffled dots, a die's two pips (amber); high -> up to 24 tapped dots, two strokes (mint). a dot here is a glyph cell, what
+   the eye sees: only a cell whose glyph already wears its kind's colour (a provenance stop: never a genre room, a categorical
+   stop or the record before it lights; a lifted dot is in no cell). each bar of the bed deals each band a new neighbourhood
+   (a window of the occupied cells in play order, which on the record is a stretch of the groove), so one bar's onsets walk
+   through one phrase of the field and the next bar moves on. an onset's flares fill over a frame or three, at most FLR_BUD
+   cell checks a frame for the three bands together, so a dense bed costs no more than a sparse one and a cold start (the
+   code not yet compiled) stays small; the caps scale with the stage's area against a 1440 x 900 desk (at least 0.35 of
+   them), so a phone's flash is as dense on its screen as a desk's. part of FLS: off with it (reduced motion, muted, no bed,
+   a clip, governor tier 4, forced colours) and timed inside its 0.3 ms; drawn into the frame buffer after the glyph pass,
+   so the GL and the 2D paths show the same pixels */
+const FLR_N = [40, 24, 24], FLR_P = [2, 1, 0], FLR_MS = 160, FLR_S = 1.3, FLR_BUD = 64;
+/* each mark as rectangles on a 5 x 9 cell, [row0, row1, col0, col1, ...]: a thick slat low in the cell; pips top right and bottom left; two upright strokes */
+const FLR_RECT = [new Int8Array([5, 7, 0, 5]), new Int8Array([1, 3, 3, 5, 6, 8, 0, 2]), new Int8Array([1, 8, 1, 2, 1, 8, 3, 4])];
+const flPack = (v) => (0xff000000 | ((v & 0xff) << 16) | (v & 0xff00) | ((v >> 16) & 0xff)) >>> 0;
+const FLR = { on: ATLAS && !NOGLYPH && !reduced, ok: false, n: 0, I: new Int32Array(128) /* a flare's cell */, T: new Float64Array(128), K: new Uint8Array(128),
+  made: new Uint32Array(3), drawn: 0, deals: 0, ws: new Int32Array(3).fill(-1), qc: new Uint32Array(3), bar: new Float64Array(3).fill(-1), miss: new Uint8Array(3),
+  pw: new Uint8Array(3), used: new Uint16Array(3), got: new Uint16Array(3), tq: new Float64Array(3), occN: 0, cols: 0,
+  cap: Uint8Array.from(FLR_N), RO: [new Int16Array(4), new Int16Array(8), new Int16Array(8)],
+  PK: new Uint32Array(6), CL: new Uint32Array(3), room: -2, lx: -1, ly: -1, lb: -1, la: 0 };
+for (let p = 0; p < 3; p++) { FLR.PK[2 * p] = flPack(PROV[p]); FLR.PK[2 * p + 1] = flPack(PROV_CHIP[p]); }
+for (let b = 0; b < 3; b++) FLR.CL[b] = flPack(PROV_CHIP[FLR_P[b]]);
+FLS.fl = FLR;
+function flOnset(t, b, d, thr) {
+  const S = FLS;
+  if (S.up[b]) { if (d < 0.8 * thr) S.up[b] = 0; return; }
+  if (d <= thr) return;
+  S.up[b] = 1;
+  if (t - S.oT[b] < 140) return;
+  S.oT[b] = t; S.onsets[b]++;
+  if (FLR.ok) flQueue(t, b);
+}
+/* an onset asks for its band's flares; a new bar (or two dry walks) deals a new window */
+function flQueue(t, b) {
+  const R = FLR;
+  if (FL.lift && FL.PA[FLR_P[b]] < 0.1) return; /* that kind is lifted off the record: none of it in a cell */
+  const bb = bedBar(t);
+  if (bb !== R.bar[b] || R.miss[b] >= 2) { R.bar[b] = bb; R.miss[b] = 0; R.deals++; R.qc[b] = 0; R.ws[b] = -1; }
+  R.pw[b] = 1; R.used[b] = 0; R.got[b] = 0; R.tq[b] = t;
+}
+/* a cell wears its kind's colour within a tone (each channel within 18 of PROV or PROV_CHIP): rooms shade a kind a few steps
+   (the record's mint is 21f6bc, 21e9bc and 21e9af); no other element wears these hues (the colour law), so a tone is enough.
+   a 'mean' room's cell shows its members' weighted mean: that kind's colour only when they all wear it */
+const flNear = (r, g, b, c) => Math.abs(r - (c & 255)) < 18 && Math.abs(g - ((c >>> 8) & 255)) < 18 && Math.abs(b - ((c >>> 16) & 255)) < 18;
+const flHue = (c, c0, c1) => { const r = c & 255, g = (c >>> 8) & 255, b = (c >>> 16) & 255; return flNear(r, g, b, c0) || flNear(r, g, b, c1); };
+function flMean(ci, c0, c1, F) {
+  const w = F.accW[ci]; if (!w) return false;
+  const r = F.accR[ci] / w, g = F.accG[ci] / w, b = F.accB[ci] / w;
+  return flNear(r, g, b, c0) || flNear(r, g, b, c1);
+}
+/* the asked-for flares, FLR_BUD cell checks a frame for all bands: the window is 1/16 of this frame's occupied cells (at least
+   48: a phone's record holds ~330 cells) from a random start, walked in steps of 97 (coprime with its span, so every cell
+   once), at most 8 cells a flare; an ask older than 100 ms is dropped (its flash would be over before it lit) */
+function flFill(t) {
+  const R = FLR, F = FL, on = R.occN, occ = F.occ, PC = F.pickC, mc = F.meanCol, ka = Math.min(1, Math.max(0.35, (W * H) / 1296000));
+  for (let b = 0; b < 3; b++) R.cap[b] = Math.max(4, Math.round(FLR_N[b] * ka));
+  if (!occ || on <= 0) { R.pw[0] = R.pw[1] = R.pw[2] = 0; return; }
+  if (F.cols !== R.cols) { R.cols = F.cols; R.n = 0; } /* a new grid: the old flares' cells are not its cells */
+  let span = Math.min(on, Math.max(48, Math.round(on / 16))), bud = FLR_BUD; if (span % 97 === 0) span++;
+  for (let b = 0; b < 3 && bud > 0; b++) {
+    if (!R.pw[b]) continue;
+    if (t - R.tq[b] > 100) { R.pw[b] = 0; continue; }
+    const p = FLR_P[b], c0 = R.PK[2 * p], c1 = R.PK[2 * p + 1];
+    if (R.ws[b] < 0 || R.ws[b] >= on) R.ws[b] = (Math.random() * on) | 0;
+    let live = 0; for (let k = 0; k < R.n; k++) if (R.K[k] === b) live++;
+    let want = R.cap[b] - live, q = R.qc[b], used = R.used[b], got = 0;
+    const a = R.ws[b], lim = Math.min(span, R.cap[b] * 8), tq = R.tq[b];
+    while (want > 0 && used < lim && bud > 0 && R.n < 128) {
+      q++; used++; bud--;
+      let j = a + ((q * 97) % span); if (j >= on) j -= on; if (j >= on) continue;
+      const ci = occ[j];
+      if (mc ? !flMean(ci, c0, c1, F) : !flHue(PC[ci], c0, c1)) continue;
+      R.I[R.n] = ci; R.T[R.n] = tq; R.K[R.n] = b; R.n++; got++; want--;
+    }
+    R.qc[b] = q; R.used[b] = used; R.made[b] += got; R.got[b] += got;
+    if (want <= 0 || used >= lim || R.n >= 128) { R.pw[b] = 0; if (!R.got[b]) R.miss[b]++; }
+  }
+}
+function flDraw(t, gb) {
+  const R = FLR, buf = buf32, pw = PW, ph = PH, cols = gb.cols, rows = gb.rows, cw = 1 / gb.invCw, ch = 1 / gb.invCh, gx0 = gb.gx0, gy0 = gb.gy0;
+  if (cols !== R.cols) { R.n = 0; return; }
+  const bw = cw * FLR_S, bh = ch * FLR_S, sx = bw / 5, sy = bh / 9, RO = R.RO;
+  /* each band's mark as whole-pixel rectangles from the box's corner, once a frame (the cell's size is the frame's) */
+  for (let b = 0; b < 3; b++) {
+    const RC = FLR_RECT[b], O = RO[b];
+    for (let q = 0; q < RC.length; q += 4) {
+      const y0 = Math.round(RC[q] * sy), x0 = Math.round(RC[q + 2] * sx); let y1 = Math.round(RC[q + 1] * sy), x1 = Math.round(RC[q + 3] * sx);
+      if (y1 <= y0) y1 = y0 + 1; if (x1 <= x0) x1 = x0 + 1;
+      O[q] = y0; O[q + 1] = y1; O[q + 2] = x0; O[q + 3] = x1;
+    }
+  }
+  let m = 0, drawn = 0;
+  for (let k = 0; k < R.n; k++) {
+    const ci = R.I[k], t0 = R.T[k], b = R.K[k], u = (t - t0) / FLR_MS;
+    if (u >= 1) continue;
+    R.I[m] = ci; R.T[m] = t0; R.K[m] = b; m++;
+    if (u < 0) continue;
+    const cy = (ci / cols) | 0, cx = ci - cy * cols; if (cy >= rows) continue;
+    /* the box, 1.3x the cell, on the cell's centre */
+    const ox = Math.round(gx0 + (cx + 0.5) * cw - bw / 2), oy = Math.round(gy0 + (cy + 0.5) * ch - bh / 2);
+    const w = u < 0.35 ? 0 : (u - 0.35) / 0.65, a = (256 * (1 - w * w)) | 0, ia = 256 - a, /* full for the first 56 ms, then out */ c = R.CL[b], O = RO[b];
+    const cr = (c & 255) * a, cg = ((c >>> 8) & 255) * a, cb = ((c >>> 16) & 255) * a;
+    for (let q = 0; q < O.length; q += 4) {
+      let y0 = oy + O[q], y1 = oy + O[q + 1], x0 = ox + O[q + 2], x1 = ox + O[q + 3];
+      if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0; if (x1 > pw) x1 = pw; if (y1 > ph) y1 = ph;
+      if (x0 >= x1 || y0 >= y1) continue;
+      R.lx = x0; R.ly = y0; R.lb = b; R.la = a; /* the last flare's first pixel, for the tests */
+      if (a >= 256) { for (let yy = y0; yy < y1; yy++) { const row = yy * pw; for (let xx = x0; xx < x1; xx++) buf[row + xx] = c; } continue; }
+      for (let yy = y0; yy < y1; yy++) { const row = yy * pw; for (let xx = x0; xx < x1; xx++) { const o = row + xx, v = buf[o]; buf[o] = 0xff000000 | (((((v >>> 16) & 255) * ia + cb) >> 8) << 16) | (((((v >>> 8) & 255) * ia + cg) >> 8) << 8) | (((v & 255) * ia + cr) >> 8); } }
+    }
+    drawn++;
+  }
+  R.n = m; R.drawn += drawn;
 }
 /* R18 renderer hooks (FIELD_GL), each changing nothing until a caller turns it on: ctx.atlas.lift(on), listen(on), skin(name),
    cut(), trails(k). LIFT eases the per-provenance share of each kind still drawn ([tapped, shuffle, served]); a lifted dot is
@@ -851,7 +1056,7 @@ function fieldListen(t, bands) {
    from governor tier 4. SKIN: 'light' = dots and bloom (no print), 'ink' = the print at 55 % under a dye bath, 'print' and
    'groove' (the record) = today's paths; a room declares `skin` on its module, or nothing and keeps today's look */
 const LIFT = { to: 0, u: 0, t: 0, PA: new Float32Array([1, 1, 1]) };
-const LSN = { on: false, t: -1e9, room: -1, BA: new Float32Array(3), UX: null, UY: null };
+const LSN = { on: false, auto: false, t: -1e9, room: -1, BA: new Float32Array(3), UX: null, UY: null };
 const SKINS = ['groove', 'print', 'ink', 'light'];
 let SKIN = null;
 function liftStep(t) {
@@ -867,6 +1072,17 @@ function listenAim() {
   for (let i = 0; i < N; i += 7) { const x = X[i]; if (x < -40) continue; sx += x; sy += Y[i]; m++; } /* a parked dot (-50, -50) is not the room */
   const cx = m ? sx / m : W / 2, cy = m ? sy / m : H / 2;
   for (let i = 0; i < N; i++) { const dx = X[i] - cx, dy = Y[i] - cy, r = Math.sqrt(dx * dx + dy * dy); if (r > 0.5) { UX[i] = dx / r; UY[i] = dy / r; } else { UX[i] = 0; UY[i] = 0; } }
+}
+/* R18 ART#4 · the listen hook's caller: listen(true) while the bed is live, on the stops where a dot moving out from the room's
+   centre by its band reads as the music. the record (any angle but the globe: the sphere's light model would scatter, and it
+   already breathes) and the make wheel (the tracks i made; its categorical beats stand down at the mode gate). nowhere else:
+   a genre room's positions are its data, the loop draws one glyph a streak, the game keeps its own beat ring. off muted,
+   during a clip, under reduced motion and from governor tier 4; at ?atlas=0 nothing calls it */
+const LSN_ROOMS = { threshold: (a) => a !== 'globe', make: () => true };
+function listenSync() {
+  const r = rooms[active], f = r && LSN_ROOMS[r.id]; let want = false;
+  if (f && A.on && !A.muted && A.clipState !== 'hot' && !reduced && ATL.gov.tier < 4) { const L = r.mod && r.mod.angles, a = L && L[angK]; want = !!f(a ? a.id : ''); }
+  if (want !== LSN.auto) { LSN.auto = want; ATL.listen(want); }
 }
 /* R18 (RES_TECH 4.1): ease, colour blend and the pointer's push are per second, not per frame, so the field settles in the same
    time at 30, 60 and 120 Hz. REF_MS is the frame the constants were written for: every 60 Hz screen moves exactly as before */
@@ -908,7 +1124,8 @@ function drawField(t, bands, dt) {
   }
   F.sw = reduced ? 0 : P.swirl; F.push = PT.on && P.touch && !reduced && pk > 0 && !dragging; F.R2 = R * R; F.pk = pk * Math.min(FK, 3); F.mx = mx; F.my = my;
   F.lift = liftStep(t); F.PA = LIFT.PA;
-  const lis = LSN.on && !reduced && ATL.gov.tier < 4 && (bands.low > 0 || bands.mid > 0 || bands.high > 0);
+  if (ATLAS) listenSync();
+  const lis = LSN.on && !reduced && ATL.gov.tier < 4 && GCFG.mode !== 'cat' && A.clipState !== 'hot' && (bands.low > 0 || bands.mid > 0 || bands.high > 0);
   if (lis) {
     if (t - LSN.t > 2000 || LSN.room !== active) { LSN.t = t; LSN.room = active; listenAim(); }
     const z = pan ? ma : 1, cap = 3 / z, k = 2.5 / z; LSN.BA[0] = Math.min(cap, bands.low * k); LSN.BA[1] = Math.min(cap, bands.mid * k); LSN.BA[2] = Math.min(cap, bands.high * k);
@@ -921,11 +1138,14 @@ function drawField(t, bands, dt) {
      the first 20 frames, and a dot its next room places outright (the sky) does not snap to its new colour */
   const hk = ATLAS && FM && MORPH.hk; F.cb = hk ? FM[0] : 1 - Math.pow(0.88, FK); F.snap = !hk;
   const on = fieldLoop(0, N, F, 0);
+  if (FLR.room !== active) { FLR.room = active; FLR.n = 0; FLR.bar.fill(-1); FLR.pw.fill(0); } /* R18 V5: a stop change drops the flares and deals new phrases */
+  FLR.ok = FLR.on && glyphOn; FLR.occN = on; if (!FLR.ok) { FLR.n = 0; FLR.pw[0] = FLR.pw[1] = FLR.pw[2] = 0; }
   if (FLS.on) fieldListen(t, bands);
   if (strat && on) stratPass(t, on, gb, F.nK, F.lastI, F.BM, ma, me, DPR);
   else STR.hidden = 0;
   if (SKY.at) drawSky(buf32, t, glyphOn ? nIn : null, gx0, gy0, invCw, invCh, cols, rows); /* after the dots, so it knows where they are; the glyphs land over it */
   if (glyphOn) { try { GF.render(buf32, PW, PH, t, { reduced, twinkle: !reduced && ATL.gov.tier < 4 && settingOn('twinkle') && roomGlyph().twinkle !== false, edges: ATL.gov.tier < 4, occN: on, lines: LINES, gain: SKIN === 'ink' ? FLS.gain * 0.55 : FLS.gain }); } catch (e) { if (!drawField.warned) { drawField.warned = 1; console.warn('GF.render', e); } } }
+  if (FLS.pend) flEnd(t, glyphOn ? gb : null); /* R18 V5: the flares over the glyph pass, then the listen layer's self-check sample */
   /* R18 FIELD_GL: one upload and the bloom on the GPU; the same opacity and halo weight the 2D layers get below */
   if (FGL && FGL.ok && field !== field2d) {
     const ga = gg && !glowOff ? 0.72 + Math.min(0.28, bands.mid * 0.9) : 0, ga2 = ga > 0 && GT ? (cols > 0 ? 0.2 + 0.55 * Math.max(0, 1 - 2.2 * on / (cols * rows)) : 0.7) : 0;
@@ -1170,13 +1390,15 @@ const A = {
   mute(m) { this.muted = m; this.level(); audioChanged(); },
   /* interface tones: D minor pentatonic, quiet, skipped when muted. step 0 = D4, five steps an octave.
      each tone is moved to the nearest one that is also in the key of the bed that is playing (see inKey below) */
+  /* R18 V8: a room voice (the chain's sonic, the hover voice) counts as input: the field plays itself only once nothing has sounded for 20 s */
+  sounded() { V8.act = performance.now(); },
   note(step, o = {}) {
     if (!this.ac || this.muted || !this.on || this.clipState === 'hot') return;
     const SC = [0, 3, 5, 7, 10], oct = Math.floor(step / 5), semi = snap(SC[((step % 5) + 5) % 5] + 12 * oct, this.bedKey());
     const t = this.ac.currentTime + (o.at || 0), osc = this.ac.createOscillator(), g = this.ac.createGain(), dur = o.dur || 0.5;
     osc.type = o.type || 'sine'; osc.frequency.value = 293.66 * Math.pow(2, semi / 12);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(o.vol || 0.05, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    osc.connect(g); g.connect(this.sfx); osc.start(t); osc.stop(t + dur + 0.05);
+    osc.connect(g); g.connect(this.sfx); osc.start(t); osc.stop(t + dur + 0.05); return osc; /* R18 V8: a note waiting for its bar line can be called off */
   },
   /* the pitch classes interface tones may use over the bed that is playing now (0 = C) */
   pitches() { return inKey(this.bedKey()); },
@@ -1244,6 +1466,56 @@ A.beat = function (div = 1) {
   const len = 60 / m.bpm / (div > 0 ? div : 1), u = (el.currentTime - m.b0) / len, ph = u - Math.floor(u), now = this.ac.currentTime;
   return { bpm: m.bpm, b0: m.b0, len, now, next: now + (1 - ph) * len, phase: ph, bar: 4 };
 };
+/* R18 V3 · THE BAR LINE. bar = 4 x 60 / bpm (audio/bed_meta.json; tracks.json from a first downbeat at 0 until it loads), on
+   the deck's own clock (the deck loops, so a line past the file's end is the first one of its next pass).
+   ctx.audio.nextBar() -> {at (AudioContext clock), wait (s), kind 'bar' | 'beat' | 'now', bpm, bar, beat}: never more than
+   1 s away (past that, the next beat), and 'now' when the bed is paused, a clip plays or the sound is muted.
+   ctx.audio.onBar(fn) calls fn(nextBar()) then and returns a cancel. landOn(sec, cap): how much longer a motion of sec
+   seconds starting now must run to end on a line (the bar's, else the beat's, 0 when neither is within cap; at most 1 s).
+   on it: the V5 flares' phrase (dealt again each bar), the end of a stop's settle, the record's swing between angles and
+   V8's idle rings. not on it: the record change (its own brake and crossfade time, and the next bed still loading),
+   anything the hand drives, the answer to a click */
+let BPMS = null;
+const DG = { pos: 0, rate: 1, bpm: 0, b0: 0, dur: 0 };
+function barMath(pos, b0, bpm, dur) {
+  const beat = 60 / bpm, bar = 4 * beat;
+  let toBar = b0 + Math.ceil((pos - b0) / bar - 1e-9) * bar - pos, toBeat = b0 + Math.ceil((pos - b0) / beat - 1e-9) * beat - pos;
+  if (toBar < 0) toBar = 0; if (toBeat < 0) toBeat = 0;
+  if (dur > 0 && pos + toBar > dur) toBar = dur - pos + (b0 - Math.floor(b0 / bar) * bar);
+  if (dur > 0 && pos + toBeat > dur) toBeat = dur - pos + (b0 - Math.floor(b0 / beat) * beat);
+  return { toBar, toBeat, bar, beat };
+}
+/* the playing deck's grid (one shared object, nothing allocated), or null: no context, no bed, paused, no tempo known */
+function deckGrid() {
+  if (!A.ac || !A.on || A.cur < 0) return null;
+  if (!META) loadMeta();
+  const el = A.els[A.cur], id = el && el.dataset.t; if (!id || el.paused) return null;
+  const m = META && META[id + '.mp3'], meta = !!(m && m.bpm > 0), bpm = meta ? +m.bpm : BPMS ? +BPMS[id] || 0 : 0;
+  if (!(bpm > 0)) return null;
+  const d = el.duration;
+  DG.pos = el.currentTime; DG.rate = el.playbackRate > 0.25 ? el.playbackRate : 1; DG.bpm = bpm; DG.b0 = meta ? +m.b0 || 0 : 0; DG.dur = d > 0 && d < 1e6 ? d : meta && m.dur > 0 ? +m.dur : 0;
+  return DG;
+}
+A.barMath = barMath;
+A.nextBar = function () {
+  const now = this.ac ? this.ac.currentTime : 0, g = this.muted || this.clipState === 'hot' ? null : deckGrid();
+  if (!g) return { at: now, wait: 0, kind: 'now', bpm: 0, bar: 0, beat: 0 };
+  const m = barMath(g.pos, g.b0, g.bpm, g.dur), wb = m.toBar / g.rate, isBar = wb <= 1, w = isBar ? wb : m.toBeat / g.rate;
+  return { at: now + w, wait: w, kind: isBar ? 'bar' : 'beat', bpm: g.bpm, bar: m.bar / g.rate, beat: m.beat / g.rate };
+};
+A.onBar = function (fn) {
+  if (typeof fn !== 'function') return noop;
+  const b = this.nextBar(); let tm = setTimeout(() => { tm = 0; try { fn(b); } catch (e) { console.warn('onBar', e); } }, b.wait * 1000);
+  return () => { if (tm) { clearTimeout(tm); tm = 0; } };
+};
+A.landOn = function (sec, cap) {
+  const g = this.muted || this.clipState === 'hot' ? null : deckGrid(); if (!g || !(sec >= 0)) return 0;
+  let p = g.pos + sec * g.rate; if (g.dur > 0) p %= g.dur;
+  const c = Math.min(1, cap > 0 ? cap : 1), m = barMath(p, g.b0, g.bpm, g.dur), wb = m.toBar / g.rate, wt = m.toBeat / g.rate;
+  return wb <= c ? wb : wt <= c ? wt : 0;
+};
+/* the bed's bar number now (a 2 s clock without a bed): V5 deals each band a new phrase when it changes */
+function bedBar(t) { const g = deckGrid(); return g ? Math.floor((g.pos - g.b0) / (240 / g.bpm)) : Math.floor(t / 2000) - 1e6; }
 /* a short buzz on android only (ios has no vibrate); never while muted */
 const CAN_BUZZ = typeof navigator.vibrate === 'function' && /Android/i.test(navigator.userAgent || '');
 function buzz(ms) { if (!CAN_BUZZ || A.muted) return false; try { return navigator.vibrate(clamp(Math.round(+ms || 0), 1, 80)); } catch (e) { return false; } }
@@ -1507,7 +1779,13 @@ ctx.angle = {
     if (typeof k !== 'number' || k < 0 || k >= L.length) return Promise.resolve(false);
     if (ATLAS) syncNeeds();
     angK = k; const m = rooms[active] && rooms[active].mod; let ms = 0;
-    if (ATLAS && m && m.setAngle) { try { ms = +m.setAngle(k, ctx, { instant: !!o.instant, via: o.via || null }) || 0; } catch (e) { console.warn('setAngle', e); } }
+    if (ATLAS && m && m.setAngle) {
+      /* R18 V3: the record's swing (threshold) ends on the bed's bar line: the camera asks how much longer its flight must run */
+      let ext = 0; const land = !o.instant && rooms[active].id === 'threshold' && typeof VIEW.landOn === 'function';
+      if (land) VIEW.landOn((d) => (ext = A.landOn(d, Math.min(1, d / 2))));
+      try { ms = +m.setAngle(k, ctx, { instant: !!o.instant, via: o.via || null }) || 0; } catch (e) { console.warn('setAngle', e); }
+      if (land) { VIEW.landOn(null); if (ms > 0 && ext > 0) ms += Math.round(ext * 1000); }
+    }
     const a = ctx.angle.get(); ANGFNS.slice().forEach((f) => { try { f(a); } catch (e) {} });
     return ms > 0 ? new Promise((r) => setTimeout(() => r(true), ms)) : Promise.resolve(true);
   },
@@ -1688,7 +1966,7 @@ async function activateRoom(i, via, instant) {
   if (r.mod) { if (r.mod.track) A.play(r.mod.track); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
   layMark();
   if (ATLAS) MORPH.hk = trip && !!(prev.mod && prev.mod.hueTrip);
-  if (trip) stopTrip(m0, via, performance.now(), tripSec());
+  if (trip) { const D = tripSec(); stopTrip(m0, via, performance.now(), D + A.landOn(D, Math.min(1, D / 2))); } /* R18 V3: the settle ends on the bed's bar line (none muted, in a clip or without a bed) */
   else if (recGo && REC.on) { try { recIn(REC_SEC[VIEW.speed] || REC_SEC.slow); } catch (e) { recCancel(); } }
   const nx = rooms[i + 1]; if (nx && !nx.el.hidden && !nx.el.dataset.side) load(i + 1); /* never warm the side room: it only opens from its own door */
   sigPlace();
@@ -1722,6 +2000,7 @@ function bindStage(r) {
   if (!GEST.stage || typeof GEST.bind !== 'function') return;
   const mod = r.mod || {}; let spec = { drag: 'camera', tap: defaultTap };
   if (mod.gestures) { try { const s = mod.gestures(ctx); if (s) spec = Object.assign(spec, s); } catch (e) { console.warn('gestures', e); } }
+  if (V8.on && typeof spec.tap === 'function') { const tap0 = spec.tap; spec.tap = (p) => { let f0 = null; try { f0 = VIEW.flight; } catch (e) {} const r = tap0(p); if (!r) v8Click(p, f0); return r; }; } /* R18 V8 */
   try { stageOff = GEST.bind(GEST.stage, spec) || null; } catch (e) { console.warn('gesture.bind', e); }
 }
 function defaultTap(p) {
@@ -1756,7 +2035,7 @@ function stepWalk(d, via) {
   return ctx.go(w[q], { via });
 }
 
-ctx.data('tracks').then((d) => { KEYS = {}; (d.tracks || []).forEach((t) => { KEYS[t.f] = t.k; }); }).catch(() => {});
+ctx.data('tracks').then((d) => { KEYS = {}; BPMS = {}; (d.tracks || []).forEach((t) => { KEYS[t.f] = t.k; BPMS[t.f] = +t.bpm || 0; }); }).catch(() => {});
 
 /* a room is called what its placard calls it, numbered the way the page numbers it: the threshold is not a room */
 const BASE_TITLE = document.title;
@@ -2118,7 +2397,8 @@ function loop(t) {
     if (ATLAS) og.setTransform(ODPR, 0, 0, ODPR, 0, 0);
   }
   if (ATLAS && FRAMEFNS.length) { for (let k = 0; k < FRAMEFNS.length; k++) { try { FRAMEFNS[k](t, dt); } catch (e) {} } og.setTransform(ODPR, 0, 0, ODPR, 0, 0); }
-  for (let k = PT.ripples.length - 1; k >= 0; k--) { const rp = PT.ripples[k], a = (t - rp.t) / 900; if (a >= 1 || a < 0) { PT.ripples.splice(k, 1); continue; } og.strokeStyle = 'rgba(125,240,200,' + (0.5 * (1 - a) * (1 - a)) + ')'; og.lineWidth = 1.2; og.beginPath(); og.arc(rp.x, rp.y, 8 + a * 120, 0, 6.283); og.stroke(); }
+  if (V8.on) v8Idle();
+  for (let k = PT.ripples.length - 1; k >= 0; k--) { const rp = PT.ripples[k]; if (rp.k) { v8Ring(rp, k); continue; } const a = (t - rp.t) / 900; if (a >= 1 || a < 0) { PT.ripples.splice(k, 1); continue; } og.strokeStyle = 'rgba(125,240,200,' + (0.5 * (1 - a) * (1 - a)) + ')'; og.lineWidth = 1.2; og.beginPath(); og.arc(rp.x, rp.y, 8 + a * 120, 0, 6.283); og.stroke(); }
   if (t - sigT > 900) { sigT = t; sigPlace(); } /* rooms build their controls over a second or two: re-check the corner now and then */
   if (ATLAS && t - GATHER.t > 120) gatherWatch(t);
   drawSig();
@@ -2422,4 +2702,5 @@ window.__exhibit.atlas = {
   gov: ATL.gov, stage, walk: () => walkList(), strat: STR, govTier: (k) => govTier(clamp(k | 0, 0, 5)), sky: () => SKY, loopCost: () => LOOPH,
   gl: ATL.gl, fieldImage: ATL.fieldImage, glLast: () => ({ a: GLF.a, a2: GLF.a2, blur: canvasBlur, gdiv: GDIV }), govState: () => ({ floor: GOV.floor, undone: GOV.undone, judging: GOV.judge }), cutCount: () => CUT.n,
   glyphCfg: () => ({ mode: GCFG.mode, region: GCFG.region, zones: GCFG.zones ? GCFG.zones.slice() : null, feather: GCFG.feather, edges: GCFG.edges, bleach: GCFG.bleach }),
+  fieldArt: { v8: V8, flares: FLR, lsn: LSN, pt: PT, lis: () => FL.lis }, /* R18 wave 3 (FIELD_ART): tests read these */
 };

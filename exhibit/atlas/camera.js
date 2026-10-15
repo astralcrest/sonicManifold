@@ -279,6 +279,7 @@ export function createView(ctx) {
     }
     if (o.nudge && dur > 0) dur = Math.min(dur, NUDGE);
     if (o.dur > 0 && dur > 0) dur = o.dur;
+    if (S.land && dur > 0 && !amb && !RED) { let e = 0; try { e = +S.land(dur) || 0; } catch (x) {} if (e > 0 && e <= 1.001) dur += e; } /* R18 V3: a flight the shell asked to end on the bed's bar line (view.landOn) */
     if (dur <= 0 || RED) {
       if (amb) { if (!RED) place(q); f.res(!RED); return f.pr; }
       jump(q); f.res(true); return f.pr;
@@ -690,6 +691,7 @@ export function createView(ctx) {
   const sub = (list, fn) => { if (typeof fn !== 'function') return () => {}; list.push(fn); return () => { const k = list.indexOf(fn); if (k >= 0) list.splice(k, 1); }; };
   const view = {
     configure, set, flyTo, home, travel,
+    landOn(fn) { S.land = typeof fn === 'function' ? fn : null; }, /* R18 V3: fn(dur s) -> extra s, asked by every flight until cleared */
     pan(dx, dy) { if (S.mode !== 'pan' && S.mode !== 'orbit3d') return; input('pan', false); panRaw(+dx || 0, +dy || 0); },
     zoomBy(f, sx, sy) { if (S.mode === 'none') return; input('zoom', keepOrbit()); zoomEase(+f, sx, sy); },
     zoomTo(z, o) { if (S.mode === 'none' || !(z > 0)) return; input('zoom', keepOrbit()); const cur = S.mode === 'orbit3d' ? 1 / S.distT : S.zT; zoomEase(z / cur, undefined, undefined, !!(o && o.instant)); },

@@ -56,6 +56,7 @@ export function install(A, deps) {
   function fade() { clearTimeout(restT); if (halo) halo.classList.remove('on'); }
 
   function sound(o, kind) {
+    if (A.sounded) A.sounded(); /* R18 V8: the field's own idle play yields to a voice */
     const ac = A.ac, t = ac.currentTime, R = floorRel(), L = R.length || 1;
     const [d, soft] = degree(o);
     const semi = R[((d % L) + L) % L] + 12 * octave(o.plays) + (kind === 'control' ? 12 : 0);
@@ -100,6 +101,7 @@ export function install(A, deps) {
      bed's next beat; the end card plays D and the A above it. same voice pool, same ceiling, silent when muted or locked */
   function cue(k, n, end) {
     if (!A.ac || A.muted || !A.on || !A.sfx) return false;
+    if (A.sounded) A.sounded();
     const ac = A.ac, R = floorRel(), L = R.length || 1;
     let b = null; try { b = A.beat(); } catch (e) {}
     const t = b && b.next > ac.currentTime ? Math.min(b.next, ac.currentTime + 1.2) : ac.currentTime + 0.02;
