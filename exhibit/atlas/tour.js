@@ -149,9 +149,9 @@ export function mount(ctx, deps) {
   function perDot() { return (P && P.perDot) || 1; }
   function syncToken(name) {
     const pd = perDot();
-    if (name === 'per_dot') return pd === 1 ? '' : ' (on this screen one dot is four plays)';
-    if (name === 'every_dot') return pd === 1 ? 'every play is a dot' : 'every fourth play is a dot on this screen';
-    if (name === 'one_play') return pd === 1 ? 'one play' : 'four plays';
+    if (name === 'per_dot') return pd === 1 ? '' : ' (on this screen one dot is three plays)';
+    if (name === 'every_dot') return pd === 1 ? 'every play is a dot' : 'every third play is a dot on this screen';
+    if (name === 'one_play') return pd === 1 ? 'one play' : 'three plays';
     return null;
   }
   /* returns null (never a partial string with a hole) when a token cannot be resolved */

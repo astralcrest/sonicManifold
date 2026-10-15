@@ -177,7 +177,7 @@ export default {
     const P = ctx.particles, GF = ctx.atlas && ctx.atlas.GF, b = GF && GF.buffers && GF.buffers();
     if (!b || !b.cols || !(R > 0)) return; /* no glyph field (off, stub, not laid out): weights are unused */
     if (!this.tone) this.toneFor(ctx);
-    const n = P.n, W = P.w, X = P.x, Y = P.y, TX = P.tx, TY = P.ty, SD = P.seed, e = P.ease, red = !!ctx.reduced, dpr = P.dpr || 1;
+    const n = P.n, W = P.w, X = P.x, Y = P.y, TX = P.tx, TY = P.ty, SD = P.seed, e = P.easeNow ?? P.ease, red = !!ctx.reduced, dpr = P.dpr || 1;
     const cols = b.cols, rows = b.rows, NC = cols * rows, gx0 = b.gx0, gy0 = b.gy0, icw = b.invCw, ich = b.invCh, cw = 1 / icw, chh = 1 / ich;
     if (!this.cnt || this.cnt.length < NC) { const c = NC + 1024; this.cnt = new Uint32Array(c); this.cwt = new Int32Array(c); this.crem = new Int32Array(c); this.occ = new Int32Array(c); this.clev = new Float32Array(c); this.crs = new Float32Array(c); this.crn = new Uint32Array(c); }
     if (!this.ci || this.ci.length < n) this.ci = new Int32Array(n);

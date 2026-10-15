@@ -1,7 +1,6 @@
 /* the landing's engine. the month counts (TAP, SHU, SRV) are inlined in index.html (the page fetches nothing).
-   one groove of every play, drawn once in four layers (all, then one per hand that pressed play); a live comet
-   reads the groove play by play; the record turns slowly, tilts with the device or the pointer, and answers a finger;
-   scroll lights one hand at a time. r11: the needle is a scrubber (the numbers recount to wherever it sits), a press blooms ink from the finger, a flick of the page spins the record up and smears it, the page's light takes the hue of the hand under the needle. reduced motion = one still frame. */
+   one groove of every play, drawn once in four layers (all, then one per hand that pressed play); a live comet reads it;
+   scroll lights one hand at a time. r18: the record asks for a guess first; the drop hands off in under a second. reduced motion = one still frame. */
 (function () {
 'use strict';
 var TAP = window.TAP, SHU = window.SHU, SRV = window.SRV;
@@ -18,8 +17,10 @@ if (lite) { reduce = true; root.classList.add('lite'); }
 var NM = TAP.length, N = 0, m, i, j, k;
 /* r13 coherence: the record is pressed in one ice ink until the guess locks (or the page is scrolled past the guess); then
    the three hands bleed into the grooves from the label out. a lock in an earlier visit is remembered */
-var GK = 'sm.guess', inked = 0;
+var GK = 'sm.guess', WK = 'exhibit.wall.guess', inked = 0, said = -1;
 try { inked = localStorage.getItem(GK) ? 1 : 0; } catch (e) {}
+/* r18: a guess made in this tab, here or on the exhibit's wall (same key), is never asked for twice */
+try { var w0 = sessionStorage.getItem(WK); if (/^\d{1,3}$/.test(w0) && +w0 <= 100) { said = +w0; inked = 1; } } catch (e) {}
 if (inked) root.classList.add('inked');
 var hand = inked || lite;
 for (m = 0; m < NM; m++) N += TAP[m] + SHU[m] + SRV[m];
@@ -59,7 +60,7 @@ function draw() {
     imgs[k] = g[k].createImageData(D, D); pxs[k] = new Uint32Array(imgs[k].data.buffer);
   }
   var px = pxs[0];
-  var R1 = c * 0.954, R0 = Math.min(R1 * 0.85, lab.getBoundingClientRect().width / 2 * ed + c * 0.05), KD = (R1 * R1 - R0 * R0) / N, A = Math.PI * KD, p = Math.max(1.25, Math.sqrt(A)), s = A / p, TW = 6.283185307179586 / p,
+  var R1 = c * 0.954, R0 = Math.min(R1 * 0.85, parseFloat(getComputedStyle(lab).width) / 2 * ed + c * 0.05), KD = (R1 * R1 - R0 * R0) / N, A = Math.PI * KD, p = Math.max(1.25, Math.sqrt(A)), s = A / p, TW = 6.283185307179586 / p,
     K = R1 * R1, pr = R1, cs = Math.cos(TH0), sn = Math.sin(TH0), x, y, rr, dl, cd, sd, t2, col, coh, hp, w, u, v, a, b, o, bx, by, x0, y0, ix, kx = 65535 / D,
     BA = [s * 0.22, s * 0.19, s * 0.4], BB = [p * 0.4, p * 0.19, p * 0.22], OA = s * 0.22, OB = p * 0.22;
   for (i = 0; i < N; i++) {
@@ -76,7 +77,7 @@ function draw() {
   cv.className = 'on';
   ms = performance.now() - t0;
   G = { d: D, dpr: ed, r0: R0, r1: R1, pitch: p, step: s, turns: (R1 - R0) / p, K: K, KD: KD };
-  sizeLive();
+  sizeLive(); grabR(); if (askV) gaugeDraw();
   clearTimeout(ltT); ltT = setTimeout(light, reduce ? 0 : ltN++ ? 200 : 2100);
 }
 /* r13 light on the grooves, drawn once per size after the wind-up: two concentric-ring twins of the groove, each turn in the
@@ -185,8 +186,9 @@ function frame(now) {
   if (Math.abs(drv) > Math.abs(wf)) wf += (drv - wf) * (1 - Math.exp(-dt / 110)); else wf *= Math.exp(-dt / 700);
   var spd = IDLE + wf / 1000;
   spinFx(dt);
-  if (wind) { var wp = (now - wind) / 1900; if (wp >= 1) { wind = 0; scrub = -1; head = 0; } else scrub = (1 - Math.pow(1 - wp, 3)) * (N - 1); }
-  if (busy) { var e = now - dropT, v = e < 400 ? 0 : Math.min(1, (e - 400) / 650); spd = IDLE + v * (0.2 - IDLE); }
+  if (wind) { var wp = (now - wind) / 1900; if (wp >= 1) { wind = 0; scrub = -1; head = 0; askShow(); } else scrub = (1 - Math.pow(1 - wp, 3)) * (N - 1); }
+  /* r18 hand-off (MUSIC V7): the hands' rings turn at w, 2w, 3w and land in register as the page goes; the platter stays under the blur */
+  if (busy) { var e = Math.min(1, (now - dropT) / 500), u = Math.min(1, (now - dropT) / WT), q = Math.pow(1 - u, 3) * 45, z; spd = IDLE + e * e * 0.045; for (z = 0; z < 3; z++) HI[z].style.transform = 'rotate(' + (-(z + 1) * q).toFixed(2) + 'deg)'; if (u >= 1) go(); }
   ang += spd * dt; plat.style.transform = 'rotate(' + ang.toFixed(2) + 'deg)';
   /* tilt: the device when it speaks, else the pointer; a small lerp so it floats */
   var ttx = useG ? gx : sx, tty = useG ? gy : sy;
@@ -213,7 +215,7 @@ function spinFx(dt) {
 }
 function start() { if (reduce || running || !vis || D0.hidden) return; running = true; last = 0; lpL = 0; raf = requestAnimationFrame(frame); }
 function goLite() {
-  if (lite) return; lite = 1; reduce = true; root.classList.add('lite'); stop();
+  if (lite) return; lite = 1; reduce = true; root.classList.add('lite'); stop(); if (ask) askEnd();
   wind = 0; scrub = -1; shown = N; setLede(N); fr = 0; if (!hand) { hand = 1; draw(); } still(); armTo(head, 1); washTo(head, 1);
 }
 function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
@@ -287,37 +289,50 @@ function bdraw(now) {
   }
   bg.globalCompositeOperation = 'source-over';
 }
-var gc = $('#gauge'), gg = null, gz = { on: 0, g: -1, p: 0, a: 0, t0: 0, fade: 0 };
+/* the rim: a 100-tick ruler and the guess while it asks; on the lock the true split sweeps round (notch at the strict 11.5%), the miss in ice */
+var gc = $('#gauge'), gg = null, gz = { on: 0, g: -1, p: 0, a: 0, t0: 0, fade: 0 }, FR = [C0[N] / N, C1[N] / N, C2[N] / N];
+function gnum(t, D) { gg.textAlign = 'center'; gg.textBaseline = 'middle'; gg.font = '600 ' + (D * 0.1 | 0) + 'px "JetBrains Mono",monospace'; gg.fillText(t, D / 2, D * 0.445); gg.font = '500 ' + (D * 0.034 | 0) + 'px "JetBrains Mono",monospace'; gg.fillStyle = 'rgba(240,234,255,.62)'; gg.fillText('of 100', D / 2, D * 0.565); }
 function gaugeDraw() {
   if (!gc || !G.K) return;
-  var D = Math.round(disc.getBoundingClientRect().width * Math.min(window.devicePixelRatio || 1, 2));
+  var D = Math.round(disc.getBoundingClientRect().width * Math.min(window.devicePixelRatio || 1, 2)), c = D / 2;
   if (gc.width !== D) { gc.width = D; gc.height = D; gg = null; }
   gg = gg || ctx2(gc); gg.clearRect(0, 0, D, D);
-  if (gz.g < 0 || gz.a <= 0) return;
-  var r = D / 2 * 0.975, st = -1.5707963, f = [C0[N] / N, C1[N] / N, C2[N] / N], q = gz.p, c0 = 0, k4, e;
-  gg.lineWidth = D * 0.024; gg.lineCap = 'butt'; gg.globalAlpha = gz.a;
-  gg.strokeStyle = 'rgba(240,234,255,.12)'; gg.beginPath(); gg.arc(D / 2, D / 2, r, 0, 6.2832); gg.stroke();
-  for (k4 = 0; k4 < 3; k4++) {
-    e = Math.min(q, c0 + f[k4]);
-    if (e > c0) { paint(gg, k4, 1); gg.strokeStyle = gg.fillStyle; gg.beginPath(); gg.arc(D / 2, D / 2, r, st + c0 * 6.2832, st + e * 6.2832); gg.stroke(); }
-    c0 += f[k4];
+  var r = c * 0.975, st = -1.5707963, T = 6.2832, sw = gz.t0 || gz.p > 0, q = gz.p, c0 = 0, k4, e, a;
+  if (askV && !sw) {
+    gg.strokeStyle = 'rgba(134,203,254,.45)'; gg.lineWidth = Math.max(1, D / 480); gg.beginPath();
+    for (k4 = 0; k4 < 100; k4++) { a = st + k4 * T / 100; e = k4 % 10 ? 0.962 : 0.945; gg.moveTo(c + Math.cos(a) * c * e, c + Math.sin(a) * c * e); gg.lineTo(c + Math.cos(a) * c * 0.987, c + Math.sin(a) * c * 0.987); }
+    gg.stroke(); gg.fillStyle = '#86cbfe'; gnum(gz.g < 0 ? '?' : Math.round(gz.g * 100), D);
   }
-  var ta = st + gz.g * 6.2832, c1 = Math.cos(ta), s1 = Math.sin(ta);
-  gg.strokeStyle = '#f0eaff'; gg.lineWidth = Math.max(2, D * 0.011); gg.beginPath(); gg.moveTo(D / 2 + c1 * (r - D * 0.04), D / 2 + s1 * (r - D * 0.04)); gg.lineTo(D / 2 + c1 * (r + D * 0.022), D / 2 + s1 * (r + D * 0.022)); gg.stroke();
+  if (gz.g < 0 || gz.a <= 0) return;
+  gg.lineWidth = D * 0.024; gg.lineCap = 'butt'; gg.globalAlpha = gz.a;
+  if (!sw) { gg.strokeStyle = 'rgba(134,203,254,.55)'; gg.beginPath(); gg.arc(c, c, r, st, st + gz.g * T); gg.stroke(); }
+  else {
+    gg.strokeStyle = 'rgba(240,234,255,.12)'; gg.beginPath(); gg.arc(c, c, r, 0, T); gg.stroke();
+    for (k4 = 0; k4 < 3; k4++) {
+      e = Math.min(q, c0 + FR[k4]);
+      if (e > c0) { paint(gg, k4, 1); gg.strokeStyle = gg.fillStyle; gg.beginPath(); gg.arc(c, c, r, st + c0 * T, st + e * T); gg.stroke(); }
+      c0 += FR[k4];
+    }
+    if (q > 0.115) { a = st + 0.115 * T; gg.strokeStyle = '#0a0118'; gg.lineWidth = Math.max(1.5, D * 0.005); gg.beginPath(); gg.moveTo(c + Math.cos(a) * (r - D * 0.013), c + Math.sin(a) * (r - D * 0.013)); gg.lineTo(c + Math.cos(a) * (r + D * 0.013), c + Math.sin(a) * (r + D * 0.013)); gg.stroke(); }
+    if (q >= FR[0]) { gg.strokeStyle = '#86cbfe'; gg.lineWidth = Math.max(2, D * 0.007); gg.beginPath(); gg.arc(c, c, c * 0.93, st + Math.min(gz.g, FR[0]) * T, st + Math.max(gz.g, FR[0]) * T); gg.stroke(); paint(gg, 0, 1); } else gg.fillStyle = '#86cbfe';
+    gnum(q >= FR[0] ? '19' : Math.round(gz.g * 100), D);
+  }
+  var ta = st + gz.g * T, c1 = Math.cos(ta), s1 = Math.sin(ta);
+  gg.strokeStyle = '#f0eaff'; gg.lineWidth = Math.max(2, D * 0.011); gg.beginPath(); gg.moveTo(c + c1 * (r - D * 0.04), c + s1 * (r - D * 0.04)); gg.lineTo(c + c1 * (r + D * 0.012), c + s1 * (r + D * 0.012)); gg.stroke();
   gg.globalAlpha = 1;
 }
 function gaugeTick(now) {
   if (gz.t0) { var u = Math.min(1, (now - gz.t0) / 1500); gz.p = 1 - Math.pow(1 - u, 3); }
-  if (gz.fade) { gz.a = Math.max(0, 1 - (now - gz.fade) / 800); if (gz.a <= 0) { gz.on = 0; gz.g = -1; gz.t0 = 0; gz.fade = 0; } }
+  if (gz.fade) { gz.a = Math.max(0, 1 - (now - gz.fade) / 800); if (gz.a <= 0) { gz.on = 0; gz.g = -1; gz.t0 = 0; gz.p = 0; gz.fade = 0; } }
   gaugeDraw();
 }
 function gaugeGuess(v) { if (gz.t0 || gz.fade) return; gz.g = v / 100; gz.p = 0; gz.a = 0.75; gz.on = !reduce; gaugeDraw(); }
 function gaugeLock(v) { gz.g = v / 100; gz.a = 1; gz.fade = 0; if (reduce) { gz.p = 1; gaugeDraw(); } else { gz.p = 0; gz.t0 = performance.now(); gz.on = 1; } }
-function gaugeEnd() { if (reduce) { gz.g = -1; gaugeDraw(); } else gz.fade = performance.now(); }
+function gaugeEnd() { if (reduce) { gz.g = -1; gz.p = 0; gz.t0 = 0; gaugeDraw(); } else gz.fade = performance.now(); }
 if (deckEl) {
-  deckEl.addEventListener('pointermove', function (ev) { if (bs.on) bpt(ev); if (ev.pointerType !== 'mouse' && !ev.buttons && ev.pressure === 0) return; wind = 0; setScrub(toRad(ev)); });
-  deckEl.addEventListener('pointerdown', function (ev) { wind = 0; setScrub(toRad(ev)); if (!reduce && ev.button < 1) { bpt(ev); bs.on = 1; bs.rel = 0; bs.t0 = performance.now(); start(); } });
-  ['pointerleave', 'pointerup', 'pointercancel'].forEach(function (n) { deckEl.addEventListener(n, function () { if (bs.on) { bs.on = 0; bs.rel = performance.now(); } if (!scrAct) { setScrub(-1); if (reduce) still(); } }); });
+  deckEl.addEventListener('pointermove', function (ev) { if (bs.on) bpt(ev); if (ask) return gMove(ev); if (ev.pointerType !== 'mouse' && !ev.buttons && ev.pressure === 0) return; wind = 0; setScrub(toRad(ev)); });
+  deckEl.addEventListener('pointerdown', function (ev) { if (ask) gDown(ev, deckEl); else { wind = 0; setScrub(toRad(ev)); } if (!reduce && ev.button < 1) { bpt(ev); bs.on = 1; bs.rel = 0; bs.t0 = performance.now(); start(); } });
+  ['pointerleave', 'pointerup', 'pointercancel'].forEach(function (n) { deckEl.addEventListener(n, function (ev) { if (bs.on) { bs.on = 0; bs.rel = performance.now(); } if (ask) return gEnd(ev); if (!scrAct) { setScrub(-1); if (reduce) still(); } }); });
 }
 /* the page's light: the hue of the hand under the needle, a window of plays around it; the stage glow and a slow wash behind the copy both take it */
 var WASH = $('.wash'), RGBH = [[33, 246, 188], [245, 166, 35], [139, 111, 214]], ICE3 = [[134, 203, 254], [134, 203, 254], [134, 203, 254]];
@@ -340,7 +355,7 @@ function frameFx(now) {
   if (gz.on) gaugeTick(now);
   var want = scrub >= 0 ? scrub + 1 : N;
   if (Math.abs(want - shown) > 0.5) { shown += (want - shown) * (scrub >= 0 ? 0.35 : 0.12); if (Math.abs(want - shown) < N * 0.0015) shown = want; setLede(shown); }
-  if (scr && !scrAct && !(fr & 3)) scr.value = ((scrub >= 0 ? scrub : head) / N * 1000) | 0;
+  if (scr && !scrAct && !askV && !(fr & 3)) scr.value = ((scrub >= 0 ? scrub : head) / N * 1000) | 0;
   if (!(fr & 3)) washTo(scrub >= 0 ? scrub : head);
   if (bs.on || bs.rel) bdraw(now);
 }
@@ -374,10 +389,10 @@ function pick() {
   var lr = steps[steps.length - 1].getBoundingClientRect(); if (lr.bottom <= probe) n = steps.length - 1;
   steps.forEach(function (el, z) { var r = el.getBoundingClientRect(); if (r.top <= probe && r.bottom > probe) n = z; });
   if (steps[0].getBoundingClientRect().bottom > probe) n = 0;
-  if (n >= 2 && !inked) ink();
+  if (n >= 2 && !inked) { ink(); setTimeout(hint, 1800); }
   if (n !== cur) { cur = n; stage.setAttribute('data-s', n); iso = n >= 2 && n <= 4 ? n - 2 : -1; if (reduce) paintLive(); }
 }
-function onScroll() { if (!tick) tick = requestAnimationFrame(pick); }
+function onScroll() { lastSc = Date.now(); if (!tick) tick = requestAnimationFrame(pick); }
 addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll, { passive: true });
 var nativeTL = false; try { nativeTL = CSS.supports('animation-timeline', 'view()'); } catch (e) {}
 if (!nativeTL && 'IntersectionObserver' in window) {
@@ -392,141 +407,110 @@ if ('IntersectionObserver' in window) {
 /* ---------------------------------------------------------------- the ink comes in */
 var blT = 0, iceC = null;
 function bleed(now) {
-  var u = Math.min(1, (now - blT) / 1900), b = 36 + 70 * (1 - Math.pow(1 - u, 2.2));
-  plat.style.setProperty('--b', b.toFixed(1) + '%');
+  var u = Math.min(1, (now - blT) / 1500);
+  if (iceC) { iceC.style.setProperty('--ga', (360 * (1 - Math.pow(1 - u, 3))).toFixed(1) + 'deg'); iceC.style.setProperty('--g0', (-ang % 360).toFixed(1) + 'deg'); }
   if (u >= 1) bleedEnd();
 }
-function bleedEnd() { blT = 0; if (iceC) { iceC.remove(); iceC = null; } cv.classList.remove('bleed'); plat.style.removeProperty('--b'); }
+function bleedEnd() { blT = 0; if (iceC) { iceC.remove(); iceC = null; } }
 function ink() {
+  if (ask) askEnd();
   if (inked) return; inked = 1; root.classList.add('inked'); if (hand) return; hand = 1;
-  try { localStorage.setItem(GK, gr ? gr.value : '1'); } catch (e) {}
   if (G.K && !reduce && running) {
     iceC = D0.createElement('canvas'); iceC.id = 'ice'; iceC.width = cv.width; iceC.height = cv.height; iceC.getContext('2d').drawImage(cv, 0, 0);
-    plat.insertBefore(iceC, cv); plat.style.setProperty('--b', '36%');
+    iceC.style.setProperty('--g0', (-ang % 360).toFixed(1) + 'deg'); plat.insertBefore(iceC, cv.nextSibling);
   }
-  if (G.K) { draw(); if (iceC) { cv.classList.add('bleed'); blT = performance.now(); } else light(); }
+  if (G.K) { draw(); if (iceC) blT = performance.now(); else light(); }
   washTo(head, 1); paintLive();
 }
 /* ---------------------------------------------------------------- the guess: the page's first question */
-var gui = $('#gui'), gr = $('#gr'), gv = $('#gv'), gm = $('#gm'), gl = $('#gl'), gres = $('#gres');
+/* r18 guess first: x along the line under the record is the guess, letting go locks it; a vertical drag still scrolls. #gr is the
+   keyboard path. no timer gives the answer away (FRESH_EYES 43) */
+var gui = $('#gui'), gr = $('#gr'), gv = $('#gv'), gm = $('#gm'), gl = $('#gl'), gres = $('#gres'), say = $('.say'), BAND = $('.band'), sayT = 0;
+var ask = !inked && !lite ? 1 : 0, askV = 0, gq = -1, gp = null, lastSc = 0, ASKL = 'how many of every 100 plays did i start?';
 function gset() { var v = +gr.value; gv.textContent = v + '%'; gm.style.left = v + '%'; }
+function sayIt(h, ms) { if (!say) return; clearTimeout(sayT); if (h) { say.innerHTML = h; stage.setAttribute('data-say', ''); if (ms) sayT = setTimeout(sayIt, ms); } else stage.removeAttribute('data-say'); }
+function askShow() { if (!ask || askV) return; askV = 1; root.classList.add('ask'); sayIt(ASKL); if (scr) scr.value = 500; gaugeDraw(); }
+function askEnd() { ask = 0; askV = 0; gp = null; gq = -1; root.classList.remove('ask'); sayIt(); if (!gz.t0) gz.g = -1; gaugeDraw(); }
+function guessAt(v) { gq = v; gz.g = v < 0 ? -1 : v / 100; gz.a = 1; if (scr) scr.value = v < 0 ? 500 : v * 10; if (v >= 0 && gr) { gr.value = v; gset(); } gaugeDraw(); }
+function gpos(ev) { var r = BAND.getBoundingClientRect(); return Math.round(Math.max(0, Math.min(1, (ev.clientX - r.left - 5.5) / (r.width - 11))) * 100); }
+function gDown(ev, el) {
+  if (ev.button > 0 || !BAND || (ev.pointerType !== 'mouse' && Date.now() - lastSc < 250)) return;
+  if (wind) { wind = 0; scrub = -1; }
+  gp = ev.pointerId; try { el.setPointerCapture(gp); } catch (e) {}
+  askShow(); guessAt(gpos(ev)); sayIt('you say ' + gq + '. let go to lock it in.');
+}
+function gMove(ev) {
+  if (gp !== null && gp === ev.pointerId) { guessAt(gpos(ev)); sayIt('you say ' + gq + '. let go to lock it in.'); }
+  else if (gp === null && askV && ev.pointerType === 'mouse' && BAND) { guessAt(gpos(ev)); sayIt('you’d say ' + gq + '. click to lock it in.'); }
+}
+function gEnd(ev) {
+  if (gp !== null && gp === ev.pointerId) { if (ev.type === 'pointerup' && gq >= 0) { gp = null; gr.value = gq; gset(); lock(); } else if (ev.type !== 'pointerleave') { gp = null; guessAt(-1); sayIt(ASKL); } }
+  else if (gp === null && askV && ev.type === 'pointerleave' && ev.pointerType === 'mouse') { guessAt(-1); sayIt(ASKL); }
+}
+function hint() { if (busy) return; try { if (sessionStorage.getItem('sm.hint')) return; sessionStorage.setItem('sm.hint', '1'); } catch (e) {} sayIt('drag the record. every tick is one play.', 6000); }
+function doneUI(v) {
+  gui.className += ' done'; gl.disabled = true; gl.style.opacity = '.45';
+  gres.innerHTML = 'you said ' + v + '. i started <b>19</b> of every 100. ' + (v < 11 ? 'lower than even the strictest reading.' : v <= 27 ? 'about right.' : 'the queue and shuffle did the rest.');
+}
+var lock = function () {
+  if (gui.className.indexOf('done') > -1) return;
+  var v = +gr.value; said = v; doneUI(v);
+  try { sessionStorage.setItem(WK, '' + v); localStorage.setItem(GK, '' + v); } catch (e) {}
+  if (ask) askEnd(); ink(); gaugeLock(v); sayIt('you said ' + v + '. i started <b>19</b> of every 100.');
+  setTimeout(function () { stage.setAttribute('data-lock', '1'); iso = 0; if (reduce) paintLive(); }, reduce ? 0 : 1500);
+  setTimeout(function () { gaugeEnd(); stage.removeAttribute('data-lock'); iso = cur >= 2 && cur <= 4 ? cur - 2 : -1; if (reduce) paintLive(); sayIt(); hint(); }, 4200);
+};
 if (gui && gr) {
-  gset(); gr.addEventListener('input', function () { gset(); gaugeGuess(+gr.value); });
-  var lock = function () {
-    if (gui.className.indexOf('done') > -1) return;
-    var v = +gr.value; gui.className += ' done'; stage.setAttribute('data-lock', '1'); gl.disabled = true; gl.style.opacity = '.45';
-    var tail = v < 11 ? 'lower than even the strictest reading.' : v <= 27 ? 'about right.' : 'more than i did. the queue and shuffle did the rest.';
-    gres.innerHTML = 'you said ' + v + '%. the log says <b>19%</b> i tapped. ' + tail;
-    ink(); iso = 0; if (reduce) paintLive(); gaugeLock(v);
-    setTimeout(function () { gaugeEnd(); stage.removeAttribute('data-lock'); iso = cur >= 2 && cur <= 4 ? cur - 2 : -1; if (reduce) paintLive(); }, 4200);
-  };
+  gset(); gr.addEventListener('input', function () { gset(); if (ask) { askShow(); guessAt(+gr.value); } else gaugeGuess(+gr.value); });
   gl.addEventListener('click', lock);
   gr.addEventListener('keydown', function (e) { if (e.key === 'Enter') lock(); });
-  var idT = 0, idOn = 0, idle = function () { clearTimeout(idT); idT = 0; if (idOn && !inked) idT = setTimeout(function () { if (!inked && idOn) ink(); }, 4000); };
-  ['input', 'pointerdown', 'keydown', 'focusin'].forEach(function (n) { gui.addEventListener(n, idle, { passive: true }); });
-  if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { idOn = es[0].isIntersecting; idle(); }, { threshold: 0.9 }).observe(gui);
+  if (said >= 0) { gr.value = said; gset(); doneUI(said); }
 }
 if ('IntersectionObserver' in window) {
   var pio = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.className += ' in'; pio.unobserve(e.target); } }); }, { threshold: 0.4 });
   $$('.pips').forEach(function (el) { pio.observe(el); });
 } else $$('.pips').forEach(function (el) { el.className += ' in'; });
+/* M6: the scrubber's line is a 44 px band (the input under it keeps the keyboard): press or drag along it to read any play */
+if (BAND && scr) {
+  var bp = null, bScr = function (ev) { var r = BAND.getBoundingClientRect(), f = Math.max(0, Math.min(1, (ev.clientX - r.left - 5.5) / (r.width - 11))); wind = 0; scrAct = 1; clearTimeout(scrT); setScrub(f * (N - 1)); scr.value = f * 1000 | 0; };
+  BAND.addEventListener('pointerdown', function (ev) { if (ask) return gDown(ev, BAND); if (ev.button > 0) return; bp = ev.pointerId; try { BAND.setPointerCapture(bp); } catch (e) {} bScr(ev); });
+  BAND.addEventListener('pointermove', function (ev) { if (ask) return gMove(ev); if (bp === ev.pointerId || (ev.pointerType === 'mouse' && !ev.buttons)) bScr(ev); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { BAND.addEventListener(n, function (ev) { if (ask) return gEnd(ev); if (bp === ev.pointerId || ev.pointerType === 'mouse') { bp = null; clearTimeout(scrT); scrT = setTimeout(relScr, 1800); } }); });
+}
 /* ---------------------------------------------------------------- drop the needle */
-/* r13: the first drop in this browser is a run. the needle lowers, the record plays, and the page carries itself down past
-   the thesis, the guess and the doors, then goes in. any touch, wheel, key or click hands the page back where it is, and a
-   chip at the bottom edge keeps the way in for the rest of the visit. later drops, and reduced motion, go straight in */
-var href0, hrefA, RUNK = 'sm.needle.ran', ranMem = 0, run = null, chip = $('#chip'), chipL = chip && $('.ln', chip), chipP = chip && $('i', chip), ENT = $('#enter'), aq = 0;
-var RUNEV = ['pointerdown', 'mousedown', 'touchstart', 'wheel', 'keydown'], RUNLINE = hov ? 'one pass down the page, then in. scroll to stay' : 'one pass down the page, then in. tap to stay';
-function ran() { if (ranMem) return 1; try { return localStorage.getItem(RUNK) ? 1 : 0; } catch (e) { return 0; } }
-function markRan() { ranMem = 1; try { localStorage.setItem(RUNK, '1'); } catch (e) {} }
+/* r18: no run, no chip. the press hands off in WT ms (see frame()), by 900 ms even if frames stall; ?enter=sound tells the exhibit a press on this page already chose sound */
+var href0 = '', ENT = $('#enter'), WT = 860, hiIce = 0, AG = $$('.arm .grab'), ad = null;
 function go() { if (busy === 1) { busy = 2; location.href = href0; } }
 function drop(e) {
   if (e.defaultPrevented || e.button > 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-  href0 = this.href; hrefA = this.getAttribute('href'); e.preventDefault(); if (busy) return; busy = 1;
-  root.classList.add('needle'); armFree();
-  if (reduce) { markRan(); setTimeout(go, 200); return; }
-  dropT = performance.now(); vis = true; start();
-  if (!ran()) { markRan(); if (runStart()) return; }
-  setTimeout(go, 1150);
+  e.preventDefault(); if (busy) return; busy = 1; href0 = this.href;
+  this.classList.add('on'); root.classList.add('needle'); stage.classList.remove('ah'); armFree(); sayIt();
+  if (reduce) { setTimeout(go, 60); return; }
+  /* the answer stays hidden until a guess: the rings turn in ice */
+  if (!inked) { hiIce = 1; HI.forEach(function (c) { var g = c.getContext('2d'); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#86cbfe'; g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'source-over'; }); }
+  stage.classList.add('drop'); dropT = performance.now(); vis = true; start(); setTimeout(go, WT + 20);
 }
-function docY(el) { return el.getBoundingClientRect().top + scrollY; }
-/* the path: rest at the start, ease past the guess and the doors (half speed there, not stopped), rest at the foot. cubic hermite
-   per leg, each leg's time shared by distance, 2.2-3.3 s of scrolling plus a 0.25 s beat at the foot, then in */
-function runStart() {
-  var vh = innerHeight, y0 = scrollY, y1 = Math.max(0, D0.documentElement.scrollHeight - vh);
-  if (y1 - y0 < vh * 0.6) return false;
-  var cov = stage.offsetWidth > innerWidth * 0.9 ? stage.offsetHeight - (parseFloat(stage.style.getPropertyValue('--hh')) || 0) : 0, want = [], gu = $('#gui');
-  if (gu && gu.offsetHeight) want.push(docY(gu) - cov - (vh - cov) * 0.3);
-  var Y = [y0]; want.forEach(function (y) { if (y > Y[Y.length - 1] + vh * 0.3 && y < y1 - vh * 0.3) Y.push(y); }); Y.push(y1);
-  var w = [], ws = 0, z, pk = 0, P;
-  for (z = 1; z < Y.length; z++) { w.push(Y[z] - Y[z - 1]); ws += w[z - 1]; }
-  var legs = function (T) {
-    var D = [0], V = [0]; for (z = 1; z < Y.length; z++) D.push(D[z - 1] + T * w[z - 1] / ws);
-    for (z = 1; z < Y.length - 1; z++) V.push(0.5 * Math.min((Y[z] - Y[z - 1]) / (D[z] - D[z - 1]), (Y[z + 1] - Y[z]) / (D[z + 1] - D[z])));
-    V.push(0); return { Y: Y, D: D, V: V, T: T };
-  };
-  /* every speed scales with 1/T, so one probe sets T for a peak of 1.9 screens a second, held to 2.2-3.3 s */
-  P = legs(2600); for (z = 1; z <= 96; z++) pk = Math.max(pk, runAt(P, z / 96 * 2600) - runAt(P, (z - 1) / 96 * 2600));
-  P = legs(Math.max(2200, Math.min(3300, pk * 96 / (vh * 0.0019))));
-  run = { t0: performance.now(), P: P, T: P.T, pk: pk * 96 / P.T / vh * 1000, y: y0, raf: 0, hold: 0, peek: 0, lock: 0 };
-  RUNEV.forEach(function (n) { addEventListener(n, runCancel, { capture: true, passive: true }); });
-  D0.addEventListener('visibilitychange', runCancel);
-  if (chip) { chip.setAttribute('href', hrefA); chipL.textContent = RUNLINE; chip.className = 'chip run'; chip.setAttribute('tabindex', '-1'); chip.setAttribute('aria-hidden', 'true'); chip.hidden = false; chipP.style.setProperty('--p', 0); }
-  run.raf = requestAnimationFrame(runStep);
-  return true;
-}
-function runAt(P, t) {
-  var Y = P.Y, D = P.D, V = P.V, z = 1;
-  if (t >= P.T) return Y[Y.length - 1];
-  while (z < D.length - 1 && t > D[z]) z++;
-  var h = D[z] - D[z - 1], s = (t - D[z - 1]) / h, s2 = s * s, s3 = s2 * s;
-  return (2 * s3 - 3 * s2 + 1) * Y[z - 1] + (s3 - 2 * s2 + s) * h * V[z - 1] + (3 * s2 - 2 * s3) * Y[z] + (s3 - s2) * h * V[z];
-}
-function runStep(now) {
-  var r = run; if (!r) return; r.raf = 0;
-  if (Math.abs(scrollY - r.y) > 6) { runEnd(0); return; }
-  var Yf = r.P.Y; Yf[Yf.length - 1] = Math.max(Yf[Yf.length - 1], D0.documentElement.scrollHeight - innerHeight); /* the answer can lengthen the lede mid-run: keep the foot */
-  var t = now - r.t0, y = runAt(r.P, t), vh = innerHeight;
-  lastY = Math.round(y); scrollTo(0, y); r.y = scrollY;
-  chipP.style.setProperty('--p', Math.min(1, t / r.T).toFixed(3));
-  if (!r.peek && gui && gui.className.indexOf('done') < 0 && gui.getBoundingClientRect().top < vh * 0.92) { r.peek = 1; ink(); gui.classList.add('peek'); gv.textContent = '19%'; if (!stage.hasAttribute('data-lock')) { r.lock = 1; stage.setAttribute('data-lock', '1'); } }
-  if (r.lock && cur >= 2) { r.lock = 0; stage.removeAttribute('data-lock'); }
-  if (t >= r.T) { r.hold = setTimeout(function () { runEnd(1); }, 250); return; }
-  r.raf = requestAnimationFrame(runStep);
-}
-function runCancel(e) { if (run && !(e && e.type === 'visibilitychange' && !D0.hidden)) runEnd(0); }
-function runEnd(done) {
-  var r = run; if (!r) return; run = null;
-  if (r.raf) cancelAnimationFrame(r.raf); clearTimeout(r.hold);
-  RUNEV.forEach(function (n) { removeEventListener(n, runCancel, { capture: true, passive: true }); });
-  D0.removeEventListener('visibilitychange', runCancel);
-  if (r.lock) stage.removeAttribute('data-lock');
-  if (done) { go(); return; }
-  busy = 0; root.classList.remove('needle'); armOff = 0; armTh = -99; sv = 0.12;
-  if (r.peek && gui.className.indexOf('done') < 0) { gui.classList.remove('peek'); gset(); }
-  chipDrop();
-}
-/* after a cancel the chip is the drop button, pinned above the safe area; it steps aside while the hero's own button shows */
-function chipDrop() {
-  if (!chip) return;
-  chip.className = 'chip'; chipL.textContent = ''; chip.removeAttribute('tabindex'); chip.removeAttribute('aria-hidden'); chip.hidden = false; root.classList.add('chipped'); chipAway();
-}
-function chipAway() {
-  aq = 0; if (run || chip.hidden || !ENT) return;
-  var r = ENT.getBoundingClientRect(), sb = stage.getBoundingClientRect(), cov = sb.width > innerWidth * 0.9 ? Math.max(0, sb.bottom) : 0;
-  chip.classList.toggle('away', r.bottom > cov + 8 && r.top < innerHeight);
-}
-if (chip) {
-  chip.addEventListener('click', drop);
-  addEventListener('scroll', function () { if (!aq && !run && !chip.hidden) aq = requestAnimationFrame(chipAway); }, { passive: true });
-  addEventListener('pageshow', function (e) { if (e.persisted && !chip.hidden) { run = null; chipDrop(); } });
-}
-window.__needle = { running: function () { return !!run; }, path: function () { return run ? [run.P.Y, run.P.D, run.T, run.pk] : null; }, line: RUNLINE, key: RUNK };
+/* M11 the tonearm is the button: press it, or swing it and let go with the stylus over the record */
+function grabR() { if (AG[1]) AG[1].setAttribute("r", (2200 / Math.max(40, disc.getBoundingClientRect().width)).toFixed(1)); }
+function armPt(ev) { var r = deckEl.getBoundingClientRect(), u = 100 / r.height; return Math.atan2((ev.clientY - r.top) * u - 12, (ev.clientX - r.left) * u - 101) * 57.29578 - 88.05; }
+AG.forEach(function (el) {
+  el.addEventListener('pointerenter', function (ev) { if (ev.pointerType === 'mouse' && !busy) { stage.classList.add('ah'); sayIt('drop the needle: click the arm, or drag it onto the record.'); } });
+  el.addEventListener('pointerleave', function () { if (!ad && stage.classList.contains('ah')) { stage.classList.remove('ah'); if (!busy) sayIt(); } });
+  el.addEventListener('pointerdown', function (ev) { ev.stopPropagation(); if (busy || ev.button > 0 || (ev.pointerType !== 'mouse' && Date.now() - lastSc < 250)) return; ad = { id: ev.pointerId, x: ev.clientX, y: ev.clientY, m: 0 }; try { el.setPointerCapture(ev.pointerId); } catch (e) {} });
+  el.addEventListener('pointermove', function (ev) {
+    if (!ad || ad.id !== ev.pointerId) return; ev.stopPropagation();
+    if (!ad.m && Math.abs(ev.clientX - ad.x) + Math.abs(ev.clientY - ad.y) < 8) return;
+    ad.m = 1; armOff = 1; armTh = Math.max(-8, Math.min(34, armPt(ev))); ARMSW.style.transition = 'none'; ARMSW.style.transform = 'rotate(' + armTh.toFixed(2) + 'deg)';
+  });
+  el.addEventListener('pointerup', function (ev) { if (!ad || ad.id !== ev.pointerId) return; ev.stopPropagation(); var m = ad.m; ad = null; if (!m || tipD(armTh) < 48) drop.call(ENT, ev); else { armOff = 0; if (reduce) armTo(head, 1); } });
+  el.addEventListener('pointercancel', function () { if (ad && ad.m) { armOff = 0; if (reduce) armTo(head, 1); } ad = null; });
+});
 ['#enter', '#enter-quiet'].forEach(function (s) { var a = $(s); if (a) a.addEventListener('click', drop); });
 /* only the lab opts into cross-document view transitions (the exhibit does not, see exhibit.html); for any other
    destination chrome creates the inbound transition anyway, aborts it there, and prints the rejection as a page error on
    the new page. so the swap is skipped here for every destination but the lab, and the promises nothing needs are caught */
-['pageswap', 'pagereveal'].forEach(function (ev) { addEventListener(ev, function (e) { var t = e.viewTransition; if (!t) return; var to = (e.activation && e.activation.entry && e.activation.entry.url) || ''; if (ev === 'pageswap' && !/\/lab(\.html|\/)?(\?|#|$)/.test(to)) { try { t.skipTransition(); } catch (x) {} } [t.ready, t.updateCallbackDone, t.finished].forEach(function (p) { if (p && p.catch) p.catch(function () {}); }); }); });
-addEventListener('pageshow', function (e) { if (e.persisted) { busy = 0; ang = 0; plat.style.transform = ''; root.classList.remove('needle'); armOff = 0; armTh = -99; if (!reduce) start(); } });
+['pageswap', 'pagereveal'].forEach(function (ev) { addEventListener(ev, function (e) { var t = e.viewTransition; if (!t) return; var to = (e.activation && e.activation.entry && e.activation.entry.url) || ''; if (ev === 'pageswap') { try { t.skipTransition(); } catch (x) {} } [t.ready, t.updateCallbackDone, t.finished].forEach(function (p) { if (p && p.catch) p.catch(function () {}); }); }); });
+addEventListener('pageshow', function (e) { if (e.persisted) { busy = 0; ang = 0; plat.style.transform = ''; root.classList.remove('needle'); stage.classList.remove('drop'); HI.forEach(function (c) { c.style.transform = ''; }); $$('.cta a').forEach(function (a) { a.classList.remove('on'); }); armOff = 0; armTh = -99; if (hiIce) { hiIce = 0; draw(); } if (askV) sayIt(ASKL); if (!reduce) start(); } });
 var rt = 0, FX = $('.fx');
 function hh() { if (FX) stage.style.setProperty('--hh', Math.max(0, FX.offsetTop - 4) + 'px'); }
 hh(); addEventListener('resize', hh, { passive: true });
@@ -536,8 +520,9 @@ if ('ResizeObserver' in window) new ResizeObserver(relayout).observe(disc); else
 requestAnimationFrame(function () { setTimeout(function () {
   draw(); onScroll(); docH = D0.documentElement.scrollHeight; start();
   if (reduce) washTo(head, 1); else if (!location.hash && !D0.hidden) { lockW(); shown = 0; setLede(0); wind = performance.now(); washTo(0, 1); }
+  if (!wind) askShow();
 }, 0); });
 addEventListener('resize', function () { docH = D0.documentElement.scrollHeight; if (!lpc) lockW(); }, { passive: true });
-window.__door = { ink: function () { ink(); return inked; }, inked: function () { return inked; }, lite: function () { return lite; }, hand: function () { return hand; }, gauge: function () { return [gz.g, gz.p, gz.a]; }, armTh: function () { return armTh; }, scrubTo: setScrub, lede: function () { return [FB[0].textContent, FB[1].textContent]; }, bloom: function () { return [bs.on, bs.rel]; }, wind: function () { return wind; }, n: N, months: NM, arm: ARM, month: MON, draw: draw, ms: function () { return ms; }, geom: function () { return G; }, angle: function () { return ang; }, state: function () { return busy; }, th0: TH0, lowq: function () { return lowq; }, work: function () { return [wavg, wmax]; }, step: function () { return cur; },
+window.__door = { ink: function () { ink(); return inked; }, inked: function () { return inked; }, lite: function () { return lite; }, hand: function () { return hand; }, gauge: function () { return [gz.g, gz.p, gz.a]; }, armTh: function () { return armTh; }, scrubTo: setScrub, lede: function () { return [FB[0].textContent, FB[1].textContent]; }, bloom: function () { return [bs.on, bs.rel]; }, wind: function () { return wind; }, n: N, months: NM, arm: ARM, month: MON, draw: draw, ms: function () { return ms; }, geom: function () { return G; }, angle: function () { return ang; }, state: function () { return busy; }, ask: function () { return [ask, askV, gq, said]; }, th0: TH0, lowq: function () { return lowq; }, work: function () { return [wavg, wmax]; }, step: function () { return cur; },
   counts: function () { var o = [0, 0, 0]; for (var z = 0; z < N; z++) o[ARM[z]]++; return o; } };
 })();

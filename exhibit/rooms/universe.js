@@ -248,6 +248,10 @@ html.atlas section[data-room="universe"] .uv-rd{margin:2px 0 4px;padding:2px 0 2
 html.atlas section[data-room="universe"] .uv-rd p{margin:0 0 5px;font:400 10.5px/1.45 var(--mono);color:rgba(164,155,189,.9)}
 html.atlas section[data-room="universe"] .uv-sel{display:none;margin:6px 0 0;font:500 11px/1.4 var(--mono);color:var(--ice)}
 html.atlas section[data-room="universe"] .uv-sel:empty{display:none}
+html.atlas section[data-room="universe"] .uv-selrow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px}
+html.atlas section[data-room="universe"] .uv-hearb{color:var(--ice);border-color:rgba(134,203,254,.5);text-transform:lowercase;letter-spacing:.06em;margin:6px 0 0}
+html.atlas section[data-room="universe"] .uv-hearb[hidden]{display:none}
+html.atlas section[data-room="universe"] .uv-note .uv-hearb{margin:0}
 html.atlas section[data-room="universe"] .uv-dock.inbar{gap:5px;padding:0;background:none;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none}
 html.atlas section[data-room="universe"] .uv-dock.inbar .uv-top{flex-wrap:nowrap;gap:6px;overflow-x:auto;scrollbar-width:none}
 html.atlas section[data-room="universe"] .uv-dock.inbar .uv-top::-webkit-scrollbar{display:none}
@@ -549,7 +553,105 @@ function platter(R) {
 function bedPlays() { const A = S.ctx && S.ctx.audio, e = A && A.els && A.els[A.cur]; return !!(A && A.on && !A.muted && !A.away && !A.ducked && e && !e.paused); }
 /* the record turns only while the bed plays and the visitor has stepped back (the chrome has faded); a hand over it stops it */
 let reachAt = -1e9;
-const spins = () => S.active && !S.sel && (S.angle === 'sky' || S.angle === 'links' || S.angle === 'threads') && !!(S.ctx.idle && S.ctx.idle.faded) && now() - reachAt > 1500 && bedPlays();
+const spins = () => S.active && !S.sel && (S.angle === 'sky' || S.angle === 'links' || S.angle === 'threads') && !!(S.ctx.idle && S.ctx.idle.faded) && now() - reachAt > 1500 && (bedPlays() || clipPlaying());
+
+/* R18 ROOMS (MUSIC V1 + V2): hear X, see X. post.js says what is playing (window 'sm:clip'); while an artist's clip plays,
+   that artist's own plays (its star's block of dots) brighten, every other play steps back a little, a slow ice ring
+   breathes on the star and the caption names it. a page that never hears the event changes nothing. the platter turns
+   for a clip as it does for the bed (spins above). the light moves in five steps over 600 ms (200 ms under reduced motion) */
+const HEAR = { artist: '', state: '', g: 0, gq: 0, to: 0, from: 0, t0: 0, step: '', cap: null, ct: 0, li: -1 };
+const HEAR_MS = 600, HEAR_UP = 1.6, HEAR_DIM = 0.15, HEAR_STEPS = 5, HEAR_RING = 1800;
+function clipPlaying() { return HEAR.state === 'playing'; }
+function hearIdx() { const R = S.R, i = HEAR.artist ? artistIdx(HEAR.artist) : -1; return R && i >= 0 && i < R.nA && R.placed[i] !== 1 ? i : -1; }
+/* where a star's block of dots is all of its plays: the sky, links and a star (never the day, threads or a lit sun) */
+function hearView() { return (S.angle === 'sky' || S.angle === 'links' || S.angle === 'star') && !sunLit(); }
+function hearGo(to) { if (HEAR.to === to) return; HEAR.to = to; HEAR.from = HEAR.g; HEAR.t0 = now(); }
+function onClip(e) {
+  const d = e && e.detail; if (!d || typeof d.state !== 'string') return;
+  const a = typeof d.artist === 'string' ? d.artist : '', st = d.state;
+  if (st === 'playing' && a) {
+    if (a !== HEAR.artist) { HEAR.g = HEAR.from = 0; HEAR.to = 0; } /* another artist: its light starts from nothing */
+    HEAR.artist = a; HEAR.state = st; hearGo(1);
+  } else if (st === 'armed' || st === 'cueing') { if (a && a !== HEAR.artist) { HEAR.state = st; hearGo(0); } }
+  else { HEAR.state = st; hearGo(0); }
+  hearCap();
+}
+function hearStep(t) {
+  const T = HEAR;
+  if (T.g !== T.to) { const u = Math.min(1, (now() - T.t0) / (S.ctx.reduced ? 200 : HEAR_MS)); T.g = u >= 1 ? T.to : T.from + (T.to - T.from) * u; }
+  const k = T.g > 0 ? Math.max(1, Math.round(T.g * HEAR_STEPS)) : 0, i = k ? hearIdx() : -1, key = k && i >= 0 && hearView() ? k + ':' + i + ':' + S.angle : '';
+  if (key !== T.step) { T.step = key; T.gq = key ? k / HEAR_STEPS : 0; weights(); hearLabel(key ? i : -1); }
+  if (T.to === 1 && !S.RB) wantRoster(); /* the caption's count is the full roster's */
+  if ((T.to === 1 || T.cap) && t - T.ct > 400) { T.ct = t; hearCap(); if (T.step) hearLabel(hearIdx(), true); }
+}
+/* the heard star keeps its name up (a hover's priority) for as long as it is lit */
+function hearLabel(i, force) {
+  if (HEAR.li === i && !force) return; const was = HEAR.li; HEAR.li = i;
+  try { if (was >= 0 && was !== i && was !== S.hover) { const L = labelOf(was); if (L) S.ctx.labels.update('universe', L.id, { pri: L.pri }); } if (i >= 0) { const L = labelOf(i); if (L) S.ctx.labels.update('universe', L.id, { pri: 5000 }); } } catch (e) {}
+}
+/* in weights(), last: the heard star's block up, every other play a little down (the exposure re-seeds after) */
+function hearPass(WB) {
+  const g = HEAR.gq, i = g > 0 && hearView() ? hearIdx() : -1; if (i < 0) return;
+  const R = S.R, n = WB.length, a0 = R.bs[i], a1 = Math.min(R.bs[i + 1], n), dm = 1 - HEAR_DIM * g, up = 1 + HEAR_UP * g;
+  for (let d = 0; d < a0; d++) { const w = WB[d]; if (w > 1) WB[d] = Math.max(1, (w * dm + 0.5) | 0); }
+  for (let d = a0; d < a1; d++) { const w = (WB[d] * up + 0.5) | 0; WB[d] = w > 255 ? 255 : w; }
+  for (let d = a1; d < n; d++) { const w = WB[d]; if (w > 1) WB[d] = Math.max(1, (w * dm + 0.5) | 0); }
+}
+function drawHear(g, t) {
+  const i = hearView() && !S.morph ? hearIdx() : -1; if (i < 0 || i >= S.ns) return;
+  const R = S.R, p = pt3(R.cx[i], R.cy[i], R.cz[i]); if (p[3] <= 0.05) return;
+  const r = Math.max(16, R.sig[i] * 2.4 * p[2]) + 10, A = HEAR.g;
+  g.save(); g.lineWidth = 1.25;
+  g.strokeStyle = 'rgba(134,203,254,' + (0.62 * A).toFixed(3) + ')'; g.beginPath(); g.arc(p[0], p[1], r, 0, 6.2832); g.stroke();
+  if (!S.ctx.reduced) { const u = (t % HEAR_RING) / HEAR_RING; g.lineWidth = 1; g.strokeStyle = 'rgba(134,203,254,' + (0.55 * A * (1 - u)).toFixed(3) + ')'; g.beginPath(); g.arc(p[0], p[1], r + 3 + u * 26, 0, 6.2832); g.stroke(); }
+  g.restore();
+}
+function hearLine() {
+  if (HEAR.to !== 1 || !S.active || !hearView()) return null;
+  const i = hearIdx(), R = S.R; if (i < 0 || !R.plays) return null;
+  const n = fmt(R.plays[i]), A = "you're hearing ", B = '. the bright cluster is ' + n + ' plays in my log.', B2 = '. the bright cluster is its ' + n + ' plays.';
+  let nm = String(R.names[i]); if ((A + nm + B).length <= 90) return A + nm + B;
+  if ((A + nm + B2).length > 90) nm = nm.slice(0, Math.max(8, 89 - A.length - B2.length)) + '…';
+  return A + nm + B2;
+}
+function hearCap() {
+  const l = hearLine(); if (l === HEAR.cap) return; HEAR.cap = l;
+  if (l) hearWrap();
+  if (S.active) { try { const c = S.ctx.caption; if (c && typeof c.clear === 'function') c.clear(); } catch (e) {} }
+}
+function hearInstall(ctx) {
+  if (S.hearIn) return; S.hearIn = true;
+  try { addEventListener('sm:clip', onClip); } catch (e) {}
+  hearWrap();
+}
+/* the line goes first in the chrome's one caption slot while the clip plays (a field layer's line, the veins', waits under
+   it and comes back on pause); re-wrapped only when another layer wrapped after this one */
+function hearWrap() {
+  const AT = S.ctx && S.ctx.atlas; if (!AT || (S.hearFn && AT.capFor === S.hearFn)) return;
+  const prev = typeof AT.capFor === 'function' ? AT.capFor : null;
+  S.hearFn = (id, a) => (id === 'universe' ? hearLine() : null) || (prev ? prev(id, a) : null); AT.capFor = S.hearFn;
+}
+/* R18 ROOMS (FRESH_EYES): a second tap on the picked star, or its hear control, plays it (post.js asks first, once) */
+function hearStar(i, x, y) {
+  const R = S.R, P = S.ctx && S.ctx.post, f = P && (P.playQuiet || P.playArtist);
+  if (!R || typeof f !== 'function' || i < 0 || i >= R.nA) return false;
+  const on = isFinite(x) && isFinite(y) && x > 0 && y > 0 && x < innerWidth && y < innerHeight;
+  try { const r = f.call(P, R.names[i], Object.assign(on ? dwellAt(x, y) : {}, { via: 'tap' })); if (r && typeof r.catch === 'function') r.catch(() => {}); } catch (e) { return false; }
+  return true;
+}
+function renderHear() {
+  const d = S.dom, b = d && d.hearB; if (!b) return;
+  const R = S.R, P = S.ctx && S.ctx.post, si = S.sel ? S.sel.i : -1, nm = R && si >= 0 && si < R.nA ? String(R.names[si]) : '';
+  if (!nm || !P || typeof (P.playQuiet || P.playArtist) !== 'function') { b.hidden = true; b.dataset.a = ''; return; }
+  let short = false; try { short = getComputedStyle(d.sel).display !== 'none'; } catch (e) {}
+  const label = '▶ hear' + (short ? '' : ' ' + nm);
+  if (b.textContent !== label) b.textContent = label;
+  b.setAttribute('aria-label', 'hear a clip of ' + nm);
+  if (b.dataset.a === nm) return;
+  b.dataset.a = nm; b.hidden = true;
+  const show = (ok) => { if (b.dataset.a === nm) b.hidden = !ok; };
+  try { const h = P.hasTrackNow ? P.hasTrackNow(nm) : true; if (h === true || h === false) show(h); else if (P.hasTrack) P.hasTrack(nm).then(show, () => show(false)); else show(true); } catch (e) { show(false); }
+}
 /* each dot's falloff class: 0 within one sigma of its star, 1 within two, 2 beyond, 3 dust (every non-star play) */
 function ringOf(R) {
   const n = R.N, rg = new Uint8Array(n).fill(DUSTC);
@@ -674,7 +776,10 @@ function buildDom(root, ctx) {
   const tlist = el('details', 'uv-more uv-threadlist'); tlist.hidden = true; tlist.appendChild(el('summary', '', c.threadList));
   const lbThreads = el('div', 'uv-lb'); lbThreads.setAttribute('role', 'listbox'); lbThreads.tabIndex = 0; lbThreads.setAttribute('aria-label', 'the threads of this arm, by family pair'); lbThreads.id = 'uv-lb-threads'; tlist.appendChild(lbThreads);
   const sel = el('p', 'uv-sel'); sel.setAttribute('aria-hidden', 'true');
-  slot.append(chipline, plac, legend, famact, bright, tlist, sel); /* the placard's rest straight under the chip line: the first thing "more" adds to the column */
+  /* R18 ROOMS: the picked star's own hear control (a star itself is not in the tab order; search and the list land here) */
+  const selRow = el('div', 'uv-selrow'), hearB = el('button', 'uv-b uv-hearb'); hearB.type = 'button'; hearB.hidden = true; selRow.append(sel, hearB);
+  hearB.addEventListener('click', () => { const s = S.sel; if (s && s.i >= 0) hearStar(s.i, S.sx[s.i], S.sy[s.i]); });
+  slot.append(chipline, plac, legend, famact, bright, tlist, selRow); /* the placard's rest straight under the chip line: the first thing "more" adds to the column */
   /* the info panel's hud carries two lines; the rest of the readout (the star card, the day in full, a thread's window)
      opens here, under the panel on wide screens and under the dock in the phone card (placed by layoutDock) */
   const readout = el('details', 'uv-more uv-readout'); readout.hidden = true; readout.appendChild(el('summary', '', c.readMore));
@@ -683,7 +788,7 @@ function buildDom(root, ctx) {
   listbox(lbThreads, (opt) => focusPair(+opt.dataset.a, +opt.dataset.b, 'list'));
   /* the day cursor's parts are built only once the day records are known to exist (buildDayDom): without Tier B there is
      no day button, date field or slider anywhere in the page */
-  S.dom = { dock, top, views, armRow, armK, armGroup, line, plac, bloom, day: null, ctl: null, prev: null, next: null, play: null, date: null, dayn: null, range: null, norec: null, tb: null, chipline, legend, famact, bright, lbStars, tlist, lbThreads, sel, readout, rd, note, dayrow, slot };
+  S.dom = { dock, top, views, armRow, armK, armGroup, line, plac, bloom, day: null, ctl: null, prev: null, next: null, play: null, date: null, dayn: null, range: null, norec: null, tb: null, chipline, legend, famact, bright, lbStars, tlist, lbThreads, sel, selRow, hearB, readout, rd, note, dayrow, slot };
   buildViews();
   if (hasDayAngle()) buildDayDom();
 }
@@ -788,14 +893,14 @@ const dockModeOf = () => (innerWidth <= innerHeight * 1.15 ? (document.documentE
 function placeParts(mode) {
   const d = S.dom, dy = !!d.day;
   if (mode === 'bar') {
-    d.note.append(d.sel, d.line); if (dy) d.note.append(d.norec, d.tb);
+    d.note.append(d.selRow || d.sel, d.line); if (dy) d.note.append(d.norec, d.tb);
     if (dy) { d.ctl.append(d.prev, d.next, d.play); d.dayrow.append(d.date, d.range, d.dayn); d.day.append(d.dayrow); }
     d.dock.append(d.note); if (dy) d.dock.append(d.day); d.dock.append(d.top);
   } else {
     if (dy) { d.ctl.append(d.prev, d.date, d.next, d.play, d.dayn); d.day.append(d.range, d.norec, d.tb); }
     d.dayrow.remove(); d.note.remove();
     d.dock.append(d.top); if (dy) d.dock.append(d.day); d.dock.append(d.line); /* the float dock hangs the line under its box (css) */
-    d.slot.append(d.sel);
+    d.slot.append(d.selRow || d.sel);
   }
 }
 function layoutDock() {
@@ -1157,6 +1262,7 @@ function weights() {
       WB[d] = keep ? (DH[d] < Math.min(keep[k] === 1 && k !== U.i ? SUN_NB_KEEP : SUN_KEEP, (256 * SUN_DOTS) / (R.bs[k + 1] - R.bs[k])) ? 1 : 0) : f < 0 || F[d] === f ? w : Math.max(1, (w * DIMFAM) >> 8);
     }
   }
+  hearPass(WB); /* R18 ROOMS V1: the clip you hear lights its own plays */
   /* the field gets the weights only once this entry's dots stand where the room put them (project(): placed); until then
      it stays empty, never another room's shape or the shell's default layout lit up (VERIFY_1 P0-1) */
   /* (while an angle morph runs, project() writes every dot's weight each frame from the old and new views': the field keeps
@@ -1272,6 +1378,7 @@ function renderHud() {
   renderReadout(rest);
   const sel = S.dom.sel, si = S.sel ? S.sel.i : -1;
   sel.textContent = si >= 0 && si < S.R.nA ? S.R.names[si] + ' · ' + famName(S.R.fam[si]) + (S.R.plays ? ' · ' + fmt(S.R.plays[si]) + ' plays' : '') : '';
+  renderHear();
 }
 function renderReadout(rest) {
   const d = S.dom; if (!d) return;
@@ -1650,7 +1757,7 @@ function onTap(p) {
   reachAt = now();
   if (!S.R) return false;
   const touch = p.type === 'touch', i = pickStar(p.sx, p.sy, touch ? tapR() : 16);
-  if (i >= 0) { focusArtistIdx(i, 'tap'); return true; }
+  if (i >= 0) { if (S.sel && S.sel.i === i && now() - S.selAt > 350 && hearStar(i, p.sx, p.sy)) return true; focusArtistIdx(i, 'tap'); return true; }
   const ln = pickLine(p.sx, p.sy);
   if (ln && ln.kind === 'chord') { focusPair(ln.a, ln.b, 'tap'); return true; }
   if (ln && ln.kind === 'day') { S.dayLine = { a: ln.a, b: ln.b, n: ln.n }; S.sel = null; renderHud(); return true; }
@@ -1883,13 +1990,48 @@ function drawPlatter(g) {
 function drawOverlay(g, t) {
   const a = S.angle;
   drawPlatter(g);
+  filaments(g, t);
   if (a === 'day' && S.D && S.dayK >= 0) drawDayBloom(g);
   if (S.sunOld) drawSun(g, t, S.sunOld);
   const U = S.sun, lit = U && U.lit && S.sel && S.sel.i === U.i;
   if (lit) drawSun(g, t, U);
   if (S.sel && S.sel.i >= 0 && !S.morph && !lit) drawReticle(g, t, S.sel.i);
+  if (HEAR.g > 0.004) drawHear(g, t);
   if (VX) VX.draw(g);
   if (S.hover >= 0 && (!S.sel || S.sel.i !== S.hover)) drawHover(g, S.hover);
+}
+/* R18 ROOMS (ART#10): luminous co-listening filaments in the sky. every link between two stars (universe_edges.json, 482)
+   as a soft ice thread, added ('lighter') in eight interleaved passes into a half-resolution layer, so where many links meet
+   the web glows; reserved hues stay on the stars. the layer is drawn again only when the view has changed: on a desk in the
+   same frame, on a phone only once the camera has settled (it fades while the view moves). reduced motion: no fade, the
+   settled layer simply shows */
+const FIL = { cv: null, x: null, sig: '', a: 0, last: 0, still: 0, ms: 0, n: 0, draws: 0 };
+const FIL_A = 0.055, FIL_W = 1.1, FIL_PASS = 8;
+function filOn() { return S.angle === 'sky' && !S.morph && !sunLit() && !!S.A && !!S.R && S.placed && !S.noGlow; }
+function filDraw() {
+  const A = S.A, E = A.edges, n = S.ns, W = innerWidth, H = innerHeight, cw = Math.ceil(W / 2), ch = Math.ceil(H / 2);
+  const cv = FIL.cv || (FIL.cv = document.createElement('canvas')), x = FIL.x || (FIL.x = cv.getContext('2d'));
+  if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
+  const t0 = performance.now(), SX = S.sx, SY = S.sy, SD = S.sd;
+  x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, cw, ch);
+  x.setTransform(0.5, 0, 0, 0.5, 0, 0); x.globalCompositeOperation = 'lighter'; x.lineCap = 'round'; x.lineWidth = FIL_W; x.strokeStyle = 'rgba(134,203,254,' + FIL_A + ')';
+  let m = 0;
+  for (let p = 0; p < FIL_PASS; p++) {
+    x.beginPath();
+    for (let k = p; k < E.length; k += FIL_PASS) { const e = E[k], i = e.a, j = e.b; if (i >= n || j >= n || SD[i] <= 0.05 || SD[j] <= 0.05) continue; x.moveTo(SX[i], SY[i]); x.lineTo(SX[j], SY[j]); m++; }
+    x.stroke();
+  }
+  FIL.n = m; FIL.draws++; FIL.ms = FIL.ms ? FIL.ms * 0.8 + (performance.now() - t0) * 0.2 : performance.now() - t0;
+}
+function filaments(g, t) {
+  const on = filOn(), red = S.ctx.reduced, low = COARSE || (P().perDot || 1) > 1, sig = S.projSig + '|' + innerWidth + 'x' + innerHeight;
+  if (sig !== FIL.sig) { FIL.sig = sig; FIL.still = t; FIL.stale = true; }
+  const settled = t - FIL.still > 180;
+  if (on && FIL.stale && (!low || settled)) { filDraw(); FIL.stale = false; }
+  const want = on && !FIL.stale ? 1 : 0, dt = FIL.last ? Math.min(60, t - FIL.last) : 16; FIL.last = t;
+  FIL.a = red ? want : want > FIL.a ? Math.min(1, FIL.a + dt / 400) : Math.max(0, FIL.a - dt / 150);
+  if (FIL.a <= 0.01 || !FIL.cv) return;
+  g.save(); g.globalAlpha = FIL.a; g.drawImage(FIL.cv, 0, 0, innerWidth, innerHeight); g.restore();
 }
 /* a quadratic bezier in 3D, projected at segs + 1 points into out (x, y pairs; -1e5 behind the camera), no array per
    point. returns false when any point is behind the camera */
@@ -2053,6 +2195,12 @@ function drawSkyBloom() {
     const near = clamp((d1 - S.sd[i]) * kd, 0, 1);
     x.globalAlpha = BA * (1 - i / n) * (0.55 + 0.45 * near);
     x.drawImage(skySprite(famHex(R.fam[i])), (sx - r) * q, (sy - r) * q, 2 * r * q, 2 * r * q);
+  }
+  /* R18 ROOMS V1: the star you are hearing keeps its own light, whatever its rank */
+  const hi = HEAR.g > 0.01 && hearView() ? hearIdx() : -1;
+  if (hi >= 0 && hi < S.ns && S.sd[hi] > 0.05) {
+    const sx = S.sx[hi], sy = S.sy[hi], r = Math.min(rCap, Math.max(14, (R.sig[hi] / R.sigK) * S.ss[hi] * BR * 1.6));
+    if (sx > -r && sy > -r && sx < W + r && sy < H + r) { x.globalAlpha = Math.min(1, BA * 2.2) * HEAR.g; x.drawImage(skySprite(famHex(R.fam[hi])), (sx - r) * q, (sy - r) * q, 2 * r * q, 2 * r * q); }
   }
 }
 function drawReticle(g, t, i) {
@@ -2690,6 +2838,7 @@ export default {
        (built off the main thread while the stop before is showing, so the sky is there the moment the room opens) */
     api.ready = S.readyP = Promise.all([loadTierA(), probeDays()]).then(() => { fillStarList(); need('rosterA').catch(() => {}); return true; }).catch((e) => { S.failed = true; console.warn('universe tier a', e); return false; });
     ctx.provide('universe', api);
+    hearInstall(ctx);
     try { if (ctx.labels && typeof ctx.labels.onHover === 'function') ctx.labels.onHover('universe', onLabelHover); } catch (e) {}
     /* the ladder clears overrides in onStop, which the shell runs after enter(): say the readout again after it (R2b) */
     try { ctx.onStop((ev) => { if (ev && ev.id === 'universe') Promise.resolve().then(() => { if (S.active && S.R) ladder(); }); }); } catch (e) {}
@@ -2759,6 +2908,7 @@ export default {
     S.active = false; S.readyAt = 0; S.readyPend = false; try { if (S.sec) delete S.sec.dataset.ready; } catch (e) {} stopPlay(); S.hover = -1; S.sel = null; S.chord = null; S.dayLine = null; S.sun = S.sunOld = null; sunClass(false); S.dolly = null; S.bright = null; S.bmap = null; S.lay = null; S.layT = null;
     try { if (ctx.atlas && typeof ctx.atlas.setLines === 'function') ctx.atlas.setLines(null); } catch (e) {} S.linesOn = false; /* K1: the shell clears it on exit too */
     try { if (S.bloomOn && S.bloomX) { S.bloomX.clearRect(0, 0, S.dom.bloom.width, S.dom.bloom.height); S.bloomOn = false; } } catch (e) {}
+    HEAR.cap = null; /* the hear line is said again on the next entry */
     renderReadout([]); /* the shell clears the hud on a stop change; its second half goes with it */
     try { ctx.ladder.readout(null); ctx.ladder.level(null); } catch (e) {}
     fireTime();
@@ -2772,6 +2922,7 @@ export default {
       const Pp = ctx.particles, dt = S.lastT ? Math.min(60, t - S.lastT) : 16; S.lastT = t;
       if (Pp.ease < 0.35) Pp.ease = Math.min(0.35, Pp.ease + dt * 0.00016); /* gather slowly, then keep up with the camera */
       if (Pp.swirl > 0) Pp.swirl = Math.max(0, Pp.swirl - dt * 0.00018);
+      hearStep(t);
       const tp = now(), moved = project(t) !== false; const tq = now(); S.tProj = (S.tProj || 0) * 0.95 + (tq - tp) * 0.05;
       /* the morph has brought the stars where the names point: the new view's names come in (every view, the day's too) */
       if ((S.morph && !S.morph.lab && morphU() >= MORPH_LAB) || S.labNeed) { if (S.morph) S.morph.lab = true; S.labNeed = false; setLabels(); }
@@ -2858,6 +3009,14 @@ export default {
 
 /* test hooks: read-only views of the room's state, used by tests/atlas_universe.mjs */
 api._dbg = {
+  /* R18 ROOMS V1: the hear state (what sm:clip said, the light's level, the star, the caption line, the turn) */
+  hear() { const i = hearIdx(), R = S.R, W = S.wb; let bs = 0, bn = 0, rs = 0, rn = 0; if (i >= 0 && W) { const a0 = R.bs[i], a1 = R.bs[i + 1]; for (let d = 0; d < W.length; d++) { if (!W[d]) continue; if (d >= a0 && d < a1) { bs += W[d]; bn++; } else { rs += W[d]; rn++; } } }
+    return { artist: HEAR.artist, state: HEAR.state, li: HEAR.li, g: HEAR.g, gq: HEAR.gq, i, blk: bn ? +(bs / bn).toFixed(1) : null, rest: rn ? +(rs / rn).toFixed(2) : null, line: hearLine(), spins: !!spins(), hearB: S.dom && S.dom.hearB ? { hidden: S.dom.hearB.hidden, text: S.dom.hearB.textContent } : null }; },
+  /* the hear light's own cost: weights() with and without the pass (ms each), one ring (ms) */
+  hearCost() { const sv = HEAR.gq, tm = (q) => { HEAR.gq = q; const t0 = performance.now(); for (let k = 0; k < 6; k++) weights(); return (performance.now() - t0) / 6; }; const off = tm(0), on = hearIdx() >= 0 ? tm(1) : null; HEAR.gq = sv; weights();
+    const cv = document.createElement('canvas'); cv.width = innerWidth; cv.height = innerHeight; const g = cv.getContext('2d'), sg = HEAR.g; HEAR.g = 1; const t1 = performance.now(); for (let k = 0; k < 200; k++) drawHear(g, k * 16); const ring = (performance.now() - t1) / 200; HEAR.g = sg;
+    return { weightsOff: +off.toFixed(2), weightsOn: on == null ? null : +on.toFixed(2), ring: +ring.toFixed(3), n: S.wb ? S.wb.length : 0 }; },
+  fil() { return { a: +FIL.a.toFixed(3), n: FIL.n, ms: +FIL.ms.toFixed(3), draws: FIL.draws, on: filOn(), stale: !!FIL.stale }; },
   voice() { return vx(); },
   corona() { return VX ? VX.state() : null; },
   neighbours(i) { return VX ? VX.neighbours(i) : null; },

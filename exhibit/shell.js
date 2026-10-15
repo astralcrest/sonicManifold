@@ -20,8 +20,8 @@
 /* the listening posts and the label text are optional: a blocked or flaky file leaves them off instead of leaving the exhibit unbooted. one retry, then a no-op stand-in */
 const soft = (u, d) => import(u).catch(() => import(u + '&retry=1')).catch(() => d);
 const [PM, LM] = await Promise.all([
-  soft('./post.js?v=12', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}) }),
-  soft('./labels.js?v=24', { LABELS: {}, HINTS: {}, HINTS_ATLAS: {}, HINTS_TOUCH: {} }),
+  soft('./post.js?v=13', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}) }),
+  soft('./labels.js?v=25', { LABELS: {}, HINTS: {}, HINTS_ATLAS: {}, HINTS_TOUCH: {} }),
 ]);
 const { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } = PM;
 const { LABELS, HINTS, HINTS_ATLAS, HINTS_TOUCH } = LM;
@@ -50,6 +50,11 @@ const FIELD_DEFAULT = 'both';
 const FIELD = ATLAS && !NOGLYPH ? ((/[?&]field=(ink|slime|both|glyph|dots)\b/.exec(location.search) || [])[1] || FIELD_DEFAULT).replace('dots', 'glyph') : 'glyph';
 const INK_ON = FIELD === 'ink' || FIELD === 'both', SLIME_ON = FIELD === 'slime' || FIELD === 'both';
 const HASH0 = location.hash; /* read before anything rewrites it: url.js parses the deep link once, after it mounts */
+/* R18 FIELD_GL: the field draws through one WebGL2 canvas (atlas/field.gl.js) wherever WebGL2 runs on a real GPU; ?gl=0 keeps
+   the 2D canvas. ?p3=1 / ?p3=0 force the wide-gamut output on or off (default: on where the screen is P3). ?cut=1 / ?cut=0
+   force the barcode cut between stops (CUT_DEFAULT is the one line that flips it) */
+const GLQ = (/[?&]gl=([01])\b/.exec(location.search) || [])[1], P3Q = (/[?&]p3=([01])\b/.exec(location.search) || [])[1];
+const CUTQ = (/[?&]cut=([01])\b/.exec(location.search) || [])[1], CUT_DEFAULT = false;
 /* a module whose fetch fails (a dropped connection, a lossy phone link, a burst of parallel requests reset) is asked for
    twice more, 0.3 s and 0.6 s later, under a changed url: the page remembers a failed module by its url, so the same url
    would fail again at once. no module imports another, so a retried url never makes a second copy of one. what still
@@ -66,7 +71,9 @@ const CORE = ['glyphfield', 'camera', 'gesture', 'glyph-atlas'];
 /* the four modules the first frame needs; a tour link (#tour=id&stop=n) also reads the tours now, so the page opens on the
    room that stop stands in instead of on the threshold for a moment (a globe, then a cut: R2_REQUESTS_R4 V2) */
 const TOURHASH = ATLAS ? /^#tour=([^&]+)/.exec(HASH0) : null;
-const [GFM, CAMM, GESM, GAM, TOURSM] = ATLAS ? await Promise.all([atlasImport('glyphfield'), atlasImport('camera'), atlasImport('gesture'), atlasImport('glyph-atlas'), TOURHASH ? atlasImport('tours') : {}]) : [{}, {}, {}, {}, {}];
+/* the GL field is not CORE: a failed fetch leaves the 2D canvas drawing, no notice */
+const GLIMP = ATLAS && GLQ !== '0' && typeof WebGL2RenderingContext !== 'undefined' ? importRetry('./atlas/field.gl.js' + V).catch((e) => { console.warn('field.gl', e); return {}; }) : {};
+const [GFM, CAMM, GESM, GAM, TOURSM, GLM] = ATLAS ? await Promise.all([atlasImport('glyphfield'), atlasImport('camera'), atlasImport('gesture'), atlasImport('glyph-atlas'), TOURHASH ? atlasImport('tours') : {}, GLIMP]) : [{}, {}, {}, {}, {}, {}];
 /* every failure notice offers the way out that needs none of the atlas: the same page, read as text */
 function plainLink(p) {
   if (p.querySelector('a')) return;
@@ -163,17 +170,49 @@ export function hash(i) { let x = (i + 1) * 2654435761 >>> 0; x ^= x >>> 15; x =
 /* ------------------------------------------------------------------ particles */
 const TOTAL_PLAYS = 97427;
 export const lowPower = coarse || (navigator.hardwareConcurrency || 4) <= 4 || Math.min(innerWidth, innerHeight) < 700;
-const N = lowPower ? Math.round(TOTAL_PLAYS / 4) : TOTAL_PLAYS; /* phones draw one dot per four plays; the caption says so */
 
-const field = $('#field');
+/* R18 FIELD_GL: the GL canvas takes #field's place (its id, class and size); the 2D canvas waits, detached, as the fallback and
+   comes back at once if the context is lost (glLost), for good after a second loss. GL_WHY says why the 2D path runs */
+let field = $('#field');
+const field2d = field;
+let FGL = null, GL_WHY = !ATLAS ? 'atlas=0' : GLQ === '0' ? '?gl=0' : typeof WebGL2RenderingContext === 'undefined' ? 'no webgl2' : '';
+if (GLM && GLM.mount) {
+  try { FGL = GLM.mount({ p3: P3Q === '1' || (P3Q !== '0' && !!(window.matchMedia && matchMedia('(color-gamut: p3)').matches)), onLost: glLost, onRestored: glBack }); } catch (e) { console.warn('field.gl', e); FGL = null; }
+  if (!FGL) GL_WHY = GLM.why || 'mount failed';
+} else if (!GL_WHY) GL_WHY = 'module not loaded';
+if (FGL) glSwap(FGL.canvas);
+/* a low-power screen draws one dot per PHONE_DIV plays (was four). R18 FIELD_GL item 3: at a 4x CPU throttle a third holds 58+ fps
+   on the GL path and the 2D path alike, where half and all do not (the numbers are in FIELD_GL/DONE.md), so one divisor serves
+   every phone and the captions can say it plainly. P.per is that divisor. ?plays=all|half|third|quarter forces one */
+const PHONE_DIV = 3, PLAYSQ = { all: 1, half: 2, third: 3, quarter: 4 }[(/[?&]plays=(all|half|third|quarter)\b/.exec(location.search) || [])[1]];
+const PER = PLAYSQ || (lowPower ? PHONE_DIV : 1);
+const N = PER > 1 ? Math.round(TOTAL_PLAYS / PER) : TOTAL_PLAYS;
+
 const over = $('#overlay');
-const fg = field.getContext('2d', { alpha: false });
+let fg = FGL ? null : field.getContext('2d', { alpha: false });
+/* swap the canvas that is #field: the id, class, aria and inline style (pixelated, a record transition's opacity) move with it */
+function glSwap(to) {
+  const from = field; if (to === from) return;
+  to.id = 'field'; to.className = from.className; to.setAttribute('aria-hidden', 'true'); to.style.cssText = from.style.cssText;
+  if (to.width !== from.width) to.width = from.width; if (to.height !== from.height) to.height = from.height;
+  from.removeAttribute('id'); from.replaceWith(to); field = to;
+}
+function glLost(final) {
+  if (!fg) fg = field2d.getContext('2d', { alpha: false });
+  glSwap(field2d); if (glow) glow.style.display = '';
+  GL_WHY = final ? 'context lost twice' : 'context lost';
+}
+function glBack() { if (!FGL || !FGL.ok) return; glSwap(FGL.canvas); if (glow) glow.style.display = 'none'; if (gg) gg.clearRect(0, 0, glow.width, glow.height); glSize(); GL_WHY = ''; } /* the 2D bloom's last frame would screen over a photo twice */
+function glSize() { const gw = Math.max(2, (PW / GDIV) | 0), gh = Math.max(2, (PH / GDIV) | 0); FGL.size(PW, PH, gw, gh, Math.max(2, (gw / 4) | 0), Math.max(2, (gh / 4) | 0)); }
 /* bloom: every device starts with it; the governor in loop() takes it away from any that cannot hold the frame rate */
 const glow = $('#glow'); let gg = glow && !reduced ? glow.getContext('2d') : null; if (glow && !gg) glow.remove();
 const GDIV = lowPower ? 6 : 4, canvasBlur = !!gg && 'filter' in gg; 
 /* R9: no canvas filter (safari): the halo comes from a second, much smaller copy drawn back over the first, so a phone blooms too */
 if (gg && !canvasBlur && !ATLAS) { if (lowPower) { gg = null; glow.remove(); } else glow.style.filter = 'blur(7px)'; }
 const GT = gg && ATLAS ? document.createElement('canvas') : null, gt = GT ? GT.getContext('2d') : null; if (gt) { gt.imageSmoothingEnabled = true; gg.imageSmoothingEnabled = true; }
+/* on the GL path the bloom is drawn inside the field's canvas; #glow stays in the page (the layers around it are placed by it,
+   a photo screens it in) but empty and out of sight. gg still says whether this device blooms (reduced motion, governor T3) */
+if (FGL && glow) glow.style.display = 'none';
 /* R9: a static nebula between the field and the overlay: depth for the print to sit on. css only; the field's pixels are untouched */
 if (ATLAS && !NOGLYPH) {
   const st = document.createElement('style'); st.textContent = '#neb{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;opacity:.9;background:radial-gradient(38vmax 30vmax at 28% 34%,rgba(120,92,255,.12),transparent 70%),radial-gradient(34vmax 26vmax at 74% 62%,rgba(40,190,214,.09),transparent 70%),radial-gradient(26vmax 22vmax at 60% 22%,rgba(255,92,170,.08),transparent 70%),radial-gradient(30vmax 24vmax at 20% 80%,rgba(255,176,86,.045),transparent 70%)}@media (forced-colors:active){#neb{display:none}}';
@@ -187,17 +226,18 @@ addEventListener('pointerdown', (e) => { PT.down = true; PT.x = e.clientX; PT.y 
 const ptOff = (e) => { if (ATLAS && PT.down && e && e.type === 'pointerup' && !reduced && PT.ripples.length < 6 && !(GEST && GEST.dragging) && Math.abs(e.clientX - PT.dx) < 6 && Math.abs(e.clientY - PT.dy) < 6) PT.ripples.push({ x: PT.dx, y: PT.dy, t: performance.now() }); PT.down = false; if (!e || e.pointerType !== 'mouse') PT.on = false; };
 addEventListener('pointerup', ptOff, { passive: true }); addEventListener('pointercancel', ptOff, { passive: true }); document.addEventListener('mouseleave', () => { PT.on = false; });
 const og = over.getContext('2d');
-let W = 0, H = 0, PW = 0, PH = 0, DPR = 1, ODPR = 1, img = null, buf32 = null;
+let W = 0, H = 0, PW = 0, PH = 0, DPR = 1, ODPR = 1, img = null, buf32 = null, FU8 = null;
 const BG = 0xff18010a; /* #0a0118 as little-endian ABGR */
 
 const P = {
-  n: N, perDot: TOTAL_PLAYS / N,
+  n: N, perDot: TOTAL_PLAYS / N, per: PER, /* per: plays per dot as a whole number (1 = every play is a dot) */
   x: new Float32Array(N), y: new Float32Array(N),
   tx: new Float32Array(N), ty: new Float32Array(N),
   c: new Uint32Array(N), tc: new Uint32Array(N),
   seed: new Float32Array(N),
   prov: new Uint8Array(N),   /* 0 tapped · 1 shuffled · 2 served: assigned once, kept for the whole visit */
   artist: new Uint16Array(N), /* index into mapmorph.artists: where this play lives in rooms 05 and 06 */
+  band: new Uint8Array(N),    /* R18 ART#4: the bed's band this play listens to (0 low, 1 mid, 2 high), dealt by hash; a caller may re-deal it */
   ease: 0.07, jitter: 0.6, big: false,
   swirl: 0.4,  /* how much a dot arcs on its way to a new target (0 = straight). reset on every room change */
   touch: true, /* dots part around the pointer */
@@ -262,7 +302,7 @@ function gfReset() { const g = roomGlyph(); GCFG.mode = 'cont'; GCFG.cats = null
 function gfRoom() { if (ATLAS) try { GF.room({ mode: GCFG.mode, cats: GCFG.cats, colour: GCFG.colour, grid: GCFG.grid, cell: GCFG.cell, edges: GCFG.edges, bleach: GCFG.bleach }); } catch (e) { console.warn('GF.room', e); } }
 /* K1: the active room's glyph trails, handed to the renderer every frame and dropped when the room is left */
 let LINES = null;
-for (let i = 0; i < N; i++) { P.seed[i] = Math.random() * 6.283; P.x[i] = Math.random() * innerWidth; P.y[i] = Math.random() * innerHeight; P.c[i] = P.tc[i] = 0xff8c8ca0; }
+for (let i = 0; i < N; i++) { P.seed[i] = Math.random() * 6.283; P.x[i] = Math.random() * innerWidth; P.y[i] = Math.random() * innerHeight; P.c[i] = P.tc[i] = 0xff8c8ca0; P.band[i] = (hash(i * 13 + 5) * 3) | 0; }
 /* the reservoir test's per-dot half, frac(seed * 9301), computed once (seeds never change): the hot loop then adds the
    cell key and wraps once instead of a multiply and a floor per glyph dot */
 const SFR = new Float32Array(N); for (let i = 0; i < N; i++) { const u = P.seed[i] * 9301; SFR[i] = u - Math.floor(u); }
@@ -359,9 +399,10 @@ function resize() {
   PW = Math.round(W * DPR); PH = Math.round(H * DPR);
   field.width = PW; field.height = PH; over.width = Math.round(W * (devicePixelRatio || 1)); over.height = Math.round(H * (devicePixelRatio || 1));
   ODPR = devicePixelRatio || 1; og.setTransform(ODPR, 0, 0, ODPR, 0, 0);
-  img = fg.createImageData(PW, PH); buf32 = new Uint32Array(img.data.buffer);
+  img = new ImageData(PW, PH); buf32 = new Uint32Array(img.data.buffer); FU8 = new Uint8Array(img.data.buffer);
   if (ATLAS) { const q = ODPR / DPR; field.style.imageRendering = q >= 2 && Math.abs(q - Math.round(q)) < 1e-6 ? 'pixelated' : ''; } /* binary glyph masks stay crisp on a 3x phone */
   if (gg) { glow.width = Math.max(2, (PW / GDIV) | 0); glow.height = Math.max(2, (PH / GDIV) | 0); if (GT) { GT.width = Math.max(2, (glow.width / 4) | 0); GT.height = Math.max(2, (glow.height / 4) | 0); } }
+  if (FGL) glSize();
   if (ATLAS) { gfConfigure(); skyAtlas(); SKY.room = -1; }
   /* atlas: this re-enter must not re-home the camera; ATL.reenter tells the camera to re-apply its stored pose (§1.5) */
   if (ATLAS) ATL.reenter = true;
@@ -651,7 +692,8 @@ function stratPass(t, on, b, nK, lastI, BM, ma, me, dpr) {
 const FL = { e: 0, j: 0, two: false, sw: 0, mor: false, FM: null, push: false, mx: 0, my: 0, R2: 0, pk: 0, pan: false, ma: 1, me: 0, mf: 0,
   ta: 0, tb: 0, spark: false, tick: 0, glyphOn: false, GM: P.glyph, WT: P.w, CAT: P.cat, accW: null, accR: null, accG: null, accB: null,
   pickC: null, pickK: null, nIn: null, occ: null, cwk: null, gx0: 0, gy0: 0, invCw: 0, invCh: 0, cols: 0, rows: 0, meanCol: false, strat: false,
-  nK: null, lastI: null, RGa: null, BM: null, fe: 0, fx0: 0, fx1: 0, fy0: 0, fy1: 0, pw: 0, ph: 0, dpr: 1, cb: 0.12, snap: true };
+  nK: null, lastI: null, RGa: null, BM: null, fe: 0, fx0: 0, fx1: 0, fy0: 0, fy1: 0, pw: 0, ph: 0, dpr: 1, cb: 0.12, snap: true,
+  k8: 8 / N, lift: false, PA: null, PRV: P.prov, lis: false, BD: P.band, UX: null, UY: null, BA: null };
 /* every dot, once a frame: its move, its colour, and either its cell (the glyph field) or its pixel. dots i0..i1; `on` is how many
    cells are occupied so far, returned updated */
 function fieldLoop(i0, i1, F, on) {
@@ -662,19 +704,22 @@ function fieldLoop(i0, i1, F, on) {
   const nIn = F.nIn, occ = F.occ, cwk = F.cwk, gx0 = F.gx0, gy0 = F.gy0, invCw = F.invCw, invCh = F.invCh, cols = F.cols, rows = F.rows;
   const meanCol = F.meanCol, strat = F.strat, nK = F.nK, lastI = F.lastI, RGa = F.RGa, BM = F.BM, fe = F.fe, fx0 = F.fx0, fx1 = F.fx1, fy0 = F.fy0, fy1 = F.fy1;
   const occLen = occ ? occ.length : 0, cb = F.cb, snap = F.snap;
+  const k8 = F.k8, lift = F.lift, PA = F.PA, PRV = F.PRV, lis = F.lis, BD = F.BD, UX = F.UX, UY = F.UY, BA = F.BA;
   for (let i = i0; i < i1; i++) {
     const s = SD[i]; let x = X[i], y = Y[i];
     const dx = TX[i] - x, dy = TY[i] - y;
     /* every dot has its own pace and arcs in from one side, so a room change flows instead of sliding. during a stop
        change the trip's envelope caps the pace (morphStep): the dots cross over the length of the camera's trip */
     let ei = reduced ? e : e * (0.5 + s * 0.16); const si = s > 3.1416 ? sw : -sw;
-    if (mor) { const f = FM[7 - ((s * 1.2732) | 0)]; if (f < ei) ei = f; }
+    if (mor) { const f = FM[(i * k8) | 0]; if (f < ei) ei = f; } /* R18: the eight landing groups in play order (dot i is play (i + 0.5) x total / N): the oldest land first */
     x += (dx - dy * si) * ei; y += (dy + dx * si) * ei;
     if (push) { const qx = x - mx, qy = y - my, d2 = qx * qx + qy * qy; if (d2 < R2 && d2 > 0.5) { const f = (1 - d2 / R2) * pk / Math.sqrt(d2); x += (qx - qy * 0.5) * f; y += (qy + qx * 0.5) * f; } }
     X[i] = x; Y[i] = y;
     let c = C[i];
     if (c !== TC[i]) c = C[i] = (snap && dx < 0.5 && dx > -0.5 && dy < 0.5 && dy > -0.5) ? TC[i] : blend(c, TC[i], cb);
     let fx = x + Math.sin(ta + s) * j, fy = y + Math.cos(tb + s * 1.7) * j;
+    if (lis) { const d = BA[BD[i]]; fx += UX[i] * d; fy += UY[i] * d; } /* R18 ART#4: its band's push, out from the room's centre */
+    if (lift && FR[i] >= PA[PRV[i]]) continue; /* R18 ART#1: lifted off the record this frame (eased, kept, just not drawn) */
     if (pan) { fx = fx * ma + me; fy = fy * ma + mf; }
     if (glyphOn && GM[i]) { /* §6.3: the dot joins its cell instead of lighting a pixel */
       const w = WT[i];
@@ -729,13 +774,14 @@ function warmField(b) {
   const F = Object.assign({}, FL, { e: 0.05, j: 0.3, two: true, sw: 0.4, FM: MORPH.FM, mx: 0, my: 0, R2: 1e12, pk: 9, ma: 1, me: 0, mf: 0, ta: 1, tb: 1, tick: 7,
     glyphOn: true, GM: GMw, WT: WTw, CAT: P.cat, accW: b.accW, accR: b.accR, accG: b.accG, accB: b.accB, pickC: b.pickC, pickK: b.pickK, nIn: b.nIn, occ: b.occ, cwk: b.cwk,
     gx0: b.gx0, gy0: b.gy0, invCw: b.invCw, invCh: b.invCh, cols: b.cols, rows: b.rows, nK: STR.nK, lastI: STR.li, BM: STR.bm, fx0: -1e6, fx1: 1e6, fy0: -1e6, fy1: 1e6, pw: PW, ph: PH, dpr: DPR });
+  const LW = { lift: true, PA: new Float32Array([1, 0.5, 0.5]), lis: true, UX: new Float32Array(N > 144 ? 144 : N), UY: new Float32Array(N > 144 ? 144 : N), BA: new Float32Array(3) };
   const cases = [
-    { meanCol: true, strat: false, mor: true, push: true, pan: true, fe: 2e6, spark: true },
+    Object.assign({ meanCol: true, strat: false, mor: true, push: true, pan: true, fe: 2e6, spark: true }, LW),
     { meanCol: false, strat: true, RGa: RGw, mor: false, push: false, pan: false, fe: 0 },
     { meanCol: false, strat: true, RGa: null, mor: true, push: false, pan: true, fe: 0 },
     { meanCol: false, strat: false, mor: false, push: true, pan: false, fe: 2e6 },
-    { glyphOn: false, mor: true, push: true, pan: true, spark: true, two: true },
-    { glyphOn: false, mor: false, push: false, pan: false, spark: false, two: false },
+    Object.assign({ glyphOn: false, mor: true, push: true, pan: true, spark: true, two: true }, LW),
+    { glyphOn: false, mor: false, push: false, pan: false, spark: false, two: false, lift: false, lis: false },
   ];
   /* the warm-up runs the real loop over dots 0..n*6, which moves and recolours them (a late warm under reduced motion left them ~10 px off for seconds, L4b); put them back */
   const m6 = n * 6, sx = P.x.slice(0, m6), sy = P.y.slice(0, m6), sc = P.c.slice(0, m6);
@@ -797,10 +843,40 @@ function fieldListen(t, bands) {
   if (S.burn > 0) { const e = t0 + S.burn; while (performance.now() < e); }
   if (S.n < 120) { FL_MS[S.n++] = performance.now() - t0; if (S.n === 120) { let sm = 0; for (let k = 0; k < 120; k++) sm += FL_MS[k]; S.mean = sm / 120; FL_MS.sort(); S.p95 = FL_MS[114]; if (S.p95 > 0.3) flOff('self-check: p95 ' + S.p95.toFixed(3) + ' ms > 0.3 ms'); } }
 }
-function drawField(t, bands) {
+/* R18 renderer hooks (FIELD_GL), each changing nothing until a caller turns it on: ctx.atlas.lift(on), listen(on), skin(name),
+   cut(), trails(k). LIFT eases the per-provenance share of each kind still drawn ([tapped, shuffle, served]); a lifted dot is
+   still eased and coloured, just not drawn, picked by its fixed seed, so what stays is a stable subset and every mark left is
+   one real play. LSN holds each dot's unit vector out from the room's centre (the mean of its targets), redone every 2 s and
+   on a stop change; the push is the dot's band level x 2.5, at most 3 screen px, none when muted, under reduced motion or
+   from governor tier 4. SKIN: 'light' = dots and bloom (no print), 'ink' = the print at 55 % under a dye bath, 'print' and
+   'groove' (the record) = today's paths; a room declares `skin` on its module, or nothing and keeps today's look */
+const LIFT = { to: 0, u: 0, t: 0, PA: new Float32Array([1, 1, 1]) };
+const LSN = { on: false, t: -1e9, room: -1, BA: new Float32Array(3), UX: null, UY: null };
+const SKINS = ['groove', 'print', 'ink', 'light'];
+let SKIN = null;
+function liftStep(t) {
+  if (LIFT.u !== LIFT.to) {
+    const d = reduced ? 1 : Math.max(0, t - LIFT.t) / 600; LIFT.t = t;
+    LIFT.u = LIFT.to > LIFT.u ? Math.min(LIFT.to, LIFT.u + d) : Math.max(LIFT.to, LIFT.u - d);
+    const v = 1 - 0.97 * sstep(LIFT.u); LIFT.PA[1] = v; LIFT.PA[2] = v;
+  }
+  return LIFT.u > 0;
+}
+function listenAim() {
+  const X = P.tx, Y = P.ty, UX = LSN.UX, UY = LSN.UY; let sx = 0, sy = 0, m = 0;
+  for (let i = 0; i < N; i += 7) { const x = X[i]; if (x < -40) continue; sx += x; sy += Y[i]; m++; } /* a parked dot (-50, -50) is not the room */
+  const cx = m ? sx / m : W / 2, cy = m ? sy / m : H / 2;
+  for (let i = 0; i < N; i++) { const dx = X[i] - cx, dy = Y[i] - cy, r = Math.sqrt(dx * dx + dy * dy); if (r > 0.5) { UX[i] = dx / r; UY[i] = dy / r; } else { UX[i] = 0; UY[i] = 0; } }
+}
+/* R18 (RES_TECH 4.1): ease, colour blend and the pointer's push are per second, not per frame, so the field settles in the same
+   time at 30, 60 and 120 Hz. REF_MS is the frame the constants were written for: every 60 Hz screen moves exactly as before */
+const REF_MS = 16.667;
+const GLF = { a: 0, a2: 0 }; /* the GL frame's last bloom opacity and halo weight (tests rebuild the 2D composite from them) */
+function drawField(t, bands, dt) {
   buf32.fill(BG);
-  const F = FL;
-  F.e = P.ease; F.j = reduced ? 0 : P.jitter * (0.5 + bands.low * 2.2); F.two = DPR > 1 || P.big; F.pw = PW; F.ph = PH; F.dpr = DPR;
+  const F = FL, FK = dt > 0 ? Math.min(dt, 100) / REF_MS : 1;
+  F.e = reduced || P.ease >= 1 ? P.ease : 1 - Math.pow(1 - P.ease, FK); P.easeNow = F.e; /* rooms that predict next frame's spot read this */
+  F.j = reduced ? 0 : P.jitter * (0.5 + bands.low * 2.2); F.two = DPR > 1 || P.big; F.pw = PW; F.ph = PH; F.dpr = DPR;
   /* a moving pointer parts the dots; a resting one lets them close again (a held press keeps them open) */
   const idle = PT.down ? 0 : performance.now() - (PT.last || 0), pk = idle < 500 ? 9 : idle > 1700 ? 0 : 9 * (1 - (idle - 500) / 1200);
   /* atlas: the pan camera and the glyph accumulator, every input handed to fieldLoop (which reads no other property).
@@ -811,7 +887,7 @@ function drawField(t, bands) {
   if (ATLAS) {
     dragging = !!GEST.dragging;
     if (VIEW.mode === 'pan') { const m = VIEW.matrix(); ma = m[0]; me = m[4]; mf = m[5]; pan = ma !== 1 || me !== 0 || mf !== 0; if (pan) { mx = (PT.x - me) / ma; my = (PT.y - mf) / ma; R = R / ma; } }
-    if (!NOGLYPH && !GF.stub) {
+    if (!NOGLYPH && !GF.stub && SKIN !== 'light') {
       GF.begin(t, ma, me, mf, reduced || P.ease === 0); const b = GF.buffers();
       if (b && b.cols) {
         if (!warmed) warmField(b);
@@ -830,22 +906,81 @@ function drawField(t, bands) {
       }
     }
   }
-  F.sw = reduced ? 0 : P.swirl; F.push = PT.on && P.touch && !reduced && pk > 0 && !dragging; F.R2 = R * R; F.pk = pk; F.mx = mx; F.my = my;
+  F.sw = reduced ? 0 : P.swirl; F.push = PT.on && P.touch && !reduced && pk > 0 && !dragging; F.R2 = R * R; F.pk = pk * Math.min(FK, 3); F.mx = mx; F.my = my;
+  F.lift = liftStep(t); F.PA = LIFT.PA;
+  const lis = LSN.on && !reduced && ATL.gov.tier < 4 && (bands.low > 0 || bands.mid > 0 || bands.high > 0);
+  if (lis) {
+    if (t - LSN.t > 2000 || LSN.room !== active) { LSN.t = t; LSN.room = active; listenAim(); }
+    const z = pan ? ma : 1, cap = 3 / z, k = 2.5 / z; LSN.BA[0] = Math.min(cap, bands.low * k); LSN.BA[1] = Math.min(cap, bands.mid * k); LSN.BA[2] = Math.min(cap, bands.high * k);
+  }
+  F.lis = lis; F.UX = LSN.UX; F.UY = LSN.UY; F.BA = LSN.BA;
   F.pan = pan; F.ma = ma; F.me = me; F.mf = mf;
   F.spark = !reduced && bands.high > 0.16; F.tick = (((t * 0.06) | 0) * 7919) | 0; F.ta = t * 0.0011; F.tb = t * 0.0013;
   const FM = morphStep(t); F.mor = FM !== null; if (FM) F.FM = FM;
   /* R6: a stop that hands its colours on (threshold.hueTrip) fades them on the trip's envelope (group 0, done at 72%), not in
      the first 20 frames, and a dot its next room places outright (the sky) does not snap to its new colour */
-  const hk = ATLAS && FM && MORPH.hk; F.cb = hk ? FM[0] : 0.12; F.snap = !hk;
+  const hk = ATLAS && FM && MORPH.hk; F.cb = hk ? FM[0] : 1 - Math.pow(0.88, FK); F.snap = !hk;
   const on = fieldLoop(0, N, F, 0);
   if (FLS.on) fieldListen(t, bands);
   if (strat && on) stratPass(t, on, gb, F.nK, F.lastI, F.BM, ma, me, DPR);
   else STR.hidden = 0;
   if (SKY.at) drawSky(buf32, t, glyphOn ? nIn : null, gx0, gy0, invCw, invCh, cols, rows); /* after the dots, so it knows where they are; the glyphs land over it */
-  if (glyphOn) { try { GF.render(buf32, PW, PH, t, { reduced, twinkle: !reduced && ATL.gov.tier < 4 && settingOn('twinkle') && roomGlyph().twinkle !== false, edges: ATL.gov.tier < 4, occN: on, lines: LINES, gain: FLS.gain }); } catch (e) { if (!drawField.warned) { drawField.warned = 1; console.warn('GF.render', e); } } }
+  if (glyphOn) { try { GF.render(buf32, PW, PH, t, { reduced, twinkle: !reduced && ATL.gov.tier < 4 && settingOn('twinkle') && roomGlyph().twinkle !== false, edges: ATL.gov.tier < 4, occN: on, lines: LINES, gain: SKIN === 'ink' ? FLS.gain * 0.55 : FLS.gain }); } catch (e) { if (!drawField.warned) { drawField.warned = 1; console.warn('GF.render', e); } } }
+  /* R18 FIELD_GL: one upload and the bloom on the GPU; the same opacity and halo weight the 2D layers get below */
+  if (FGL && FGL.ok && field !== field2d) {
+    const ga = gg && !glowOff ? 0.72 + Math.min(0.28, bands.mid * 0.9) : 0, ga2 = ga > 0 && GT ? (cols > 0 ? 0.2 + 0.55 * Math.max(0, 1 - 2.2 * on / (cols * rows)) : 0.7) : 0;
+    FGL.frame(FU8, ga, ga2, canvasBlur, dt); GLF.a = ga; GLF.a2 = ga2;
+    return;
+  }
   fg.putImageData(img, 0, 0);
   if (gg && !glowOff) { glow.style.opacity = (0.72 + Math.min(0.28, bands.mid * 0.9)).toFixed(3); gg.globalCompositeOperation = 'copy'; if (canvasBlur) gg.filter = 'blur(2px)'; gg.drawImage(field, 0, 0, glow.width, glow.height); if (canvasBlur) gg.filter = 'none'; gg.globalCompositeOperation = 'difference'; gg.fillStyle = '#0a0118'; gg.fillRect(0, 0, glow.width, glow.height); if (GT) { gt.globalCompositeOperation = 'copy'; gt.drawImage(glow, 0, 0, GT.width, GT.height); gg.globalCompositeOperation = 'lighter'; gg.globalAlpha = cols > 0 ? 0.2 + 0.55 * Math.max(0, 1 - 2.2 * on / (cols * rows)) : 0.7; gg.drawImage(GT, 0, 0, glow.width, glow.height); gg.globalAlpha = 1; } /* take the background back out, so only the dots bloom */ }
 }
+
+/* R18 ART#5 · the barcode cut: between two stops the whole log stands for 600 ms as one 1-bit barcode, a column per css px in
+   play order, mint where that column's tapped share beats the median column's, the background elsewhere. a hard cut in, held,
+   then wiped off top to bottom: every pixel changes at most twice (WCAG 2.3.1). renderer-free (its own canvas between the
+   field and the overlay), so it is the same on the GL and 2D paths. reduced motion: no barcode, the old stop fades out over
+   the new one in 200 ms. CUT.on: ?cut=1 / ?cut=0, else CUT_DEFAULT */
+const CUT = { on: ATLAS && (CUTQ === '1' || (CUTQ !== '0' && CUT_DEFAULT)), el: null, w: 0, row: null, raf: 0, tm: 0, n: 0, last: -1e9 };
+function cutRow(w) {
+  const n = new Uint32Array(w), tp = new Uint32Array(w), PR = P.prov, sh = new Float32Array(w);
+  for (let i = 0; i < N; i++) { const c = ((i * w) / N) | 0; n[c]++; if (PR[i] === 0) tp[c]++; }
+  for (let c = 0; c < w; c++) sh[c] = n[c] ? tp[c] / n[c] : 0;
+  const med = Float32Array.from(sh).sort()[w >> 1], im = new ImageData(w, 1), u = new Uint32Array(im.data.buffer);
+  for (let c = 0; c < w; c++) u[c] = sh[c] > med ? 0xffbcf621 : BG; /* mint #21f6bc | the field's background */
+  return im;
+}
+function cut() {
+  if (!ATLAS || !over) return false;
+  /* one cut a second at most, and a running one is never restarted, so stepping fast through stops stays at two flips a second */
+  const now = performance.now(); if (now - CUT.last < 1000) return false; CUT.last = now;
+  let el = CUT.el;
+  if (!el) { el = CUT.el = document.createElement('canvas'); el.id = 'sm-cut'; el.className = 'layer'; el.setAttribute('aria-hidden', 'true'); el.style.zIndex = '0'; }
+  cancelAnimationFrame(CUT.raf); clearTimeout(CUT.tm);
+  over.before(el); el.style.transition = 'none'; el.style.opacity = '1'; el.style.clipPath = 'none'; CUT.n++;
+  if (reduced) {
+    el.width = field.width; el.height = field.height; el.style.imageRendering = '';
+    try { el.getContext('2d').drawImage(field, 0, 0); } catch (e) {}
+    requestAnimationFrame(() => { el.style.transition = 'opacity 200ms linear'; el.style.opacity = '0'; });
+    CUT.tm = setTimeout(() => el.remove(), 260); return true;
+  }
+  const w = Math.max(64, Math.min(2048, Math.round(innerWidth)));
+  if (w !== CUT.w || !CUT.row) { CUT.w = w; CUT.row = cutRow(w); }
+  el.width = w; el.height = 1; el.style.imageRendering = 'pixelated'; el.getContext('2d').putImageData(CUT.row, 0, 0);
+  const t0 = performance.now();
+  const step = () => { const u = (performance.now() - t0) / 600; if (u >= 1) { el.remove(); return; } if (u > 0.5) el.style.clipPath = 'inset(' + Math.min(100, (u - 0.5) * 200).toFixed(1) + '% 0 0 0)'; CUT.raf = requestAnimationFrame(step); };
+  CUT.raf = requestAnimationFrame(step); return true;
+}
+/* the hooks on ctx.atlas (FIELD_GL DONE.md has one line of usage for each) */
+ATL.lift = (on) => { LIFT.to = on ? 1 : 0; LIFT.t = performance.now(); return !!on; };
+ATL.listen = (on) => { LSN.on = !!on; if (on && !LSN.UX) { LSN.UX = new Float32Array(N); LSN.UY = new Float32Array(N); } LSN.t = -1e9; return LSN.on && !reduced; };
+ATL.skin = (name) => { if (name !== undefined) SKIN = SKINS.indexOf(name) >= 0 ? name : null; return SKIN; };
+ATL.cut = () => cut();
+ATL.trails = (k) => (FGL && FGL.ok && field !== field2d ? FGL.trails(reduced ? 0 : k) : false);
+/* the renderer, for settings, tests and the perf notes: which path draws, and why not GL when it does not; the frame buffer
+   (exactly what was drawn last, before the bloom) for a test that reads pixels on either path */
+ATL.gl = { get on() { return !!(FGL && FGL.ok && field === FGL.canvas); }, why: () => (FGL && FGL.ok && field === FGL.canvas ? '' : GL_WHY || 'context lost'), info: () => (FGL ? FGL.info() : { ok: false, why: GL_WHY }), lose: () => !!(FGL && FGL.lose()), restore: () => !!(FGL && FGL.restore()) };
+ATL.fieldImage = () => (img ? { data: img.data, width: PW, height: PH } : null);
 
 /* ------------------------------------------------------------------ audio */
 /* sound is ON only while the AudioContext is actually running (K5). unlock() may be called from any gesture, any number of
@@ -1050,11 +1185,16 @@ const A = {
   duck(d) { if (d) { if (this.clipState === 'off') this.clip('armed'); } else if (this.clipState === 'armed') this.clip('off'); },
   /* 0 = open, 1 = distant (the graveyard plays its track from the next room over) */
   distant(k) { if (!this.lp) { this.wantDistant = k; return; } this.lp.frequency.setTargetAtTime(k > 0 ? 20000 * Math.pow(0.03, k) : 20000, this.ac.currentTime, 0.5); },
+  /* R18 (RES_TECH 4.1): the follower moves by real time, not per call: 0.35 of the way per 60 Hz frame as before, so a 120 Hz
+     screen (or a second caller in the same frame) no longer smooths twice as fast, and a 30 Hz one no longer half as fast */
   bands() {
-    if (!this.an || this.muted || reduced) return ZERO;
+    if (!this.an || this.muted || reduced) { BT = 0; return ZERO; }
+    const now = performance.now(), dt = BT ? Math.min(250, now - BT) : REF_MS;
+    if (dt < 1) return B; /* asked again inside the same frame: the same reading */
+    BT = now; const k = 1 - Math.pow(0.65, dt / REF_MS);
     this.an.getByteFrequencyData(this.fft); const f = this.fft; let lo = 0, mi = 0, hi = 0;
     for (let i = 1; i < 8; i++) lo += f[i]; for (let i = 8; i < 48; i++) mi += f[i]; for (let i = 48; i < 160; i++) hi += f[i];
-    B.low += ((lo / (7 * 255)) - B.low) * 0.35; B.mid += ((mi / (40 * 255)) - B.mid) * 0.35; B.high += ((hi / (112 * 255)) - B.high) * 0.35; return B;
+    B.low += ((lo / (7 * 255)) - B.low) * k; B.mid += ((mi / (40 * 255)) - B.mid) * k; B.high += ((hi / (112 * 255)) - B.high) * k; return B;
   },
 };
 /* atlas: a flight's sound. filtered noise swelling and falling over the flight's length on the interface bus, so it has no
@@ -1117,7 +1257,7 @@ function audioChanged() {
   try { document.dispatchEvent(new CustomEvent('atlas:audio', { detail: { state: s } })); } catch (e) {}
   if (s === 'on' && !audSaid) { audSaid = true; try { document.dispatchEvent(new CustomEvent('atlas:sound')); } catch (e) {} }
 }
-const ZERO = { low: 0, mid: 0, high: 0 }, B = { low: 0, mid: 0, high: 0 };
+const ZERO = { low: 0, mid: 0, high: 0 }, B = { low: 0, mid: 0, high: 0 }; let BT = 0;
 const BED = 0.85, DUCK = 0.063; /* -24 dB */
 /* a crossfade's length follows the room change: same key 1.3 s, a neighbour 2 s, a long way round 4 s. make.js draws its
    blend line for xf * 2200 ms, so the two stay in step */
@@ -1250,7 +1390,7 @@ const ctx = {
     if (!identityP) identityP = this.data('wall').catch(() => null).then((w) => {
       if (w && w.tap) { const edges = []; let acc = 0; for (let k = 0; k < w.tap.length; k++) { const t = w.tap[k], sh = w.shuffle[k], v = w.served[k], tot = t + sh + v; edges.push([acc + tot, t / (tot || 1), (t + sh) / (tot || 1)]); acc += tot; } let k = 0; for (let i = 0; i < N; i++) { const play = (i + 0.5) * (acc / N); while (k < edges.length - 1 && play >= edges[k][0]) k++; const u = hash(i); P.prov[i] = u < edges[k][1] ? 0 : u < edges[k][2] ? 1 : 2; } }
       else for (let i = 0; i < N; i++) { const u = hash(i); P.prov[i] = u < 0.19 ? 0 : u < 0.36 ? 1 : 2; }
-      assignArtists(NA);
+      assignArtists(NA); CUT.row = null; /* the cut's barcode is read from P.prov: drawn before this, it was all one kind */
       return { wall: w };
     });
     return identityP;
@@ -1415,7 +1555,8 @@ function activate(i, via, instant) {
 const TRIP = { slow: 2.4, quick: 1.8, warp: 0.6 }, PULL = 0.6;
 const MORPH = { on: false, t0: 0, dur: 1, u: 0, FM: new Float32Array(8) };
 /* a room that predicts where its dots land next frame (threshold weigh(), yours) caps its pace the same way the loop does:
-   while P.morph.on, ei = min(ei, P.morph.FM[7 - ((seed * 1.2732) | 0)]) (FM is this frame's, set before the room's frame runs) */
+   while P.morph.on, ei = min(ei, P.morph.FM[(i * 8 / P.n) | 0]) (FM is this frame's, set before the room's frame runs; the group
+   is the play's place in the log since R18, not its seed) and the per-frame ease is P.easeNow (P.ease scaled to the frame) */
 P.morph = MORPH;
 const sstep = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 function morphStart(t, sec) { MORPH.on = true; MORPH.t0 = t; MORPH.dur = sec * 1000; MORPH.u = 0; }
@@ -1525,6 +1666,7 @@ async function activateRoom(i, via, instant) {
   recCancel();
   const rec = ATLAS && !!prev && !instant && recVia(via), recGo = rec && !reduced && ATL.gov.tier < 4;
   if (recGo) { try { recOut(REC_SEC[VIEW.speed] || REC_SEC.slow); } catch (e) { recCancel(); } }
+  else if (ATLAS && prev && !instant && CUT.on) cut();
   if (prev && prev.mod && prev.mod.leave) try { prev.mod.leave(ctx); } catch (e) {}
   if (ATLAS) atlasLeave(prev);
   const fa = document.activeElement, strand = !!fa && fa !== document.body && ((prev && prev.el.contains(fa)) || fa === enter || fa === enterQuiet);
@@ -1542,6 +1684,7 @@ async function activateRoom(i, via, instant) {
   const trip = ATLAS && !!prev && !reduced && !instant && !rec, m0 = trip ? fieldMatrix() : null;
   if (ATLAS) { ATL.arrive = null; ATL.trip = null; }
   if (ATLAS) atlasPreEnter();
+  SKIN = r.mod && SKINS.indexOf(r.mod.skin) >= 0 ? r.mod.skin : null; /* the room's material (ART#7); enter() may still change it */
   if (r.mod) { if (r.mod.track) A.play(r.mod.track); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
   layMark();
   if (ATLAS) MORPH.hk = trip && !!(prev.mod && prev.mod.hueTrip);
@@ -1623,7 +1766,9 @@ const two = (n) => String(n).padStart(2, '0');
 let STOPS = [];
 function roomName(i) { const r = rooms[i]; return r.el.dataset.title || r.id; }
 function roomNo(i) { return two(rooms.slice(0, i + 1).filter((r) => !r.el.dataset.side).length - 1); }
-function roomSay(i) { if (ATLAS) { const w = walkList(), p = w.indexOf(i); return p < 0 ? 'side room, ' + roomName(i) : 'stop ' + (p + 1) + ' of ' + w.length + ', ' + roomName(i); } return i === 0 ? 'threshold' : rooms[i].el.dataset.side ? 'side room, ' + roomName(i) : 'room ' + roomNo(i) + ' of ' + two(WALK) + ', ' + roomName(i); }
+/* R18 INTUIT_EXHIBIT (via the coordinator): on a playing tour's current stop, chrome.js says the stop the way the deck counts it
+   (sayStop: null off-tour or on another room, and absent in an older chrome.js), and the walk's count is the fallback */
+function roomSay(i) { if (ATLAS) { const c = ATL.chrome && ATL.chrome.sayStop && ATL.chrome.sayStop(i); if (c) return c; const w = walkList(), p = w.indexOf(i); return p < 0 ? 'side room, ' + roomName(i) : 'stop ' + (p + 1) + ' of ' + w.length + ', ' + roomName(i); } return i === 0 ? 'threshold' : rooms[i].el.dataset.side ? 'side room, ' + roomName(i) : 'room ' + roomNo(i) + ' of ' + two(WALK) + ', ' + roomName(i); }
 /* one polite line per arrival, said once the scroll has settled on a room: a flick through five rooms says one thing, not five */
 const sayEl = $('#roomsay'); let sayT = 0;
 function announce(i, arrived) {
@@ -1964,7 +2109,7 @@ function loop(t) {
   last = t;
   const lt0 = DEBUG ? performance.now() : 0;
   glowState();
-  const bands = A.bands(); drawField(t, bands);
+  const bands = A.bands(); drawField(t, bands, dt);
   og.clearRect(0, 0, W, H);
   const r = rooms[active]; if (r && r.mod && r.mod.frame) {
     /* atlas: the room draws its overlay in world px; the camera's matrix is applied here, so every precision mark stays exact under any pose (§1.5) */
@@ -2000,23 +2145,44 @@ function gatherWatch(t) {
    each followed by a settle window (120 frames and at least 3 s) before counting starts again. T1/T2 coarser cells,
    T3 bloom (irreversible, as today), T4 twinkle/glints/edges/drift, T5 labels capped at 12 and flights warp.
    recovery: 20 s at slow 0 with mean dt under 18 ms undoes the last cell step only. */
-const GOV = { settle: 0, until: 0, calm0: 0, sum: 0, n: 0 };
+const GOV = { settle: 0, until: 0, calm0: 0, sum: 0, n: 0, msg: null, floor: 26, ring: new Float32Array(45), rk: 0, judge: false, before: 0, from: 0, aSum: 0, aN: 0, sk: 0, undone: 0 };
 const GOVMSG = ['', 'marks made bigger so the music keeps up', 'marks made bigger so the music keeps up'];
+/* R18 (RES_TECH 4.1): every step is judged by its result. the mean frame over the 45 frames before a step is held against the
+   mean over its settle window (after the first 30 frames, which re-lay the cells). a step that did not make frames at least
+   2 ms faster met a cap (iOS Low Power Mode's 30 Hz, heat), not a cost: it is undone, and a frame counts as slow from then on
+   only past 1.25x that cadence (GOV.floor; 26 ms, today's line, until then). a 30 Hz phone keeps its bloom, labels and
+   twinkle instead of walking to T5 in 30 s; a device that is really struggling still steps, and each step is judged again */
 function govern(t, dt) {
   if (!dt || dt >= 200) return;
   if (++seen <= 60) return;
-  if (GOV.settle > 0 || t < GOV.until) { if (GOV.settle > 0) GOV.settle--; GOV.calm0 = t; GOV.sum = GOV.n = 0; return; }
-  slow = dt > 26 ? slow + 1 : Math.max(0, slow - 0.5);
+  GOV.ring[GOV.rk++ % 45] = dt;
+  if (GOV.settle > 0 || t < GOV.until) {
+    if (GOV.settle > 0) GOV.settle--; GOV.calm0 = t; GOV.sum = GOV.n = 0;
+    if (GOV.judge && ++GOV.sk > 30) { GOV.aSum += dt; GOV.aN++; }
+    return;
+  }
+  if (GOV.judge) {
+    GOV.judge = false;
+    const after = GOV.aN ? GOV.aSum / GOV.aN : GOV.before;
+    const msg = GOV.msg; GOV.msg = null;
+    if (GOV.before - after < 2) { GOV.floor = Math.max(GOV.floor, after * 1.25); GOV.undone++; slow = 0; if (ATL.gov.tier !== GOV.from) govTier(GOV.from); GOV.settle = 120; GOV.until = t + 3000; return; }
+    if (msg && !ATL.gov.told) { ATL.gov.told = true; govSay(msg); }
+  }
+  slow = dt > GOV.floor ? slow + 1 : Math.max(0, slow - 0.5);
   const tier = ATL.gov.tier;
-  if (slow > 45 && tier < 5) { govTier(tier + 1); slow = 0; GOV.settle = 120; GOV.until = t + 3000; return; }
-  if (slow === 0) { GOV.sum += dt; GOV.n++; if (t - GOV.calm0 > 20000 && GOV.sum / GOV.n < 18 && (tier === 1 || tier === 2)) { govTier(tier - 1); GOV.settle = 120; GOV.until = t + 3000; } }
+  if (slow > 45 && tier < 5) {
+    let m = 0; for (let k = 0; k < 45; k++) m += GOV.ring[k];
+    GOV.before = m / 45; GOV.from = tier; GOV.judge = true; GOV.aSum = GOV.aN = GOV.sk = 0;
+    govTier(tier + 1, true); slow = 0; GOV.settle = 120; GOV.until = t + 3000; return;
+  }
+  if (slow === 0) { GOV.sum += dt; GOV.n++; if (t - GOV.calm0 > 20000 && GOV.sum / GOV.n < GOV.floor * 0.69 && (tier === 1 || tier === 2)) { govTier(tier - 1); GOV.settle = 120; GOV.until = t + 3000; } }
   else { GOV.calm0 = t; GOV.sum = GOV.n = 0; }
 }
-function govTier(k) {
+function govTier(k, judged) {
   const was = ATL.gov.tier; ATL.gov.tier = k;
   /* said once a visit: a device near the line steps down, recovers and steps down again, and the same toast every few
      minutes (mid-tour, over the caption) told the visitor nothing new. afterwards ATL.gov.lowered carries it for settings */
-  if (k <= 2) { try { GF.tier(k); } catch (e) {} if (k > was && GOVMSG[k] && !ATL.gov.told) { ATL.gov.told = true; govSay(GOVMSG[k]); } }
+  if (k <= 2) { try { GF.tier(k); } catch (e) {} if (k > was && GOVMSG[k] && !ATL.gov.told) { if (judged) GOV.msg = GOVMSG[k]; else { ATL.gov.told = true; govSay(GOVMSG[k]); } } } /* a judged step says so once it has helped */
   ATL.gov.lowered = k > 0;
   if (k >= 3 && gg) { gg = null; glow.remove(); }
   GOVFNS.slice().forEach((f) => { try { f(k); } catch (e) {} });
@@ -2107,6 +2273,12 @@ function needleVeil() {
   goB.addEventListener('click', () => go(false)); qB.addEventListener('click', () => go(true));
   addEventListener('keydown', key, true);
   try { goB.focus({ preventScroll: true }); } catch (e) {}
+  /* R18 (the coordinator's ask): the unlock is tried here, at boot, while a press carried over from the landing still counts
+     (chromium carries it across a same-origin hop), not seconds later when the chrome mounts; chrome.js veilTry still words
+     the ask for a browser that refuses it, and finds the veil already gone when this let it through */
+  try { A.unlock(); } catch (e) {}
+  const t0 = performance.now();
+  (function wait() { if (done) return; if (A.on && A.ac && A.ac.state === 'running') { go(false); return; } if (performance.now() - t0 < 4000) setTimeout(wait, 50); })();
 }
 let start;
 if (!ATLAS) {
@@ -2248,5 +2420,6 @@ window.__exhibit.atlas = {
   GF, get view() { return VIEW; }, get gesture() { return GEST; }, get labels() { return FAC.labels; }, get search() { return FAC.search; }, get ladder() { return FAC.ladder; },
   get tour() { return FAC.tour; }, get chrome() { return ATL.chrome || null; }, get settings() { return FAC.settings; }, get photo() { return ATL.photo || null; },
   gov: ATL.gov, stage, walk: () => walkList(), strat: STR, govTier: (k) => govTier(clamp(k | 0, 0, 5)), sky: () => SKY, loopCost: () => LOOPH,
+  gl: ATL.gl, fieldImage: ATL.fieldImage, glLast: () => ({ a: GLF.a, a2: GLF.a2, blur: canvasBlur, gdiv: GDIV }), govState: () => ({ floor: GOV.floor, undone: GOV.undone, judging: GOV.judge }), cutCount: () => CUT.n,
   glyphCfg: () => ({ mode: GCFG.mode, region: GCFG.region, zones: GCFG.zones ? GCFG.zones.slice() : null, feather: GCFG.feather, edges: GCFG.edges, bleach: GCFG.bleach }),
 };

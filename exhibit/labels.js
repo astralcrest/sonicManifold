@@ -6,7 +6,7 @@ export const LABELS = {
     title: 'mostly the machine',
     by: 'astralcrest, 2026',
     rows: [
-      ['medium', 'a browser exhibit in nine screens: a threshold and eight rooms, with one side room for your own export. one particle field, web audio, no frameworks. one dot per play; on a small screen, one dot per four.', { atlas: 'my log as a walk in fifteen screens: a threshold and fourteen rooms, with one side room for your own export. one particle field, web audio, no frameworks. one dot per play; on a small screen, one dot per four.' }],
+      ['medium', 'a browser exhibit in nine screens: a threshold and eight rooms, with one side room for your own export. one particle field, web audio, no frameworks. one dot per play; on a small screen, one dot per three.', { atlas: 'my log as a walk in fifteen screens: a threshold and fourteen rooms, with one side room for your own export. one particle field, web audio, no frameworks. one dot per play; on a small screen, one dot per three.' }],
       ['materials', '97,427 logged plays, september 2019 to may 2026. one recommender. 22 original tracks. 120 artists drawn twice. 300 artists on seven retrained maps.'],
       ['method', 'spotify’s export records who started every play. split on that one field, 19 in every 100 i tapped, 17 shuffle picked, 64 the queue served. every kill condition i pre-declared was written down before i saw the result; the post-hoc ones are labeled. several findings didn’t survive and have a card in the graveyard.'],
       ['the finding', 'when i pick the next track it crosses into another genre family more often than when autoplay picks: bridge index 1.05, 95% interval 1.03 to 1.08. a third to two fifths of my jumps carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13. with the loosest definitions of a tap and of autoplay it reads 1.01, interval 0.99 to 1.03, and when both sides are held to artists with at least 50 plays it reads 1.01, interval 0.98 to 1.04. neither separates from 1. it holds across partitions, by device and by era. a direction, not a size.', { atlas: 'when i pick the next track it crosses into another genre family more often than when autoplay runs on: bridge index 1.05, 95% interval 1.03 to 1.08. a third of my jumps and two fifths of autoplay\'s carry no public genre tag, and reasonable ways of handling them put the number anywhere from 1.00 to 1.13. with the loosest definitions of a tap and of autoplay it reads 1.01, interval 0.99 to 1.03, and when both sides are held to artists with at least 50 plays it reads 1.01, interval 0.98 to 1.04. neither separates from 1. it holds across partitions, by device and by era. a direction, not a size.' }],
@@ -239,7 +239,7 @@ export const HINTS_ATLAS = {
   map: "drag the dial: the map moves, my plays do not · on the ghost, press hear both",
 };
 export const HINTS_TOUCH = {
-  universe: "drag to turn the sky · tap a star · press and hold to hear its genre",
+  universe: "drag to turn the sky · tap a star · hold one to hear it",
   listeners: "tap a cell: its note climbs with the row · drag the fade dial",
   map: "drag the map under the ring: it names what it rests on",
   game: "swipe up if i tapped it, down if the queue did · hold a name to hear it",

@@ -74,6 +74,14 @@ const LCSS = 'section[data-room="listeners"].lst-lens .lst-toggle button:last-ch
   '@media print{section[data-room="listeners"] .lens-cv{display:none!important}}';
 const cl01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const hx = (n) => ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255);
+/* R18 ROOMS (MUSIC V1): the lens covers the room's own overlay, so the heard artist's ring rides the lens's focus ring (a
+   pin wins): a 1.8 s ping while the clip plays, a still ring under reduced motion. L.hearS is listeners.js's clip state */
+function hearLens(L, Z, red) {
+  const H = L.hearS; if (!H || !(H.g > 0.004) || !L.px || !L.fold || !Z.nr) return [0, 0, 0, 0];
+  const i = L.fold.indexOf(H.artist.toLowerCase()); if (i < 0) return [0, 0, 0, 0];
+  const x = L.px[i * 2], y = L.px[i * 2 + 1], r0 = Z.nr[i] + 6; if (red) return [x, y, r0, 0.62 * H.g];
+  const u = (performance.now() % 1800) / 1800; return [x, y, r0 + u * 22, 0.7 * H.g * (1 - u)];
+}
 function lensAttach(L, ctx) {
   if (L.__lens || LQ === '0') return;
   let mod = null, fail = false;
@@ -215,7 +223,7 @@ function lensAttach(L, ctx) {
     const ph = cl01(Z.ph + (tg ? -br : br));
     const h = L.pinned && L.kbFocusIdx != null ? L.kbFocusIdx : -1;
     if (h !== Z.held) { Z.held = h; Z.lens.restatic(Z.dS); }
-    const f = L.kbFocusIdx, ring = f != null && L.px ? [L.px[f * 2], L.px[f * 2 + 1], Z.nr[f] + 6, 0.9] : [0, 0, 0, 0];
+    const f = L.kbFocusIdx, ring = f != null && L.px ? [L.px[f * 2], L.px[f * 2 + 1], Z.nr[f] + 6, 0.9] : hearLens(L, Z, red);
     Z.lens.render({ ph, over: Z.over, t: red ? 0 : (t * 0.0006) % 6.2832, ring, cam: camOf(c), vw: innerWidth, vh: innerHeight });
     Z.vis = ph;
     if (Z.pt) { Z.dts.push(t - Z.pt); if (Z.dts.length > 600) Z.dts.shift(); } Z.pt = t;

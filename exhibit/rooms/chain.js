@@ -11,6 +11,23 @@ const PENT = ['D', 'F', 'G', 'A', 'C'];
 const WB = [0, 1, 1.7, 2.8, 4.6, 7.5]; /* dots per plays quintile: an order, not a size */
 const DUST = 0.32, HOP_MS = 520, MAXHOP = 60, TF = 3, QF = 17, ICE = 0x86cbfe;
 const ANGLES = [{ id: 'all', name: 'every link' }, { id: 'hand', name: 'hand only' }];
+/* R18 ROOMS (MUSIC V1): hear X, see X. post.js says what plays (window 'sm:clip'); the playing artist's node gets a slow
+   1.8 s ice ring that fades in and out over 600 ms (200 ms and no ripple under reduced motion). no event, no change */
+const hearNew = () => ({ artist: '', g: 0, to: 0, from: 0, t0: 0 });
+function hearClip(H, e) {
+  const d = e && e.detail; if (!H || !d || typeof d.state !== 'string') return;
+  const a = typeof d.artist === 'string' ? d.artist : '', go = (to) => { if (H.to === to) return; H.from = H.g; H.to = to; H.t0 = performance.now(); };
+  if (d.state === 'playing' && a) { if (a !== H.artist) { H.g = H.from = 0; H.to = 0; } H.artist = a; go(1); }
+  else if (d.state === 'armed' || d.state === 'cueing') { if (a && a !== H.artist) go(0); }
+  else go(0);
+}
+function hearRing(H, g, x, y, r0, lw, reduced, now) {
+  if (H.g !== H.to) { const u = Math.min(1, (now - H.t0) / (reduced ? 200 : 600)); H.g = u >= 1 ? H.to : H.from + (H.to - H.from) * u; }
+  if (H.g <= 0.004) return;
+  g.save(); g.strokeStyle = '#86cbfe'; g.globalAlpha = 0.62 * H.g; g.lineWidth = 1.4 * lw; g.beginPath(); g.arc(x, y, r0, 0, 6.283); g.stroke();
+  if (!reduced) { const u = (now % 1800) / 1800; g.globalAlpha = 0.55 * H.g * (1 - u); g.lineWidth = lw; g.beginPath(); g.arc(x, y, r0 + (4 + u * 24) * lw, 0, 6.283); g.stroke(); }
+  g.restore();
+}
 
 const CSS = `@ .ch-hud{position:absolute;transform:translateY(-100%);box-sizing:border-box;padding:8px 10px;background:rgba(10,1,24,.8);border:1px solid rgba(134,203,254,.24);border-radius:12px;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 @ .ch-line{font:400 12px/1.45 var(--mono);color:var(--ink);margin:0 2px 3px;min-height:1.45em}
@@ -21,6 +38,7 @@ const CSS = `@ .ch-hud{position:absolute;transform:translateY(-100%);box-sizing:
 @ .ch-q{color:#8b6fd6}
 @ .ch-path{font:400 10.5px/1.4 var(--mono);color:var(--mute);margin:0 2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl;text-align:left}
 @ .ch-path:empty,@ .ch-out[hidden],@ .ch-hud.cmp .ch-path{display:none}
+@ .ch-verbs{font:400 10px/1.35 var(--mono);color:var(--mute);margin:0 2px 6px;opacity:.9}
 @ .ch-row{display:flex;flex-wrap:wrap;gap:5px}
 @ .ch-row button{font:600 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);background:rgba(134,203,254,.06);border:1px solid rgba(134,203,254,.26);border-radius:999px;padding:0 11px;min-height:44px;min-width:44px;cursor:pointer;white-space:nowrap}
 @ .ch-row button:hover{color:var(--ink);border-color:var(--ice)}
@@ -36,10 +54,11 @@ const CSS = `@ .ch-hud{position:absolute;transform:translateY(-100%);box-sizing:
 @ .ch-out{width:100%;box-sizing:border-box;margin:0 0 6px;font:400 11px/1.4 var(--mono);color:var(--ink);background:rgba(10,1,24,.9);border:1px solid rgba(134,203,254,.3);border-radius:6px;padding:6px}
 @ .ch-hud.cmp .ch-line{font-size:11px;line-height:1.38;margin-bottom:2px}
 @ .ch-hud.cmp .ch-cue{font-size:10px;margin-bottom:5px}
+@ .ch-hud.cmp .ch-verbs{font-size:9.5px;margin-bottom:4px}
 @ .ch-hud.cmp .ch-row{gap:4px;flex-wrap:nowrap}
 @ .ch-hud.sd .ch-row{flex-wrap:wrap}
 @ .ch-hud.cmp .ch-row button{padding:0 9px;letter-spacing:.03em}
-@media (max-height:480px) and (min-aspect-ratio:115/100){@ .ch-line,@ .ch-cue{min-height:0;margin-bottom:3px}}
+@media (max-height:480px) and (min-aspect-ratio:115/100){@ .ch-line,@ .ch-cue{min-height:0;margin-bottom:3px}@ .ch-verbs{display:none}}
 @media (forced-colors:active){@ .ch-hud{border:1px solid CanvasText}@ .ch-row button[aria-pressed="true"]{forced-color-adjust:none;background:Highlight;color:HighlightText}}`.replace(/@ /g, 'html.atlas section[data-room="chain"] ');
 
 export default {
@@ -71,6 +90,7 @@ export default {
 		this.starts.sort((a, b) => (tr(a) - tr(b)) || (this.bk[b] - this.bk[a]) || this.name[a].localeCompare(this.name[b]));
 		this.px = new Float32Array(n * 2); this.segBuf = new Float32Array(MAXHOP * 14);
 		this.buildUI(root);
+		if (!this.hearS) { this.hearS = hearNew(); addEventListener('sm:clip', (e) => hearClip(this.hearS, e)); }
 		this.ready = true;
 	},
 
@@ -82,6 +102,7 @@ export default {
 		at(hud.appendChild(el('p', 'ch-kb', '← → pick a link · enter hops · backspace undoes')), 'aria-hidden', 'true');
 		this.path = at(hud.appendChild(el('p', 'ch-path')), 'aria-hidden', 'true');
 		const o = this.out = at(hud.appendChild(el('textarea', 'ch-out')), 'aria-label', 'your chain as text, to copy'); o.readOnly = true; o.rows = 3; o.hidden = true;
+		at(hud.appendChild(el('p', 'ch-verbs', 'hand: only links i crossed by hand. riff: your chain as notes. send: share it.')), 'aria-hidden', 'true');
 		const row = hud.appendChild(el('div', 'ch-row'));
 		/* a dim pill still answers: it says in the box why it is asleep (aria-disabled, never disabled) */
 		const btn = (lab, f, c) => { const b = row.appendChild(el('button', c || '')); b.type = 'button'; if (lab) at(b, 'aria-label', lab); b.addEventListener('click', () => { this.snd(); this.stopDemo(); if (b.getAttribute('aria-disabled') === 'true') this.cue(this.why(b), 1); else f(); }); return b; };
@@ -486,6 +507,7 @@ export default {
 		const i = this.hov; g.lineWidth = lw;
 		if (i >= 0 && i !== c) ring(g, px[i * 2], px[i * 2 + 1], 7 * lw);
 		if (this.so) this.so.draw(g, t, lw);
+		const H = this.hearS; if (H && (H.g > 0.004 || H.to)) { const j = this.byName.get(H.artist.toLowerCase()); if (j != null) hearRing(H, g, px[j * 2], px[j * 2 + 1], 14 * lw, lw, ctx.reduced, performance.now()); }
 	},
 	comet(g, x0, y0, x1, y1, cols, lw, p) {
 		const dx = x1 - x0, dy = y1 - y0;

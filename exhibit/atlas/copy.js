@@ -46,6 +46,15 @@ export const COPY = {
     coachHead: 'one tour · {n} stops · short cuts inside', // R13 ONE TOUR: the coach says what the records sheet says
     coachTouch: ['play runs it. swipe for the next.', 'tap a star to pick it.', 'hold one to hear it. drag to turn.'],
     coachDesk: ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'hover one to hear it. drag to turn.'],
+    // R18 INTUIT: on a first visit the coach comes up on the lead-in (the first screen) once the opening line is read. same
+    // card, same once-a-visit key; each line names one thing a stranger needs (the tour and how to step, how the record moves,
+    // the posts' hold or rest on a name, the wall label). on a phone the dock's ▶ breathes under it until the first touch
+    coachThrTouch: ['▶ plays the tour. ⏭ next stop.', 'drag to turn, pinch to zoom.', 'hold a name to hear the artist.', 'each room’s wall label: ⋯ more.'],
+    // R18 INTUIT (the LANDING contract, RES_MUSEUM M1): ?enter=sound first tries the press made on the landing. a browser that
+    // carries it over plays at once; one that does not gets the veil with these words, and a direct link gets the plain ask
+    veilAgain: 'one more click.', veilAgainTouch: 'one more tap.', veilWhy: 'browsers ask twice before sound.',
+    veilDesk: 'click to drop the needle', veilTouch: 'tap to drop the needle',
+    coachThrDesk: ['it plays itself. space pauses, → moves on.', 'drag to turn the record. the wheel zooms.', 'rest on a name to hear the artist.', 'l opens the wall label. ? lists the keys.'],
     // W40/W10 tour end card: verbatim source for chrome.js's CC.end*/CC.contact fallbacks (chrome.js ~L40-45).
     endHead: 'end of the record.',
     endFly: 'look around ›',
@@ -92,20 +101,31 @@ export const COPY = {
     ],
     back: {
       head: 'how to play this record',
-      how: 'drag turns it and the wheel or two fingers zoom. tap a name and you are there. the tour plays itself; press space and it is yours, press it again and it carries on.',
-      keys: '/ dig · space pause · arrows or [ ] step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l names · m sound · e how to read this stop · ? this',
+      how: 'drag turns it, the wheel zooms, a click on a name takes you there. the tour plays itself. space pauses it; it also waits while this is open.',
+      // R18 INTUIT: help never said how to hear a song (FRESH_EYES #3). the posts' gesture and their ask-once rule, in one line
+      hear: 'to hear an artist, rest the pointer on a name. it asks once; nothing loads from spotify until you say yes.',
+      keys: '/ dig · space or p pause · arrows, [ ] or j k step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l the wall label · m sound · e how to read this stop · ? this',
       // R17: a phone has no keyboard; the same two slots in taps (panels.js picks these when the pointer is coarse)
       howTouch: 'drag to turn, pinch to zoom, tap a name to go there. a touch pauses the tour; ▶ resumes.',
+      hearTouch: 'to hear an artist, hold a name. it asks once; nothing loads from spotify until you say yes.',
       keysTouch: 'play pauses · prev, next step · ‹ › angles · read ⌃ explains the stop · more has the rest',
     },
     knobs: { note: 'v, y and g turn detail, crossfade and glow from the keyboard.', noteTouch: 'tap a mark on a dial to set it, or drag it round. one tap flips a switch.' },
     accuracy: [
       'in a categorical room, the shape of a character says who pressed play; color is not needed to read it.',
-      'on a small screen one dot stands for four plays, not one.',
+      'on a small screen one dot stands for three plays, not one.',
       "the clock and the universe's day view both read on one fixed clock, all year (no per-play timezone or daylight saving was kept), not a real local time.",
       "a star's position in the universe carries no meaning as distance; its depth is a seeded drawing offset unless a 3d layout file ships.",
       'shimmer is decoration everywhere on this site and carries no data.',
     ],
+  },
+
+  // R18 INTUIT: the color code on the sleeve (panels.js: the tour sheet and help). the same five as shell.js PAL; the
+  // universe is the one stop where color is genre (its own key says so on arrival)
+  colorKey: {
+    head: 'who pressed play',
+    rows: [['mint', 'i tapped'], ['amber', 'shuffle picked'], ['violet', 'the queue served'], ['rose', 'a finding killed or withdrawn']],
+    foot: 'ice blue is just the interface. in the universe, color is genre.',
   },
 
   // R13 ONE TOUR (the owner: "so many tours everywhere ... make it easier"): one tour, said once, in the records sheet

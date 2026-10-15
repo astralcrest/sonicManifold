@@ -654,7 +654,9 @@ export default {
   },
   dPaint(ctx) {
     const D = this.D; if (D.cur < 0) return;
-    const cl = this.cluster, ca = ctx.famColor(D.famKey(D.pairs[D.cur * 3])), cb = D.phase === 'shown' && D.ok === false ? 0x6e6680 : ctx.famColor(D.famKey(D.pairs[D.cur * 3 + 1]));
+    /* R18 ROOMS: both piles in ink until the call, as the trail is (a genre pastel read as the code: rock's green as mint, pop's
+       pink as rose); the call colours the second pile by the truth, mint for i tapped and violet for the queue; a miss dims it */
+    const INK = ctx.PAL.white, cl = this.cluster, ca = INK, cb = D.phase !== 'shown' ? INK : D.ok === false ? 0x6e6680 : D.truth ? ctx.PAL.tap : ctx.PAL.violet;
     ctx.particles.color((i) => (cl[i] === 1 ? ca : cl[i] === 2 ? cb : DARK));
     D.trailDirty = true;
   },

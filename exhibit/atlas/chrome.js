@@ -67,6 +67,10 @@ export function mount(ctx, deps) {
     coachTouch: CC.coachTouch || ['play runs it. swipe for the next.', 'tap a star to pick it.', 'hold one to hear it. drag to turn.'],
     trackAngle: CC.trackAngle || { 'wall.unsorted': 'the pour', 'wall.press': 'the press', 'clock.busiest': 'the dial', 'clock.glass': 'the glass', 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' },
     coachDesk: CC.coachDesk || ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'hover one to hear it. drag to turn.'],
+    coachThrTouch: CC.coachThrTouch || ['▶ plays the tour. ⏭ next stop.', 'drag to turn, pinch to zoom.', 'hold a name to hear the artist.', 'each room’s wall label: ⋯ more.'],
+    veilAgain: CC.veilAgain || 'one more click.', veilAgainTouch: CC.veilAgainTouch || 'one more tap.', veilWhy: CC.veilWhy || 'browsers ask twice before sound.',
+    veilDesk: CC.veilDesk || 'click to drop the needle', veilTouch: CC.veilTouch || 'tap to drop the needle',
+    coachThrDesk: CC.coachThrDesk || ['it plays itself. space pauses, → moves on.', 'drag to turn the record. the wheel zooms.', 'rest on a name to hear the artist.', 'l opens the wall label. ? lists the keys.'],
   };
   const fillN = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (k in o ? o[k] : m));
   const LP = (TOURS.find((t) => t.id === 'grand') || {}).name || 'the long play';
@@ -340,6 +344,7 @@ export function mount(ctx, deps) {
     if (ctx.label && ctx.label.isOpen) return true;
     return !!doc.querySelector('dialog[open], [role="dialog"][aria-modal="true"]:not(#atlas-info)');
   }
+  let postHoldK = -1, postHoldT = 0;
   function idleTick() {
     const t = now(), tourOn = !!(ctx.tour && ctx.tour.active && ctx.tour.active.playing);
     let bt = null; try { bt = ctx.audio && typeof ctx.audio.beat === 'function' ? ctx.audio.beat() : null; } catch (e) {}
@@ -347,6 +352,15 @@ export function mount(ctx, deps) {
     const idle = !KIOSK && !idleHold.size && !infoHovered() && !infoFocused() && !panelOpen() && !capTyping && !doc.querySelector(".uf-ks.on") && t > capReadUntil && !(hintShown() && t < hintUntil) && (t - lastInput) > threshold;
     html.classList.toggle('atlas-idle', idle);
     idleAPI.faded = idle;
+    /* R18 INTUIT: a listening post that is asking, arming or playing holds the stop (post.js state().asking, shell.js
+       A.clipState), so a stranger hears what they asked for before the tour turns the page (FRESH_EYES #34). at most one
+       preview (30 s) a stop: a clip that plays on (a full track, a radio that follows the tour) never stops the tour */
+    if (tourOn) {
+      try {
+        const A = window.__exhibit && window.__exhibit.A, ps = ctx.post && typeof ctx.post.state === 'function' ? ctx.post.state() : null, k = ctx.tour.active.k;
+        if ((ps && (ps.asking || ps.state === 'armed' || ps.state === 'cueing' || ps.state === 'fail')) || (A && (A.clipState === 'hot' || A.clipState === 'armed'))) { if (postHoldK !== k) { postHoldK = k; postHoldT = t; } if (t - postHoldT < 30000) ctx.tour.holdAtLeast(1500); } else postHoldK = -1;
+      } catch (e) {}
+    }
   }
   setInterval(idleTick, 220);
   const idleAPI = {
@@ -743,9 +757,9 @@ export function mount(ctx, deps) {
   }
   const perDot = () => (P && P.perDot) || 1;
   async function resolveLocal(raw) {
-    let t = raw.replace(/\{per_dot\}/g, perDot() === 1 ? '' : ' (on this screen one dot is four plays)')
-      .replace(/\{every_dot\}/g, perDot() === 1 ? 'every play is a dot' : 'every fourth play is a dot on this screen')
-      .replace(/\{one_play\}/g, perDot() === 1 ? 'one play' : 'four plays');
+    let t = raw.replace(/\{per_dot\}/g, perDot() === 1 ? '' : ' (on this screen one dot is three plays)')
+      .replace(/\{every_dot\}/g, perDot() === 1 ? 'every play is a dot' : 'every third play is a dot on this screen')
+      .replace(/\{one_play\}/g, perDot() === 1 ? 'one play' : 'three plays');
     if (/\{named\}|\{play_share\}/.test(t)) {
       let nodes = null; try { nodes = await ctx.data('universe_nodes'); } catch (e) {}
       const named = nodes && nodes.nodes ? nodes.nodes.length : 0;
@@ -1086,7 +1100,7 @@ export function mount(ctx, deps) {
     if (had) { const b = tracksEl.querySelector('[aria-current="true"]') || tracksEl.querySelector('button'); if (b) b.focus({ preventScroll: true }); }
     requestAnimationFrame(() => { const on = tracksEl.querySelector('.on'); tracksEl.scrollLeft = on && on.previousSibling ? on.previousSibling.offsetLeft : 0; }); /* a sync read here flushed style mid-go and re-ran the room fade */
   }
-  if (tracksEl) tracksEl.addEventListener('click', (e) => { const b = e.target.closest('[data-tk]'); if (!b) return; const dl = tracksEl.closest('dialog'); try { ctx.tour.play(tracksEl.dataset.tour, +b.dataset.tk); } catch (x) {} if (dl) try { dl.close(); } catch (x) {} });
+  if (tracksEl) tracksEl.addEventListener('click', (e) => { const b = e.target.closest('[data-tk]'); if (!b) return; const dl = tracksEl.closest('dialog'); try { const U = ctx.tour; U.play(tracksEl.dataset.tour, +b.dataset.tk, { autoplay: U.isPlaying() }); } catch (x) {} if (dl) try { dl.close(); } catch (x) {} }); /* R18 INTUIT: a pick keeps the play state. a stranger lifted the needle, picked a room, and the tour carried them off it */
   /* R9 GUIDE: the same tracklist, every stop numbered and named, rides at the top of the records sheet while it is open
      (the phone's stop row and dock `records` open it; the desk's records ▾ too), so the whole set reads at once; it goes
      back to the deck when the sheet closes. records rebuilds its body on every open, so the list is re-seated after */
@@ -1844,7 +1858,7 @@ export function mount(ctx, deps) {
      when storage throws), at the first room with stars, a short card says how to move and how to touch, with the total.
      it never takes a press (pointer-events none: the first tap still lands on the star), leaves on the first input or
      after 6 s, and never comes back that session. not in the kiosk, not over an open sheet or the end card. */
-  const COACH_KEY = 'sm_atlas_coach_v1', COACH_MS = 6000, STARRY = ['universe', 'chain', 'map', 'listeners'];
+  const COACH_KEY = 'sm_atlas_coach_v1', COACH_MS = 6000, STARRY = ['universe', 'chain', 'listeners']; /* R18: not the map (upright it hung over the map's own numbers) */
   const ssHas = (k) => { try { return sessionStorage.getItem(k) === '1'; } catch (e) { return !!MEM['ss:' + k]; } };
   const ssPut = (k) => { MEM['ss:' + k] = true; try { sessionStorage.setItem(k, '1'); } catch (e) {} };
   let coachEl = null, coachT = 0, coachWait = 0, coachObs = []; const coachHid = new Map();
@@ -1859,6 +1873,14 @@ export function mount(ctx, deps) {
     /* upright it hangs from the top bar (the key strip takes the lower band); on the desk it sits low in the stage */
     const cx = st.x + st.w / 2, tb = topBar ? Math.round(topBar.getBoundingClientRect().bottom) : 56;
     let y = isPortrait() ? tb + 10 : st.y + st.h * 0.74 - h / 2, x = cx - w / 2;
+    /* R18 INTUIT: the welcome sits in the record's open sky. upright, just under the plays count (never on it) while that
+       keeps the record's key clear; on the desk, the upper left over the title, where a first look starts reading */
+    if (coachEl.dataset.thr) {
+      if (isPortrait()) {
+        const pl = [...doc.querySelectorAll('#atlas-labels .lab.on')].find((b) => / plays$/.test(b.textContent.trim())), kr = doc.querySelector('section[data-room].is-active .thr-key'), pr = pl && pl.getBoundingClientRect(), kb = kr && kr.getBoundingClientRect();
+        if (pr && pr.height && pr.bottom + 10 > y && (!kb || !kb.height || pr.bottom + 10 + h <= kb.top - 8)) y = Math.round(pr.bottom + 10);
+      } else { const ir = $('atlas-info'), r = ir && ir.getBoundingClientRect(); x = r && r.width && r.right < innerWidth / 2 ? r.left : st.x + 24; y = st.y + Math.max(24, st.h * 0.1); }
+    }
     if (!isPortrait()) {
       /* R13: a phone on its side has no slot clear of the card, the line, the room panel and the ladder chip at once; the chip steps out for the coach's few seconds */
       { const c = doc.querySelector('.atlas-ladder-chip'); if (c) c.classList.toggle('al-coach-off', innerHeight <= 480); }
@@ -1895,26 +1917,41 @@ export function mount(ctx, deps) {
   }
   function coachOff(e) {
     if (e && e.isTrusted === false) return;
-    clearTimeout(coachT); removeEventListener('pointerdown', coachOff, true); removeEventListener('keydown', coachOff, true); removeEventListener('wheel', coachOff, true); removeEventListener('resize', placeCoach);
+    clearTimeout(coachT); idleHold.delete('coach'); removeEventListener('pointerdown', coachOff, true); removeEventListener('keydown', coachOff, true); removeEventListener('wheel', coachOff, true); removeEventListener('resize', placeCoach);
     coachHid.forEach((v, c) => { c.style.visibility = v; }); coachHid.clear(); { const c = doc.querySelector('.atlas-ladder-chip.al-coach-off'); if (c) c.classList.remove('al-coach-off'); }
     coachObs.forEach((o) => o.disconnect()); coachObs = [];
     const el = coachEl; coachEl = null; if (!el) return;
     el.classList.remove('on'); el.classList.add('off'); setTimeout(() => el.remove(), reduced ? 0 : 420);
   }
+  /* R18 INTUIT: a first visit gets the coach on the lead-in itself, the first screen, once the record and its opening line
+     have had 4.5 s and nothing was pressed for 2 s, never under the needle veil or an open sheet. upright only with the dock
+     (its lines name the dock's keys); a phone on its side keeps it for the first starry room. same card, same once-a-visit
+     key, so it does not come back there; a stop change before it shows hands it on as before */
+  let thrReadyAt = 0;
+  function coachThrOk() {
+    if (!(window.__exhibit && window.__exhibit.atlasReady)) return false;
+    const t = now(); if (!thrReadyAt) thrReadyAt = t;
+    return t - thrReadyAt >= 4500 && t - lastInput >= 2000 && !veilUp();
+  }
   function coachMaybe(waited) {
-    if (KIOSK || coachEl || ssHas(COACH_KEY) || panelOpen() || html.classList.contains('ai-endcard-open')) return;
-    const cur = curStop(); if (!cur || STARRY.indexOf(cur.id) < 0) return;
+    if (KIOSK || coachEl || ssHas(COACH_KEY)) return;
+    const cur = curStop(); if (!cur) { if (!(window.__exhibit && window.__exhibit.atlasReady)) coachWait = setTimeout(coachMaybe, 600); return; } /* a slow load: no stop at the first poll yet */
+    const thr = cur.id === 'threshold' && (!coarse || isPortrait());
+    if (panelOpen() || html.classList.contains('ai-endcard-open')) { if (thr) coachWait = setTimeout(coachMaybe, 600); return; }
+    if (thr) { if (!coachThrOk()) { coachWait = setTimeout(coachMaybe, 600); return; } } else if (STARRY.indexOf(cur.id) < 0) return;
     /* the colour key (unfold.js .uf-ks, 6 s or the first input) goes first; the coach follows it, never on top of it */
     if (doc.querySelector('.uf-ks')) { coachWait = setTimeout(() => coachMaybe(true), 400); return; }
     ssPut(COACH_KEY);
     /* R17: the key left because of a tap (a label, a star): that tap was the coach's first input, so it never comes up over the field */
     if (waited === true && now() - lastInput < 1200) return;
-    const n = coachTotal(), lines = coarse ? T.coachTouch : T.coachDesk;
-    const el = coachEl = doc.createElement('div'); el.id = 'atlas-coach'; el.className = 'ai-coach'; el.setAttribute('role', 'note');
+    const n = coachTotal(), lines = thr ? (coarse ? T.coachThrTouch : T.coachThrDesk) : coarse ? T.coachTouch : T.coachDesk, gm = thr ? [2, 0, 1, 3] : [2, 0, 1];
+    const el = coachEl = doc.createElement('div'); el.id = 'atlas-coach'; el.className = 'ai-coach'; el.setAttribute('role', 'note'); if (thr) el.dataset.thr = '1';
     const k = doc.createElement('p'); k.className = 'ai-coach-k'; k.textContent = fillN(T.coachHead, { n }); el.appendChild(k);
-    lines.forEach((l, i) => { const p = doc.createElement('p'); p.className = 'ai-coach-l'; p.style.setProperty('--i', i); const g = doc.createElement('i'); g.className = 'ai-coach-g g' + [2, 0, 1][i % 3]; g.setAttribute('aria-hidden', 'true'); const t = doc.createElement('span'); t.textContent = l; p.append(g, t); el.appendChild(p); });
+    lines.forEach((l, i) => { const p = doc.createElement('p'); p.className = 'ai-coach-l'; p.style.setProperty('--i', i); const g = doc.createElement('i'); g.className = 'ai-coach-g g' + gm[i % gm.length]; g.setAttribute('aria-hidden', 'true'); const t = doc.createElement('span'); t.textContent = l; p.append(g, t); el.appendChild(p); });
     const bar = doc.createElement('i'); bar.className = 'ai-coach-bar'; bar.setAttribute('aria-hidden', 'true'); el.appendChild(bar);
     body.appendChild(el); placeCoach();
+    /* R18 INTUIT: the welcome names the dock's keys, so the chrome stays lit while it is up (a phone's dock hides at idle) */
+    if (thr) { idleHold.add('coach'); html.classList.remove('atlas-idle'); idleAPI.faded = false; inviteOn(); }
     requestAnimationFrame(() => requestAnimationFrame(() => { if (coachEl === el) el.classList.add('on'); }));
     /* R13: it stays its read time when that is longer than 6 s, and keeps re-finding a free slot while the room's own boxes settle
        (sideways, the chain's .ch-hud grew in over it a moment after it landed) */
@@ -1933,8 +1970,22 @@ export function mount(ctx, deps) {
     setTimeout(() => { if (coachEl !== el) return; addEventListener('pointerdown', coachOff, { capture: true, passive: true }); addEventListener('keydown', coachOff, true); addEventListener('wheel', coachOff, { capture: true, passive: true }); }, 250);
     addEventListener('resize', placeCoach);
   }
+  /* R18 INTUIT: with the welcome up on a phone, the dock's ▶ breathes (an ice ring, still under reduced motion) until the
+     first touch, a stop change or 30 s: the one thing a phone has to press is the one thing that moves */
+  let inviteEl = null, inviteT = 0;
+  function inviteOff(e) {
+    if (e && e.isTrusted === false) return;
+    clearTimeout(inviteT); removeEventListener('pointerdown', inviteOff, true); removeEventListener('keydown', inviteOff, true);
+    if (inviteEl) inviteEl.classList.remove('ai-invite'); inviteEl = null;
+  }
+  function inviteOn() {
+    if (inviteEl || !coarse || !isPortrait() || tourIsPlayingNow()) return;
+    const b = doc.querySelector('#atlas-dock .d-row>[data-a="play"]'); if (!b || !b.getClientRects().length) return;
+    inviteEl = b; b.classList.add('ai-invite'); inviteT = setTimeout(inviteOff, 30000);
+    setTimeout(() => { if (inviteEl !== b) return; addEventListener('pointerdown', inviteOff, { capture: true, passive: true }); addEventListener('keydown', inviteOff, true); }, 250);
+  }
   /* R13: the coach is about the whole walk, not this stop: autoplay turning the page leaves it up for its read time; a visitor's own move still folds it */
-  ctx.onStop(() => { clearTimeout(coachWait); if (coachEl) { if (now() - lastInput < 900) coachOff(); } else coachWait = setTimeout(coachMaybe, 900); });
+  ctx.onStop(() => { clearTimeout(coachWait); inviteOff(); if (coachEl) { if (now() - lastInput < 900) coachOff(); } else coachWait = setTimeout(coachMaybe, 900); });
   coachWait = setTimeout(coachMaybe, 900);
   /* R13 CHROME3: the colour key (unfold.js .uf-ks) steps off the room's own controls and panels (upright: above them; the desk: left
      of a panel in the stage's top-right corner, the wheel's) and stays its read time (1500 + (len + 40) * 28 ms) unless the visitor
@@ -1972,6 +2023,41 @@ export function mount(ctx, deps) {
   const tourAlone = () => { try { const U = ctx.tour; return !!(U && U.isPlaying && U.isPlaying()) && (now() - lastInput > 900 || now() - lastStopT < 4000); } catch (e) { return false; } };
   new MutationObserver((rs) => rs.forEach((r) => r.addedNodes.forEach((n) => { if (n.classList && n.classList.contains('uf-ks')) { if (tourAlone()) { Element.prototype.remove.call(n); return; } doc.querySelectorAll('.uf-ks').forEach((o) => { if (o !== n) Element.prototype.remove.call(o); }); /* a new strip supersedes a held one */ ksStep(n); ksHold(n); } }))).observe(doc.body, { childList: true });
   api.coach = { show: coachMaybe, hide: coachOff, get on() { return !!coachEl; }, key: COACH_KEY };
+  /* R18 INTUIT: the arrival line a screen reader hears, counted the way the deck counts (6 / 18), not by rooms (shell.js roomSay
+     said 'stop 8 of 15'); null when room i is not the tour's current stop, and the shell keeps its own line */
+  api.sayStop = (i) => {
+    try {
+      const a = ctx.tour && ctx.tour.active, def = a && a.id && tourDef(a.id), s = def && def.stops[a.k], r = window.__exhibit.rooms[i];
+      if (!s || !r || s.room !== r.id) return null;
+      const g = def.stops[0] && def.stops[0].gate ? 1 : 0, k = a.k + 1 - g;
+      return (k < 1 ? 'lead-in, ' : 'stop ' + k + ' of ' + (def.stops.length - g) + ', ') + (trackName(def, a.k) || nameOf(r.id));
+    } catch (e) { return null; }
+  };
+  /* R18 INTUIT (the LANDING contract): ?enter=sound comes from a press on the landing. a browser that carries that press over
+     (chromium does, for a same-origin hop) starts the sound here without a second ask, so the veil lets itself through;
+     one that does not (webkit, gecko) gets the ask in words that say why. exhibit.html keeps the ask hidden until then */
+  (function veilTry() {
+    const v = doc.getElementById('needle-veil'), X = window.__exhibit, A = X && X.A;
+    if (!v || v.classList.contains('is-off')) return;
+    const ask = () => {
+      if (!v.isConnected || v.classList.contains('is-off')) return;
+      let from = false; try { from = !!doc.referrer && new URL(doc.referrer).origin === location.origin; } catch (e) {}
+      const t = v.querySelector('.nv-t');
+      if (t && from) { t.textContent = coarse ? T.veilAgainTouch : T.veilAgain; const w = doc.createElement('span'); w.className = 'nv-why'; w.textContent = T.veilWhy; t.after(w); }
+      else if (t) t.textContent = coarse ? T.veilTouch : T.veilDesk;
+      v.classList.add('nv-ask');
+    };
+    if (!A || typeof A.unlock !== 'function') { ask(); return; }
+    try { A.unlock(); } catch (e) { ask(); return; }
+    const t0 = now(); let asked = false;
+    (function wait() {
+      if (!v.isConnected || v.classList.contains('is-off')) return;
+      if (A.on && A.ac && A.ac.state === 'running') { const go = v.querySelector('.nv-go'); if (go) go.click(); return; }
+      const dt = now() - t0;
+      if (!asked && dt > 600) { asked = true; ask(); }
+      if (dt < 4000) setTimeout(wait, asked ? 120 : 50); /* a late start still lets the veil through */
+    })();
+  })();
 
   return api;
 }

@@ -6,12 +6,15 @@
 const HEAD = "sixteen B-sides that didn't make the record";
 const S = 'html.atlas section[data-room=graveyard] ';
 const CSS = [
-  'html.atlas.gy-on #atlas-labels .lab.obj{text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:rgba(232,224,255,.6)}',
+  'html.atlas.gy-on #atlas-labels .lab.obj{text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:rgba(255,110,156,.7)}',
   'html.atlas.gy-on #atlas-labels .lab.obj::before,html.atlas.gy-on #atlas-labels .lab.obj::after{display:inline-block;white-space:pre}',
   'html.atlas.gy-on.gy-s #atlas-labels .lab.obj{text-decoration:none}',
   S + '.gv-sixteen-list::before{content:"' + HEAD + '";grid-column:1/-1;font:600 10.5px/1.4 var(--mono);letter-spacing:.08em;color:var(--ice)}',
-  S + '.gv-sixteen-list li s{text-decoration-thickness:1px;color:var(--ink)}',
-  S + '.gv-card.gy-k>span:first-child{text-decoration:line-through;text-decoration-thickness:1px}',
+  S + '.gv-sixteen-list li s{position:relative;text-decoration-line:line-through;text-decoration-thickness:1.5px;text-decoration-color:var(--rose,#ff6e9c);color:var(--ink)}',
+  /* R18 ROOMS (ART#12): the edition trace: a proofreader's mark over the struck words, in the leading above them, so the
+     list keeps its height (it fits its plate without a scroll) and textContent is unchanged (search still matches) */
+  S + '.gv-sixteen-list li s::after{content:"withdrawn";position:absolute;left:0;bottom:100%;margin-bottom:-2px;font:600 6.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--rose,#ff6e9c);opacity:.92;white-space:nowrap;pointer-events:none}',
+  S + '.gv-card.gy-k>span:first-child{text-decoration:line-through;text-decoration-thickness:1.5px;text-decoration-color:var(--rose,#ff6e9c)}',
   '.gy-tip{position:fixed;z-index:4;max-width:280px;margin:0;font:400 10.5px/1.4 var(--mono);color:var(--ink);background:rgba(10,1,24,.9);border:1px solid rgba(134,203,254,.35);border-radius:6px;padding:5px 8px;pointer-events:none}',
   '.gy-tip[hidden]{display:none}',
   '.gy-tip b{font-weight:600;color:var(--mute)}',

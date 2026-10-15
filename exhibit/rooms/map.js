@@ -98,6 +98,7 @@ const CATS = [{ family: 'neutral' }, { family: 'tap' }, { family: 'shuffle' }, {
     '.mheldposts{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:2px 0 0}',
     '.mheldposts .mheldlbl{flex:0 0 100%;margin:0 0 1px;font:600 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--mute)}',
     '.mheldposts .post{margin:0}',
+    '.mheldrow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;flex:0 0 100%;min-width:0}',
     '.mheldposts .mheldnote{flex:0 0 100%}',
     '.mheldposts .post-note{margin-top:2px}',
     '.mnote{margin:2px 0 0;font:400 11px/1.55 var(--mono);color:var(--mute);max-width:34rem}',
@@ -145,7 +146,7 @@ const CATS = [{ family: 'neutral' }, { family: 'tap' }, { family: 'shuffle' }, {
      pans and zooms); only the real controls opt back in. the readout stays screen-fixed, never scaled by the camera */
   const A = 'html.atlas ' + S;
   st.textContent += A + '.mapwrap{pointer-events:none}' + A + '.mctl{pointer-events:none}' +
-    A + '.mtog,' + A + '.mdial,' + A + '.mheldposts .post,' + A + '.mheldposts button,' + A + '.mheldposts a{pointer-events:auto}' +
+    A + '.mtog,' + A + '.mdial,' + A + '.mheldposts .post,' + A + '.mheldposts button,' + A + '.mheldposts a,' + A + '.mheldrow{pointer-events:auto}' +
     /* the named artist under the pointer, or the one the camera is locked on: a label in the atlas's own voice, counter-scaled
        so it stays 10.5px at any zoom (it rides the camera layer, which scales its children) */
     A + '.mtag{position:absolute;left:0;top:0;transform-origin:0 0;transform:scale(var(--iz,1)) translate(9px,calc(-100% - 7px));font:400 10.5px/1.3 var(--mono);letter-spacing:.06em;color:var(--ink);white-space:nowrap;padding:2px 4px;pointer-events:none;text-shadow:0 0 6px rgba(10,1,24,.95),0 0 2px rgba(10,1,24,.95);opacity:0;transition:opacity .25s ease}' +
@@ -317,9 +318,9 @@ export default {
        opens a second one. */
     const heldWrap = el('div', 'mheldposts');
     heldWrap.appendChild(el('p', 'mheldlbl', 'hear who is held still:'));
-    const heldNote = el('div', 'mheldnote');
-    for (let k = 0; k < NPIN; k++) ctx.post(heldWrap, this.pinName[k], { label: 'hear', noteHost: heldNote });
-    heldWrap.appendChild(heldNote);
+    const heldRow = el('div', 'mheldrow'), heldNote = el('div', 'mheldnote');
+    for (let k = 0; k < NPIN; k++) ctx.post(heldRow, this.pinName[k], { label: 'hear', noteHost: heldNote });
+    heldWrap.append(heldRow, heldNote);
     ctl.appendChild(heldWrap);
 
     wrap.appendChild(ctl);
@@ -463,13 +464,22 @@ export default {
     ctx.hud(this.map.artists[this.focusA] + ' · where the ' + this.map.levels[this.level] + '% map puts them. turn the dial: the map moves them, their plays stay the same.');
   },
   lockedName(ctx) { const v = ctx.view; return v && v.state === 'locked' ? v.lock : null; },
+  /* R18 ROOMS (ART#8): once a visitor has said yes to one clip, resting the pointer on an artist plays them (post.js holds
+     the 600 ms); moving off lets that dwell's clip go. before consent a hover only names, never asks */
+  dwellOn(a, p, ctx) {
+    const P = ctx.post; if (!P || typeof P.dwell !== 'function') return;
+    try {
+      if (a >= 0 && this.mode === 'map' && ctx.clipsAllowed) { const x = p && isFinite(p.sx) ? p.sx + 14 : undefined, y = p && isFinite(p.sy) ? p.sy + 14 : undefined; P.dwell(this.map.artists[a], { x, y }); this.dwelt = true; }
+      else if (this.dwelt) { this.dwelt = false; P.undwell(); }
+    } catch (e) {}
+  },
 
   /* the field's own gestures: drag pans, a tap names and flies (the shell's default tap via pick()), the pointer over an
      artist names it */
   gestures(ctx) {
     return {
-      hover: (p) => { const a = this.hitArtist(p.wx, p.wy, ctx); if (a !== this.hoverA) { this.hoverA = a; this.tagDirty = true; } },
-      leave: () => { if (this.hoverA >= 0) { this.hoverA = -1; this.tagDirty = true; } },
+      hover: (p) => { const a = this.hitArtist(p.wx, p.wy, ctx); if (a !== this.hoverA) { this.hoverA = a; this.tagDirty = true; this.dwellOn(a, p, ctx); } },
+      leave: () => { if (this.hoverA >= 0) { this.hoverA = -1; this.tagDirty = true; } this.dwellOn(-1, null, ctx); },
       cursor: (p) => (this.hoverA >= 0 ? 'pointer' : ''),
     };
   },

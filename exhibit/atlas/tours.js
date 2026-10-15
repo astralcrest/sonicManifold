@@ -11,9 +11,9 @@
      {dust_artists} count of placed==1 rows in universe_artists_all.json    (not used by any
                    caption below; documented here only because §4.2 defines it)
      {play_share}  round(100 * universe_nodes.named_play_share)             (68)
-     {per_dot}     '' at P.perDot==1, else ' (on this screen one dot is four plays)'
-     {every_dot}   'every play is a dot' | 'every fourth play is a dot on this screen'
-     {one_play}    'one play' | 'four plays'
+     {per_dot}     '' at P.perDot==1, else ' (on this screen one dot is three plays)'
+     {every_dot}   'every play is a dot' | 'every third play is a dot on this screen'
+     {one_play}    'one play' | 'three plays'
      {median_day}  median n over universe_days.json days with d >= 2022-02-01,
                    first (file-order) day whose n equals it                  (2022-03-29, n=58)
      {neighbour}   for the stop's focused star, the name at the far end of its largest
@@ -224,7 +224,7 @@ const NINETY_AT = {
     // TOURS3 (CRIT6 §6): 16 s on the most stunning stop. no scripted strum: tours.js has no demo hook (the strum is kiosk-only)
     room: 'universe', angle: 'sky', hold: 16,
     share: SHARE.universe,
-    caption: 'my {named} most-played artists. where one sits means nothing. press one to hear it.',
+    caption: 'my {named} most-played artists. where one sits means nothing. hold one to hear it.',
     src: ['exhibit/data/universe_nodes.json', 'derive:named_count'],
   },
   'yours·bars': {
@@ -314,7 +314,7 @@ export const TOURS = [
         // no pose: R5 R2 tuned the room's own home framing to fill >= 85% of the stage; hold 12 lets the kiosk strum finish
         room: 'universe', angle: 'sky', hold: 12,
         share: SHARE.universe,
-        caption: 'each star is an artist i played 50 times or more: {named} of them. color is genre. where a star sits means nothing. press one to hear it.',
+        caption: 'each star is an artist i played 50 times or more: {named} of them. color is genre. where a star sits means nothing. hold one to hear it.',
         src: ['exhibit.html#universe.say', 'exhibit/data/universe_nodes.json', 'derive:named_count', 'exhibit/data/universe_edges.json'],
       },
       {

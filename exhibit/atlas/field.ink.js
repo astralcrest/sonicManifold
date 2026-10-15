@@ -50,8 +50,10 @@ export function stats() {
 const FB = 0x8d40, mk = (t) => document.createElement(t), $ = (i) => document.getElementById(i);
 export function probe(cv) {
  let gl = null;
- try { gl = cv.getContext('webgl2', { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: 'high-performance' }); } catch (e) {}
- if (!gl) return { why: 'no webgl2' };
+ try { gl = cv.getContext('webgl2', { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: true }); } catch (e) {}
+ /* R18 FIELD_GL: the caveat flag refuses a software context before its renderer can be read, so a refusal is named by an
+    unflagged throwaway context, freed at once: software GL still reads 'software renderer', anything else 'no webgl2' */
+ if (!gl) { let rn = ''; try { const g = mk('canvas').getContext('webgl2'); if (g) { const r = g.getExtension('WEBGL_debug_renderer_info'); rn = String(g.getParameter(r ? r.UNMASKED_RENDERER_WEBGL : g.RENDERER) || ''); const lc = g.getExtension('WEBGL_lose_context'); if (lc) lc.loseContext(); } } catch (e) {} return /swiftshader|llvmpipe|software|basic render/i.test(rn) ? { why: 'software renderer', rn } : { why: 'no webgl2' }; }
  const ri = gl.getExtension('WEBGL_debug_renderer_info'), rn = String(gl.getParameter(ri ? ri.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
  if (/swiftshader|llvmpipe|software|basic render/i.test(rn)) return { why: 'software renderer', rn };
  if (!gl.getExtension('EXT_color_buffer_float')) return { why: 'no half-float target', rn };

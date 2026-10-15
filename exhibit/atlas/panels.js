@@ -8,7 +8,7 @@
 */
 export function mount(ctx, deps) {
   if (!ctx.atlas || !ctx.atlas.on) return null;
-  const { GF, coarse, lowPower, rooms, relayout } = deps || {};
+  const { GF, P, coarse, lowPower, rooms, relayout } = deps || {};
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const $ = (s, r) => (r || document).querySelector(s);
 
@@ -108,6 +108,10 @@ export function mount(ctx, deps) {
     loop: 'leave it playing', loopSub: '{name} on repeat, hands off',
   }, (deps && deps.COPY && deps.COPY.tour) || {});
   const fill = (s, o) => String(s).replace(/\{(\w+)\}/g, (m, k) => (o[k] != null ? o[k] : m));
+  /* R18 INTUIT: the color code, said on the sleeve (this sheet's lead) and the back cover (help): four swatches in the reserved
+     hues with their words, then what ice and the universe's pastels are. the swatches are aria-hidden; the words carry it */
+  const CK = Object.assign({ head: 'who pressed play', rows: [['mint', 'i tapped'], ['amber', 'shuffle picked'], ['violet', 'the queue served'], ['rose', 'a finding killed or withdrawn']], foot: 'ice blue is just the interface. in the universe, color is genre.' }, (deps && deps.COPY && deps.COPY.colorKey) || {});
+  const keyHTML = () => '<div class="a-ckey"><p class="a-lbl a-ckey-h">' + esc(CK.head) + '</p><ul class="a-ckey-l">' + CK.rows.map((r) => '<li><i class="a-ckey-s c-' + esc(r[0]) + '" aria-hidden="true"></i>' + esc(r[1]) + '</li>').join('') + '</ul><p class="a-ckey-f">' + esc(CK.foot) + '</p></div>';
   const TOURS = (deps && deps.TOURS) || [];
   const tourById = (id) => TOURS.find((x) => x.id === id) || null;
   const toursDlg = panelShell('atlas-tours', 'the tour');
@@ -160,6 +164,7 @@ export function mount(ctx, deps) {
     nl.innerHTML = '<span class="a-t-name">' + esc(TC.notesLink) + '</span>';
     nl.addEventListener('click', () => { closeDialog(toursDlg); openNotes(); });
     $('[data-lead]', body).appendChild(nl);
+    $('[data-lead]', body).insertAdjacentHTML('beforeend', keyHTML());
     const ss = document.createElement('button'); ss.type = 'button'; ss.className = 'a-tour-item k-loop';
     ss.innerHTML = '<span class="a-t-name">' + esc(TC.loop) + '</span><span class="a-t-blurb">' + esc(fill(TC.loopSub, { name: nameOf('grand') })) + '</span>';
     ss.addEventListener('click', () => { try { const u = new URL(location.href); u.searchParams.set('kiosk', '1'); location.href = u.toString(); } catch (e) {} });
@@ -360,16 +365,17 @@ export function mount(ctx, deps) {
   function openSettings() { refreshSettingsUI(); openDialog(setDlg); }
 
   /* -------------------------------------------------------------- help: the back cover. a short paragraph on how to play, one line of keys,
-     then the accuracy notes in small print (glyph shape carries provenance, phones draw one dot per four plays, the clock and the
+     then the accuracy notes in small print (glyph shape carries provenance, phones draw one dot per three plays, the clock and the
      universe day view read on one fixed clock, universe positions carry no meaning as distance, shimmer is decoration) */
   const helpDlg = panelShell('atlas-help', 'help');
   (function buildHelp() {
     const body = $('[data-body]', helpDlg), H = (deps && deps.COPY && deps.COPY.help && deps.COPY.help.back) || {};
     let html = '<p class="a-back-h">' + esc(H.head || 'how to play this record') + '</p>' +
-      '<p class="a-back-p">' + esc((coarse && H.howTouch) || H.how || 'drag turns it and the wheel or two fingers zoom. tap a name and you are there. the tour plays itself; press space and it is yours, press it again and it carries on.') + '</p>' +
-      '<p class="a-back-k">' + esc((coarse && H.keysTouch) || H.keys || '/ dig · space pause · arrows or [ ] step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l names · m sound · e how to read this stop · ? this') + '</p>';
-    html += '<p class="a-help-note">the shape of a glyph says who pressed play in every categorical room, not just color, and the color code still means what it always meant.' +
-      (lowPower ? ' on this screen one dot is four plays.' : '') +
+      '<p class="a-back-p">' + esc((coarse && H.howTouch) || H.how || 'drag turns it, the wheel zooms, a click on a name takes you there. the tour plays itself. space pauses it; it also waits while this is open.') + '</p>' +
+      '<p class="a-back-p a-back-hear">' + esc((coarse && H.hearTouch) || H.hear || 'to hear an artist, rest on a name. it asks once; nothing loads from spotify until you say yes.') + '</p>' +
+      '<p class="a-back-k">' + esc((coarse && H.keysTouch) || H.keys || '/ dig · space or p pause · arrows, [ ] or j k step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l the wall label · m sound · e how to read this stop · ? this') + '</p>' + keyHTML();
+    html += '<p class="a-help-note">where plays sort by who started them, shape says it too: ° tap, × shuffle, ≡ queue.' +
+      ((P && P.perDot > 1) ? ' on this screen one dot is three plays.' : '') +
       ' the clock and the universe day view read on one fixed clock all year, not a real local time. the marks after a name, ▮ to ▮▮▮▮▮, are its plays in five steps among the starred artists, in its genre color; they say nothing about who pressed play. positions in the universe carry no meaning as distance or direction on their own. shimmer is decoration everywhere and carries no data.' +
       (coarse ? ' the pinch knob chooses whether two fingers zoom the field or the page.' : '') + '</p>';
     const sh = document.querySelector('link[rel=modulepreload][href*="shell.js?v="]') || document.querySelector('script[src*="shell.js?v="]');
@@ -379,7 +385,11 @@ export function mount(ctx, deps) {
     body.innerHTML = html;
     $('[data-notes]', body).addEventListener('click', () => { closeDialog(helpDlg); openNotes(); });
   })();
-  function openHelp() { openDialog(helpDlg); }
+  /* R18 INTUIT: help holds the tour while it is open (a stranger read it while the tour walked two rooms on behind it) and lets
+     it carry on when it closes, unless the visitor changed it meanwhile */
+  let helpHeld = false;
+  function openHelp() { try { if (ctx.tour && ctx.tour.isPlaying()) { ctx.tour.pause('help'); helpHeld = true; } } catch (e) {} openDialog(helpDlg); }
+  helpDlg.addEventListener('close', () => { if (!helpHeld) return; helpHeld = false; try { const a = ctx.tour.active; if (a.id && !a.playing && a.why === 'help') ctx.tour.resume(); } catch (e) {} });
   ctx.keys.on('?', () => { openHelp(); return true; });
 
   /* -------------------------------------------------------------- v / g / y setting cycles */

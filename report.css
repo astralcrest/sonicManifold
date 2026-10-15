@@ -305,3 +305,21 @@ html:not(.js) figure.rec canvas{background:radial-gradient(circle,#0a0118 0 29%,
   --key-t:#0a7d5f;--key-s:#9a5c00;--key-q:#5b41ad;
   --chip-line:#7d7262;--mark-n:#857a69;--quote-o:.85}}
 @media print{:root{--mc-head:#111;--mc-name:#111;--mc-th:#333;--mc-swipe:#444;--mc-mask:none}}
+/* R18 LAB_INTUIT: a visible "start here" under the title, pointing at the short read (the skip link only shows on focus) */
+.hero-copy a.start{display:inline-flex;align-items:center;gap:.5em;box-sizing:border-box;min-height:44px;margin:1.1rem 0 0;padding:.55rem .85rem;border:1px solid var(--accent);border-radius:2px;font:600 .66rem/1.2 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);text-decoration:none}
+.hero-copy a.start:hover{background:var(--wash)}
+.hero-copy a.start:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media (max-width:760px){.hero-copy a.start{margin-top:.8rem}.hero-copy a.start .st-n{display:none}}
+@media print{.hero-copy a.start{display:none!important}}
+/* R18 LAB_INTUIT: the sticky contents bar is opaque below the side-rail width (the link row showed through), the skip link is a 44px target, and the opening quote mark hangs clear of the "1 · what i asked" label */
+@media (max-width:1399px){.toc{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}}
+.skip{display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box}
+@media (min-width:561px){.ninety .beat:has(>div>.big){column-gap:2.6rem}}
+/* R18-VISUAL-LAB-START */
+/* edition traces: each withdrawn claim struck in rose behind a "withdrawn" stamp; the surviving claim's qualifying clause underlined in ice */
+ol.graveyard>li .claim{text-decoration:line-through;text-decoration-color:var(--kill);text-decoration-thickness:1.5px}
+ol.graveyard>li .claim::before{content:"withdrawn";display:inline-block;margin:0 .55em .12em 0;padding:.2em .45em .16em;border:1px solid var(--kill);border-radius:2px;font:600 .62rem/1 ui-monospace,'JetBrains Mono',monospace;letter-spacing:.08em;color:var(--kill);text-decoration:none;vertical-align:.12em;transform:rotate(-2deg)}
+ins{text-decoration:underline;text-decoration-color:var(--ice);text-decoration-thickness:1.5px;text-underline-offset:.22em;background:none;color:inherit}
+ol.graveyard li{text-wrap:pretty}
+@media (prefers-reduced-motion:no-preference){.claim-card{transition:opacity .8s ease,translate .8s cubic-bezier(.2,.8,.2,1)}@starting-style{.claim-card{opacity:0;translate:0 10px}}}
+/* R18-VISUAL-LAB-END */

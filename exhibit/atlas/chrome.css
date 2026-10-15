@@ -49,7 +49,7 @@ html.atlas #atlas-info #uf-tab{position:absolute;left:0;top:-26px;width:44px;hei
 html.atlas .ai-cap-ghost{visibility:hidden}
 html.atlas .ai-cap-ghost::after{content:"_"}
 html.atlas .ai-cap-live{position:absolute;left:var(--cl,11px);right:var(--cr,0);top:var(--ct,2px);bottom:var(--cb,2px);overflow:hidden}
-html.atlas .ai-cursor{display:inline-block;width:.5em;margin-left:1px;color:#21f6bc;animation:none}
+html.atlas .ai-cursor{display:inline-block;width:.5em;margin-left:1px;color:var(--ice);animation:none} /* R18 INTUIT: was mint; mint means i tapped */
 html.atlas .ai-cursor::before{content:"\00b0"}
 /* a caption the compact card cut (chrome.js fitCaption) ends in ▾, and one opened by a tap in ▴; the ghost reserves the
    mark, so the box has its final size before typing starts. the mark shows once the typing is done. */
@@ -110,6 +110,8 @@ html.atlas .ai-foot .atlas-photodock{gap:6px;flex-wrap:wrap}
 html.atlas .ai-more{font:600 10.5px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;min-height:24px;cursor:pointer;white-space:nowrap}
 html.atlas .ai-more:hover{color:var(--ice);border-color:rgba(134,203,254,.5)}
 html.atlas .ai-foot .atlas-chip{border-radius:999px;padding:5px 11px;min-height:24px;font-size:10px}
+/* R18 INTUIT: on a desk the card's tool words were 10 px (FRESH_EYES #31) */
+@media (pointer:fine) and (min-aspect-ratio:115/100){html.atlas .ai-more,html.atlas .ai-foot .atlas-chip{font-size:11px}}
 
 html.atlas .ai-zoom{display:none;gap:8px;flex-shrink:0}
 html.atlas .ai-zbtn{width:44px;height:44px;flex:0 0 44px;border-radius:999px;border:1px solid var(--ai-line);background:var(--ai-panel);color:var(--ice);font:600 18px/1 var(--mono);cursor:pointer}
@@ -290,6 +292,9 @@ html.atlas #top #mute[aria-pressed="false"]{color:var(--ice)}
    onboarding and "tap anywhere for sound". landscape: one unboxed line under the stage, centred on it (left/bottom/
    max-width written by chrome.js). portrait: an opaque line just above #atlas-info. never over the stage's art. */
 html.atlas #atlas-onboard{position:fixed;z-index:4;left:50%;bottom:22px;transform:translateX(-50%);margin:0;width:max-content;font:500 11px/1.45 var(--mono);color:var(--mute);letter-spacing:.02em;text-align:center;text-wrap:balance;text-shadow:0 0 6px var(--bg),0 0 2px var(--bg);max-width:calc(100vw - 40px);pointer-events:none;transition:opacity .4s ease}
+/* R18 INTUIT: on the desk deck the line (z 4) sat under #top's fade (#top::before inside #top's z 5), so the first-visit line
+   was drawn but never seen; level with #top it paints after it (later in the page), still under the post dock (z 6) */
+html.atlas.atlas-deck #atlas-onboard{z-index:5}
 html.atlas #atlas-onboard .ai-line-snd{color:var(--ice);letter-spacing:.08em;white-space:nowrap;flex:none}
 html.atlas #atlas-onboard .ai-line-onb:not([hidden])+.ai-line-snd:not([hidden])::before{content:" · ";color:var(--mute);letter-spacing:.02em}
 html.atlas.ai-toast-on #atlas-onboard{opacity:0}
@@ -589,7 +594,7 @@ html.atlas #atlas-info .ai-mrow-label .ai-of{color:var(--mute);font-weight:500}
 html.atlas #atlas-info .ai-meter{position:absolute;left:0;right:6px;top:7px;height:2px;display:flex;gap:2px;pointer-events:none}
 html.atlas #atlas-info .ai-meter i{flex:1 1 0;min-width:2px;border-radius:1px;background:rgba(134,203,254,.2)}
 html.atlas #atlas-info .ai-meter i.past{background:rgba(134,203,254,.5)}
-html.atlas #atlas-info .ai-meter i.on{background:var(--mint);box-shadow:0 0 6px rgba(33,246,188,.75)}
+html.atlas #atlas-info .ai-meter i.on{background:var(--ice);box-shadow:0 0 6px rgba(134,203,254,.75)} /* R18 INTUIT: the current stop in ice, not mint */
 html.atlas #top .a-count{display:none}
 html.atlas.atlas-deck #top .a-count{display:inline-block;flex:none;margin:0 8px 0 2px;font:600 11px/32px var(--mono);letter-spacing:.06em;color:var(--ice);white-space:nowrap}
 
@@ -599,8 +604,8 @@ html.atlas #atlas-tours .a-tracks-all .a-rec{grid-column:1/-1;margin:0 0 4px;fon
 html.atlas #atlas-tours .a-tracks-all button{display:flex;gap:8px;align-items:center;width:100%;min-height:44px;padding:6px 4px;background:none;border:0;border-radius:4px;text-align:left;font:500 12px/1.3 var(--mono);color:var(--mute);cursor:pointer}
 html.atlas #atlas-tours .a-tracks-all b{flex:0 0 3.2ch;font-weight:600;color:var(--ice)}
 html.atlas #atlas-tours .a-tracks-all span{color:var(--ink)}
-html.atlas #atlas-tours .a-tracks-all .on button{background:rgba(33,246,188,.1)}
-html.atlas #atlas-tours .a-tracks-all .on b,html.atlas #atlas-tours .a-tracks-all .on span{color:var(--mint)}
+html.atlas #atlas-tours .a-tracks-all .on button{background:rgba(134,203,254,.16)} /* R18 INTUIT: the current stop in ice, not mint */
+html.atlas #atlas-tours .a-tracks-all .on b,html.atlas #atlas-tours .a-tracks-all .on span{color:var(--ice)}
 html.atlas #atlas-tours .a-tracks-all button:hover{background:rgba(134,203,254,.08)}
 html.atlas #atlas-tours .a-tracks-all button:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
 
@@ -616,6 +621,9 @@ html.atlas .ai-coach{position:fixed;z-index:40;box-sizing:border-box;width:min(3
   box-shadow:0 0 0 1px rgba(0,0,0,.45),0 24px 60px rgba(0,0,0,.6),0 0 42px rgba(134,203,254,.16);pointer-events:none;overflow:hidden;
   opacity:0;transform:translateY(10px) scale(.97);transition:opacity .35s ease-out,transform .45s cubic-bezier(.2,.9,.25,1.2)}
 html.atlas .ai-coach.on{opacity:1;transform:none}
+/* R18 INTUIT: the welcome's desk lines are whole sentences about keys; sideways it has the width for one line each */
+@media (min-aspect-ratio:115/100) and (min-height:481px){html.atlas .ai-coach[data-thr]{width:min(420px,calc(100vw - 32px))}}
+@media (max-aspect-ratio:115/100){html.atlas .ai-coach[data-thr] .ai-coach-l{min-height:26px}}
 html.atlas .ai-coach.off{opacity:0;transform:translateY(-6px) scale(.98);transition:opacity .38s ease-in,transform .38s ease-in}
 html.atlas .ai-coach p{margin:0}
 html.atlas .atlas-ladder-chip.al-coach-off{visibility:hidden}
@@ -625,11 +633,12 @@ html.atlas .ai-coach-k{font:600 10px/1.2 var(--mono);letter-spacing:.18em;text-t
 html.atlas .ai-coach-l{display:flex;align-items:center;gap:12px;min-height:30px;font:500 13px/1.4 var(--mono);color:var(--ink);opacity:0;transform:translateX(-6px)}
 html.atlas .ai-coach.on .ai-coach-l{animation:ai-coach-in .45s ease-out forwards;animation-delay:calc(.15s + var(--i) * .35s)}
 html.atlas .ai-coach-g{position:relative;flex:0 0 22px;height:22px;border-radius:50%}
-html.atlas .ai-coach-g.g0{background:radial-gradient(circle,var(--mint) 0 3px,transparent 4px)}
-html.atlas .ai-coach-g.g0::after{content:"";position:absolute;inset:3px;border-radius:50%;border:1.5px solid var(--mint);animation:ai-coach-ping 1.4s ease-out infinite}
-html.atlas .ai-coach-g.g1{background:conic-gradient(var(--orchid) var(--ai-hold,0%),rgba(189,166,255,.18) 0);-webkit-mask:radial-gradient(circle,transparent 6px,#000 7px);mask:radial-gradient(circle,transparent 6px,#000 7px);animation:ai-coach-hold 1.8s linear infinite}
+html.atlas .ai-coach-g.g0{background:radial-gradient(circle,var(--ice) 0 3px,transparent 4px)}
+html.atlas .ai-coach-g.g0::after{content:"";position:absolute;inset:3px;border-radius:50%;border:1.5px solid var(--ice);animation:ai-coach-ping 1.4s ease-out infinite}
+html.atlas .ai-coach-g.g1{background:conic-gradient(var(--ice) var(--ai-hold,0%),rgba(134,203,254,.18) 0);-webkit-mask:radial-gradient(circle,transparent 6px,#000 7px);mask:radial-gradient(circle,transparent 6px,#000 7px);animation:ai-coach-hold 1.8s linear infinite}
+html.atlas .ai-coach-g.g3::before{content:"\25A4";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 15px/1 var(--mono);color:var(--ice);animation:ai-coach-lift 2.2s ease-in-out infinite}
 html.atlas .ai-coach-g.g2::before{content:"›";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 18px/1 var(--mono);color:var(--ice);animation:ai-coach-nudge 1.1s ease-in-out infinite}
-html.atlas .ai-coach-bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--mint),var(--ice),var(--orchid));transform-origin:left;transform:scaleX(1)}
+html.atlas .ai-coach-bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,rgba(134,203,254,.35),var(--ice));transform-origin:left;transform:scaleX(1)}
 html.atlas .ai-coach.on .ai-coach-bar{animation:ai-coach-fuse var(--ai-coach-ms,6s) linear forwards}
 @property --ai-hold{syntax:'<percentage>';inherits:false;initial-value:0%}
 @keyframes ai-coach-in{to{opacity:1;transform:none}}
@@ -637,10 +646,11 @@ html.atlas .ai-coach.on .ai-coach-bar{animation:ai-coach-fuse var(--ai-coach-ms,
 @keyframes ai-coach-hold{0%{--ai-hold:0%}70%,100%{--ai-hold:100%}}
 @keyframes ai-coach-nudge{0%,100%{transform:translateX(-3px)}50%{transform:translateX(4px)}}
 @keyframes ai-coach-fuse{to{transform:scaleX(0)}}
+@keyframes ai-coach-lift{0%,100%{transform:translateY(1px)}50%{transform:translateY(-2px)}}
 @media (prefers-reduced-motion:reduce){
   html.atlas .ai-coach,html.atlas .ai-coach.off{transform:none;transition:opacity .2s linear}
   html.atlas .ai-coach.on .ai-coach-l{animation:none;opacity:1;transform:none}
-  html.atlas .ai-coach-g::after,html.atlas .ai-coach-g::before,html.atlas .ai-coach-g.g1{animation:none}
+  html.atlas .ai-coach-g.g0::after,html.atlas .ai-coach-g.g3::before,html.atlas .ai-coach-g.g2::before,html.atlas .ai-coach-g::after,html.atlas .ai-coach-g::before,html.atlas .ai-coach-g.g1{animation:none}
   html.atlas .ai-coach-g.g1{--ai-hold:70%}
   html.atlas .ai-coach.on .ai-coach-bar{animation:none}
 }
@@ -650,6 +660,13 @@ html.atlas .ai-coach.on .ai-coach-bar{animation:ai-coach-fuse var(--ai-coach-ms,
   html.atlas section[data-room].is-active :is(.ch-hud,.bl-hud,.ar-hud,.lp-hud,.wh-hud,.gd-card)::before{forced-color-adjust:none;background:Canvas;color:CanvasText;border-color:CanvasText}
 }
 html.kiosk .ai-coach{display:none}
+/* R18 INTUIT: a phone's first screen: the dock's ▶ breathes in ice while the welcome is up, until the first touch (chrome.js inviteOn) */
+html.atlas #atlas-dock .d-row>[data-a="play"].ai-invite .d-ic{position:relative}
+html.atlas #atlas-dock .d-row>[data-a="play"].ai-invite .d-ic::after{content:"";position:absolute;left:50%;top:50%;width:32px;height:32px;margin:-16px 0 0 -16px;box-sizing:border-box;border-radius:50%;border:1.5px solid var(--ice);box-shadow:0 0 14px rgba(134,203,254,.4);pointer-events:none;animation:ai-invite 2.4s ease-in-out infinite}
+html.atlas #atlas-dock .d-row>[data-a="play"].ai-invite[aria-label^="pause"] .d-ic::after,html.kiosk #atlas-dock .ai-invite .d-ic::after{display:none}
+@keyframes ai-invite{0%,100%{transform:scale(.8);opacity:.3}50%{transform:scale(1.08);opacity:.95}}
+@media (prefers-reduced-motion:reduce){html.atlas #atlas-dock .d-row>[data-a="play"].ai-invite .d-ic::after{animation:none;transform:none;opacity:.8}}
+@media (forced-colors:active){html.atlas #atlas-dock .d-row>[data-a="play"].ai-invite .d-ic::after{border-color:Highlight;box-shadow:none}}
 
 /* R9 GUIDE (audit P0 3, P2 21): the "how to read" key strip (unfold.js .uf-ks) opened over the room header and the top
    stars on a phone and over the deck strip on the desk. a phone sets it in the lower band, right above the room line

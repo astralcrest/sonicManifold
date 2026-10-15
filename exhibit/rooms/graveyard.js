@@ -729,7 +729,8 @@ export default {
       const prog = Math.min(1, (t - this.runStart) / 4000), P = ctx.particles, N = P.n, rel = this.rel, out = this.out, gx = this.gx, gy = this.gy;
       /* atlas: one honest readout line while the pile forms, 4 Hz: how far through the release it is, and how many
          redraws the finished histogram holds (a proportional reveal, not redraws arriving one by one) */
-      if (this.atl && t - this.hudT >= 250) { const pct = Math.round(100 * prog); this.hudT = t; if (pct !== this.hudPct) { this.hudPct = pct; ctx.hud('\u27f3 pile ' + pct + '% down \u00b7 ' + this.cases[this.curCase].sz + ' redraws'); } }
+      /* R18 ROOMS (FRESH_EYES): the line says what the pile is in place, one line under 90 characters */
+      if (this.atl && t - this.hudT >= 250) { const pct = Math.round(100 * prog); this.hudT = t; if (pct !== this.hudPct) { this.hudPct = pct; ctx.hud('\u27f3 the pile: ' + this.cases[this.curCase].sz + ' scrambled reruns of my test. ' + pct + '% have landed.'); } }
       let landedK = -1;
       for (let k = 0; k < N; k++) { if (!out[k] && prog >= rel[k]) { P.tx[k] = gx[k]; P.ty[k] = gy[k]; out[k] = 1; landedK = k; } }
       if (this.atl && this.gw) this.fadeIn(P, out, gy);

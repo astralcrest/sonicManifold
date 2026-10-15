@@ -59,6 +59,23 @@ section[data-room="listeners"] .lst-post .post-note{font-size:10.5px;line-height
 @supports (height:100dvh){@media (max-height:480px) and (min-aspect-ratio:115/100){section[data-room="listeners"] .wall{max-height:calc(100dvh - 62px - max(0px, var(--dockh) - 8px))}}}
 `;
 const fmt = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+/* R18 ROOMS (MUSIC V1): hear X, see X. post.js says what plays (window 'sm:clip'); the playing artist's node gets a slow
+   1.8 s ice ring that fades in and out over 600 ms (200 ms and no ripple under reduced motion). no event, no change */
+const hearNew = () => ({ artist: '', g: 0, to: 0, from: 0, t0: 0 });
+function hearClip(H, e) {
+  const d = e && e.detail; if (!H || !d || typeof d.state !== 'string') return;
+  const a = typeof d.artist === 'string' ? d.artist : '', go = (to) => { if (H.to === to) return; H.from = H.g; H.to = to; H.t0 = performance.now(); };
+  if (d.state === 'playing' && a) { if (a !== H.artist) { H.g = H.from = 0; H.to = 0; } H.artist = a; go(1); }
+  else if (d.state === 'armed' || d.state === 'cueing') { if (a && a !== H.artist) go(0); }
+  else go(0);
+}
+function hearRing(H, g, x, y, r0, lw, reduced, now) {
+  if (H.g !== H.to) { const u = Math.min(1, (now - H.t0) / (reduced ? 200 : 600)); H.g = u >= 1 ? H.to : H.from + (H.to - H.from) * u; }
+  if (H.g <= 0.004) return;
+  g.save(); g.strokeStyle = '#86cbfe'; g.globalAlpha = 0.62 * H.g; g.lineWidth = 1.4 * lw; g.beginPath(); g.arc(x, y, r0, 0, 6.283); g.stroke();
+  if (!reduced) { const u = (now % 1800) / 1800; g.globalAlpha = 0.55 * H.g * (1 - u); g.lineWidth = lw; g.beginPath(); g.arc(x, y, r0 + (4 + u * 24) * lw, 0, 6.283); g.stroke(); }
+  g.restore();
+}
 /* K1 trail tuning (W39, ROUND2_PLAN.md R3; re-tuned round 3, P2 "faint dotted rain"). Measured on the live field
    (r2_R3.mjs): a hard-edged, ~800-dot cluster is what makes every one of the 120 node clusters draw its own
    Sobel-rim glyph, and that alone already accounts for the whole 37% baseline — 118-400 edges cannot add enough
@@ -128,6 +145,7 @@ export default {
 
   async mount(root, ctx) {
     this.ctxRef = ctx;
+    if (!this.hearS) { this.hearS = hearNew(); addEventListener('sm:clip', (e) => hearClip(this.hearS, e)); }
     /* R5 PERF2: the two angle modules load beside the identity + data waits below, not after them */
     if (isAtlas(ctx)) { const V = ctx.V || ''; this.modP = [import('./hundred.js' + V), import('./fade.js' + V), import('./listeners.atlas.js' + V)]; this.modP.forEach((p) => p.catch(() => {})); }
     document.head.appendChild(el('style')).textContent = CSS + (isAtlas(ctx) ? ACSS : '');
@@ -212,11 +230,11 @@ export default {
     tgl.append(bTap, bAuto); root.appendChild(tgl); this.tgl = tgl; this.bTap = bTap; this.bAuto = bAuto;
     this.tgPos = tgl;
     if (isAtlas(ctx)) {
-      /* D15: the constellations are their own stop now; the old third toggle state survives only as a door to it */
+      /* D15: the constellations are their own stop now; the old third toggle state survives only as a door to it, named for where it goes (R18 ROOMS, INTUIT R3) */
       const w = el('div', 'lst-tgw'); root.insertBefore(w, tgl); w.appendChild(tgl);
       const door = el('button', 'lst-door'); door.type = 'button';
-      door.append(el('span', '', 'constellations'), el('span', 'lst-star', '›'));
-      door.setAttribute('aria-label', 'constellations: go to the universe stop, every artist i played 50 times or more as a star');
+      door.append(el('span', '', 'the universe'), el('span', 'lst-star', '›'));
+      door.setAttribute('aria-label', 'the universe: go to the stop where every artist i played 50 times or more is a star');
       /* ctx.go resolves a stop id itself (ctx.route hands a string id straight to the activation path, REQUESTS_R3 #1) */
       door.addEventListener('click', () => { try { ctx.go('universe', { angle: 'sky', via: 'tap' }); } catch (e) {} });
       w.appendChild(door); this.door = door; this.tgPos = w;
@@ -636,6 +654,7 @@ export default {
       g.globalAlpha = 0.85; g.strokeStyle = '#86cbfe'; g.lineWidth = 2 / zk; /* a selection ring is interface: ice */
       g.beginPath(); g.arc(px[i * 2], px[i * 2 + 1], Math.max(10, r), 0, 6.283); g.stroke();
     }
+    const H = this.hearS; if (H && this.px && this.fold && (H.g > 0.004 || H.to)) { const i = this.fold.indexOf(H.artist.toLowerCase()); if (i >= 0) hearRing(H, g, this.px[i * 2], this.px[i * 2 + 1], Math.max(12, (this.clusterR ? this.clusterR[i] : 20) + 6), 1 / zk, this.reduced, performance.now()); }
     g.globalAlpha = 1;
   },
 

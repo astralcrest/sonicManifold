@@ -247,7 +247,7 @@ section[data-room=yours] .y-wait,section[data-room=yours] .y-priv,section[data-r
 section[data-room=yours] .y-line{font-size:11.5px}
 section[data-room=yours] .y-say{font-size:11.5px}
 section[data-room=yours] .y-res{gap:5px}
-section[data-room=yours] .btn{padding:11px 14px;min-height:42px}
+section[data-room=yours] .btn{padding:11px 14px;min-height:44px}
 }
 @media (max-height:480px) and (min-aspect-ratio:115/100){
 section[data-room=yours] .y-pn{gap:5px}
@@ -746,7 +746,7 @@ export default {
   floorMask(ctx) {
     const P = ctx.particles, W = P.w, Y = P.y, TY = P.ty, SD = P.seed, n = P.n, side = this.sideA, B = this.boxes, h = (this.d || 1) / 2;
     if (!W || !side || !B) { this.flight = false; return; }
-    const e = ctx.reduced ? 1 : P.ease, red = !!ctx.reduced, f0 = B[0].y + B[0].h + h, f1 = B[1].y + B[1].h + h;
+    const e = ctx.reduced ? 1 : (P.easeNow ?? P.ease), red = !!ctx.reduced, f0 = B[0].y + B[0].h + h, f1 = B[1].y + B[1].h + h;
     let below = 0;
     for (let i = 0; i < n; i++) {
       const ty = TY[i];

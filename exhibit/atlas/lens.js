@@ -37,7 +37,7 @@ export function createLens(host, opt = {}) {
   const mk = () => document.createElement('canvas');
   function initGL() {
     if (opt.force2d) return false;
-    try { gl = cv.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' }); } catch (e) { gl = null; }
+    try { gl = cv.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'low-power', failIfMajorPerformanceCaveat: true }); } catch (e) { gl = null; }
     if (!gl) return false;
     const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error('lens shader: ' + gl.getShaderInfoLog(x)); return x; };
     try {
