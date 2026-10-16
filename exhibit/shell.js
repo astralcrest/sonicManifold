@@ -52,9 +52,11 @@ const INK_ON = FIELD === 'ink' || FIELD === 'both', SLIME_ON = FIELD === 'slime'
 const HASH0 = location.hash; /* read before anything rewrites it: url.js parses the deep link once, after it mounts */
 /* R18 FIELD_GL: the field draws through one WebGL2 canvas (atlas/field.gl.js) wherever WebGL2 runs on a real GPU; ?gl=0 keeps
    the 2D canvas. ?p3=1 / ?p3=0 force the wide-gamut output on or off (default: on where the screen is P3). ?cut=1 / ?cut=0
-   force the barcode cut between stops (CUT_DEFAULT is the one line that flips it) */
+   force the barcode cut between stops (CUT_DEFAULT is the one line that flips it). ?trails=0 / ?trails=1 turn the trips' trails
+   off, or on for any pointer (R18 FIELD_TUNE, TRL below) */
 const GLQ = (/[?&]gl=([01])\b/.exec(location.search) || [])[1], P3Q = (/[?&]p3=([01])\b/.exec(location.search) || [])[1];
 const CUTQ = (/[?&]cut=([01])\b/.exec(location.search) || [])[1], CUT_DEFAULT = false;
+const TRQ = (/[?&]trails=([01])\b/.exec(location.search) || [])[1];
 /* a module whose fetch fails (a dropped connection, a lossy phone link, a burst of parallel requests reset) is asked for
    twice more, 0.3 s and 0.6 s later, under a changed url: the page remembers a failed module by its url, so the same url
    would fail again at once. no module imports another, so a retried url never makes a second copy of one. what still
@@ -231,8 +233,8 @@ addEventListener('pointerup', ptOff, { passive: true }); addEventListener('point
    ring rises from a served dot on a bar line of the bed, 2 to 4 s apart, with a quieter note (-30 dBFS), until the first
    input. no note while a clip plays or the sound is muted (the rings still draw); none of it under reduced motion, on a
    touch screen or at ?atlas=0 */
-const V8 = { on: ATLAS && !reduced && !coarse && matchMedia('(pointer: fine)').matches, idle: 20000, act: performance.now(), next: 0, clicks: 0, idles: 0, notes: 0 };
-if (V8.on) ['pointermove', 'pointerdown', 'wheel', 'keydown'].forEach((ty) => addEventListener(ty, () => { V8.act = performance.now(); }, { capture: true, passive: true }));
+const V8 = { on: ATLAS && !reduced && !coarse && matchMedia('(pointer: fine)').matches, idle: 20000, act: performance.now(), next: 0, clicks: 0, idles: 0, notes: 0, cap: 8, run: 0 /* DA P2-4: at most `cap` idle rings in a row, then it rests until the next input */ };
+if (V8.on) ['pointermove', 'pointerdown', 'wheel', 'keydown'].forEach((ty) => addEventListener(ty, () => { V8.act = performance.now(); V8.run = 0; }, { capture: true, passive: true }));
 function bedPlaying() { if (!A.on || A.cur < 0 || A.clipState === 'hot') return false; const el = A.els[A.cur]; return !!el && !el.paused; }
 function v8Note(y, at, vol) {
   if (!A.ac || !A.on || A.muted || A.clipState === 'hot') return null;
@@ -250,9 +252,21 @@ function v8Busy(sx, sy) {
   for (let y = Math.max(0, py - r); y <= Math.min(PH - 1, py + r); y++) for (let x = Math.max(0, px - r); x <= Math.min(PW - 1, px + r); x++) if (buf32[y * PW + x] !== BG) return true;
   return false;
 }
+/* DA P1-1: the chrome over the field (the welcome card, the info bar, the dock, the colour key, the top bar, an open dialog). the card's
+   text and the bar's gaps let a click through to the stage, and a click there is not a click on the field */
+const V8_OVER = ['#atlas-coach', '#atlas-info', '#atlas-dock', '.uf-ks', '#top', 'dialog[open]'];
+function v8Over(p) {
+  const e = p.e, x = e && e.clientX != null ? e.clientX : p.sx, y = e && e.clientY != null ? e.clientY : p.sy;
+  for (const sel of V8_OVER) for (const el of document.querySelectorAll(sel)) {
+    const r = el.getBoundingClientRect(); if (!(r.width > 0 && r.height > 0) || x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
+    const cs = getComputedStyle(el); if (cs.visibility !== 'hidden' && cs.display !== 'none' && +cs.opacity > 0.02) return true;
+  }
+  return false;
+}
 /* from the stage's tap (bindStage), after the room's own tap did nothing: a categorical stop's empty cell is data, so not there */
 function v8Click(p, f0) {
   if (!V8.on || !p || !p.e || (p.e.pointerType !== 'mouse' && p.e.pointerType !== 'pen') || GCFG.mode === 'cat') return;
+  if (v8Over(p)) return;
   let f1 = null; try { f1 = VIEW.flight; } catch (e) {}
   if ((f1 && (!f0 || f1.u < f0.u)) || v8Busy(p.sx, p.sy)) return; /* the click hit something: a dot, or a target that flew */
   const t = performance.now(); PT.v8 = t; V8.clicks++;
@@ -283,17 +297,18 @@ function v8Stop(now) {
 function v8Idle() {
   const now = performance.now();
   let tour = false; try { tour = !!(ctx.tour.active && ctx.tour.active.playing); } catch (e) {}
-  if (now - V8.act < V8.idle || tour || REC.on || ATL.gov.tier >= 4 || GCFG.mode === 'cat' || !bedPlaying()) { if (V8.next) v8Stop(now); return; }
+  let modal = false; try { modal = !!(ctx.post.state().asking || document.querySelector('dialog[open]')); } catch (e) {} /* DA P1-2, P2-8: not under the consent ask or an open dialog */
+  if (now - V8.act < V8.idle || tour || modal || V8.run >= V8.cap || !lsnRoom() || REC.on || ATL.gov.tier >= 4 || GCFG.mode === 'cat' || !bedPlaying()) { if (V8.next) v8Stop(now); return; } /* DA P2-5: only where the field listens */
   if (!V8.next) V8.next = v8Line(0);
   if (now < V8.next - 150) return;
   const at = V8.next; V8.next = v8Line(Math.max(0, at - now) + 2000);
   const i = v8Pick(); if (i < 0) return;
-  V8.idles++;
+  V8.idles++; V8.run++;
   const rp = { x: 0, y: 0, t: at, k: 2, i, o: null }; PT.ripples.push(rp);
   let y = P.y[i]; if (FL.pan) y = y * FL.ma + FL.mf;
   rp.o = v8Note(y, Math.max(0, at - now) / 1000, 0.0316);
 }
-/* a V8 ring: k 1 the click's (mint, where it was), k 2 the idle one (violet, riding its dot); 0 to 60 px over 1.6 s */
+/* a V8 ring: k 1 the click's (ice, the interface colour, where it was), k 2 the idle one (violet, riding its dot); 0 to 60 px over 1.6 s */
 function v8Ring(rp, k) {
   const a = (performance.now() - rp.t) / 1600;
   if (a >= 1) { PT.ripples.splice(k, 1); return; }
@@ -301,7 +316,7 @@ function v8Ring(rp, k) {
   let x = rp.x, y = rp.y;
   if (rp.i >= 0) { x = P.x[rp.i]; y = P.y[rp.i]; if (FL.pan) { x = x * FL.ma + FL.me; y = y * FL.ma + FL.mf; } }
   const f = (1 - a) * (1 - a), e = 1 - f * (1 - a);
-  og.strokeStyle = rp.k === 1 ? 'rgba(33,246,188,' + (0.75 * f).toFixed(3) + ')' : 'rgba(139,111,214,' + (0.8 * f).toFixed(3) + ')';
+  og.strokeStyle = rp.k === 1 ? 'rgba(134,203,254,' + (0.75 * f).toFixed(3) + ')' : 'rgba(139,111,214,' + (0.8 * f).toFixed(3) + ')';
   og.lineWidth = 1.5; og.beginPath(); og.arc(x, y, 1 + e * 59, 0, 6.283); og.stroke();
 }
 const og = over.getContext('2d');
@@ -871,7 +886,8 @@ function warmField(b) {
   for (let k = 0; k < on; k++) { const ci = occ[k]; b.nIn[ci] = 0; b.accW[ci] = 0; b.accR[ci] = 0; b.accG[ci] = 0; b.accB[ci] = 0; b.pickC[ci] = 0; b.pickK[ci] = 0; STR.bm[ci] = 0; for (let q = 0; q < 8; q++) nK[(ci << 3) + q] = 0; }
   buf32.fill(BG);
 }
-/* R5 L5 · THE FIELD LISTENS. the bands the loop already reads for the field (the analyser on the mix, ctx.audio.bands) also
+/* R5 L5 · THE FIELD LISTENS. the bands the loop already reads for the field (the analyser on the bed, ctx.audio.bands; since R18
+   FIELD_TUNE the interface tones go round it, so only the music moves the field) also
    light it: the low band breathes the field's luminance within +-6% of its running level, and onsets of the high band
    twinkle the [ ] halo of one shown name at a time. the breath is one uniform gain on every glyph's colour, taken inside the
    glyph pass (GF.render({gain}), a multiply per drawn cell, and the sky's stars): no share or glyph changes, only how bright
@@ -927,29 +943,35 @@ function fieldListen(t, bands) {
   if (S.burn > 0) { const e = t0 + S.burn; while (performance.now() < e); }
   S.ms = performance.now() - t0; S.pend = true; /* flEnd finishes the sample once the glyph pass is down and the flares are on it */
 }
-/* after the glyph pass: the flares, then this frame's sample for the self-check (the listen block and its flares share the 0.3 ms) */
+/* after the glyph pass: the flares, then this frame's sample for the self-check (the listen block and its flares share the 0.3 ms). on a 1 ms
+   clock (WebKit, Firefox) six ticks in 120 quiet frames read as p95 1 ms, so the layer stands down only when the mean agrees (DA P1-4) */
 function flEnd(t, gb) {
   const S = FLS; let ms = S.ms; S.pend = false;
   if (FLR.n) { if (gb) { const t1 = performance.now(); flDraw(t, gb); ms += performance.now() - t1; } else FLR.n = 0; }
-  if (S.n < 120) { FL_MS[S.n++] = ms; if (S.n === 120) { let sm = 0; for (let k = 0; k < 120; k++) sm += FL_MS[k]; S.mean = sm / 120; FL_MS.sort(); S.p95 = FL_MS[114]; if (S.p95 > 0.3) flOff('self-check: p95 ' + S.p95.toFixed(3) + ' ms > 0.3 ms'); } }
+  if (S.n < 120) { FL_MS[S.n++] = ms; if (S.n === 120) { let sm = 0; for (let k = 0; k < 120; k++) sm += FL_MS[k]; S.mean = sm / 120; FL_MS.sort(); S.p95 = FL_MS[114]; if (S.p95 > 0.3 && S.mean > 0.1) flOff('self-check: p95 ' + S.p95.toFixed(3) + ' ms > 0.3 ms, mean ' + S.mean.toFixed(3) + ' ms > 0.1 ms'); } }
 }
 /* R18 V5 · PROVENANCE FLARES. an onset in one band of the bed lifts the mark of the kind of play that band stands for over a
-   few visible dots of that kind, for 160 ms at 1.3x their cell: low -> up to 40 served dots, a slat (violet); mid -> up to 24
+   few visible dots of that kind, for 240 ms at 1.6x their cell (160 ms at 1.3x on a low-power screen): low -> up to 40 served dots, a slat (violet); mid -> up to 24
    shuffled dots, a die's two pips (amber); high -> up to 24 tapped dots, two strokes (mint). a dot here is a glyph cell, what
    the eye sees: only a cell whose glyph already wears its kind's colour (a provenance stop: never a genre room, a categorical
    stop or the record before it lights; a lifted dot is in no cell). each bar of the bed deals each band a new neighbourhood
    (a window of the occupied cells in play order, which on the record is a stretch of the groove), so one bar's onsets walk
-   through one phrase of the field and the next bar moves on. an onset's flares fill over a frame or three, at most FLR_BUD
-   cell checks a frame for the three bands together, so a dense bed costs no more than a sparse one and a cold start (the
-   code not yet compiled) stays small; the caps scale with the stage's area against a 1440 x 900 desk (at least 0.35 of
+   through one phrase of the field and the next bar moves on. no flare lights within D cells of a lit one, its band's or another's
+   (D = ceil(FLR_S + 0.25): 2 at 1.6x and at 1.3x, so two boxes always keep a gap), so each reads as its own dot flashing, never a smear
+   (R18 FIELD_TUNE: 1.6x / 240 ms on a desk after a sweep of 1.3 / 160, 1.6 / 240 and 2 / 320; a low-power screen, the class
+   that draws one dot per three plays, keeps 1.3x / 160 ms: its cells are bigger already, 7 x 13 css px against 6 x 11, held at
+   half the distance. FIELD_TUNE/DONE.md). an onset's flares
+   fill over a frame or three, at most FLR_BUD cell checks a frame for the three bands together, so a dense bed costs no more
+   than a sparse one and a cold start (the code not yet compiled) stays small; the caps scale with the stage's area against a 1440 x 900 desk (at least 0.35 of
    them), so a phone's flash is as dense on its screen as a desk's. part of FLS: off with it (reduced motion, muted, no bed,
    a clip, governor tier 4, forced colours) and timed inside its 0.3 ms; drawn into the frame buffer after the glyph pass,
    so the GL and the 2D paths show the same pixels */
-const FLR_N = [40, 24, 24], FLR_P = [2, 1, 0], FLR_MS = 160, FLR_S = 1.3, FLR_BUD = 64;
+const FLR_N = [40, 24, 24], FLR_P = [2, 1, 0], FLR_MS = lowPower ? 160 : 240, FLR_S = lowPower ? 1.3 : 1.6, FLR_BUD = 64;
 /* each mark as rectangles on a 5 x 9 cell, [row0, row1, col0, col1, ...]: a thick slat low in the cell; pips top right and bottom left; two upright strokes */
 const FLR_RECT = [new Int8Array([5, 7, 0, 5]), new Int8Array([1, 3, 3, 5, 6, 8, 0, 2]), new Int8Array([1, 8, 1, 2, 1, 8, 3, 4])];
 const flPack = (v) => (0xff000000 | ((v & 0xff) << 16) | (v & 0xff00) | ((v >> 16) & 0xff)) >>> 0;
-const FLR = { on: ATLAS && !NOGLYPH && !reduced, ok: false, n: 0, I: new Int32Array(128) /* a flare's cell */, T: new Float64Array(128), K: new Uint8Array(128),
+const FLR = { on: ATLAS && !NOGLYPH && !reduced, ok: false, n: 0, S: FLR_S, MS: FLR_MS, I: new Int32Array(128) /* a flare's cell */, T: new Float64Array(128), K: new Uint8Array(128),
+  X: new Int16Array(128), Y: new Int16Array(128) /* its column and row */, near: 0 /* candidates passed over for a lit neighbour */,
   made: new Uint32Array(3), drawn: 0, deals: 0, ws: new Int32Array(3).fill(-1), qc: new Uint32Array(3), bar: new Float64Array(3).fill(-1), miss: new Uint8Array(3),
   pw: new Uint8Array(3), used: new Uint16Array(3), got: new Uint16Array(3), tq: new Float64Array(3), occN: 0, cols: 0,
   cap: Uint8Array.from(FLR_N), RO: [new Int16Array(4), new Int16Array(8), new Int16Array(8)],
@@ -969,6 +991,7 @@ function flOnset(t, b, d, thr) {
 /* an onset asks for its band's flares; a new bar (or two dry walks) deals a new window */
 function flQueue(t, b) {
   const R = FLR;
+  if (!lsnRoom()) return; /* DA P2-1: only where the field listens (the record past the globe, the make wheel): elsewhere position and brightness are the data */
   if (FL.lift && FL.PA[FLR_P[b]] < 0.1) return; /* that kind is lifted off the record: none of it in a cell */
   const bb = bedBar(t);
   if (bb !== R.bar[b] || R.miss[b] >= 2) { R.bar[b] = bb; R.miss[b] = 0; R.deals++; R.qc[b] = 0; R.ws[b] = -1; }
@@ -989,6 +1012,7 @@ function flMean(ci, c0, c1, F) {
    once), at most 8 cells a flare; an ask older than 100 ms is dropped (its flash would be over before it lit) */
 function flFill(t) {
   const R = FLR, F = FL, on = R.occN, occ = F.occ, PC = F.pickC, mc = F.meanCol, ka = Math.min(1, Math.max(0.35, (W * H) / 1296000));
+  const cols = F.cols, X = R.X, Y = R.Y, MS = R.MS, D = Math.ceil(R.S + 0.25); /* two boxes R.S cells wide, D cells apart, keep a quarter cell between them */
   for (let b = 0; b < 3; b++) R.cap[b] = Math.max(4, Math.round(FLR_N[b] * ka));
   if (!occ || on <= 0) { R.pw[0] = R.pw[1] = R.pw[2] = 0; return; }
   if (F.cols !== R.cols) { R.cols = F.cols; R.n = 0; } /* a new grid: the old flares' cells are not its cells */
@@ -1006,7 +1030,10 @@ function flFill(t) {
       let j = a + ((q * 97) % span); if (j >= on) j -= on; if (j >= on) continue;
       const ci = occ[j];
       if (mc ? !flMean(ci, c0, c1, F) : !flHue(PC[ci], c0, c1)) continue;
-      R.I[R.n] = ci; R.T[R.n] = tq; R.K[R.n] = b; R.n++; got++; want--;
+      const cy = (ci / cols) | 0, cx = ci - cy * cols; let k = 0;
+      for (; k < R.n; k++) { const dx = X[k] - cx, dy = Y[k] - cy; if (dx < D && dx > -D && dy < D && dy > -D && t - R.T[k] < MS) break; }
+      if (k < R.n) { R.near++; continue; } /* R18 FIELD_TUNE: a flare lit within D cells (this one's or another band's): the two would read as one smear */
+      R.I[R.n] = ci; X[R.n] = cx; Y[R.n] = cy; R.T[R.n] = tq; R.K[R.n] = b; R.n++; got++; want--;
     }
     R.qc[b] = q; R.used[b] = used; R.made[b] += got; R.got[b] += got;
     if (want <= 0 || used >= lim || R.n >= 128) { R.pw[b] = 0; if (!R.got[b]) R.miss[b]++; }
@@ -1015,7 +1042,7 @@ function flFill(t) {
 function flDraw(t, gb) {
   const R = FLR, buf = buf32, pw = PW, ph = PH, cols = gb.cols, rows = gb.rows, cw = 1 / gb.invCw, ch = 1 / gb.invCh, gx0 = gb.gx0, gy0 = gb.gy0;
   if (cols !== R.cols) { R.n = 0; return; }
-  const bw = cw * FLR_S, bh = ch * FLR_S, sx = bw / 5, sy = bh / 9, RO = R.RO;
+  const bw = cw * R.S, bh = ch * R.S, sx = bw / 5, sy = bh / 9, RO = R.RO, MS = R.MS;
   /* each band's mark as whole-pixel rectangles from the box's corner, once a frame (the cell's size is the frame's) */
   for (let b = 0; b < 3; b++) {
     const RC = FLR_RECT[b], O = RO[b];
@@ -1027,14 +1054,13 @@ function flDraw(t, gb) {
   }
   let m = 0, drawn = 0;
   for (let k = 0; k < R.n; k++) {
-    const ci = R.I[k], t0 = R.T[k], b = R.K[k], u = (t - t0) / FLR_MS;
+    const ci = R.I[k], t0 = R.T[k], b = R.K[k], u = (t - t0) / MS, cx = R.X[k], cy = R.Y[k];
     if (u >= 1) continue;
-    R.I[m] = ci; R.T[m] = t0; R.K[m] = b; m++;
-    if (u < 0) continue;
-    const cy = (ci / cols) | 0, cx = ci - cy * cols; if (cy >= rows) continue;
-    /* the box, 1.3x the cell, on the cell's centre */
+    R.I[m] = ci; R.T[m] = t0; R.K[m] = b; R.X[m] = cx; R.Y[m] = cy; m++;
+    if (u < 0 || cy >= rows) continue;
+    /* the box, R.S (FLR_S) x the cell, on the cell's center */
     const ox = Math.round(gx0 + (cx + 0.5) * cw - bw / 2), oy = Math.round(gy0 + (cy + 0.5) * ch - bh / 2);
-    const w = u < 0.35 ? 0 : (u - 0.35) / 0.65, a = (256 * (1 - w * w)) | 0, ia = 256 - a, /* full for the first 56 ms, then out */ c = R.CL[b], O = RO[b];
+    const w = u < 0.35 ? 0 : (u - 0.35) / 0.65, a = (256 * (1 - w * w)) | 0, ia = 256 - a, /* full for the first 35% (84 ms at 240, 56 at 160), then out */ c = R.CL[b], O = RO[b];
     const cr = (c & 255) * a, cg = ((c >>> 8) & 255) * a, cb = ((c >>> 16) & 255) * a;
     for (let q = 0; q < O.length; q += 4) {
       let y0 = oy + O[q], y1 = oy + O[q + 1], x0 = ox + O[q + 2], x1 = ox + O[q + 3];
@@ -1079,6 +1105,7 @@ function listenAim() {
    a genre room's positions are its data, the loop draws one glyph a streak, the game keeps its own beat ring. off muted,
    during a clip, under reduced motion and from governor tier 4; at ?atlas=0 nothing calls it */
 const LSN_ROOMS = { threshold: (a) => a !== 'globe', make: () => true };
+const lsnRoom = () => { const r = rooms[active], f = r && LSN_ROOMS[r.id]; if (!f) return false; const L = r.mod && r.mod.angles, a = L && L[angK]; return !!f(a ? a.id : ''); };
 function listenSync() {
   const r = rooms[active], f = r && LSN_ROOMS[r.id]; let want = false;
   if (f && A.on && !A.muted && A.clipState !== 'hot' && !reduced && ATL.gov.tier < 4) { const L = r.mod && r.mod.angles, a = L && L[angK]; want = !!f(a ? a.id : ''); }
@@ -1088,6 +1115,36 @@ function listenSync() {
    time at 30, 60 and 120 Hz. REF_MS is the frame the constants were written for: every 60 Hz screen moves exactly as before */
 const REF_MS = 16.667;
 const GLF = { a: 0, a2: 0 }; /* the GL frame's last bloom opacity and halo weight (tests rebuild the 2D composite from them) */
+/* R18 FIELD_TUNE · TRAILS ON THE TRIPS. the GL renderer's persistence (field.gl.js trails(k): each frame keeps max(now, last x k),
+   k per 60 Hz frame, scaled by the frame's length) is wired to two motions, each with its own start and landing: a stop-to-stop
+   trip (stopTrip: its t and D, the span of the camera's breath and the crowd's crossing) and the record's swing between angles
+   (ctx.angle.set: the swing's length with its bar-line landing). k comes up to TRL_K over the first 150 ms and back down over
+   the last 350, so it is 0 at the landing, which frees the two frame-sized targets: every picture at rest is the no-trails
+   picture byte for byte. a held k ruins what a field at rest shows (the DA pass: the universe's turning ring streaks into pale
+   bands and its 13 genre colours go, a categorical stop's colours stop being a key, mint over violet maxes to a colour the
+   palette does not have, the record's dotted grooves run together), so nothing else carries them: no lock on a name, no stop's
+   pose, no tour's ambient dolly, no record change, no idle drift, no sky's turn, no hand. TRL_K .85: a moving dot's streak is
+   under 10% of the dot 233 ms after it passed (.85^14 = .10 at 60 Hz). GL only (the 2D canvas keeps no last frame), off under
+   reduced motion, at ?atlas=0 and from governor tier 4. a fine pointer, and a coarse one (a phone) while TRL_PHONE: at a 4x CPU
+   throttle a phone's trips keep the same frame p95 with them as without (FIELD_TUNE/DONE.md; the targets are the frame
+   buffer's size, 1 MB on a phone). ?trails=0 off, ?trails=1 on for any pointer.
+   tests: .on (writable), .k, .max, .t0 / .t1 (the window), .kind, .flights, .recompose() */
+const TRL_K = 0.85, TRL_UP = 150, TRL_DOWN = 350, TRL_PHONE = true;
+const TRL = { on: ATLAS && !reduced && TRQ !== '0' && (TRQ === '1' || (coarse ? TRL_PHONE : matchMedia('(pointer: fine)').matches)), k: 0, max: 0, t0: 0, t1: -1e9, kind: '', flights: 0, recompose: null };
+/* a trip or a swing opens the window up to its landing; one that starts while the last one's trails still fade rises from there */
+function trailWin(t, ms, kind) {
+  if (!TRL.on || !(ms > 0)) return;
+  TRL.t0 = t - (TRL.k / TRL_K) * TRL_UP; TRL.t1 = t + ms; TRL.kind = kind; TRL.flights++;
+}
+/* a stop reached any other way (a record change, an instant go) closes it */
+function trailCut(t) { if (TRL.t1 > t) TRL.t1 = t; }
+function trailStep(t) {
+  let k = 0;
+  if (TRL.on && t < TRL.t1 && FGL.ok && field !== field2d && ATL.gov.tier < 4) k = TRL_K * Math.max(0, Math.min(1, (t - TRL.t0) / TRL_UP, (TRL.t1 - t) / TRL_DOWN));
+  if (k !== TRL.k) { TRL.k = k; if (k > TRL.max) TRL.max = k; ATL.trails(k); } /* the renderer hook, ctx.atlas.trails (its one caller) */
+}
+/* test seam: the frame buffer composed again as it stands, with no trails, over the canvas (a test reads the canvas first) */
+TRL.recompose = () => { if (!FGL || !FGL.ok || field === field2d) return false; const d = FGL.info().trails; if (d > 0) FGL.trails(0); FGL.frame(FU8, GLF.a, GLF.a2, canvasBlur, 0); if (d > 0) FGL.trails(d); return true; };
 function drawField(t, bands, dt) {
   buf32.fill(BG);
   const F = FL, FK = dt > 0 ? Math.min(dt, 100) / REF_MS : 1;
@@ -1146,6 +1203,7 @@ function drawField(t, bands, dt) {
   if (SKY.at) drawSky(buf32, t, glyphOn ? nIn : null, gx0, gy0, invCw, invCh, cols, rows); /* after the dots, so it knows where they are; the glyphs land over it */
   if (glyphOn) { try { GF.render(buf32, PW, PH, t, { reduced, twinkle: !reduced && ATL.gov.tier < 4 && settingOn('twinkle') && roomGlyph().twinkle !== false, edges: ATL.gov.tier < 4, occN: on, lines: LINES, gain: SKIN === 'ink' ? FLS.gain * 0.55 : FLS.gain }); } catch (e) { if (!drawField.warned) { drawField.warned = 1; console.warn('GF.render', e); } } }
   if (FLS.pend) flEnd(t, glyphOn ? gb : null); /* R18 V5: the flares over the glyph pass, then the listen layer's self-check sample */
+  if (FGL) trailStep(t); /* R18 FIELD_TUNE: the trips' trails, set before the frame that keeps them */
   /* R18 FIELD_GL: one upload and the bloom on the GPU; the same opacity and halo weight the 2D layers get below */
   if (FGL && FGL.ok && field !== field2d) {
     const ga = gg && !glowOff ? 0.72 + Math.min(0.28, bands.mid * 0.9) : 0, ga2 = ga > 0 && GT ? (cols > 0 ? 0.2 + 0.55 * Math.max(0, 1 - 2.2 * on / (cols * rows)) : 0.7) : 0;
@@ -1209,7 +1267,7 @@ ATL.fieldImage = () => (img ? { data: img.data, width: PW, height: PH } : null);
    pointerdown: activation comes with the touch's pointerup/touchend) leaves the context suspended, and the next gesture
    tries again; the beds start the moment the context reports running (settle) */
 const A = {
-  ac: null, gain: null, an: null, els: [], srcs: [], g: [], cur: -1, want: null, on: false, muted: false, fft: null, primed: [false, false], away: false,
+  ac: null, gain: null, an: null, graph: null, route: null, els: [], srcs: [], g: [], cur: -1, want: null, on: false, muted: false, fft: null, primed: [false, false], away: false,
   /* R10 the arbiter: one owner of the speakers. 'off' = the bed; 'armed' = a clip was asked for and its player is ready
      (the bed waits at -24 dB); 'hot' = the clip is playing or starting (the bed is silent, its decks pause, no interface
      tone sounds). post.js sets it; only post.js ends 'hot' (a paused report, a failure, the dock closing) */
@@ -1221,12 +1279,15 @@ const A = {
     this.ac = new AC(); this.resume(); this.gain = this.ac.createGain(); this.an = this.ac.createAnalyser();
     this.an.fftSize = 512; this.an.smoothingTimeConstant = 0.82; this.fft = new Uint8Array(this.an.frequencyBinCount);
     this.lp = this.ac.createBiquadFilter(); this.lp.type = 'lowpass'; this.lp.frequency.value = 20000; this.lp.Q.value = 0.4;
-    /* everything leaves through one limiter. interface tones have their own bus, which ducks under a listening post too */
+    /* everything leaves through one limiter. the analyser (the field's ears: bands(), FLS, the flares, the listen push, the bloom)
+       hears the bed alone (R18 FIELD_TUNE): interface tones have their own bus, which ducks under a listening post too, and it goes
+       round the analyser straight into the limiter, so a click's note, a hover, the chain's riff or a flight's whoosh never moves the field */
     this.lim = this.ac.createDynamicsCompressor(); this.lim.threshold.value = -6; this.lim.knee.value = 4; this.lim.ratio.value = 12; this.lim.attack.value = 0.003; this.lim.release.value = 0.2;
     this.sfx = this.ac.createGain(); this.sfx.gain.value = 1;
     /* R10: unpitched sound (the flight's whoosh) has its own bus: it is held under a clip but not through a change of key */
     this.nfx = this.ac.createGain(); this.nfx.gain.value = 1;
-    this.gain.connect(this.lp); this.lp.connect(this.an); this.sfx.connect(this.an); this.nfx.connect(this.an); this.an.connect(this.lim); this.lim.connect(this.ac.destination);
+    this.gain.connect(this.lp); this.lp.connect(this.an); this.an.connect(this.lim); this.sfx.connect(this.lim); this.nfx.connect(this.lim); this.lim.connect(this.ac.destination);
+    this.graph = { an: ['bed'], lim: ['an', 'sfx', 'nfx'] }; this.route = 'bed-only'; /* what feeds what (tests: __exhibit.atlas.fieldArt.graph, ctx.audio.route) */
     this.ac.addEventListener('statechange', () => this.settle());
     for (let k = 0; k < 2; k++) {
       const el = new Audio(); el.preload = 'auto'; el.loop = true;
@@ -1391,7 +1452,7 @@ const A = {
   /* interface tones: D minor pentatonic, quiet, skipped when muted. step 0 = D4, five steps an octave.
      each tone is moved to the nearest one that is also in the key of the bed that is playing (see inKey below) */
   /* R18 V8: a room voice (the chain's sonic, the hover voice) counts as input: the field plays itself only once nothing has sounded for 20 s */
-  sounded() { V8.act = performance.now(); },
+  sounded() { V8.act = performance.now(); V8.run = 0; },
   note(step, o = {}) {
     if (!this.ac || this.muted || !this.on || this.clipState === 'hot') return;
     const SC = [0, 3, 5, 7, 10], oct = Math.floor(step / 5), semi = snap(SC[((step % 5) + 5) % 5] + 12 * oct, this.bedKey());
@@ -1458,7 +1519,7 @@ A.cue = function (k, n, end) {
 ['pointermove', 'keydown', 'touchstart'].forEach((t) => { const f = () => { removeEventListener(t, f, true); loadVoice(); }; addEventListener(t, f, { capture: true, passive: true }); });
 /* the bed's grid: bpm and first downbeat from audio/bed_meta.json (fetched on the first sound-on), phase from the deck */
 let META = null, metaP = null;
-function loadMeta() { if (!metaP) metaP = fetch('audio/bed_meta.json').then((r) => r.json()).then((m) => { META = m; }).catch(() => { metaP = null; }); return metaP; }
+function loadMeta() { if (!metaP) metaP = fetch('audio/bed_meta.json').then((r) => r.json()).then((m) => { META = m; }).catch(() => { metaP = new Promise((r) => setTimeout(r, 5000)).then(() => { metaP = null; }); }); return metaP; } /* a missing or blocked file is asked for again after 5 s, not on every frame (A.beat runs per frame) */
 A.beat = function (div = 1) {
   if (!this.ac || !this.on || this.cur < 0) return null;
   if (!META) { loadMeta(); return null; }
@@ -1780,11 +1841,12 @@ ctx.angle = {
     if (ATLAS) syncNeeds();
     angK = k; const m = rooms[active] && rooms[active].mod; let ms = 0;
     if (ATLAS && m && m.setAngle) {
-      /* R18 V3: the record's swing (threshold) ends on the bed's bar line: the camera asks how much longer its flight must run */
-      let ext = 0; const land = !o.instant && rooms[active].id === 'threshold' && typeof VIEW.landOn === 'function';
+      /* R18 V3: the tour's swing of the record (threshold) ends on the bed's bar line: the camera asks how much longer its flight must run.
+         a key or a tab answers at once (DA P2-2: the wait read as lag, up to 0.86 s) */
+      let ext = 0; const land = !o.instant && o.via === 'tour' && rooms[active].id === 'threshold' && typeof VIEW.landOn === 'function';
       if (land) VIEW.landOn((d) => (ext = A.landOn(d, Math.min(1, d / 2))));
       try { ms = +m.setAngle(k, ctx, { instant: !!o.instant, via: o.via || null }) || 0; } catch (e) { console.warn('setAngle', e); }
-      if (land) { VIEW.landOn(null); if (ms > 0 && ext > 0) ms += Math.round(ext * 1000); }
+      if (land) { VIEW.landOn(null); if (ms > 0 && ext > 0) ms += Math.round(ext * 1000); } if (ms > 0 && !o.instant) trailWin(performance.now(), ms, 'swing'); /* R18 FIELD_TUNE: every animated swing carries the trails; only the tour's waits for the line */
     }
     const a = ctx.angle.get(); ANGFNS.slice().forEach((f) => { try { f(a); } catch (e) {} });
     return ms > 0 ? new Promise((r) => setTimeout(() => r(true), ms)) : Promise.resolve(true);
@@ -1875,6 +1937,7 @@ function stopTrip(m0, via, t, D) {
   morphStart(t, D);
   keepOnScreen(m0, fieldMatrix());
   const tr = ATL.trip = { t, dur: D, mode: VIEW.mode, home: false, flew: false }; /* read by tests and by tripOut */
+  trailWin(t, D * 1000, 'trip'); /* R18 FIELD_TUNE: the trip carries the trails, from its start to its landing */
   if (VIEW.mode === 'none') { ATL.arrive = { t, via: via || null, dur: D, pullback: PULL }; return; }
   tr.home = atHome();
   if (typeof VIEW.travel === 'function' && tr.home) { try { tr.flew = true; VIEW.travel(null, { dur: D, pullback: PULL }).catch(noop); } catch (e) {} }
@@ -1960,13 +2023,14 @@ async function activateRoom(i, via, instant) {
   P.swirl = 0.4; P.touch = true;
   /* a stop change is a trip (stopTrip): the old field's screen transform is read before the new room's camera replaces it */
   const trip = ATLAS && !!prev && !reduced && !instant && !rec, m0 = trip ? fieldMatrix() : null;
-  if (ATLAS) { ATL.arrive = null; ATL.trip = null; }
+  if (ATLAS) { ATL.arrive = null; ATL.trip = null; trailCut(performance.now()); }
   if (ATLAS) atlasPreEnter();
   SKIN = r.mod && SKINS.indexOf(r.mod.skin) >= 0 ? r.mod.skin : null; /* the room's material (ART#7); enter() may still change it */
+  const bed0 = A.cur >= 0 ? A.els[A.cur].dataset.t : '', sameBed = !(r.mod && r.mod.track) || r.mod.track === bed0; /* DA P2-3: the line a settle waits on is the outgoing bed's; a stop that brings its own bed waits on none */
   if (r.mod) { if (r.mod.track) A.play(r.mod.track); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
   layMark();
   if (ATLAS) MORPH.hk = trip && !!(prev.mod && prev.mod.hueTrip);
-  if (trip) { const D = tripSec(); stopTrip(m0, via, performance.now(), D + A.landOn(D, Math.min(1, D / 2))); } /* R18 V3: the settle ends on the bed's bar line (none muted, in a clip or without a bed) */
+  if (trip) { const D = tripSec(); stopTrip(m0, via, performance.now(), D + (sameBed ? A.landOn(D, Math.min(1, D / 2)) : 0)); } /* R18 V3: the settle ends on the bed's bar line (none muted, in a clip, without a bed, or under a new bed) */
   else if (recGo && REC.on) { try { recIn(REC_SEC[VIEW.speed] || REC_SEC.slow); } catch (e) { recCancel(); } }
   const nx = rooms[i + 1]; if (nx && !nx.el.hidden && !nx.el.dataset.side) load(i + 1); /* never warm the side room: it only opens from its own door */
   sigPlace();
@@ -2702,5 +2766,5 @@ window.__exhibit.atlas = {
   gov: ATL.gov, stage, walk: () => walkList(), strat: STR, govTier: (k) => govTier(clamp(k | 0, 0, 5)), sky: () => SKY, loopCost: () => LOOPH,
   gl: ATL.gl, fieldImage: ATL.fieldImage, glLast: () => ({ a: GLF.a, a2: GLF.a2, blur: canvasBlur, gdiv: GDIV }), govState: () => ({ floor: GOV.floor, undone: GOV.undone, judging: GOV.judge }), cutCount: () => CUT.n,
   glyphCfg: () => ({ mode: GCFG.mode, region: GCFG.region, zones: GCFG.zones ? GCFG.zones.slice() : null, feather: GCFG.feather, edges: GCFG.edges, bleach: GCFG.bleach }),
-  fieldArt: { v8: V8, flares: FLR, lsn: LSN, pt: PT, lis: () => FL.lis }, /* R18 wave 3 (FIELD_ART): tests read these */
+  fieldArt: { v8: V8, over: v8Over, room: lsnRoom, flares: FLR, lsn: LSN, pt: PT, lis: () => FL.lis, get graph() { return A.graph; }, tr: TRL }, /* R18 wave 3 (FIELD_ART): tests read these; graph, tr: FIELD_TUNE */
 };

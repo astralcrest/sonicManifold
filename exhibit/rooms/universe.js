@@ -67,7 +67,7 @@ const HAZE_EVERY = 5;
    the haze band); coreK / coreRef: the biggest stars' column density is compressed by (coreRef / size)^coreK, a tone
    mapping so a few giants do not set the exposure for the whole sky (a star's size and total ink still grow with its
    plays); pitchWide / pitchUp: home's pitch on a wide stage and on an upright one */
-const TN = { dustKeep: 0.09, dustW: 105, dustOff: 40, dustSun: 3, coreK: 0.45, coreRef: 200, pitchWide: 0.84, pitchUp: 0.98, sigLow: 1.4, skyUp: 0.47, skyWide: 0.49 };
+const TN = { dustKeep: 0.09, dustW: 105, dustOff: 40, dustSun: 3, coreK: 0.45, coreRef: 200, pitchWide: 0.84, pitchUp: 0.98, sigLow: 1.3, skyUp: 0.47, skyWide: 0.49 };
 /* R5 R2 framing: home's sky fills >= 85% of a wide stage's height and of an upright one's width (tests/r5_sky.mjs). the sky's
    ring fits skyWide / skyUp (THREADS keeps RING_WIDE), and both pitches look down more steeply, so the turning disc is rounder
    and taller on the glass (was pitchWide 0.95, pitchUp 1.2, ring 0.46 / 0.44) */

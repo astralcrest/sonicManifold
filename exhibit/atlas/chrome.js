@@ -1993,12 +1993,21 @@ export function mount(ctx, deps) {
   function ksStep(m) {
     const deck = html.classList.contains('atlas-deck'), up = !deck && matchMedia('(orientation:portrait)').matches, sec = doc.querySelector('section[data-room].is-active');
     if (!sec || (!deck && !up)) return;
+    /* R18 UNFOLD_KEY: upright, the strip also steps off the room's words (any element in the room holding its own text: the make
+       wheel's lines under the wheel on a tall phone, the clock's, the map's, the listeners'), and it never climbs past a floor 6 px
+       under #top: the make wheel's track dots are buttons, so "above every control" was above the screen (-31 px, over the brand
+       and the ladder chip). out of room, it rests on the floor, over the field, for its read time. a lifted strip keeps the card's
+       anchor as its least bottom, so a caption that grows under it still pushes it up */
+    const ctl = 'button,[data-keepout],input,select,[class*=hud],[class*=dock],.cue', floor = up && topBar ? topBar.getBoundingClientRect().bottom + 6 : 0;
     for (let g = 0; g < 4; g++) {
       const q = m.getBoundingClientRect();
-      const o = [...sec.querySelectorAll('button,[data-keepout],input,select,[class*=hud],[class*=dock],.cue')].map((e) => e.getBoundingClientRect()).filter((e) => e.width && e.height && e.left < q.right && e.right > q.left && e.top < q.bottom && e.bottom > q.top);
+      const o = [...sec.querySelectorAll(up ? '*' : ctl)].filter((e) => !up || e.matches(ctl) || [...e.childNodes].some((n) => n.nodeType === 3 && n.data.trim())).map((e) => e.getBoundingClientRect()).filter((e) => e.width && e.height && e.left < q.right && e.right > q.left && e.top < q.bottom && e.bottom > q.top);
       if (!o.length) break;
-      if (up) m.style.setProperty('bottom', innerHeight - Math.min(...o.map((e) => e.top)) + 6 + 'px', 'important');
-      else m.style.setProperty('right', innerWidth - Math.min(...o.map((e) => e.left)) + 8 + 'px', 'important');
+      if (up) {
+        const t = Math.max(floor, Math.min(...o.map((e) => e.top)) - 6 - q.height);
+        m.style.setProperty('bottom', 'max(' + (innerHeight - t - q.height) + 'px, max(var(--ai-infob,160px),var(--ai-infot,0px)) + 6px)', 'important');
+        if (t === floor) break;
+      } else m.style.setProperty('right', innerWidth - Math.min(...o.map((e) => e.left)) + 8 + 'px', 'important');
     }
   }
   function ksHold(m) {
