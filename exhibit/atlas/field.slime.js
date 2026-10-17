@@ -107,7 +107,7 @@ export function mount(ctx, deps) {
   let room = '', live = false, grow = 0, share = 0.5, H = null, Hk = '', settle = 0, wantK = null, W = 0, Ht = 0;
   const food = new Float32Array(16), foodT = [0, 0, 0, 0]; let foodK = 0;
   const size = () => {
-    const d = Math.min(TIERS[tier].d, devicePixelRatio || 1); W = innerWidth; Ht = innerHeight;
+    W = innerWidth; Ht = innerHeight; const d = Math.min(TIERS[tier].d, devicePixelRatio || 1, window.__wall ? Math.max(0.5, Math.floor(1000 * Math.sqrt(8.3e6 / (W * Ht))) / 1000) : Infinity); /* wall: one 4K frame at most (floored to thousandths so 3840x2160 stays 3840) */
     const w = Math.round(W * d), h = Math.round(Ht * d);
     if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
   };

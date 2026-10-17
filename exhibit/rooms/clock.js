@@ -130,15 +130,17 @@ export default {
 
     this.dial.addEventListener('pointerdown', (e) => {
       if (!this.d) return;
+      if (window.__wall && this.drag && e.pointerId !== this.pid) return; /* wall: a second finger on a held dial is not a press */
       this.stopDemo();
-      this.drag = true; this.touched = true; this.dial.classList.add('grab');
+      this.drag = true; this.touched = true; this.dial.classList.add('grab'); this.pid = e.pointerId;
       try { this.dial.setPointerCapture(e.pointerId); } catch (err) {}
       this.fromPointer(e, ctx);
     });
-    this.dial.addEventListener('pointermove', (e) => { if (this.drag) this.fromPointer(e, ctx); else if (this.glass && e.pointerType === 'mouse') this.rose.hoverAt(this.hourAt(e, ctx)); });
+    this.dial.addEventListener('pointermove', (e) => { if (this.drag) { if (!(window.__wall && e.pointerId !== this.pid)) this.fromPointer(e, ctx); } else if (this.glass && e.pointerType === 'mouse') this.rose.hoverAt(this.hourAt(e, ctx)); });
     this.dial.addEventListener('pointerleave', () => { if (this.glass) this.rose.hoverAt(-1); });
     const end = (e) => {
       if (!this.drag) return;
+      if (window.__wall && e.pointerId !== this.pid) return; /* wall: only the finger that turned the dial lets it go */
       this.drag = false; this.dial.classList.remove('grab');
       try { this.dial.releasePointerCapture(e.pointerId); } catch (err) {}
       if (this.glass) this.rose.release();

@@ -1,0 +1,15 @@
+/* R19 OUTSIDE: the wall's links. every rule keys on html.wallmode (window.__wall), so the desk and the phone never match.
+   nothing here is the only guard: the label link, the yours picker and probe link, the save buttons and the photo dock are not built
+   under the wall at all (shell.js renderLabel, rooms/yours.js, atlas/card.js, atlas/photo.js), and CORE's guard cancels a
+   navigation anyway. this sheet is the net for a node that arrives late or from a lane that does not know about the wall. */
+html.wallmode a.lb-more,
+html.wallmode section[data-room=yours] .y-probe,
+html.wallmode section[data-room=yours] .y-pick,
+html.wallmode input[type=file],
+html.wallmode .cd-bar,
+html.wallmode .atlas-photodock,
+html.wallmode .atlas-photobar,
+html.wallmode #exdock .exd-attr[href] { display: none !important; }
+/* posts=off: no post control anywhere and no dock (post.js builds neither; this covers a host that was already drawn) */
+html.wallmode[data-posts=off] .post,
+html.wallmode[data-posts=off] #exdock { display: none !important; }

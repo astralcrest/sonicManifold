@@ -5,21 +5,37 @@
    classification, the same everywhere: < 6 css px and < 450 ms is a tap; still for `hold.delay` ms is a hold (press
    feedback at 0 ms); 6 px or more first is a drag (the camera by default); a second finger is a pinch at the exact
    spread ratio; a third is ignored; lifting one of two ends the whole gesture. wheel, ctrl/cmd+wheel (trackpad pinch)
-   and safari's gesture events zoom the camera. no inertia: the view stops when the hand stops. */
+   and safari's gesture events zoom the camera. no inertia: the view stops when the hand stops.
+   R20 MOBILE: on touch, a drag that would move the camera and ends as a flick (fast, mostly vertical) is a page turn
+   instead: the camera goes back to where the press found it and the tour steps, up = next, down = previous. */
 
 const num = (v, d) => { const n = +v; return v == null || v === '' || !isFinite(n) ? d : n; };
 const safe = (fn, ...a) => { if (typeof fn !== 'function') return undefined; try { return fn(...a); } catch (e) { console.warn('gesture', e); return undefined; } };
-const DEF = { drag: 'camera', wheel: 'camera', dbl: 'zoom' };
+/* ?wall=1 (window.__wall): a touch wall with strangers at it. a fast second tap reaches the room instead of becoming a camera
+   zoom, a second finger joins a gesture only within one hand's reach, there is no reticle, and pinch always moves the camera */
+const WALL = typeof window !== 'undefined' && !!window.__wall;
+const DEF = { drag: 'camera', wheel: 'camera', dbl: WALL ? false : 'zoom' };
+const wallReach = () => {
+  const o = (window.__wall && window.__wall.opts) || {}, cm = +o.reach > 0 ? +o.reach : 25, panel = +o.panel > 0 ? +o.panel : 144;
+  return (cm / panel) * innerWidth;
+};
+const PEND_MS = 400; /* wall: two hands that land together pinch even when wider apart than the reach; a finger resting longer does not wait for a stranger */
 const KEYS = { pan: 'arrows pan · + − zoom · 0 home', orbit: 'arrows turn · + − zoom · 0 home', orbit3d: 'arrows turn · + − zoom · 0 home', none: 'arrows step through the stops' };
 const LABELS_SEL = '#atlas-labels,.atlas-lab';
 /* a waking touch (the first after the idle fade) is a drag only past this: a sloppy tap to bring the chrome back never
    turns the field or pauses a playing tour, while a real swipe still turns it at once */
 const WAKE_SLOP = 24;
+/* R20 MOBILE: a flick. at most FLICK.ms from press to lift, at least FLICK.px up or down, no more sideways than FLICK.slant
+   of that (30 degrees off vertical), and still moving at the lift: from its last point FLICK.tail ms or more before the lift
+   (or the press, if all of it was quicker) at least FLICK.v px/ms. times are the events' own, so a busy frame does not slow it.
+   anything slower, shorter or more sideways stays the drag it already was, so every room's own drag keeps working */
+const FLICK = { ms: 450, px: 60, slant: 0.58, tail: 100, v: 0.45 };
 
 export function createGesture(ctx, view) {
   const IN = view && view._in;
   if (!IN || typeof document === 'undefined' || !document.body) return { stub: true, stage: null, dragging: false, bind() { return () => {}; }, swallow() {} };
   const doc = document, root = doc.documentElement, now = () => performance.now();
+  const et = (e) => { const t = e && e.timeStamp, n = now(); return t > 0 && Math.abs(n - t) < 6e4 ? t : n; }; /* an event's own time (R20 MOBILE flick) */
 
   /* ------------------------------------------------------------------ the field's input layer */
   const stage = doc.createElement('div');
@@ -32,7 +48,7 @@ export function createGesture(ctx, view) {
 
   const B = new Map();          /* bound element -> { spec, m (spec merged over the defaults), token } */
   const SEEN = new WeakSet();   /* an event handled once, even when it bubbles through two bound elements */
-  let G = null, DRAG = false, dragOffT = 0, lastTap = null, W = null, PAGE = false;
+  let G = null, DRAG = false, dragOffT = 0, lastTap = null, W = null, PAGE = false, lastFlick = null;
 
   function pt(sx, sy, e) {
     const w = view.unapply(sx, sy);
@@ -70,12 +86,22 @@ export function createGesture(ctx, view) {
     if (el === stage) { const a = doc.activeElement; if (a && a !== doc.body && a !== stage && typeof a.blur === 'function') a.blur(); } /* the field is not a focus trap: after a tap, → steps the stops again */
     if (G && G.ptrs.has(e.pointerId)) return;
     if (G && (G.type === 'mouse' || type === 'mouse')) cancel(); /* a mouse released outside the window never blocks the next press */
-    if (!G) start(e, el, b.m || DEF, type); else addPtr(e);
+    if (!G) start(e, el, b.m || DEF, type); else if (!WALL || joins(e)) addPtr(e);
+  }
+  /* wall: the second finger of a pinch is the first one's own hand, so it lands while the first is still pending or within
+     reach of it. any other finger (a stranger across the panel, a third finger) is dropped: no pinch, no cancel, and the
+     first visitor's drag or hold goes on */
+  function joins(e) {
+    const g = G;
+    if (g.order.length >= 2) return false;
+    const a = g.ptrs.get(g.order[0]);
+    if (a && Math.hypot(e.clientX - a.x, e.clientY - a.y) <= wallReach()) return true;
+    return g.mode === 'pending' && now() - g.t0 < PEND_MS;
   }
   function start(e, el, m, type) {
     G = { el, m, ptrs: new Map([[e.pointerId, { x: e.clientX, y: e.clientY }]]), order: [e.pointerId], pid: e.pointerId, mode: 'pending', t0: now(),
       x0: e.clientX, y0: e.clientY, px: e.clientX, py: e.clientY, type, alt: type === 'mouse' && (e.button === 2 || e.shiftKey), wake: !!W && W.full && W.ev === e,
-      pressed: false, holdT: 0, cam: false, T: null, le: e };
+      pressed: false, holdT: 0, cam: false, T: null, le: e, ft: et(e), vs: [] };
     IN.setGest(true);
     const h = m.hold;
     if (h && typeof h === 'object' && !G.wake && !G.alt) {
@@ -116,7 +142,9 @@ export function createGesture(ctx, view) {
     else if (d === 'camera' && IN.mode !== 'none') {
       g.cam = true; setDrag(true, g); hand(true);
       const kind = IN.mode === 'pan' ? 'pan' : g.alt && IN.mode === 'orbit3d' ? 'slide' : 'orbit';
+      g.lock0 = view.lock || null;
       IN.input(kind, kind === 'orbit');
+      try { g.pose0 = view.poseN(); } catch (x) { g.pose0 = null; } /* where a flick puts it back */
       camMove(g, dx, dy);
     }
     g.px = e.clientX; g.py = e.clientY;
@@ -149,7 +177,7 @@ export function createGesture(ctx, view) {
     }
     P.x = e.clientX; P.y = e.clientY;
     if (e.pointerId !== g.pid || g.mode === 'dead') return;
-    g.le = e;
+    g.le = e; g.vs.push([et(e), e.clientX, e.clientY]); if (g.vs.length > 16) g.vs.shift();
     if (g.mode === 'pending') { if (Math.hypot(e.clientX - g.x0, e.clientY - g.y0) >= (g.wake ? WAKE_SLOP : 6)) beginDrag(g, e); else { g.px = e.clientX; g.py = e.clientY; } return; }
     const dx = e.clientX - g.px, dy = e.clientY - g.py; g.px = e.clientX; g.py = e.clientY;
     if (g.mode === 'drag') {
@@ -174,6 +202,38 @@ export function createGesture(ctx, view) {
       if (!cancelled && !g.wake && !g.alt && dt < 450 && moved < 6) tapOrDbl(g, p);
     } else if (g.mode === 'hold') safe(g.m.hold && g.m.hold.end, p, !!cancelled);
     else if (g.mode === 'drag' && !g.cam && g.m.drag && typeof g.m.drag === 'object') safe(g.m.drag.end, p);
+    if (g.mode === 'drag' && !cancelled) flick(g, e);
+  }
+  /* R20 MOBILE: the flick test. p0 = [t, x, y] at the press, vs = the latest moves with the lift last: +1 a flick up (next),
+     -1 down (previous), 0 none. a room that takes its touches itself (the press) asks the same test, so one rule turns
+     every page */
+  function flickDir(p0, vs) {
+    if (WALL || !p0 || !vs || !vs.length) return 0;
+    const b = vs[vs.length - 1], dx = b[1] - p0[1], dy = b[2] - p0[2], ay = Math.abs(dy);
+    if (b[0] - p0[0] > FLICK.ms || ay < FLICK.px || Math.abs(dx) > FLICK.slant * ay) return 0;
+    let s = p0;
+    for (let k = vs.length - 2; k >= 0; k--) if (b[0] - vs[k][0] >= FLICK.tail) { s = vs[k]; break; }
+    const v = (s[2] - b[2]) * Math.sign(-dy) / Math.max(16, b[0] - s[0]);
+    return v >= FLICK.v ? (dy < 0 ? 1 : -1) : 0;
+  }
+  /* the page turn: up = the next stop, down = the one before (the same calls as the bar's next and previous) */
+  function turn(dir, info) {
+    const T = ctx.tour; if (WALL || !dir || !T || typeof T.next !== 'function') return false;
+    lastFlick = Object.assign({ t: now(), dir }, info || {});
+    try { if (dir > 0) T.next(); else T.prev(); } catch (x) {}
+    return true;
+  }
+  /* which presses may turn the page: a touch (or pen) whose drag went to the camera, or would have in a room with no camera to
+     move; a room's own drag only when its spec says so (spec.flick: true, or a function asked at the lift). spec.flick false
+     keeps every drag a drag. the camera goes back to where the press found it before the page turns */
+  function flick(g, e) {
+    if (WALL || (g.type !== 'touch' && g.type !== 'pen') || g.wake || g.alt || g.ptrs.size) return false;
+    const fl = g.m.flick, mine = fl === undefined ? g.cam || g.m.drag === 'camera' : typeof fl === 'function' ? !!safe(fl, g.le) : !!fl;
+    if (!mine) return false;
+    const dir = flickDir([g.ft, g.x0, g.y0], g.vs.concat([[et(e), e.clientX, e.clientY]]));
+    if (!dir) return false;
+    if (g.cam && g.pose0) { try { view.set(g.pose0, { instant: true, lock: g.lock0 }); } catch (x) {} }
+    return turn(dir, { dy: Math.round(e.clientY - g.y0), ms: Math.round(et(e) - g.ft) });
   }
   function finish(g) {
     clearTimeout(g.holdT);
@@ -288,6 +348,33 @@ export function createGesture(ctx, view) {
     try { ctx.idle && ctx.idle.wake && ctx.idle.wake(); } catch (x) {}
     root.classList.remove('atlas-idle');
   }, { capture: true, passive: true });
+  /* R20 MOBILE (ROOT_CAUSES 6): a press on the picture while the bar's "more" shelf or the phone's overflow is open only
+     closes it (their own capture listeners close it on this same press): like a waking press it picks nothing, flies
+     nowhere and its click is eaten. registered after the wake listener, which starts each new press afresh. not on the wall */
+  const SHEETS = ['atlas-dock-more', 'ai-overflow'];
+  if (!WALL) addEventListener('pointerdown', (e) => {
+    const t = e.target; if (!t || !t.closest || !(t === stage || t.closest(LABELS_SEL) || t.closest('[data-atlas-bound]'))) return;
+    for (let k = 0; k < SHEETS.length; k++) { const s = document.getElementById(SHEETS[k]); if (s && !s.hidden) { arm(e, true); return; } }
+  }, { capture: true, passive: true });
+  /* wall: is a hand on the screen? api.wait() answers the gates door walk with the ms it should keep waiting (0 = go on): 400 while a
+     trusted pointer is down, else what is left of one door beat (3200 ms) after the last lift, so a door never changes under a finger
+     and the one it was reading stays up a beat after. a pointer whose lift never came is forgotten after 30 s */
+  const HELD = new Map(); let HAND_T = -1e9;
+  if (WALL) ['pointerdown', 'pointerup', 'pointercancel'].forEach((ty) => addEventListener(ty, (e) => {
+    if (!e.isTrusted) return;
+    if (ty === 'pointerdown') HELD.set(e.pointerId, now()); else HELD.delete(e.pointerId);
+    HAND_T = now();
+  }, { capture: true, passive: true }));
+  /* wall: a button answers only the finger that pressed it. a second finger's press, lift and cancel on it stop here, so a stranger's tap does
+     not end the first hand's hold (hold to listen, hold to loop). the owner is the first finger down on the button while no other still has
+     it captured; the capture events come late (after that pointer's next event), so ownership goes by pointerdown and liveness by hasPointerCapture */
+  const OWN = new WeakMap();
+  if (WALL) ['pointerdown', 'pointerup', 'pointercancel', 'lostpointercapture'].forEach((ty) => addEventListener(ty, (e) => {
+    const b = e.isTrusted && e.target && e.target.closest ? e.target.closest('button') : null, id = b ? OWN.get(b) : undefined;
+    if (!b) return;
+    if (id === undefined || id === e.pointerId || !b.hasPointerCapture(id)) { if (ty === 'pointerdown') OWN.set(b, e.pointerId); return; }
+    e.stopPropagation(); /* not Immediate: the window's other capture listeners still see the touch */
+  }, true));
   const lifted = (e) => { if (W && e.pointerId === W.id) W.up = true; };
   addEventListener('pointerup', lifted, { capture: true, passive: true });
   addEventListener('pointercancel', lifted, { capture: true, passive: true });
@@ -330,7 +417,7 @@ export function createGesture(ctx, view) {
   /* ------------------------------------------------------------------ "pinch zooms: the atlas · the page" (§1.6) */
   function applyPinch(v) {
     if (v === undefined) { try { v = ctx.settings.get('pinch'); } catch (e) {} }
-    PAGE = v === 'page' || v === 'the page';
+    PAGE = !WALL && (v === 'page' || v === 'the page'); /* wall: two fingers always move the camera, whatever a stranger set in the knobs */
     root.classList.toggle('atlas-pinch-page', PAGE);
   }
   applyPinch();
@@ -361,6 +448,10 @@ export function createGesture(ctx, view) {
     get active() { return !!G; },
     /* R5 L3: the press now: null · pending · hold · drag (a room's own) · cam (the camera's drag) · pinch · dead */
     get mode() { return G ? (G.mode === 'drag' && G.cam ? 'cam' : G.mode) : null; },
+    /* R20 MOBILE: the last flick that turned the page ({ t, dir, dy, ms }), its thresholds, the test and the turn */
+    get lastFlick() { return lastFlick; }, flickSpec: FLICK, flickDir, flickT: et, turn,
+    /* R20 MOBILE: the press's pointer type (touch · pen · mouse), null with none */
+    get pointer() { return G ? G.type : null; },
     /* R5 L3: the field's own tap (the room's gestures().tap, else its pick()), asked at a screen point as a touch */
     tapAt(sx, sy) { const b = B.get(stage), m = b && b.m; if (!m || typeof m.tap !== 'function') return undefined; const p = pt(sx, sy, null); p.type = 'touch'; return safe(m.tap, p); },
     get pinch() { return PAGE ? 'page' : 'atlas'; },
@@ -368,12 +459,13 @@ export function createGesture(ctx, view) {
     /* for a module that wants the camera's wheel on an element of its own (labels, ladder) */
     wheel(e) { if (!e || e.defaultPrevented || SEEN.has(e)) return; SEEN.add(e); if (IN.wheelOn && IN.wheel(e)) e.preventDefault(); },
     forward(el) { if (!el) return () => {}; const f = (e) => { if (e.defaultPrevented || SEEN.has(e) || scrolls(e.target, el, e)) return; SEEN.add(e); if (IN.wheelOn && IN.wheel(e)) e.preventDefault(); }; el.addEventListener('wheel', f, { passive: false }); return () => el.removeEventListener('wheel', f, { passive: false }); },
+    wait() { if (!WALL) return 0; const t = now(); HELD.forEach((t0, id) => { if (t - t0 > 30000) HELD.delete(id); }); return HELD.size ? 400 : Math.max(0, 3200 - (t - HAND_T)); },
     cancel, swallow,
     cost() { const r = { moves: COST.n, meanMs: COST.n ? COST.sum / COST.n : 0 }; COST.n = COST.sum = 0; return r; },
   };
   /* R5 L3: a touch-first screen has no hover, so it gets the reticle (atlas/reticle.js, lazy, once the atlas is up and the
      page is idle). hover itself stays mouse-only (onHover above) */
-  if (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) {
+  if (!WALL && typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) { /* wall: no reticle (it asks for the spotify clip on a drag); the wall's names answer a tap or a hold */
     const load = () => import('./reticle.js' + new URL(import.meta.url).search).then((m) => { api.reticle = m.install(ctx, view, api); }).catch((e) => console.warn('reticle', e));
     const idle = () => (typeof requestIdleCallback === 'function' ? requestIdleCallback(load, { timeout: 2500 }) : setTimeout(load, 800));
     const r = ctx.atlas && ctx.atlas.ready; if (r && typeof r.then === 'function') r.then(idle, () => {}); else idle();

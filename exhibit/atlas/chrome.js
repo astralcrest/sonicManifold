@@ -14,6 +14,11 @@ export function mount(ctx, deps) {
   deps = deps || {};
   const reduced = !!deps.reduced;
   const KIOSK = !!deps.KIOSK;
+  /* R20 RECORD_CHROME (the owner, 2026-10-16: "way too many buttons, and I don't even know what anything means"): the plain
+     record. every visit but the gallery wall keeps only the controls panels.js builds for it, in plain words (copy.js plain);
+     the wall (?wall=1 / ?kiosk=1) keeps the chrome below exactly as it was gated. html.atlas-plain (panels.js) hides the rest */
+  const PLAIN = !KIOSK;
+  const PW = (deps.COPY && deps.COPY.plain) || {};
   const P = deps.P || null;
   const TOURS = deps.TOURS || [];
   const CC = (deps.COPY && deps.COPY.chrome) || {};
@@ -54,6 +59,7 @@ export function mount(ctx, deps) {
     lockedOn: CC.lockedOn || 'on the record',
     freeCamera: CC.freeCamera || '° your hand',
     paused: (CC.toasts && CC.toasts.tourPaused) || 'your hand has it · ▶ hands it back to the queue',
+    pausedKiosk: (CC.toasts && CC.toasts.tourPausedKiosk) || 'your hand has it · the walk picks up again by itself',
     bar: CC.angleBar || 'bar {k} / {n}',
     shuffle: CC.shuffle || '× shuffle',
     servedKey: CC.servedKey || 'how you reached each stop: ≡ the tour moved on, ° you picked it, × shuffle',
@@ -68,10 +74,9 @@ export function mount(ctx, deps) {
     trackAngle: CC.trackAngle || { 'wall.unsorted': 'the pour', 'wall.press': 'the press', 'clock.busiest': 'the dial', 'clock.glass': 'the glass', 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' },
     coachDesk: CC.coachDesk || ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'hover one to hear it. drag to turn.'],
     coachThrTouch: CC.coachThrTouch || ['▶ plays the tour. ⏭ next stop.', 'drag to turn, pinch to zoom.', 'hold a name to hear the artist.', 'each room’s wall label: ⋯ more.'],
-    veilAgain: CC.veilAgain || 'one more click.', veilAgainTouch: CC.veilAgainTouch || 'one more tap.', veilWhy: CC.veilWhy || 'browsers ask twice before sound.',
-    veilDesk: CC.veilDesk || 'click to drop the needle', veilTouch: CC.veilTouch || 'tap to drop the needle',
     coachThrDesk: CC.coachThrDesk || ['it plays itself. space pauses, → moves on.', 'drag to turn the record. the wheel zooms.', 'rest on a name to hear the artist.', 'l opens the wall label. ? lists the keys.'],
   };
+  if (PLAIN) Object.assign(T, { pauseTour: PW.pause || '‖ pause', playTour: PW.play || '▶ play', trackOf: PW.stopOf || 'stop {k} of {n}', trackLead: PW.stopLead || '{n} stops', sideRoom: PW.stopSide || 'a side room' });
   const fillN = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (k in o ? o[k] : m));
   const LP = (TOURS.find((t) => t.id === 'grand') || {}).name || 'the long play';
   const fillStop = (s, name) => s.replace('{stop}', name);
@@ -252,16 +257,23 @@ export function mount(ctx, deps) {
   const shareLine = (id) => { for (const t of TOURS) for (const s of t.stops) if (s.room === id && s.share) return s.share.line; return ''; };
   async function postcard(e) {
     if (!e.target.closest('[data-act="share"]')) return;
-    const cur = curStop(), line = cur ? shareLine(cur.id) : ''; if (!line) return;
     e.stopPropagation();
+    return sharePostcard();
+  }
+  /* R20 2026-10-17: the plain record has no photodock, so the about sheet's "share this stop" calls this directly
+     (ctx.atlas.postcard); it returns { ok, msg } for the sheet's own "link copied" line */
+  async function sharePostcard() {
+    const cur = curStop(), line = cur ? shareLine(cur.id) : ''; if (!line) return { ok: false, msg: '' };
     const h = location.hash, url = new URL('s/' + cur.id + '.html' + (h.slice(1).split(/[&=]/)[0] === cur.id ? h : ''), location.href).href, text = line + '\n' + url;
-    if (navigator.share) { try { await navigator.share({ title: cur.name.toUpperCase(), text: line, url }); return; } catch (err) { if (err && err.name === 'AbortError') return; } }
+    if (navigator.share) { try { await navigator.share({ title: cur.name.toUpperCase(), text: line, url }); return { ok: true, msg: '' }; } catch (err) { if (err && err.name === 'AbortError') return { ok: true, msg: '' }; } }
     let done = false;
     try { await navigator.clipboard.writeText(text); done = true; } catch (err) {}
     if (!done) try { const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;top:-99px;opacity:0'; document.body.appendChild(ta); ta.select(); done = document.execCommand('copy'); ta.remove(); } catch (err) {}
     const msg = done ? 'link copied' : 'select and copy the link';
     try { ctx.toast(msg); } catch (err) {} try { ctx.say(msg); } catch (err) {}
+    return { ok: done, msg };
   }
+  ctx.atlas.postcard = sharePostcard;
 
   /* ---------------------------------------------------------------- stops, tours: small lookups */
   const walkStops = () => (ctx.stops || []).filter((s) => !s.side);
@@ -325,11 +337,11 @@ export function mount(ctx, deps) {
   }
 
   /* ---------------------------------------------------------------- idle-fade (§1.12) */
-  let lastInput = now(), idleHold = new Set(), capReadUntil = 0;
+  let lastInput = now(), pressAt = -1e9, idleHold = new Set(), capReadUntil = 0; /* R20: pressAt = the last real press, never the load */
   /* W07 accept: "chrome wakes on any input within 1 frame" — idleTick() only polls every 220ms, which would
      leave the fade up to that stale; wake() also clears the class synchronously, in the same event, so the
      poll only ever needs to confirm it (or re-apply it once the read-time/hover guards say otherwise). */
-  function wake() { lastInput = now(); if (html.classList.contains('atlas-idle')) { html.classList.remove('atlas-idle'); idleAPI.faded = false; } }
+  function wake() { lastInput = pressAt = now(); if (html.classList.contains('atlas-idle')) { html.classList.remove('atlas-idle'); idleAPI.faded = false; } }
   ['pointerdown', 'keydown', 'wheel'].forEach((t) => addEventListener(t, wake, { passive: true, capture: true }));
   /* hover/focus are read live via :hover and document.activeElement rather than tracked through
      pointerenter/pointerleave/focusin/focusout: the hide<->show swap (two elements at the same screen spot,
@@ -349,9 +361,13 @@ export function mount(ctx, deps) {
     const t = now(), tourOn = !!(ctx.tour && ctx.tour.active && ctx.tour.active.playing);
     let bt = null; try { bt = ctx.audio && typeof ctx.audio.beat === 'function' ? ctx.audio.beat() : null; } catch (e) {}
     const threshold = bt && bt.len > 0 ? Math.min(12000, Math.max(3000, 8 * bt.len * 1000)) : (tourOn ? 4000 : 6000);
-    const idle = !KIOSK && !idleHold.size && !infoHovered() && !infoFocused() && !panelOpen() && !capTyping && !doc.querySelector(".uf-ks.on") && t > capReadUntil && !(hintShown() && t < hintUntil) && (t - lastInput) > threshold;
-    html.classList.toggle('atlas-idle', idle);
-    idleAPI.faded = idle;
+    const still = !idleHold.size && !infoHovered() && !infoFocused() && !panelOpen() && !capTyping && !doc.querySelector(".uf-ks.on") && t > capReadUntil && !(hintShown() && t < hintUntil) && (t - lastInput) > threshold;
+    /* R20 RECORD_CHROME (the owner: nothing fades): no control fades or stops taking presses, on any visit. ctx.idle keeps its
+       shape for its callers (wake, hold, why; faded is always false); `calm` is the old idle test (never on the wall, which never
+       idled), for a room that wants a quiet moment (rooms/universe.js spins() read `faded`: see RECORD_CHROME FINDINGS requests) */
+    const idle = false;
+    if (html.classList.contains('atlas-idle')) html.classList.remove('atlas-idle');
+    idleAPI.faded = idle; idleAPI.calm = !KIOSK && still;
     /* R18 INTUIT: a listening post that is asking, arming or playing holds the stop (post.js state().asking, shell.js
        A.clipState), so a stranger hears what they asked for before the tour turns the page (FRESH_EYES #34). at most one
        preview (30 s) a stop: a clip that plays on (a full track, a radio that follows the tour) never stops the tour */
@@ -368,6 +384,7 @@ export function mount(ctx, deps) {
     hold(key, on) { if (on) idleHold.add(key); else idleHold.delete(key); },
     why() { const t = now(); return { kiosk: KIOSK, hold: [...idleHold], hov: infoHovered(), foc: infoFocused(), panel: panelOpen(), cap: Math.round(capReadUntil - t), since: Math.round(t - lastInput) }; }, /* R11: names the guard that keeps the chrome lit (harness + console) */
     faded: false,
+    calm: false,
   };
   ctx.idle = idleAPI;
 
@@ -613,16 +630,14 @@ export function mount(ctx, deps) {
   /* R13 CHROME3: a caption never types under a line that is still being read (a toast over the card, or the onboarding hint
      holding the phone slot): it waits for that line's read time, then types where it can be seen */
   function hintShown() { return !lineEl.hidden && !lineOnb.hidden; }
-  /* R13: ?enter=sound puts the needle veil (shell.js, z 95) over everything; nothing types under it, and the first line waits out its fade */
-  function veilUp() { const v = doc.getElementById('needle-veil'); return !!v && (!v.classList.contains('is-off') || +getComputedStyle(v).opacity > 0.05); }
   /* R13: upright, a room's hud takes the caption's slot (updatePhoneSlot): the wall's pour counter came back with the tour's
      second step over the pour and the line typed three letters under it. a line waits out a passing hud (up to 6 s from its
      start; a room that keeps its hud up still gets its line, as before) */
   function hudCovers(t0) { return isPortrait() && t0 != null && now() - t0 < 6000 && !hudEl.hidden && !!hudEl.textContent.trim(); }
-  function capCovered(t0) { return (isPortrait() && html.classList.contains('ai-toast-on')) || veilUp() || hudCovers(t0); }
+  function capCovered(t0) { return (isPortrait() && html.classList.contains('ai-toast-on')) || hudCovers(t0); }
   /* R13 merge fix: a room that keeps its hud up (the arrivals counter) must not hold the slot for good; the passing-hud wait is
      hudCovers(t0) in the typing step (6 s bounded), so slotHeld carries no hud term */
-  function slotHeld() { const t = now(); return Math.max(veilUp() ? 300 : 0, html.classList.contains('ai-toast-on') ? Math.max(0, toastUntil - t) + 340 : 0, hintShown() && isPortrait() ? hintUntil - t : 0, 0); }
+  function slotHeld() { const t = now(); return Math.max(html.classList.contains('ai-toast-on') ? Math.max(0, toastUntil - t) + 340 : 0, hintShown() && isPortrait() ? hintUntil - t : 0, 0); }
   /* R13: off a tour, a line nobody asked for (a field layer's, a room's recheck) never replaces the caption mid-read: it waits for
      the one on screen (every piece of a carousel) to have had its read time; a press, a key or a new stop replaces it at once */
   let capWait = 0;
@@ -989,12 +1004,17 @@ export function mount(ctx, deps) {
      shows at once. every toast stays at least its read time (1500 + (len + 40) * 28 ms) */
   function lineDue() { return idleHold.has('ink-line') || idleHold.has('veins-line'); }
   function toastWait() { const t = now(); return Math.max(capTyping ? 400 : 0, capReadUntil - t, hintShown() ? hintUntil - t : 0, lineDue() ? 400 : 0, 0); }
+  let saidLast = '', saidAt = -1e9;
   function toast(text, ms, opt) {
     clearTimeout(toastQT); toastQ = null;
-    const user = now() - lastInput < 900;
+    const user = PLAIN ? now() - pressAt < 1500 : now() - lastInput < 900;
+    if (PLAIN && text && (!user || (opt && opt.wait))) { /* R20: no line nobody asked for; a screen reader hears it, once a minute at most */
+      if (text !== saidLast || now() - saidAt > 60000) { saidLast = text; saidAt = now(); try { if (ctx.say) ctx.say(text); } catch (e) {} }
+      return;
+    }
     if (opt && opt.wait && !user && text) {
       const w = Math.max(toastWait(), toastEl.classList.contains('on') && toastEl.textContent !== text ? toastRead - now() : 0), t0 = opt.t0 || now();
-      if (w > 0) { if (now() - t0 > 15000) return; const q = toastQ = { k: ctx.index }; toastQT = setTimeout(() => { if (toastQ === q && ctx.index === q.k) toast(text, ms, { wait: true, t0 }); }, Math.min(w, 2000) + 60); return; }
+      if (w > 0) { if (now() - t0 > 15000) return; const q = toastQ = { k: ctx.index }; toastQT = setTimeout(function due() { if (toastQ !== q || ctx.index !== q.k) return; const u = now() - lastInput; if (u < 900) { toastQT = setTimeout(due, 960 - u); return; } toast(text, ms, { wait: true, t0 }); }, Math.min(w, 2000) + 60); return; } /* R20: a line that waited is no reply to the visitor's latest input */
     }
     clearTimeout(toastT); clearTimeout(toastU); toastEl.textContent = text || ''; toastEl.classList.toggle('ai-voice-p', isVoice(text));
     place(toastEl);
@@ -1062,6 +1082,7 @@ export function mount(ctx, deps) {
     const nm = cur ? cur.name : '';
     const roomy = innerWidth > 400, p = trackPos(s, ts, cur);
     if (!p) return { t: '', of: '', rest: nm };
+    if (PLAIN) return p.k < 1 ? { t: '', of: '', rest: fillN(T.trackLead, { n: p.n }) + ' · ' + nm } : { t: String(p.k), of: ' of ' + p.n, rest: ' · ' + nm };
     const lead = p.k < 1, of = lead ? fillN(T.trackLead, { n: p.n }).replace(/^lead-in/, '') : ' / ' + p.n;
     const rest = (s.onTour && ts && ts.a ? (roomy ? ' ▾  ' : '  ') : '  ') + nm + (s.onTour && ts && ts.a ? '' : camSuffix());
     return { t: lead ? 'lead-in' : String(p.k), of, rest };
@@ -1073,17 +1094,18 @@ export function mount(ctx, deps) {
     if (L.t) { const b = doc.createElement('b'); b.className = 'ai-trk'; b.textContent = L.t; const o = doc.createElement('span'); o.className = 'ai-of'; o.textContent = L.of; mrowT.append(b, o); }
     mrowT.append(L.rest);
     const key = p ? p.k + '/' + p.n : '';
-    if (key !== meterKey) {
+    if (key !== meterKey || (PLAIN && countEl && !countEl.textContent)) {
       meterKey = key;
       meterEl.innerHTML = p ? Array.from({ length: p.n }, (x, j) => '<i' + (j + 1 === p.k ? ' class="on"' : j + 1 < p.k ? ' class="past"' : '') + '></i>').join('') : '';
       const trk = p && p.k >= 1 ? fillN(T.trackOf, { k: p.k, n: p.n }) : '';
       html.style.setProperty('--ai-trk', trk ? JSON.stringify(trk) : 'none');
-      if (countEl) { countEl.textContent = p ? (p.k < 1 ? fillN(T.trackLead, { n: p.n }) : trk) : T.sideRoom; }
+      if (countEl) { countEl.textContent = p ? (p.k < 1 ? fillN(T.trackLead, { n: p.n }) : trk) : T.sideRoom; if (PLAIN) countEl.setAttribute('aria-label', countEl.textContent + ': the list of stops'); }
     }
   }
   const meterEl = $('ai-meter');
   /* the deck's own counter, ahead of the tracklist (desk); the tracklist itself scrolls, so the total never scrolls away */
-  const countEl = (() => { const tl = doc.getElementById('ai-tracks'); if (!tl || !tl.parentNode) return null; const c = doc.createElement('span'); c.className = 'a-count'; c.id = 'ai-count'; tl.parentNode.insertBefore(c, tl); return c; })();
+  /* R20: on the plain record the counter is the button that opens the list of stops ("stop 2 of 18"); on the wall, a readout */
+  const countEl = (() => { const tl = doc.getElementById('ai-tracks'); if (!tl || !tl.parentNode) return null; const c = doc.createElement(PLAIN ? 'button' : 'span'); c.className = 'a-count'; c.id = 'ai-count'; if (PLAIN) { c.type = 'button'; c.classList.add('a-btn'); c.setAttribute('aria-haspopup', 'dialog'); c.addEventListener('click', openToursPanel); } tl.parentNode.insertBefore(c, tl); return c; })();
   /* R8 DECK: the record as a tracklist in the deck (a1 … b16, the gate uncounted), the stop playing lit, the next one
      underlined; a click drops the needle on that track */
   var tracksEl = doc.getElementById('ai-tracks'); /* var: ctx.lock() can land before this line runs (a room's first hit); renderTracks then returns and renderAll redraws */
@@ -1093,10 +1115,10 @@ export function mount(ctx, deps) {
     const g = def.stops[0] && def.stops[0].gate ? 1 : 0, n = def.stops.length - g;
     const k = ts && ts.here ? ts.a.k : recIndex(def, cur), key = def.id + k;
     if (key === tracksKey) return; tracksKey = key;
-    tracksEl.dataset.tour = def.id; tracksEl.setAttribute('aria-label', def.name);
+    tracksEl.dataset.tour = def.id; tracksEl.setAttribute('aria-label', PLAIN ? (PW.stops || 'the stops') : def.name);
     const had = tracksEl.contains(document.activeElement); /* a rebuild under the focused track (a search fly, a key step) must not drop focus to the body */
-    tracksEl.innerHTML = '<li class="a-rec" aria-hidden="true">' + fillN(T.trackStops, { name: def.name, n }).replace(/&/g, '&amp;') + '</li>' + def.stops.map((x, j) => { if (j < g) return ''; const t = sideTrack(j + 1 - g, n), nm = trackName(def, j);
-      return '<li' + (j === k ? ' class="on"' : j === k + 1 ? ' class="nx"' : '') + '><button type="button" data-tk="' + j + '" aria-label="' + t + ' ' + nm + '"' + (j === k ? ' aria-current="true"' : '') + '><b><small>' + t.charAt(0) + '</small>' + t.slice(1) + '</b><span> ' + nm + '</span></button></li>'; }).join('');
+    tracksEl.innerHTML = (PLAIN ? '' : '<li class="a-rec" aria-hidden="true">' + fillN(T.trackStops, { name: def.name, n }).replace(/&/g, '&amp;') + '</li>') + def.stops.map((x, j) => { if (j < g) return ''; const t = PLAIN ? String(j + 1 - g) : sideTrack(j + 1 - g, n), nm = trackName(def, j);
+      return '<li' + (j === k ? ' class="on"' : j === k + 1 ? ' class="nx"' : '') + '><button type="button" data-tk="' + j + '" aria-label="' + (PLAIN ? 'stop ' + t + ' of ' + n + ', ' + nm : t + ' ' + nm) + '"' + (j === k ? ' aria-current="true"' : '') + '><b>' + (PLAIN ? t : '<small>' + t.charAt(0) + '</small>' + t.slice(1)) + '</b><span> ' + nm + '</span></button></li>'; }).join('');
     if (had) { const b = tracksEl.querySelector('[aria-current="true"]') || tracksEl.querySelector('button'); if (b) b.focus({ preventScroll: true }); }
     requestAnimationFrame(() => { const on = tracksEl.querySelector('.on'); tracksEl.scrollLeft = on && on.previousSibling ? on.previousSibling.offsetLeft : 0; }); /* a sync read here flushed style mid-go and re-ran the room fade */
   }
@@ -1133,7 +1155,7 @@ export function mount(ctx, deps) {
     toast('the tour sheet is not ready yet');
   }
   tourChip.addEventListener('click', openToursPanel);
-  mrowLabel.addEventListener('click', openToursPanel);
+  if (!PLAIN) mrowLabel.addEventListener('click', openToursPanel);
 
   function renderCamChip() {
     const st = (ctx.view && ctx.view.state) || 'home';
@@ -1337,8 +1359,8 @@ export function mount(ctx, deps) {
      the winner is ever unhidden (the losers collapse to 0 height, they are not layered on top of one another). */
   const ONB_KEY = 'sm_atlas_onboard_seen_v1', ONB_STOPS = 2;
   let onbSeenBefore = !!sGet(ONB_KEY, false);
-  let onbStopCount = 0, onbOn = !KIOSK && !onbSeenBefore;
-  lineOnb.textContent = coarse ? T.onboardTouch : T.onboard;
+  let onbStopCount = 0, onbOn = !PLAIN && !KIOSK && !onbSeenBefore; /* R20: the plain record has no hint line (and the wall never had it) */
+  lineOnb.textContent = (coarse || window.__wall) ? T.onboardTouch : T.onboard;
   function stopSeen() {
     if (!onbOn) return;
     onbStopCount++;
@@ -1353,6 +1375,7 @@ export function mount(ctx, deps) {
   let sndForcedOff = false;
   /* landscape/desktop rendering: unchanged from round 1 */
   function renderLine() {
+    if (PLAIN) { if (!lineEl.hidden) lineEl.hidden = true; return; } /* R20: no hint or sound line under the plain record */
     if (isPortrait()) { updatePhoneSlot(); return; }
     const snd = !sndForcedOff && soundWaiting();
     const onb = onbHere(); lineOnb.hidden = !onb; lineSnd.hidden = !snd;
@@ -1641,7 +1664,8 @@ export function mount(ctx, deps) {
   function park(el, to, before) { if (!el || !to || el.parentNode === to) return; if (!homes.some((h) => h[0] === el)) homes.push([el, el.parentNode, el.nextSibling]); to.insertBefore(el, before || null); }
   function placeDeck() {
     const bar = topBar && topBar.querySelector('.atlas-topbar');
-    if (DQ.matches) { if (bar) park(topPlay, bar, bar.querySelector('[data-a="next"]')); [tplusEl, servedEl, footEl].forEach((e) => park(e, linerEl)); park(lessBtn, footEl); park(hideBtn, footEl); }
+    if (PLAIN && bar && topPlay.parentNode !== bar) bar.insertBefore(topPlay, bar.querySelector('[data-a="next"]'));
+    if (DQ.matches) { if (bar && !PLAIN) park(topPlay, bar, bar.querySelector('[data-a="next"]')); [tplusEl, servedEl, footEl].forEach((e) => park(e, linerEl)); park(lessBtn, footEl); park(hideBtn, footEl); }
     else while (homes.length) { const [el, p, n] = homes.pop(); p.insertBefore(el, n && n.parentNode === p ? n : null); }
   }
   if (DQ.addEventListener) DQ.addEventListener('change', () => scheduleLayout());
@@ -1677,7 +1701,7 @@ export function mount(ctx, deps) {
       const topBottom = deck ? (brand ? Math.round(brand.getBoundingClientRect().bottom) : 0) : topBar ? Math.round(topBar.getBoundingClientRect().bottom) : 64, gap = 12;
       info.style.top = deck ? '' : (topBottom + gap) + 'px'; show.style.top = deck ? '' : (topBottom + gap) + 'px';
       const infoRect = info.getBoundingClientRect();
-      html.style.setProperty('--atlas-infoh', (deck ? 26 : Math.max(60, Math.round(infoRect.bottom))) + 'px');
+      html.style.setProperty('--atlas-infoh', (deck ? (PLAIN ? 60 : 26) : Math.max(60, Math.round(infoRect.bottom))) + 'px'); /* R20: under the plain title */
       /* round-2 fix: a real cap (not 'none') here too, mirroring the portrait branch, so a short landscape
          viewport (a phone held sideways) can never let the unfolded card push itself off-screen with nothing
          to scroll. a no-op everywhere roomy (desktop's own content is always well under this), since it only
@@ -1802,7 +1826,7 @@ export function mount(ctx, deps) {
     if (tourWasPlaying && !playingNow) {
       capFinishOnPause(); /* M3-b: a playing->paused edge, never a bare re-render */
       /* R6 M1: the visitor's own move paused it (never the pause button or the tour's end); after this stop's own hideToast */
-      if (ctx.tour.active.why === 'user') setTimeout(() => { const a = ctx.tour.active; if (a && !a.playing && a.why === 'user') toast(T.paused, 3600); }, 80);
+      if (!PLAIN && ctx.tour.active.why === 'user') setTimeout(() => { const a = ctx.tour.active; if (a && !a.playing && a.why === 'user') toast(window.__wall ? T.pausedKiosk : T.paused, 3600); }, 80);
     }
     tourWasPlaying = playingNow;
     servedTourEdge();
@@ -1894,8 +1918,9 @@ export function mount(ctx, deps) {
       if (hit(clamp(x, 16, innerWidth - w - 16), y0)) {
         let best = null, part = null;
         const x0 = clamp(x, 16, innerWidth - w - 16);
-        const ls = []; for (let l = 16; l <= innerWidth - w - 16; l += 12) ls.push(l); ls.push(innerWidth - w - 16); boxes.forEach((r) => { const e = Math.ceil(r.right + 9); if (e <= innerWidth - w - 16) ls.push(e); });
-        for (const l of ls) for (let t = 56; t <= innerHeight - h - 16; t += 12) {
+        const sx = window.__wall ? Math.max(12, Math.round(innerWidth / 120)) : 12, sy = window.__wall ? Math.max(12, Math.round(innerHeight / 75)) : 12; /* wall: the desk's slot count on any screen */
+        const ls = []; for (let l = 16; l <= innerWidth - w - 16; l += sx) ls.push(l); ls.push(innerWidth - w - 16); boxes.forEach((r) => { const e = Math.ceil(r.right + 9); if (e <= innerWidth - w - 16) ls.push(e); });
+        for (const l of ls) for (let t = 56; t <= innerHeight - h - 16; t += sy) {
           if (boxes.some((r) => over(r, l, t))) continue;
           const d = Math.abs(t - y0) + Math.abs(l - x0) * 0.5;
           if (!room.some((r) => over(r, l, t))) { if (!best || d < best.d) best = { d, l, t }; continue; }
@@ -1924,19 +1949,19 @@ export function mount(ctx, deps) {
     el.classList.remove('on'); el.classList.add('off'); setTimeout(() => el.remove(), reduced ? 0 : 420);
   }
   /* R18 INTUIT: a first visit gets the coach on the lead-in itself, the first screen, once the record and its opening line
-     have had 4.5 s and nothing was pressed for 2 s, never under the needle veil or an open sheet. upright only with the dock
+     have had 4.5 s and nothing was pressed for 2 s, never under an open sheet. upright only with the dock
      (its lines name the dock's keys); a phone on its side keeps it for the first starry room. same card, same once-a-visit
      key, so it does not come back there; a stop change before it shows hands it on as before */
   let thrReadyAt = 0;
   function coachThrOk() {
     if (!(window.__exhibit && window.__exhibit.atlasReady)) return false;
     const t = now(); if (!thrReadyAt) thrReadyAt = t;
-    return t - thrReadyAt >= 4500 && t - lastInput >= 2000 && !veilUp();
+    return t - thrReadyAt >= 4500 && t - lastInput >= 2000;
   }
   function coachMaybe(waited) {
-    if (KIOSK || coachEl || ssHas(COACH_KEY)) return;
+    if (KIOSK || PLAIN || coachEl || ssHas(COACH_KEY)) return; /* R20: no coach card on the plain record */
     const cur = curStop(); if (!cur) { if (!(window.__exhibit && window.__exhibit.atlasReady)) coachWait = setTimeout(coachMaybe, 600); return; } /* a slow load: no stop at the first poll yet */
-    const thr = cur.id === 'threshold' && (!coarse || isPortrait());
+    const thr = cur.id === 'threshold' && (!coarse || isPortrait() || (window.__wall && innerWidth >= 1600));
     if (panelOpen() || html.classList.contains('ai-endcard-open')) { if (thr) coachWait = setTimeout(coachMaybe, 600); return; }
     if (thr) { if (!coachThrOk()) { coachWait = setTimeout(coachMaybe, 600); return; } } else if (STARRY.indexOf(cur.id) < 0) return;
     /* the colour key (unfold.js .uf-ks, 6 s or the first input) goes first; the coach follows it, never on top of it */
@@ -2030,7 +2055,7 @@ export function mount(ctx, deps) {
      (autoplay's or a `]`) was a second reader over the typing line, and autoplay's idle fade took it before it could be read,
      so it stays down, before it paints. the visitor's own hold, two fingers or i mid-stop still bring it */
   const tourAlone = () => { try { const U = ctx.tour; return !!(U && U.isPlaying && U.isPlaying()) && (now() - lastInput > 900 || now() - lastStopT < 4000); } catch (e) { return false; } };
-  new MutationObserver((rs) => rs.forEach((r) => r.addedNodes.forEach((n) => { if (n.classList && n.classList.contains('uf-ks')) { if (tourAlone()) { Element.prototype.remove.call(n); return; } doc.querySelectorAll('.uf-ks').forEach((o) => { if (o !== n) Element.prototype.remove.call(o); }); /* a new strip supersedes a held one */ ksStep(n); ksHold(n); } }))).observe(doc.body, { childList: true });
+  new MutationObserver((rs) => rs.forEach((r) => r.addedNodes.forEach((n) => { if (n.classList && n.classList.contains('uf-ks')) { if (PLAIN || tourAlone()) { Element.prototype.remove.call(n); return; } doc.querySelectorAll('.uf-ks').forEach((o) => { if (o !== n) Element.prototype.remove.call(o); }); /* a new strip supersedes a held one */ ksStep(n); ksHold(n); } }))).observe(doc.body, { childList: true });
   api.coach = { show: coachMaybe, hide: coachOff, get on() { return !!coachEl; }, key: COACH_KEY };
   /* R18 INTUIT: the arrival line a screen reader hears, counted the way the deck counts (6 / 18), not by rooms (shell.js roomSay
      said 'stop 8 of 15'); null when room i is not the tour's current stop, and the shell keeps its own line */
@@ -2042,31 +2067,6 @@ export function mount(ctx, deps) {
       return (k < 1 ? 'lead-in, ' : 'stop ' + k + ' of ' + (def.stops.length - g) + ', ') + (trackName(def, a.k) || nameOf(r.id));
     } catch (e) { return null; }
   };
-  /* R18 INTUIT (the LANDING contract): ?enter=sound comes from a press on the landing. a browser that carries that press over
-     (chromium does, for a same-origin hop) starts the sound here without a second ask, so the veil lets itself through;
-     one that does not (webkit, gecko) gets the ask in words that say why. exhibit.html keeps the ask hidden until then */
-  (function veilTry() {
-    const v = doc.getElementById('needle-veil'), X = window.__exhibit, A = X && X.A;
-    if (!v || v.classList.contains('is-off')) return;
-    const ask = () => {
-      if (!v.isConnected || v.classList.contains('is-off')) return;
-      let from = false; try { from = !!doc.referrer && new URL(doc.referrer).origin === location.origin; } catch (e) {}
-      const t = v.querySelector('.nv-t');
-      if (t && from) { t.textContent = coarse ? T.veilAgainTouch : T.veilAgain; const w = doc.createElement('span'); w.className = 'nv-why'; w.textContent = T.veilWhy; t.after(w); }
-      else if (t) t.textContent = coarse ? T.veilTouch : T.veilDesk;
-      v.classList.add('nv-ask');
-    };
-    if (!A || typeof A.unlock !== 'function') { ask(); return; }
-    try { A.unlock(); } catch (e) { ask(); return; }
-    const t0 = now(); let asked = false;
-    (function wait() {
-      if (!v.isConnected || v.classList.contains('is-off')) return;
-      if (A.on && A.ac && A.ac.state === 'running') { const go = v.querySelector('.nv-go'); if (go) go.click(); return; }
-      const dt = now() - t0;
-      if (!asked && dt > 600) { asked = true; ask(); }
-      if (dt < 4000) setTimeout(wait, asked ? 120 : 50); /* a late start still lets the veil through */
-    })();
-  })();
 
   return api;
 }

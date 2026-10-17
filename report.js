@@ -173,7 +173,7 @@
       if (Math.abs(p - 11.5) < 0.45) p = rg.value = 11.5; else if (Math.abs(p - 19.1) < 0.45) p = rg.value = 19.1;
       dots.forEach(function (c, i) { var x = i + 0.5; c.setAttribute('class', 'dot' + (x < p ? ' t' : x < 19.8 ? ' n' : x < 36.5 ? ' s' : '')); });
       var m = p === 11.5 ? 'strict taps: <b>clickrow, playbtn and remote</b>, 11.5% of plays. this is the arm the headline uses.'
-        : p === 19.1 ? 'bundled taps add <b>backbtn and fwdbtn</b>, 19.1% of plays. that share is not stable across the october 2023 logger change: 11.8% before, 22.7% after. the strict set is the one that holds.'
+        : p === 19.1 ? 'bundled taps add <b>backbtn and fwdbtn</b>, 19.1% of plays. that share is not stable across the logger change (the audit era boundary, 2023-10): 11.8% before, 22.7% after. the strict set is the one that holds.'
         : 'the log has no cut here. it has two: the strict set and the bundled set.';
       out.innerHTML = m + ' <em>served plays are 80.2% either way: 16.7% shuffle-driven autoadvance, 63.5% the queue. 0.5% are ambiguous and left out.</em>';
     };
@@ -185,7 +185,7 @@
   if (br) {
     var S = [
       ['holds under', 'the headline', 1.03, 1.08, 'u', 'the interval sits above 1: the deliberate steps cross more.'],
-      ['holds under', 'before the 2023 logger change', 1.022, 1.100, 'u', 'the interval sits above 1 for plays before 2023-09-01, the era cut set just ahead of the october 2023 logger change.'],
+      ['holds under', 'before the 2023-09 logging changepoint', 1.022, 1.100, 'u', 'the interval sits above 1 for plays before the 2023-09 logging changepoint.'],
       ['holds under', 'after it', 1.018, 1.088, 'u', 'the interval sits above 1 after it too.'],
       ['holds under', 'iOS only', 1.046, 1.124, 'u', 'the interval sits above 1 within iOS.'],
       ['holds under', 'macOS only', 1.008, 1.077, 'u', 'the interval sits above 1 within macOS, close to the line.'],

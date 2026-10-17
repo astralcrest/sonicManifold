@@ -111,10 +111,13 @@ export function toFile(cv, name) {
 }
 
 const IOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+/* R19 the wall (exhibit.html?wall=1): a card can still be drawn and previewed, but nothing on a wall saves a file, opens a tab or
+   reaches the OS share sheet, so the bar has no buttons and save() and share() decline */
+const WALL = () => !!(window.__wall && window.__wall.on);
 
 /* ios safari shows a blob download as a page: there the png goes to a tab opened inside the click, to hold and save */
 export function save(file, name, tab) {
-  if (!file) { try { tab && tab.close(); } catch (e) {} return false; }
+  if (!file || WALL()) { try { tab && tab.close(); } catch (e) {} return false; }
   const url = URL.createObjectURL(file);
   if (tab) { try { tab.location.href = url; } catch (e) { tab = null; } }
   if (!tab) { const a = document.createElement('a'); a.href = url; a.download = name || file.name || 'card.png'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); }
@@ -131,7 +134,7 @@ export async function copyText(text) {
 }
 
 export async function share({ file, text, title } = {}) {
-  if (!navigator.share) return 'unsupported';
+  if (WALL() || !navigator.share) return 'unsupported';
   const d = { title: title || 'sonicManifold', text: text || '' };
   try { if (file && navigator.canShare && navigator.canShare({ files: [file] })) d.files = [file]; } catch (e) {}
   try { await navigator.share(d); return 'shared'; } catch (e) { return e && e.name === 'AbortError' ? 'cancelled' : 'unsupported'; }
@@ -150,10 +153,10 @@ export function bar(host, opts = {}) {
   if (!document.getElementById('cd-css')) { const st = document.createElement('style'); st.id = 'cd-css'; st.textContent = CSS; document.head.appendChild(st); }
   const L = Object.assign({ save: 'save image', copy: 'copy as text', share: 'share' }, opts.labels || {}), ctx = opts.ctx;
   const el = document.createElement('div'); el.className = 'cd-bar' + (opts.cls ? ' ' + opts.cls : ''); el.setAttribute('role', 'group'); el.setAttribute('aria-label', opts.label || 'share this card');
-  const btn = (k) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'cd-b cd-' + k; b.textContent = L[k]; b.disabled = true; el.appendChild(b); return b; };
+  const btn = (k) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'cd-b cd-' + k; b.textContent = L[k]; b.disabled = true; if (!WALL()) el.appendChild(b); return b; };
   const bS = btn('save'), bC = btn('copy'), bH = btn('share'), st = document.createElement('span');
   bC.setAttribute('aria-label', L.copy + ': copy as text');
-  st.className = 'cd-s'; st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); el.appendChild(st);
+  st.className = 'cd-s'; st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); if (!WALL()) el.appendChild(st); else el.hidden = true;
   bH.hidden = !navigator.share; if (host) host.appendChild(el);
   let cur = null, stT = 0;
   const say = (t) => { st.textContent = t; clearTimeout(stT); if (t) stT = setTimeout(() => { st.textContent = ''; }, 4000); };

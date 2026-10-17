@@ -598,7 +598,7 @@ export default {
     if (!this.labSet) { for (let k = 0; k < A.length; k++) { const p = this.artistXY(A[k]); X[k] = p[0]; Y[k] = p[1]; } this.labSet = true; }
     for (let k = 0; k < A.length; k++) {
       const a = A[k], held = k < NPIN, e = k - NPIN;
-      items.push({ id: 'a' + a, text: this.map.artists[a], x: X[k], y: Y[k], r: 8, kind: 'obj',
+      items.push({ id: 'a' + a, text: this.map.artists[a], artist: this.map.artists[a], x: X[k], y: Y[k], r: 8, kind: 'obj', /* R20: a tap plays it */
         pri: held ? 20 - k : 10 - e * 0.25, zoom: held || e < 6 ? null : [1 + (e - 5) * 0.11, 99],
         go: (c) => this.focusArtist(a, c || ctx) });
     }

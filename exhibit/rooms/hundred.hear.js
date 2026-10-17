@@ -87,10 +87,13 @@ export default function hear(H, ctx) {
     if (st.live && !can()) stop(); else if (!st.live && can()) start();
   }
   b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && !st.want) on('m'); });
-  b.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' ? st.want === 'm' : st.want === 't') off(); });
-  b.addEventListener('pointerdown', (e) => { if (!e.isTrusted) return; st.gest++; if (e.pointerType !== 'mouse') { downT = performance.now(); clearTimeout(keepT); on('t'); } });
+  let tpid = null;
+  b.addEventListener('pointerleave', (e) => { if (window.__wall && e.pointerType !== 'mouse' && tpid != null && e.pointerId !== tpid) return; /* wall: a second finger leaving is not the first one letting go */ if (e.pointerType === 'mouse' ? st.want === 'm' : st.want === 't') off(); });
+  b.addEventListener('pointerdown', (e) => { if (!e.isTrusted) return; if (window.__wall && e.pointerType !== 'mouse' && st.want === 't' && tpid != null && e.pointerId !== tpid) return; /* wall: a second finger on a held button is not a press */ st.gest++; if (e.pointerType !== 'mouse') { tpid = e.pointerId; downT = performance.now(); clearTimeout(keepT); on('t'); } });
   ['pointerup', 'pointercancel'].forEach((ty) => b.addEventListener(ty, (e) => {
     if (e.pointerType === 'mouse' || st.want !== 't') return;
+    if (window.__wall && tpid != null && e.pointerId !== tpid) return; /* wall: only the finger that pressed lets go */
+    tpid = null;
     /* a quick tap keeps it sounding for a few seconds (the tap is what unlocks audio on a phone); a hold ends on release */
     if (ty === 'pointerup' && performance.now() - downT < 350) { st.want = 'k'; keepT = setTimeout(off, KEEP); } else off();
   }));

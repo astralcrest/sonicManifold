@@ -127,7 +127,7 @@ const S_GAME = ['exhibit/data/whopressed2.json', 'exhibit/rooms/game.js'];
 /* R9 postcards: one sourced share line per stop (s/<stop>.html unfurls it; chrome.js `share` sends it). each is a caption
    in this file verbatim or trimmed, except the bridge line (R5 brief); atlas_content.mjs verifies every number against src */
 const SHARE = {
-  threshold: { line: 'spotify logged what i played and i assumed the log was a record of me. the queue or shuffle started four fifths of it.', src: ['exhibit.html#threshold.say', 'exhibit/data/wall.json#pct_rounded'] },
+  threshold: { line: 'Spotify logged what i played and i assumed the log was a record of me.', src: ['exhibit.html#threshold.say', 'exhibit/data/wall.json#pct_rounded'] },
   universe: { line: 'my 388 most-played artists, one star each. where one sits means nothing on its own.', src: ['exhibit/data/universe_nodes.json#nodes', 'derive:named_count'] },
   game: { line: 'can you tell who pressed play? play a run, then send the same deck to a friend.', src: ['exhibit/data/whopressed2.json', 'exhibit/rooms/game.js'] },
   bail: { line: '61% of my skip-forward presses came inside 5 s, most in runs.', src: ['exhibit/data/bail.json#pct_in5', 'exhibit/data/bail.json#bins', 'exhibit/data/bail.json#n_in5_in_runs'] },
@@ -224,7 +224,7 @@ const NINETY_AT = {
     // TOURS3 (CRIT6 §6): 16 s on the most stunning stop. no scripted strum: tours.js has no demo hook (the strum is kiosk-only)
     room: 'universe', angle: 'sky', hold: 16,
     share: SHARE.universe,
-    caption: 'my {named} most-played artists. where one sits means nothing. hold one to hear it.',
+    caption: 'my {named} most-played artists. where one sits means nothing. tap one to hear it.',
     src: ['exhibit/data/universe_nodes.json', 'derive:named_count'],
   },
   'yours·bars': {
@@ -307,14 +307,14 @@ export const TOURS = [
         room: 'threshold', angle: 'whole', gate: true,
         share: SHARE.threshold,
         pose: { yaw: 0, pitch: 0, z: 1 },
-        caption: 'every dot is a song i played. i assumed i\'d picked most of them. i started about one in five; shuffle or the queue started the rest.',
+        caption: 'every dot is a song i played. i assumed i\'d picked most of them. who actually did?',
         src: ['exhibit.html#threshold.say'],
       },
       {
         // no pose: R5 R2 tuned the room's own home framing to fill >= 85% of the stage; hold 12 lets the kiosk strum finish
         room: 'universe', angle: 'sky', hold: 12,
         share: SHARE.universe,
-        caption: 'each star is an artist i played 50 times or more: {named} of them. color is genre. where a star sits means nothing. hold one to hear it.',
+        caption: 'each star is an artist i played 50 times or more: {named} of them. color is genre. where a star sits means nothing. tap one to hear it.',
         src: ['exhibit.html#universe.say', 'exhibit/data/universe_nodes.json', 'derive:named_count', 'exhibit/data/universe_edges.json'],
       },
       {

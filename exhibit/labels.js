@@ -202,7 +202,7 @@ export const LABELS = {
     kicker: 'how this was measured', title: 'your turn',
     rows: [
       ['what it does', 'your extended streaming history json is parsed in this browser tab and sorted on the same field mine was. a tap here is the same bundled reading my 19% is drawn on: track row, play button, remote, or a skip forward or back. the stricter set the bridge index uses (track row, play button, remote only) is printed next to it. served means the track ended and the next one arrived with shuffle off. the categories are copied from the probe, not reinvented here.'],
-      ['privacy', 'nothing is uploaded and nothing is stored. no request carries your file anywhere. closing the tab ends it.'],
+      ['privacy', 'nothing is uploaded and nothing is stored. no request carries your file anywhere. closing the tab ends it.', { wall: 'on this wall the room runs on demo data. nothing of yours is read here.' }],
       ['the comparison', 'your three shares are drawn beside mine, which are 19% tapped, 17% picked by shuffle and 64% served over 97,427 plays, the whole log.', { atlas: 'your three shares are drawn beside mine, which are 19% tapped, 17% picked by shuffle and 64% served over the whole log\'s 97,427 plays.' }],
       ['limits', 'one listener is one listener. your split describes your log and is not evidence about recommenders in general, and the untagged tail that widens my interval will widen yours.'],
       ["the card", "save picture, copy text or share makes one card: your three shares beside my 19 · 17 · 64, the stricter reading in small type, the pseudonym and the url. no file name, no dates, and no artists unless you check the box. a split is neither good nor bad."],
@@ -227,8 +227,8 @@ export const HINTS = {
 export const HINTS_ATLAS = {
   wall: "press and hold anywhere on the dots · the pour: swipe down · the press: turn the knob",
   listeners: "hover a cell: its note climbs with the row · on the fade dial, drag or use the arrows",
-  universe: "drag to turn the sky · tap a star · hover to hear it, rest on a name to hear the artist",
-  chain: "pick a star, then follow a link. hold a name to hear it. · every hop plays a note",
+  universe: "drag to turn the sky · hover a star to hear it · click one to hear the artist",
+  chain: "pick a star, then follow a link. tap a name to hear it. · every hop plays a note",
   yours: "your file is read here, never sent · your split plays as 100 rising notes, one per point",
   game: "drag the card toward your answer, or press t (i tapped) / q (it queued)",
   bail: "press and hold anywhere, let go when you'd skip · hover a column to hear it",
@@ -239,10 +239,10 @@ export const HINTS_ATLAS = {
   map: "drag the dial: the map moves, my plays do not · on the ghost, press hear both",
 };
 export const HINTS_TOUCH = {
-  universe: "drag to turn the sky · tap a star · hold one to hear it",
+  universe: "drag to turn the sky · tap a star to hear it · hold one for its note",
   listeners: "tap a cell: its note climbs with the row · drag the fade dial",
   map: "drag the map under the ring: it names what it rests on",
-  game: "swipe up if i tapped it, down if the queue did · hold a name to hear it",
+  game: "swipe up if i tapped it, down if the queue did · tap a name to hear it",
   bail: "press and hold anywhere, let go when you'd skip · your press lands on my heap",
   arrivals: "watch them arrive. type one of yours. · hold a glyph to hear it, drag to scrub the rain",
   loop: "hold anywhere to keep it looping. let go to step off. · tap a pedal to hear its count",

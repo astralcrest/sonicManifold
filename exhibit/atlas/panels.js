@@ -9,6 +9,12 @@
 export function mount(ctx, deps) {
   if (!ctx.atlas || !ctx.atlas.on) return null;
   const { GF, P, coarse, lowPower, rooms, relayout } = deps || {};
+  /* R20 RECORD_CHROME (the owner, 2026-10-16: "way too many buttons, and I don't even know what anything means"): the plain
+     record. every visit but the gallery wall (?wall=1 / ?kiosk=1 keeps the chrome it was built and gated with) gets ten controls
+     on a desk and six plus the title on a phone, in plain words (copy.js plain) */
+  const PLAIN = !(deps && deps.KIOSK);
+  const PW = Object.assign({ prev: 'previous', next: 'next', lift: 'only songs i chose', liftAria: 'only songs i chose: the plays shuffle and the queue started leave the record', about: 'about', helpAria: 'help: how this works', stopsHead: 'the stops', stopsWhat: '{n} stops, from one play to the whole log. pick one.', help: {} }, (deps && deps.COPY && deps.COPY.plain) || {});
+  if (PLAIN) document.documentElement.classList.add('atlas-plain');
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const $ = (s, r) => (r || document).querySelector(s);
 
@@ -114,11 +120,12 @@ export function mount(ctx, deps) {
   const keyHTML = () => '<div class="a-ckey"><p class="a-lbl a-ckey-h">' + esc(CK.head) + '</p><ul class="a-ckey-l">' + CK.rows.map((r) => '<li><i class="a-ckey-s c-' + esc(r[0]) + '" aria-hidden="true"></i>' + esc(r[1]) + '</li>').join('') + '</ul><p class="a-ckey-f">' + esc(CK.foot) + '</p></div>';
   const TOURS = (deps && deps.TOURS) || [];
   const tourById = (id) => TOURS.find((x) => x.id === id) || null;
-  const toursDlg = panelShell('atlas-tours', 'the tour');
+  const toursDlg = panelShell('atlas-tours', PLAIN ? PW.stopsHead : 'the tour');
   toursDlg.classList.add('atlas-panel-dock');
   function nameOf(id) { const t = (ctx.tour.list() || []).find((x) => x.id === id); return t ? t.name : id; }
   function runSecs(id) {
     const def = tourById(id); if (!def) return 0;
+    if (window.__wall && ctx.tour.estimate) return ctx.tour.estimate(id, get('dwell')); /* R19 K3: the run the wall measures, not the authored sum */
     const mul = ((deps && deps.DWELL) || {})[get('dwell')] || 1; let s = 0;
     (def.stops || []).forEach((st) => { s += ((st.hold || 9) + 6 * ((st.then || []).length)) * mul; });
     return Math.round(s);
@@ -130,6 +137,7 @@ export function mount(ctx, deps) {
   function leadFirst() { const body = $('[data-body]', toursDlg), lead = body && $('[data-lead]', body); if (lead && body.firstChild !== lead) body.insertBefore(lead, body.firstChild); }
   if (typeof MutationObserver !== 'undefined') new MutationObserver(leadFirst).observe($('[data-body]', toursDlg), { childList: true });
   function renderTours() {
+    if (PLAIN) { const b = $('[data-body]', toursDlg); b.innerHTML = '<div class="k-lead" data-lead><p class="k-what">' + esc(fill(PW.stopsWhat, { n: recCount() })) + '</p></div>'; leadFirst(); syncMore(b); return; }
     const body = $('[data-body]', toursDlg), tourApi = ctx.tour, act = tourApi.active;
     const lens = typeof tourApi.lengths === 'function' ? tourApi.lengths() : [], cur = typeof tourApi.length === 'function' ? tourApi.length() : 'grand';
     body.innerHTML = '<div class="k-lead" data-lead><p class="k-what">' + esc(fill(TC.what, { n: recCount() })) + '</p><div class="a-pn-row" data-toggle></div>' +
@@ -313,7 +321,7 @@ export function mount(ctx, deps) {
       const b = e.target.closest('[data-k]'); if (!b) return;
       const k = b.dataset.k;
       if (b.dataset.v) set(k, b.dataset.v);
-      else if (k === 'sound') { const m = muteEl(); if (m) m.click(); setTimeout(refreshSettingsUI, 60); }
+      else if (k === 'sound') { const A = ctx.audio; if (A && typeof A.setMuted === 'function') A.setMuted(!A.muted); else { const m = muteEl(); if (m) m.click(); } setTimeout(refreshSettingsUI, 60); }
       else if (b.dataset.pair) set(k, get(k) === 'page' ? 'atlas' : 'page');
       else set(k, get(k) !== true);
       refreshSettingsUI();
@@ -369,17 +377,17 @@ export function mount(ctx, deps) {
      universe day view read on one fixed clock, universe positions carry no meaning as distance, shimmer is decoration) */
   const helpDlg = panelShell('atlas-help', 'help');
   (function buildHelp() {
-    const body = $('[data-body]', helpDlg), H = (deps && deps.COPY && deps.COPY.help && deps.COPY.help.back) || {};
+    const body = $('[data-body]', helpDlg), H = Object.assign({}, (deps && deps.COPY && deps.COPY.help && deps.COPY.help.back) || {}, PLAIN ? PW.help : {});
     let html = '<p class="a-back-h">' + esc(H.head || 'how to play this record') + '</p>' +
       '<p class="a-back-p">' + esc((coarse && H.howTouch) || H.how || 'drag turns it, the wheel zooms, a click on a name takes you there. the tour plays itself. space pauses it; it also waits while this is open.') + '</p>' +
-      '<p class="a-back-p a-back-hear">' + esc((coarse && H.hearTouch) || H.hear || 'to hear an artist, rest on a name. it asks once; nothing loads from spotify until you say yes.') + '</p>' +
+      '<p class="a-back-p a-back-hear">' + esc((coarse && H.hearTouch) || H.hear || 'a click on a name plays that artist from spotify. ♪ up top says what is playing.') + '</p>' +
       /* R18 wave 3 (V8): the click note and the idle rings only run for a fine pointer without reduced motion; the line follows them */
       ((!coarse && H.play && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) ? '<p class="a-back-p a-back-play">' + esc(H.play) + '</p>' : '') +
       '<p class="a-back-k">' + esc((coarse && H.keysTouch) || H.keys || '/ dig · space or p pause · arrows, [ ] or j k step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l the wall label · m sound · e how to read this stop · ? this') + '</p>' + keyHTML();
     html += '<p class="a-help-note">where plays sort by who started them, shape says it too: ° tap, × shuffle, ≡ queue.' +
       ((P && P.perDot > 1) ? ' on this screen one dot is three plays.' : '') +
       ' the clock and the universe day view read on one fixed clock all year, not a real local time. the marks after a name, ▮ to ▮▮▮▮▮, are its plays in five steps among the starred artists, in its genre color; they say nothing about who pressed play. positions in the universe carry no meaning as distance or direction on their own. shimmer is decoration everywhere and carries no data.' +
-      (coarse ? ' the pinch knob chooses whether two fingers zoom the field or the page.' : '') + '</p>';
+      (coarse && !PLAIN ? ' the pinch knob chooses whether two fingers zoom the field or the page.' : '') + '</p>';
     const sh = document.querySelector('link[rel=modulepreload][href*="shell.js?v="]') || document.querySelector('script[src*="shell.js?v="]');
     const bv = sh && /shell\.js\?v=([\w.-]+)/.exec(sh.getAttribute('href') || sh.getAttribute('src') || '');
     html += '<button type="button" class="a-tour-item k-notes-link" data-notes><span class="a-t-name">' + esc(TC.notesLink) + '</span></button>';
@@ -396,9 +404,9 @@ export function mount(ctx, deps) {
 
   /* -------------------------------------------------------------- v / g / y setting cycles */
   function cycle(key, opts) { const i = opts.indexOf(get(key)); set(key, opts[(i + 1 + opts.length) % opts.length]); try { ctx.toast((key === 'detail' ? (CP.detail || 'detail') + ': ' + DETAIL_SAY[get(key)] : key + ': ' + get(key))); } catch (e) {} }
-  ctx.keys.on('v', () => { cycle('detail', ['ultra', 'fine', 'normal', 'bold']); return true; });
-  ctx.keys.on('y', () => { const o = ['slow', 'quick', 'warp'], i = o.indexOf(get('travel')); set('travel', o[(i + 1) % 3]); try { ctx.toast('crossfade: ' + XFADE[get('travel')]); } catch (e) {} return true; });
-  ctx.keys.on('g', () => { set('glow', !get('glow')); try { ctx.toast('glow: ' + (get('glow') ? 'on' : 'off')); } catch (e) {} return true; });
+  if (!PLAIN) ctx.keys.on('v', () => { cycle('detail', ['ultra', 'fine', 'normal', 'bold']); return true; });
+  if (!PLAIN) ctx.keys.on('y', () => { const o = ['slow', 'quick', 'warp'], i = o.indexOf(get('travel')); set('travel', o[(i + 1) % 3]); try { ctx.toast('crossfade: ' + XFADE[get('travel')]); } catch (e) {} return true; });
+  if (!PLAIN) ctx.keys.on('g', () => { set('glow', !get('glow')); try { ctx.toast('glow: ' + (get('glow') ? 'on' : 'off')); } catch (e) {} return true; });
 
   /* -------------------------------------------------------------- #top menu (desktop/landscape)
      Menu and dock idle-fade as "dim" (panels.css takes them to .35), not §1.12's "hide": wake is
@@ -422,7 +430,15 @@ export function mount(ctx, deps) {
   if (DECKQ.addEventListener) DECKQ.addEventListener('change', deckMode); else if (DECKQ.addListener) DECKQ.addListener(deckMode);
   if (top) {
     topbar = document.createElement('nav'); topbar.className = 'atlas-topbar'; topbar.setAttribute('aria-label', 'record menu'); topbar.dataset.idle = 'dim';
-    topbar.innerHTML = [
+    topbar.innerHTML = PLAIN ? [
+      '<ol class="a-tracks" id="ai-tracks" aria-label="the stops"></ol>',
+      '<button type="button" class="a-btn a-dk" data-a="prev" aria-label="previous stop">' + esc(PW.prev) + '</button>',
+      '<button type="button" class="a-btn a-dk" data-a="next" aria-label="next stop">' + esc(PW.next) + '</button>',
+      '<span id="mute-top" style="display:contents"></span>',
+      '<button type="button" class="a-btn a-lift" data-a="lift" aria-pressed="false" aria-label="' + esc(PW.liftAria) + '">' + esc(PW.lift) + '</button>',
+      '<button type="button" class="a-btn" data-a="about" aria-haspopup="dialog">' + esc(PW.about) + '</button>',
+      '<button type="button" class="a-btn" data-a="help" aria-label="' + esc(PW.helpAria) + '">?</button>',
+    ].join('') : [
       '<button type="button" class="a-btn" data-a="home">from the top</button>',
       '<button type="button" class="a-btn" data-a="atlas">dig /</button>',
       '<button type="button" class="a-btn" data-a="tours">the tour ▾</button>',
@@ -438,11 +454,13 @@ export function mount(ctx, deps) {
       '<button type="button" class="a-btn" data-a="help">?</button>',
     ].join('');
     top.appendChild(topbar);
-    const xfBtns = [...topbar.querySelectorAll('[data-xf]')], xfV = topbar.querySelector('.a-xf-v');
-    const syncXF = () => { const v = get('travel'); xfBtns.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.xf === v))); xfV.textContent = XFADE[v] || ''; };
-    topbar.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-xf]'); if (b) set('travel', b.dataset.xf); });
-    onChange((k) => { if (k === 'travel') syncXF(); });
-    syncXF();
+    if (!PLAIN) {
+      const xfBtns = [...topbar.querySelectorAll('[data-xf]')], xfV = topbar.querySelector('.a-xf-v');
+      const syncXF = () => { const v = get('travel'); xfBtns.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.xf === v))); xfV.textContent = XFADE[v] || ''; };
+      topbar.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-xf]'); if (b) set('travel', b.dataset.xf); });
+      onChange((k) => { if (k === 'travel') syncXF(); });
+      syncXF();
+    }
   }
 
   /* -------------------------------------------------------------- phone dock (W22: §0.2 "dock (44px, lowercase)"
@@ -452,7 +470,14 @@ export function mount(ctx, deps) {
   /* M11: a transport. prev/play/next drive ctx.tour (off a tour they step the walk), ♪ is #mute (CRIT6A's tab), "more" opens
      a shelf holding every earlier dock item; it floats (absolute), so --atlas-dockh never changes */
   const dbtn = (a, ic, word, extra) => '<button type="button" data-a="' + a + '"' + (extra || '') + '><span class="d-ic" aria-hidden="true">' + ic + '</span>' + word + '</button>';
-  dock.innerHTML = '<div class="d-more" id="atlas-dock-more" role="group" aria-label="more" hidden>' + [
+  dock.innerHTML = PLAIN ? '<div class="d-row">' +
+    dbtn('prev', '⏮︎', PW.prev, ' aria-label="previous stop"') +
+    '<button type="button" data-a="play" aria-label="play the tour"><span class="d-ic" aria-hidden="true">▶︎</span><span class="d-w">play</span></button>' +
+    dbtn('next', '⏭︎', PW.next, ' aria-label="next stop"') +
+    '<span id="mute-slot" style="display:contents"></span>' +
+    '<button type="button" data-a="lift" class="d-lift" aria-pressed="false" aria-label="' + esc(PW.liftAria) + '"><span class="d-w">' + esc(PW.lift) + '</span></button>' +
+    '<button type="button" data-a="about" class="d-about" aria-haspopup="dialog"><span class="d-w">' + esc(PW.about) + '</span></button>' +
+    '</div>' : '<div class="d-more" id="atlas-dock-more" role="group" aria-label="more" hidden>' + [
     ['home', '⌂', 'from the top'], ['atlas', '⌕', 'dig'], ['tours', '◎', 'the tour'], ['time', '◔', 'the day'], ['settings', '◐', 'knobs'],
     ['help', '?', 'help'], /* R2_VERIFY_1_a11y P1: help's only on-screen path on a phone */
   ].map((r) => dbtn(r[0], r[1], r[2])).join('') + dbtn('label', '▤', 'label', ' class="d-label"') + '</div>' +
@@ -465,7 +490,7 @@ export function mount(ctx, deps) {
     '</div>';
   document.body.appendChild(dock);
   const moreEl = $('#atlas-dock-more', dock), moreBtn = $('[data-a="more"]', dock), playBtn = $('[data-a="play"]', dock);
-  function setMore(on) { moreEl.hidden = !on; moreBtn.setAttribute('aria-expanded', String(on)); moreBtn.classList.toggle('on', on); dock.classList.toggle('d-open', on); liftCap(on); }
+  function setMore(on) { if (!moreEl) return; moreEl.hidden = !on; moreBtn.setAttribute('aria-expanded', String(on)); moreBtn.classList.toggle('on', on); dock.classList.toggle('d-open', on); liftCap(on); }
   /* R17: the shelf covered the caption's last line on a phone: while it is open the caption box steps up just clear of it */
   function liftCap(on) {
     const info = document.getElementById('atlas-info'); if (!info) return;
@@ -474,8 +499,8 @@ export function mount(ctx, deps) {
     const d = c && c.height && m.height ? Math.ceil(c.bottom + 6 - m.top) : 0;
     if (d > 0) info.style.translate = '0 ' + -d + 'px';
   }
-  document.addEventListener('pointerdown', (e) => { if (!moreEl.hidden && !dock.contains(e.target)) setMore(false); }, { capture: true, passive: true });
-  dock.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !moreEl.hidden) { e.stopPropagation(); setMore(false); try { moreBtn.focus(); } catch (x) {} } });
+  document.addEventListener('pointerdown', (e) => { if (moreEl && !moreEl.hidden && !dock.contains(e.target)) setMore(false); }, { capture: true, passive: true });
+  dock.addEventListener('keydown', (e) => { if (e.key === 'Escape' && moreEl && !moreEl.hidden) { e.stopPropagation(); setMore(false); try { moreBtn.focus(); } catch (x) {} } });
   /* the play key says what a press will do: ▶ play, ‖ pause */
   function syncPlay() {
     let on = false; try { on = !!(ctx.tour && ctx.tour.isPlaying && ctx.tour.isPlaying()); } catch (e) {}
@@ -502,20 +527,7 @@ export function mount(ctx, deps) {
   placeMute();
   if (mqPortrait.addEventListener) mqPortrait.addEventListener('change', placeMute); else if (mqPortrait.addListener) mqPortrait.addListener(placeMute);
 
-  /* W22: the sound label reads K5 (ctx.audio.state()) once INTEGRATION lands it — 'off'/'arming' both read as
-     the prompt, only 'on'/'muted' show the plain state. Feature-detected and additive: while ctx.audio.state
-     does not exist yet, this never fires and shell.js's own click handler keeps owning #mute's text, exactly
-     as today (R2_REQUESTS_M4.md #2 asks INTEGRATION for the event name to replace the 'atlas:sound' guess). */
-  function syncMuteLabel() {
-    const mute = document.getElementById('mute'); if (!mute) return;
-    let state = null; try { state = ctx.audio && typeof ctx.audio.state === 'function' ? ctx.audio.state() : null; } catch (e) {}
-    if (!state) return;
-    mute.textContent = state === 'on' ? 'sound on' : state === 'muted' ? 'sound off' : '♪ tap for sound';
-    mute.setAttribute('aria-pressed', String(state === 'muted'));
-  }
-  document.addEventListener('atlas:sound', syncMuteLabel);
-  try { ctx.audio && typeof ctx.audio.onChange === 'function' && ctx.audio.onChange(syncMuteLabel); } catch (e) {}
-  syncMuteLabel();
+  /* R20: #mute's words come from shell.js setChip() alone (one writer); this file only seats the element */
 
   /* --atlas-dockh (§2.3): exhibit.html's own portrait padding-bottom rule already reads this var; panels.js
      is the natural owner since it owns #atlas-dock. 0 when the dock is not shown (desktop/landscape). */
@@ -542,8 +554,91 @@ export function mount(ctx, deps) {
     if (a === 'settings') { openSettings(); return; }
     if (a === 'help') { openHelp(); return; }
     if (a === 'label') { try { ctx.label.open(); } catch (e) {} return; }
+    if (a === 'about') { try { if (ctx.label.isOpen) ctx.label.close(); else ctx.label.open(); } catch (e) {} return; }
+    if (a === 'lift') { doLift(); return; }
     if (a === 'prev' || a === 'next') { try { ctx.tour[a](); } catch (e) {} return; }
     if (a === 'play') { try { ctx.tour.toggle(); } catch (e) {} syncPlay(); return; }
+  }
+  /* only songs i chose: the record's own lift (atlas/platter.js lift / lifted). on the record it toggles there; anywhere else it
+     takes the visitor to the record and lifts the machine off it once the record is live. it never touches the sound chip */
+  const platter = () => { try { const r = ((window.__exhibit && window.__exhibit.rooms) || []).find((x) => x.id === 'threshold'); return (r && r.mod && r.mod.rec) || null; } catch (e) { return null; } };
+  let liftT = 0;
+  function syncLift() {
+    const p = platter(), on = !!(p && p.lifted);
+    document.querySelectorAll('.atlas-topbar [data-a="lift"], #atlas-dock [data-a="lift"]').forEach((b) => { if (b.getAttribute('aria-pressed') !== String(on)) b.setAttribute('aria-pressed', String(on)); });
+  }
+  function doLift() {
+    const p = platter(); clearInterval(liftT);
+    if (p && curRoom() === 'threshold' && (p.lifted ? p.lift(false) || true : p.lift(true))) { syncLift(); return; }
+    try { ctx.go('threshold', { angle: 'whole', via: 'key' }); } catch (e) {}
+    const t0 = performance.now();
+    liftT = setInterval(() => { const q = platter(); if ((q && (q.lifted || q.lift(true))) || performance.now() - t0 > 6000) { clearInterval(liftT); syncLift(); } }, 120);
+  }
+  if (PLAIN) setInterval(syncLift, 400);
+  /* about (R20; the old wall label): what this is (the one headline and its caveats), then this stop's label (shell.js renderLabel
+     refills .lb-body on every open and stop), then the reader notes, the colour key with its colour words, share and a picture;
+     upright, where there is no bar for them, the stops, find an artist and help too. built around .lb-body, never inside it */
+  const labelDlg = PLAIN ? document.getElementById('label') : null;
+  function aboutKey() {
+    return '<div class="a-ckey lb-key"><p class="a-lbl a-ckey-h">' + esc(PW.keyHead || CK.head) + '</p><ul class="a-ckey-l">' + CK.rows.map((r) => '<li><i class="a-ckey-s c-' + esc(r[0]) + '" aria-hidden="true"></i><span><b>' + esc(r[0]) + '</b> ' + esc(r[1]) + '</span></li>').join('') + '</ul><p class="a-ckey-f">' + esc(CK.foot) + '</p></div>';
+  }
+  function aboutDress() {
+    if (!labelDlg) return;
+    const body = $('.lb-body', labelDlg); if (!body) return;
+    labelDlg.setAttribute('aria-label', PW.about);
+    const x = $('.lb-x', labelDlg); if (x) x.setAttribute('aria-label', 'close about');
+    if (!$('#lb-lead', labelDlg)) {
+      const lead = document.createElement('div'); lead.id = 'lb-lead'; lead.className = 'lb-lead';
+      lead.innerHTML = '<h2 class="lb-h">' + esc(PW.title || 'mostly the machine') + '</h2>' + (PW.statement || []).map((s, i) => '<p' + (i ? '' : ' class="lb-1"') + '>' + esc(s) + '</p>').join('') + '<p class="lb-sec">' + esc(PW.noteHead || 'this stop') + '</p>';
+      labelDlg.insertBefore(lead, body);
+    }
+    let ab = $('#lb-about', labelDlg);
+    if (!ab) {
+      ab = document.createElement('div'); ab.id = 'lb-about'; ab.className = 'lb-about';
+      const btn = (a, t) => '<button type="button" class="lb-a" data-ab="' + a + '">' + esc(t) + '</button>';
+      ab.innerHTML = '<p class="lb-acts">' + btn('notes', PW.notesLink) + '</p>' + aboutKey() +
+        '<p class="lb-acts">' + btn('share', PW.share) + btn('picture', PW.picture) + '</p><p class="lb-said"></p>' +
+        '<p class="lb-acts lb-up">' + btn('stops', PW.stops) + btn('find', PW.findBtn) + btn('help', PW.helpBtn) + '</p>';
+      body.insertAdjacentElement('afterend', ab);
+      ab.addEventListener('click', aboutClick);
+    }
+    const said = $('.lb-said', ab); if (said) said.textContent = '';
+  }
+  function aboutClick(e) {
+    const b = e.target.closest && e.target.closest('[data-ab]'); if (!b) return;
+    const a = b.dataset.ab, said = $('.lb-said', labelDlg);
+    if (a === 'share') {
+      const done = (ok) => { if (said) said.textContent = ok ? PW.shared : PW.shareManual + ': ' + location.href; };
+      const PC = ctx.atlas && ctx.atlas.postcard, P = ctx.atlas && ctx.atlas.photo;
+      /* R20 2026-10-17: the postcard path first (share line + the stop's own card + the share sheet, as the photodock
+         chip did); the bare-URL copy only where chrome.js has not mounted */
+      if (typeof PC === 'function') PC().then((r) => done(!!(r && r.ok)), () => done(false));
+      else if (P && typeof P.share === 'function') P.share().then((r) => done(!!(r && r.ok)), () => done(false));
+      else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(location.href).then(() => done(true), () => done(false));
+      else done(false);
+      return;
+    }
+    try { labelDlg.close(); } catch (x) {}
+    if (a === 'notes') { openNotes(tourLens() || null, curRoom()); return; } /* a reader's lens opens on that reader's tab, as the cut note chip did */
+    if (a === 'picture') { const P = ctx.atlas && ctx.atlas.photo; if (P && typeof P.open === 'function') setTimeout(() => { try { P.open(); } catch (x) {} }, 0); return; }
+    if (a === 'stops') { openTours(); return; }
+    if (a === 'find') { try { ctx.search.open(); } catch (x) {} return; }
+    if (a === 'help') openHelp();
+  }
+  if (labelDlg) {
+    aboutDress();
+    new MutationObserver(() => { if (labelDlg.open) aboutDress(); }).observe(labelDlg, { attributes: true, attributeFilter: ['open'] });
+  }
+  /* "dig the log" is "find an artist" on the plain record. search.js mounts after this module and names its bar and its sheet
+     once, from its own string, so the plain name goes on when they land (the bar in #top, the sheet on <body>) */
+  if (PLAIN && PW.find) {
+    const nameFind = () => {
+      const ins = ['atlas-search-bar-input', 'atlas-search-sheet-input'].map((id) => document.getElementById(id)).filter(Boolean);
+      ins.forEach((i) => { if (i.placeholder !== PW.find) { i.placeholder = PW.find; i.setAttribute('aria-label', PW.find); } });
+      const lb = document.querySelector('.as-sheet-label'); if (lb && lb.textContent !== PW.find) lb.textContent = PW.find;
+      return ins.length === 2;
+    };
+    if (!nameFind()) { const mo = new MutationObserver(() => { if (nameFind()) mo.disconnect(); }); if (top) mo.observe(top, { childList: true }); mo.observe(document.body, { childList: true }); }
   }
   let homeHoldT = 0;
   document.addEventListener('click', (e) => {
@@ -552,11 +647,13 @@ export function mount(ctx, deps) {
     if (b.closest('#atlas-dock')) setMore(false);
     doAction(b.dataset.a);
   });
+  /* R19: on a gallery wall (?wall=1) "from the top" only goes to the first stop: its hold and its menu never leave for the landing */
   document.addEventListener('contextmenu', (e) => {
     const b = e.target.closest && e.target.closest('[data-a="home"]'); if (!b) return;
-    e.preventDefault(); location.href = './';
+    e.preventDefault(); if (window.__wall) return; location.href = './';
   });
   document.addEventListener('pointerdown', (e) => {
+    if (window.__wall) return;
     const b = e.target.closest && e.target.closest('[data-a="home"]'); if (!b) return;
     homeHoldT = setTimeout(() => { location.href = './'; }, 650);
   }, { passive: true });

@@ -6,6 +6,7 @@
    URL, never a real name or a local path; the edition id hashes the URL hash alone. */
 export function mount(ctx) {
   if (!ctx.atlas || !ctx.atlas.on) return null; /* ?atlas=0: the shell keeps its inert default */
+  if (window.__wall && window.__wall.on) return null; /* R19 the wall saves no picture, copies no link and opens no photo bar: chrome.js tests ctx.atlas.photo for null */
 
   const doc = document, body = doc.body, html = doc.documentElement;
   const stopId = () => { const st = ctx.stops || [], i = ctx.index; return (st[i] && st[i].id) || 'atlas'; };
@@ -172,6 +173,7 @@ export function mount(ctx) {
   }
 
   function triggerDownload(href, name) {
+    if (window.__wall && window.__wall.on) return;
     const a = doc.createElement('a'); a.href = href; a.download = name; a.rel = 'noopener';
     body.appendChild(a); a.click(); body.removeChild(a);
   }

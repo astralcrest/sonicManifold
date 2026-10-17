@@ -1,93 +1,94 @@
-/* listening post — ask once, then one dock.
-   A room calls ctx.post(host, artist) and gets a small "hear <artist>" control. Before the first click the
-   control carries the privacy note and nothing has been requested from spotify. The first click is the consent:
-   from then on every control in every room plays into ONE player docked at the bottom of the viewport, the
-   soundtrack ducks under it, and the note is gone.
-   - nothing is requested from spotify until that first click (click-to-load facade; no preconnect either)
-   - the player is spotify's own iframe api controller, unaltered, linking back to spotify
-   - the next artist is loadUri() on the same controller, so there is no second load
-   - no audio or artwork is stored in this repo
-   track ids come from audio/sonic-tid-to-artist.json, which this site already publishes.
-   R5 L2 (dwell-to-play): playQuiet() plays into the same player shown as a small pill next to what was hovered, never
-   reserving the bottom edge; before consent the pill asks first ("play <artist> from spotify?") and nothing reaches
-   spotify until yes. dwell()/undwell() hold the 600 ms (mouse) / 500 ms (touch) timers. the bed ducks only once the id
-   resolved and the embed is ready; at most one load per 400 ms. API: R5/L1/API.md
-   R9 (phones): on a coarse pointer there is no pill. the ask, the player and any failure all live in the bottom dock,
-   which reserves its height so the room's controls move up out of its way. ios never starts the embed without a tap
-   inside it, so the line says "tap ▶ to hear <artist>" from the start and only says "hearing" while the embed reports
-   real playback (not paused, position past 0).
-   R10 (one voice): the post tells the shell's arbiter (ctx.audio.clip) what the embed is doing: 'armed' (asked, player
-   ready: the bed waits at -24 dB), 'hot' (playing or starting: the bed is silent and its decks pause), 'off'. only a
-   paused report, a failure or closing the dock ends 'hot'; nothing else (a timer, a room change) brings the bed back over
-   a clip. a tap inside the player (the window loses focus to its frame) is 'hot' at once, before spotify says anything.
-   R18 (the little player): after the one yes, every later post starts by itself (a click, or a 600 ms rest of a mouse
-   that has stopped moving). the pill and the phone dock carry a small record: it spins only while spotify reports
-   playback, its thin ring is the clip's progress (estimated between reports, never seekable), its label wears the
-   artist's genre family when the room passes one (ice otherwise; violet only on a clip autoplay chose). the record is
-   the pause and play button. a preview that runs out winds the record down and the bed comes back on that report.
-   ios still wants spotify's own ▶: a pulsing ring sits on it until spotify reports real playback. a blocked or silent
-   player becomes a card that opens the track on spotify, and it stays, reason and all, until it is put away (stop,
-   escape, a swipe down on a phone, the next post or a room change). names are shown as spelled.
+/* listening post: one dock, no ask.
+   A room calls ctx.post(host, artist) and gets a small control with the artist's name on it. a click or tap on it, or on an
+   artist's name in the atlas (anchors.js), plays that artist in ONE player docked at the edge of the screen, at once; another
+   name switches it at once. the soundtrack ducks under it. the player is spotify's own iframe api controller, unaltered,
+   linking back to spotify; the next artist is loadUri() on the same controller; no audio or artwork is stored here. track ids
+   come from audio/sonic-tid-to-artist.json, which this site already publishes.
+   R20 (no gates): once the page has had a press (or carries one over from the landing: chromium does, for a same-origin
+   hop), the first post a stop shows on screen (half visible) is cued out of sight: ids, api and controller load and nothing
+   plays; with the sound on it then starts by itself. before any press nothing is asked of spotify, not even a handshake. chromium and android let spotify's
+   frame play on the page's own press; webkit (iphone, ipad, safari) wants a tap inside the frame, so there the dock shows with
+   a ring on spotify's ▶, the one tap left. a cue that fails closes quietly: the failure card is only for a post the visitor
+   used, and only once spotify has failed (its error, a blocked script, or STALL_MS with no player). the dock floats (it never
+   reserves the bottom edge, so the stage never relayouts under it) and is a data-keepout while it shows.
+   the wall (?wall=1) keeps its own rules: a code by default; posts=spotify asks once per visitor and revoke() takes it back.
+   R10 (one voice): the post tells the shell's arbiter (ctx.audio.clip) what the embed is doing: 'armed' (asked, player ready:
+   the bed waits at -24 dB), 'hot' (playing or starting: the bed is silent), 'off'. only a paused report, a failure or closing
+   the dock ends 'hot'; a timer or a room change never brings the bed back over a clip.
    sm:clip, the one clip event. this module sends it; a listener must change nothing if it never arrives:
-     window.dispatchEvent(new CustomEvent('sm:clip', { detail: { state, artist, position, duration, via } }))
-     state      'armed' (asked, player loading) | 'cueing' (loaded, waiting for the in-embed tap on ios or the first
-                report) | 'playing' | 'paused' | 'ended' | 'fail' | 'off'
+     window.dispatchEvent(new CustomEvent('sm:clip', { detail: { state, artist, position, duration, via, visitor } }))
+     state      'cued' (loaded out of sight, not started) | 'armed' (asked, player loading) | 'cueing' (loaded, waiting for the
+                in-embed tap on webkit or the first report) | 'playing' | 'paused' | 'ended' | 'fail' | 'off'
      position, duration   ms; while playing, estimated between spotify's reports and sent at most every 250 ms
-     via        'tap' | 'dwell' | 'tour' | 'auto'
-   it is sent on every change of state, artist or via, and on each position estimate while playing. postState() returns
-   the same fields (plus playing, cue, ended, auto, failed) next to the older ones.
-   radio: ctx.post.playArtist(artist, { via: 'tour' }) (or 'auto') plays only for a visitor who is listening (a clip
-   playing now, one that played in the last 3 s, or a preview that ran out in the still-open player); otherwise it
-   returns 'idle' and nothing happens. it never asks, and 'tour' yields to the autoplay switch while that is on. a stop
-   change the tour makes (via 'tour') under a listening visitor keeps the pill until 4 s after the tour arrives (12 s at
-   most, including a leaving room's stopPosts) for that hand-over, then closes it. */
+     via        'tap' | 'stop' (a stop's cue) | 'tour' | 'auto'
+     visitor    true when the visitor's own act started this clip: a name or a post's button ('tap'; on the wall its control
+                and its yes), the dock's record, or a tap inside spotify's frame. false for a stop's cue (started on arrival or by the first
+                press anywhere), the tour's hand-over and 'auto', so those never hold the tour. false again once the dock closes
+   postState() returns the same fields (plus playing, cue, ended, failed, cued, used) next to the older ones.
+   radio: ctx.post.playArtist(artist, { via: 'tour' }) (or 'auto') plays only for a visitor who is listening (a clip playing
+   now, one that played in the last 3 s, or a preview that ran out in the open player); otherwise it returns 'idle'. a stop
+   change the tour makes under a listening visitor keeps the dock until 4 s after the tour arrives (12 s at most), so the
+   next stop's post can take over, then closes it. */
 
 let tidByArtist = null, apiPromise = null, apiReady = null;
-let consent = false;                 /* true the moment a visitor has clicked one listening post */
-let declined = false;                /* the visitor said no to the pill's ask: dwells never ask again this visit */
-let IDS = null, loads = 0, lastLoad = -1e9, loadTo = 0, stopSub = false;
-const notes = new Set();             /* the privacy notes on screen, cleared the moment consent is given */
-const noted = new WeakSet();         /* hosts that already carry one */
-/* R18: every "hear <artist>" control, so each one can say what the player is doing with its artist */
-const BTNS = new Set();
-/* R18 autoplay: the violet switch, off until pressed. on, a preview that runs out hands the player to the artist that
-   autoplay most often served next in my log (twolisteners.json auto_edges), never one already heard, at most six */
-let AUTO = false, autoSteps = 0, autoMap = null, autoP = null;
-/* R18: where a mouse last moved (more than 10 px), so a dwell waits for a rest and not a pass across a star. a press held
-   still on a name is a rest too: the label layer captures the pointer at 500 ms (anchors.js:785, gesture.js:86) and the
-   name reports a leave; undwell holds that back (PT.held) until the press moves 6 px or is let go somewhere else */
-const PT = { at: 0, x: -1e4, y: -1e4, down: false, dx: 0, dy: 0, held: null, relT: 0 };
-const pressFar = (e) => Math.hypot(e.clientX - PT.dx, e.clientY - PT.dy) >= 6;
-function letGo() { clearTimeout(PT.relT); PT.relT = 0; const h = PT.held; PT.held = null; if (h) undwell(h.ctx, h.o); }
-addEventListener('pointermove', (e) => {
-  if (e.pointerType !== 'mouse') return;
-  if (Math.abs(e.clientX - PT.x) + Math.abs(e.clientY - PT.y) > 10) { PT.x = e.clientX; PT.y = e.clientY; PT.at = Date.now(); }
-  if (PT.down && pressFar(e)) { PT.down = false; letGo(); }
-}, { capture: true, passive: true });
-addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse') { letGo(); PT.down = true; PT.dx = e.clientX; PT.dy = e.clientY; } }, { capture: true, passive: true });
-/* let go where it began: the name is still under the pointer and its layer enters it again at once (dwell() takes that as
-   the same rest and drops the held leave); with no such word in 80 ms the held leave stands */
-const pressEnd = (e) => {
-  if (e.pointerType !== 'mouse') return;
-  const still = PT.down; PT.down = false;
-  if (!PT.held) return;
-  if (still) { clearTimeout(PT.relT); PT.relT = setTimeout(letGo, 80); } else letGo();
-};
-addEventListener('pointerup', pressEnd, { capture: true, passive: true });
-addEventListener('pointercancel', pressEnd, { capture: true, passive: true });
+/* the wall only (posts=spotify): one visitor's yes, which revoke() takes back. off the wall nothing is asked */
+let consent = false, declined = false;
+let IDS = null, loads = 0, lastLoad = -1e9, loadTo = 0, stopSub = false, wired = false;
+const notes = new Set();             /* wall only: the printed notes */
+let noted = new WeakSet();
+const noteHosts = new Set();
+let gen = 0;                         /* wall only: bumped by revoke(); a load that began before it must not finish after it */
+/* a frame that has said nothing for this long is the one timed failure (a privacy browser that lets the script through and stops the frame) */
+const STALL_MS = 20000;
 
-export function clipsAllowed() { return consent; }
-export function grant() { grantConsent(); }
-export function hasTrack(artist) { return loadIds().then((m) => !!m[artist]); }
-export function hasTrackNow(artist) { if (IDS) return !!IDS[artist]; loadIds(); return null; }
+/* R19 the wall (?wall=1, window.__wall from wallboot.js). posts=qr (the wall default): the dock shows a code and nothing is
+   asked of spotify; posts=spotify: the one player, with consent that revoke() takes back for each visitor; posts=off: no
+   posts. without the flag wmode() is '' */
+function wmode() {
+  const W = window.__wall;
+  if (!W || !W.on) return '';
+  const p = W.opts && W.opts.posts;
+  return p === 'spotify' || p === 'off' ? p : 'qr';
+}
+const TRACK_URL = 'https://open.spotify.com/track/';
+const WALL_QR_NOTE = 'nothing reaches spotify from this screen. scan to hear it on your own phone.';
+const WALL_OPEN = 'the code opens it on your phone.';
+let QRM = null;                      /* atlas/qr.js, fetched only on the wall (its own module, same ?v= as the shell's) */
+const qrMod = (ctx) => (QRM ? Promise.resolve(QRM) : import('./atlas/qr.js' + ((ctx && ctx.V) || '')).then((m) => (QRM = m)));
+/* every post control, so each one can say what the player is doing with its artist */
+const BTNS = new Set();
+
+const UA = (() => { try { return navigator.userAgent || ''; } catch (e) { return ''; } })();
+/* webkit starts no cross-origin frame from the page's own press: iphone, ipad (ipados says MacIntel) and desktop safari */
+const IOS = /iPhone|iPad|iPod/.test(UA) || (() => { try { return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1; } catch (e) { return false; } })();
+const WK_DESK = /Safari/.test(UA) && !/Chrome|Chromium|CriOS|Edg|OPR|Android|Firefox|FxiOS/.test(UA);
+const needTap = () => IOS || WK_DESK;
+/* only desktop chromium sends spotify its login cookie from inside the frame, so only there does signing in give full songs */
+const signIn = () => /Chrome|Chromium|Edg/.test(UA) && !/Android|Mobile/.test(UA) && !coarse();
+/* the frame needs a tap inside it: webkit off the wall; on the wall, as before, any coarse pointer */
+const wk = () => (wmode() ? coarse() : needTap());
+const allowed = () => !wmode() || consent;
+const kioskOn = () => !!window.__wall || /[?&]kiosk=1\b/.test(location.search);
+const audio = () => D.ctx && D.ctx.audio;
+const muted = () => { const A = audio(); return !!(A && A.muted); };
+const soundOn = () => { const A = audio(); return !!(A && A.on && !A.muted); };
+const txt = (l) => (Array.isArray(l) ? l.map((p) => (typeof p === 'string' ? p : (p && p.a) || '')).join('') : l || '');
+
+export function clipsAllowed() { return allowed(); }
+/* kept for the tests and the wall: off the wall there is nothing to grant */
+export function grant() { if (wmode()) grantConsent(); }
+export function hasTrack(artist) { if (wmode() === 'off') return Promise.resolve(false); return loadIds().then((m) => !!m[artist]); }
+export function hasTrackNow(artist) { if (wmode() === 'off') return false; if (IDS) return !!IDS[artist]; loadIds(); return null; }
 
 function loadIds() {
   if (!tidByArtist) tidByArtist = fetch('audio/sonic-tid-to-artist.json').then((r) => r.json()).then((m) => { const o = {}; for (const tid in m) { const a = m[tid]; if (!(a in o)) o[a] = tid; } return (IDS = o); }).catch(() => ({}));
   return tidByArtist;
 }
 /* one slow moment must not disable every post for the rest of the visit: a failed attempt is forgotten, so the next
-   click starts a fresh one, and an api that turns up after its own timeout is kept and answers that click at once. */
+   click starts a fresh one, and an api that turns up after its own timeout is kept and answers that click at once.
+   off the wall the wait is STALL_MS: a slow phone is not a blocked one */
 function loadApi() {
+  if (wmode() === 'qr' || wmode() === 'off') return Promise.reject(new Error('wall'));
   if (apiReady) return Promise.resolve(apiReady);
   if (!apiPromise) apiPromise = new Promise((res, rej) => {
     const prev = window.onSpotifyIframeApiReady; let to = 0;
@@ -95,35 +96,32 @@ function loadApi() {
     const s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true;
     s.onerror = () => { clearTimeout(to); rej(new Error('script')); };
     document.head.appendChild(s);
-    to = setTimeout(() => rej(new Error('timeout')), 5000);
+    to = setTimeout(() => rej(new Error('timeout')), wmode() ? 5000 : STALL_MS);
   }).catch((e) => { apiPromise = null; throw e; });
   return apiPromise;
 }
-/* five seconds is short enough to be honest and long enough to be wrong on a slow phone. if the api turns up
-   after its own timeout while the dock is still showing that failure, answer the click that was made rather
-   than asking for a second one. apiPromise === null is the precise signal that the wait already gave up. */
+/* an api that turns up after its own timeout while the dock still shows that failure answers the click that was made.
+   apiPromise === null is the precise signal that the wait already gave up */
 let lateRetried = false;
 function lateRetry() {
   if (lateRetried || apiPromise || !D.open || D.ctl || !D.artist || !D.ctx) return;
   lateRetried = true;
-  playArtist(D.artist, D.ctx, null, D.quiet ? { x: D.px || 16, y: D.py || 16 } : false, { via: D.via, fam: D.famName }).catch(() => {});
+  playArtist(D.artist, D.ctx, null, { via: D.via, fam: D.famName || undefined, quiet: D.quiet ? { x: D.px || 16, y: D.py || 16 } : false, cue: D.cueOnly, mine: D.mine }).catch(() => {});
 }
-/* the autoplay log: who autoplay served after whom, strongest first, and each artist's genre family */
-function loadAuto(ctx) {
-  if (autoP) return autoP;
+/* each artist's genre family, for a clip whose room passed none */
+let famMap = null, famP = null;
+function loadFam(ctx) {
+  if (famP) return famP;
   const C = ctx || D.ctx;
   if (!C || typeof C.data !== 'function') return Promise.resolve(null);
-  autoP = C.data('twolisteners').then((d) => {
-    const nm = {}, fam = {}, next = {};
-    (d.nodes || []).forEach((n) => { nm[n.id] = n.name; fam[n.name] = n.community; });
-    (d.auto_edges || []).forEach((e) => { const a = nm[e[0]], b = nm[e[1]]; if (!a || !b || a === b) return; (next[a] = next[a] || []).push({ b, w: +e[2] || 0 }); });
-    for (const k in next) next[k].sort((x, y) => y.w - x.w);
-    autoMap = { next, fam };
-    /* a clip that opened before the log arrived wears its family now, if the room did not pass one */
+  famP = C.data('twolisteners').then((d) => {
+    const fam = {};
+    (d.nodes || []).forEach((n) => { fam[n.name] = n.community; });
+    famMap = fam;
     if (D.open && D.el && !D.famName && !D.fam) { const h = famOf(D.artist); if (h) { D.fam = h; D.el.style.setProperty('--fam', h); } }
-    return autoMap;
-  }).catch(() => { autoP = null; return null; });
-  return autoP;
+    return fam;
+  }).catch(() => { famP = null; return null; });
+  return famP;
 }
 
 /* ------------------------------------------------------------------ the dock */
@@ -140,7 +138,7 @@ function hush(s, why) {
   else if (A.clipState === 'hot') { if (!why) return; if (document.hidden) { D.later = s; return; } }
   A.clip(s);
 }
-/* R18: spotify's controller methods return nothing and can throw inside its own frame; a stand-in may lack one */
+/* spotify's controller methods return nothing and can throw inside its own frame; a stand-in may lack one */
 function ctlDo(m) {
   const c = D.ctl; if (!c) return;
   try { const f = typeof c[m] === 'function' ? c[m] : c.play; Promise.resolve(f.call(c)).catch(() => {}); } catch (e) {}
@@ -150,25 +148,31 @@ function famHex(fam) {
   const C = D.ctx; if (!fam || !C || typeof C.famColor !== 'function') return '';
   try { return '#' + (C.famColor(fam) >>> 0).toString(16).padStart(6, '0'); } catch (e) { return ''; }
 }
-function famOf(artist) { const f = autoMap && autoMap.fam[artist]; return f ? famHex(f) : ''; }
-/* the yes is the one moment the room answers: two quiet notes in the bed's key (silent when muted or under a clip) */
+function famOf(artist) { const f = famMap && famMap[artist]; return f ? famHex(f) : ''; }
+/* the wall's yes is the one moment the room answers: two quiet notes in the bed's key (silent when muted or under a clip) */
 function chord(C) {
   const X = C || D.ctx, A = X && X.audio; if (!A || typeof A.note !== 'function') return;
   try { A.note(0, { dur: 0.45, vol: 0.03 }); A.note(3, { at: 0.09, dur: 0.6, vol: 0.026 }); } catch (e) {}
 }
 const D = {
-  el: null, slot: null, who: null, attr: null, x: null, msg: null,
+  el: null, slot: null, who: null, attr: null, x: null, msg: null, act: null,
   ctl: null, wantTid: '', artist: '', open: false, lastFocus: null, ctx: null, playT: 0, h: 0, armT: 0, started: false, armTo: 0, failTo: 0,
-  quiet: false, ready: false, loaded: '', playFor: '', evAt: 0, nudT: 0, tapAt: 0, inTo: 0, hotTo: 0, hotFor: 0, mutTo: 0, heard: false, later: null, byDwell: false, asking: '', askTo: 0, askAt: null, yes: null, no: null, tapTo: 0, co: false, playAt: 0, dur: 0, making: false,
-  /* R18 */
-  disc: null, rp: null, wind: null, cueEl: null, autoB: null, px: 0, py: 0,
+  quiet: false, ready: false, loaded: '', playFor: '', evAt: 0, nudT: 0, tapAt: 0, inTo: 0, hotTo: 0, hotFor: 0, mutTo: 0, heard: false, later: null, asking: '', askTo: 0, askAt: null, yes: null, no: null, tapTo: 0, playAt: 0, dur: 0, making: false,
+  disc: null, rp: null, wind: null, cueEl: null,
+  /* the wall only: a quiet play is a pill at (px, py); co is a touch wall, where it is the bottom dock instead */
+  co: false, px: 0, py: 0,
+  /* R19 wall: the code in the dock (qrOn), the element that holds it, and which artist it was drawn for */
+  qrBox: null, qrOn: false, qrArtist: '', qrSeq: 0,
   pos: 0, posAt: 0, lastRep: 0, lastRun: false, lastRunAt: 0, playingNow: false, ended: false, atEnd: false, prog: false, failed: false, failKind: '', cue: false, popAt: 0,
-  via: 'tap', served: false, fam: '', famName: '', note: '', line: '', holdTo: 0, startTo: 0, tickAt: 0, askFam: '', askOpener: null, hov: false, popTo: 0, endTo: 0, tick: 0, ek: '', windA: 0, autoSeen: null, radioTo: 0,
+  via: 'tap', fam: '', famName: '', note: '', line: '', holdTo: 0, startTo: 0, tickAt: 0, askFam: '', askOpener: null, popTo: 0, endTo: 0, tick: 0, ek: '', windA: 0, radioTo: 0, mine: false,
+  /* R20: cueOnly = loaded out of sight for the stop (never started); used = the visitor played something with it */
+  cueOnly: false, cueGo: false, used: false, noticed: '', mode: '', kout: false, revT: 0,
   build(ctx) {
     if (this.el) return this.el;
     this.ctx = ctx;
+    const wm = wmode();
     const mk = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
-    const el = mk('aside', 'exd is-off'); el.id = 'exdock'; el.setAttribute('aria-label', 'listening post');
+    const el = mk('aside', wm ? 'exd is-off' : 'exd is-off is-one'); el.id = 'exdock'; el.setAttribute('aria-label', 'listening post');
     /* a phone's handle: the dock goes away with a swipe down, the way a sheet does */
     const grab = mk('span', 'exd-grab'); grab.setAttribute('aria-hidden', 'true');
     const bar = mk('div', 'exd-bar');
@@ -176,51 +180,46 @@ const D = {
     const disc = mk('button', 'exd-disc'); disc.type = 'button'; disc.hidden = true; disc.setAttribute('aria-label', 'play');
     disc.innerHTML = '<svg class="exd-ring" viewBox="0 0 40 40" aria-hidden="true" focusable="false"><circle class="exd-ring-t" cx="20" cy="20" r="18.6"/><circle class="exd-ring-p" cx="20" cy="20" r="18.6" pathLength="100"/></svg><span class="exd-wind" aria-hidden="true"><span class="exd-rec"></span></span><span class="exd-gl" aria-hidden="true"></span><span class="exd-arm" aria-hidden="true"></span>';
     const who = mk('p', 'exd-who'); who.setAttribute('aria-live', 'polite');
-    const attr = mk('a', 'exd-attr'); attr.target = '_blank'; attr.rel = 'noopener';
+    /* the wall has no link out: the attribution is text, and a failure shows a code instead of a card that opens a tab */
+    const attr = mk(wm ? 'span' : 'a', 'exd-attr'); if (!wm) { attr.target = '_blank'; attr.rel = 'noopener'; }
     attr.innerHTML = '<span class="exd-attr-l"></span><span class="exd-attr-s"></span>';
     const x = mk('button', 'exd-x'); x.type = 'button'; x.textContent = 'stop'; x.setAttribute('aria-label', 'stop the clip and close the player');
-    const yes = mk('button', 'exd-x exd-yes'); yes.type = 'button'; yes.textContent = 'yes'; yes.hidden = true;
-    const no = mk('button', 'exd-x exd-no'); no.type = 'button'; no.textContent = 'no'; no.hidden = true;
-    const au = mk('button', 'exd-auto'); au.type = 'button'; au.hidden = true; au.setAttribute('role', 'switch'); au.setAttribute('aria-checked', 'false');
-    au.setAttribute('aria-label', 'autoplay'); au.title = 'when a preview ends, autoplay picks who comes next, the way it did in my log';
-    au.innerHTML = '<span class="exd-auto-k" aria-hidden="true"></span><span class="exd-auto-t">auto</span>';
-    bar.append(disc, who, yes, no, au, attr, x);
-    this.yes = yes; this.no = no; this.disc = disc; this.autoB = au;
+    let act = null;
+    if (wm) {
+      const yes = mk('button', 'exd-x exd-yes'); yes.type = 'button'; yes.textContent = 'yes'; yes.hidden = true;
+      const no = mk('button', 'exd-x exd-no'); no.type = 'button'; no.textContent = 'no'; no.hidden = true;
+      bar.append(disc, who, yes, no, attr, x);
+      this.yes = yes; this.no = no;
+      yes.addEventListener('click', () => {
+        let kb = false; try { kb = yes.matches(':focus-visible'); } catch (e) {}
+        const a = this.asking, at = this.askAt, fam = this.askFam, opener = this.askOpener;
+        this.hideAsk(true);
+        const first = !consent; grantConsent(); if (first) chord();
+        /* a keyboard yes lands on the player's stop, and escape from there goes back to where the ask came from */
+        if (a) playQuiet(a, this.ctx, Object.assign({}, at, { via: 'ask', fam: fam || undefined, trigger: kb ? opener : null, kb }));
+      });
+      no.addEventListener('click', () => { declined = true; this.hideAsk(); });
+    } else { act = mk('div', 'exd-act'); act.append(attr, x); bar.append(disc, who, act); }
+    this.disc = disc; this.act = act;
     this.rp = disc.querySelector('.exd-ring-p'); this.wind = disc.querySelector('.exd-wind');
-    yes.addEventListener('click', () => {
-      let kb = false; try { kb = yes.matches(':focus-visible'); } catch (e) {}
-      const a = this.asking, at = this.askAt, fam = this.askFam, opener = this.askOpener;
-      this.hideAsk(true);
-      const first = !consent; grantConsent(); if (first) chord();
-      /* a keyboard yes lands on the player's stop, and escape from there goes back to where the ask came from */
-      if (a) playQuiet(a, this.ctx, Object.assign({}, at, { via: 'ask', fam: fam || undefined, trigger: kb ? opener : null, kb }));
-    });
-    no.addEventListener('click', () => { declined = true; this.hideAsk(); });
     disc.addEventListener('click', () => this.press());
-    au.addEventListener('click', () => {
-      AUTO = !AUTO; autoSteps = 0; this.autoSeen = null; this.byDwell = false; paintAuto();
-      if (AUTO) loadAuto(this.ctx);
-      this.say(AUTO ? 'autoplay on. when a preview ends, the machine picks who comes next, from my log.' : '', AUTO ? 4000 : 0);
-      if (AUTO && this.ended) autoNext(this.artist);
-    });
     const slot = mk('div', 'exd-slot');
-    /* R18: the ring that sits on spotify's own ▶ until spotify reports real playback (ios will not start without it) */
+    /* R18: the ring that sits on spotify's own ▶ until spotify reports real playback (webkit will not start without it) */
     const cue = mk('span', 'exd-cue'); cue.setAttribute('aria-hidden', 'true'); this.cueEl = cue; slot.appendChild(cue);
     const msg = mk('p', 'exd-msg'); msg.hidden = true;
     el.append(grab, bar, slot, msg);
+    if (wm) { const qb = mk('div', 'exd-qr'); el.appendChild(qb); this.qrBox = qb; }
     document.body.appendChild(el);
     x.addEventListener('click', () => this.close(true));
     this.el = el; this.slot = slot; this.who = who; this.attr = attr; this.x = x; this.msg = msg;
-    /* the iframe arriving, a message line coming or going: the reserved bottom follows the dock's real height */
     if (typeof ResizeObserver === 'function') try { new ResizeObserver(() => this.measure()).observe(el); } catch (e) {}
-    /* escape puts the ask away (a later rest may ask again: only "no" is a no) or closes the player */
-    addEventListener('keydown', (e) => { if (e.key === 'Escape' && (this.open || this.asking)) { e.preventDefault(); if (this.asking) this.hideAsk(); else this.close(true); } });
-    /* R18: a clip a rest started keeps playing while the mouse is on its pill, so the record and the link can be reached */
-    el.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'mouse') return; this.hov = true; clearTimeout(DW.g); DW.g = 0; });
-    el.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'mouse') return; this.hov = false; if (this.open && this.quiet && this.byDwell && !DW.t) graceClose(); });
+    addEventListener('resize', () => { if (!wmode() && this.shows()) { this.fit(); this.measure(); } }, { passive: true });
+    /* escape puts the wall's ask away (only "no" is a no) or closes the player; a cue out of sight is not there to close */
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && (this.shows() || this.asking || this.qrOn)) { e.preventDefault(); if (this.asking) this.hideAsk(); else this.close(true); } });
     this.swipe(grab); this.swipe(bar);
     return el;
   },
+  shows() { return !!this.el && this.open && !this.cueOnly; },
   /* R18 phones: a swipe down on the handle or the bar puts the dock away (stop stays the plain way out) */
   swipe(t) {
     let id = -1, y0 = 0, t0 = 0, dy = 0;
@@ -234,7 +233,7 @@ const D = {
       dy = 0;
     };
     t.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' || id !== -1 || !coarse() || (!this.open && !this.asking)) return;
+      if (e.pointerType === 'mouse' || id !== -1 || !coarse() || (!this.shows() && !this.asking && !this.qrOn)) return;
       if (e.target && e.target.closest && e.target.closest('button,a')) return;
       id = e.pointerId; y0 = e.clientY; t0 = performance.now(); dy = 0;
       try { t.setPointerCapture(id); } catch (err) {}
@@ -246,10 +245,10 @@ const D = {
     });
     t.addEventListener('pointerup', end); t.addEventListener('pointercancel', end);
   },
-  /* quiet: the dock becomes a pill fixed next to (x, y). it never reserves the bottom edge, so nothing relayouts */
+  /* the wall only. quiet: the dock becomes a pill fixed next to (x, y). it never reserves the bottom edge, so nothing relayouts */
   setQuiet(q, at) {
     this.quiet = !!q; this.el.classList.toggle('is-quiet', this.quiet); this.el.classList.remove('is-tap', 'is-fail', 'is-card', 'is-void', 'is-cue'); this.cue = false;
-    /* R9: a phone or a tablet never gets the floating pill. it sat on the card or the stars it came from */
+    /* R9: a touch wall never gets the floating pill. it sat on the card or the stars it came from */
     this.co = coarse(); this.el.classList.toggle('is-co', this.co && this.quiet);
     if (!this.quiet || this.co) { this.el.style.transform = ''; return; }
     if (at && isFinite(at.x) && isFinite(at.y)) this.place(at.x, at.y);
@@ -266,6 +265,59 @@ const D = {
       if (nx !== x || ny !== y) to(nx, ny);
     });
   },
+  /* R20: where the floating dock goes. upright (a phone): on the tab bar. a desk with the deck: the top right of the stage,
+     where rooms keep the least. anything else (a phone or tablet held sideways, a small window): under the stage column */
+  fit() {
+    const el = this.el; if (!el || wmode()) return;
+    const W = innerWidth, st = el.style;
+    let s = null; try { s = this.ctx && typeof this.ctx.stage === 'function' ? this.ctx.stage() : null; } catch (e) {}
+    let port = false; try { port = matchMedia('(max-aspect-ratio: 115/100)').matches; } catch (e) { port = innerHeight > W; }
+    const mode = port ? 'port' : document.documentElement.classList.contains('atlas-deck') ? 'top' : 'under';
+    const sx = s && isFinite(s.x) ? s.x : 0, sw = s && isFinite(s.w) && s.w > 0 ? s.w : W;
+    this.mode = mode;
+    el.classList.toggle('is-port', mode === 'port'); el.classList.toggle('is-top', mode === 'top');
+    if (mode === 'port') Object.assign(st, { left: '8px', right: '8px', top: 'auto', bottom: 'calc(var(--atlas-dockh, env(safe-area-inset-bottom, 0px)) + 4px)', width: 'auto', maxWidth: '560px', margin: '0 auto' });
+    else if (mode === 'top') {
+      const w = Math.round(Math.max(280, Math.min(520, sw - 16, W - 16)));
+      Object.assign(st, { left: 'auto', right: Math.max(8, Math.round(W - (sx + sw)) + 8) + 'px', top: '6px', bottom: 'auto', width: w + 'px', maxWidth: 'none', margin: '0' });
+    } else {
+      const w = Math.round(Math.max(260, Math.min(560, sw - 16, W - 16)));
+      Object.assign(st, { right: 'auto', top: 'auto', bottom: 'calc(6px + env(safe-area-inset-bottom, 0px))', width: w + 'px', maxWidth: 'none', margin: '0' });
+      st.left = this.spot(w, Math.max(8, Math.round(sx + (sw - w) / 2))) + 'px';
+      this.spotH = el.offsetHeight;
+    }
+  },
+  /* sideways nothing is reserved, so the stage keeps its size and the dock takes the bottom spot that covers the least of
+     the room's controls, panels and words, and the caption's: under the stage first, then the left edge, then the right */
+  spot(w, x0) {
+    const el = this.el, h = el.offsetHeight || 96, bot = innerHeight - (parseFloat(getComputedStyle(el).bottom) || 6), top = bot - h;
+    const xs = [x0, 8, Math.max(8, innerWidth - w - 8)], hit = [0, 0, 0];
+    const look = (root) => {
+      if (!root) return;
+      root.querySelectorAll('*').forEach((e) => {
+        const r = e.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2 || r.bottom <= top || r.top >= bot) return;
+        const ctl = /^(BUTTON|A|INPUT|SELECT|SUMMARY|LABEL)$/.test(e.tagName) || e.hasAttribute('data-keepout') || /hud|card|panel/.test(typeof e.className === 'string' ? e.className : '');
+        if (!ctl && ![...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) return;
+        const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || +cs.opacity < 0.06) return;
+        xs.forEach((x, k) => { const ox = Math.min(x + w, r.right) - Math.max(x, r.left); if (ox > 0) hit[k] += ox * (Math.min(bot, r.bottom) - Math.max(top, r.top)); });
+      });
+    };
+    look(document.querySelector('section.is-active')); look(document.getElementById('atlas-info'));
+    let k = 0; for (let i = 1; i < xs.length; i++) if (hit[i] < hit[k]) k = i;
+    return xs[k];
+  },
+  reveal() {
+    if (!this.el || wmode()) return;
+    this.fit();
+    this.el.classList.remove('is-off');
+    this.measure();
+    /* the names read the dock's box once it has slid in */
+    clearTimeout(this.revT);
+    this.revT = setTimeout(() => { try { const L = this.ctx && this.ctx.labels; if (L && typeof L.refresh === 'function') L.refresh(); } catch (e) {} }, 400);
+  },
+  /* R19 the wall's ask (posts=spotify, before a visitor's yes): the pill where the tap was, or the bottom dock on a touch wall.
+     off the wall nothing is ever asked (asking stays '') */
   ask(artist, at, o = {}) {
     /* R18: a keyboard visitor who opened the ask is put on its yes (and taken back if it goes away) */
     let kb = false;
@@ -277,12 +329,11 @@ const D = {
     this.setQuiet(true, at); this.el.classList.add('is-ask');
     this.el.style.setProperty('--fam', famHex(o.fam) || famOf(artist) || '#86cbfe');
     this.setLine('play ', artist, ' from spotify?');
-    this.yes.hidden = this.no.hidden = false; this.attr.hidden = true; this.x.hidden = true; this.disc.hidden = true; this.autoB.hidden = true;
-    /* on a phone the yes is not the last tap: ios still wants one on spotify's own ▶, so the ask says so up front */
+    this.yes.hidden = this.no.hidden = false; this.attr.hidden = true; this.x.hidden = true; this.disc.hidden = true;
+    /* on a touch wall the yes is not the last tap: ios still wants one on spotify's own ▶, so the ask says so up front */
     this.msg.textContent = 'nothing reaches spotify until you say yes.' + (this.co ? ' then tap ▶ in its player.' : ''); this.msg.hidden = false;
     this.el.classList.remove('is-off');
     /* a keyboard visitor still on the ask keeps it: it never goes away under the focus */
-    /* a phone's ask came from a deliberate hold: it waits longer than a hover's */
     this.askTo = setTimeout(() => { if (!this.el.contains(document.activeElement)) this.hideAsk(); }, this.co ? 20000 : 10000);
     this.measure();
     if (kb) try { this.yes.focus({ preventScroll: true }); } catch (e) {}
@@ -297,7 +348,7 @@ const D = {
     this.measure();
     if (!moving && inside && back && back.isConnected) try { back.focus({ preventScroll: true }); } catch (e) {}
   },
-  /* the browser refused to start it (ios wants a tap inside the player): show spotify's own player in the pill */
+  /* the browser refused to start it (webkit wants a tap inside the player): point at spotify's own ▶ */
   tapToPlay(artist) {
     if (this.started || !this.open || this.failed) return;
     if (this.quiet && !this.ready) return;
@@ -307,36 +358,80 @@ const D = {
     requestAnimationFrame(() => { if (this.quiet && !coarse()) this.place(this.px || 8, this.py || 8); this.measure(); });
     this.track();
   },
-  /* the shell keeps the wall text and every room's controls above whatever the dock is using */
+  /* chromium refused a start that had no press behind it: the player is there, and the record plays it */
+  cuedUp() {
+    if (this.started || !this.open || this.failed) return;
+    this.el.classList.remove('is-tap'); this.setCue(false);
+    this.setLine('cued up ', this.artist);
+    if (!this.tapAt) hush('off');
+    this.track();
+  },
+  /* off the wall the dock floats: nothing is reserved and the stage never moves for it. it is a keepout while it shows,
+     and html.exd-open hides what would draw over it (the hint toast). the wall still reserves its height */
   measure() {
     if (!this.el) return;
-    /* the chrome hides what would draw over the player (the hint toast) while this is on */
-    document.documentElement.classList.toggle('exd-open', !!(this.open || this.asking));
+    const H = document.documentElement;
+    if (!wmode()) {
+      const v = this.shows();
+      H.classList.toggle('exd-open', v);
+      H.classList.toggle('exd-cover', v && this.mode === 'port');
+      const lift = this.lift(v && this.mode === 'port');
+      if (lift !== this.liftPx) { this.liftPx = lift; if (lift) H.style.setProperty('--exd-lift', lift + 'px'); else H.style.removeProperty('--exd-lift'); }
+      if (v && this.mode === 'under' && this.el.offsetHeight !== this.spotH) this.fit();
+      if (v !== this.kout) {
+        this.kout = v;
+        if (v) this.el.setAttribute('data-keepout', ''); else this.el.removeAttribute('data-keepout');
+        try { const L = this.ctx && this.ctx.labels; if (L && typeof L.refresh === 'function') L.refresh(); } catch (e) {}
+      }
+      return;
+    }
+    H.classList.toggle('exd-open', !!(this.open || this.asking || this.qrOn));
     if (!this.ctx) return;
-    const on = this.open || (this.co && !!this.asking);
+    if (this.qrOn) this.qrFit();
+    const on = this.open || (this.co && !!this.asking) || this.qrOn;
     let h = on && (!this.quiet || this.co || (this.el.classList.contains('is-tap') || this.el.classList.contains('is-fail')) && coarse()) ? Math.ceil(this.el.getBoundingClientRect().height) : 0;
-    /* R9: on a phone the dock stands on the tab bar, so what it covers is its height plus its own bottom offset. read
-       from the computed bottom, not the rect, which is still sliding in. (a fine pointer's deck adds its own reserve) */
+    /* R9: on a touch wall the dock stands on the tab bar, so what it covers is its height plus its own bottom offset. read
+       from the computed bottom, not the rect, which is still sliding in */
     if (h && coarse()) h += Math.max(0, Math.round(parseFloat(getComputedStyle(this.el).bottom) || 0));
     if (h === this.h) return;
     this.h = h;
     if (this.ctx.reserveBottom) this.ctx.reserveBottom(h ? h + 16 : 0);
-    /* the atlas card follows the wall it sits on; tell the chrome to measure again now, not on its next resize */
     try { dispatchEvent(new Event('exhibit:dockh')); } catch (e) {}
+  },
+  /* upright the dock floats over the foot of the stage, where the open room's card ends (the universe's dated card and its
+     coverage caveat, a wall opened with more): the card is painted above the dock by a translate, which moves no layout, so
+     the stage never relayouts for it, and never up under the top bar. a folded card (no height) is left where it is; one
+     that opens or grows under the open dock (a star picked, more) is measured again */
+  lift(on) {
+    const w = on ? document.querySelector('section[data-room].is-active .wall') : null;
+    if (w !== this.liftW) {
+      if (this.liftRO) this.liftRO.disconnect();
+      this.liftW = w;
+      if (w && typeof ResizeObserver === 'function') try { (this.liftRO = this.liftRO || new ResizeObserver(() => requestAnimationFrame(() => this.measure()))).observe(w); } catch (e) {}
+    }
+    if (!w || !w.offsetHeight || !this.el) return 0;
+    const p = w.offsetParent, top = (p ? p.getBoundingClientRect().top : 0) + w.offsetTop, tb = document.getElementById('top');
+    return Math.max(0, Math.min(this.el.offsetHeight + 4, Math.round(top - (tb ? tb.getBoundingClientRect().bottom : 0) - 8)));
   },
   /* the words in front go when the bar is narrow; the link and the word spotify never do */
   setAttr(lead, tail, href) {
-    this.attr.href = href;
+    if (this.attr.tagName === 'A') this.attr.href = href;
     this.attr.firstChild.textContent = lead;
-    this.attr.lastChild.textContent = tail;
+    this.attr.lastChild.textContent = this.attr.tagName === 'A' ? tail : tail.replace(/\s*↗/, '');
   },
-  /* the bar says what is actually true at each step: cueing, then hearing, and never hearing while nothing plays */
+  /* the line under the bar: plain words, or parts where {a: text} is a link to the track on spotify */
   say(line, hold) {
     if (!this.msg) return;
     this.holdTo = hold ? Date.now() + hold : 0;
-    this.msg.textContent = line || '';
-    this.msg.hidden = !line;
-    this.el.classList.toggle('has-msg', !!line);
+    const t = txt(line);
+    if (Array.isArray(line)) {
+      this.msg.replaceChildren(...line.map((p) => {
+        if (typeof p === 'string') return document.createTextNode(p);
+        const a = document.createElement('a'); a.className = 'exd-app'; a.href = TRACK_URL + this.wantTid; a.target = '_blank'; a.rel = 'noopener'; a.textContent = (p && p.a) || ''; return a;
+      }));
+    } else this.msg.textContent = t;
+    this.msg.hidden = !t;
+    this.el.classList.toggle('has-msg', !!t);
     requestAnimationFrame(() => this.measure());
   },
   /* R18: the line is a small status over the artist's name, as spelled. what a test or a screen reader reads is one
@@ -354,34 +449,47 @@ const D = {
     this.who.replaceChildren(s, n);
   },
   clearSlot() { this.slot.textContent = ''; this.slot.appendChild(this.cueEl); },
+  /* R20: the link is the way to the app, so it stands out where it matters most: a preview, a phone, a preview that ended */
+  paintLink() {
+    if (!this.el || wmode()) return;
+    const d = this.dur;
+    this.el.classList.toggle('is-link', !this.failed && (coarse() || (d > 0 && d <= 31000) || this.ended));
+  },
   show(artist, tid, keep) {
-    this.hideAsk(true);
+    const wm = wmode();
+    this.hideAsk(true); this.qrOff();
     clearTimeout(this.failTo); clearTimeout(this.endTo); this.starting(false);
-    if (!keep || this.artist !== artist) { this.dur = 0; this.pos = 0; this.posAt = 0; this.prog = false; this.lastRep = 0; this.ringTo(0, 0); }
+    if (!keep || this.artist !== artist) { this.dur = 0; this.pos = 0; this.posAt = 0; this.prog = false; this.lastRep = 0; this.ringTo(0, 0); this.note = ''; this.noticed = ''; }
     this.artist = artist; this.ended = false; this.failed = false; this.failKind = ''; this.playingNow = false; this.lastRun = false;
     this.open = true;
     this.el.classList.remove('is-tap', 'is-fail', 'is-card', 'is-void');
-    this.el.classList.toggle('is-served', this.served);
     this.el.style.setProperty('--fam', this.fam || '#86cbfe');
-    /* phones: no autoplay switch. the bar is narrow, and ios wants a tap in spotify's player for every next track */
-    this.disc.hidden = false; this.autoB.hidden = coarse(); paintAuto();
-    /* R9: on a phone nothing starts without a tap inside the player, so the line says so from the first frame
-       (just the name while the very first player is still on its way) */
-    if (!this.co) this.setLine('cueing up ', artist); else if (this.ctl && this.ready) this.tapLine(); else { this.setCue(false); this.setLine('', artist); }
-    /* an empty 80px box is a lie about a player being there; collapse the slot until there is an iframe in it.
-       once the player is docked there is nothing to ask spotify for, so the line only belongs on the first one */
+    this.disc.hidden = false;
+    /* an empty 80px box is a lie about a player being there: until there is an iframe the slot only holds the line */
     this.el.classList.toggle('is-msg', !this.ctl);
-    this.say(this.ctl ? this.note : this.quiet && !this.co ? '' : 'asking spotify for the player…');
-    this.setAttr('player and artwork: ', 'spotify ↗', 'https://open.spotify.com/track/' + tid); this.attr.hidden = false;
-    this.el.classList.remove('is-off');
-    requestAnimationFrame(() => this.measure());
+    if (wm) {
+      /* the wall, as before: a touch wall says "tap ▶" from the first frame once the player is there */
+      if (!this.co) this.setLine('cueing up ', artist); else if (this.ctl && this.ready) this.tapLine(); else { this.setCue(false); this.setLine('', artist); }
+      this.say(this.ctl ? this.note : this.quiet && !this.co ? '' : 'asking spotify for the player…');
+      this.setAttr('player and artwork: ', 'spotify ↗', TRACK_URL + tid); this.attr.hidden = false;
+      this.el.classList.remove('is-off');
+      requestAnimationFrame(() => this.measure());
+    } else {
+      /* R20: the dock says loading until spotify's first report; webkit's line points at spotify's ▶ once its player is there */
+      if (needTap() && this.ctl && this.ready && this.loaded === tid) this.tapLine(); else { this.setCue(false); this.setLine('loading Spotify… ', artist); }
+      this.say(this.ctl ? this.note : '');
+      this.setAttr('play on ', 'spotify ↗', TRACK_URL + tid); this.attr.hidden = false;
+      this.attr.setAttribute('aria-label', 'play ' + artist + ' on spotify (opens a new tab or the app)');
+      this.paintLink();
+      if (!this.cueOnly) this.reveal();
+    }
     this.track();
   },
   /* the player is in the slot: stop claiming to be fetching it, but do not claim it is playing either */
   slotted() {
     if (!this.el) return;
     this.el.classList.remove('is-msg');
-    if (!this.started && !this.failed) { this.say(this.note); if (this.co && this.open) this.tapLine(); }
+    if (!this.started && !this.failed && !this.cueOnly) { this.say(this.note); if (wk() && this.open) this.tapLine(); }
     requestAnimationFrame(() => this.measure());
     this.track();
   },
@@ -393,7 +501,7 @@ const D = {
   playing(artist, fresh) {
     clearTimeout(this.tapTo); this.el.classList.remove('is-tap'); this.setCue(false);
     this.setLine(this.hearSt(), artist);
-    if ((fresh || this.msg.textContent !== this.note) && Date.now() > this.holdTo) this.say(this.note);
+    if ((fresh || this.msg.textContent !== txt(this.note)) && Date.now() > this.holdTo) this.say(this.note);
   },
   pauseLine() { this.el.classList.remove('is-tap'); this.setCue(false); this.setLine('paused on ', this.artist); },
   /* R18: the preview ran out. the record winds down, the bed comes back on that report, and the line says what happened */
@@ -401,35 +509,42 @@ const D = {
     if (this.ended) return;
     this.ended = true; clearTimeout(this.tapTo);
     const pre = !(this.dur > 31000);
-    if (this.co) { this.el.classList.add('is-tap'); this.setLine('tap ▶ to hear ', this.artist, ' again'); this.setCue(true); }
+    if (wk()) { this.el.classList.add('is-tap'); this.setLine('tap ▶ to hear ', this.artist, ' again'); this.setCue(true); }
     else { this.el.classList.remove('is-tap'); this.setCue(false); this.setLine('that was ' + (pre ? 'a preview of ' : ''), this.artist); }
     this.say(pre ? 'that was the preview. the whole song is on spotify.' : '');
     this.ringTo(1, 250);
-    if (AUTO) autoNext(this.artist);
+    this.paintLink();
   },
-  /* the embed took the request and never started. a player that is there gets a pointer at its own ▶; one that never
-     arrived (a privacy browser that lets the script through and stops the frame) becomes the card */
+  /* the embed took the request and never started. a player that is there gets a pointer at its own ▶ (webkit) or the
+     record (chromium); one that never arrived becomes the card, but only for a post the visitor used */
   stalled(artist) {
     if (this.started || !this.open || this.failed) return;
-    if (this.ready && this.ctl) { this.tapToPlay(artist); return; }
-    this.failed = true; this.failKind = 'stall'; this.byDwell = false; this.setCue(false);
+    const wm = wmode();
+    if (this.ready && this.ctl) { if (wm || needTap()) this.tapToPlay(artist); else this.cuedUp(); return; }
+    if (!wm && !this.used) { this.close(false); return; }
+    this.failed = true; this.failKind = 'stall'; this.setCue(false);
     this.setLine('could not play ', artist);
-    this.say('the player never arrived. something may be blocking it. the card opens it on spotify.');
+    this.say(wm ? 'the player never arrived. something may be blocking it. ' + WALL_OPEN : 'the player never arrived: blocked, or slow.');
     this.cardOn(artist, this.wantTid, true);
+    if (!wm) this.reveal();
     this.track();
   },
   fail(artist, tid) {
     clearTimeout(this.armTo); clearTimeout(this.tapTo); clearTimeout(this.mutTo); this.started = false; this.making = false;
+    const wm = wmode();
+    /* a stop change or a close took the dock away while the player was still on its way: nothing to show */
+    if (!this.open) { this.ctl = null; this.ready = false; this.loaded = ''; return; }
     this.clearSlot(); this.ctl = null; this.ready = false; this.loaded = ''; this.el.classList.add('is-msg');
-    this.failed = true; this.failKind = 'api'; this.byDwell = false; this.playingNow = false; this.lastRun = false; this.setCue(false);
+    if (!wm && !this.used) { this.close(false); return; }
+    this.failed = true; this.failKind = 'api'; this.playingNow = false; this.lastRun = false; this.setCue(false);
     this.setLine('could not play ', artist);
-    this.say('spotify did not load. it may be blocked on this network, or you may be offline.');
+    this.say(wm ? 'spotify did not load. it may be blocked on this network, or you may be offline.' + (tid ? ' ' + WALL_OPEN : '') : 'spotify did not load: blocked, or offline.');
     if (tid) this.cardOn(artist, tid, true); else this.attr.hidden = true;
     hush('off', 'fail');
-    /* a pill dropped where the finger was sits on top of the card it came from: on a phone it moves to the bottom dock.
-       R18: a failure no longer leaves by itself after 8 s. it stays, with its reason and the link, until it is put away */
-    this.el.classList.toggle('is-fail', this.quiet && coarse());
+    /* the wall: a pill dropped where the finger was sits on top of the card it came from, so on touch it moves to the bottom dock */
+    if (wm) this.el.classList.toggle('is-fail', this.quiet && coarse());
     clearTimeout(this.failTo);
+    if (!wm) this.reveal();
     requestAnimationFrame(() => this.measure());
     this.track();
   },
@@ -437,66 +552,140 @@ const D = {
   dead(artist, tid) {
     if (!this.open || this.started || this.failed) return;
     clearTimeout(this.armTo); clearTimeout(this.tapTo); clearTimeout(this.mutTo);
-    this.failed = true; this.failKind = 'dead'; this.byDwell = false; this.setCue(false);
+    const wm = wmode();
+    if (!wm && !this.used) { this.close(false); return; }
+    this.failed = true; this.failKind = 'dead'; this.setCue(false);
     this.setLine('could not play ', artist);
-    this.say('spotify cannot play this one here. the card opens it on spotify.');
+    this.say('spotify cannot play this one here.' + (wm ? ' ' + WALL_OPEN : ''));
     this.cardOn(artist, tid, true);
     hush('off', 'fail');
+    if (!wm) this.reveal();
     this.track();
   },
   /* the link becomes a card of its own: one target with the artist's name and spotify's on it */
   cardOn(artist, tid, gone) {
-    if (tid) this.setAttr('open ' + artist + ' on ', 'spotify ↗', 'https://open.spotify.com/track/' + tid);
-    this.attr.hidden = !tid; this.disc.hidden = true; this.autoB.hidden = true;
+    /* the wall opens no tab: the card shows a code for the song, to scan with a phone */
+    if (wmode()) { this.attr.hidden = true; this.qrOn = !!tid; if (tid) { if (this.quiet) this.setQuiet(false); this.qrPaint(artist, tid); } }
+    else { if (tid) this.setAttr('play ' + artist + ' on ', 'spotify ↗', TRACK_URL + tid); this.attr.hidden = !tid; this.el.classList.remove('is-link'); }
+    this.disc.hidden = true;
     this.el.classList.add('is-card'); this.el.classList.toggle('is-void', !!gone);
     if (this.quiet && !this.co) requestAnimationFrame(() => this.place(this.px || 8, this.py || 8));
     requestAnimationFrame(() => this.measure());
   },
+  /* R19 the wall's code, in the dock. posts=qr: a press puts the artist and a code for the song here, with no player, no
+     request and no link, and consent stays false. posts=spotify: a failure shows the same code in place of the card that
+     would have opened a tab. the tile is whole css pixels per module (qr.js), a third of the screen's short side */
+  qrShow(artist, tid, trigger) {
+    const was = this.qrOn;
+    this.hideAsk(true);
+    this.qrOn = true; this.qrArtist = artist;
+    this.lastFocus = trigger && trigger.isConnected ? trigger : this.lastFocus;
+    this.setQuiet(false);
+    this.el.classList.remove('is-off', 'is-tap', 'is-fail', 'is-card', 'is-cue');
+    this.el.classList.add('is-qr', 'is-void');
+    this.disc.hidden = true; this.attr.hidden = true; this.yes.hidden = this.no.hidden = true; this.x.hidden = false;
+    this.x.textContent = 'close'; this.x.setAttribute('aria-label', 'put the code away');
+    this.setLine('scan to hear on your phone', artist);
+    this.say('nothing reaches spotify from this screen.');
+    this.qrPaint(artist, tid);
+    syncBtns();
+    requestAnimationFrame(() => this.measure());
+    /* chrome.js keeps the tour on the code from its next 220 ms poll; this covers a stop that was about to end as the code went up */
+    try { const U = this.ctx && this.ctx.tour; if (U && typeof U.holdAtLeast === 'function') U.holdAtLeast(3000); } catch (e) {}
+    if (trigger && !was) { try { this.x.focus({ preventScroll: true }); } catch (e) {} }
+  },
+  qrPaint(artist, tid) {
+    const box = this.qrBox; if (!box || !tid) return;
+    const seq = ++this.qrSeq, url = TRACK_URL + tid;
+    const put = (M) => {
+      if (seq !== this.qrSeq || !this.qrOn) return;
+      const q = M.encode(url), n = q.size + 8;
+      const m = Math.max(3, Math.min(16, Math.round(Math.min(innerHeight * 0.3, innerWidth * 0.34) / n)));
+      const svg = M.toSvg(q, { module: m, label: 'scan with your phone to hear ' + artist });
+      svg.setAttribute('data-qr-url', url);
+      box.replaceChildren(svg);
+      this.el.style.setProperty('--qrw', n * m + 'px');
+      this.el.classList.add('is-qr');
+      requestAnimationFrame(() => this.measure());
+    };
+    if (QRM) put(QRM); else qrMod(this.ctx).then(put).catch(() => { if (seq === this.qrSeq) this.qrOff(); });
+  },
+  /* the code stands under the stage column, not across the whole screen: the wall's liner (title and caption) stays readable beside it */
+  qrFit() {
+    const s = this.ctx && typeof this.ctx.stage === 'function' ? this.ctx.stage() : null, st = this.el.style;
+    if (!s || !isFinite(s.x) || !isFinite(s.w) || s.w < 360) { st.removeProperty('--qrl'); st.removeProperty('--qrr'); return; }
+    st.setProperty('--qrl', Math.max(10, Math.round(s.x)) + 'px'); st.setProperty('--qrr', Math.max(10, Math.round(innerWidth - s.x - s.w)) + 'px');
+  },
+  /* later: the dock is sliding out, so the code stays drawn until it has gone (a newer code or a close in between wins) */
+  qrWipe() {
+    if (this.qrBox) this.qrBox.textContent = '';
+    this.el.classList.remove('is-qr');
+    this.x.textContent = 'stop'; this.x.setAttribute('aria-label', 'stop the clip and close the player');
+  },
+  qrOff(later) {
+    if (!this.qrOn) { if (!later && this.qrBox && this.el.classList.contains('is-qr')) this.qrWipe(); return; }
+    this.qrOn = false; const seq = ++this.qrSeq; this.qrArtist = '';
+    if (later) setTimeout(() => { if (seq === this.qrSeq && !this.qrOn) this.qrWipe(); }, 400); else this.qrWipe();
+  },
+  /* revoke(): forget the player altogether, so the next visitor starts from nothing */
+  teardown() {
+    const c = this.ctl; this.ctl = null;
+    if (c && typeof c.destroy === 'function') { try { c.destroy(); } catch (e) {} }
+    if (this.slot) this.clearSlot();
+    if (this.who) this.who.textContent = '';
+    this.ready = false; this.loaded = ''; this.wantTid = ''; this.making = false; this.heard = false; this.playFor = ''; this.playT = 0; this.nudT = 0; this.evAt = 0;
+    this.artist = ''; this.line = ''; this.fam = ''; this.famName = ''; this.note = ''; this.via = 'tap'; this.mine = false; this.cueOnly = false; this.cueGo = false; this.used = false; this.noticed = '';
+    this.dur = 0; this.pos = 0; this.posAt = 0; this.prog = false; this.lastRep = 0; this.atEnd = false; this.popAt = 0;
+    this.ringTo(0, 0);
+    this.qrOn = false; this.qrSeq++; this.qrArtist = '';
+    if (this.el) { this.qrWipe(); this.el.classList.remove('is-card', 'is-void', 'is-fail', 'is-msg', 'is-playing', 'is-link'); }
+  },
   /* a player declared missing or silent that turns up after all: take the card back and carry on */
   unfail() {
+    this.qrOff();
     this.failed = false; this.failKind = '';
     this.el.classList.remove('is-card', 'is-void', 'is-fail');
-    this.disc.hidden = false; this.autoB.hidden = coarse(); this.say(this.note);
-    this.setAttr('player and artwork: ', 'spotify ↗', this.attr.href);
-    if (this.co) this.tapLine(); else this.setLine('cueing up ', this.artist);
+    this.disc.hidden = false; this.say(this.note);
+    if (wmode()) { this.setAttr('player and artwork: ', 'spotify ↗', this.attr.href); if (coarse()) this.tapLine(); else this.setLine('cueing up ', this.artist); return; }
+    this.setAttr('play on ', 'spotify ↗', TRACK_URL + this.wantTid);
+    if (wk()) this.tapLine(); else this.setLine('loading Spotify… ', this.artist);
+    this.paintLink();
   },
   /* the bed goes down the moment a clip is asked for, so the clip never starts over it at full level. if the clip has
-     not started six seconds later (a browser that wants a tap inside the player), the bed comes back */
+     not started six seconds later, the bed comes back */
   arm(t0) {
-    const artist = this.artist;
+    const artist = this.artist, wm = wmode();
     this.armT = t0 || Date.now(); this.started = false; clearTimeout(this.armTo); clearTimeout(this.tapTo);
     /* R10: focus still sits in the player from the last tap there (a tap on the field moves no focus), so the next tap
        in it would raise no blur and the bed would not hear it. a new ask always comes from outside the player: take
        focus back to the page, quietly (webkit ignores blur() on a frame, so a throwaway focus target does it) */
     const pf = this.slot && this.slot.querySelector('iframe');
     if (pf && document.activeElement === pf) { try { pf.blur(); if (document.activeElement === pf) { const d = document.createElement('div'); d.tabIndex = -1; document.body.appendChild(d); d.focus({ preventScroll: true }); d.remove(); } } catch (e) {} }
-    /* R9 phone dock: the tap line is already up and the bed stays until the embed really plays. the only thing left
-       to watch for is a player that never arrives (a blocker that lets the script through and stops the frame) */
-    if (this.co) { this.armTo = setTimeout(() => { if (this.open && !this.ready && !this.started) this.stalled(artist); }, 6000); return; }
+    /* a frame that wants a tap inside it: the tap line is already up and the bed stays until the embed really plays. the
+       only thing left to watch for is a player that never arrives */
+    if (wk()) { this.armTo = setTimeout(() => { if (this.open && !this.ready && !this.started) this.stalled(artist); }, wm ? 6000 : STALL_MS); return; }
     /* R5 watchdog fix: the bed goes down only once the id has resolved and the embed is ready; before that nothing ducks */
     if (this.ready) hush('armed');
     /* R10: a ready player answers a play within a second or so. silence past that means a blocker is eating its reports
-       while it may be sounding, so the bed goes out now and waits one preview's length, rather than sitting at -24 dB
-       under the clip for six seconds */
+       while it may be sounding, so the bed goes out now and waits one preview's length */
     clearTimeout(this.mutTo);
     if (this.ready) this.mutTo = setTimeout(() => { if (this.open && !this.started && this.evAt < this.armT) { hush('hot'); this.waitOut(artist); } }, 1500);
-    const co = coarse();
-    if (co && this.ready) this.tapTo = setTimeout(() => this.tapToPlay(artist), 1300);
-    else if (this.quiet && this.ready) this.tapTo = setTimeout(() => this.tapToPlay(artist), 3500);
+    if (wm && this.quiet && this.ready) this.tapTo = setTimeout(() => this.tapToPlay(artist), 3500);
     this.armTo = setTimeout(() => {
       if (this.started) return;
-      /* R10: spotify said nothing at all since the ask (a blocker eating its messages) while the player is there: it may be
-         playing, so the bed stays out for one preview's length rather than coming back over it */
-      if (this.ready && this.evAt < this.armT && !this.co) { hush('hot'); if (this.heard) this.mute(artist); this.waitOut(artist); return; }
+      /* R10: spotify said nothing at all since the ask while the player is there: it may be playing behind a blocker, so the
+         bed stays out for one preview's length rather than coming back over it */
+      if (this.ready && this.evAt < this.armT) { hush('hot'); if (this.heard) this.mute(artist); this.waitOut(artist); return; }
       if (!this.tapAt) hush('off');
-      if (co && this.ready) this.tapToPlay(artist);
-      else this.stalled(artist);
-    }, co ? 2500 : 6000);
+      if (wm) { this.stalled(artist); return; }
+      if (this.ready) { this.cuedUp(); return; }
+      /* R20: a frame still on its way is not a failure yet */
+      this.armTo = setTimeout(() => { if (this.open && !this.started && !this.ready) this.stalled(artist); }, STALL_MS - 6000);
+    }, 6000);
   },
   /* R11: spotify has said nothing since the ask and the bed is out. a player that has NEVER said a word (a blocker that lets
-     the frame load and eats every message) is the one case the dock gives up on: it says so and the bed comes back, the
-     only way out of a dead frame. one that has talked keeps the bed out until a pause, stop, or a room change */
-  /* one preview's length from the first moment the bed went out for this ask (not restarted by the 6 s check) */
+     the frame load and eats every message) is the one case the dock gives up on, after one preview's length from the
+     first moment the bed went out for this ask */
   waitOut(artist) {
     if (this.hotFor === this.armT) return;
     this.hotFor = this.armT; clearTimeout(this.hotTo);
@@ -505,27 +694,30 @@ const D = {
   mute(artist) {
     if (!this.open || this.started && this.heard) return;
     if (this.heard) { this.say('spotify stopped answering, so the room stays quiet until you press stop.'); return; }
+    const wm = wmode();
+    if (!wm && !this.used) { this.close(false); return; }
     this.setLine('', 'no word from spotify');
-    this.say("something may be blocking its player. the room's music is back. the card opens spotify.");
+    this.say("something may be blocking its player. the room's music is back. " + (wm ? WALL_OPEN : 'the card opens spotify.'));
     /* the frame stays: if it is playing behind a blocker, its own pause is still there */
-    this.failed = true; this.failKind = 'mute'; this.byDwell = false; this.setCue(false);
+    this.failed = true; this.failKind = 'mute'; this.setCue(false);
     if (this.wantTid) this.cardOn(artist, this.wantTid, false);
     hush('off', 'fail');
+    if (!wm) this.reveal();
     this.track();
   },
-  /* R18 (phones): spotify says it is starting but there is no sound yet (android buffering, or ios's blink). after 600 ms of
-     that it is not a blink: the ring leaves spotify's button and the line says cueing up; 8 s more of nothing and it goes back */
+  /* R18 (webkit): spotify says it is starting but there is no sound yet (ios's blink, or buffering). after 600 ms of that
+     it is not a blink: the ring leaves spotify's button and the line says cueing up; 8 s more of nothing and it goes back */
   starting(on) {
     if (!on) { clearTimeout(this.startTo); this.startTo = 0; return; }
     if (this.startTo) return;
     this.startTo = setTimeout(() => {
       this.startTo = 0;
       if (!this.open || !this.lastRun || this.playingNow || this.failed) return;
-      this.el.classList.remove('is-tap'); this.setCue(false); this.setLine('cueing up ', this.artist); this.track();
+      this.el.classList.remove('is-tap'); this.setCue(false); this.setLine(wmode() ? 'cueing up ' : 'loading Spotify… ', this.artist); this.track();
       this.startTo = setTimeout(() => { this.startTo = 0; if (this.open && !this.playingNow && !this.failed && !this.ended) { this.tapLine(); this.track(); } }, 8000);
     }, 600);
   },
-  /* R18 (phones): a tap went into the player and spotify has said nothing for 4 s, though it has talked before. most often
+  /* R18 (webkit): a tap went into the player and spotify has said nothing for 4 s, though it has talked before. most often
      the tap missed the ▶. the room stays quiet (R11: never on silence), the ring goes back on the ▶, and the line says so */
   quietTap() {
     if (!this.open || this.started || this.failed) return;
@@ -533,16 +725,18 @@ const D = {
     this.say('no word from spotify since that tap. if it is silent, tap ▶ again, or stop.');
     this.track();
   },
-  pending() { return this.open && !this.started && Date.now() - this.armT < (coarse() ? 2500 : 6000); },
+  pending() { return this.open && !this.cueOnly && !this.started && Date.now() - this.armT < (wk() ? 2500 : 6000); },
   /* R18: the record. playing: pause. otherwise play, inside this click, so the browser counts it as the visitor's own
      (a paused clip resumes, a finished preview starts over) */
   press() {
     if (!this.ctl || !this.open || this.failed) return;
-    this.byDwell = false; clearTimeout(DW.g); DW.g = 0;
+    this.used = true;
+    if (!this.playingNow) this.mine = true;
+    if (this.cueOnly) { startCued(); return; }
     if (this.playingNow) { ctlDo('pause'); return; }
     nudge(this.wantTid, this.ended || this.atEnd ? 'restart' : this.started && this.prog ? 'resume' : 'play');
-    /* a phone that will not take a start from outside its frame: point at spotify's own ▶ */
-    if (this.co) { clearTimeout(this.tapTo); this.tapTo = setTimeout(() => { if (this.open && !this.playingNow && !this.failed) this.tapLine(); }, 1500); }
+    /* a frame that will not take a start from outside: point at spotify's own ▶ */
+    if (wk()) { clearTimeout(this.tapTo); this.tapTo = setTimeout(() => { if (this.open && !this.playingNow && !this.failed) this.tapLine(); }, 1500); }
   },
   setCue(on) {
     on = !!on && this.open && !this.failed;
@@ -570,6 +764,7 @@ const D = {
   },
   clipState() {
     if (!this.open) return 'off';
+    if (this.cueOnly) return 'cued';
     if (this.failed) return 'fail';
     if (this.playingNow) return 'playing';
     if (this.ended) return 'ended';
@@ -577,14 +772,14 @@ const D = {
     if (!this.ctl || !this.ready) return 'armed';
     return 'cueing';
   },
-  viaOut() { const v = this.via; return v === 'dwell' || v === 'tour' || v === 'auto' ? v : 'tap'; },
+  viaOut() { const v = this.via; return v === 'dwell' || v === 'tour' || v === 'auto' || v === 'stop' ? v : 'tap'; },
   /* sm:clip: on every change of state, artist or via, and every 250 ms while playing (the position estimate) */
   emit(tick) {
-    const state = this.clipState(), artist = this.artist || '', via = this.viaOut();
-    const key = state + '\u0001' + artist + '\u0001' + via, changed = key !== this.ek;
+    const state = this.clipState(), artist = this.artist || '', via = this.viaOut(), visitor = this.open && !!this.mine;
+    const key = state + '\u0001' + artist + '\u0001' + via + '\u0001' + visitor, changed = key !== this.ek;
     if (!changed && (!tick || Date.now() - this.tickAt < 250)) return;
     this.ek = key; this.tickAt = Date.now();
-    try { dispatchEvent(new CustomEvent('sm:clip', { detail: { state, artist, position: Math.round(this.estPos()), duration: Math.round(this.dur || 0), via } })); } catch (e) {}
+    try { dispatchEvent(new CustomEvent('sm:clip', { detail: { state, artist, position: Math.round(this.estPos()), duration: Math.round(this.dur || 0), via, visitor } })); } catch (e) {}
     if (changed) syncBtns();
     if (state === 'playing') { if (!this.tick) this.tick = setInterval(() => this.emit(true), 125); }
     else if (this.tick) { clearInterval(this.tick); this.tick = 0; }
@@ -595,8 +790,8 @@ const D = {
     const pl = this.open && this.playingNow;
     if (pl !== this.el.classList.contains('is-playing')) { this.el.classList.toggle('is-playing', pl); if (!pl) this.windDown(); }
     if (this.disc) {
-      /* on a phone the record only pauses: ios starts nothing from outside spotify's frame, so its ▶ is the only play */
-      const off = pl ? false : coarse();
+      /* where the frame wants a tap inside it, the record only pauses: spotify's ▶ is the only play */
+      const off = pl ? false : wk();
       if (this.disc.disabled !== off) { this.disc.disabled = off; if (off) this.disc.setAttribute('aria-hidden', 'true'); else this.disc.removeAttribute('aria-hidden'); }
       const lab = (pl ? 'pause ' : 'play ') + (this.artist || 'the clip') + (!pl && this.ended ? ' again' : '');
       if (this.disc.getAttribute('aria-label') !== lab) this.disc.setAttribute('aria-label', lab);
@@ -604,73 +799,60 @@ const D = {
     this.emit(false);
   },
   close(restoreFocus) {
-    clearTimeout(this.armTo); clearTimeout(this.tapTo); clearTimeout(this.failTo); clearTimeout(this.inTo); clearTimeout(this.hotTo); clearTimeout(this.mutTo); clearTimeout(this.endTo); clearTimeout(this.radioTo); this.radioTo = 0; clearTimeout(DW.g); DW.g = 0; this.starting(false);
-    const now = Date.now();
-    /* R18: pause only a player that may be sounding: one that last reported playback, one never heard from, a desk player
-       asked to play since its last report, or one tapped since then. pausing a player that holds nothing throws in
-       spotify's frame (webkit: "no list was loaded") */
-    if (this.ctl && (this.lastRun || !this.heard || (!coarse() && this.nudT > this.evAt && now - this.nudT < 3000) || this.tapAt > this.evAt)) ctlDo('pause');
-    this.started = false; this.byDwell = false; this.hov = false; this.tapAt = 0; this.playingNow = false; this.lastRun = false; this.ended = false; this.failed = false; this.failKind = '';
-    hush('off', 'close');
+    clearTimeout(this.armTo); clearTimeout(this.tapTo); clearTimeout(this.failTo); clearTimeout(this.inTo); clearTimeout(this.hotTo); clearTimeout(this.mutTo); clearTimeout(this.endTo); clearTimeout(this.radioTo); this.radioTo = 0; this.starting(false);
+    const now = Date.now(), qrOnly = this.qrOn && !this.open, idle = this.cueOnly && !this.lastRun, wm = wmode();
+    this.qrOff(true);
+    /* R18: pause only a player that may be sounding: one that last reported playback, one asked to play and never heard
+       from, a player asked to play since its last report, or one tapped since then. pausing a player that holds nothing
+       throws in spotify's frame ("no list was loaded"); a cue that never ran holds nothing to pause. R20: off the wall a
+       closed dock closing again (a room's leave after the stop change) has nothing new to pause: a clip still running
+       reports, and the report pauses it */
+    const again = !wm && !this.open && !this.qrOn;
+    if (this.ctl && !idle && !again && (this.lastRun || (!this.heard && (wm || this.nudT > 0)) || (!wk() && this.nudT > this.evAt && now - this.nudT < 3000) || this.tapAt > this.evAt)) ctlDo('pause');
+    this.started = false; this.tapAt = 0; this.mine = false; this.playingNow = false; this.lastRun = false; this.ended = false; this.failed = false; this.failKind = '';
+    this.cueOnly = false; this.cueGo = false; this.used = false;
+    if (!qrOnly) hush('off', 'close');
     if (!this.el) return;
-    this.open = false; this.el.classList.remove('is-tap', 'is-fail', 'is-card', 'is-void', 'is-cue', 'has-msg'); this.cue = false; this.h = -1; if (!this.asking) this.el.classList.add('is-off'); this.msg.hidden = true; this.msg.textContent = '';
+    this.open = false; this.el.classList.remove('is-tap', 'is-fail', 'is-card', 'is-void', 'is-cue', 'has-msg', 'is-link'); this.cue = false; this.h = -1; if (!this.asking) this.el.classList.add('is-off'); this.msg.hidden = true; this.msg.textContent = '';
     this.measure();
     this.track();
     const back = this.lastFocus; this.lastFocus = null;
     if (restoreFocus && back && back.isConnected) { try { back.focus({ preventScroll: true }); } catch (e) {} }
   },
 };
-/* a clip a rest started ends a moment after the pointer leaves, unless the pointer went to its pill */
-function graceClose() {
-  clearTimeout(DW.g);
-  DW.g = setTimeout(() => { DW.g = 0; if (D.open && D.quiet && D.byDwell && !D.hov) D.close(false); }, 240);
-}
-function paintAuto() {
-  const b = D.autoB; if (!b) return;
-  b.setAttribute('aria-checked', AUTO ? 'true' : 'false'); b.classList.toggle('is-on', AUTO);
-}
-/* R18 autoplay: after this preview, the artist autoplay served next most often in my log, one not heard in this run */
-function autoNext(from) {
-  if (!AUTO) return;
-  const A = D.ctx && D.ctx.audio;
-  if (A && A.muted) return;
-  if (autoSteps >= 6) { AUTO = false; paintAuto(); D.say('autoplay rests here after six. press auto to keep going.'); return; }
-  loadAuto(D.ctx).then((m) => {
-    if (!AUTO || !D.open || D.artist !== from || !D.ended) return;
-    const seen = D.autoSeen || (D.autoSeen = new Set());
-    seen.add(from);
-    const pick = ((m && m.next[from]) || []).map((x) => x.b).find((b) => !seen.has(b) && hasTrackNow(b));
-    if (!pick) { D.say('autoplay rests here: my log has no next artist for this one.'); return; }
-    clearTimeout(D.endTo);
-    D.endTo = setTimeout(() => {
-      if (!AUTO || !D.open || D.artist !== from || !D.ended) return;
-      autoSteps++; seen.add(pick); D.byDwell = false;
-      playArtist(pick, D.ctx, null, D.quiet ? { x: D.px || 16, y: D.py || 16 } : false,
-        { via: 'auto', served: true, fam: m.fam[pick], note: 'in my log, autoplay went from ' + from + ' to ' + pick + '. so does this.' }).catch(() => {});
-    }, still() ? 300 : 1400);
-  });
-}
 
 /* R10: a tap on spotify's own player moves focus into its frame, and this window hears blur before spotify reports
    anything (or ever does, behind a blocker). that is the moment the clip starts: the bed goes out now.
-   R11: it stays out until spotify says paused or the dock closes (a tap on the artwork keeps the room quiet too: the
-   dock is open and its stop is one tap away; after 4 s of nothing it says why). only a player that has never said a
-   word is given up on, after a preview */
+   R11: it stays out until spotify says paused or the dock closes. only a player that has never said a word is given up on */
 addEventListener('blur', () => setTimeout(() => {
   const f = D.slot && D.slot.querySelector('iframe');
-  if (!f || !D.open || document.activeElement !== f) return;
-  D.tapAt = Date.now(); hush('hot'); clearTimeout(D.inTo);
-  D.byDwell = false; D.setCue(false);
+  if (!f || !D.open || D.cueOnly || document.activeElement !== f) return;
+  D.tapAt = Date.now(); D.used = true; D.mine = true; hush('hot'); clearTimeout(D.inTo);
+  D.setCue(false);
   const at = D.tapAt;
-  D.inTo = setTimeout(() => { if (D.tapAt === at && D.evAt < at && !D.started) { if (D.co && D.heard) D.quietTap(); else D.mute(D.artist); } }, D.heard ? 4000 : 31000);
+  D.inTo = setTimeout(() => { if (D.tapAt === at && D.evAt < at && !D.started) { if (wk() && D.heard) D.quietTap(); else D.mute(D.artist); } }, D.heard ? 4000 : 31000);
 }, 0));
-/* R11: the old hot watchdog (four seconds of silence brought the bed back) is gone: silence is what a blocker or a
-   throttled frame sounds like while spotify plays on. a pause said while the page was hidden lands when it is seen */
+/* R11: silence is what a blocker or a throttled frame sounds like while spotify plays on, so nothing brings the bed back on
+   it. a pause said while the page was hidden lands when it is seen */
 document.addEventListener('visibilitychange', () => {
   const A = D.ctx && D.ctx.audio, s = D.later;
   if (document.hidden || !s || !A || !A.clip) return;
   D.later = null; if (A.clipState === 'hot') A.clip(s);
 });
+
+/* R20: preview or full track, said from spotify's first report for each track, before the end. a preview's line leads with
+   the app where the frame can never sign in (safari); a phone has the link standing out instead of a line */
+function notice() {
+  if (wmode() || !D.open || !(D.dur > 0) || D.noticed === D.wantTid) return;
+  D.noticed = D.wantTid;
+  const vis = D.shows();
+  if (D.dur > 31000) { D.note = ''; if (vis) D.say('full track.', 5000); }
+  else if (coarse()) D.note = '';
+  else if (signIn()) D.note = ['30-second preview. sign in to Spotify in this browser for full songs, or ', { a: 'open in the app ↗' }];
+  else D.note = [{ a: 'open in the app ↗' }, ' for the whole song. this is the 30-second preview.'];
+  D.paintLink();
+  if (vis && D.note && Date.now() > D.holdTo) D.say(D.note);
+}
 
 /* one report from the embed: {isPaused, position, duration} */
 function report(e) {
@@ -678,30 +860,33 @@ function report(e) {
   const now = Date.now(), pos = +dat.position || 0;
   D.evAt = now; D.heard = true;
   if (dat.duration > 0) D.dur = +dat.duration;
-  const dur = D.dur, end = dur > 0 && pos >= dur - 40, run = !dat.isPaused && !end, co = coarse();
+  const dur = D.dur, end = dur > 0 && pos >= dur - 40, run = !dat.isPaused && !end, co = wk();
   if (end && D.prog) D.atEnd = true; else if (run) D.atEnd = false;
   /* the dock is closed but the embed still plays (a pause that did not take): ask again, and keep the bed out until it
      stops. R18: a report at the very end, or ios's blink at 0, is not playing, and pausing it throws in spotify's frame */
   if (!D.open) { if (run && (pos > 0 || !co)) { ctlDo('pause'); hush('hot'); } else hush('off', 'pause'); return; }
+  /* a cue out of sight only listens: it learns the track's length, and one that starts by itself is stopped */
+  if (D.cueOnly) { if (run) ctlDo('pause'); notice(); return; }
   /* a player declared silent or missing that talks after all, or one spotify refused that plays anyway: carry on */
   if (D.failed && (D.failKind === 'mute' || D.failKind === 'stall' || (run && pos > 0))) D.unfail();
   const was = D.playingNow, wasRun = D.lastRun, prev = D.pos;
   const gap = D.lastRep ? Math.max(250, Math.min(1500, now - D.lastRep)) : 1000;
   D.lastRep = now; D.pos = pos; D.posAt = now; D.lastRun = run;
-  /* a phone's "playing" needs the position past 0 (ios's blink); a desk's needs spotify saying so, not still buffering */
+  /* webkit's "playing" needs the position past 0 (ios's blink); elsewhere it needs spotify saying so, not still buffering */
   D.playingNow = run && (pos > 0 || (!co && !dat.isBuffering));
   if (run) D.lastRunAt = now;
   if (D.playingNow) { if (pos > 0) D.prog = true; D.ended = false; if (D.popAt < D.armT) { D.popAt = D.armT; D.pop(); } }
   const ran = dur > 0 && pos === 0 && prev >= dur - 1500; /* a stand-in that reports the end as paused at 0 */
+  notice();
   if (co) {
-    /* R9: "hearing" only while the embed reports real playback. ios plays for a blink and pauses at 0 when the tap
-       came from outside the frame; that undoes the claim, and any pause puts the tap line back */
+    /* R9: "hearing" only while the embed reports real playback. ios plays for a blink and pauses at 0 when the tap came
+       from outside the frame; that undoes the claim, and any pause puts the tap line back */
     if (D.playingNow) { D.starting(false); if (!D.started) { D.started = true; D.playAt = now; } D.playing(D.artist, !was); }
     else if (run) D.starting(true);
     else {
       D.starting(false);
       if (D.started && pos === 0 && now - D.playAt < 4000 && !end) D.started = false;
-      /* a phone resumes only from spotify's own ▶, so a pause says where that is */
+      /* resuming is only from spotify's own ▶, so a pause says where that is */
       if (was && D.prog && (end || ran)) D.endLine();
       else if (!D.ended) D.tapLine();
     }
@@ -716,11 +901,11 @@ function report(e) {
   } else {
     /* the embed reports paused while it loads: that must not bring the bed back up before the clip has begun.
        R10: paused while the next one loads waits at 'armed'. R18: our own play() that flickered to playing at 0 and
-       back (webkit refusing it) is not a clip that played; one that reached its end, or paused, says so */
-    if (wasRun && D.started && !D.tapAt && now - D.nudT < 4000 && pos === 0 && prev === 0 && !end) { D.started = false; D.setLine('cueing up ', D.artist); }
+       back (a refused start) is not a clip that played; one that reached its end, or paused, says so */
+    if (wasRun && D.started && !D.tapAt && now - D.nudT < 4000 && pos === 0 && prev === 0 && !end) { D.started = false; if (wmode()) D.setLine('cueing up ', D.artist); else D.cuedUp(); }
     else if (wasRun && D.started && D.prog && (end || ran)) D.endLine();
-    /* webkit refusing our play() jumps the clip to its end with no sound in between: that is a no, not a preview */
-    else if (end && !D.prog) { D.started = false; D.playingNow = false; D.tapToPlay(D.artist); }
+    /* a refused play() can jump the clip to its end with no sound in between: that is a no, not a preview */
+    else if (end && !D.prog) { D.started = false; D.playingNow = false; if (wmode()) D.tapToPlay(D.artist); else D.cuedUp(); }
     else if (wasRun && D.started && pos > 0) D.pauseLine();
     D.tapAt = 0; clearTimeout(D.inTo);
     hush(D.pending() && D.ready && !D.el.classList.contains('is-tap') ? 'armed' : 'off', 'pause');
@@ -728,41 +913,55 @@ function report(e) {
   if (D.playingNow && dur > 0) D.ringTo((pos + gap) / dur, gap); else D.ringTo(D.ended ? 1 : D.prog && dur > 0 ? pos / dur : 0, 200);
   D.track();
   /* the embed loads paused; one nudge per uri, never a loop */
-  if (dat.isPaused && D.playT && now - D.playT < 4000 && pos === 0) { D.playT = 0; setTimeout(() => { if (D.open && !D.started && !D.tapAt) { D.nudT = Date.now(); ctlDo('play'); } }, Math.max(0, D.armT + 320 - now)); }
+  if (dat.isPaused && D.playT && now - D.playT < 4000 && pos === 0) { D.playT = 0; setTimeout(() => { if (D.open && !D.cueOnly && !D.started && !D.tapAt) { D.nudT = Date.now(); ctlDo('play'); } }, Math.max(0, D.armT + 320 - now)); }
 }
 
-/* resolve an artist to a controller playing them. `trigger` is the control that was clicked, for focus return. */
-async function playArtist(artist, ctx, trigger, quiet, o = {}) {
+/* resolve an artist to a controller playing them. `trigger` is the control that was clicked, for focus return.
+   o: { via, fam, quiet (the wall), kb, cue (R20: load out of sight for the stop, start nothing) } */
+async function playArtist(artist, ctx, trigger, o = {}) {
   /* R5: no duck yet. a miss never ducks; arm() ducks once the embed is ready (the ready listener re-arms) */
-  clearTimeout(DW.g); DW.g = 0;
-  const t0 = Date.now();
+  if (wmode() === 'qr' || wmode() === 'off') return 'notid';
+  const cue = !!o.cue && !wmode();
+  if (cue && D.open && !D.cueOnly) return 'busy';
+  const t0 = Date.now(), g = gen;
   const ids = await loadIds(), tid = ids[artist];
   if (!tid) return 'notid';
+  if (g !== gen) return 'ok'; /* revoke() ran while the ids were on their way: this request belongs to a visitor who has gone */
+  if (cue && D.open && !D.cueOnly) return 'busy'; /* the visitor played something while the ids were on their way */
   clearTimeout(D.radioTo); D.radioTo = 0;
-  grantConsent();
-  D.build(ctx); D.ctx = ctx; watchStops(ctx); loadAuto(ctx);
-  const via = o.via === 'dwell' || o.via === 'tour' || o.via === 'auto' ? o.via : 'tap';
-  if (via !== 'auto') { autoSteps = 0; D.autoSeen = null; }
+  if (wmode()) grantConsent();
+  D.build(ctx); D.ctx = ctx; wire(ctx); loadFam(ctx);
+  const via = o.via === 'dwell' || o.via === 'tour' || o.via === 'auto' || o.via === 'stop' ? o.via : 'tap';
+  /* the stop's cue, asked for again: it is loaded already, so it shows and starts, with no second load */
+  const cued = !cue && D.open && D.cueOnly && D.artist === artist && D.wantTid === tid;
   /* R18: the same artist, paused or finished in the open player: carry on (or start over) without a new load */
-  const cont = D.open && D.artist === artist && D.loaded === tid && !!D.ctl && D.ready && !D.failed && (D.ended || (D.started && D.prog && !D.playingNow));
+  const cont = !cue && !cued && D.open && D.artist === artist && D.loaded === tid && !!D.ctl && D.ready && !D.failed && (D.ended || (D.started && D.prog && !D.playingNow));
   const how = cont ? (D.ended || D.atEnd ? 'restart' : 'resume') : '';
-  D.via = via; D.served = via === 'auto' && !!o.served; D.famName = o.fam || ''; D.fam = famHex(o.fam) || famOf(artist); D.note = o.note || '';
-  D.setQuiet(!!quiet, quiet || null);
-  D.msg.hidden = true; D.msg.textContent = '';
-  const wasOpen = D.open;
+  const was = D.shows();
+  D.via = via; D.mine = !cue && (via === 'tap' || via === 'dwell' || !!o.mine); D.famName = o.fam || ''; D.fam = famHex(o.fam) || famOf(artist);
+  /* the wall: a quiet play is the pill at o.quiet ({x, y}) */
+  if (wmode()) D.setQuiet(!!o.quiet, o.quiet && typeof o.quiet === 'object' ? o.quiet : null); else D.quiet = false;
+  if (!cued) { D.msg.hidden = true; D.msg.textContent = ''; }
+  D.cueOnly = cue; D.cueGo = false;
+  if (!cue) D.used = true;
   D.lastFocus = trigger && trigger.isConnected ? trigger : D.lastFocus;
-  D.show(artist, tid, cont);
-  if (!cont) D.arm(t0);
-  /* a visitor who arrived by keyboard lands on the player, so escape and the stop button are one key away.
-     a kiosk demo passes no trigger and never steals the focus. */
-  if ((trigger || o.kb) && !wasOpen) { try { D.x.focus({ preventScroll: true }); } catch (e) {} }
   D.wantTid = tid;
+  D.show(artist, tid, cont || cued);
+  if (!cue && !cont) D.arm(t0);
+  /* a visitor who arrived by keyboard lands on the player, so escape and the stop button are one key away.
+     a kiosk demo or a stop's cue passes no trigger and never steals the focus. */
+  if ((trigger || o.kb) && !was && !cue) { try { D.x.focus({ preventScroll: true }); } catch (e) {} }
   if (cont) { nudge(tid, how); return 'ok'; }
+  if (cued) { if (D.ctl && D.ready && D.loaded === tid) nudge(tid); return 'ok'; }
   let api;
-  try { api = await loadApi(); } catch (e) { D.fail(artist, tid); return 'apifail'; }
+  try { api = await loadApi(); } catch (e) { if (g !== gen) return 'ok'; if (D.wantTid === tid) D.fail(artist, tid); return 'apifail'; }
+  if (g !== gen) return 'ok';
   if (D.wantTid !== tid) return 'ok'; /* a later click already asked for someone else */
   if (D.ctl) {
-    throttle(() => { if (D.wantTid !== tid || !D.ctl) return; try { if (D.loaded !== tid) { D.ctl.loadUri('spotify:track:' + tid); D.loaded = tid; D.playFor = ''; D.atEnd = false; } nudge(tid); } catch (e) { D.fail(artist, tid); } });
+    throttle(() => {
+      if (D.wantTid !== tid || !D.ctl) return;
+      try { if (D.loaded !== tid) { D.ctl.loadUri('spotify:track:' + tid); D.loaded = tid; D.playFor = ''; D.atEnd = false; } if (D.cueOnly) { if (D.ready) cueReady(); } else nudge(tid); } catch (e) { D.fail(artist, tid); }
+    });
     return 'ok';
   }
   if (D.making) return 'ok'; /* the controller is on its way; its ready listener plays D.wantTid */
@@ -772,27 +971,31 @@ async function playArtist(artist, ctx, trigger, quiet, o = {}) {
     D.clearSlot(); D.slot.appendChild(host);
     loads++; lastLoad = Date.now();
     api.createController(host, { uri: 'spotify:track:' + tid, height: 80, width: '100%', theme: 'dark' }, (ctl) => {
+      if (g !== gen) { try { ctl.destroy(); } catch (e) {} return; } /* made for a visitor revoke() has since sent away */
       D.ctl = ctl; D.making = false; D.loaded = tid; D.playFor = ''; D.heard = false; D.atEnd = false;
       { const fr = D.slot.querySelector('iframe'); if (fr && !fr.title) fr.title = 'spotify player'; }
+      /* the wall retires a controller by destroying it; a report it had already queued must not touch the next visitor's dock */
+      const stale = () => wmode() && D.ctl !== ctl;
       ctl.addListener('ready', () => {
+        if (stale()) return;
         D.ready = true; if (D.failKind === 'stall') D.unfail(); D.slotted();
-        /* R10: spotify's loadUri reloads the frame, and every reload says ready again. the old test here compared the
-           wanted track with the first one this controller was made for, so from the second artist on each ready loaded
-           again: a reload every quarter second, and the clip never started. only a track not yet loaded loads now */
+        /* R10: spotify's loadUri reloads the frame, and every reload says ready again: only a track not yet loaded loads now */
         if (D.open && D.wantTid && D.wantTid !== D.loaded) { try { ctl.loadUri('spotify:track:' + D.wantTid); D.loaded = D.wantTid; D.playFor = ''; D.atEnd = false; loads++; lastLoad = Date.now(); } catch (e) {} }
-        if (D.playFor !== D.loaded) nudge(D.wantTid);
+        if (D.cueOnly) cueReady(); else if (D.playFor !== D.loaded) nudge(D.wantTid);
         requestAnimationFrame(() => D.measure());
       });
       ctl.addListener('playback_started', () => {
+        if (stale()) return;
         D.evAt = Date.now(); D.heard = true;
-        if (!D.open) return;
+        if (!D.open || D.cueOnly) return;
         /* ios's blink after our own play() is not a start: the first report with the position past 0 is */
-        if (coarse() && !D.tapAt && Date.now() - D.nudT < 1500) return;
+        if (wk() && !D.tapAt && Date.now() - D.nudT < 1500) return;
         hush('hot');
       });
-      ctl.addListener('playback_update', report);
+      ctl.addListener('playback_update', wmode() ? (e) => { if (!stale()) report(e); } : report);
       /* R18: spotify says it cannot find or play this track here: the card, never a dead grey box */
       ctl.addListener('error', (e) => {
+        if (stale()) return;
         const d = (e && e.data) || {}, m = String(d.message || d.code || d.type || '');
         if (d.recoverable === false || /resolve|invalid|unavailable|not available|not found|restricted|region/i.test(m)) D.dead(D.artist, D.wantTid);
       });
@@ -807,17 +1010,43 @@ function throttle(fn) {
   const w = lastLoad + 400 - Date.now();
   if (w <= 0) go(); else loadTo = setTimeout(go, w);
 }
-/* a stop change ends the quiet pill, its ask and any pending dwell (rooms also call stopPosts on leave) */
+/* R20: the stops, the sound, the first press. a stop change closes a clip (or the tour hands it over), and the new stop's
+   post is cued; the sound coming on starts a cue; muting pauses the clip, since this page's mute cannot reach spotify's frame */
+function wire(ctx) {
+  if (!ctx) return;
+  if (!D.ctx) D.ctx = ctx;
+  watchStops(ctx);
+  if (wired || !ctx.audio || typeof ctx.audio.onChange !== 'function') return;
+  wired = true;
+  try {
+    ctx.audio.onChange((s) => {
+      if (wmode()) return;
+      if (s === 'muted') { if (D.open && !D.cueOnly && (D.playingNow || D.lastRun)) ctlDo('pause'); return; }
+      if (s === 'on') { cueReady(); cueSoon(); }
+    });
+  } catch (e) {}
+}
 function watchStops(ctx) {
   if (stopSub || !ctx || typeof ctx.onStop !== 'function') return;
   stopSub = true;
   ctx.onStop((ev) => {
-    clearTimeout(DW.t); DW.t = 0; DW.artist = ''; clearTimeout(DW.g); DW.g = 0; D.hideAsk();
-    if (!D.open || !D.quiet) return;
-    /* R18 radio: the tour turning the page under a listening visitor keeps the player 4 s, so the tour's artist for the new
-       stop can take over (playArtist via 'tour'); with no hand-over it closes, as every other stop change does at once */
-    if (ev && ev.via === 'tour' && radioOn()) { holdForTour(ctx); return; }
-    D.close(false);
+    /* the shell repeats the current stop once at boot ('mount'): that is not a change */
+    const same = !!ev && ev.via === 'mount' && (LASTSTOP === -1 || LASTSTOP === ev.i);
+    if (ev && isFinite(ev.i)) LASTSTOP = ev.i;
+    if (same) { cueSoon(); return; }
+    STOPN++;
+    D.hideAsk();
+    if (D.qrOn && !D.open) { D.close(false); return; }
+    if (wmode()) {
+      if (!D.open || !D.quiet) return;
+      if (ev && ev.via === 'tour' && radioOn()) { holdForTour(ctx); return; }
+      D.close(false);
+      return;
+    }
+    /* R18 radio: the tour turning the page under a listening visitor keeps the player 4 s, so the next stop's post can take
+       over; with no hand-over it closes, as every other stop change does at once */
+    if (D.open && !D.radioTo) { if (!D.cueOnly && ev && ev.via === 'tour' && radioOn()) holdForTour(ctx); else D.close(false); }
+    cueSoon();
   });
 }
 /* tour.js raises active.enRoute around its own room change, so a room that stops its posts on leave can tell */
@@ -834,17 +1063,104 @@ function holdForTour(ctx) {
   };
   D.radioTo = setTimeout(end, 500);
 }
-/* R10: play at once. spotify's api holds a command while its frame (re)loads and sends it on ready, so the old 420 ms
-   wait only made every clip later (measured: it was most of the warm start). R18: a clip at its end starts over */
+/* R10: play at once. spotify's api holds a command while its frame (re)loads and sends it on ready. R18: a clip at its
+   end starts over */
 function nudge(tid, how) {
-  if (!D.ctl || D.wantTid !== tid || !D.open) return;
+  if (!D.ctl || D.wantTid !== tid || !D.open || D.cueOnly) return;
   D.arm(); D.ended = false; D.playT = D.nudT = Date.now(); D.playFor = D.loaded;
   ctlDo(how || (D.atEnd ? 'restart' : 'play'));
   D.track();
 }
 
+/* ------------------------------------------------------------------ R20: the post on screen */
+/* one IntersectionObserver over every post off the wall. a stop's first post that is at least half visible (in its active
+   room, not hidden or faded out) is cued once per stop: after a stop change the page settles (a room fades in, a card
+   slides) before anything is read, so the scan runs three times */
+const ROOTS = new WeakMap(), ROOTSET = new Set(), SEEN = new WeakSet();
+let IO = null, STOPN = 0, LASTSTOP = -1, scanT = [], cueKey = '', kickT = 0, preTried = false, GEST = false;
+/* the privacy stance (R20 item 18): a stop's post is loaded only after a press on this page or one carried over to it */
+const gestured = () => { if (GEST) return true; try { return !!(navigator.userActivation && navigator.userActivation.hasBeenActive); } catch (e) { return false; } };
+function observe(root) {
+  if (!IO && typeof IntersectionObserver === 'function') {
+    try { IO = new IntersectionObserver((es) => { es.forEach((e) => { if (e.intersectionRatio >= 0.5) SEEN.add(e.target); else SEEN.delete(e.target); }); cueSoon(); }, { threshold: 0.5 }); } catch (e) { IO = null; }
+  }
+  if (IO) try { IO.observe(root); } catch (e) {}
+}
+function onScreen(root) {
+  if (!root.isConnected || root.closest('[hidden],[inert]')) return false;
+  const sec = root.closest('section');
+  if (sec && sec.hasAttribute('data-room') && !sec.classList.contains('is-active')) return false;
+  if (IO && !SEEN.has(root)) return false;
+  const r = root.getBoundingClientRect();
+  if (r.width < 2 || r.height < 2 || r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth) return false;
+  for (let e = root; e && e.nodeType === 1; e = e.parentElement) {
+    const cs = getComputedStyle(e);
+    if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < 0.05) return false;
+  }
+  return true;
+}
+function cueSoon() {
+  if (wmode()) return;
+  scanT.forEach(clearTimeout);
+  scanT = [400, 1200, 2500].map((ms) => setTimeout(cueScan, ms));
+}
+function cueScan() {
+  if (wmode() || kioskOn() || muted() || !gestured()) return;
+  const key = String(STOPN);
+  if (cueKey === key) return;
+  ROOTSET.forEach((r) => { if (!r.isConnected) ROOTSET.delete(r); });
+  const list = [...ROOTSET].filter(onScreen);
+  if (!list.length) return;
+  list.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+  const m = ROOTS.get(list[0]); if (!m) return;
+  cueKey = key;
+  const vis = D.shows();
+  /* the tour's hand-over: a listening visitor hears the next stop's post */
+  if (D.radioTo && vis) { playQuiet(m.artist, m.ctx, { via: 'tour', fam: m.fam }).catch(() => {}); return; }
+  if (vis) return;
+  if (D.open && D.cueOnly && D.artist === m.artist) { cueReady(); return; }
+  playArtist(m.artist, m.ctx, null, { cue: true, via: 'stop', fam: m.fam }).catch(() => {});
+}
+/* the cue is loaded and the visitor has pressed something with the sound on: start it. webkit shows the dock with the ring
+   on spotify's ▶ instead, since only a tap inside the frame starts it there */
+function cueReady() {
+  if (wmode() || !D.cueOnly || !D.open || !D.ctl || !D.ready || D.loaded !== D.wantTid) return;
+  if (muted() || kioskOn() || !(D.cueGo || soundOn())) return;
+  if (needTap()) { D.cueOnly = false; D.cueGo = false; D.reveal(); D.tapLine(); D.say(D.note); D.track(); return; }
+  startCued();
+}
+function startCued() {
+  if (!D.cueOnly) return;
+  D.cueOnly = false; D.cueGo = false;
+  D.reveal(); D.say(D.note);
+  nudge(D.wantTid);
+}
+/* the shell's gesture hook (W45 arm), called once it has woken the audio: a press anywhere starts the stop's cue, and the page's first
+   press cues the stop's post if nothing is cued yet. a touch's pointerdown carries no activation yet, and a name or a post
+   the press lands on goes first */
+export function kick(e) {
+  if (wmode() || kioskOn()) return;
+  if (e && e.type === 'pointerdown' && e.pointerType !== 'mouse') return;
+  const first = !GEST; GEST = true;
+  if (first) preconnect();
+  if (!D.cueOnly && !first) return;
+  clearTimeout(kickT);
+  kickT = setTimeout(() => { if (muted()) return; if (D.cueOnly) { D.cueGo = true; cueReady(); } else if (first && !D.open) cueSoon(); }, 120);
+}
+/* the handshake costs a moment on the first play; it is opened at idle, once, never while muted and never before a press */
+function preconnect() {
+  if (preTried || wmode() || kioskOn() || !gestured()) return;
+  preTried = true;
+  const go = () => {
+    if (muted()) { preTried = false; return; }
+    try { const l = document.createElement('link'); l.rel = 'preconnect'; l.href = 'https://open.spotify.com'; document.head.appendChild(l); } catch (e) {}
+  };
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(go, { timeout: 3000 }); else setTimeout(go, 1200);
+}
+
 function grantConsent() {
-  if (consent) return;
+  if (consent || !wmode()) return;
+  if (wmode() === 'qr' || wmode() === 'off') return;
   consent = true;
   notes.forEach((n) => { if (n.isConnected) n.remove(); }); notes.clear();
 }
@@ -852,128 +1168,184 @@ function grantConsent() {
 /* rooms call this when they leave or reshuffle: the clip stops and the soundtrack comes back.
    the controller itself is kept, so the next artist starts without a second load. */
 export function stopAll(ctx) {
-  clearTimeout(DW.t); DW.t = 0; DW.artist = ''; clearTimeout(DW.g); DW.g = 0;
-  /* R18 radio: the room the tour is leaving stops its posts too; a listening visitor's pill waits for the hand-over */
-  if (D.el && D.open && D.quiet && enRoute(ctx) && radioOn()) { D.hideAsk(); holdForTour(ctx); return; }
-  if (D.el) { D.hideAsk(); D.close(false); } else if (ctx && !ctx.audio.clip) ctx.audio.duck(false);
+  /* R18 radio: the room the tour is leaving stops its posts too; a listening visitor's player waits for the hand-over */
+  if (D.el && D.shows() && (!wmode() || D.quiet) && enRoute(ctx) && radioOn()) { D.hideAsk(); holdForTour(ctx); return; }
+  if (D.el) { D.hideAsk(); D.close(false); } else if (ctx && ctx.audio && !ctx.audio.clip) ctx.audio.duck(false);
 }
 
-/* ------------------------------------------------------------------ R5 L2: quiet play and dwell */
-const DW = { t: 0, artist: '', g: 0 };
-/* playArtist(artist, {quiet: true, x, y}): the pill next to (x, y). before consent: the ask, and nothing else */
+/* R19 the wall. one visitor's yes must not carry to the next: the idle reset and the return to the loop call revoke(), through
+   atlas/wallout.js and sm:wall-post (that file never imports this one, whatever ?v= this one is loaded with). consent and
+   declined go back to false, the controller and its frame are destroyed, a fail card or a code is put away, and the printed
+   notes come back. closeDock() is the dock's own close, so the bed returns by the rule that already returns it */
+export function revoke() {
+  if (!wmode()) return;
+  gen++; lateRetried = false;
+  clearTimeout(loadTo); loadTo = 0;
+  consent = false; declined = false;
+  if (D.el) { D.hideAsk(true); D.close(false); D.teardown(); }
+  if (wmode() === 'spotify') {
+    notes.forEach((n) => n.remove()); notes.clear(); noted = new WeakSet();
+    noteHosts.forEach((nh) => {
+      if (!nh.isConnected) { noteHosts.delete(nh); return; }
+      noted.add(nh);
+      const n = document.createElement('p'); n.className = 'post-note';
+      n.textContent = 'the first one of these loads a player from spotify. nothing reaches them until you tap.';
+      nh.appendChild(n); notes.add(n);
+    });
+  }
+  syncBtns();
+}
+export function closeDock() { if (D.el) { D.hideAsk(); D.close(false); } }
+addEventListener('sm:wall-post', (e) => {
+  const op = e && e.detail && e.detail.op;
+  if (op === 'revoke') revoke(); else if (op === 'close') closeDock();
+});
+
+/* ctx.post.playArtist(artist, o): a name or a control asks for an artist. off the wall it plays at once in the one dock.
+   the wall: posts=qr shows a code, posts=spotify asks once per visitor */
 export async function playQuiet(artist, ctx, o = {}) {
   if (!artist) return 'notid';
-  /* R18 radio: the tour and autoplay only ever change what a listening visitor hears: never an ask, never after a stop
-     or a pause, and the autoplay switch, once on, wins over the tour */
+  const wm = wmode();
+  if (wm === 'off') return 'off';
+  if (wm === 'qr') return o.via === 'tour' || o.via === 'auto' || o.via === 'dwell' ? 'idle' : qrArtist(artist, ctx, o.trigger || null);
+  if (o.via === 'dwell') return 'idle';
+  /* R18 radio: the tour and autoplay only ever change what a listening visitor hears: never after a stop or a pause */
   if (o.via === 'tour' || o.via === 'auto') {
-    if (!radioOn() || (o.via === 'tour' && AUTO)) return 'idle';
+    if (!radioOn()) return 'idle';
     if (D.artist === artist && D.playingNow) { clearTimeout(D.radioTo); D.radioTo = 0; return 'same'; }
-    D.byDwell = false;
-    if (!(isFinite(o.x) && isFinite(o.y))) return playArtist(artist, ctx, null, D.quiet ? { x: D.px || 16, y: D.py || 16 } : false, o);
+    if (!wm || !(isFinite(o.x) && isFinite(o.y))) return playArtist(artist, ctx, null, Object.assign({}, o, { quiet: wm && D.quiet ? { x: D.px || 16, y: D.py || 16 } : false }));
   }
-  if (o.quiet === false) return consent ? playArtist(artist, ctx, o.trigger || null, false, o) : 'ask';
-  const ids = await loadIds(); if (!ids[artist]) return 'notid';
-  const at = isFinite(o.x) && isFinite(o.y) ? { x: +o.x, y: +o.y } : null;
-  D.build(ctx); D.ctx = D.ctx || ctx; watchStops(ctx);
-  if (!consent) { if (declined) return 'declined'; D.ask(artist, at, o); return 'ask'; }
-  if (D.open && D.quiet && D.artist === artist && !D.failed && (D.playingNow || (!D.started && !D.ended))) return 'same';
-  D.byDwell = o.via === 'dwell';
-  return playArtist(artist, ctx, o.trigger || null, at || { x: 16, y: 16 }, o);
+  if (wm) {
+    if (o.quiet === false) return consent ? playArtist(artist, ctx, o.trigger || null, o) : 'ask';
+    const ids = await loadIds(); if (!ids[artist]) return 'notid';
+    const at = isFinite(o.x) && isFinite(o.y) ? { x: +o.x, y: +o.y } : null;
+    D.build(ctx); D.ctx = D.ctx || ctx; wire(ctx);
+    if (!consent) { if (declined) return 'declined'; D.ask(artist, at, o); return 'ask'; }
+    if (D.open && D.quiet && D.artist === artist && !D.failed && (D.playingNow || (!D.started && !D.ended))) return 'same';
+    return playArtist(artist, ctx, o.trigger || null, Object.assign({}, o, { quiet: at || { x: 16, y: 16 } }));
+  }
+  /* the name that is already playing, or starting, keeps playing */
+  if (D.shows() && D.artist === artist && !D.failed && (D.playingNow || D.pending())) return 'same';
+  return playArtist(artist, ctx, o.trigger || null, Object.assign({}, o, { via: o.via === 'tour' || o.via === 'auto' ? o.via : 'tap' }));
+}
+/* R19 posts=qr: a press resolves the artist's track id (this site's own audio/sonic-tid-to-artist.json) and shows its code */
+async function qrArtist(artist, ctx, trigger) {
+  const ids = await loadIds(), tid = ids[artist];
+  if (!tid) return 'notid';
+  D.build(ctx); D.ctx = ctx; wire(ctx);
+  D.qrShow(artist, tid, trigger);
+  return 'ok';
 }
 /* listening: a clip is playing, or the preview just ran out and the visitor has not put the player away */
-function radioOn() { return consent && D.open && !D.failed && (D.playingNow || D.ended || Date.now() - D.lastRunAt < 3000); }
-export function dwell(artist, ctx, o = {}) {
-  if (!artist || (declined && !consent)) return;
-  if (PT.held) { clearTimeout(PT.relT); PT.relT = 0; PT.held = null; }
-  if (DW.t && DW.artist === artist) return;
-  if (D.open && D.quiet && D.artist === artist) { clearTimeout(DW.g); DW.g = 0; return; }
-  if (D.asking === artist) return;
-  /* a dwell elsewhere leaves the clip a previous dwell started */
-  if (D.open && D.quiet && D.byDwell) D.close(false);
-  clearTimeout(DW.t); clearTimeout(DW.g); DW.g = 0; DW.artist = artist;
-  const at = { x: o.x, y: o.y, via: 'dwell', fam: o.fam };
-  const fire = () => {
-    /* R18: a mouse on its way somewhere crosses stars; only a rest of 220 ms counts, so a passing path loads nothing */
-    const calm = Date.now() - PT.at;
-    if (!o.touch && calm < 220) { DW.t = setTimeout(fire, 230 - calm); return; }
-    DW.t = 0; DW.artist = ''; playQuiet(artist, ctx, at).catch(() => {});
-  };
-  DW.t = setTimeout(fire, o.touch ? 500 : 600);
-}
-export function undwell(ctx, o = {}) {
-  if (PT.down) { if (!PT.held || !(o && o.keep)) PT.held = { ctx, o }; return; }
-  clearTimeout(DW.t); DW.t = 0; DW.artist = '';
-  if (o && o.keep) return;
-  if (D.open && D.quiet && D.byDwell) { if (coarse()) D.close(false); else graceClose(); }
-}
+function radioOn() { return allowed() && D.open && !D.cueOnly && !D.failed && (D.playingNow || D.ended || Date.now() - D.lastRunAt < 3000); }
+/* R20: a rest or a hold no longer plays anything (names are the buttons); kept so the rooms that still call them do nothing */
+export function dwell() {}
+export function undwell() {}
 export function postState() {
-  return { consent, declined, quiet: D.quiet, open: D.open, asking: D.asking, artist: D.artist, started: D.started, loads, pending: !!DW.t, ready: D.ready,
-    state: D.clipState(), position: Math.round(D.estPos()), duration: Math.round(D.dur || 0), via: D.viaOut(), playing: D.open && D.playingNow, cue: D.cue, ended: D.ended, auto: AUTO, failed: D.failed };
+  const st = { consent: allowed(), declined, quiet: D.quiet, open: D.open && !D.cueOnly, asking: D.asking, artist: D.artist, started: D.started, loads, pending: false, ready: D.ready,
+    state: D.clipState(), position: Math.round(D.estPos()), duration: Math.round(D.dur || 0), via: D.viaOut(), visitor: D.open && !!D.mine, playing: D.open && D.playingNow, cue: D.cue, ended: D.ended, auto: false, failed: D.failed,
+    cued: D.open && D.cueOnly, used: D.used };
+  /* wall only. a code on show reports 'cueing' so the tour holds the stop while a phone is raised (chrome.js holds on it, 30 s at most) */
+  const wm = wmode();
+  if (wm) { st.mode = wm; st.qr = D.qrOn; st.qrArtist = D.qrArtist; if (D.qrOn && !D.open) st.state = 'cueing'; }
+  return st;
 }
 
-/* play an artist with no control in the room: kiosk demos only, and only after a visitor has consented once. */
+/* play an artist with no control in the room (kiosk demos); the wall waits for a visitor's yes */
 export function playClip(artist, ctx) {
-  if (!consent) return Promise.resolve(false);
-  return playArtist(artist, ctx, null, false, { via: 'auto' }).then((r) => r === 'ok').catch(() => false);
+  if (!allowed()) return Promise.resolve(false);
+  return playArtist(artist, ctx, null, { via: 'auto' }).then((r) => r === 'ok').catch(() => false);
 }
 
-/* R18: each "hear <artist>" control says what the player is doing with its artist */
+/* each post control says what the player is doing with its artist. off the wall the control is the name itself */
 function paintBtn(rec) {
   const { btn, artist } = rec;
   if (btn.isConnected) rec.seen = true;
   if (rec.busy) return;
   const t = btn.querySelector('.post-t'), ico = btn.querySelector('.post-ico'); if (!t || !ico) return;
   const st = D.open && D.artist === artist ? D.clipState() : 'off';
-  let text = rec.label(), icon = '▶', aria = 'hear a clip of ' + artist + ' in the player at the bottom of the screen', on = false;
-  if (st === 'playing') { text = 'hearing ' + artist; icon = '❚❚'; aria = 'pause ' + artist; on = true; }
+  let text = rec.label(), icon = '▶', aria = ariaOf(artist), on = false;
+  if (!wmode()) {
+    const pl = st === 'playing';
+    text = artist; icon = pl ? '❚❚' : '♪';
+    aria = pl ? 'pause ' + artist : st === 'ended' ? 'play ' + artist + ' again' : aria;
+    on = pl || st === 'armed' || st === 'cueing';
+  } else if (st === 'playing') { text = 'hearing ' + artist; icon = '❚❚'; aria = 'pause ' + artist; on = true; }
   else if (st === 'armed' || st === 'cueing') { text = D.cue ? 'tap ▶ in the player' : 'cueing up ' + artist; on = true; }
   else if (st === 'paused') { text = 'paused on ' + artist; aria = 'play ' + artist; }
   else if (st === 'ended') { text = 'hear ' + artist + ' again'; aria = text; }
   else if (st === 'fail') text = 'could not play ' + artist;
+  if (D.qrOn && !D.open && D.qrArtist === artist) on = true;
   if (t.textContent !== text) t.textContent = text;
   if (ico.textContent !== icon) ico.textContent = icon;
   if (btn.getAttribute('aria-label') !== aria) btn.setAttribute('aria-label', aria);
   btn.classList.toggle('is-on', on);
 }
+const ariaOf = (artist) => (wmode() === 'qr' ? 'show a code to hear ' + artist + ' on your phone' : wmode() ? 'hear a clip of ' + artist + ' in the player at the bottom of the screen' : 'play ' + artist + ' from Spotify');
 function syncBtns() { BTNS.forEach((r) => { if (!r.btn.isConnected && r.seen) { BTNS.delete(r); return; } paintBtn(r); }); }
 
 /* build a post control for `artist` inside `host`. returns the root element. */
 export function post(host, artist, ctx, opts = {}) {
   const root = document.createElement('div'); root.className = 'post';
+  const wm = wmode();
+  /* posts=off: no control at all (an empty hidden root, so a room that keeps the node still has one) */
+  if (wm === 'off') { root.hidden = true; host.appendChild(root); return root; }
+  if (wm === 'qr') qrMod(ctx).catch(() => {});
+  wire(ctx);
   const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'post-btn';
-  btn.innerHTML = '<span class="post-ico" aria-hidden="true">&#9654;</span><span class="post-t"></span>';
-  const label = () => (opts.label || 'hear') + ' ' + artist;
+  btn.innerHTML = '<span class="post-ico" aria-hidden="true">' + (wm ? '&#9654;' : '&#9834;') + '</span><span class="post-t"></span>';
+  const label = () => (wm ? (opts.label || 'hear') + ' ' + artist : artist);
   const rec = { btn, artist, label, busy: false, seen: false };
   btn.querySelector('.post-t').textContent = label();
-  btn.setAttribute('aria-label', 'hear a clip of ' + artist + ' in the player at the bottom of the screen');
+  btn.setAttribute('aria-label', ariaOf(artist));
+  if (!wm) btn.title = 'plays from Spotify';
   root.appendChild(btn);
   BTNS.add(rec);
-  if (!consent) {
+  if (wm && !consent) {
     const nh = opts.noteHost || root;
     if (!noted.has(nh)) {
       noted.add(nh);
       const n = document.createElement('p'); n.className = 'post-note';
-      n.textContent = 'the first one of these loads a player from spotify. nothing reaches them until you ' + (coarse() ? 'tap.' : 'click.');
-      nh.appendChild(n); notes.add(n);
+      n.textContent = wm === 'qr' ? WALL_QR_NOTE : 'the first one of these loads a player from spotify. nothing reaches them until you tap.';
+      nh.appendChild(n); notes.add(n); noteHosts.add(nh);
     }
   }
   host.appendChild(root);
+  if (!wm) { ROOTSET.add(root); ROOTS.set(root, { artist, ctx, fam: opts.fam }); observe(root); preconnect(); cueSoon(); }
+  const gone = (code) => {
+    BTNS.delete(rec); ROOTSET.delete(root);
+    root.textContent = '';
+    const p = document.createElement('p'); p.className = 'post-note'; p.textContent = artist + ' (not available to play here)';
+    root.appendChild(p); if (!code && !D.open) hush('off');
+  };
   btn.addEventListener('click', async () => {
     if (btn.disabled) return;
-    /* R18: the player already holds this artist: the control is its pause and play, inside this click */
+    if (wmode() === 'qr') {
+      /* the code, not a player: nothing is asked of spotify and consent stays false */
+      if (D.qrOn && D.qrArtist === artist) return;
+      let r = 'notid';
+      try { r = await qrArtist(artist, ctx, btn); } catch (e) { r = 'notid'; }
+      if (r === 'notid') gone(true);
+      return;
+    }
+    if (!wmode()) {
+      /* the player already shows this artist: the control is its pause and play, inside this click */
+      if (D.shows() && D.artist === artist && D.ctl && D.ready && !D.failed) { D.press(); return; }
+      let r = 'notid';
+      try { r = await playArtist(artist, ctx, btn, { via: 'tap', fam: opts.fam }); } catch (e) { r = 'notid'; }
+      paintBtn(rec);
+      if (r === 'notid') gone();
+      return;
+    }
     if (D.open && D.artist === artist && D.ctl && D.ready && !D.failed) { D.press(); return; }
     if (!consent) chord(ctx);
     btn.disabled = true; rec.busy = true; btn.querySelector('.post-t').textContent = 'cueing up ' + artist;
     let r = 'notid';
-    try { r = await playArtist(artist, ctx, btn, false, { via: 'post', fam: opts.fam }); } catch (e) { r = 'notid'; }
+    try { r = await playArtist(artist, ctx, btn, { via: 'post', fam: opts.fam }); } catch (e) { r = 'notid'; }
     btn.disabled = false; rec.busy = false;
     paintBtn(rec);
     /* a blocked player is the dock's story to tell; only an artist with no track in my log loses its control */
-    if (r !== 'notid') return;
-    BTNS.delete(rec);
-    root.textContent = '';
-    const p = document.createElement('p'); p.className = 'post-note'; p.textContent = artist + ' (not available to play here)';
-    root.appendChild(p); if (!D.open) hush('off');
+    if (r === 'notid') gone();
   });
   return root;
 }
@@ -996,6 +1368,7 @@ export const postCSS = `
 .exd.is-off{transform:translateY(135%);opacity:0;visibility:hidden;pointer-events:none;transition:transform .34s ease,opacity .34s ease,visibility 0s linear .34s}
 .exd-grab{display:none}
 .exd-bar{display:flex;align-items:center;gap:10px;margin:0 0 7px;font:600 10.5px/1.3 ${MONO};letter-spacing:.09em}
+.exd-act{display:contents}
 .exd-who{margin:0;flex:1 1 auto;min-width:0;overflow:hidden;color:#f0eaff}
 .exd-st,.exd-nm{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .exd-st{margin:0 0 1px;font:600 8.5px/1.3 ${MONO};letter-spacing:.1em;text-transform:uppercase;color:#a49bbd}
@@ -1004,7 +1377,6 @@ export const postCSS = `
 .exd-tl{font:600 10.5px/1.3 ${MONO};font-style:normal;letter-spacing:.09em}
 .exd-tri{color:#86cbfe}
 .exd.is-playing .exd-st{color:#86cbfe}
-.exd.is-served .exd-st{color:#b9a6f0}
 .exd.is-ask .exd-who{white-space:normal}
 .exd.is-ask .exd-st,.exd.is-ask .exd-nm{display:inline;white-space:normal}
 .exd.is-ask .exd-st{font:inherit;letter-spacing:inherit;text-transform:none;color:#f0eaff}
@@ -1014,7 +1386,7 @@ export const postCSS = `
 #exdock .exd-attr[hidden]{display:none}
 .exd-x{flex:0 0 auto;font:600 10.5px/1 ${MONO};letter-spacing:.14em;text-transform:uppercase;color:#f0eaff;background:none;border:1px solid rgba(189,166,255,.34);border-radius:999px;padding:9px 13px;min-height:34px;cursor:pointer}
 .exd-x:hover{border-color:#86cbfe;color:#86cbfe}
-.exd-x:focus-visible,.exd-attr:focus-visible{outline:2px solid #86cbfe;outline-offset:3px}
+.exd-x:focus-visible,.exd-attr:focus-visible,.exd-app:focus-visible{outline:2px solid #86cbfe;outline-offset:3px}
 .exd-x.exd-yes{background:#86cbfe;border-color:#86cbfe;color:#0a0118}
 .exd-x.exd-yes:hover{background:#b5ddff;border-color:#b5ddff;color:#0a0118}
 .exd-slot{position:relative;min-height:80px}
@@ -1023,9 +1395,10 @@ export const postCSS = `
 .exd-attr-l,.exd-attr-s{pointer-events:none}
 .exd iframe{border-radius:10px;display:block;border:0}
 .exd-msg{margin:6px 2px 2px;font:400 11.5px/1.5 ${MONO};color:#a49bbd}
+.exd-app{color:#86cbfe;text-decoration:underline;text-underline-offset:2px}
 /* R18 the record: ring = progress, grooves turn only while spotify reports playback, the label is the family colour */
 .exd-disc{position:relative;flex:0 0 auto;width:34px;height:34px;margin:0;padding:0;border:0;border-radius:50%;background:none;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.exd-disc[hidden],.exd-auto[hidden]{display:none}
+.exd-disc[hidden]{display:none}
 .exd-disc:focus-visible{outline:2px solid #86cbfe;outline-offset:2px}
 .exd-disc:disabled{cursor:default}
 .exd-disc:disabled .exd-gl{opacity:0}
@@ -1033,7 +1406,6 @@ export const postCSS = `
 .exd-ring circle{fill:none;stroke-width:1.7}
 .exd-ring-t{stroke:rgba(134,203,254,.16)}
 .exd-ring-p{stroke:#86cbfe;stroke-dasharray:100;stroke-dashoffset:100;stroke-linecap:round}
-.exd.is-served .exd-ring-p{stroke:#8b6fd6}
 .exd-wind{position:absolute;inset:4px;border-radius:50%;transition:transform 1.4s cubic-bezier(.3,.7,.4,1)}
 .exd-rec{position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle,#0d0a1a 0 1px,#1d1834 1px 2px);box-shadow:inset 0 0 0 1px rgba(240,234,255,.08);animation:exd-spin 1.8s linear infinite;animation-play-state:paused}
 .exd.is-playing .exd-rec{animation-play-state:running}
@@ -1059,15 +1431,6 @@ export const postCSS = `
 @keyframes exd-cue{0%{transform:scale(.6);opacity:.95}100%{transform:scale(1.3);opacity:0}}
 @keyframes exd-tri{0%,100%{opacity:1}50%{opacity:.45}}
 .exd.is-cue .exd-tri{animation:exd-tri 1.6s ease-in-out .45s infinite}
-/* R18 autoplay: violet, because violet is the machine serving */
-.exd-auto{flex:0 0 auto;display:inline-flex;flex-direction:column;align-items:center;gap:3px;min-width:30px;margin:0;padding:3px 2px;background:none;border:0;border-radius:6px;color:#a49bbd;font:600 8px/1 ${MONO};letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
-.exd-auto-k{position:relative;display:block;width:22px;height:12px;box-sizing:border-box;border-radius:6px;border:1px solid rgba(189,166,255,.45)}
-.exd-auto-k::after{content:'';position:absolute;top:2px;left:2px;width:6px;height:6px;border-radius:50%;background:#a49bbd;transition:transform .2s ease}
-.exd-auto.is-on{color:#c7b8ff}
-.exd-auto.is-on .exd-auto-k{border-color:#8b6fd6;background:rgba(139,111,214,.35)}
-.exd-auto.is-on .exd-auto-k::after{transform:translateX(10px);background:#c7b8ff}
-.exd-auto:hover{color:#c7b8ff}
-.exd-auto:focus-visible{outline:2px solid #86cbfe;outline-offset:2px}
 /* R18 the card: a player that is blocked or silent becomes one link with the artist's name, and stays until put away */
 .exd.is-card .exd-bar{flex-wrap:wrap;row-gap:6px}
 #exdock.exd.is-card .exd-who{flex:1 1 0;width:auto;max-width:none;white-space:normal}
@@ -1079,11 +1442,11 @@ export const postCSS = `
 #exdock.exd.is-card .exd-attr[hidden]{display:none}
 @media (max-width:460px){.exd{padding:6px 8px 8px}.exd-attr-l{display:none}.exd-bar{gap:8px;margin-bottom:5px}}
 /* a phone held sideways: the stage takes the right of the screen and a room's controls can run past its bottom edge,
-   so the dock leaves that half alone entirely and sits under the wall text on the left */
+   so the wall's dock leaves that half alone entirely and sits under the wall text on the left */
 @media (max-height:520px) and (min-aspect-ratio:115/100){.exd{right:auto;margin:0;width:min(400px,40vw);max-width:none;padding:5px 9px 7px}.exd-attr-l{display:none}}
 @media (prefers-reduced-motion:reduce){.exd{transition:none}}
-/* #exdock: beats chrome.css's html.atlas #exdock{bottom} so the pill is never stretched to the bottom edge. it shows at
-   once (focus can land on it) and fades out */
+/* the wall's pill (a quiet play or the ask, posts=spotify). #exdock: beats chrome.css's html.atlas #exdock{bottom} so the
+   pill is never stretched to the bottom edge. it shows at once (focus can land on it) and fades out */
 #exdock.exd.is-quiet{left:0;top:0;right:auto;bottom:auto;margin:0;width:auto;max-width:min(404px,calc(100vw - 16px));padding:4px 5px 4px 6px;border-radius:999px;border-color:rgba(134,203,254,.45);transition:opacity .2s ease,visibility 0s}
 #exdock.exd.is-quiet.is-off{transition:opacity .2s ease,visibility 0s linear .2s}
 #exdock.exd.is-quiet.is-playing{box-shadow:0 0 0 1px rgba(134,203,254,.2),0 0 24px rgba(134,203,254,.12),0 12px 40px rgba(0,0,0,.5)}
@@ -1111,13 +1474,12 @@ export const postCSS = `
 .exd-arm{height:21px}
 .exd-gl{transform:scale(1.3)}
 .exd.is-playing .exd-gl{opacity:.85}
-.exd-auto{min-height:44px;min-width:40px;justify-content:center}
 #exdock .exd-attr{padding:15px 4px;margin:-15px 0}
 #exdock.exd.is-card .exd-attr{padding:6px 12px;margin:0}
 .exd:not(.is-ask):not(.is-card) .exd-nm{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 }
-/* R9 phone dock (is-co: a quiet play on a coarse pointer). one place for the ask, the player and a failure: the bottom
-   edge, above the tab bar, never over a card. it slides in like the docked player and reserves its height (measure()) */
+/* R9 the touch wall's dock (is-co: a quiet play on a coarse pointer). one place for the ask, the player and a failure: the
+   bottom edge, above the tab bar, never over a card. it slides in like the docked player and reserves its height (measure()) */
 #exdock.exd.is-co{left:max(10px,env(safe-area-inset-left));right:calc(max(10px,env(safe-area-inset-right)) + 46px);top:auto;bottom:var(--atlas-dockh,calc(8px + env(safe-area-inset-bottom)));width:auto;max-width:540px;margin:0 auto;padding:7px 8px 9px 10px;border-radius:14px;transform:none;transition:transform .3s ease,opacity .3s ease,visibility 0s}
 html.atlas #exdock.exd.is-co{right:max(10px,env(safe-area-inset-right));bottom:calc(var(--atlas-dockh,0px) + 6px)}
 #exdock.exd.is-co.is-off{transform:translateY(135%);transition:transform .3s ease,opacity .3s ease,visibility 0s linear .3s}
@@ -1132,12 +1494,63 @@ html.atlas #exdock.exd.is-co{right:max(10px,env(safe-area-inset-right));bottom:c
 #exdock.exd.is-co.is-msg.is-card:not(.is-ask) .exd-msg:not([hidden]){position:static;min-height:0;margin:6px 2px 0;padding:0;border:0}
 #exdock.exd.is-co.is-tap{border-color:rgba(134,203,254,.6);box-shadow:0 0 0 1px rgba(134,203,254,.18),0 0 28px rgba(134,203,254,.16),0 12px 40px rgba(0,0,0,.5)}
 @media (max-height:520px) and (min-aspect-ratio:115/100){#exdock.exd.is-co{right:auto;margin:0;width:min(400px,40vw);max-width:none;padding:5px 8px 7px 10px}#exdock.exd.is-co .exd-slot{margin-top:4px}}
-/* a phone held sideways in the atlas: the left column is the card, which does not move for the dock; the stage on the
-   right does (stage() takes the reserve off its bottom), so the dock sits under the stage, right-aligned */
-@media (pointer:coarse) and (max-height:520px) and (min-aspect-ratio:115/100){html.atlas #exdock.exd.is-co,html.atlas #exdock.exd:not(.is-quiet){left:auto;right:max(10px,env(safe-area-inset-right));width:min(420px,calc(100vw - 330px));max-width:none;margin:0;padding:5px 8px 7px 10px}}
+/* a touch wall held sideways: the left column is the card, which does not move for the dock; the stage on the right does
+   (stage() takes the reserve off its bottom), so the dock sits under the stage, right-aligned */
+@media (pointer:coarse) and (max-height:520px) and (min-aspect-ratio:115/100){html.atlas #exdock.exd.is-co,html.atlas #exdock.exd:not(.is-quiet):not(.is-one){left:auto;right:max(10px,env(safe-area-inset-right));width:min(420px,calc(100vw - 330px));max-width:none;margin:0;padding:5px 8px 7px 10px}}
 /* sideways the screen has 390px of height: the words and stop sit beside the player, not above it, so the dock is
    one player tall and the stage keeps the difference */
 @media (pointer:coarse) and (max-height:520px) and (min-aspect-ratio:115/100){#exdock .exd-grab{display:none}.exd-disc{width:36px;height:36px;margin:0}.exd-wind,.exd-disc::after{inset:4px}#exdock.exd.is-co{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,60%);column-gap:10px;align-items:center}#exdock.exd.is-co .exd-bar{grid-column:1;grid-row:1;flex-wrap:wrap;row-gap:4px;margin:0}#exdock.exd.is-co .exd-who{flex:1 1 calc(100% - 52px)}#exdock.exd.is-co .exd-slot,#exdock.exd.is-co .exd-msg:not([hidden]){grid-column:2;grid-row:1;margin:0}#exdock.exd.is-co.is-msg:not(.is-ask) .exd-msg:not([hidden]){left:auto;right:8px;top:5px;bottom:7px;width:calc(60% - 12px);min-height:0;overflow:auto}}
-@media (prefers-reduced-motion:reduce){#exdock.exd.is-co{transition:none}.exd-rec{animation:none}.exd.is-playing .exd-rec{box-shadow:inset 0 0 0 1px rgba(240,234,255,.08),0 0 0 2px rgba(134,203,254,.5),0 0 10px rgba(134,203,254,.45)}.exd-wind,.exd-arm,.exd-auto-k::after,.exd-gl{transition:none}.exd.is-pop .exd-disc,.exd.is-pop .exd-nm,.exd.is-cue .exd-tri{animation:none}.exd-cue::before{animation:none;opacity:.9;transform:none}.exd-cue::after{display:none}}
-@media (forced-colors:active){.exd.is-quiet{border:1px solid CanvasText}.exd-disc{border:1px solid ButtonText}.exd-cue::before{border-color:Highlight}.exd-auto-k{border-color:ButtonText}.exd-auto.is-on .exd-auto-k::after{background:Highlight}}
+/* R20 the one dock (off the wall): one row, the words and the controls beside spotify's player, so it is one player tall.
+   where it stands is fit()'s inline left/right/top/bottom/width */
+#exdock.exd.is-one{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,56%);grid-template-areas:"bar slot" "msg msg";align-items:center;column-gap:10px;max-width:none;margin:0;padding:6px 6px 6px 10px;z-index:7}
+#exdock.exd.is-one.is-top.is-off{transform:translateY(-135%)}
+#exdock.exd.is-one .exd-grab{position:absolute;left:50%;top:1px;margin:0;transform:translateX(-50%)}
+#exdock.exd.is-one .exd-bar{grid-area:bar;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"disc who" "act act";align-items:center;gap:6px 8px;margin:0;min-width:0}
+#exdock.exd.is-one .exd-disc{grid-area:disc;margin:0}
+#exdock.exd.is-one .exd-who{grid-area:who}
+#exdock.exd.is-one .exd-st{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+#exdock.exd.is-one .exd-st:empty{display:none}
+#exdock.exd.is-one .exd-nm{display:block;white-space:nowrap;-webkit-line-clamp:unset}
+#exdock.exd.is-one .exd-act{grid-area:act;display:flex;align-items:center;gap:8px;min-width:0}
+#exdock.exd.is-one .exd-attr{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#exdock.exd.is-one .exd-x{margin-left:auto}
+#exdock.exd.is-one .exd-slot{grid-area:slot;min-height:80px}
+#exdock.exd.is-one .exd-msg{grid-area:msg;margin:5px 2px 0}
+#exdock.exd.is-one.is-msg .exd-slot{min-height:80px;outline:1px dashed rgba(189,166,255,.22);outline-offset:-1px;border-radius:10px}
+#exdock.exd.is-one.is-void{grid-template-columns:minmax(0,1fr);grid-template-areas:"bar" "msg"}
+#exdock.exd.is-one.is-card .exd-act{flex-wrap:wrap;row-gap:6px}
+#exdock.exd.is-one.is-card .exd-bar{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"who x" "attr attr"}
+#exdock.exd.is-one.is-card .exd-act{display:contents}
+#exdock.exd.is-one.is-card .exd-disc{display:none}
+#exdock.exd.is-one.is-card .exd-x{grid-area:x;margin:0}
+#exdock.exd.is-one.is-card .exd-attr{grid-area:attr}
+#exdock.exd.is-one.is-tap{border-color:rgba(134,203,254,.6);box-shadow:0 0 0 1px rgba(134,203,254,.18),0 0 28px rgba(134,203,254,.16),0 12px 40px rgba(0,0,0,.5)}
+#exdock.exd.is-one.is-link:not(.is-card) .exd-attr{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin:0;padding:4px 12px;box-sizing:border-box;border:1px solid rgba(134,203,254,.5);border-radius:999px;background:rgba(134,203,254,.08);color:#f0eaff;line-height:1.25}
+#exdock.exd.is-one.is-link:not(.is-card) .exd-attr:hover{border-color:#86cbfe;color:#86cbfe}
+html.exd-cover #atlas-info{visibility:hidden}
+html.atlas.exd-cover body section[data-room].is-active .wall{translate:0 calc(-1 * var(--exd-lift, 0px))}
+@media (pointer:coarse){#exdock.exd.is-one.is-link:not(.is-card) .exd-attr{min-height:44px}#exdock.exd.is-one .exd-x{padding:9px 10px}}
+/* upright on a phone the dock is one player tall (80 px and its border) and sits 4 px over the tab bar, so the two together
+   keep under a fifth of a 664 px screen; the words and the two controls fit the player's height */
+#exdock.exd.is-one.is-port{padding:0 6px 0 10px}
+#exdock.exd.is-one.is-port .exd-bar{padding:2px 0;row-gap:3px}
+@media (max-width:480px){#exdock.exd.is-one{grid-template-columns:minmax(0,1fr) minmax(180px,50%)}#exdock.exd.is-one .exd-disc{display:none}#exdock.exd.is-one .exd-bar{grid-template-columns:minmax(0,1fr);grid-template-areas:"who" "act"}}
+@media (prefers-reduced-motion:reduce){#exdock.exd.is-co{transition:none}.exd-rec{animation:none}.exd.is-playing .exd-rec{box-shadow:inset 0 0 0 1px rgba(240,234,255,.08),0 0 0 2px rgba(134,203,254,.5),0 0 10px rgba(134,203,254,.45)}.exd-wind,.exd-arm,.exd-gl{transition:none}.exd.is-pop .exd-disc,.exd.is-pop .exd-nm,.exd.is-cue .exd-tri{animation:none}.exd-cue::before{animation:none;opacity:.9;transform:none}.exd-cue::after{display:none}}
+/* R19 the wall's code: the artist, a tile to scan, one line saying nothing reaches spotify. posts=qr, and a failed player in
+   posts=spotify. sizes follow the screen's height, so the 1440 px wall and a 4K fallback keep the same proportions. only .is-qr
+   matches, so the desk and the phone never see any of it. the tile's colors are qr.js's own (ink on ice) and never invert */
+.exd-qr{display:none}
+.exd-qr svg{display:block;max-width:100%;height:auto}
+#exdock.exd.is-qr{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"qr bar" "qr msg";align-items:center;align-content:center;column-gap:max(14px,2.6vh);row-gap:max(4px,.8vh);left:var(--qrl,max(10px,env(safe-area-inset-left)));right:var(--qrr,calc(max(10px,env(safe-area-inset-right)) + 46px));width:fit-content;min-width:min(620px,calc(100vw - var(--qrl,10px) - var(--qrr,56px)));max-width:min(900px,calc(100vw - var(--qrl,10px) - var(--qrr,56px)));padding:max(12px,2vh);border-radius:max(14px,2vh);border-color:rgba(134,203,254,.42);box-shadow:0 0 0 1px rgba(134,203,254,.16),0 0 40px rgba(134,203,254,.12),0 12px 40px rgba(0,0,0,.5)}
+.exd.is-qr .exd-grab{position:absolute;left:50%;top:4px;margin:0;transform:translateX(-50%)}
+.exd.is-qr .exd-slot{display:none}
+.exd.is-qr .exd-qr{display:block;grid-area:qr;line-height:0;border-radius:max(6px,.9vh);overflow:hidden;forced-color-adjust:none}
+.exd.is-qr .exd-bar{grid-area:bar;align-self:end;align-items:flex-start;margin:0;gap:max(10px,1.6vh)}
+.exd.is-qr .exd-who{white-space:normal}
+.exd.is-qr .exd-st{white-space:normal;margin:0 0 max(3px,.6vh);font-size:max(9.5px,1.4vh);letter-spacing:.12em;color:#86cbfe}
+.exd.is-qr .exd-nm{white-space:normal;overflow-wrap:anywhere;font-size:max(18px,3.9vh);line-height:1.12;display:block}
+.exd.is-qr .exd-x{min-height:max(34px,5vh);padding:0 max(14px,2vh);font-size:max(10.5px,1.5vh)}
+.exd.is-qr .exd-msg{grid-area:msg;align-self:start;margin:0;font-size:max(11px,1.65vh);line-height:1.45}
+@media (max-width:640px){#exdock.exd.is-qr{grid-template-columns:minmax(0,1fr);grid-template-areas:"bar" "qr" "msg";justify-items:center;min-width:0}.exd.is-qr .exd-bar{justify-self:stretch}.exd.is-qr .exd-msg{text-align:center}}
+@media (forced-colors:active){.exd.is-quiet{border:1px solid CanvasText}.exd-disc{border:1px solid ButtonText}.exd-cue::before{border-color:Highlight}}
 `;

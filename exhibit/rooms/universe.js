@@ -249,15 +249,13 @@ html.atlas section[data-room="universe"] .uv-rd p{margin:0 0 5px;font:400 10.5px
 html.atlas section[data-room="universe"] .uv-sel{display:none;margin:6px 0 0;font:500 11px/1.4 var(--mono);color:var(--ice)}
 html.atlas section[data-room="universe"] .uv-sel:empty{display:none}
 html.atlas section[data-room="universe"] .uv-selrow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px}
-html.atlas section[data-room="universe"] .uv-hearb{color:var(--ice);border-color:rgba(134,203,254,.5);text-transform:lowercase;letter-spacing:.06em;margin:6px 0 0}
-html.atlas section[data-room="universe"] .uv-hearb[hidden]{display:none}
-html.atlas section[data-room="universe"] .uv-note .uv-hearb{margin:0}
 html.atlas section[data-room="universe"] .uv-dock.inbar{gap:5px;padding:0;background:none;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none}
 html.atlas section[data-room="universe"] .uv-dock.inbar .uv-top{flex-wrap:nowrap;gap:6px;overflow-x:auto;scrollbar-width:none}
 html.atlas section[data-room="universe"] .uv-dock.inbar .uv-top::-webkit-scrollbar{display:none}
 html.atlas section[data-room="universe"] .uv-dock.inbar .uv-angles,html.atlas section[data-room="universe"] .uv-dock.inbar .uv-arms,html.atlas section[data-room="universe"] .uv-dock.inbar .uv-arms>.uv-row,html.atlas section[data-room="universe"] .uv-dock.inbar .uv-dayctl{flex-wrap:nowrap;gap:3px;flex:none}
 html.atlas section[data-room="universe"] .uv-dock.inbar .uv-b{min-height:34px;padding:0 6px;font-size:9.5px;letter-spacing:.1em;gap:5px;background:rgba(10,1,24,.8)}
 @media (pointer:coarse){html.atlas section[data-room="universe"] .uv-b{min-height:44px}html.atlas section[data-room="universe"] .uv-dock.inbar .uv-b{min-height:44px;min-width:44px}html.atlas section[data-room="universe"] .uv-legend .uv-b{min-height:44px}} /* touch targets (R2_REQUESTS_R3 #2) */
+@media (pointer:coarse){html.atlas:not([data-wall]) section[data-room="universe"] .uv-dock.inbar,html.atlas:not([data-wall]) section[data-room="universe"] .uv-dock.inbar :not(.uv-range){touch-action:pan-x}} /* R20 MOBILE: the browser takes only a sideways pan here (the chip row scrolls), so an upright flick on the bar reaches the page turn below */
 html.atlas section[data-room="universe"] .uv-dock.inbar .uv-angles .uv-b{flex:none;justify-content:center;padding:0 6px}
 html.atlas section[data-room="universe"] .uv-dock.inbar .uv-arms .uv-k{display:none}
 html.atlas section[data-room="universe"] .uv-dock.inbar .uv-sw{width:8px;height:8px;border-radius:50%}
@@ -551,9 +549,11 @@ function platter(R) {
 /* the turn: the bed playing out loud (not muted, not ducked under a listening post, its deck not paused), on a view of the
    whole disc. camera.js stops it under a hand, a lock or a trip, and never turns it under reduced motion */
 function bedPlays() { const A = S.ctx && S.ctx.audio, e = A && A.els && A.els[A.cur]; return !!(A && A.on && !A.muted && !A.away && !A.ducked && e && !e.paused); }
-/* the record turns only while the bed plays and the visitor has stepped back (the chrome has faded); a hand over it stops it */
+/* the record turns only while the bed plays and the visitor has stepped back (the chrome has faded, or on the plain record,
+   where the chrome no longer fades, the page has gone still: idle.calm); a hand over it stops it.
+   R20 MOBILE: never on a touch screen, where nothing moves or hides on its own (COARSE is read at call time, below) */
 let reachAt = -1e9;
-const spins = () => S.active && !S.sel && (S.angle === 'sky' || S.angle === 'links' || S.angle === 'threads') && !!(S.ctx.idle && S.ctx.idle.faded) && now() - reachAt > 1500 && (bedPlays() || clipPlaying());
+const spins = () => (WALL || !COARSE) && S.active && !S.sel && (S.angle === 'sky' || S.angle === 'links' || S.angle === 'threads') && !!(S.ctx.idle && (S.ctx.idle.calm || S.ctx.idle.faded)) && now() - reachAt > 1500 && (bedPlays() || clipPlaying());
 
 /* R18 ROOMS (MUSIC V1 + V2): hear X, see X. post.js says what is playing (window 'sm:clip'); while an artist's clip plays,
    that artist's own plays (its star's block of dots) brighten, every other play steps back a little, a slow ice ring
@@ -631,26 +631,13 @@ function hearWrap() {
   const prev = typeof AT.capFor === 'function' ? AT.capFor : null;
   S.hearFn = (id, a) => (id === 'universe' ? hearLine() : null) || (prev ? prev(id, a) : null); AT.capFor = S.hearFn;
 }
-/* R18 ROOMS (FRESH_EYES): a second tap on the picked star, or its hear control, plays it (post.js asks first, once) */
+/* R20: a tap on a star, or its pick in the star list, plays it at once (names are the buttons). the wall keeps R18's second tap */
 function hearStar(i, x, y) {
   const R = S.R, P = S.ctx && S.ctx.post, f = P && (P.playQuiet || P.playArtist);
   if (!R || typeof f !== 'function' || i < 0 || i >= R.nA) return false;
   const on = isFinite(x) && isFinite(y) && x > 0 && y > 0 && x < innerWidth && y < innerHeight;
   try { const r = f.call(P, R.names[i], Object.assign(on ? dwellAt(x, y) : {}, { via: 'tap' })); if (r && typeof r.catch === 'function') r.catch(() => {}); } catch (e) { return false; }
   return true;
-}
-function renderHear() {
-  const d = S.dom, b = d && d.hearB; if (!b) return;
-  const R = S.R, P = S.ctx && S.ctx.post, si = S.sel ? S.sel.i : -1, nm = R && si >= 0 && si < R.nA ? String(R.names[si]) : '';
-  if (!nm || !P || typeof (P.playQuiet || P.playArtist) !== 'function') { b.hidden = true; b.dataset.a = ''; return; }
-  let short = false; try { short = getComputedStyle(d.sel).display !== 'none'; } catch (e) {}
-  const label = '▶ hear' + (short ? '' : ' ' + nm);
-  if (b.textContent !== label) b.textContent = label;
-  b.setAttribute('aria-label', 'hear a clip of ' + nm);
-  if (b.dataset.a === nm) return;
-  b.dataset.a = nm; b.hidden = true;
-  const show = (ok) => { if (b.dataset.a === nm) b.hidden = !ok; };
-  try { const h = P.hasTrackNow ? P.hasTrackNow(nm) : true; if (h === true || h === false) show(h); else if (P.hasTrack) P.hasTrack(nm).then(show, () => show(false)); else show(true); } catch (e) { show(false); }
 }
 /* each dot's falloff class: 0 within one sigma of its star, 1 within two, 2 beyond, 3 dust (every non-star play) */
 function ringOf(R) {
@@ -759,6 +746,21 @@ function buildDom(root, ctx) {
   /* a press on a room control is the control's own: it never reaches the phone card's stop-swipe (a horizontal scrub on the
      day slider is not a swipe to the next stop) */
   dock.addEventListener('pointerdown', (e) => e.stopPropagation());
+  /* R20 MOBILE: the phone bar lies over the foot of the picture, where a thumb starts its swipe. a flick up or down that starts
+     on it turns the page as one on the field does (ctx.gesture's own test and turn); a sideways drag still scrolls the chip
+     row, a tap is still a tap (a moved touch never clicks), and the day slider keeps its own drag */
+  let fl = null;
+  const ft = (e) => (S.ctx && S.ctx.gesture && typeof S.ctx.gesture.flickT === 'function' ? S.ctx.gesture.flickT(e) : performance.now());
+  dock.addEventListener('pointerdown', (e) => {
+    fl = S.dockMode === 'bar' && (e.pointerType === 'touch' || e.pointerType === 'pen') && !(e.target.closest && e.target.closest('.uv-range')) ? { id: e.pointerId, p0: [ft(e), e.clientX, e.clientY], vs: [] } : null;
+  });
+  dock.addEventListener('pointermove', (e) => { if (fl && e.pointerId === fl.id) { fl.vs.push([ft(e), e.clientX, e.clientY]); if (fl.vs.length > 16) fl.vs.shift(); } }, { passive: true });
+  dock.addEventListener('pointercancel', (e) => { if (fl && e.pointerId === fl.id) fl = null; });
+  dock.addEventListener('pointerup', (e) => {
+    const f = fl; fl = null; if (!f || e.pointerId !== f.id) return;
+    const G = S.ctx && S.ctx.gesture, dir = G && typeof G.flickDir === 'function' ? G.flickDir(f.p0, f.vs.concat([[ft(e), e.clientX, e.clientY]])) : 0;
+    if (dir && typeof G.turn === 'function') G.turn(dir, { on: 'dock' });
+  });
 
   /* the wall column: chip line, family legend, brightest stars, the threads list, the phone selection line */
   const slot = S.wall.querySelector('.legend-slot') || S.wall.insertBefore(el('div', 'legend-slot'), S.wall.querySelector('.deeper'));
@@ -776,19 +778,17 @@ function buildDom(root, ctx) {
   const tlist = el('details', 'uv-more uv-threadlist'); tlist.hidden = true; tlist.appendChild(el('summary', '', c.threadList));
   const lbThreads = el('div', 'uv-lb'); lbThreads.setAttribute('role', 'listbox'); lbThreads.tabIndex = 0; lbThreads.setAttribute('aria-label', 'the threads of this arm, by family pair'); lbThreads.id = 'uv-lb-threads'; tlist.appendChild(lbThreads);
   const sel = el('p', 'uv-sel'); sel.setAttribute('aria-hidden', 'true');
-  /* R18 ROOMS: the picked star's own hear control (a star itself is not in the tab order; search and the list land here) */
-  const selRow = el('div', 'uv-selrow'), hearB = el('button', 'uv-b uv-hearb'); hearB.type = 'button'; hearB.hidden = true; selRow.append(sel, hearB);
-  hearB.addEventListener('click', () => { const s = S.sel; if (s && s.i >= 0) hearStar(s.i, S.sx[s.i], S.sy[s.i]); });
+  const selRow = el('div', 'uv-selrow'); selRow.append(sel);
   slot.append(chipline, plac, legend, famact, bright, tlist, selRow); /* the placard's rest straight under the chip line: the first thing "more" adds to the column */
   /* the info panel's hud carries two lines; the rest of the readout (the star card, the day in full, a thread's window)
      opens here, under the panel on wide screens and under the dock in the phone card (placed by layoutDock) */
   const readout = el('details', 'uv-more uv-readout'); readout.hidden = true; readout.appendChild(el('summary', '', c.readMore));
   const rd = el('div', 'uv-rd'); readout.appendChild(rd);
-  listbox(lbStars, (opt) => focusArtistIdx(+opt.dataset.i, 'list'));
+  listbox(lbStars, (opt) => { const i = +opt.dataset.i; focusArtistIdx(i, 'list'); if (!window.__wall) hearStar(i); });
   listbox(lbThreads, (opt) => focusPair(+opt.dataset.a, +opt.dataset.b, 'list'));
   /* the day cursor's parts are built only once the day records are known to exist (buildDayDom): without Tier B there is
      no day button, date field or slider anywhere in the page */
-  S.dom = { dock, top, views, armRow, armK, armGroup, line, plac, bloom, day: null, ctl: null, prev: null, next: null, play: null, date: null, dayn: null, range: null, norec: null, tb: null, chipline, legend, famact, bright, lbStars, tlist, lbThreads, sel, selRow, hearB, readout, rd, note, dayrow, slot };
+  S.dom = { dock, top, views, armRow, armK, armGroup, line, plac, bloom, day: null, ctl: null, prev: null, next: null, play: null, date: null, dayn: null, range: null, norec: null, tb: null, chipline, legend, famact, bright, lbStars, tlist, lbThreads, sel, selRow, readout, rd, note, dayrow, slot };
   buildViews();
   if (hasDayAngle()) buildDayDom();
 }
@@ -1378,7 +1378,6 @@ function renderHud() {
   renderReadout(rest);
   const sel = S.dom.sel, si = S.sel ? S.sel.i : -1;
   sel.textContent = si >= 0 && si < S.R.nA ? S.R.names[si] + ' · ' + famName(S.R.fam[si]) + (S.R.plays ? ' · ' + fmt(S.R.plays[si]) + ' plays' : '') : '';
-  renderHear();
 }
 function renderReadout(rest) {
   const d = S.dom; if (!d) return;
@@ -1638,15 +1637,19 @@ function focusArtistIdx(i, via, track) {
   const ctx = S.ctx, R = S.R; if (!R || i < 0 || i >= R.nA) return false;
   wantRoster();
   if (S.angle === 'threads' && S.active) { S.focusing = true; try { ctx.angle.set('star', { via }); } catch (e) {} S.focusing = false; }
-  S.sel = { i, track: track || null }; S.chord = null; S.selAt = now();
+  /* R20 MOBILE: on a touch screen a tap on a star or on its name selects it where it is. no flight and no sun, so every name
+     and the bar stay where they were (a search, a deep link or a tour still flies there) */
+  const still = COARSE && !WALL && (via === 'tap' || via === 'label') && (S.angle === 'sky' || S.angle === 'links' || S.angle === 'day');
+  S.sel = { i, track: track || null, still }; S.chord = null; S.selAt = now();
   const isStar = R.placed[i] !== 1; S.placeholder = isStar ? -1 : i;
   const name = R.names[i], sg = R.sig[i];
   const dist = (isStar ? clamp(0.26 + sg * 6, 0.3, 0.6) : 0.45) * (S.fit || 1);
   S.selDist = dist; /* the arrival framing the sun is sized at */
   const from = ctx.view.target.slice(), to = starPos(i);
-  fly({ target: to, dist }, { lock: name });
+  if (still) { try { ctx.view.flyTo(null, { lock: name }); } catch (e) {} } /* the lock without a trip */
+  else fly({ target: to, dist }, { lock: name });
   try { ctx.lock(name); } catch (e) {}
-  S.trip = Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]) > 0.35 ? { to: i, from, t0: now(), said: false } : null;
+  S.trip = !still && Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]) > 0.35 ? { to: i, from, t0: now(), said: false } : null;
   setLabels(); renderHud(); ladder();
   return true;
 }
@@ -1757,7 +1760,10 @@ function onTap(p) {
   reachAt = now();
   if (!S.R) return false;
   const touch = p.type === 'touch', i = pickStar(p.sx, p.sy, touch ? tapR() : 16);
-  if (i >= 0) { if (S.sel && S.sel.i === i && now() - S.selAt > 350 && hearStar(i, p.sx, p.sy)) return true; focusArtistIdx(i, 'tap'); return true; }
+  if (i >= 0) {
+    if (!window.__wall) { focusArtistIdx(i, 'tap'); hearStar(i, p.sx, p.sy); return true; }
+    if (S.sel && S.sel.i === i && now() - S.selAt > 350 && hearStar(i, p.sx, p.sy)) return true; focusArtistIdx(i, 'tap'); return true;
+  }
   const ln = pickLine(p.sx, p.sy);
   if (ln && ln.kind === 'chord') { focusPair(ln.a, ln.b, 'tap'); return true; }
   if (ln && ln.kind === 'day') { S.dayLine = { a: ln.a, b: ln.b, n: ln.n }; S.sel = null; renderHud(); return true; }
@@ -1800,6 +1806,8 @@ function setHover(i) {
    universe.voice.js. nothing maps tap_share to sound (R5_PLAN §5 cut) */
 let VX = null, vxP = null;
 const COARSE = typeof matchMedia === 'function' && matchMedia('(hover: none) and (pointer: coarse)').matches;
+/* R20 MOBILE: the wall kiosk (?wall=1, a touch screen too) keeps every rule it was merged with: the phone rules below skip it */
+const WALL = typeof window !== 'undefined' && !!window.__wall;
 /* plays for the octave: the full roster's own count; roster A carries none, so plays order stands in (node id = plays order;
    universe_artists_all.json: one star has >= 3000 plays, 31 more have 300-2999, every other Tier-A star 50-299) */
 const OCT_A = [1, 32];
@@ -2222,7 +2230,7 @@ function drawHover(g, i) {
 const sunAngle = () => S.angle === 'sky' || S.angle === 'links' || S.angle === 'star';
 /* the star a sun belongs to now: the selection, when it is a star (a placeholder keeps its hollow marker) in a view of the
    whole sky (the day view sizes its clusters by the day's plays, so a sun sized by all of them would contradict it) */
-function sunFor() { const s = S.sel, R = S.R; return s && R && s.i >= 0 && s.i < S.ns && R.placed[s.i] !== 1 && sunAngle() ? s.i : -1; }
+function sunFor() { const s = S.sel, R = S.R; return s && R && !s.still && s.i >= 0 && s.i < S.ns && R.placed[s.i] !== 1 && sunAngle() ? s.i : -1; }
 function sunLit() { const U = S.sun; return U && U.lit && sunFor() === U.i ? U : null; }
 function partnersOf(i) {
   const D = S.D, out = []; if (!D || !D.nbJ || i < 0 || i >= D.nbS) return out;
@@ -2569,6 +2577,18 @@ function labW(text) {
   const cv = S.labCv || (S.labCv = document.createElement('canvas').getContext('2d')); cv.font = LABFONT;
   w = Math.ceil(cv.measureText(text + '[  ]').width + (String(text).length + 4) * 0.66 + 11); M.set(text, w); return w;
 }
+/* R20 MOBILE (entry 10): a starred name's pill carries its plays mark (anchors.js M8: a space and one to five bars, from
+   the plays_bucket in universe_nodes.json, which S.A holds), so the pill the labels draw is wider than labW() reckons:
+   "shy ink" 105 px drawn for 91 reckoned. the phone keeps the pads apart with the width the labels will draw (their own
+   measure for an "obj" name: 10.5 px mono, 0.06 em a letter, 8 px padding, 3 px margin), or labW() where that is wider */
+function labWT(text) {
+  const M = S.labWT || (S.labWT = new Map()); let w = M.get(text); if (w != null) return w;
+  const A = S.A, id = A && A.byName ? A.byName.get(String(text).toLowerCase()) : null, n = id != null && A.nodes ? A.nodes[id] : null;
+  const t = String(text) + (n ? '\u00a0' + '\u25ae'.repeat(Math.max(1, Math.min(5, n.plays_bucket | 0))) : '');
+  const cv = S.labCv || (S.labCv = document.createElement('canvas').getContext('2d'));
+  cv.font = '400 10.5px "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace';
+  w = Math.max(labW(text), Math.ceil(cv.measureText(t).width + t.length * 0.06 * 10.5 + 8 + 3)); M.set(text, w); return w;
+}
 function boxBright(l, t, r, b) {
   const M = S.bmap; if (!M) return false;
   /* a cell of margin: the map is up to a layout pass old while the sky turns under it */
@@ -2621,35 +2641,70 @@ function chromeRects() {
   /* the ladder's readout and names can sit outside its own box: each visible piece that pokes out counts too */
   if (out.length > n0) { const B = out[out.length - 1]; lad.querySelectorAll('*').forEach((el) => { const r = el.getBoundingClientRect(); if (r.width > 0 && r.height > 0 && (r.left < B[0] || r.top < B[1] || r.right > B[2] || r.bottom > B[3])) add(el); }); }
   ['.atlas-ladder-chip', '#atlas-dock', 'section.is-active .wall'].forEach((q) => add(document.querySelector(q)));
+  if (!WALL) add(document.querySelector('.atlas-sight.on')); /* R20 MOBILE (ROOT_CAUSES 9): the phone's sight, which the labels keep clear (anchors.js), or they flip a name off it */
   /* the phone's merged stop row, the end card and the first-visit hint line (R2_REQUESTS_INTEGRATION #6) */
   ['#ai-mrow', '#ai-end', '#atlas-onboard', '#atlas-hint'].forEach((q) => { const e = document.querySelector(q); if (e && !e.hidden) add(e); });
   if (S.dockMode === 'float' && S.stage) { const b = dockBand(); out.push([b.x, b.y, b.x + b.w, b.y + b.h]); }
   return out;
 }
 const TOUCHQ = '(pointer:coarse),(max-aspect-ratio:115/100)';
+/* L3: what sits under the phone reticle at (x, y), CSS px. pure: no sound, no light */
+function reticleAt(x, y) { const i = pickStar(x, y, 22); if (i < 0 || !S.R) return null; const v = voiceOf(i); return { id: 'u:' + v.artist, i, fam: v.fam, plays: v.plays, kind: 'glyph', artist: v.artist, x: S.sx[i], y: S.sy[i] }; }
+/* R20 MOBILE: a touch selection stays where it was tapped, so it can sit under the phone's fixed sight (reticle.js), and the
+   labels keep every pill off the sight (anchors.js keepouts): the tapped star then showed no name and no ring. while the
+   selected star is under the sight, the sight lifts (a room whose `reticle` is false has none) and comes back once the sky or
+   the selection moves. sightStep (each frame) tells the sight and the labels when that flips */
+function sightYields() {
+  const s = S.sel, R = S.R; if (!s || !s.still || !S.active || !R || !(s.i >= 0 && s.i < S.ns) || R.placed[s.i] === 1 || !(S.sd[s.i] > 0.05)) return false;
+  if (S.angle !== 'sky' && S.angle !== 'links' && S.angle !== 'day') return false;
+  /* the sight's point from its own state (no layout read in the frame); its box is 56 px round that point (reticle.css) */
+  let q = null; try { q = S.ctx.gesture.reticle.state(); } catch (e) {} if (!q || !(q.x > 0 || q.y > 0)) return false;
+  return Math.abs(S.sx[s.i] - q.x) < 32 && Math.abs(S.sy[s.i] - q.y) < 32;
+}
+function sightStep() {
+  if (!(S.sel && S.sel.still) && !S.sightY) return;
+  const y = sightYields(); if (y === !!S.sightY) return;
+  S.sightY = y;
+  try { S.ctx.gesture.reticle.sample(); } catch (e) {}
+  try { S.ctx.labels.refresh(); } catch (e) {}
+}
 function layoutLabels(t) {
   const R = S.R, st = S.stage, L = S.ctx.labels;
   const on = !!(R && st && L && typeof L.update === 'function' && (S.angle === 'sky' || S.angle === 'links' || S.angle === 'star') && !sunLit() && !labsHeld());
   if (!on) { if (S.lay) { S.lay = null; setLabels(); } return; }
   let changed = false;
-  if (!S.lay || t - (S.layAt || 0) >= LAYOUT_MS) {
+  /* R20 MOBILE: names hold still while a finger is down (a press, a hold, a drag): no spot changes until it lifts. a mouse
+     and the wall kiosk keep the layout running under the hand */
+  const GH = S.ctx.gesture, held = !WALL && !!(GH && GH.active) && /^(touch|pen)$/.test((GH && GH.pointer) || '');
+  if (!S.lay || (t - (S.layAt || 0) >= LAYOUT_MS && !held)) {
     S.layAt = t; brightRects();
     const keeps = chromeRects(), W = innerWidth, H = innerHeight, boxes = [], prev = S.lay || new Map(), next = new Map();
     let touch = false; try { touch = matchMedia(TOUCHQ).matches; } catch (e) {}
+    const tm = touch && !WALL; /* R20 MOBILE: where the phone's label rules below apply (never the wall kiosk) */
+    /* R20 MOBILE (ROOT_CAUSES 2): on touch the labels re-read the chrome when this pass finds it moved. the phone's sight takes
+       its new spot up to 0.7 s after the card grows, and the labels kept the old one until the camera next moved: a tapped
+       name stayed hidden under a sight no longer there */
+    if (tm) { const kk = keeps.map((q) => q.map(Math.round).join(',')).join(' '); if (S.koKey != null && kk !== S.koKey && typeof L.refresh === 'function') { try { L.refresh(); } catch (e) {} } S.koKey = kk; }
     const PH = touch ? 6 : 0, PV = touch ? 14 : 0; coverMap();
+    /* R20 MOBILE (entry 10): on touch each name is a 46 px tall pad round its pill (anchors.css), so two names keep their pads
+       apart, not just their pills: 2 x PH across, 2 x PV up and down */
+    const GX = tm ? Math.max(LAB_GAP, 2 * PH) : LAB_GAP, GY = tm ? Math.max(LAB_GAP, 2 * PV) : LAB_GAP;
+    const clash = (l, tp, r, b) => { for (let k = 0; k < boxes.length; k++) { const q = boxes[k]; if (l < q[2] + GX && r > q[0] - GX && tp < q[3] + GY && b > q[1] - GY) return true; } return false; };
     const BAN = S.labBan || (S.labBan = new Map());
     /* a name's anchor (its box's lower-left, less the labels' 6 px offset) stays on the stage and off the wall card, as
        the labels require (anchors.js inField): never over the reading column, where the sky is behind a scrim and a name
        floats over no art (VERIFY_1 P1-7) */
     const wr = wallBox();
-    const free = (l, tp, w) => {
+    /* R20 MOBILE (ROOT_CAUSES 9): on touch a name already showing keeps its spot over the field's flicker: the bright and
+       dense reads (the glyphs move under a still sky) only steer where a name goes, never move one that is there */
+    const free = (l, tp, w, kept) => {
       const r = l + w, b = tp + LAB_H, ax = l - 6, ay = b + 6;
       if (l < 8 || tp < 8 || r > W - 8 || b > H - 8 || ax < st.x || ax > st.x + st.w || ay < st.y || ay > st.y + st.h) return false;
       if (wr && ax >= wr[0] && ax <= wr[2] && ay >= wr[1] && ay <= wr[3]) return false;
-      if (boxBright(l, tp, r, b)) return false;
+      if (!kept && boxBright(l, tp, r, b)) return false;
       for (let k = 0; k < keeps.length; k++) { const q = keeps[k]; if (l - PH < q[2] && r + PH > q[0] && tp - PV < q[3] && b + PV > q[1]) return false; }
-      for (let k = 0; k < boxes.length; k++) { const q = boxes[k]; if (l < q[2] + LAB_GAP && r > q[0] - LAB_GAP && tp < q[3] + LAB_GAP && b > q[1] - LAB_GAP) return false; }
-      return boxCover(l, tp, r, b) <= COVER_DENSE;
+      if (clash(l, tp, r, b)) return false;
+      return kept || boxCover(l, tp, r, b) <= COVER_DENSE;
     };
     /* the lock's own name and reticle go first (the labels place them before anything else) */
     const sel = S.sel ? S.sel.i : -1;
@@ -2659,25 +2714,37 @@ function layoutLabels(t) {
        plays that find a spot (so a name that cannot be placed leaves its place to the next, never an empty sky) */
     let open = Math.round(cap * 1.5); for (const [b, zb] of LAB_BANDS) if (z >= zb * z0) open = cap * (b + 1.5);
     let shown = 0;
-    for (let i = 0; i < Math.min(open, S.ns) && shown < cap; i++) {
-      if (i === sel || S.sd[i] <= 0.05) continue;
-      const sx = S.sx[i], sy = S.sy[i]; if (sx < -40 || sx > W + 40 || sy < -40 || sy > H + 40) continue;
-      const w = labW(R.names[i]);
-      /* the spot it had, while it stays free */
-      const e0 = prev.get(i);
-      if (e0) {
-        const p = pt3(e0.x, e0.y, e0.z);
-        if (p[3] > 0.05) {
-          const l = p[0] + e0.ox, tp = p[1] + e0.oy;
-          /* the labels put it somewhere else, or left it out (an obstacle or a rule this layout does not see): give the
-             spot up for a while */
-          let rc = null; try { rc = L.rect('universe', 's' + i); } catch (err) {}
-          const dropped = !rc && t - (e0.born || 0) > LAYOUT_MS * 0.8, moved = rc && (Math.abs(rc.left - l) > 3 || Math.abs(rc.top - tp) > 3);
-          if (dropped) { banSpot(BAN, i, t, e0, LAB_DROP_MS); const RS = S.labRest || (S.labRest = new Map()), q = RS.get(i) || { n: 0, t: 0 }; q.n = t - q.t < LAB_DROP_MS ? q.n + 1 : 1; q.t = t; RS.set(i, q); }
-          else if (moved) banSpot(BAN, i, t, e0);
-          else if (free(l, tp, w)) { e0.w = w; next.set(i, e0); boxes.push([l, tp, l + w, tp + LAB_H]); shown++; continue; }
-        }
+    const near = (i) => i !== sel && S.sd[i] > 0.05 && !(S.sx[i] < -40 || S.sx[i] > W + 40 || S.sy[i] < -40 || S.sy[i] > H + 40);
+    /* the spot it had, while it stays free: 1 kept, -1 left out of this pass, 0 looks for a spot */
+    const keepOld = (i, w) => {
+      const e0 = prev.get(i); if (!e0) return 0;
+      const p = pt3(e0.x, e0.y, e0.z); if (p[3] <= 0.05) return 0;
+      const l = p[0] + e0.ox, tp = p[1] + e0.oy;
+      /* the labels put it somewhere else, or left it out (an obstacle or a rule this layout does not see): give the
+         spot up for a while */
+      let rc = null; try { rc = L.rect('universe', 's' + i); } catch (err) {}
+      const dropped = !rc && t - (e0.born || 0) > LAYOUT_MS * 0.8, moved = rc && (Math.abs(rc.left - l) > 3 || Math.abs(rc.top - tp) > 3);
+      if (dropped) { banSpot(BAN, i, t, e0, LAB_DROP_MS); const RS = S.labRest || (S.labRest = new Map()), q = RS.get(i) || { n: 0, t: 0 }; q.n = t - q.t < LAB_DROP_MS ? q.n + 1 : 1; q.t = t; RS.set(i, q); return 0; }
+      /* R20 MOBILE (ROOT_CAUSES 9): on touch, where the labels drew it at another corner, it stays there (its spot and
+         point are kept, so nothing is handed over again); a shown name whose spot is gone is left out of this pass, so
+         it fades out and comes back fresh on the next, never jumping across the sky */
+      if (moved && tm) {
+        if (rc.left >= 0 && rc.top >= 0 && rc.right <= W && rc.bottom <= H && !clash(rc.left, rc.top, rc.right, rc.bottom)) { e0.w = w; next.set(i, e0); boxes.push([rc.left, rc.top, rc.right, rc.bottom]); return 1; }
+        banSpot(BAN, i, t, e0); return -1;
       }
+      if (moved) { banSpot(BAN, i, t, e0); return 0; }
+      if (free(l, tp, w, tm)) { e0.w = w; next.set(i, e0); boxes.push([l, tp, l + w, tp + LAB_H]); return 1; }
+      return tm && rc ? -1 : 0;
+    };
+    /* R20 MOBILE (ROOT_CAUSES 9): on touch the names showing keep their spots first, so one placed afresh never pushes
+       a shown one off (the next by plays only takes the room that is left) */
+    const done = new Set();
+    if (tm) for (let i = 0; i < Math.min(open, S.ns) && shown < cap; i++) { if (!prev.has(i) || !near(i)) continue; const k = keepOld(i, labWT(R.names[i])); if (k) done.add(i); if (k > 0) shown++; }
+    for (let i = 0; i < Math.min(open, S.ns) && shown < cap; i++) {
+      if (done.has(i) || !near(i)) continue;
+      const sx = S.sx[i], sy = S.sy[i];
+      const w = tm ? labWT(R.names[i]) : labW(R.names[i]);
+      if (!tm) { const k = keepOld(i, w); if (k > 0) { shown++; continue; } if (k < 0) continue; }
       const banned = (x, z, ox, oy) => isBanned(BAN, i, t, x, z, ox, oy);
       { const q = S.labRest && S.labRest.get(i); if (q && q.n >= LAB_DROPS && t - q.t < LAB_DROP_MS) continue; } /* left out often: rest */
       let e = null;
@@ -2851,6 +2918,7 @@ export default {
     if (!ctx.atlas || !ctx.atlas.on || !S.dom) return;
     const Pp = ctx.particles, re = !!ctx.atlas.reenter;
     ctx.atlas.printHex = (n) => { if (!S.active) return null; const f = famIndex(n); return f < 0 ? null : keyHex(famName(f)); }; /* R15 HUE_DYE: the liner marks follow the dye, one palette with the legend */
+    const st0 = S.stage;
     S.stage = ctx.stage();
     if (!re) {
       S.active = true; S.entered = now(); S.frameMs.length = 0; S.angle = 'sky'; S.sel = null; S.chord = null; S.famHi = -1; S.hover = -1; S.placeholder = -1; S.dayLine = null; S.playing = false; S.sun = S.sunOld = null; sunClass(false);
@@ -2866,10 +2934,14 @@ export default {
        sent again to the new home (the first entry often frames a transient stage while the chrome settles; carried on, the
        approach landed on that stale home and the sky sat smaller and lower than this stage's framing) */
     const H0 = S.homeFly, ownHome = wasFlying && !!H0 && ctx.view._in && ctx.view._in.flyingSince(H0.t0) && !ctx.view._in.flyingSince(H0.t1 + 0.01);
-    S.fit = framing(S.stage);
+    /* R20 MOBILE (ROOT_CAUSES 2): a name tapped on a touch screen is selected where it is, and the card growing under it (the
+       name's line, the listening row) only moves the stage's foot: the sky then keeps its place on the glass, its frame and
+       its middle, so no name moves or fades for the tap (the names the card now covers give way) */
+    const keepSky = re && !!(S.sel && S.sel.still) && !!st0 && !wasFlying && Math.abs(S.stage.x - st0.x) < 1 && Math.abs(S.stage.y - st0.y) < 1 && Math.abs(S.stage.w - st0.w) < 1;
+    if (!keepSky) S.fit = framing(S.stage);
     const tc0 = now();
-    ctx.view.configure({ mode: 'orbit3d', distMin: 0.06, distMax: Math.max(2.6, 3.2 * S.fit), home: fitted(HOME), drift: false, spin: spins, tilt: [0.32, 1.45], speed: 'slow', look: (k) => lookAt(k) });
-    const refit = Math.abs(S.fit - fit0) > 1e-3 || Math.abs((S.homeTy || 0) - ty0) > 1e-3;
+    if (!keepSky) ctx.view.configure({ mode: 'orbit3d', distMin: 0.06, distMax: Math.max(2.6, 3.2 * S.fit), home: fitted(HOME), drift: false, spin: spins, tilt: [0.32, 1.45], speed: 'slow', look: (k) => lookAt(k) });
+    const refit = !keepSky && (Math.abs(S.fit - fit0) > 1e-3 || Math.abs((S.homeTy || 0) - ty0) > 1e-3);
     if (re && ownHome && refit) homeFly(H0.k);
     else if (re && ownHome) S.homeFly = { t0: tc0, t1: now(), k: H0.k }; /* the camera carried it on (a new start): still ours */
     /* the stage changed shape (the card grew, the phone turned): keep the sky's size on screen, whatever the visitor's zoom,
@@ -2932,6 +3004,7 @@ export default {
       if (ctx.reduced && !moved && S.rmSeed) { S.rmSeed = false; try { Pp.glyphMode('cont', { colour: 'sample', bleach: true }); } catch (e) {} }
       trails(t); S.tLines = (S.tLines || 0) * 0.95 + (now() - tq) * 0.05;
       dolly(ctx, t);
+      sightStep();
       layoutLabels(t);
       layoutThreads(t);
       /* the governor's lattice: the first cell seen at tier 0 is the dust's reference; a coarser one re-weights the dust */
@@ -2999,8 +3072,9 @@ export default {
     let m = /^(?:s|d|nb)(\d+)/.exec(s); if (m) { const i = +m[1]; return i < R.nA ? voiceOf(i) : null; }
     m = /^f(\d+)$/.exec(s); return m ? { fam: famName(+m[1]) } : null;
   },
-  /* L3: what sits under the phone reticle at (x, y), CSS px. pure: no sound, no light */
-  reticle(x, y) { const i = pickStar(x, y, 22); if (i < 0 || !S.R) return null; const v = voiceOf(i); return { id: 'u:' + v.artist, i, fam: v.fam, plays: v.plays, kind: 'glyph', artist: v.artist, x: S.sx[i], y: S.sy[i] }; },
+  /* L3: what sits under the phone reticle at (x, y), CSS px. pure: no sound, no light. R20 MOBILE: false (the sight lifts)
+     while a touch selection sits under it (sightYields) */
+  get reticle() { return sightYields() ? false : reticleAt; },
   /* the kiosk demo: a slow strum across 12 stars, then one corona */
   demo(ctx) { vx().then((v) => { if (v && !ctx.demoStopped && S.active) v.demo(); }); },
   stopDemo() { if (VX) VX.stopDemo(); },
@@ -3011,7 +3085,7 @@ export default {
 api._dbg = {
   /* R18 ROOMS V1: the hear state (what sm:clip said, the light's level, the star, the caption line, the turn) */
   hear() { const i = hearIdx(), R = S.R, W = S.wb; let bs = 0, bn = 0, rs = 0, rn = 0; if (i >= 0 && W) { const a0 = R.bs[i], a1 = R.bs[i + 1]; for (let d = 0; d < W.length; d++) { if (!W[d]) continue; if (d >= a0 && d < a1) { bs += W[d]; bn++; } else { rs += W[d]; rn++; } } }
-    return { artist: HEAR.artist, state: HEAR.state, li: HEAR.li, g: HEAR.g, gq: HEAR.gq, i, blk: bn ? +(bs / bn).toFixed(1) : null, rest: rn ? +(rs / rn).toFixed(2) : null, line: hearLine(), spins: !!spins(), hearB: S.dom && S.dom.hearB ? { hidden: S.dom.hearB.hidden, text: S.dom.hearB.textContent } : null }; },
+    return { artist: HEAR.artist, state: HEAR.state, li: HEAR.li, g: HEAR.g, gq: HEAR.gq, i, blk: bn ? +(bs / bn).toFixed(1) : null, rest: rn ? +(rs / rn).toFixed(2) : null, line: hearLine(), spins: !!spins(), hearB: null }; },
   /* the hear light's own cost: weights() with and without the pass (ms each), one ring (ms) */
   hearCost() { const sv = HEAR.gq, tm = (q) => { HEAR.gq = q; const t0 = performance.now(); for (let k = 0; k < 6; k++) weights(); return (performance.now() - t0) / 6; }; const off = tm(0), on = hearIdx() >= 0 ? tm(1) : null; HEAR.gq = sv; weights();
     const cv = document.createElement('canvas'); cv.width = innerWidth; cv.height = innerHeight; const g = cv.getContext('2d'), sg = HEAR.g; HEAR.g = 1; const t1 = performance.now(); for (let k = 0; k < 200; k++) drawHear(g, k * 16); const ring = (performance.now() - t1) / 200; HEAR.g = sg;

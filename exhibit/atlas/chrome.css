@@ -285,6 +285,9 @@ html.atlas #top #mute[aria-pressed="false"]{color:var(--ice)}
    the §0.2 budget of 40px: min-height:32px here, not 44px, is what keeps that total at 40px (4+32+4). */
 @media (max-aspect-ratio:115/100){
   html.atlas #top{background:none;padding-top:calc(4px + env(safe-area-inset-top));padding-bottom:4px;min-height:0}
+  /* R20 MOBILE (ROOT_CAUSES 11): the brand's 44px box (exhibit.html, margin -6px) began 2px above the glass. 2px more on
+     top and 2px less below keep it on the glass, under the notch, and #top at 40px. not on the wall kiosk */
+  html.atlas:not([data-wall]) #top{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:2px}
   html.atlas #top .brand{min-height:32px;padding:4px;font-size:12.5px;letter-spacing:.16em}
 }
 

@@ -27,6 +27,36 @@ export function mount(ctx, deps) {
   if (!ctx.atlas || !ctx.atlas.on) return null;
   const { TOURS = [], DWELL = { short: 0.45, normal: 1, long: 1.7 }, KIOSK, reduced, P } = deps || {};
   const byId = (id) => TOURS.find((t) => t.id === id) || null;
+  /* R20 RECORD_CHROME (the owner: the tour waits for people). on the plain record (every visit but the wall) the hold clock stops
+     while a sheet is open (about, the list of stops, help, the notes, find an artist, the picture bar, a listening post the visitor
+     opened) or while the machine is lifted off the record; a stop that asks the visitor something waits for them after its
+     entrance; and on a touch screen the tour never turns the page by itself: play goes on from the stop on screen, one stop at a
+     time, and next / previous step by hand. the wall (KIOSK) keeps its hands-free walk, untouched */
+  const PLAIN = !KIOSK;
+  const COARSE = !!(deps && deps.coarse) || matchMedia('(pointer:coarse)').matches;
+  const ASKS = new Set(['wall.unsorted', 'game.round', 'bail.heap', 'graveyard.kill', 'make.wheel', 'yours.bars']);
+  let byHand = false, busyAt = 0, busyV = false, parked = null;
+  const clip = { state: 'off', mine: false }; /* post.js sm:clip: the last clip, and whether the visitor started it */
+  if (PLAIN) {
+    ['pointerdown', 'keydown'].forEach((t) => addEventListener(t, (e) => { if (e.isTrusted && e.target && e.target.closest && e.target.closest('#exdock')) byHand = true; }, { capture: true, passive: true }));
+    addEventListener('sm:clip', (e) => { const x = (e && e.detail) || {}; clip.state = x.state || 'off'; if (typeof x.visitor === 'boolean') clip.mine = x.visitor; /* R20 2026-10-17: post.js sends visitor = the visitor started it (open && mine) */ else if (x.via) clip.mine = x.via === 'tap' || x.via === 'dwell'; if (clip.state === 'off') clip.mine = false; });
+  }
+  function busy() {
+    const t = performance.now(); if (t - busyAt < 200) return busyV; busyAt = t;
+    const d = document;
+    let b = !!d.querySelector('dialog[open]');
+    if (!b) { const sp = d.querySelector('.as-panel'); b = !!(sp && !sp.hidden); }
+    if (!b) { const ph = ctx.atlas && ctx.atlas.photo; b = !!(ph && ph.isOpen); }
+    if (!b) {
+      const x = d.getElementById('exdock'), open = !!(x && !x.classList.contains('is-off'));
+      if (!open) byHand = false;
+      b = (clip.mine && (open || clip.state === 'armed' || clip.state === 'cueing' || clip.state === 'playing')) || (open && byHand);
+    }
+    if (!b && curStopId === 'threshold') { try { const r = ((window.__exhibit && window.__exhibit.rooms) || []).find((q) => q.id === 'threshold'), p = r && r.mod && r.mod.rec; b = !!(p && p.lifted); } catch (e) {} }
+    return (busyV = b);
+  }
+  /* the record stops itself: on a touch screen after each stop, anywhere at a stop that asks. play picks up where it waited */
+  function park(stage) { parked = { id: active.id, k: active.k, stage }; active.playing = false; active.why = 'wait'; fire(); }
   /* R13 ONE TOUR: the long play is the only tour. tours.js carries its two shorter LENGTHS as defs of their own (`of:
      'grand'`, stops stamped `g` = their index on the long play) so the stepper, the count and the caption speed read from
      the def being played, and the liner notes as `note` defs that never play: play(<note id>) is the long play with that
@@ -59,6 +89,24 @@ export function mount(ctx, deps) {
   let epoch = 0;            /* bumped to cancel any in-flight hold/flight/typing */
   let curStopId = null;     /* room id the camera is actually standing in right now */
   let manualTimer = 0;      /* kiosk: resume 45s after the last manual pause with no further input */
+  /* R19 wall (K1): the hand-back counts from the LAST trusted input, not from the first pause. pause() returns early once paused, so the
+     timer used to be armed once and a visitor touching every few seconds had the walk resume under their hand. `handsoff` (seconds) is
+     window.__wall.opts; any other kiosk keeps the single 45 s timer. the timer is only checked when it fires (one timer, no re-arm per
+     pointermove); 60 ms of grace so a clock a few ms apart from the caller's never reads as an early resume */
+  let lastIn = -1e9;
+  const handMs = () => { const w = window.__wall, s = w && w.opts ? +w.opts.handsoff : 0; return s > 0 ? s * 1000 : 45000; };
+  function handBack() {
+    manualTimer = 0;
+    if (!active.id || active.playing) return;
+    const left = handMs() + 60 - (performance.now() - lastIn);
+    if (left > 0) { manualTimer = setTimeout(handBack, left); return; }
+    resume();
+  }
+  if (KIOSK && window.__wall) {
+    const seen = () => { lastIn = performance.now(); };
+    ['pointerdown', 'pointerup', 'pointercancel', 'keydown', 'wheel', 'touchstart', 'touchend'].forEach((t) => window.addEventListener(t, (e) => { if (e.isTrusted) seen(); }, { capture: true, passive: true }));
+    window.addEventListener('pointermove', (e) => { if (e.isTrusted && (e.buttons || e.pointerType === 'touch')) seen(); }, { capture: true, passive: true });
+  }
   let capPromise = Promise.resolve(); /* R3 M4-a/b: the real ctx.caption.type() promise currently in flight —
      chrome.js's own compact-card carousel already paces a caption's full read (typeChunks), so this is the
      authoritative "is this caption done yet" signal. Reading it (never estimating chars-per-second again)
@@ -137,6 +185,35 @@ export function mount(ctx, deps) {
     const daysOk = daysAvailableSync();
     return def.stops.filter((sd) => !sd.pending && (daysOk || sd.angle !== 'day')).length;
   }
+  /* R19 wall (K3): the running time the tours sheet may promise. a stop is its authored hold stretched to its caption (typing at the
+     tour's rate plus CAP_PAD_MS, what dwellFor waits for) plus the time it spends getting to its picture: the awaited angle changes the
+     rooms report (LEAD_MS, ms; a pour asked twice pours twice, AGAIN) and nothing for the rest. game and loop end their own stops once
+     their demo lands (ROOM_END: [asked, ends] ms after the hold starts; a hold shorter than the ask has moved on already). measured on
+     the shipped rooms' untouched loops (grand 289 s at dwell normal); r19_wall_kiosk_tour.mjs measures one loop against this */
+  const LEAD_MS = { 'threshold:whole': 1360, 'wall:pour': 4610, 'wall:press': 2420, 'graveyard:gates': 5630, 'graveyard:kill': 5680, 'make:wheel': 4010, 'map:m100': 1110, 'map:curve': 1310, 'wheel:strict': 910, 'clock:busiest': 670, 'calendar:line': 660 };
+  const AGAIN = { 'wall:pour': 1 };
+  const ROOM_END = { game: [8000, 12600], loop: [11130, 15330] };
+  function estimate(id, dwell) {
+    const def = byId(id); if (!def || !def.stops) return 0;
+    let key = dwell; if (!key) { try { key = ctx.settings.get('dwell'); } catch (e) {} }
+    const mul = DWELL[key || 'normal'] || 1, daysOk = daysAvailableSync(), cps = 55 * (def.capSpeed > 0 ? def.capSpeed : 1);
+    const cap = (txt, lead) => (txt ? Math.max(0, (String(txt).length / cps) * 1000 - lead) + CAP_PAD_MS : 0); /* a step's line starts typing as its angle is asked, so a lead hides it */
+    let ms = 0;
+    def.stops.forEach((sd) => {
+      if (sd.pending || (!daysOk && sd.angle === 'day')) return;
+      const end = ROOM_END[sd.room], hold = (sd.hold || 9) * mul * 1000;
+      ms += (LEAD_MS[sd.room + ':' + sd.angle] || 0) + Math.max(end && hold > end[0] ? end[1] : hold, cap(sd.caption, 0));
+      let at = sd.angle;
+      (sd.then || []).forEach((t) => {
+        const a = thenAngleId(t), k = sd.room + ':' + a;
+        if (!daysOk && a === 'day') return;
+        const lead = a !== at || AGAIN[k] ? LEAD_MS[k] || 0 : 0;
+        at = a;
+        ms += lead + Math.max(6 * mul * 1000, cap(typeof t === 'object' ? t.caption : null, lead));
+      });
+    });
+    return Math.round(ms / 1000);
+  }
   async function resolveFocusToken(raw) {
     const m = /^top5_by_plays\[(\d)\]$/.exec(raw || '');
     if (!m) return null;
@@ -202,6 +279,7 @@ export function mount(ctx, deps) {
       const off = ctx.onFrame((t, dt) => {
         if (my !== epoch) { off(); if (lead === h) lead = null; resolve(); return; }
         if (!active.playing) return; /* frozen: pause() does not cancel epoch, it just stops accumulation */
+        if (PLAIN && busy()) return; /* R20: a sheet, a post or the lifted machine holds the clock where it is */
         elapsed += dt || 16.7;
         active.holding = ms > 0 ? clamp(elapsed / ms, 0, 1) : 1;
         if (elapsed >= ms) { off(); if (lead === h) lead = null; resolve(); }
@@ -294,7 +372,7 @@ export function mount(ctx, deps) {
     }
     return gotoTourStop(id, k + 1, my);
   }
-  async function driver(my) {
+  async function driver(my, skip) {
     for (;;) {
       if (my !== epoch) return;
       const def = byId(active.id); if (!def) return;
@@ -302,8 +380,9 @@ export function mount(ctx, deps) {
       let dwellMul = 1; try { dwellMul = DWELL[ctx.settings.get('dwell') || 'normal']; } catch (e) {} if (!dwellMul) dwellMul = 1;
       /* R3 M4-a: max(authored hold, the entrance caption's own carousel + pad), raced via dwellFor —
          never a sum of the two. */
-      await dwellFor((stopDef.hold || 9) * dwellMul * 1000, !!stopDef.caption, my);
+      if (!skip) await dwellFor((stopDef.hold || 9) * dwellMul * 1000, !!stopDef.caption, my);
       if (my !== epoch) return;
+      if (!skip && PLAIN && ASKS.has(stopDef.room + '.' + stopDef.angle)) { park('ask'); return; } /* R20: a stop that asks waits */
       const visThen = await visibleThen(stopDef.then);
       if (my !== epoch) return;
       if (visThen.length) {
@@ -350,6 +429,8 @@ export function mount(ctx, deps) {
         if (KIOSK) { await gotoTourStop(active.id, 0, my); if (my !== epoch) return; continue; }
         active.playing = false; active.why = 'end'; fire(); emit('end', { id: active.id }); return;
       }
+      if (PLAIN && COARSE && !(skip && !visThen.length)) { park('next'); return; } /* R20: a touch screen never turns the page itself */
+      skip = false;
       await gotoTourStop(active.id, active.k + 1, my);
       if (my !== epoch) return;
     }
@@ -404,6 +485,8 @@ export function mount(ctx, deps) {
     if (isLen(def)) lenNow = def.id; /* said at once, so a sheet re-drawn in the same tick shows the length being played */
     clearTimeout(manualTimer);
     const my = ++epoch;
+    parked = null;
+    if (PLAIN) { active.id = id; active.k = clamp(k || 0, 0, def.stops.length - 1); active.n = def.stops.length; }
     let wantPlay = opts.autoplay !== false;
     if (reduced && !KIOSK) wantPlay = false; /* §9.3: reduced motion starts tours paused, kiosk excepted */
     active.playing = wantPlay; active.why = null; active.hand = false;
@@ -412,13 +495,18 @@ export function mount(ctx, deps) {
   function pause(reason) {
     if (!active.id || !active.playing) return;
     active.playing = false; active.why = reason || null; fire();
-    if (KIOSK) { clearTimeout(manualTimer); manualTimer = setTimeout(() => resume(), 45000); }
+    if (KIOSK) { clearTimeout(manualTimer); manualTimer = window.__wall ? setTimeout(handBack, handMs()) : setTimeout(() => resume(), 45000); }
   }
   function resume() {
     if (!active.id) return;
     clearTimeout(manualTimer);
+    const def = byId(active.id), sd = def && def.stops[active.k], here = !!sd && curStopId === sd.room, why0 = active.why;
+    const pk = PLAIN && parked && parked.id === active.id && parked.k === active.k ? parked.stage : null;
+    parked = null;
     active.playing = true; active.why = null; fire();
     const my = ++epoch;
+    if (pk === 'next' && def && active.k < def.stops.length - 1) { startFrom(active.id, active.k + 1, my).catch((e) => console.warn('tour', e)); return; }
+    if (here && (pk === 'ask' || (PLAIN && COARSE && why0 !== 'help' && why0 !== 'manual'))) { driver(my, true).catch((e) => console.warn('tour', e)); return; }
     startFrom(active.id, active.k, my).catch((e) => console.warn('tour', e));
   }
   /* K3: the one control both the space key and chrome.js's play/pause button drive (§0.9/W09) */
@@ -432,8 +520,9 @@ export function mount(ctx, deps) {
     const def = byId(active.id); if (!def) return Promise.resolve(false);
     const k = clamp(active.k + dir, 0, def.stops.length - 1);
     if (k === active.k) return Promise.resolve(false);
-    const wasPlaying = active.playing, my = ++epoch;
+    const wasPlaying = active.playing || (PLAIN && !COARSE && active.why === 'wait'), my = ++epoch;
     active.hand = true;
+    if (PLAIN) { parked = null; if (wasPlaying && !active.playing) { active.playing = true; active.why = null; } active.k = k; fire(); }
     (async () => { try { await gotoTourStop(active.id, k, my); } finally { if (my === epoch) active.hand = false; } if (my !== epoch) return; if (wasPlaying) await driver(my); })().catch((e) => console.warn('tour', e));
     return Promise.resolve(true);
   }
@@ -442,7 +531,7 @@ export function mount(ctx, deps) {
     lengths, length, setLength, lens: () => lens, setLens,
     next: () => stepTour(1), prev: () => stepTour(-1),
     onChange(fn) { return sub(CHANGEFNS, fn); },
-    on, resolveCaption, effectiveStopCount,
+    on, resolveCaption, effectiveStopCount, estimate,
     seen: seenCount, angleBar,
   };
 

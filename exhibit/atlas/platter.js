@@ -58,6 +58,9 @@ export default function platter(room, ctx) {
     live: false, enterT: 0, cueT: 0, pk: 0, aa: -1, abk: 0 };
   /* ---------------------------------------------------------------- R18: lift the machine off the record */
   const L = { on: false, k: 0, from: 0, to: 0, t0: 0, hook: false, H: null, sent: -1, wk: 0, used: false, ms: 0, n: 0 };
+  /* R20 RECORD_CHROME: on the plain record (not the wall, not ?kiosk=1) the first click on the record lifts the machine, a click
+     on the label puts it back or lifts it again, and nothing pops up to say how (no cue, no toast; a screen reader still hears) */
+  const PLAIN = !(window.__wall || (ctx.atlas && ctx.atlas.kiosk));
   /* without the shell's lift: the machine's dots (shuffle, the queue) leave the print in a hashed order over LIFT_MS. a weight
      of 0 drops a dot from its glyph cell, so a cell left with only my taps prints mint (the renderer samples a cell's colour
      from its dots, not their weights); KEEP of them stay as a faint dust at weight 48, under the haze line. my taps keep 255 */
@@ -106,7 +109,7 @@ export default function platter(room, ctx) {
   if (AT) { AT.__platCap = myCap; if (!AT.__platter) { AT.__platter = 1; const prev = typeof AT.capFor === 'function' ? AT.capFor : null; AT.capFor = (id, a) => (id === 'threshold' && typeof AT.__platCap === 'function' ? AT.__platCap() : null) || (prev ? prev(id, a) : null); } }
   function recap(line) {
     const ta = ctx.tour && ctx.tour.active;
-    if (ta && ta.playing) { if (line) { try { ctx.toast(line); } catch (e) {} } return; } /* the tour owns the caption: a reply goes to the toast */
+    if (ta && ta.playing) { if (line && !PLAIN) { try { ctx.toast(line); } catch (e) {} } return; } /* the tour owns the caption: a reply goes to the toast */
     try { ctx.caption.clear(); } catch (e) {}
   }
   /* the lever, by the tonearm's pivot (a turntable's cue lever sits there) */
@@ -123,7 +126,7 @@ export default function platter(room, ctx) {
   function ctrlSync() { if (!ctrl) return; ctrl.setAttribute('aria-label', ARIA[L.on ? 1 : 0]); ctrl.firstChild.textContent = BTN[L.on ? 1 : 0]; ctrl.classList.toggle('on', L.on); ctrlKey = ''; ctrlSz = null; }
   function ctrlShow(force) {
     if (!ctrl) return;
-    const nv = document.getElementById('needle-veil'), vis = !force && st.on && st.live && !!st.R && room.ig >= 1 && !(nv && !nv.classList.contains('is-off'));
+    const vis = !force && st.on && st.live && !!st.R && room.ig >= 1;
     if (vis === ctrl.classList.contains('vis')) return;
     ctrl.classList.toggle('vis', vis); ctrl.tabIndex = vis ? 0 : -1; ctrl.setAttribute('aria-hidden', vis ? 'false' : 'true');
   }
@@ -183,6 +186,7 @@ export default function platter(room, ctx) {
   function tap(wx, wy) {
     const X = (wx - st.cx) / st.R, Y = (wy - st.cy) / (st.R * st.kk), r = Math.hypot(X, Y);
     if (r > 1.06) { arcsOff(); return false; }
+    if (PLAIN && (!L.used || r < R0F * 0.95)) { liftTo(L.used ? !L.on : true); cueDone(); return true; }
     if (r < R0F * 0.95) { try { ctx.toast(HOLD_SAY); } catch (e) {} cueDone(); return true; }
     const f = (under(Math.min(1, r), Math.atan2(Y, X) - st.a) + 0.5) / n, seq = ++st.pk;
     arcsMod().then((A) => (A ? A.pickAt(f) : null)).then((hit) => { if (seq === st.pk) arcsShow(hit); });
@@ -195,7 +199,7 @@ export default function platter(room, ctx) {
   let cueMem = false, cueAt = 0;
   function cueDone() { cueMem = true; cueAt = 0; try { sessionStorage.setItem(CUE_KEY, '1'); } catch (e) {} }
   function cueCheck(now) {
-    if (cueMem || !st.live || !st.on || room.ig !== 2) return;
+    if (cueMem || PLAIN || !st.live || !st.on || room.ig !== 2) return;
     if (cueAt) {
       const te = document.getElementById('atlas-toast');
       if (!te || (te.classList.contains('on') && te.textContent === CUE)) { cueDone(); return; }
@@ -204,8 +208,8 @@ export default function platter(room, ctx) {
     }
     if (now - st.cueT < 250) return; st.cueT = now;
     if (now - lastIn < CUE_IDLE || now - st.enterT < CUE_IDLE) return;
-    const ta = ctx.tour && ctx.tour.active, nv = document.getElementById('needle-veil');
-    if ((ta && ta.playing) || (nv && !nv.classList.contains('is-off'))) return;
+    const ta = ctx.tour && ctx.tour.active;
+    if (ta && ta.playing) return;
     let seen = false; try { seen = sessionStorage.getItem(CUE_KEY) === '1'; } catch (e) {}
     if (seen || (ctx.atlas && ctx.atlas.kiosk)) { cueMem = true; return; }
     cueAt = now; try { ctx.toast(CUE, 7000, { wait: true }); } catch (e) { cueDone(); }
@@ -308,7 +312,7 @@ export default function platter(room, ctx) {
     rg.addColorStop(0, 'rgba(255,255,255,.9)'); rg.addColorStop(0.3, 'rgba(134,203,254,.35)'); rg.addColorStop(1, 'rgba(134,203,254,0)');
     g.fillStyle = rg; g.fillRect(sx - R * 0.09, sy - R * 0.09, R * 0.18, R * 0.18);
     g.globalCompositeOperation = 'source-over';
-    { const nv = document.getElementById('needle-veil'); if (!nv || nv.classList.contains('is-off')) arm(g, cx + R * PD * Math.cos(PA), cy + R * kk * PD * Math.sin(PA), sx, sy, R, lw, 0.9); } /* R17: one tonearm while ?enter=sound's veil is up */
+    arm(g, cx + R * PD * Math.cos(PA), cy + R * kk * PD * Math.sin(PA), sx, sy, R, lw, 0.9);
     g.restore();
     st.ms = performance.now() - t0;
   }

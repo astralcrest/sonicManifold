@@ -1,0 +1,117 @@
+/* R19 LABEL: the wall's invite, color key, title slate, credits and statement. exhibit.html?wall=1 only: wallboot.js links this
+   sheet, wallcard.js adds it when it is the one that was called first, and every rule keys on html.wallmode (never html.wall:
+   the legacy .wall rules blank the page). the five reserved hues appear only as the key's swatches, the slate's marks and the
+   kill line; the ring and the glow are ice, the interface's own color. nothing here is new. */
+
+html.wallmode #wallcard{
+  display:contents;
+  --wc-bg:#0a0118;--wc-ink:#f0eaff;--wc-mute:#a49bbd;--wc-orchid:#bda6ff;--wc-line:rgba(189,166,255,.22);
+  --wc-tap:#21f6bc;--wc-shuffle:#f5a623;--wc-violet:#8b6fd6;--wc-rose:#ff6e9c;--wc-ice:#86cbfe;
+  --wc-serif:var(--serif-voice,ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Charter,Georgia,"Times New Roman",serif);
+  --wc-mono:var(--mono,"JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace);
+  /* the invite is 3.55% of the viewport height (the gate asks for 3.5), the key 1.75% (the wall's smallest type is 1.43%) */
+  --wc-inv:max(3.55vh,20px);--wc-keyfs:max(1.75vh,11px);
+  /* 1% of the widest 16:9 frame that fits the viewport: the slate and the sheets are drawn in it, so any panel gets one layout */
+  --wc-u:min(1vw,1.77778vh);
+}
+
+/* ---------------------------------------------------------------- the two pills: the invite and the key */
+html.wallmode #wallcard .wc-pill{
+  position:fixed;left:0;top:0;z-index:4;margin:0;list-style:none;box-sizing:border-box;display:flex;align-items:center;white-space:nowrap;
+  pointer-events:none;color:var(--wc-ink);background:rgba(10,1,24,.9);border:1px solid var(--wc-line);border-radius:999px;
+  box-shadow:0 0 0 1px rgba(10,1,24,.55),0 1vh 3.2vh rgba(10,1,24,.6);
+  opacity:0;visibility:hidden;transform:translate3d(var(--wc-x,0px),var(--wc-y,0px),0);translate:var(--wc-dx,0px) var(--wc-dy,0px);
+  transition:opacity .28s ease,visibility 0s linear .28s,translate 20s linear;
+}
+html.wallmode #wallcard .wc-pill[data-on="1"]{opacity:1;visibility:visible;transition:opacity .6s ease,visibility 0s,translate 20s linear}
+html.wallmode #wallcard .wc-pill[data-yield="1"]{opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s linear .2s,translate 20s linear}
+
+html.wallmode #wallcard .wc-invite{padding:.05em .95em .09em .6em;font:italic 400 var(--wc-inv)/1.15 var(--wc-serif);letter-spacing:-.005em;
+  animation:wc-glow 5.2s ease-in-out infinite}
+html.wallmode #wallcard .wc-ring{position:relative;flex:none;box-sizing:border-box;width:.72em;height:.72em;margin-right:.5em;border-radius:50%;
+  border:max(2px,.07em) solid var(--wc-ice)}
+html.wallmode #wallcard .wc-ring::after{content:"";position:absolute;inset:-.16em;border-radius:50%;border:1px solid var(--wc-ice);opacity:0;
+  animation:wc-ping 3.4s cubic-bezier(.2,.6,.3,1) infinite}
+@keyframes wc-ping{0%{transform:scale(.75);opacity:.8}70%,100%{transform:scale(2);opacity:0}}
+@keyframes wc-glow{0%,100%{box-shadow:0 0 0 1px rgba(10,1,24,.55),0 1vh 3.2vh rgba(10,1,24,.6),0 0 0 rgba(134,203,254,0)}
+  50%{box-shadow:0 0 0 1px rgba(10,1,24,.55),0 1vh 3.2vh rgba(10,1,24,.6),0 0 2.6vh rgba(134,203,254,.24)}}
+
+html.wallmode #wallcard .wc-key{padding:.14em 1.05em .16em;gap:0 1.15em;font:400 var(--wc-keyfs)/1.2 var(--wc-mono);letter-spacing:.035em}
+html.wallmode #wallcard .wc-key li{display:flex;align-items:center;gap:.5em;margin:0;padding:0}
+html.wallmode #wallcard .wc-sw{flex:none;display:block;box-sizing:border-box;width:.78em;height:.78em;border-radius:50%;background:var(--c,var(--wc-ice))}
+html.wallmode #wallcard .wc-key.wc-genre{color:var(--wc-mute)}
+
+/* the legacy "tap for sound" line (chrome.js, enlarged by wall.type.css) says what the invite says; one of them at a time */
+html.wallmode.wc-inviting #atlas-onboard .ai-line-snd{visibility:hidden}
+
+/* ---------------------------------------------------------------- the sheets: title slate, credits, statement */
+html.wallmode #wallcard .wc-sheet{
+  position:fixed;inset:0;z-index:70;box-sizing:border-box;margin:0;overflow:hidden;pointer-events:none;
+  color:var(--wc-ink);font-family:var(--wc-mono);
+  background:radial-gradient(90% 80% at 72% 38%,rgba(189,166,255,.075),rgba(189,166,255,0) 62%),#0a0118;
+  opacity:0;visibility:hidden;transition:opacity .9s ease,visibility 0s linear .9s;
+}
+html.wallmode #wallcard .wc-sheet[data-on="1"]{opacity:1;visibility:visible;transition:opacity .9s ease,visibility 0s}
+html.wallmode #wallcard .wc-sheet p,html.wallmode #wallcard .wc-sheet h2,html.wallmode #wallcard .wc-sheet ul,html.wallmode #wallcard .wc-sheet dl,
+html.wallmode #wallcard .wc-sheet dd,html.wallmode #wallcard .wc-sheet figure{margin:0;padding:0}
+html.wallmode #wallcard .wc-frame{position:absolute;left:50%;top:50%;width:calc(100*var(--wc-u));height:calc(56.25*var(--wc-u));transform:translate(-50%,-50%)}
+html.wallmode #wallcard .wc-in{position:absolute;inset:0;box-sizing:border-box;padding:calc(4.4*var(--wc-u)) calc(5.2*var(--wc-u)) calc(3.4*var(--wc-u));
+  display:grid;grid-template-columns:1.1fr .9fr;grid-template-rows:1fr auto;column-gap:calc(4.2*var(--wc-u));row-gap:calc(2.2*var(--wc-u))}
+html.wallmode #wallcard .wc-k{font:400 calc(1*var(--wc-u))/1.3 var(--wc-mono);letter-spacing:.08em;color:var(--wc-mute)}
+html.wallmode #wallcard .wc-h{font:italic 400 calc(6.5*var(--wc-u))/.98 var(--wc-serif);letter-spacing:-.015em;margin:calc(1.5*var(--wc-u)) 0 calc(1.3*var(--wc-u))!important;color:var(--wc-ink)}
+html.wallmode #wallcard .wc-by{font:400 calc(1.1*var(--wc-u))/1.3 var(--wc-mono);color:var(--wc-mute)}
+html.wallmode #wallcard .wc-thesis{font:400 calc(2.5*var(--wc-u))/1.22 var(--wc-serif);margin-top:calc(3*var(--wc-u))!important;max-width:20ch;color:var(--wc-ink)}
+html.wallmode #wallcard .wc-bigline{display:block;font:italic 400 calc(1.7*var(--wc-u))/1.3 var(--wc-serif);color:var(--wc-ice);margin-top:calc(2.6*var(--wc-u))!important;animation:wc-breathe 5s ease-in-out infinite}
+html.wallmode #wallcard .wc-bigline span{display:block}
+@keyframes wc-breathe{0%,100%{opacity:.62}50%{opacity:1}}
+html.wallmode #wallcard .wc-r{align-self:center;justify-self:center}
+html.wallmode #wallcard .wc-kh{font:400 calc(1*var(--wc-u))/1.3 var(--wc-mono);letter-spacing:.05em;color:var(--wc-mute);margin-bottom:calc(1.2*var(--wc-u))!important}
+html.wallmode #wallcard .wc-waffle{display:grid;grid-template-columns:repeat(10,calc(2.3*var(--wc-u)));grid-auto-rows:calc(2.3*var(--wc-u));gap:calc(.4*var(--wc-u));
+  font:400 calc(1.65*var(--wc-u))/1 var(--wc-mono)}
+html.wallmode #wallcard .wc-waffle span{display:grid;place-items:center;border-radius:calc(.3*var(--wc-u));color:var(--c);background:var(--b);text-shadow:0 0 calc(.6*var(--wc-u)) currentColor}
+html.wallmode #wallcard .wc-waffle i{display:block;font-style:normal;transform:translateY(.28em)}
+html.wallmode #wallcard .wc-sheet[data-on="1"] .wc-waffle span{animation:wc-pop .7s cubic-bezier(.2,.7,.3,1) both;animation-delay:calc(var(--i)*16ms + 250ms)}
+@keyframes wc-pop{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:none}}
+html.wallmode #wallcard .wc-split{list-style:none;display:flex;gap:calc(2.4*var(--wc-u));margin-top:calc(1.7*var(--wc-u))!important;font-family:var(--wc-mono)}
+html.wallmode #wallcard .wc-split li{display:block}
+html.wallmode #wallcard .wc-split b{display:block;font-size:calc(2.9*var(--wc-u));font-weight:650;line-height:1;margin-bottom:calc(.5*var(--wc-u));color:var(--c)}
+html.wallmode #wallcard .wc-split span{display:block;font-size:calc(.98*var(--wc-u));line-height:1.3;color:var(--wc-ink)}
+html.wallmode #wallcard .wc-foot{grid-column:1/-1;display:flex;justify-content:space-between;align-items:flex-end;gap:calc(3*var(--wc-u));padding-top:calc(1.5*var(--wc-u));border-top:1px solid rgba(240,234,255,.12)}
+html.wallmode #wallcard .wc-keyrow{display:flex;flex-wrap:wrap;gap:calc(.6*var(--wc-u)) calc(2.2*var(--wc-u));max-width:calc(62*var(--wc-u));font:400 calc(.95*var(--wc-u))/1.35 var(--wc-mono);color:var(--wc-mute)}
+html.wallmode #wallcard .wc-keyrow span{display:inline-flex;align-items:center}
+html.wallmode #wallcard .wc-keyrow i{display:inline-block;width:calc(.85*var(--wc-u));height:calc(.85*var(--wc-u));border-radius:calc(.18*var(--wc-u));margin-right:calc(.6*var(--wc-u));background:var(--c)}
+html.wallmode #wallcard .wc-qrbox{display:flex;align-items:center;gap:calc(1.4*var(--wc-u))}
+html.wallmode #wallcard .wc-qrtile{flex:none;display:block;line-height:0;padding:calc(.5*var(--wc-u));border-radius:calc(.45*var(--wc-u));background:var(--wc-ice)}
+html.wallmode #wallcard .wc-qrtile svg{display:block}
+html.wallmode #wallcard .wc-qrcap{font:400 calc(1.1*var(--wc-u))/1.3 var(--wc-serif);max-width:36ch;text-wrap:balance;color:var(--wc-ink)}
+html.wallmode #wallcard .wc-qrurl{font:400 calc(.88*var(--wc-u))/1.3 var(--wc-mono);color:var(--wc-ice);margin-top:calc(.5*var(--wc-u))!important}
+
+/* credits */
+html.wallmode #wallcard .wc-medium{font:400 calc(1.5*var(--wc-u))/1.45 var(--wc-serif);color:var(--wc-ink);max-width:calc(44*var(--wc-u));margin-top:calc(2.4*var(--wc-u))!important}
+html.wallmode #wallcard .wc-dim{font:400 calc(1*var(--wc-u))/1.4 var(--wc-mono);color:var(--wc-mute);margin-top:calc(1.2*var(--wc-u))!important}
+html.wallmode #wallcard .wc-epi{font:italic 400 calc(2*var(--wc-u))/1.3 var(--wc-serif);color:var(--wc-ink);max-width:calc(40*var(--wc-u));margin-top:calc(2.4*var(--wc-u))!important}
+html.wallmode #wallcard .wc-credits .wc-in{grid-template-columns:.86fr 1.14fr}
+html.wallmode #wallcard .wc-credits .wc-h{font-size:calc(5.1*var(--wc-u));white-space:nowrap}
+html.wallmode #wallcard .wc-credits .wc-l{display:flex;flex-direction:column;min-height:0}
+html.wallmode #wallcard .wc-credits .wc-honest{margin-top:auto!important}
+html.wallmode #wallcard .wc-credits .wc-r{align-self:stretch;justify-self:stretch;display:flex;align-items:center}
+html.wallmode #wallcard .wc-rows{display:grid;grid-template-columns:calc(10*var(--wc-u)) 1fr;column-gap:calc(1.6*var(--wc-u));row-gap:calc(1.25*var(--wc-u));align-content:center}
+html.wallmode #wallcard .wc-rows dt{font:400 calc(.95*var(--wc-u))/1.5 var(--wc-mono);letter-spacing:.04em;color:var(--wc-mute);padding-top:.2em}
+html.wallmode #wallcard .wc-rows dd{font:400 calc(1.34*var(--wc-u))/1.36 var(--wc-serif);color:var(--wc-ink)}
+html.wallmode #wallcard .wc-honest{font:400 calc(1.05*var(--wc-u))/1.5 var(--wc-mono);color:var(--wc-mute)}
+html.wallmode #wallcard .wc-honest span{display:block}
+html.wallmode #wallcard .wc-sig{font:400 calc(1*var(--wc-u))/1.3 var(--wc-mono);color:var(--wc-mute);align-self:flex-end}
+html.wallmode #wallcard .wc-keyfull{display:flex;flex-wrap:wrap;gap:calc(.7*var(--wc-u)) calc(1.8*var(--wc-u));list-style:none;margin-top:calc(3*var(--wc-u))!important;font:400 calc(1.05*var(--wc-u))/1.3 var(--wc-mono);color:var(--wc-ink)}
+html.wallmode #wallcard .wc-keyfull li{display:flex;align-items:center;gap:calc(.6*var(--wc-u))}
+html.wallmode #wallcard .wc-keyfull i{width:calc(.9*var(--wc-u));height:calc(.9*var(--wc-u));border-radius:50%;background:var(--c);display:block}
+
+/* statement */
+html.wallmode #wallcard .wc-sin{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
+html.wallmode #wallcard .wc-stmt{align-self:center;max-width:calc(74*var(--wc-u));font:400 calc(2.35*var(--wc-u))/1.42 var(--wc-serif);color:var(--wc-ink);text-wrap:pretty}
+html.wallmode #wallcard .wc-stmt .wc-kill{color:var(--wc-rose)}
+
+@media (prefers-reduced-motion:reduce){
+  html.wallmode #wallcard .wc-invite,html.wallmode #wallcard .wc-bigline{animation:none}
+  html.wallmode #wallcard .wc-ring::after{animation:none;opacity:.35;transform:scale(1.5)}
+  html.wallmode #wallcard .wc-sheet[data-on="1"] .wc-waffle span{animation:none}
+}

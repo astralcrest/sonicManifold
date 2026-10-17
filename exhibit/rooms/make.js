@@ -97,6 +97,15 @@ export default {
       + 'html.atlas section[data-room="make"] .mk-chipmode .mk-chipbar{display:block}'
       + 'html.atlas section[data-room="make"] .mk-hide .mk-chipbar{display:none}'
       + 'html.atlas section[data-room="make"] .mk-chipbar i{position:absolute;left:0;top:0;height:100%;width:0;border-radius:1px;background:rgba(134,203,254,.72)}'
+      /* R20 MOBILE (ROOT_CAUSES 21): where the stage holds them (an upright phone, mk-rows), the atlas lays the chips out in
+         rows, all 22 on the screen at once (layout() picks --cols), a title running onto a second line where it needs one.
+         nothing scrolls sideways there, so the page bar goes. a stage too short for that (a phone on its side) keeps the pages */
+      + 'html.atlas section[data-room="make"] .mk-cw{display:flex;align-items:center;flex:1 1 auto;min-width:0;overflow:hidden}'
+      + 'html.atlas section[data-room="make"] .mk-rows .mk-chips{grid-auto-flow:row;grid-template-rows:none;grid-auto-rows:44px;grid-auto-columns:auto;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));overflow:visible;scroll-snap-type:none}'
+      + 'html.atlas section[data-room="make"] .mk-rows .mk-chip{padding:0 6px;font-size:11px}'
+      + 'html.atlas section[data-room="make"] .mk-rows .mk-chip .mk-ck{margin-right:5px}'
+      + 'html.atlas section[data-room="make"] .mk-rows .mk-cw{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;line-height:1.2;overflow-wrap:break-word}'
+      + 'html.atlas section[data-room="make"] .mk-rows .mk-chipbar{display:none}'
       + 'section[data-room="make"] .mk-chip[aria-pressed="true"]{border-color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint)}'
       + 'section[data-room="make"] .mk-chip[aria-pressed="true"] .mk-ck{color:var(--mint)}'
       + 'section[data-room="make"] .mk-chip[data-deck="b"]{border-color:var(--ice);box-shadow:inset 0 0 0 1px var(--ice)}'
@@ -204,8 +213,11 @@ export default {
     this.chipEls = [];
     byKey.forEach((i) => {
       const t = this.tracks[i], b = document.createElement('button'); b.type = 'button'; b.className = 'mk-chip';
-      const k = document.createElement('span'); k.className = 'mk-ck'; k.textContent = t.k; b.appendChild(k);
-      const tt = document.createElement('span'); tt.className = 'mk-ct'; tt.textContent = ' ' + t.t; b.appendChild(tt);
+      /* R20 MOBILE: on the atlas the key and the title share one box, so a wrapped chip runs the title onto a second line
+         (not on the wall kiosk, which keeps its chips as merged) */
+      const host = atlasOn(ctx) && !window.__wall ? b.appendChild(Object.assign(document.createElement('span'), { className: 'mk-cw' })) : b;
+      const k = document.createElement('span'); k.className = 'mk-ck'; k.textContent = t.k; host.appendChild(k);
+      const tt = document.createElement('span'); tt.className = 'mk-ct'; tt.textContent = ' ' + t.t; host.appendChild(tt);
       b.addEventListener('click', (e) => { this.stopDemo(); this.tap(i, ctx, e.detail === 0); });
       chips.appendChild(b); this.chipEls[i] = b;
     });
@@ -244,7 +256,7 @@ export default {
     /* on a short screen the copy would squeeze the wheel to nothing, so tight mode drops the two lines the
        desk already says (the track under the needle, and the next one in my order) and shortens the rest.
        a phone that keeps all of it ends up with a wheel 84px across and clusters that cover each other. */
-    this.chipMode(false, 2, false, false);
+    this.chipMode(false, 2, false, false); this.wrap.classList.remove('mk-rows');
     this.tight = false; this.wrap.classList.remove('mk-tight'); let textH = this.reserve(s);
     if (s.h - textH - 10 < 188) { this.tight = true; this.wrap.classList.add('mk-tight'); textH = this.reserve(s); }
     /* below a certain size the ring of key labels is illegible and lands on top of the clusters, so the small
@@ -259,8 +271,23 @@ export default {
        as the picture and the strip of chips under it takes the taps. the copy gives way first, then a chip row */
     if (G.bs < 44 || G.rIn * TAU / 11 < 44) {
       this.tight = true; this.wrap.classList.add('mk-tight');
-      const tries = [[2, false, false], [2, true, false], [2, true, true], [1, true, true]];
-      for (let k = 0; k < tries.length; k++) { this.chipMode(true, ...tries[k]); textH = this.reserve(s); if (s.h - textH - 10 >= 110) break; }
+      if (atlasOn(ctx) && !window.__wall) {
+        /* R20 MOBILE (ROOT_CAUSES 21): rows of chips, all 22 showing. the fewest columns (chips at least 64 px wide, titles
+           on two lines) that leave the wheel a picture of 90 px or more win, the two optional lines giving way before a
+           column is added. a stage that cannot hold all of them and the wheel keeps the pages below */
+        const most = Math.max(2, Math.min(11, Math.floor((s.w + 6) / 70))), tries = []; let fit = false;
+        for (let c = 2; c <= most; c++) tries.push([c, false, false], [c, true, false], [c, true, true]);
+        this.wrap.classList.add('mk-rows');
+        for (let k = 0; k < tries.length; k++) { this.chipWrap.style.setProperty('--cols', tries[k][0]); this.chipMode(true, 2, tries[k][1], tries[k][2]); textH = this.reserve(s); if (s.h - textH - 10 >= 90) { fit = true; break; } }
+        if (!fit) {
+          this.wrap.classList.remove('mk-rows');
+          const t0 = [[2, false, false], [2, true, false], [2, true, true], [1, true, true]];
+          for (let k = 0; k < t0.length; k++) { this.chipMode(true, ...t0[k]); textH = this.reserve(s); if (s.h - textH - 10 >= 110) break; }
+        }
+      } else {
+        const tries = [[2, false, false], [2, true, false], [2, true, true], [1, true, true]];
+        for (let k = 0; k < tries.length; k++) { this.chipMode(true, ...tries[k]); textH = this.reserve(s); if (s.h - textH - 10 >= 110) break; }
+      }
       G = geo(textH);
     }
     const availH = G.availH, R = G.R;
@@ -364,7 +391,7 @@ export default {
        the big display number is the mirror case: it only ever shows during beat two, while the wheel is not
        there, so it is taken out of this measurement and put back for the beat one below. */
     this.deskEl.style.display = 'flex'; this.abEl.textContent = '';
-    this.chipWrap.style.display = this.chips ? 'grid' : ''; this.chipBar.style.display = this.chips && this.atl ? 'block' : ''; this.introEl.style.display = this.noIntro ? 'none' : ''; this.endEl.style.display = this.noEnd ? 'none' : '';
+    this.chipWrap.style.display = this.chips ? 'grid' : ''; this.chipBar.style.display = this.chips && this.atl && !this.wrap.classList.contains('mk-rows') ? 'block' : this.chips && this.atl ? 'none' : ''; this.introEl.style.display = this.noIntro ? 'none' : ''; this.endEl.style.display = this.noEnd ? 'none' : '';
     const h1 = t.offsetHeight;
     this.nextEl.textContent = ''; this.abEl.textContent = this.worstAb();
     const h = Math.max(h1, t.offsetHeight);

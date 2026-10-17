@@ -90,6 +90,8 @@ export default {
 		this.starts.sort((a, b) => (tr(a) - tr(b)) || (this.bk[b] - this.bk[a]) || this.name[a].localeCompare(this.name[b]));
 		this.px = new Float32Array(n * 2); this.segBuf = new Float32Array(MAXHOP * 14);
 		this.buildUI(root);
+		/* R20: with no veil the first press can turn the sound on while this room is up, so the one-star cue catches up */
+		tryf(() => ctx.audio.onChange(() => { const c = this.cueEl, L = this.chain ? this.chain.length : 0; if (c && L === 1 && !this.ended && /^tap a lit star to hop\. /.test(c.textContent)) this.cue(this.next()); }));
 		if (!this.hearS) { this.hearS = hearNew(); addEventListener('sm:clip', (e) => hearClip(this.hearS, e)); }
 		this.ready = true;
 	},

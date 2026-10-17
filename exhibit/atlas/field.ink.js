@@ -113,7 +113,7 @@ export function mount(ctx, api) {
  const del = (...xs) => xs.forEach((x) => { gl.deleteTexture(x.t); gl.deleteFramebuffer(x.f); });
  let VEL, PRS, DYE, DIV, CURL, sw = 0, shh = 0, dw = 0, dh = 0, CW = 0, CH = 0;
  /* grids from the short side: 128 sim / 256 dye (tier 1: 96 / 192) */
- const DPR = () => min(devicePixelRatio || 1, low ? TUNE.px : 1.5);
+ const DPR = () => min(devicePixelRatio || 1, low ? TUNE.px : 1.5, window.__wall ? Math.sqrt(4.7e6 / (innerWidth * innerHeight)) : Infinity); /* wall: the field's 4.7 MP */
  function size() {
   const W = innerWidth, Hh = innerHeight, asp = W / Hh, s = ST.tier ? 96 : 128, d = ST.tier ? 192 : 256, lg = (z) => (asp >= 1 ? [round(z * asp), z] : [z, round(z / asp)]);
   const [nw, nh] = lg(s), [mw, mh] = lg(d);
@@ -247,11 +247,11 @@ export function mount(ctx, api) {
  });
  const up = (e) => {
   PTR.delete(e.pointerId); clearTimeout(held);
-  if (two && !PTR.size) { if (now() - two.t < 450 && two.mv < 30) toggle(); two = null; }
+  if (two && !PTR.size) { if (now() - two.t < 450 && two.mv < 30 && !window.__wall) toggle(); two = null; }
   if (ST.hold && !PTR.size) { ST.hold = false; keyT = now() - 2200; }
  };
  on('pointerup', up); on('pointercancel', up);
- const kOff = ctx.keys && ctx.keys.on ? ctx.keys.on('i', toggle) : null;
+ const kOff = ctx.keys && ctx.keys.on ? ctx.keys.on('i', window.__wall ? () => {} : toggle) : null; /* wall: a stranger's two-finger tap or key never swaps the bath */
  /* R10 merge: the bath's line goes through the chrome's one caption slot (ctx.atlas.capFor), after any line the veins
     hold while they are live, so a room ever shows one caption and the phone card keeps its height */
  const AT = ctx.atlas, prevCap = AT && typeof AT.capFor === 'function' ? AT.capFor : null;

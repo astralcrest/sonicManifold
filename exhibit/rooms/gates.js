@@ -114,7 +114,7 @@ const b = A.beat ? A.beat(2) : null, step = b ? Math.max(0.28, Math.min(0.42, b.
 for (let j = 0; j < n; j++) { const a = a0 + j * step; sound(j, a); due[j] = t0 + a * 1000; if (red) { at[j] = t0; fz[j] = 1; door(j); } }
 if (KIOSK && !user) tmr.push(setTimeout(() => walk(0), (a0 + n * step) * 1000 + 1500));
 }
-function walk(j) { if (!S.alive()) return; show(j % n, 'kiosk'); tmr.push(setTimeout(() => walk(j + 1), 3200)); }
+function walk(j, w = C.gesture.wait()) { if (!S.alive()) return; w || show(j % n, 'kiosk'); tmr.push(setTimeout(() => walk(j + !w), w || 3200)); }
 function show(j, via, force) {
 if (j === sel && !force) return; sel = j; view();
 btns.forEach((b, k) => { b.classList.toggle('on', k === j); if (j >= 0) b.tabIndex = k === j ? 0 : -1; });

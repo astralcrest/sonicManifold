@@ -1,0 +1,14 @@
+/* R19 TYPE_PERF: wall type. every rule keys on html.wallmode (window.__wall), so the desk and the phone never match.
+   the supported fix is the launch flag (--force-device-scale-factor = native width / 1440): the page then lays out at the desk's 1440 px and
+   the query below never matches. the first block is the fallback for a player that cannot take flags (a 4K panel at device scale 1): it sizes
+   the liner and nothing else (the deck, coach, toast and room panels stay at desk px). untested on a real panel. shell.js stageAtlas reads the
+   same query to keep the stage clear of the wider liner, so change the two together. */
+@media (min-width:1600px) and (min-height:1600px) and (min-aspect-ratio:115/100){
+  html.wallmode.atlas .ai-liner,html.wallmode.atlas.atlas-deck #atlas-info .ai-liner{width:min(52vh,calc(40vw - 110px))}
+  html.wallmode.atlas .ai-liner .ai-title{font-size:5.12vh}
+  html.wallmode.atlas .ai-liner .ai-caption.ai-voice-p{font-size:1.72vh}
+}
+/* the sound line is the wall's only invite until someone touches it: 35 px on a 2160 panel, 13 px at the supported 1440x810 */
+html.wallmode #atlas-onboard .ai-line-snd{font-size:max(11px,1.6vh)}
+/* inert while wallboot puts every wall in kiosk (chrome.css:330 already keeps the words lit there); kept so a wall that is ever not a kiosk never dims its words */
+html.wallmode.atlas-idle .ai-row1,html.wallmode.atlas-idle .ai-title,html.wallmode.atlas-idle .ai-caption{opacity:1}

@@ -97,7 +97,7 @@ buildUI(root) {
  this.pt = hud.appendChild(el('div', 'ar-pt'));
  this.idle();
 },
-idle() { this.pt.textContent = ''; this.pt.appendChild(el('p', 'ar-hint', (this.ctx.coarse ? 'hold' : 'hover') + ' a glyph to hear it; ' + (this.ctx.coarse ? 'tap' : 'click') + ' to name it.' + (this.guess ? '' : ' guess turns it into a game: who played it first?'))); },
+idle() { const c = this.ctx.coarse || window.__wall; this.pt.textContent = ''; this.pt.appendChild(el('p', 'ar-hint', (c ? 'hold' : 'hover') + ' a glyph to hear it; ' + (c ? 'tap' : 'click') + ' to name it.' + (this.guess ? '' : ' guess turns it into a game: who played it first?'))); },
 layout(ctx) {
  const s = this.st = ctx.stage(), side = s.h < 340 && s.w > s.h * 1.25, cmp = side || s.w < 460 || s.h < 470;
  const hw = side ? Math.min(280, s.w * 0.5) : Math.min(s.w, 620), h = this.hud.style;
@@ -346,11 +346,12 @@ gestures(ctx) {
   hover: (p) => this.hoverAt(p, ctx),
   leave: () => { this.hov = -1; ctx.audio.tick(null); un(); },
   cursor: (p) => (this.ready && this.hit(p.wx, p.wy) >= 0 ? 'pointer' : 'ew-resize'),
+  flick: () => !(ctx.view.z > 1.02),
   drag: { start: () => { acc = 0; this.halt(); }, move: (p, dx, dy) => {
    if ((ctx.view.z || 1) > 1.02) return ctx.view.pan(dx, dy);
    acc += dx * this.n / Math.max(120, this.area.w); const s = acc | 0; if (s) { acc -= s; this.scrub(this.L + s); }
   }, end() {} },
-  hold: { delay: 160, press: (p) => { if (p.type !== 'mouse') this.hoverAt(p, ctx, true); }, start() {}, move() {}, end: () => un({ keep: true }) },
+  hold: { delay: window.__wall ? 450 : 160, press: (p) => { if (p.type !== 'mouse') this.hoverAt(p, ctx, true); }, start() {}, move() {}, end: () => un({ keep: true }) },
  };
 },
 async focus(d) {

@@ -12,6 +12,19 @@ export const COPY = {
     lastDay: '2026-05-10',
   },
 
+  // R20 the now-playing chip (#mute) and the tracklist it opens; shell.js npCopy() holds the same words as fallbacks
+  np: {
+    title: 'the soundtrack',
+    lead: 'the songs i made about this log. pick one and the next follows; the rooms stop choosing until you hand it back.',
+    rooms: 'let the rooms choose',
+    mute: 'sound off',
+    unmute: 'sound on',
+    close: 'close',
+    from: 'from Spotify',
+    open: 'the tracklist',
+    tapAnywhere: '♪ tap anywhere for sound',
+  },
+
   chrome: {
     lockedOn: 'on the record',
     freeCamera: '° your hand',
@@ -44,17 +57,13 @@ export const COPY = {
     trackStops: '{name} · {n} stops',
     trackAngle: { 'wall.unsorted': 'the pour', 'wall.press': 'the press', 'clock.busiest': 'the dial', 'clock.glass': 'the glass', 'graveyard.gates': 'the doors', 'graveyard.kill': 'the pile' }, // the record plays the wall, the clock and the graveyard twice: a2 a3, a9 b10, b12 b13
     coachHead: 'one tour · {n} stops · short cuts inside', // R13 ONE TOUR: the coach says what the records sheet says
-    coachTouch: ['play runs it. swipe for the next.', 'tap a star to pick it.', 'hold one to hear it. drag to turn.'],
-    coachDesk: ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'hover one to hear it. drag to turn.'],
+    coachTouch: ['play runs it. swipe for the next.', 'tap a star to pick it.', 'tap a name to hear it. drag to turn.'],
+    coachDesk: ['play runs it. ⏭ for the next.', 'click a star to pick it.', 'click a name to hear it. drag to turn.'],
     // R18 INTUIT: on a first visit the coach comes up on the lead-in (the first screen) once the opening line is read. same
     // card, same once-a-visit key; each line names one thing a stranger needs (the tour and how to step, how the record moves,
-    // the posts' hold or rest on a name, the wall label). on a phone the dock's ▶ breathes under it until the first touch
-    coachThrTouch: ['▶ plays the tour. ⏭ next stop.', 'drag to turn, pinch to zoom.', 'hold a name to hear the artist.', 'each room’s wall label: ⋯ more.'],
-    // R18 INTUIT (the LANDING contract, RES_MUSEUM M1): ?enter=sound first tries the press made on the landing. a browser that
-    // carries it over plays at once; one that does not gets the veil with these words, and a direct link gets the plain ask
-    veilAgain: 'one more click.', veilAgainTouch: 'one more tap.', veilWhy: 'browsers ask twice before sound.',
-    veilDesk: 'click to drop the needle', veilTouch: 'tap to drop the needle',
-    coachThrDesk: ['it plays itself. space pauses, → moves on.', 'drag to turn the record. the wheel zooms.', 'rest on a name to hear the artist.', 'l opens the wall label. ? lists the keys.'],
+    // a tap or a click on a name (R20), the wall label). on a phone the dock's ▶ breathes under it until the first touch
+    coachThrTouch: ['▶ plays the tour. ⏭ next stop.', 'drag to turn, pinch to zoom.', 'tap a name to hear the artist.', 'each room’s wall label: ⋯ more.'],
+    coachThrDesk: ['it plays itself. space pauses, → moves on.', 'drag to turn the record. the wheel zooms.', 'click a name to hear the artist.', 'l opens the wall label. ? lists the keys.'],
     // W40/W10 tour end card: verbatim source for chrome.js's CC.end*/CC.contact fallbacks (chrome.js ~L40-45).
     endHead: 'end of the record.',
     endFly: 'look around ›',
@@ -66,6 +75,7 @@ export const COPY = {
       pressAndHold: 'press and hold',
       zoomedOut: 'zoomed all the way out · next stop with → or the pill',
       tourPaused: 'your hand has it · ▶ hands it back to the queue',
+      tourPausedKiosk: 'your hand has it · the walk picks up again by itself',
       sessionNotCounted: "single sessions aren't in the public data; only their totals are",
       linkCopied: 'link copied',
       detailLowered: 'marks made bigger so the music keeps up',
@@ -102,14 +112,14 @@ export const COPY = {
     back: {
       head: 'how to play this record',
       how: 'drag turns it, the wheel zooms, a click on a name takes you there. the tour plays itself. space pauses it; it also waits while this is open.',
-      // R18 INTUIT: help never said how to hear a song (FRESH_EYES #3). the posts' gesture and their ask-once rule, in one line
-      hear: 'to hear an artist, rest the pointer on a name. it asks once; nothing loads from spotify until you say yes.',
+      // R20: names are the buttons; nothing asks first. the chip up top says what is playing and opens the tracklist
+      hear: 'a click on a name plays that artist from spotify. ♪ up top says what is playing.',
       // R18 wave 3 (V8): the field answers a click in the dark and plays itself when left alone. desk only, said once here
       play: 'click the dark for a note. leave the field alone and it plays on its own.',
       keys: '/ dig · space or p pause · arrows, [ ] or j k step · , . angles · 1-9 tracks · r the whole record · g glow · v detail · y crossfade · l the wall label · m sound · e how to read this stop · ? this',
       // R17: a phone has no keyboard; the same two slots in taps (panels.js picks these when the pointer is coarse)
       howTouch: 'drag to turn, pinch to zoom, tap a name to go there. a touch pauses the tour; ▶ resumes.',
-      hearTouch: 'to hear an artist, hold a name. it asks once; nothing loads from spotify until you say yes.',
+      hearTouch: 'tap a name to play that artist from spotify. ♪ says what is playing.',
       keysTouch: 'play pauses · prev, next step · ‹ › angles · read ⌃ explains the stop · more has the rest',
     },
     knobs: { note: 'v, y and g turn detail, crossfade and glow from the keyboard.', noteTouch: 'tap a mark on a dial to set it, or drag it round. one tap flips a switch.' },
@@ -128,6 +138,41 @@ export const COPY = {
     head: 'who pressed play',
     rows: [['mint', 'i tapped'], ['amber', 'shuffle picked'], ['violet', 'the queue served'], ['rose', 'a finding killed or withdrawn']],
     foot: 'ice blue is just the interface. in the universe, color is genre.',
+  },
+
+  // R20 RECORD_CHROME (the owner, 2026-10-16: "There are way too many buttons, and I don't even know what anything means"): the
+  // plain record's words. every visit but the gallery wall (?wall=1, which keeps the chrome strings above) reads these.
+  // panels.js: the bar, the dock, the stops sheet, help, about, and the name on search's bar and sheet (find). chrome.js: the
+  // stop counter and play / pause.
+  // the statement is the one headline (SIMPLIFY_PLAN section 2) with its caveats, which live here and on the front's sub line
+  plain: {
+    title: 'mostly the machine',
+    prev: 'previous', next: 'next',
+    play: '▶ play', pause: '‖ pause',
+    lift: 'only songs i chose',
+    liftAria: 'only songs i chose: the plays shuffle and the queue started leave the record',
+    about: 'about', helpAria: 'help: how this works',
+    find: 'find an artist',
+    stopOf: 'stop {k} of {n}', stopOfShort: '{k} of {n}', stopLead: '{n} stops', stopSide: 'a side room',
+    stopsHead: 'the stops', stopsWhat: '{n} stops, from one play to the whole log. pick one.',
+    statement: [
+      'the app, not i, pressed play on 81 of every 100 of my Spotify plays.',
+      '97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count. shuffle picked 17; the queue served 64.',
+      'i tried to kill my own findings: eighteen are withdrawn, and sixteen are graves you can visit. what is left: when i choose the next song myself, i cross genre families slightly more often than the queue does. a direction, not a size.',
+    ],
+    noteHead: 'this stop',
+    notesLink: 'notes on this stop for scientists, musicians and artists ›',
+    keyHead: 'what the colors mean',
+    share: 'share this stop', shared: 'link copied', shareManual: 'select and copy the link',
+    picture: 'take a picture',
+    stops: 'the stops', findBtn: 'find an artist', helpBtn: 'how this works',
+    help: {
+      head: 'how this works',
+      how: 'the record plays itself, one stop at a time. pause holds it; previous and next step by hand. it waits while a sheet like this one is open, and wherever a stop asks you something. drag turns the picture; the wheel zooms.',
+      howTouch: 'previous and next step from stop to stop. play runs the stop you are on, then waits for you. drag to turn, pinch to zoom.',
+      keys: 'space or p: play or pause · ← → or j k: previous, next · /: find an artist · l: about · m: sound · ?: this',
+      keysTouch: 'about holds what this is, this stop’s note, the color key and a link to share.',
+    },
   },
 
   // R13 ONE TOUR (the owner: "so many tours everywhere ... make it easier"): one tour, said once, in the records sheet
@@ -284,6 +329,8 @@ export default COPY;
    (labels_proposal.json, exhibit_html_proposal.html, kill_reconcile.json) is listed here with its source.
    `derive:` entries are computed expressions over shipped files, evaluated the same way C1's are. */
 export const SRC = [
+  { n: '81', where: 'plain.statement (the one headline: 100 minus the 19 i tapped)', src: 'SIMPLIFY_PLAN.md section 2 headline; exhibit/data/wall.json#pct_rounded' },
+  { n: '2019/2026', where: 'plain.statement (the log\'s first and last years)', src: 'exhibit/data/universe_days_index.json#first_date, #last_date' },
   { n: '97,427', where: 'stats.plays, universe.say/sayDim1 (via exhibit.html)', src: 'exhibit/data/wall.json#total; GATE_science.md recompute #1' },
   { n: '2019-09-05', where: 'stats.firstDay', src: 'exhibit/data/universe_days_index.json#first_date' },
   { n: '2026-05-10', where: 'stats.lastDay, the tape counter end', src: 'exhibit/data/universe_days_index.json#last_date' },

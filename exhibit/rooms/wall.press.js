@@ -54,8 +54,9 @@ export default async function press(W, C, o = {}) {
   box.appendChild(kw);
   const dial = kw.firstChild, arc = kw.querySelector('.k-arc'), needle = kw.querySelector('.k-needle'), sayEl = kw.querySelector('.k-say');
 
-  const ST = { on: true, v: 0, bakes: 0, bakeMs: 0, composes: 0, dots: 0, rolled: red || !!o.instant ? 1 : 0, clicks: 0, fc: FC };
+  const ST = { on: true, v: 0, bakes: 0, bakeMs: 0, composes: 0, dots: 0, rolled: red || !!o.instant ? 1 : 0, clicks: 0, fc: FC, zoom: 1, turns: 0 };
   let v = 0, R = null, dpr = 1, PA = null, PB = null, raf = 0, rollRaf = 0, flipRaf = 0, rollT0 = 0, lastClick = 0;
+  let Z = 1, TX = 0, TY = 0; /* R20 MOBILE: the loupe (a pinch on a touch screen): scale, and the print's offset in css px */
 
   /* ------------------------------------------------------------------ the plates */
   function plate(H, R24, col, deg, ring, seed) {
@@ -107,6 +108,7 @@ export default async function press(W, C, o = {}) {
     const w = cv.width, h = cv.height;
     g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, w, h);
     if (!PA) return;
+    if (Z !== 1) g.setTransform(Z, 0, 0, Z, TX * dpr, TY * dpr);
     if (ra > 0) g.drawImage(PA, 0, 0, ra * w, h, 0, 0, ra * w, h);
     if (rb > 0) {
       g.globalCompositeOperation = FC ? 'source-over' : 'lighter';
@@ -114,6 +116,7 @@ export default async function press(W, C, o = {}) {
       g.drawImage(PB, 0, 0, rb * w, h, 0, 0, rb * w, h);
       g.setTransform(1, 0, 0, 1, 0, 0);
     }
+    g.setTransform(1, 0, 0, 1, 0, 0);
     g.globalCompositeOperation = 'source-over';
     /* the drum: a pale bar at the edge still rolling */
     [ra, rb].forEach((f) => { if (f > 0 && f < 1) { g.fillStyle = 'rgba(216,210,234,.55)'; g.fillRect(f * w - dpr, 0, 2 * dpr, h); } });
@@ -169,26 +172,65 @@ export default async function press(W, C, o = {}) {
     set(k === 'Home' ? 0 : k === 'End' ? 1 : v + d);
   });
   const dialAt = (e) => { const b = dial.getBoundingClientRect(), a = atan2(e.clientX - b.left - b.width / 2, b.top + b.height / 2 - e.clientY) / D2R; return (max(-135, min(135, a)) + 135) / 270; };
-  dial.addEventListener('pointerdown', (e) => { e.preventDefault(); q(() => dial.setPointerCapture(e.pointerId)); q(() => dial.focus({ preventScroll: true })); dial.dataset.drag = '1'; set(dialAt(e)); });
-  dial.addEventListener('pointermove', (e) => { if (dial.dataset.drag) set(dialAt(e)); });
-  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((t) => dial.addEventListener(t, () => { delete dial.dataset.drag; }));
+  let dpid = null;
+  dial.addEventListener('pointerdown', (e) => { e.preventDefault(); if (window.__wall && dial.dataset.drag && dpid != null && e.pointerId !== dpid) return; /* wall: a second finger on a held knob is not a press */ q(() => dial.setPointerCapture(e.pointerId)); q(() => dial.focus({ preventScroll: true })); dial.dataset.drag = '1'; dpid = e.pointerId; set(dialAt(e)); });
+  dial.addEventListener('pointermove', (e) => { if (dial.dataset.drag && !(window.__wall && e.pointerId !== dpid)) set(dialAt(e)); });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((t) => dial.addEventListener(t, (e) => { if (window.__wall && dpid != null && e.pointerId !== dpid) return; /* wall: only the finger that took the knob lets it go */ delete dial.dataset.drag; dpid = null; }));
 
   /* the print itself: one finger slides the plate sideways, two fingers twist it */
   const P2 = new Map(); let v0 = 0, x0 = null, tw = null, acc = 0;
   const twA = () => { const [a, b] = [...P2.values()]; return atan2(b[1] - a[1], b[0] - a[0]); };
+  const wallReach = () => { const o = (window.__wall && window.__wall.opts) || {}; return ((+o.reach > 0 ? +o.reach : 25) / (+o.panel > 0 ? +o.panel : 144)) * innerWidth; };
   cv.addEventListener('pointerdown', (e) => {
+    if (window.__wall && P2.size) { const f = [...P2.values()][0]; if (P2.size >= 2 || Math.hypot(e.clientX - f[0], e.clientY - f[1]) > wallReach()) return; } /* wall: the twist is one hand's; a stranger's finger is dropped */
     q(() => cv.setPointerCapture(e.pointerId)); P2.set(e.pointerId, [e.clientX, e.clientY]); stopRoll(); cancelAnimationFrame(flipRaf);
     v0 = v; acc = 0;
     if (P2.size === 1) { x0 = e.clientX; tw = null; } else if (P2.size === 2) { x0 = null; tw = twA(); }
   });
   cv.addEventListener('pointermove', (e) => {
     if (!P2.has(e.pointerId)) return; P2.set(e.pointerId, [e.clientX, e.clientY]);
-    if (P2.size >= 2 && tw != null) { const a = twA(); let d = a - tw; d -= TAU * Math.round(d / TAU); tw = a; acc += d; set(v0 + acc / (Math.PI / 2)); }
+    if (P2.size >= 2 && tw != null) { const a = twA(); let d = a - tw; d -= TAU * Math.round(d / TAU); tw = a; acc += d; set(v0 + (window.__wall ? acc : Math.sign(acc) * max(0, abs(acc) - 0.2)) / (Math.PI / 2)); } /* R20 MOBILE: off the wall kiosk a twist slips the plate past 0.2 rad (11 degrees), so a pinch's own wobble does not */
     else if (x0 != null && R) set(v0 + (e.clientX - x0) / (R.w * 0.6));
   });
-  const lift = (e) => { P2.delete(e.pointerId); tw = null; v0 = v; acc = 0; x0 = P2.size === 1 ? [...P2.values()][0][0] : null; };
+  const lift = (e) => { if (window.__wall && !P2.has(e.pointerId)) return; P2.delete(e.pointerId); tw = null; v0 = v; acc = 0; x0 = P2.size === 1 ? [...P2.values()][0][0] : null; };
   ['pointerup', 'pointercancel'].forEach((t) => cv.addEventListener(t, lift));
   cv.addEventListener('contextmenu', (e) => e.preventDefault());
+  /* R20 MOBILE: the sheet takes every touch on the stage, so it answers the two phone gestures itself (not on the wall kiosk,
+     not for a mouse). two fingers spread or close: a loupe on the print, 1 to 4 times about the fingers' midpoint, which also
+     carries it (a change under 6% is a twist's own drift). one finger flicked up or down: the page turns (ctx.gesture's own
+     test), and the slide that finger made is given back */
+  const PZ = new Map(); let pz = null, FL = null;
+  const ft = (e) => (C.gesture && typeof C.gesture.flickT === 'function' ? C.gesture.flickT(e) : performance.now());
+  const local = (x, y) => { const r = cv.getBoundingClientRect(); return [x - r.left, y - r.top]; };
+  const mid = () => { const [a, b] = [...PZ.values()]; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, hypot(b[0] - a[0], b[1] - a[1])]; };
+  const loupe = (z, tx, ty) => { const w = R ? R.w : 0, h = R ? R.h : 0; Z = z; TX = min(0, max(w - w * z, tx)); TY = min(0, max(h - h * z, ty)); ST.zoom = +z.toFixed(3); req(); };
+  if (!window.__wall) {
+    box.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' || kw.contains(e.target)) return;
+      PZ.set(e.pointerId, [e.clientX, e.clientY]);
+      if (PZ.size === 1) { FL = { id: e.pointerId, v, p0: [ft(e), e.clientX, e.clientY], vs: [] }; if (e.target === box) q(() => box.setPointerCapture(e.pointerId)); return; }
+      FL = null; x0 = null; /* a second finger: no slide and no flick */
+      if (PZ.size === 2) { const m = mid(); pz = { s: max(1, m[2]), on: false }; }
+    });
+    box.addEventListener('pointermove', (e) => {
+      if (!PZ.has(e.pointerId)) return; PZ.set(e.pointerId, [e.clientX, e.clientY]);
+      if (FL && e.pointerId === FL.id) { FL.vs.push([ft(e), e.clientX, e.clientY]); if (FL.vs.length > 16) FL.vs.shift(); }
+      if (!pz || PZ.size !== 2) return;
+      const m = mid(), l = local(m[0], m[1]);
+      if (!pz.on) { if (abs(Math.log(m[2] / pz.s)) < 0.06) return; pz.on = true; pz.s = m[2]; pz.z = Z; pz.c = [(l[0] - TX) / Z, (l[1] - TY) / Z]; return; }
+      const z = max(1, min(4, pz.z * m[2] / pz.s));
+      loupe(z, l[0] - pz.c[0] * z, l[1] - pz.c[1] * z);
+    });
+    ['pointerup', 'pointercancel'].forEach((t) => box.addEventListener(t, (e) => {
+      if (!PZ.has(e.pointerId)) return; PZ.delete(e.pointerId);
+      if (PZ.size < 2) pz = null;
+      if (!PZ.size && Z !== 1 && Z < 1.04) loupe(1, 0, 0);
+      const f = FL; if (!f || e.pointerId !== f.id) return; FL = null;
+      if (t !== 'pointerup') return;
+      const G = C.gesture, dir = G && typeof G.flickDir === 'function' ? G.flickDir(f.p0, f.vs.concat([[ft(e), e.clientX, e.clientY]])) : 0;
+      if (dir && typeof G.turn === 'function') { set(f.v); ST.turns++; G.turn(dir, { on: 'press' }); }
+    }));
+  }
 
   /* ------------------------------------------------------------------ layout */
   function fit() {
@@ -199,6 +241,7 @@ export default async function press(W, C, o = {}) {
     box.style.left = round(s.x) + 'px'; box.style.top = round(s.y) + 'px'; box.style.width = w + 'px'; box.style.height = round(s.h) + 'px';
     dpr = min(3, devicePixelRatio || 1);
     cv.width = round(w * dpr); cv.height = round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.style.top = oy + 'px';
+    Z = 1; TX = TY = 0; ST.zoom = 1; /* a new sheet size starts the loupe over */
     kw.style.right = gap + 'px'; kw.style.top = (oy + h + gap) + 'px';
     bake();
   }
@@ -213,7 +256,7 @@ export default async function press(W, C, o = {}) {
   q(() => C.labels.set('wall', [])); q(() => C.hud(null));
   const put = (el, s) => { if (el && el.textContent !== s) el.textContent = s; };
   put(W.say, 'the whole log as a print: one plate for my taps, one for the queue, each to its own scale.');
-  put(W.dim, 'in register the inks part only where we disagreed. ' + (coarse ? 'drag the print or twist two fingers' : 'turn the knob or press w') + ' to slip the plates. shuffle stays off the press.');
+  put(W.dim, 'in register the inks part only where we disagreed. ' + ((coarse || window.__wall) ? 'drag the print or twist two fingers' : 'turn the knob or press w') + ' to slip the plates. shuffle stays off the press.');
   const ink = C.atlas && C.atlas.ink;
   if (ink && ink.hush) q(() => ink.hush(true));
   /* the phone sight names what it rests on; on the sheet there is nothing to name */
@@ -235,7 +278,7 @@ export default async function press(W, C, o = {}) {
       if (ink && ink.hush) q(() => ink.hush(false));
       W.reticle = retWas;
       if (AT && AT.press === S) AT.press = null;
-      if (W.cue) W.cue.hidden = false; if (W.wg && wgWas && !W.done) W.wg.hidden = false;
+      if (W.cue) W.cue.hidden = false; if (W.wg && wgWas && !W.done && !W.asked && W.guess == null) W.wg.hidden = false; /* R20 MOBILE: never asked again once the press has shown the split */
       q(() => W.copy()); q(() => W.atlasLabels(C));
     },
   };

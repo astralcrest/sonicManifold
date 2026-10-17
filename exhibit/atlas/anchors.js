@@ -49,6 +49,7 @@ const PAD_H = 6, PAD_V = 14; /* anchors.css: the pad around a tappable label's p
 const OFF_PAD = 11; /* ... and around the off-screen chip's */
 const TAP_DEDUPE = 700; /* ms: a press the gesture layer already took as a tap is not taken again by its click */
 const QUADS = [[1, -1], [-1, -1], [1, 1], [-1, 1]]; /* up-right, up-left, down-right, down-left */
+const QORD = [0, 1, 2, 3, 4, 5, 6, 7]; /* the four corners at the usual offset, then at double it */
 const LABEL_H = 18, LABEL_H_HI = 19, LABEL_H_LOCK = 21; /* line-height 1.3 + padding (+ the lock's 1px border) */
 const OFF_W = 160, OFF_H = 26; // the off-screen indicator's own generous footprint, so its clamp never clips it at an edge
 const RET_MIN = 10, RET_MAX = 48; /* reticle half-size, css px */
@@ -239,7 +240,7 @@ export function mount(ctx, deps) {
      such a look only adds names: a label already standing where it stood keeps its place whatever moved under it */
   let covT = 0, covN = 0, covRej = false, covPass = false;
   function covRetry() { covT = 0; covN++; covPass = true; dirty = true; if (!raf) raf = requestAnimationFrame(onRaf); }
-  function onRaf() { raf = 0; if (dirty) { dirty = false; frameSeq++; doPlace(); } }
+  function onRaf() { raf = 0; if (still) return; if (dirty) { dirty = false; frameSeq++; doPlace(); } }
 
   function normalize(it) {
     return {
@@ -373,8 +374,9 @@ export function mount(ctx, deps) {
   doc.addEventListener('atlas:lock', onLockEvent);
 
   /* ---- R5 L1, the instrument: every label answers a mouse hover, a touch press, a focus and a new lock with one tick
-     (ctx.audio.tick: the note is its family, lower = more plays) and light (ice text + the halo on its object); a label
-     with an artist starts the dwell (post.js). rooms add data (item fam/plays/artist, or a hoverVoice(id, owner) export)
+     (ctx.audio.tick: the note is its family, lower = more plays) and light (ice text + the halo on its object). R20: a
+     tap or a click on a label with an artist plays it (hear below); a hover never does. rooms add data (item
+     fam/plays/artist, or a hoverVoice(id, owner) export)
      or take over with onHover/onFocus returning false. API: R5/L1/API.md */
   const HOOKS = { hover: new Map(), focus: new Map() };
   function hook(kind, owner, fn) {
@@ -394,10 +396,9 @@ export function mount(ctx, deps) {
     const run = (set) => { if (set) set.forEach((fn) => { try { if (fn(on, item, info) === false) quiet = true; } catch (e) { console.warn('labels hook', e); } }); };
     const H = via === 'focus' || via === 'lock' ? HOOKS.focus : HOOKS.hover;
     run(H.get(owner)); run(H.get('*'));
-    const A = ctx.audio, P = ctx.post;
+    const A = ctx.audio;
     if (!on) {
       if (hovKey === key) { hovKey = null; if (!quiet && A && A.tick) A.tick(null); }
-      if (via === 'mouse' && P && P.undwell) P.undwell();
       return;
     }
     if (quiet || !A || typeof A.tick !== 'function') return;
@@ -406,17 +407,23 @@ export function mount(ctx, deps) {
     if (!v) v = item;
     if (via !== 'lock') hovKey = key;
     A.tick(owner + ':' + item.id, { fam: v.fam, plays: v.plays, deg: v.deg, kind: v.kind === 'control' ? 'control' : 'label', x: p.sx, y: p.sy, force: via === 'touch' });
-    if (v.artist && (via === 'mouse' || via === 'touch') && P && P.dwell) {
-      const r = n && n.rect;
-      P.dwell(v.artist, { x: r ? r.left : p.sx + 12, y: r ? r.bottom + 6 : p.sy + 12, touch: via === 'touch' });
-    }
   }
-  function labDown(p) {
-    if (!p || p.type === 'mouse') return;
-    const n = nodeAt(p.sx, p.sy) || nodeOfEl(p.e ? p.e.target : null);
-    if (n) fireLab(n.owner + '\u0000' + n.id, true, 'touch');
+  /* R20: names are the buttons. a tap or a click on a name plays its artist from spotify at once in the one dock (post.js;
+     another name switches it) and the camera goes there as before. the wall keeps its own rules: its names only go there */
+  function hear(n, trigger) {
+    if (!n || window.__wall) return;
+    const m = store.get(n.owner), item = m && m.get(n.id), P = ctx.post;
+    if (!item || item.voice === false || !P || typeof P.playArtist !== 'function') return;
+    let v = null;
+    try { const rs = ctx.atlas.deps && ctx.atlas.deps.rooms, r = rs && rs[ctx.index], mod = r && r.mod; if (mod && typeof mod.hoverVoice === 'function') v = mod.hoverVoice(item.id, n.owner); } catch (e) {}
+    if (!v) v = item;
+    if (!v.artist) return;
+    try { const q = P.playArtist(v.artist, { via: 'tap', fam: v.fam, trigger: trigger || null }); if (q && typeof q.catch === 'function') q.catch(() => {}); } catch (e) {}
   }
-  function labUp(p) { if (p && p.type !== 'mouse' && ctx.post && ctx.post.undwell) ctx.post.undwell({ keep: true }); }
+  /* a name holds still while a pointer is down on it, so a tap lands on what it aimed at: the layout waits until the press
+     ends, turns into a drag (more than 6 px), or 700 ms pass, then catches up */
+  let still = null;
+  function stillEnd() { if (!still) return; clearTimeout(still.t); still = null; if (dirty && !raf) raf = requestAnimationFrame(onRaf); }
 
   /* a label you can press is a button; one with nowhere to go is a span (no pointer, no target, no pad) */
   function makeEl(interactive, key) {
@@ -623,26 +630,28 @@ export function mount(ctx, deps) {
       /* whole and inside the window, touching its object, clear of every keepout and every other placed pill:
          up-right first, then the next corner, at the usual offset and (round 2) again at double it -- 4 quads x 2
          rings, 8 tries, before the candidate is dropped. the 2x ring reads as detached, so it gets a 1px leader. */
-      let rect = null, ring2 = false;
-      const n0 = covPass ? nodes.get(c.ownerId + '\u0000' + c.id) : null, kr = n0 && n0.on && n0.rect;
-      const covOk = (r) => (kr && r.left === kr.left && r.top === kr.top) || coverage(r) <= coverMax;
+      let rect = null, ring2 = false, cq = -1;
+      /* R20 MOBILE (ROOT_CAUSES 9): on touch a shown name tries its own corner first and keeps it while it is whole in
+         the window and clear of the chrome and the names before it, whatever the glyphs under it do (the coverage read
+         chooses a corner, it never moves a name off one) */
+      const nk = nodes.get(c.ownerId + '\u0000' + c.id), kq = touch && nk && nk.on && nk.q >= 0 ? nk.q : -1;
+      const n0 = covPass ? nk : null, kr = n0 && n0.on && n0.rect;
+      const covOk = (r, own) => own || (kr && r.left === kr.left && r.top === kr.top) || coverage(r) <= coverMax;
       if (c.onscreen && shown < cap) {
         if (c.item.align === 'c') {
           const r = centredRect(c.p.sx, c.p.sy, w, h);
           if (r && !hitsKeepout(pad ? hitOf(r) : r) && !collides(r)) { if (covOk(r)) rect = r; else covRej = true; }
         } else {
-          ringLoop: for (let ring = 0; ring < 2; ring++) {
-            const o = ring ? off * 2 : off;
-            for (const [qx, qy] of QUADS) {
-              const left = qx > 0 ? c.p.sx + o : c.p.sx - o - (w - 3), top = qy < 0 ? c.p.sy - o - h : c.p.sy + o; /* measure()'s 3px safety sits on the object's side */
-              const r = { left, top, right: left + w, bottom: top + h };
-              if (!inView(r, W, H) || hitsKeepout(pad ? hitOf(r) : r) || collides(r)) continue;
-              /* round 2 (M6 W1/W3): a corner that clears every keepout can still land on a solid patch of glyphs --
-                 try the next corner/ring instead of covering it, the same read the old plate logic sampled */
-              if (!covOk(r)) { covRej = true; continue; }
-              rect = r; ring2 = !!ring;
-              break ringLoop;
-            }
+          for (const qi of kq >= 0 ? [kq].concat(QORD.filter((x) => x !== kq)) : QORD) {
+            const ring = qi >> 2, qx = QUADS[qi & 3][0], qy = QUADS[qi & 3][1], o = ring ? off * 2 : off;
+            const left = qx > 0 ? c.p.sx + o : c.p.sx - o - (w - 3), top = qy < 0 ? c.p.sy - o - h : c.p.sy + o; /* measure()'s 3px safety sits on the object's side */
+            const r = { left, top, right: left + w, bottom: top + h };
+            if (!inView(r, W, H) || hitsKeepout(pad ? hitOf(r) : r) || collides(r)) continue;
+            /* round 2 (M6 W1/W3): a corner that clears every keepout can still land on a solid patch of glyphs --
+               try the next corner/ring instead of covering it, the same read the old plate logic sampled */
+            if (!covOk(r, qi === kq)) { covRej = true; continue; }
+            rect = r; ring2 = !!ring; cq = qi;
+            break;
           }
         }
       }
@@ -650,7 +659,7 @@ export function mount(ctx, deps) {
       placed.push({ r: rect });
       shown++;
       if (style === 'hi') hiN++;
-      const n = showNode(c, rect, style);
+      const n = showNode(c, rect, style); n.q = cq;
       if (ring2) setLeader(n, c.p.sx, c.p.sy, rect); else hideLeader(n);
     }
 
@@ -736,6 +745,9 @@ export function mount(ctx, deps) {
     const n = (p ? nodeAt(p.sx, p.sy) : null) || nodeOfEl(t);
     if (!n) return false;
     tapAt = performance.now();
+    /* a touch has no hover: the tap gives the name its tick and light (the press used to, ROOT_CAUSES 8c) */
+    if (p && p.type !== 'mouse') fireLab(n.owner + '\u0000' + n.id, true, 'touch');
+    hear(n, null);
     activate(n.owner, n.id);
     return true;
   }
@@ -745,7 +757,7 @@ export function mount(ctx, deps) {
     if (!takesClick(e)) return;
     let n = nodes.get(key);
     if (touch && e && e.detail > 0) { const m = nodeAt(e.clientX, e.clientY); if (m) n = m; }
-    if (n) activate(n.owner, n.id);
+    if (n) { hear(n, e && !(e.detail > 0) ? n.el : null); activate(n.owner, n.id); }
   }
 
   function activate(ownerId, id) {
@@ -780,10 +792,17 @@ export function mount(ctx, deps) {
   let offBind = null;
   try {
     const GS = ctx.gesture;
-    /* R5: a touch press on a name sounds at once; held 500 ms (past the 450 ms tap limit, so taps are unchanged) it is
-       the long-press that starts the dwell clip. post.js owns that 500 ms timer; lifting keeps a started clip */
-    if (GS && !GS.stub && typeof GS.bind === 'function') offBind = GS.bind(layer, { drag: 'camera', dbl: false, tap: onLayerTap, hold: { delay: 500, press: labDown, end: labUp } });
+    /* R20: no hold on a name any more (a tap plays it); a drag from a name still turns the camera */
+    if (GS && !GS.stub && typeof GS.bind === 'function') offBind = GS.bind(layer, { drag: 'camera', dbl: false, tap: onLayerTap });
   } catch (e) { offBind = null; }
+  layer.addEventListener('pointerdown', (e) => {
+    if (!e.isPrimary || !(e.target && e.target.closest && e.target.closest('.lab'))) return;
+    stillEnd(); still = { x: e.clientX, y: e.clientY, t: setTimeout(stillEnd, 700) };
+  }, { capture: true, passive: true });
+  layer.addEventListener('pointermove', (e) => { if (still && e.isPrimary && Math.hypot(e.clientX - still.x, e.clientY - still.y) > 6) stillEnd(); }, { passive: true });
+  const stillOff = () => { if (still) setTimeout(stillEnd, 0); };
+  addEventListener('pointerup', stillOff, { capture: true, passive: true });
+  addEventListener('pointercancel', stillOff, { capture: true, passive: true });
   markDirty();
 
   const api = {
@@ -809,7 +828,7 @@ export function mount(ctx, deps) {
     _touch: () => touch,
     _bound: () => !!offBind,
     _debug: () => { const items = []; store.forEach((m, o) => m.forEach((it, id) => items.push({ owner: o, id, it, p: projectItem(it) }))); return { items, keepRects, sel: selText, cap: (ctx.atlas.gov && ctx.atlas.gov.tier >= 5) ? MAX_VISIBLE_GOV : MAX_VISIBLE }; },
-    _dispose() { clearTimeout(koT); clearTimeout(covT); offView && offView(); offStop && offStop(); offGov && offGov(); offSettings && offSettings(); removeEventListener('resize', resizeHandler); removeEventListener('pointerdown', onAnyDown, { capture: true }); doc.removeEventListener('atlas:lock', onLockEvent); try { offBind && offBind(); mq && mq.removeEventListener('change', onMq); } catch (e) {} },
+    _dispose() { clearTimeout(koT); clearTimeout(covT); offView && offView(); offStop && offStop(); offGov && offGov(); offSettings && offSettings(); removeEventListener('resize', resizeHandler); removeEventListener('pointerdown', onAnyDown, { capture: true }); removeEventListener('pointerup', stillOff, { capture: true }); removeEventListener('pointercancel', stillOff, { capture: true }); stillEnd(); doc.removeEventListener('atlas:lock', onLockEvent); try { offBind && offBind(); mq && mq.removeEventListener('change', onMq); } catch (e) {} },
   };
   return api;
 }

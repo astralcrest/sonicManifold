@@ -1,0 +1,11 @@
+/* R19 TOUCH: the wall is touched by hand. every rule keys on html.wallmode (set by wallboot), so the desk and the phone never match.
+   no new colors: ice is the interface, the data colors stay reserved. specificity beats chrome.css:335 without editing it */
+
+/* two fingers always move the camera on the wall (gesture.js forces it), so the knob that would send them to the page does nothing */
+html.wallmode [data-k="pinch"]{display:none!important}
+
+/* kiosk hides the angle buttons (chrome.css:335; chrome.css:126 sizes them 44 px on a coarse pointer through #atlas-info, so the second selector carries the id). while a hand holds the tour (extras.js sets wm-hand on a pause that has a stop),
+   they come back at wall size, so a visitor can reach the loop's ten and the graveyard's gates by touch. while the tour plays they stay hidden */
+html.wallmode.kiosk.wm-hand .ai-angle-btn:not([hidden]),html.wallmode.kiosk.wm-hand #atlas-info .ai-angle-btn:not([hidden]){display:inline-flex!important;align-items:center;justify-content:center;min-width:max(48px,3.6vh);min-height:max(48px,3.6vh);padding:0 max(10px,1vh);font-size:max(20px,2.6vh);line-height:1;color:var(--ice);background:rgba(10,1,24,.55);border:1px solid var(--ai-line);border-radius:2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;opacity:1;pointer-events:auto}
+html.wallmode.kiosk.wm-hand .ai-angle-btn:not([hidden]):active,html.wallmode.kiosk.wm-hand #atlas-info .ai-angle-btn:not([hidden]):active{border-color:var(--ice);background:rgba(134,203,254,.16)}
+html.wallmode.kiosk.wm-hand .ai-angle{gap:max(8px,.8vh)}

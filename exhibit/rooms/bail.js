@@ -49,7 +49,7 @@ R.pre30=off[30];
 R.col=new Uint8Array(R.n);for(let c=0;c<33;c++)R.col.fill(c,off[c],off[c+1]);
 let h=0;while(h<30&&off[h+1]<R.n/2)h++;R.half=h+1;
 R.build(root,ctx);
-tr(()=>ctx.audio.onChange((s)=>{if(s==='on'&&R.active()){R.wire();R.lev(R.hold?'open':'rest');}}));
+tr(()=>ctx.audio.onChange((s)=>{if(s==='on'&&R.active()){R.wire();R.lev(R.hold?'open':'rest');}if(R.active()&&!R.hold&&R.line&&/ sound is off; /.test(R.line.textContent))R.status();}));
 R.ready=true;
 },
 build(root,ctx){
@@ -82,7 +82,7 @@ const hw=side?min(250,s.w*0.4):min(s.w,640);
 R.hud.classList.toggle('cmp',side||nar);
 H.width=hw+'px';H.left=(side?s.x+s.w-hw:s.x+(s.w-hw)/2)+'px';
 const hh=R.hud.offsetHeight||110;
-H.top=(side?s.y+max(0,(s.h-hh)/2):s.y+s.h)+'px';H.transform=side?'':'translateY(-100%)';/* R13: hung from the stage foot, a line added later (the keys line, a longer readout) grows the panel up, not down into the card */
+H.top=(side?s.y+max(0,(s.h-hh)/2):s.y+s.h)+'px';H.transform=side?'':'translateY(-100%)';/* R13: hung from the stage foot; later lines grow it up */
 const pad=nar?12:26,x0=R.x0=s.x+pad,Wt=R.Wt=(side?s.w-hw-12:s.w)-pad*2;
 R.yb=side?s.y+s.h-26:s.y+s.h-hh-30;R.ty=s.y+30;
 R.F=nar?0.7:0.74;R.TW=(1-R.F)*Wt/3;
@@ -242,14 +242,14 @@ const a=ANGLES[k];if(!a||!R.ready)return 0;
 if(R.hold)R.cancel();
 R.ang=a.id;R.gl.hidden=a.id!=='guess';
 if(a.id==='guess'){R.revealed=false;R.guessSet=false;R.guess=-1;R.range.value='500';R.range.setAttribute('aria-valuetext','not set');}
-R.place(ctx,false);R.pushLabels(ctx);R.status();
+R.status();window.__wall||R.layout(ctx);R.place(ctx,false);R.pushLabels(ctx);
 return 0;
 },
 status(){
 const d=R.d,L=R.line;
 if(R.ang==='line')L.textContent=fmt(R.pre30)+' of these skip-forwards stopped before the line. across all '+fmt(d.n_rows)+' track rows, '+fmt(d.n_sub30)+' never reached it.';
 else if(R.ang==='guess')L.textContent='where do you think i bail? drag along the line (or use the slider) to guess, then hold.';
-else L.textContent='hold anywhere, this button or space: a song i made plays from its first second. let go when you\'d skip it.'+(R.ctx.audio.on&&!R.ctx.audio.muted?'':' sound is off; the heap still keeps your time.');
+else L.textContent='hold anywhere'+(R.ctx.coarse?' or this button':', this button or space')+': a song i made plays from its first second. let go when you\'d skip it.'+(R.ctx.audio.on&&!R.ctx.audio.muted?'':' sound is off; the heap still keeps your time.');
 },
 hoverVoice(id){const c=/^b\d$/.test(id)?+id.slice(1):-1;return c>=0?{deg:c,plays:R.d.bins[c][2],kind:'label'}:null;},
 pushLabels(ctx){

@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>sonic manifold</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap">
+<style>
+/* the field notebook. the five reserved hues mean one thing each and nothing decorative uses them:
+   mint = i tapped, amber = shuffle, violet = the queue, rose = killed or withdrawn, ice = neutral interface.
+   dark mode uses the exact PAL hex from exhibit/shell.js; on paper the same hues are deepened until they read (>= 3:1 for
+   marks, >= 4.5:1 for text). headline marks are INK. */
+:root{
+  --paper:#f1e8d3;--card:#f8f2e3;--stone:#ede6d5;--stone-back:#f7ebe6;
+  --grid:rgba(31,99,160,.085);
+  --ink:#1d1838;--ink-2:rgba(29,24,56,.8);--pencil:#5f586e;--faint:rgba(29,24,56,.2);--hair:rgba(29,24,56,.15);
+  --mint:#06966f;--mint-t:#057456;--mint-hi:rgba(33,246,188,.62);
+  --amber:#b97708;--amber-t:#8f5c07;
+  --violet:#8b6fd6;--violet-t:#6446c4;
+  --rose:#e22a66;--rose-t:#c4134f;
+  --ice:#0288ec;--ice-t:#026ab6;
+  --display:"Bodoni Moda","Bodoni 72",Didot,"Times New Roman",serif;
+  --text:"Newsreader","Iowan Old Style",Georgia,serif;
+  --gut:16px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0c0720;--card:#140d2a;--stone:#1b1434;--stone-back:#22102c;
+  --grid:rgba(134,203,254,.05);
+  --ink:#efe9fb;--ink-2:rgba(239,233,251,.8);--pencil:#a49bbd;--faint:rgba(239,233,251,.22);--hair:rgba(239,233,251,.13);
+  --mint:#21f6bc;--mint-t:#21f6bc;--mint-hi:rgba(33,246,188,.3);
+  --amber:#f5a623;--amber-t:#f5a623;
+  --violet:#8b6fd6;--violet-t:#8b6fd6;
+  --rose:#ff6e9c;--rose-t:#ff6e9c;
+  --ice:#86cbfe;--ice-t:#86cbfe;
+  color-scheme:dark;
+}}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;padding:0 max(var(--gut),env(safe-area-inset-right)) 0 max(var(--gut),env(safe-area-inset-left));background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--ink);font:400 17px/1.5 var(--text);-webkit-font-smoothing:antialiased}
+h2,h3,p{margin:0}
+button{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2.5px solid var(--ice-t);outline-offset:3px}
+.mast,main,footer{max-width:1180px;margin-left:auto;margin-right:auto}
+.mast{padding:20px 0 24px}
+.mast p{font:italic 500 18px/1 var(--text);letter-spacing:.005em}
+
+/* cards: index cards pasted into the notebook, a second card peeking out behind */
+.card{position:relative;background:var(--card);border:1.5px solid var(--ink);border-radius:4px;padding:14px 16px 26px;margin:0 0 72px;box-shadow:6px 6px 0 -1.5px var(--card),6px 6px 0 0 var(--ink)}
+.hd{display:flex;align-items:flex-end;gap:10px}
+.num{font:900 clamp(92px,27vw,196px)/.76 var(--display);letter-spacing:-.05em;margin:0 0 0 -3px;color:transparent;-webkit-text-stroke:1.5px var(--ink);transition:color .9s ease;font-variant-numeric:lining-nums}
+.card.inked .num{color:var(--ink)}
+.ttl{font:italic 500 18px/1.15 var(--text);color:var(--pencil);margin-bottom:.3em}
+.lead{margin:14px 0 14px;font:600 clamp(27px,7.3vw,46px)/1.08 var(--display);letter-spacing:-.012em;text-wrap:balance}
+.body{margin:0 0 12px;max-width:34em}
+.body b{font-weight:650}
+.cap{margin:8px 0 0;font:italic 400 15px/1.45 var(--text);color:var(--pencil);max-width:38em}
+.sw{display:inline-block;width:11px;height:11px;border-radius:50%;flex:none}
+.sw.mint{background:var(--mint)}.sw.amber{background:var(--amber)}.sw.violet{background:var(--violet)}
+.key{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:52px;padding:0 18px;border:1.5px solid var(--ink);border-radius:8px;background:var(--card);color:var(--ink);font:600 17px/1.15 var(--text);cursor:pointer;box-shadow:0 3px 0 var(--ink);touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .08s,box-shadow .08s}
+.key:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.key[aria-disabled="true"]{opacity:.42;cursor:default;transform:none;box-shadow:0 3px 0 var(--ink)}
+.quiet{background:none;border:0;padding:0 2px;min-height:44px;font:italic 500 16px/1 var(--text);color:var(--pencil);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;cursor:pointer}
+
+/* 01 who pressed play */
+.tally{position:relative;height:84px;margin:6px 0 0;touch-action:pan-y;cursor:ew-resize;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;border-radius:6px}
+.tally.locked{cursor:default}
+.tally svg{display:block;width:100%;height:100%;overflow:visible}
+.tk{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-linecap:round;opacity:.2;vector-effect:non-scaling-stroke}
+.tk{transition:stroke .35s,opacity .35s}
+.tk.on{opacity:1;stroke-width:2}
+.tk.me{stroke:var(--mint);opacity:1;stroke-width:2.6}
+.hi{fill:var(--mint-hi);transform-box:fill-box;transform-origin:0 50%;transform:scaleX(0)}
+.locked .hi{transform:scaleX(1);transition:transform .7s cubic-bezier(.3,.7,.2,1)}
+.guess .cap{margin-top:4px}
+.ansline{margin:10px 0 0;font:600 clamp(22px,6vw,32px)/1.15 var(--display)}
+.pour{margin:14px 0 0}
+.pour canvas{display:block;width:100%}
+.jl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;text-align:center;margin-top:4px}
+.jl .cm{font-family:var(--text);font-weight:700}
+.jl b{display:block;min-height:1.05em;font:600 clamp(22px,6.2vw,38px)/1 var(--display);font-variant-numeric:lining-nums tabular-nums;letter-spacing:-.01em}
+.jl .nm{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;font:500 15px/1.2 var(--text)}
+.jl .of{display:block;margin-top:2px;font:italic 400 14px/1.3 var(--text);color:var(--pencil)}
+.jl .strict{display:block;margin:4px auto 0;max-width:12em;font:italic 500 13px/1.3 var(--text);color:var(--mint-t)}
+.app{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px}
+.app .br{grid-column:2/4;height:12px;margin:0 8%;border:1.5px solid var(--ink);border-top:0;border-radius:0 0 6px 6px}
+.app p{grid-column:2/4;text-align:center;margin-top:6px;font:500 15px/1.3 var(--text)}
+.app b{font-weight:700}
+.verdict{opacity:0;transition:opacity .9s ease}
+.verdict.on{opacity:1}
+.verdict .hl{margin:24px 0 10px;font:600 clamp(27px,7.3vw,46px)/1.08 var(--display);letter-spacing:-.012em;text-wrap:balance}
+.verdict .sub{font:400 18px/1.45 var(--text);color:var(--ink-2);max-width:32em}
+
+/* 02 the taste test */
+.tcard{position:relative;border:1.5px solid var(--ink);border-radius:12px;background:var(--paper);padding:14px 18px 20px;min-height:236px;overflow:hidden}
+.tmeta{display:flex;justify-content:space-between;gap:12px;font:italic 400 15px/1.2 var(--text);color:var(--pencil)}
+.ttitle{margin:20px 0 4px;font:600 clamp(24px,6.6vw,32px)/1.12 var(--display);overflow-wrap:anywhere}
+.tartist{margin:0 0 16px;font:italic 400 18px/1.3 var(--text);overflow-wrap:anywhere}
+.twhen{font:500 17px/1.35 var(--text)}
+.tpos{font:400 17px/1.35 var(--text);color:var(--ink-2)}
+.stamp{position:absolute;right:14px;bottom:16px;transform:rotate(-5deg);border:2px solid currentColor;border-radius:6px;padding:6px 10px 7px;background:var(--card);font:700 16px/1.15 var(--text);text-align:center}
+.stamp small{display:block;font:italic 500 14px/1.2 var(--text)}
+.stamp.me{color:var(--mint-t)}.stamp.app{color:var(--violet-t)}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.answers .key{padding:0 10px}
+.got{font:600 clamp(30px,8.4vw,48px)/1.05 var(--display);margin:0 0 12px}
+.machine{font:italic 400 17px/1.45 var(--text);color:var(--ink-2);margin:0 0 22px;padding-left:12px;border-left:2px solid var(--faint)}
+.tellh{font:italic 600 clamp(26px,7vw,38px)/1 var(--display);margin:0 0 6px}
+.tell{list-style:none;margin:10px 0 18px;padding:0;border-top:1px solid var(--hair)}
+.tell li{display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:start;padding:9px 0;border-bottom:1px solid var(--hair)}
+.tell .dot{width:11px;height:11px;border-radius:50%;margin-top:6px}
+.tell li.me .dot{background:var(--mint)}.tell li.app .dot{background:var(--violet)}
+.tell .tx{font:400 15px/1.4 var(--text);overflow-wrap:anywhere}
+.tell .tx b{font-weight:650}
+.tell .who{font-style:italic}
+.tell li.me .who{color:var(--mint-t)}.tell li.app .who{color:var(--violet-t)}
+.tell .mk{font:600 15px/1.4 var(--text);color:var(--pencil)}
+.rates p{font:400 16px/1.4 var(--text);margin:12px 0 6px}
+.rbar{position:relative;height:16px;border:1.5px solid var(--ink);border-radius:3px;overflow:hidden}
+.rbar i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--v)*100%)}
+.rbar i.mint{background:var(--mint)}.rbar i.violet{background:var(--violet)}
+.tellx{margin:22px 0 18px;font:600 clamp(23px,6.2vw,34px)/1.12 var(--display);text-wrap:balance}
+
+/* 03 me vs the app */
+.sw2{position:relative;display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--ink);border-radius:999px;padding:3px;margin:4px 0 18px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.sw2 .knob{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:999px;background:var(--ink);transform:translateX(calc(var(--t,0) * 100%));transition:transform .5s cubic-bezier(.3,.7,.2,1)}
+.sw2.drag .knob{transition:none}
+.sw2 button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:0 6px;border:0;border-radius:999px;background:none;font:600 14.5px/1.15 var(--text);text-wrap:balance;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .3s}
+.sw2 button[aria-checked="true"]{color:var(--card)}
+.sw2 .sw{width:9px;height:9px}
+.bars{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.bars li{display:grid;grid-template-columns:8.4em minmax(0,1fr);align-items:center;gap:10px;font:400 14.5px/1.15 var(--text)}
+.bars .lab{display:flex;align-items:center;justify-content:flex-end;gap:6px;text-align:right}
+.bars li.q .lab{font-weight:700}
+.bars .chip{width:10px;height:10px;border-radius:2px;flex:none;box-shadow:inset 0 0 0 1px var(--faint)}
+.bars .tr{position:relative;height:17px}
+.bars .bar{position:absolute;left:0;top:0;bottom:0;min-width:2px;border-radius:0 3px 3px 0;transition:width .75s cubic-bezier(.3,.7,.2,1),background-color .75s}
+.bars .ghost{position:absolute;top:-3px;bottom:-3px;width:0;border-left:1.5px dashed var(--ink);opacity:.5;transition:left .75s cubic-bezier(.3,.7,.2,1)}
+.bars.drag .bar,.bars.drag .ghost{transition:none}
+
+/* 04 crossing the map */
+.map canvas{display:block;width:100%;border:1px solid var(--hair);border-radius:8px;background:var(--paper)}
+.ctrs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 4px}
+.ctr b{display:block;font:600 clamp(48px,14vw,80px)/.9 var(--display);font-variant-numeric:lining-nums tabular-nums}
+.ctr.me b{color:var(--mint-t)}.ctr.q b{color:var(--violet-t)}
+.ctr span{display:block;margin-top:6px;font:400 15px/1.35 var(--text)}
+.dns{margin:6px 0 10px;font:italic 600 clamp(25px,6.8vw,38px)/1.1 var(--display)}
+.go{margin:14px 0 0}
+
+/* 05 the instrument that lies */
+.gauge svg{display:block;width:100%;max-width:540px;margin:0 auto;overflow:visible}
+.g-arc{fill:none;stroke:var(--ink);stroke-width:1.6}
+.g-tick{stroke:var(--ink);stroke-width:1.3}
+.g-tick.mj{stroke-width:2}
+.g-lab{fill:var(--ink);font:500 19px var(--text);text-anchor:middle;dominant-baseline:middle}
+.g-rose{stroke:var(--rose);stroke-width:3}
+.g-rlab{fill:var(--rose-t);font:italic 600 17px var(--text);text-anchor:end}
+.g-needle{stroke:var(--ink);stroke-width:3;stroke-linecap:round}
+.g-hub{fill:var(--ink)}
+.g-hub2{fill:var(--card)}
+.readout{text-align:center;margin:2px 0 18px}
+.readout b{display:block;font:600 clamp(60px,18vw,110px)/.9 var(--display);font-variant-numeric:lining-nums}
+.readout span{display:block;margin-top:6px;font:italic 400 15px/1.35 var(--text);color:var(--pencil)}
+.dose label{display:block;margin:0 0 4px;font:500 16px/1.35 var(--text)}
+.dose label b{font-weight:700}
+.rng{position:relative;padding:0 0 26px}
+input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:0;background:transparent;cursor:pointer;touch-action:pan-y}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--ink);border-radius:2px}
+input[type=range]::-moz-range-track{height:4px;background:var(--ink);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-13px;border-radius:50%;background:var(--card);border:3px solid var(--ink)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--card);border:3px solid var(--ink)}
+.ticks span{position:absolute;bottom:2px;transform:translateX(-50%);font:500 13px/1 var(--text);color:var(--pencil)}
+
+/* 06 the graveyard */
+.yard{display:grid;gap:18px}
+.stone{display:block;width:100%;padding:0;border:0;background:none;text-align:left;cursor:pointer;perspective:1400px;-webkit-tap-highlight-color:transparent}
+/* a stone is as tall as its claim; turning it grows it to fit the back, and it shrinks only after the half-turn */
+.stone .in{display:block;position:relative;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.3,.7,.2,1),height .4s ease .4s}
+.stone[aria-pressed="true"] .in{transform:rotateY(180deg);transition:transform .8s cubic-bezier(.3,.7,.2,1),height .45s ease}
+/* WebKit can ignore backface-visibility inside a button, so the faces also swap visibility at the half-turn */
+.face{transition:visibility 0s linear .4s}
+.back{visibility:hidden}
+.stone[aria-pressed="true"] .front{visibility:hidden}
+.stone[aria-pressed="true"] .back{visibility:visible}
+.face{display:flex;flex-direction:column;gap:4px;min-height:164px;padding:28px 18px 14px;border:1.5px solid var(--ink);border-radius:50% 50% 8px 8px/58px 58px 8px 8px;background:var(--stone);-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.back{position:absolute;left:0;top:0;width:100%;min-height:100%;transform:rotateY(180deg);background:var(--stone-back);border-color:var(--rose-t);padding-top:36px}
+.g-no{font:italic 500 14px/1 var(--text);color:var(--pencil);text-align:center}
+.g-claim{margin:6px 0 10px;font:italic 500 19px/1.3 var(--display);text-align:center;text-wrap:balance}
+.g-k{margin-top:auto;font:600 14px/1 var(--text);letter-spacing:.04em;color:var(--rose-t);text-align:center}
+.g-t{font:600 17px/1.25 var(--display);text-align:center;margin-bottom:4px;text-wrap:balance}
+.g-l{margin-top:6px;font:italic 600 14px/1.2 var(--text);color:var(--rose-t)}
+.g-x{font:400 14.5px/1.4 var(--text);overflow-wrap:anywhere}
+
+/* 07 to 09 */
+.sec{margin:0 auto 72px}
+.sec-h{margin:0 0 14px;font:600 clamp(32px,8.6vw,56px)/1 var(--display);letter-spacing:-.01em}
+.door-big{display:block;padding:18px 18px 20px;border:1.5px solid var(--ink);border-radius:8px;background:var(--card);color:var(--ink);text-decoration:none;font:600 clamp(23px,6.2vw,36px)/1.15 var(--display);box-shadow:0 4px 0 var(--ink);text-wrap:balance}
+.door-big:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.player{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:16px 0 14px}
+.ic-pause{display:inline-block;width:11px;height:13px;border-left:4px solid currentColor;border-right:4px solid currentColor}
+.np{flex:1 1 200px;margin:0;font:italic 400 16px/1.35 var(--text);color:var(--ink-2)}
+.tracks{list-style:none;margin:6px 0 0;padding:0;border-top:1.5px solid var(--ink)}
+.tracks li{display:grid;grid-template-columns:1.8em minmax(0,1fr) auto;column-gap:10px;align-items:baseline;padding:10px 6px;border-bottom:1px solid var(--hair);cursor:pointer;break-inside:avoid;-webkit-tap-highlight-color:transparent}
+.tracks .tn{font:500 14px/1 var(--text);color:var(--pencil);font-variant-numeric:tabular-nums}
+.tracks .tt{font:600 18px/1.25 var(--display)}
+.tracks .tm{font:italic 400 14px/1 var(--text);color:var(--pencil);white-space:nowrap}
+.tracks li.on{background:var(--ink);color:var(--card)}
+.tracks li.on .tn,.tracks li.on .tm{color:var(--card)}
+.tracks li.act{outline:2px solid var(--ice-t);outline-offset:-2px}
+.doors ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.doors a{display:block;height:100%;padding:16px 16px 18px;border:1.5px solid var(--ink);border-radius:8px;background:var(--card);color:var(--ink);text-decoration:none}
+.doors a b{display:block;font:600 28px/1.05 var(--display)}
+.doors a span{display:block;margin-top:6px;font:italic 400 16px/1.35 var(--text);color:var(--pencil)}
+footer{padding:22px 0 44px;border-top:1.5px solid var(--ink);font:italic 400 16px/1 var(--text);color:var(--pencil)}
+
+@media (min-width:980px){
+  :root{--gut:40px}
+  body{font-size:18px}
+  .mast{padding:28px 0 34px}
+  .card{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:56px;padding:36px 48px 52px;margin-bottom:110px;box-shadow:10px 10px 0 -1.5px var(--card),10px 10px 0 0 var(--ink)}
+  .card>.side{grid-column:1;align-self:start;position:sticky;top:28px}
+  .card>.toy{grid-column:2;min-width:0}
+  .c1{grid-template-rows:auto auto 1fr}
+  .c1 .hd{grid-column:1;grid-row:1}
+  .c1 .q1{grid-column:1;grid-row:2;margin-bottom:0}
+  .c1 .guess{grid-column:2;grid-row:1/3;align-self:end}
+  .c1 .pour{grid-column:2;grid-row:3}
+  .c1 .verdict{grid-column:1;grid-row:3;align-self:start}
+  .tally{height:104px}
+  .sec{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:56px;margin-bottom:110px}
+  .sec>.side{grid-column:1;align-self:start}
+  .sec>.toy{grid-column:2;min-width:0}
+  .tracks{columns:2;column-gap:28px}
+  .yard{max-width:500px;margin:0 auto}
+  .doors ul{grid-template-columns:repeat(3,1fr)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:0s!important;transition-delay:0s!important;animation-duration:0s!important}
+}
+</style>
+</head>
+<body>
+<header class="mast"><p>sonic manifold</p></header>
+<main>
+
+<article class="card c1" id="who" aria-labelledby="who-t">
+  <div class="hd"><span class="num" aria-hidden="true">01</span><h2 class="ttl" id="who-t">who pressed play</h2></div>
+  <p class="lead q1" id="who-q">of every 100 of my plays, how many did i press play on myself?</p>
+  <div class="guess">
+    <div class="tally" id="tally" role="slider" tabindex="0" aria-labelledby="who-q" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="no guess yet">
+      <svg id="tally-svg" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </div>
+    <p class="cap" id="tally-hint">drag along the tally marks, then let go to lock your guess.</p>
+    <button type="button" class="quiet" id="tell-me">just tell me</button>
+    <p class="ansline" id="ans-line" aria-live="polite" hidden></p>
+  </div>
+  <div class="pour" id="pour-wrap">
+    <canvas id="pour" aria-hidden="true"></canvas>
+    <div class="jl">
+      <div><b class="jn"></b><span class="nm"><i class="sw mint"></i>i tapped</span><span class="of" hidden>19 of every 100</span><span class="strict" hidden>dashed line: 11.5, the strictest count</span></div>
+      <div><b class="jn"></b><span class="nm"><i class="sw amber"></i>shuffle</span><span class="of" hidden>17 of every 100</span></div>
+      <div><b class="jn"></b><span class="nm"><i class="sw violet"></i>the queue</span><span class="of" hidden>64 of every 100</span></div>
+    </div>
+    <div class="app" id="app-br" hidden><span class="br"></span><p>the app: <b>78,836</b><br>81 of every 100</p></div>
+    <p class="cap" id="grain-cap" hidden>each grain is about 100 plays.</p>
+    <p class="cap" id="strict-cap" hidden>the strictest count keeps only the play button, a click on a row, or a remote.</p>
+  </div>
+  <div class="verdict" id="verdict" hidden>
+    <p class="hl">the app, not i, pressed play on 81 of every 100 of my Spotify plays.</p>
+    <p class="sub">97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count.</p>
+  </div>
+</article>
+
+<article class="card" id="taste" aria-labelledby="taste-t">
+  <div class="side">
+    <div class="hd"><span class="num" aria-hidden="true">02</span><h2 class="ttl" id="taste-t">the taste test</h2></div>
+    <p class="lead">can you tell my taps from the app's plays?</p>
+    <p class="body">ten plays from my log. for each one, guess who pressed play.</p>
+    <p class="cap">in the log it is 11.5 me to 64 queue; here i dealt you five and five.</p>
+    <p class="cap">shuffle plays are left out of the game.</p>
+  </div>
+  <div class="toy">
+    <div id="t-game">
+      <div class="tcard" aria-live="polite">
+        <div class="tmeta"><span id="t-round"></span><span id="t-score"></span></div>
+        <p class="ttitle" id="t-title"></p>
+        <p class="tartist" id="t-artist"></p>
+        <p class="twhen" id="t-when"></p>
+        <p class="tpos" id="t-pos"></p>
+        <p class="stamp" id="t-stamp" hidden></p>
+      </div>
+      <div class="answers">
+        <button type="button" class="key" id="t-me"><i class="sw mint"></i>i pressed play</button>
+        <button type="button" class="key" id="t-app"><i class="sw violet"></i>the app did</button>
+      </div>
+    </div>
+    <div id="t-sum" hidden>
+      <p class="got" id="t-got"></p>
+      <p class="machine">a model fed only the timing does a little better than a coin:<br>0.64 to 0.70 where 0.5 is the coin and 1 is perfect.</p>
+      <h3 class="tellh">the tell</h3>
+      <p class="cap">how the play before each of your ten cards ended.</p>
+      <ol class="tell" id="t-list"></ol>
+      <div class="rates">
+        <p>when the queue started a play, the previous play had ended by itself 97.7 times in 100.</p>
+        <div class="rbar"><i class="violet" style="--v:.977"></i></div>
+        <p>when i started one, the previous play had ended by itself 5.9 times in 100.</p>
+        <div class="rbar"><i class="mint" style="--v:.059"></i></div>
+      </div>
+      <p class="tellx">a tap interrupts the song before it; the queue waits for it to end.</p>
+      <button type="button" class="key" id="t-again">deal again</button>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="genre" aria-labelledby="genre-t">
+  <div class="side">
+    <div class="hd"><span class="num" aria-hidden="true">03</span><h2 class="ttl" id="genre-t">me vs the app, by genre</h2></div>
+    <p class="lead">what i reach for is not what the queue plays me.</p>
+    <p class="body"><b>ambient/lofi</b> reaches me 0.636 times as often by my own hand as by the queue (interval 0.569 to 0.710).</p>
+    <p class="body"><b>hip-hop and r&amp;b</b> reach me 1.22 times as often by my own hand as by the queue.</p>
+  </div>
+  <div class="toy">
+    <div class="sw2" id="gsw" role="radiogroup" aria-label="which plays the bars show">
+      <span class="knob" aria-hidden="true"></span>
+      <button type="button" role="radio" aria-checked="true" tabindex="0"><i class="sw mint"></i>what i press play on</button>
+      <button type="button" role="radio" aria-checked="false" tabindex="-1"><i class="sw violet"></i>what the queue plays</button>
+    </div>
+    <ul class="bars" id="bars"></ul>
+    <p class="cap">each bar is that kind of music's share. the dashes mark the other side.</p>
+  </div>
+</article>
+
+<article class="card" id="cross" aria-labelledby="cross-t">
+  <div class="side">
+    <div class="hd"><span class="num" aria-hidden="true">04</span><h2 class="ttl" id="cross-t">crossing the map</h2></div>
+    <p class="lead">i cross to another kind of music more often than the queue does.</p>
+    <p class="body">of 100 transitions i started, 69.9 crossed to another community; of 100 the queue started, 66.3 crossed.</p>
+    <p class="dns">a direction, not a size.</p>
+    <p class="cap">ratio 1.05, interval 1.03 to 1.08.</p>
+  </div>
+  <div class="toy">
+    <div class="map"><canvas id="map" role="img" aria-label="388 artists as dots, colored by community"></canvas></div>
+    <p class="cap">388 artists, colored by community (a kind of music). an arc is one transition.</p>
+    <div class="go"><button type="button" class="key" id="m-go">draw 200 transitions</button></div>
+    <div class="ctrs">
+      <div class="ctr me"><b id="c-me">0</b><span>of 100 transitions i started crossed</span></div>
+      <div class="ctr q"><b id="c-q">0</b><span>of 100 the queue started crossed</span></div>
+    </div>
+    <p class="cap">solid arc: it crossed to another community. dotted: it did not.</p>
+    <p class="cap" id="m-note" hidden>each arc is a real pair of communities from the log, drawn to the paper's rates.</p>
+  </div>
+</article>
+
+<article class="card" id="lie" aria-labelledby="lie-t">
+  <div class="side">
+    <div class="hd"><span class="num" aria-hidden="true">05</span><h2 class="ttl" id="lie-t">the instrument that lies</h2></div>
+    <p class="lead">a map trained on the stream reads a difference that is not there.</p>
+    <p class="body">when the artist map is trained on the stream itself, the index climbs with the app's share of the training corpus, even with no true difference built in.</p>
+    <p class="cap">no true difference is built in; the first headline, 1.61, is withdrawn because of this.</p>
+  </div>
+  <div class="toy">
+    <div class="gauge"><svg id="gauge" viewBox="0 0 460 250" aria-hidden="true"></svg></div>
+    <p class="readout"><b id="dose-read">1.0</b><span>the index reads. 1.0 means no difference.</span></p>
+    <div class="dose">
+      <label for="dose">the app's share of the training corpus: <b id="dose-share"></b></label>
+      <div class="rng"><input type="range" id="dose" min="0" max="6" step="1" value="0"><div class="ticks" id="dose-ticks" aria-hidden="true"></div></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="graves" aria-labelledby="graves-t">
+  <div class="side">
+    <div class="hd"><span class="num" aria-hidden="true">06</span><h2 class="ttl" id="graves-t">the graveyard</h2></div>
+    <p class="lead">eighteen claims withdrawn. sixteen are graves you can visit.</p>
+    <p class="body">each stone is something i once claimed about my listening. i tried to kill every claim; these died.</p>
+    <p class="cap">tap a stone to turn it. what killed the claim is on the back.</p>
+  </div>
+  <div class="toy"><div class="yard" id="yard"></div></div>
+</article>
+
+<section class="sec" id="turn" aria-labelledby="turn-t">
+  <div class="side">
+    <h2 class="sec-h" id="turn-t">your turn</h2>
+    <p class="body">the crossing count from card 04, on your own listening.</p>
+  </div>
+  <div class="toy"><a class="door-big" href="https://astralcrest.github.io/sonicManifold/bridge-index.html">run it on your own Spotify export. nothing leaves your browser.</a></div>
+</section>
+
+<section class="sec" id="album" aria-labelledby="album-t">
+  <div class="side">
+    <h2 class="sec-h" id="album-t">the soundtrack</h2>
+    <p class="body">22 tracks, made on Suno by astralcrest from this log.</p>
+    <p class="cap">each song with its key on the Camelot wheel and its tempo.</p>
+    <div class="player"><button type="button" class="key" id="a-play">&#9654;&#xFE0E; play</button><p class="np" id="a-np" aria-live="polite">nothing is playing.</p></div>
+  </div>
+  <div class="toy">
+    <ol class="tracks" id="a-list" role="listbox" tabindex="0" aria-label="the soundtrack, 22 tracks. choose one to play it"></ol>
+    <audio id="a-audio" preload="none"></audio>
+  </div>
+</section>
+
+<nav class="sec doors" id="doors" aria-labelledby="doors-t">
+  <div class="side"><h2 class="sec-h" id="doors-t">three doors</h2></div>
+  <div class="toy">
+    <ul>
+      <li><a href="https://astralcrest.github.io/sonicManifold/exhibit.html"><b>the record</b><span>the art piece: 18 stops, with sound.</span></a></li>
+      <li><a href="https://astralcrest.github.io/sonicManifold/lab.html"><b>the lab</b><span>every chart.</span></a></li>
+      <li><a href="https://astralcrest.github.io/sonicManifold/researcher.html"><b>the report</b><span>the paper's claims in plain words.</span></a></li>
+    </ul>
+  </div>
+</nav>
+</main>
+<footer>astralcrest &middot; 2026</footer>
+
+<script>
+/*__DATA__*/
+</script>
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const RM = matchMedia('(prefers-reduced-motion: reduce)');
+const DARK = matchMedia('(prefers-color-scheme: dark)');
+const cssv = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (n) => Math.round(n).toLocaleString('en-US');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+const rgb = (h) => { const n = parseInt(h.replace('#', ''), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return 'rgb(' + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',') + ')'; };
+const T = window.__proto = { pourDone: false, tasteDone: false, mapDone: false };
+function sizeCanvas(cv, w, h) {
+  const d = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d); cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0); return c;
+}
+function onWidth(el, fn) {
+  let w = el.clientWidth;
+  new ResizeObserver(() => { const n = el.clientWidth; if (n !== w) { w = n; fn(); } }).observe(el);
+}
+const inked = (id) => $('#' + id).classList.add('inked');
+
+/* the genre families' fixed hues (FAM in exhibit/shell.js): pastel, so a family never reads as a provenance */
+const FAM = { 'ambient/lofi': '#adced7', classical: '#dfd086', electronic: '#8698df', experimental: '#c3add7', 'folk/country': '#b8d86e', 'funk/disco': '#d86ed5', 'hip-hop · r&b': '#df868f', jazz: '#d7b4ad', other: '#b8d7ad', pop: '#df86c4', 'rock/metal': '#7fd489', soundtrack: '#41dfec', 'world/desi': '#d89c6e', untagged: '#9a9aa2' };
+
+/* ---------- 01 who pressed play: the guess, then the pour ---------- */
+const JARS = [{ n: 18591, c: '--mint' }, { n: 16262, c: '--amber' }, { n: 62574, c: '--violet' }];
+const STRICT = 11.5;
+const Guess = (() => {
+  const box = $('#tally'), svg = $('#tally-svg'), NS = 'http://www.w3.org/2000/svg', marks = [];
+  let seed = 20261016; const pr = () => ((seed = (seed * 48271) % 2147483647) / 2147483647);
+  const hi = document.createElementNS(NS, 'rect');
+  hi.setAttribute('class', 'hi'); hi.setAttribute('x', '0'); hi.setAttribute('y', '8'); hi.setAttribute('width', '192'); hi.setAttribute('height', '104'); hi.setAttribute('rx', '6');
+  svg.appendChild(hi);
+  for (let i = 0; i < 100; i++) {
+    const g = Math.floor(i / 5), j = i % 5, gx = g * 50;
+    let x1, y1, x2, y2;
+    if (j < 4) { const x = gx + 10 + j * 8.6; x1 = x + (pr() - .5) * 2.4; y1 = 20 + (pr() - .5) * 8; x2 = x + (pr() - .5) * 2.4; y2 = 100 + (pr() - .5) * 8; }
+    else { x1 = gx + 4 + (pr() - .5) * 3; y1 = 88 + (pr() - .5) * 6; x2 = gx + 45 + (pr() - .5) * 3; y2 = 32 + (pr() - .5) * 6; }
+    const mx = (x1 + x2) / 2 + (pr() - .5) * 3, my = (y1 + y2) / 2 + (pr() - .5) * 3;
+    const p = document.createElementNS(NS, 'path');
+    p.setAttribute('d', 'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + 'Q' + mx.toFixed(1) + ' ' + my.toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1));
+    p.setAttribute('class', 'tk'); svg.appendChild(p); marks.push(p);
+  }
+  let n = 0, locked = false, drag = false, pid = null;
+  const set = (v) => { n = v; marks.forEach((m, i) => m.classList.toggle('on', i < v)); box.setAttribute('aria-valuenow', String(v)); box.setAttribute('aria-valuetext', v + ' of 100'); };
+  const at = (x) => { const r = svg.getBoundingClientRect(); return clamp(Math.round(((x - r.left) / r.width) * 100), 0, 100); };
+  box.addEventListener('pointerdown', (e) => { if (locked || (e.pointerType === 'mouse' && e.button !== 0)) return; drag = true; pid = e.pointerId; try { box.setPointerCapture(pid); } catch (_) {} set(at(e.clientX)); });
+  box.addEventListener('pointermove', (e) => { if (drag && e.pointerId === pid) set(at(e.clientX)); });
+  box.addEventListener('pointerup', (e) => { if (!drag || e.pointerId !== pid) return; drag = false; lock(at(e.clientX)); });
+  box.addEventListener('pointercancel', () => { if (!drag) return; drag = false; set(0); });
+  box.addEventListener('keydown', (e) => {
+    if (locked) return;
+    const k = e.key; let v = n;
+    if (k === 'ArrowRight' || k === 'ArrowUp') v++; else if (k === 'ArrowLeft' || k === 'ArrowDown') v--;
+    else if (k === 'PageUp') v += 10; else if (k === 'PageDown') v -= 10; else if (k === 'Home') v = 0; else if (k === 'End') v = 100;
+    else if (k === 'Enter' || k === ' ') { e.preventDefault(); lock(n); return; } else return;
+    e.preventDefault(); set(clamp(v, 0, 100));
+  });
+  $('#tell-me').addEventListener('click', () => lock(null));
+  function lock(v) {
+    if (locked) return; locked = true; drag = false;
+    if (v !== null) set(v);
+    box.classList.add('locked'); box.setAttribute('aria-disabled', 'true'); box.removeAttribute('tabindex');
+    box.setAttribute('aria-valuetext', v === null ? 'no guess' : 'you said ' + v);
+    marks.forEach((m, i) => { if (i < 19) { m.style.transitionDelay = (i * 28) + 'ms'; m.classList.add('me'); } });
+    $('#tally-hint').hidden = true; $('#tell-me').hidden = true;
+    const a = $('#ans-line'); a.textContent = v === null ? 'i started 19.' : 'you said ' + v + '. i started 19.'; a.hidden = false;
+    T.guess = v; Pour.start();
+  }
+})();
+
+const Pour = (() => {
+  const cv = $('#pour'), wrap = $('#pour-wrap'), nums = $$('.jn');
+  const NG = JARS.map((j) => Math.round(j.n / 100)), TOT = NG[0] + NG[1] + NG[2];
+  let ctx, W = 0, H = 0, J = [], G = [], layer, lctx, R = 2, raf = 0, t0 = 0, state = 'idle', got = [0, 0, 0];
+  function layout() {
+    W = Math.round(wrap.clientWidth); const wide = W >= 520, third = W / 3;
+    const jw = Math.round(Math.min(wide ? 148 : 86, third - (wide ? 60 : 36)));
+    const pitch = wide ? 5.4 : 4, cols = Math.max(8, Math.floor((jw - 8) / pitch)), rowP = pitch * 0.92;
+    const innerH = (TOT / cols) * rowP, top = wide ? 82 : 60;
+    H = Math.round(top + innerH + 12); R = pitch * 0.43;
+    ctx = sizeCanvas(cv, W, H);
+    layer = document.createElement('canvas'); lctx = sizeCanvas(layer, W, H);
+    J = JARS.map((_, k) => { const cx = third * (k + 0.5); return { cx, x0: cx - jw / 2, x1: cx + jw / 2, y0: top, y1: top + innerH, innerH, cols, pitch, rowP, jw }; });
+    J.forEach((j, k) => { j.slots = slots(j, NG[k]); });
+  }
+  function slots(j, n) {
+    const out = [], pad = (j.jw - j.cols * j.pitch) / 2, rows = Math.ceil(n / j.cols) + 2;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < j.cols; c++) {
+      const x = j.x0 + pad + (c + 0.5) * j.pitch + (Math.random() - .5) * j.pitch * .34;
+      const y = j.y1 - 1.5 - (r + 0.5) * j.rowP + (Math.random() - .5) * j.rowP * .3;
+      out.push({ x, y, key: r + 0.95 * Math.abs(x - j.cx) / (j.jw / 2) });
+    }
+    return out.sort((a, b) => a.key - b.key).slice(0, n);
+  }
+  function build() {
+    const ks = []; NG.forEach((n, k) => { for (let i = 0; i < n; i++) ks.push(k); }); shuffle(ks);
+    const used = [0, 0, 0];
+    G = ks.map((k, i) => { const s = J[k].slots[used[k]++]; return { k, te: (i / TOT) * 2.5, d: 0.55 + Math.random() * 0.3, x0: W / 2 + (Math.random() - .5) * 6, y0: 2, x: s.x, y: s.y, done: false }; });
+  }
+  const colors = () => JARS.map((j) => cssv(j.c));
+  function dot(c, x, y, col) { c.fillStyle = col; c.beginPath(); c.arc(x, y, R, 0, 6.2832); c.fill(); }
+  function jars(c, strict) {
+    const ink = cssv('--ink');
+    c.save(); c.strokeStyle = ink; c.lineJoin = 'round'; c.lineCap = 'round';
+    J.forEach((j) => {
+      const r = Math.min(14, j.jw * 0.16), top = j.y0 - 12, b = j.y1 + 2;
+      c.lineWidth = 1.7; c.beginPath();
+      c.moveTo(j.x0 - 6, top); c.lineTo(j.x0, top + 4); c.lineTo(j.x0, b - r); c.quadraticCurveTo(j.x0, b, j.x0 + r, b);
+      c.lineTo(j.x1 - r, b); c.quadraticCurveTo(j.x1, b, j.x1, b - r); c.lineTo(j.x1, top + 4); c.lineTo(j.x1 + 6, top); c.stroke();
+      c.lineWidth = 1; c.globalAlpha = .6;
+      for (let q = 1; q < 10; q++) { const y = j.y1 - (q / 10) * j.innerH, L = q === 5 ? 9 : 5; c.beginPath(); c.moveTo(j.x0, y); c.lineTo(j.x0 + L, y); c.stroke(); }
+      c.globalAlpha = 1;
+    });
+    if (strict) {
+      const j = J[0], y = j.y1 - (STRICT / 100) * j.innerH;
+      c.setLineDash([4, 3]); c.lineWidth = 1.6; c.beginPath(); c.moveTo(j.x0 - 4, y); c.lineTo(j.x1 + 4, y); c.stroke(); c.setLineDash([]);
+      c.fillStyle = cssv('--mint-t'); c.font = 'italic 600 13px Newsreader, Georgia, serif'; c.textBaseline = 'middle'; c.fillText('11.5', j.x1 + 7, y);
+    }
+    c.restore();
+  }
+  function paintIdle() { ctx.clearRect(0, 0, W, H); jars(ctx, false); }
+  function paintFinal() {
+    const col = colors(); lctx.clearRect(0, 0, W, H); G.forEach((g) => dot(lctx, g.x, g.y, col[g.k]));
+    ctx.clearRect(0, 0, W, H); ctx.drawImage(layer, 0, 0, W, H); jars(ctx, true);
+  }
+  function count(final) { JARS.forEach((j, k) => { nums[k].innerHTML = fmt(final ? j.n : j.n * got[k] / NG[k]).replace(/,/g, '<span class="cm">,</span>'); }); }
+  function frame(now) {
+    if (!t0) t0 = now;
+    const t = (now - t0) / 1000, col = colors();
+    let all = true;
+    ctx.clearRect(0, 0, W, H);
+    for (const g of G) {
+      if (g.done) continue;
+      if (t < g.te) { all = false; continue; }
+      const u = (t - g.te) / g.d;
+      if (u >= 1) { g.done = true; got[g.k]++; dot(lctx, g.x, g.y, col[g.k]); continue; }
+      all = false;
+    }
+    ctx.drawImage(layer, 0, 0, W, H); jars(ctx, false);
+    for (const g of G) {
+      if (g.done || t < g.te) continue;
+      const u = (t - g.te) / g.d, ex = 1 - (1 - u) * (1 - u);
+      dot(ctx, g.x0 + (g.x - g.x0) * ex, g.y0 + (g.y - g.y0) * u * u, col[g.k]);
+    }
+    count(false);
+    if (all) finish(); else raf = requestAnimationFrame(frame);
+  }
+  function finish() {
+    cancelAnimationFrame(raf); state = 'done'; got = NG.slice(); paintFinal(); count(true);
+    $$('.jl .of, .jl .strict').forEach((e) => { e.hidden = false; });
+    ['app-br', 'grain-cap', 'strict-cap'].forEach((id) => { $('#' + id).hidden = false; });
+    const v = $('#verdict'); v.hidden = false; requestAnimationFrame(() => v.classList.add('on'));
+    inked('who'); T.pourDone = true;
+  }
+  function start() {
+    if (state !== 'idle') return; state = 'pouring'; build(); count(false);
+    if (RM.matches) { finish(); return; }
+    t0 = 0; raf = requestAnimationFrame(frame);
+  }
+  function relayout() {
+    layout();
+    if (state === 'idle') { paintIdle(); return; }
+    cancelAnimationFrame(raf); build(); finish();
+  }
+  layout(); paintIdle();
+  onWidth(wrap, relayout);
+  return { start, repaint: () => (state === 'idle' ? paintIdle() : state === 'done' ? paintFinal() : 0) };
+})();
+
+/* ---------- 02 the taste test ---------- */
+(() => {
+  const rows = TASTE_SAMPLE.rows.filter((r) => !/!/.test(String(r.t) + String(r.a)));
+  const ME = rows.filter((r) => r.arm === 'me'), APP = rows.filter((r) => r.arm === 'app');
+  const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const hour = (h) => (h === 0 ? 'midnight' : h === 12 ? 'noon' : h < 12 ? h + ' am' : (h - 12) + ' pm');
+  const el = {}; ['round', 'score', 'title', 'artist', 'when', 'pos', 'stamp', 'game', 'sum', 'me', 'app', 'again', 'got', 'list'].forEach((k) => { el[k] = $('#t-' + k); });
+  let deck = [], i = 0, score = 0, log = [], busy = false;
+  const setBusy = (b) => { busy = b; [el.me, el.app].forEach((x) => x.setAttribute('aria-disabled', b ? 'true' : 'false')); };
+  function show() {
+    const r = deck[i];
+    el.round.textContent = 'round ' + (i + 1) + ' of 10';
+    el.score.textContent = i ? score + ' right so far' : '';
+    el.title.textContent = r.t; el.artist.textContent = r.a;
+    el.when.textContent = DAYS[r.w] + ', ' + hour(r.h);
+    el.pos.textContent = 'play ' + r.p + ' of ' + r.n + ' in that session';
+    el.stamp.hidden = true; setBusy(false);
+  }
+  function deal(scroll) {
+    deck = shuffle(shuffle(ME.slice()).slice(0, 5).concat(shuffle(APP.slice()).slice(0, 5)));
+    i = 0; score = 0; log = []; el.sum.hidden = true; el.game.hidden = false; show();
+    if (scroll) el.game.scrollIntoView({ block: 'nearest', behavior: RM.matches ? 'auto' : 'smooth' });
+  }
+  function answer(g) {
+    if (busy || i >= deck.length) return;
+    setBusy(true);
+    const r = deck[i], ok = g === r.arm;
+    if (ok) score++;
+    log.push({ r, ok });
+    el.stamp.className = 'stamp ' + r.arm;
+    el.stamp.innerHTML = (ok ? 'right' : 'wrong') + '<small>' + (r.arm === 'me' ? 'i pressed play' : 'the app did') + '</small>';
+    el.stamp.hidden = false;
+    el.score.textContent = score + ' right of ' + (i + 1);
+    setTimeout(() => { i++; if (i < deck.length) show(); else end(); }, RM.matches ? 800 : 1300);
+  }
+  const mmss = (s) => (s >= 900 ? '15 minutes or more' : Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'));
+  const before = (r) => (r.pe === 'done' ? 'the play before it played to the end.'
+    : r.pe === 'skip' ? 'the play before it was cut short by next or back after ' + mmss(r.pm) + '.'
+    : 'the play before it was stopped or interrupted after ' + mmss(r.pm) + '.');
+  function end() {
+    el.game.hidden = true; el.sum.hidden = false;
+    el.got.textContent = 'you got ' + score + ' of 10. chance is 5.';
+    el.list.innerHTML = log.map(({ r, ok }) => '<li class="' + r.arm + '"><span class="dot"></span><span class="tx"><b>' + esc(r.t) + '</b>, <span class="who">' + (r.arm === 'me' ? 'i pressed play' : 'the app did') + '</span>. ' + before(r) + '</span><span class="mk" aria-label="' + (ok ? 'you got this one' : 'you missed this one') + '">' + (ok ? '&#10003;' : '&#10007;') + '</span></li>').join('');
+    inked('taste'); T.tasteDone = true;
+  }
+  el.me.addEventListener('click', () => answer('me'));
+  el.app.addEventListener('click', () => answer('app'));
+  el.again.addEventListener('click', () => deal(true));
+  deal(false);
+})();
+
+/* ---------- 03 me vs the app, by genre ---------- */
+const Genre = (() => {
+  const G = GENRE_STRICT, ul = $('#bars'), sw = $('#gsw'), opts = $$('[role=radio]', sw);
+  const fams = G.fam_order.slice().sort((a, b) => (G.comp.tap[b] || 0) - (G.comp.tap[a] || 0));
+  const MAX = Math.max(...fams.map((f) => Math.max(G.comp.tap[f] || 0, G.comp.queue[f] || 0)));
+  const rows = fams.map((f) => {
+    const li = document.createElement('li');
+    if (f === 'ambient/lofi' || f === 'hip-hop · r&b') li.className = 'q';
+    li.innerHTML = '<span class="lab"><span class="chip" style="background:' + (FAM[f] || FAM.untagged) + '"></span>' + esc(f) + '</span><span class="tr"><span class="bar"></span><span class="ghost"></span></span>';
+    ul.appendChild(li);
+    return { bar: li.querySelector('.bar'), ghost: li.querySelector('.ghost'), a: (G.comp.tap[f] || 0) / MAX, b: (G.comp.queue[f] || 0) / MAX };
+  });
+  let t = 0;
+  function paint() {
+    const col = mix(cssv('--mint'), cssv('--violet'), t);
+    rows.forEach((r) => {
+      r.bar.style.width = ((r.a + (r.b - r.a) * t) * 100).toFixed(2) + '%';
+      r.bar.style.backgroundColor = col;
+      r.ghost.style.left = ((t < 0.5 ? r.b : r.a) * 100).toFixed(2) + '%';
+    });
+  }
+  function set(v, live) {
+    t = v; sw.style.setProperty('--t', v.toFixed(4));
+    sw.classList.toggle('drag', !!live); ul.classList.toggle('drag', !!live);
+    const sel = v >= 0.5 ? 1 : 0;
+    opts.forEach((o, k) => { o.setAttribute('aria-checked', String(k === sel)); o.tabIndex = k === sel ? 0 : -1; });
+    paint();
+  }
+  let drag = false, moved = false, x0 = 0, pid = null;
+  opts.forEach((o, k) => o.addEventListener('click', () => { if (moved) { moved = false; return; } set(k, false); inked('genre'); }));
+  sw.addEventListener('pointerdown', (e) => { drag = true; moved = false; x0 = e.clientX; pid = e.pointerId; });
+  sw.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== pid) return;
+    if (!moved) { if (Math.abs(e.clientX - x0) < 6) return; moved = true; try { sw.setPointerCapture(pid); } catch (_) {} }
+    const r = sw.getBoundingClientRect(), kw = r.width / 2;
+    set(clamp((e.clientX - r.left - kw / 2) / (r.width - kw), 0, 1), true);
+  });
+  const up = () => { if (!drag) return; drag = false; if (moved) { set(t >= 0.5 ? 1 : 0, false); inked('genre'); setTimeout(() => { moved = false; }, 0); } };
+  sw.addEventListener('pointerup', up); sw.addEventListener('pointercancel', up);
+  sw.addEventListener('keydown', (e) => {
+    const k = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? 0 : e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1;
+    if (k < 0) return; e.preventDefault(); set(k, false); opts[k].focus(); inked('genre');
+  });
+  set(0, false);
+  return { repaint: paint };
+})();
+
+/* ---------- 04 crossing the map ---------- */
+const MapX = (() => {
+  const cv = $('#map'), wrap = cv.parentElement, btn = $('#m-go');
+  const NODES = UNIVERSE_NODES.nodes, WEFT = UNIVERSE_BRIDGES.weft, FO = GENRE_STRICT.fam_order;
+  /* the weft's a and b index fam_order: the tag communities the bridge index counts crossings between */
+  const byFam = {}; NODES.forEach((n) => { (byFam[n.family] = byFam[n.family] || []).push(n); });
+  const pool = (arm, cross) => {
+    const p = WEFT.filter((w) => w.arm === arm && (w.a !== w.b) === cross && byFam[w.a] && byFam[w.b] && (cross || byFam[w.a].length > 1));
+    let s = 0; const cum = p.map((w) => (s += w.n)); return { p, cum, s };
+  };
+  const POOLS = { me: [pool(0, true), pool(0, false)], q: [pool(2, true), pool(2, false)] }, RATE = { me: 70, q: 66 };
+  const pick = (P) => { const x = Math.random() * P.s; let lo = 0, hi = P.cum.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (P.cum[m] < x) lo = m + 1; else hi = m; } return P.p[lo]; };
+  const any = (a) => a[Math.floor(Math.random() * a.length)];
+  let W = 0, H = 0, ctx, base, bctx, done, dctx, arcs = [], raf = 0, t0 = 0, state = 'idle', cnt;
+  const STEP = 0.026, GROW = 0.52;
+  const pos = (n) => { const s = Math.min(W, H) - 24, ox = (W - s) / 2, oy = (H - s) / 2; return [ox + n.xy[0] * s, oy + n.xy[1] * s]; };
+  function layout() {
+    W = Math.round(wrap.clientWidth); H = Math.round(W >= 520 ? Math.min(W * 0.84, 560) : W);
+    ctx = sizeCanvas(cv, W, H);
+    base = document.createElement('canvas'); bctx = sizeCanvas(base, W, H);
+    done = document.createElement('canvas'); dctx = sizeCanvas(done, W, H);
+  }
+  function drawBase() {
+    const dark = DARK.matches, ink = cssv('--ink'), k = W >= 520 ? 1.35 : 1;
+    bctx.clearRect(0, 0, W, H);
+    NODES.forEach((n) => {
+      const [x, y] = pos(n), r = k * (1.3 + (n.plays_bucket || 1) * 0.55);
+      bctx.beginPath(); bctx.arc(x, y, r, 0, 6.2832);
+      bctx.fillStyle = FAM[FO[n.family]] || FAM.untagged; bctx.fill();
+      if (!dark) { bctx.lineWidth = 0.7; bctx.strokeStyle = ink; bctx.globalAlpha = .55; bctx.stroke(); bctx.globalAlpha = 1; }
+    });
+  }
+  function curve(a) {
+    const [x1, y1] = pos(a.A), [x2, y2] = pos(a.B), dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
+    const bend = (a.s ? 1 : -1) * Math.max(10, L * 0.24);
+    return [x1, y1, (x1 + x2) / 2 - (dy / L) * bend, (y1 + y2) / 2 + (dx / L) * bend, x2, y2];
+  }
+  function stroke(c, a, u, fresh) {
+    const [x0, y0, cx, cy, x2, y2] = a.c;
+    const qx = x0 + (cx - x0) * u, qy = y0 + (cy - y0) * u;
+    const ex = (1 - u) * (1 - u) * x0 + 2 * (1 - u) * u * cx + u * u * x2, ey = (1 - u) * (1 - u) * y0 + 2 * (1 - u) * u * cy + u * u * y2;
+    c.strokeStyle = a.who === 'me' ? cssv('--mint') : cssv('--violet');
+    c.lineWidth = fresh ? 2.2 : 1.1; c.globalAlpha = fresh ? 1 : DARK.matches ? 0.58 : 0.42;
+    c.setLineDash(a.cross ? [] : [2.5, 3.5]);
+    c.beginPath(); c.moveTo(x0, y0); c.quadraticCurveTo(qx, qy, ex, ey); c.stroke();
+    if (fresh) { c.setLineDash([]); c.fillStyle = c.strokeStyle; c.beginPath(); c.arc(ex, ey, 2.6, 0, 6.2832); c.fill(); }
+    c.globalAlpha = 1; c.setLineDash([]);
+  }
+  function sample() {
+    const make = (who) => {
+      const [cr, wi] = POOLS[who], out = [];
+      for (let k = 0; k < 100; k++) {
+        const cross = k < RATE[who], w = pick(cross ? cr : wi), A = any(byFam[w.a]);
+        let B = any(byFam[w.b]), guard = 0;
+        while (B === A && guard++ < 20) B = any(byFam[w.b]);
+        out.push({ who, cross, A, B, s: Math.random() < 0.5 });
+      }
+      return shuffle(out);
+    };
+    const me = make('me'), q = make('q'), all = [];
+    for (let k = 0; k < 100; k++) all.push(me[k], q[k]);
+    all.forEach((a) => { a.c = curve(a); a.done = false; });
+    return all;
+  }
+  function paint(t) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = state === 'run' ? 0.55 : 1; ctx.drawImage(base, 0, 0, W, H); ctx.globalAlpha = 1;
+    ctx.drawImage(done, 0, 0, W, H);
+    if (t == null) return true;
+    let all = true;
+    arcs.forEach((a, k) => {
+      if (a.done) return;
+      const u = (t - k * STEP) / GROW;
+      if (u < 0) { all = false; return; }
+      if (u >= 1) { a.done = true; stroke(dctx, a, 1, false); cnt[a.who].d++; if (a.cross) cnt[a.who].c++; return; }
+      all = false; stroke(ctx, a, u, true);
+    });
+    $('#c-me').textContent = cnt.me.c; $('#c-q').textContent = cnt.q.c;
+    return all;
+  }
+  function frame(now) {
+    if (!t0) t0 = now;
+    if (paint((now - t0) / 1000)) finish(); else raf = requestAnimationFrame(frame);
+  }
+  function finish() {
+    cancelAnimationFrame(raf); state = 'done';
+    dctx.clearRect(0, 0, W, H); arcs.forEach((a) => { a.done = true; stroke(dctx, a, 1, false); });
+    cnt = { me: { c: RATE.me, d: 100 }, q: { c: RATE.q, d: 100 } };
+    paint(null);
+    $('#c-me').textContent = RATE.me; $('#c-q').textContent = RATE.q;
+    btn.textContent = 'draw again'; btn.setAttribute('aria-disabled', 'false');
+    $('#m-note').hidden = false; inked('cross'); T.mapDone = true;
+  }
+  btn.addEventListener('click', () => {
+    if (state === 'run') return;
+    state = 'run'; btn.setAttribute('aria-disabled', 'true'); btn.textContent = 'drawing';
+    arcs = sample(); cnt = { me: { c: 0, d: 0 }, q: { c: 0, d: 0 } };
+    dctx.clearRect(0, 0, W, H);
+    if (RM.matches) { finish(); return; }
+    t0 = 0; raf = requestAnimationFrame(frame);
+  });
+  function redraw() {
+    layout(); drawBase();
+    if (state === 'run') { cancelAnimationFrame(raf); arcs.forEach((a) => { a.c = curve(a); }); finish(); return; }
+    arcs.forEach((a) => { a.c = curve(a); });
+    if (state === 'done') { arcs.forEach((a) => stroke(dctx, a, 1, false)); }
+    paint(null);
+  }
+  layout(); drawBase(); paint(null);
+  onWidth(wrap, redraw);
+  return { repaint: () => { drawBase(); if (state !== 'run') { dctx.clearRect(0, 0, W, H); if (state === 'done') arcs.forEach((a) => stroke(dctx, a, 1, false)); paint(null); } } };
+})();
+
+/* ---------- 05 the instrument that lies ---------- */
+(() => {
+  const LV = [0.12, 0.25, 0.50, 0.65, 0.80, 0.86, 1.00], IX = [0.98, 1.07, 1.19, 1.26, 1.37, 1.43, 1.47];
+  const svg = $('#gauge'), NS = 'http://www.w3.org/2000/svg', CX = 230, CY = 224, RA = 186, V0 = 0.9, V1 = 1.7;
+  const ang = (v) => 180 + ((v - V0) / (V1 - V0)) * 180;
+  const pt = (a, r) => [CX + r * Math.cos(a * Math.PI / 180), CY + r * Math.sin(a * Math.PI / 180)];
+  const mk = (tag, at) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); svg.appendChild(e); return e; };
+  const [ax, ay] = pt(180, RA), [bx, by] = pt(360, RA);
+  mk('path', { d: 'M' + ax + ' ' + ay + 'A' + RA + ' ' + RA + ' 0 0 1 ' + bx + ' ' + by, class: 'g-arc' });
+  for (let s = 0; s <= 16; s++) {
+    const v = V0 + s * 0.05, major = s % 2 === 0, a = ang(v);
+    const [x1, y1] = pt(a, RA), [x2, y2] = pt(a, RA - (major ? 18 : 10));
+    mk('line', { x1, y1, x2, y2, class: 'g-tick' + (major ? ' mj' : '') });
+    if (major && v > 0.95 && v < 1.55) { const [lx, ly] = pt(a, RA - 38); mk('text', { x: lx, y: ly, class: 'g-lab' }).textContent = v.toFixed(1); }
+  }
+  const aw = ang(1.61), [r1x, r1y] = pt(aw, RA + 8), [r2x, r2y] = pt(aw, RA - 24), [rlx, rly] = pt(aw, RA - 44);
+  mk('line', { x1: r1x, y1: r1y, x2: r2x, y2: r2y, class: 'g-rose' });
+  const rl = mk('text', { x: rlx, y: rly - 2, class: 'g-rlab' }); rl.textContent = '1.61';
+  const rl2 = mk('text', { x: rlx, y: rly + 17, class: 'g-rlab' }); rl2.textContent = 'withdrawn';
+  const needle = mk('g', {});
+  const nl = document.createElementNS(NS, 'line'); [['x1', CX], ['y1', CY], ['x2', CX + RA - 30], ['y2', CY], ['class', 'g-needle']].forEach(([k, v]) => nl.setAttribute(k, v)); needle.appendChild(nl);
+  mk('circle', { cx: CX, cy: CY, r: 11, class: 'g-hub' }); mk('circle', { cx: CX, cy: CY, r: 4, class: 'g-hub2' });
+  const inp = $('#dose'), read = $('#dose-read'), share = $('#dose-share'), ticks = $('#dose-ticks');
+  ticks.innerHTML = LV.map((v, k) => '<span style="left:calc(15px + ' + k + ' * (100% - 30px) / 6)">' + Math.round(v * 100) + '</span>').join('');
+  let cur = ang(IX[0]), tgt = cur, vel = 0, raf = 0, last = 0;
+  const apply = (a) => needle.setAttribute('transform', 'rotate(' + a.toFixed(2) + ' ' + CX + ' ' + CY + ')');
+  function step(now) {
+    const dt = last ? Math.min(0.04, (now - last) / 1000) : 0.016; last = now;
+    vel += (120 * (tgt - cur) - 2 * Math.sqrt(120) * 0.62 * vel) * dt; cur += vel * dt; apply(cur);
+    if (Math.abs(tgt - cur) < 0.05 && Math.abs(vel) < 0.08) { cur = tgt; apply(cur); raf = 0; last = 0; return; }
+    raf = requestAnimationFrame(step);
+  }
+  function set(k, user) {
+    const v = IX[k], sh = Math.round(LV[k] * 100) + ' of every 100';
+    read.textContent = v.toFixed(1); share.textContent = sh;
+    inp.setAttribute('aria-valuetext', sh + '. the index reads ' + v.toFixed(1));
+    tgt = ang(v);
+    if (!user || RM.matches) { cur = tgt; vel = 0; apply(cur); } else if (!raf) raf = requestAnimationFrame(step);
+    if (user) inked('lie');
+  }
+  inp.addEventListener('input', () => set(+inp.value, true));
+  set(+inp.value, false);
+})();
+
+/* ---------- 06 the graveyard ---------- */
+(() => {
+  const yard = $('#yard'), stones = [];
+  GRAVEYARD.forEach((g) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'stone'; b.setAttribute('aria-pressed', 'false');
+    /* a verdict cut off mid-sentence in the source is left off rather than shown broken */
+    const whole = /[.?)"”’]$/.test(String(g.verdict || '').trim());
+    b.innerHTML = '<span class="in"><span class="face front"><span class="g-no">no. ' + g.n + '</span><span class="g-claim">“' + esc(g.claim) + '”</span><span class="g-k">killed</span></span>'
+      + '<span class="face back" aria-hidden="true"><span class="g-t">' + esc(g.title) + '</span><span class="g-l">killed by</span><span class="g-x">' + esc(g.killed_by) + '</span><span class="g-l">result</span><span class="g-x">' + esc(g.result) + '</span>'
+      + (whole ? '<span class="g-l">verdict</span><span class="g-x">' + esc(g.verdict) + '</span>' : '') + '</span></span>';
+    yard.appendChild(b);
+    const inn = b.querySelector('.in'), fr = b.querySelector('.front'), bk = b.querySelector('.back');
+    stones.push({ b, inn, bk });
+    b.addEventListener('click', () => {
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      inn.style.height = inn.offsetHeight + 'px'; void inn.offsetHeight;
+      b.setAttribute('aria-pressed', String(on));
+      fr.setAttribute('aria-hidden', String(on));
+      bk.setAttribute('aria-hidden', String(!on));
+      inn.style.height = (on ? bk.offsetHeight : fr.offsetHeight) + 'px';
+      inked('graves');
+    });
+  });
+  onWidth(yard, () => stones.forEach(({ b, inn, bk }) => {
+    inn.style.transition = 'none'; inn.style.height = '';
+    if (b.getAttribute('aria-pressed') === 'true') inn.style.height = bk.offsetHeight + 'px';
+    void inn.offsetHeight; inn.style.transition = '';
+  }));
+})();
+
+/* ---------- the soundtrack ---------- */
+(() => {
+  const BASE = 'https://astralcrest.github.io/sonicManifold/audio/bed/', TR = TRACKS.tracks;
+  const list = $('#a-list'), btn = $('#a-play'), np = $('#a-np'), au = $('#a-audio');
+  list.innerHTML = TR.map((t, k) => '<li role="option" id="trk-' + k + '" aria-selected="false"><span class="tn">' + String(k + 1).padStart(2, '0') + '</span><span class="tt">' + esc(t.t) + '</span><span class="tm">' + esc(t.k) + ', ' + t.bpm + ' bpm</span></li>').join('');
+  const items = $$('li', list);
+  let cur = -1, act = 0;
+  const label = () => { btn.innerHTML = au.paused ? '&#9654;&#xFE0E; play' : '<i class="ic-pause" aria-hidden="true"></i>pause'; };
+  const line = (k) => TR[k].t + ', ' + TR[k].k + ', ' + TR[k].bpm + ' bpm';
+  function mark() { items.forEach((li, k) => { li.classList.toggle('on', k === cur); li.setAttribute('aria-selected', String(k === cur)); }); }
+  function play(k) {
+    cur = k; mark(); au.src = BASE + TR[k].f + '.mp3';
+    np.textContent = 'now playing: ' + line(k);
+    const p = au.play(); if (p && p.catch) p.catch(() => { np.textContent = 'could not start ' + TR[k].t + '. press play to try again.'; label(); });
+    label(); T.track = k;
+  }
+  function setAct(k) { act = clamp(k, 0, TR.length - 1); items.forEach((li, j) => li.classList.toggle('act', j === act && document.activeElement === list)); list.setAttribute('aria-activedescendant', 'trk-' + act); }
+  btn.addEventListener('click', () => { if (cur < 0) play(0); else if (au.paused) { const p = au.play(); if (p && p.catch) p.catch(() => {}); np.textContent = 'now playing: ' + line(cur); } else { au.pause(); np.textContent = 'paused: ' + line(cur); } });
+  list.addEventListener('click', (e) => { const li = e.target.closest('li'); if (!li) return; const k = items.indexOf(li); setAct(k); play(k); });
+  list.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') setAct(act + 1); else if (e.key === 'ArrowUp') setAct(act - 1);
+    else if (e.key === 'Home') setAct(0); else if (e.key === 'End') setAct(TR.length - 1);
+    else if (e.key === 'Enter' || e.key === ' ') play(act); else return;
+    e.preventDefault(); items[act].scrollIntoView({ block: 'nearest' });
+  });
+  list.addEventListener('focus', () => setAct(act)); list.addEventListener('blur', () => items.forEach((li) => li.classList.remove('act')));
+  au.addEventListener('play', label); au.addEventListener('pause', label);
+  au.addEventListener('ended', () => { if (cur < TR.length - 1) play(cur + 1); else { np.textContent = 'the soundtrack is over.'; label(); } });
+  au.addEventListener('error', () => { if (cur >= 0 && au.getAttribute('src')) { np.textContent = 'could not load ' + TR[cur].t + '. check the connection and press play.'; label(); } });
+})();
+
+DARK.addEventListener('change', () => { Pour.repaint(); Genre.repaint(); MapX.repaint(); });
+})();
+</script>
+</body>
+</html>

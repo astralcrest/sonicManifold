@@ -20,10 +20,10 @@
 /* the listening posts and the label text are optional: a blocked or flaky file leaves them off instead of leaving the exhibit unbooted. one retry, then a no-op stand-in */
 const soft = (u, d) => import(u).catch(() => import(u + '&retry=1')).catch(() => d);
 const [PM, LM] = await Promise.all([
-  soft('./post.js?v=13', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}) }),
+  soft('./post.js?v=14', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}), kick() {} }),
   soft('./labels.js?v=25', { LABELS: {}, HINTS: {}, HINTS_ATLAS: {}, HINTS_TOUCH: {} }),
 ]);
-const { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState } = PM;
+const { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState, kick } = PM;
 const { LABELS, HINTS, HINTS_ATLAS, HINTS_TOUCH } = LM;
 /* every module and data url carries the shell's own ?v= so a service-worker cache can never mix versions */
 const V = new URL(import.meta.url).search || '';
@@ -35,6 +35,9 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
 export const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const coarse = matchMedia('(pointer: coarse)').matches;
+/* R19: exhibit.html?wall=1, the gallery wall (exhibit/atlas/wallboot.js made window.__wall before this module ran). the lane
+   hunks below read window.__wall inline so each stays independent; this is the same answer for anyone importing the shell */
+export const WALL = !!window.__wall;
 
 /* ATLAS MODE (BUILD_SPEC_V2 §1.1). on by default; ?atlas=0 is today's scrolling exhibit, and every atlas branch below is
    guarded so that path runs the old code. the renderer, camera and gesture modules are needed by the loop before its
@@ -171,7 +174,7 @@ export function hash(i) { let x = (i + 1) * 2654435761 >>> 0; x ^= x >>> 15; x =
 
 /* ------------------------------------------------------------------ particles */
 const TOTAL_PLAYS = 97427;
-export const lowPower = coarse || (navigator.hardwareConcurrency || 4) <= 4 || Math.min(innerWidth, innerHeight) < 700;
+export const lowPower = !window.__wall && (coarse || (navigator.hardwareConcurrency || 4) <= 4 || Math.min(innerWidth, innerHeight) < 700); /* R19: never from a wall's pointer, cores or size; ?plays= and the governor still apply */
 
 /* R18 FIELD_GL: the GL canvas takes #field's place (its id, class and size); the 2D canvas waits, detached, as the fallback and
    comes back at once if the context is lost (glLost), for good after a second loss. GL_WHY says why the 2D path runs */
@@ -227,13 +230,13 @@ addEventListener('pointerdown', (e) => { PT.down = true; PT.x = e.clientX; PT.y 
 /* atlas: a ripple marks a tap or a hold (the pointer stayed within 6 px), never a drag, nor a click V8 already answered */
 const ptOff = (e) => { if (ATLAS && PT.down && e && e.type === 'pointerup' && !reduced && performance.now() - PT.v8 > 100 && PT.ripples.length < 6 && !(GEST && GEST.dragging) && Math.abs(e.clientX - PT.dx) < 6 && Math.abs(e.clientY - PT.dy) < 6) PT.ripples.push({ x: PT.dx, y: PT.dy, t: performance.now() }); PT.down = false; if (!e || e.pointerType !== 'mouse') PT.on = false; };
 addEventListener('pointerup', ptOff, { passive: true }); addEventListener('pointercancel', ptOff, { passive: true }); document.addEventListener('mouseleave', () => { PT.on = false; });
-/* R18 V8 · THE FIELD PLAYS ITSELF (desktop: a fine pointer only). a click on empty field (no dot in the 3 x 3 cells around it,
+/* R18 V8 · THE FIELD PLAYS ITSELF (desktop: a fine pointer; a ?wall=1 panel too). a click on empty field (no dot in the 3 x 3 cells around it,
    not the ui, no flight started by it) sends out a mint ring, 0 to 60 px over 1.6 s, and one soft note (-24 dBFS) in the
    bed's key, higher the higher the click. after 20 s with no input while the bed plays (the tour paused or over), a violet
    ring rises from a served dot on a bar line of the bed, 2 to 4 s apart, with a quieter note (-30 dBFS), until the first
    input. no note while a clip plays or the sound is muted (the rings still draw); none of it under reduced motion, on a
-   touch screen or at ?atlas=0 */
-const V8 = { on: ATLAS && !reduced && !coarse && matchMedia('(pointer: fine)').matches, idle: 20000, act: performance.now(), next: 0, clicks: 0, idles: 0, notes: 0, cap: 8, run: 0 /* DA P2-4: at most `cap` idle rings in a row, then it rests until the next input */ };
+   touch screen (a ?wall=1 panel apart) or at ?atlas=0 */
+const V8 = { on: ATLAS && !reduced && (!!window.__wall /* the wall is touched, whatever its pointer media say */ || (!coarse && matchMedia('(pointer: fine)').matches)), idle: 20000, act: performance.now(), next: 0, clicks: 0, idles: 0, notes: 0, cap: 8, run: 0 /* DA P2-4: at most `cap` idle rings in a row, then it rests until the next input */ };
 if (V8.on) ['pointermove', 'pointerdown', 'wheel', 'keydown'].forEach((ty) => addEventListener(ty, () => { V8.act = performance.now(); V8.run = 0; }, { capture: true, passive: true }));
 function bedPlaying() { if (!A.on || A.cur < 0 || A.clipState === 'hot') return false; const el = A.els[A.cur]; return !!el && !el.paused; }
 function v8Note(y, at, vol) {
@@ -265,7 +268,7 @@ function v8Over(p) {
 }
 /* from the stage's tap (bindStage), after the room's own tap did nothing: a categorical stop's empty cell is data, so not there */
 function v8Click(p, f0) {
-  if (!V8.on || !p || !p.e || (p.e.pointerType !== 'mouse' && p.e.pointerType !== 'pen') || GCFG.mode === 'cat') return;
+  if (!V8.on || !p || !p.e || (p.e.pointerType !== 'mouse' && p.e.pointerType !== 'pen' && !(window.__wall && p.e.pointerType === 'touch')) || GCFG.mode === 'cat') return;
   if (v8Over(p)) return;
   let f1 = null; try { f1 = VIEW.flight; } catch (e) {}
   if ((f1 && (!f0 || f1.u < f0.u)) || v8Busy(p.sx, p.sy)) return; /* the click hit something: a dot, or a target that flew */
@@ -306,7 +309,7 @@ function v8Idle() {
   V8.idles++; V8.run++;
   const rp = { x: 0, y: 0, t: at, k: 2, i, o: null }; PT.ripples.push(rp);
   let y = P.y[i]; if (FL.pan) y = y * FL.ma + FL.mf;
-  rp.o = v8Note(y, Math.max(0, at - now) / 1000, 0.0316);
+  rp.o = v8Note(y, Math.max(0, at - now) / 1000, window.__wall ? 0.063 : 0.0316); /* wall: the room is louder than a desk, and the note rides the same bar line */
 }
 /* a V8 ring: k 1 the click's (ice, the interface colour, where it was), k 2 the idle one (violet, riding its dot); 0 to 60 px over 1.6 s */
 function v8Ring(rp, k) {
@@ -317,7 +320,8 @@ function v8Ring(rp, k) {
   if (rp.i >= 0) { x = P.x[rp.i]; y = P.y[rp.i]; if (FL.pan) { x = x * FL.ma + FL.me; y = y * FL.ma + FL.mf; } }
   const f = (1 - a) * (1 - a), e = 1 - f * (1 - a);
   og.strokeStyle = rp.k === 1 ? 'rgba(134,203,254,' + (0.75 * f).toFixed(3) + ')' : 'rgba(139,111,214,' + (0.8 * f).toFixed(3) + ')';
-  og.lineWidth = 1.5; og.beginPath(); og.arc(x, y, 1 + e * 59, 0, 6.283); og.stroke();
+  const s = window.__wall ? H / 900 : 1; /* wall: the ring keeps its share of the screen (60 px of 900), so it reads from across a room */
+  og.lineWidth = 1.5 * s; og.beginPath(); og.arc(x, y, 1 + e * 59 * s, 0, 6.283); og.stroke();
 }
 const og = over.getContext('2d');
 let W = 0, H = 0, PW = 0, PH = 0, DPR = 1, ODPR = 1, img = null, buf32 = null, FU8 = null;
@@ -456,7 +460,11 @@ function stageAtlas(home) {
     if (HID.on) { const x = 48; return { x, y: top, w: W - x - (ins.right > 0 ? ins.right : right), h }; }
     /* R13: a phone on its side (659 wide) kept a 165 px stage behind the 430 floor and every room panel piled into it; under 720 the
        stage starts 30 px past the card column (chrome.css: left 6vw, width 40vw - 70) instead */
-    const x = W < 720 ? Math.max(W * 0.4, W * 0.46 - 40) : Math.max(W * 0.4, 430);
+    /* wall at 1 px per pixel: the liner is 480 px wide, so 40% of a 3840 screen left a 976 px hole before the stage. the stage starts one gutter
+       past the liner's edge instead (the same x up to 1647 px wide). under the type fallback (wall.type.css, the same query) the liner is
+       wider, so the stage still keeps clear of it */
+    const lr = window.__wall && W > 1647 ? 80 + (W >= 1600 && H >= 1600 && W >= H * 1.15 ? Math.min(H * 0.52, W * 0.4 - 110) : 480) : 0;
+    const x = W < 720 ? Math.max(W * 0.4, W * 0.46 - 40) : Math.max(lr ? Math.min(W * 0.4, lr + W * 0.06) : W * 0.4, 430);
     let w = W - x - right;
     /* the ladder's column (ladder.js publishes insets.right in the landscape strip, 0 elsewhere): the stage ends where it
        begins, never narrower than 320px. D3 holds only while that column fits in the margin this stage already leaves
@@ -489,10 +497,15 @@ function steadyBottom(b) {
   return STEADY.b;
 }
 function resize() {
-  W = innerWidth; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, lowPower ? 1 : 1.5);
+  W = innerWidth; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, lowPower ? 1 : 1.5); ODPR = devicePixelRatio || 1;
+  /* wall pixel budget: frame cost tracks the field's backing pixels (about 1.2 ms a megapixel on a laptop GPU), and the whole RGBA buffer is
+     uploaded every frame. a screen over 3.5 MP of css area (4K, 5K) gets at most 4.1 MP of field, under Chromium's 16 MiB transfer buffer
+     (4.19 MP; a bigger upload goes in two synchronous chunks, about 1.6 ms a frame); a smaller one keeps up to 4.7 MP, which is what a 1920x1080
+     screen at 2x already is. the overlay gets one 4K frame (the floor to thousandths keeps 3840x2160 from rounding up to 3841) */
+  if (window.__wall) { DPR = Math.min(DPR, Math.sqrt((W * H > 3.5e6 ? 4.1e6 : 4.7e6) / (W * H))); ODPR = Math.min(ODPR, Math.floor(1000 * Math.sqrt(8.3e6 / (W * H))) / 1000); }
   PW = Math.round(W * DPR); PH = Math.round(H * DPR);
-  field.width = PW; field.height = PH; over.width = Math.round(W * (devicePixelRatio || 1)); over.height = Math.round(H * (devicePixelRatio || 1));
-  ODPR = devicePixelRatio || 1; og.setTransform(ODPR, 0, 0, ODPR, 0, 0);
+  field.width = PW; field.height = PH; over.width = Math.round(W * ODPR); over.height = Math.round(H * ODPR);
+  og.setTransform(ODPR, 0, 0, ODPR, 0, 0);
   img = new ImageData(PW, PH); buf32 = new Uint32Array(img.data.buffer); FU8 = new Uint8Array(img.data.buffer);
   if (ATLAS) { const q = ODPR / DPR; field.style.imageRendering = q >= 2 && Math.abs(q - Math.round(q)) < 1e-6 ? 'pixelated' : ''; } /* binary glyph masks stay crisp on a 3x phone */
   if (gg) { glow.width = Math.max(2, (PW / GDIV) | 0); glow.height = Math.max(2, (PH / GDIV) | 0); if (GT) { GT.width = Math.max(2, (glow.width / 4) | 0); GT.height = Math.max(2, (glow.height / 4) | 0); } }
@@ -543,9 +556,12 @@ if (ATLAS) new MutationObserver(() => {
 }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 /* the renderer's cell size follows the detail setting (§6.1): css width per tier, desktop and phone ladders */
 const CELLS = { desk: { ultra: 5, fine: 6, normal: 8, bold: 10 }, phone: { ultra: 6, fine: 7, normal: 9, bold: 11 } };
+/* wall over 3.5 MP of css area (4K, 5K): the glyph cell and the sky's marks scale with the screen, the desk's 1440x900 fitted inside it, so both passes
+   walk about the desk's cell count; at 6 px a 4K screen drew 5x that. 1 everywhere else */
+const wallK = () => (window.__wall && W * H > 3.5e6 ? Math.min(W / 1440, H / 900) : 1);
 function gfConfigure() {
   let d = 'fine'; try { d = ctx.settings.get('detail') || 'fine'; } catch (e) {}
-  const L = CELLS[lowPower ? 'phone' : 'desk'], cellCss = L[d] || L.fine;
+  const L = CELLS[lowPower ? 'phone' : 'desk'], cellCss = (L[d] || L.fine) * wallK();
   try { GF.configure({ W, H, PW, PH, DPR, lowPower, cellCss }); } catch (e) { console.warn('GF.configure', e); }
 }
 
@@ -564,7 +580,7 @@ if (SKY.on) {
 }
 function skyAtlas() {
   if (!SKY.on || typeof GAM.buildAtlas !== 'function' || !DPR) return;
-  const cw = Math.max(3, Math.round(SKY.css * DPR)), ch = Math.round(cw * 1.8), key = cw + 'x' + ch + ':' + SKY.gen;
+  const cw = Math.max(3, Math.round(SKY.css * wallK() * DPR)), ch = Math.round(cw * 1.8), key = cw + 'x' + ch + ':' + SKY.gen;
   if (key === SKY.key) return;
   try { const at = GAM.buildAtlas(cw, ch, { fallback: SKY.fb }), g = ['∙', '◦'].map((c) => at.chars.indexOf(c)); if (g.some((k) => k < 1)) return; SKY.at = at; SKY.g = g; SKY.key = key; } catch (e) { SKY.at = null; }
 }
@@ -979,12 +995,15 @@ const FLR = { on: ATLAS && !NOGLYPH && !reduced, ok: false, n: 0, S: FLR_S, MS: 
 for (let p = 0; p < 3; p++) { FLR.PK[2 * p] = flPack(PROV[p]); FLR.PK[2 * p + 1] = flPack(PROV_CHIP[p]); }
 for (let b = 0; b < 3; b++) FLR.CL[b] = flPack(PROV_CHIP[FLR_P[b]]);
 FLS.fl = FLR;
+FLS.fT = -1e9;
+/* R19 wall: an accepted onset also clears a whole-screen refractory of __wall.opts.flash ms (WCAG 2.3.1: three a second at 333); no wall or flash=0 holds nothing */
+function flHeld(t) { const w = window.__wall, g = w && w.on && w.opts ? +w.opts.flash : 0; if (!(g > 0)) return false; if (t - FLS.fT < g) return true; FLS.fT = t; return false; }
 function flOnset(t, b, d, thr) {
   const S = FLS;
   if (S.up[b]) { if (d < 0.8 * thr) S.up[b] = 0; return; }
   if (d <= thr) return;
   S.up[b] = 1;
-  if (t - S.oT[b] < 140) return;
+  if (t - S.oT[b] < 140 || flHeld(t)) return;
   S.oT[b] = t; S.onsets[b]++;
   if (FLR.ok) flQueue(t, b);
 }
@@ -1261,19 +1280,25 @@ ATL.gl = { get on() { return !!(FGL && FGL.ok && field === FGL.canvas); }, why: 
 ATL.fieldImage = () => (img ? { data: img.data, width: PW, height: PH } : null);
 
 /* ------------------------------------------------------------------ audio */
+/* R19 wall (exhibit.html?wall=1): wallboot.js makes window.__wall, and only then. every wall change in the audio hangs on WL, so without
+   it the graph, the levels and the chip are what they were. VOLDB is the installer's output trim (?vol=, dB) */
+const WL = window.__wall || null, WO = (WL && WL.opts) || {}, SFXG = WL ? 1.41 : 1, VOLDB = WL && isFinite(+WO.vol) ? Math.min(0, Math.max(-30, +WO.vol)) : 0;
 /* sound is ON only while the AudioContext is actually running (K5). unlock() may be called from any gesture, any number of
    times: it builds the graph once, asks the context to resume, and starts each deck's <audio> once inside a gesture (ios
    lets an element play outside a tap only after it has played inside one). a gesture without user activation (a touch
    pointerdown: activation comes with the touch's pointerup/touchend) leaves the context suspended, and the next gesture
    tries again; the beds start the moment the context reports running (settle) */
 const A = {
-  ac: null, gain: null, an: null, graph: null, route: null, els: [], srcs: [], g: [], cur: -1, want: null, on: false, muted: false, fft: null, primed: [false, false], away: false,
+  ac: null, gain: null, an: null, graph: null, route: null, els: [], srcs: [], g: [], cur: -1, want: null, on: false, muted: false, fft: null, primed: [false, false], away: false, out: null, doze: false, dozeT: 0,
   /* R10 the arbiter: one owner of the speakers. 'off' = the bed; 'armed' = a clip was asked for and its player is ready
      (the bed waits at -24 dB); 'hot' = the clip is playing or starting (the bed is silent, its decks pause, no interface
      tone sounds). post.js sets it; only post.js ends 'hot' (a paused report, a failure, the dock closing) */
   clipState: 'off', hotT: 0, keyHold: 0, keyT: 0,
   get ducked() { return this.clipState !== 'off'; },
   unlock() {
+    if (WL && WO.sound === 'off') { if (!this.muted) { this.muted = true; audioChanged(); } return; } /* R19 wall sound=off: no AudioContext, ever */
+    /* R20: ios (safari 16.4+) plays a page's sound past the silent switch only as 'playback'. the wall's ipad keeps its own setting */
+    if (!WL) try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch (e) {}
     if (this.ac) { this.resume(); this.prime(); this.settle(); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     this.ac = new AC(); this.resume(); this.gain = this.ac.createGain(); this.an = this.ac.createAnalyser();
@@ -1282,15 +1307,17 @@ const A = {
     /* everything leaves through one limiter. the analyser (the field's ears: bands(), FLS, the flares, the listen push, the bloom)
        hears the bed alone (R18 FIELD_TUNE): interface tones have their own bus, which ducks under a listening post too, and it goes
        round the analyser straight into the limiter, so a click's note, a hover, the chain's riff or a flight's whoosh never moves the field */
-    this.lim = this.ac.createDynamicsCompressor(); this.lim.threshold.value = -6; this.lim.knee.value = 4; this.lim.ratio.value = 12; this.lim.attack.value = 0.003; this.lim.release.value = 0.2;
-    this.sfx = this.ac.createGain(); this.sfx.gain.value = 1;
+    this.lim = this.ac.createDynamicsCompressor(); this.lim.threshold.value = -6; this.lim.knee.value = WL ? 0 : 4; this.lim.ratio.value = WL ? 20 : 12; this.lim.attack.value = WL ? 0.001 : 0.003; this.lim.release.value = WL ? 0.25 : 0.2;
+    this.sfx = this.ac.createGain(); this.sfx.gain.value = SFXG;
     /* R10: unpitched sound (the flight's whoosh) has its own bus: it is held under a clip but not through a change of key */
     this.nfx = this.ac.createGain(); this.nfx.gain.value = 1;
     this.gain.connect(this.lp); this.lp.connect(this.an); this.an.connect(this.lim); this.sfx.connect(this.lim); this.nfx.connect(this.lim); this.lim.connect(this.ac.destination);
     this.graph = { an: ['bed'], lim: ['an', 'sfx', 'nfx'] }; this.route = 'bed-only'; /* what feeds what (tests: __exhibit.atlas.fieldArt.graph, ctx.audio.route) */
+    /* R19 wall: the limiter leaves through a fixed -1 dB trim and the installer's vol. with the tighter limiter that puts the ceiling near -2.8 dBFS (the desk's is near -0.9) */
+    if (WL) { this.out = this.ac.createGain(); this.out.gain.value = 0.891 * Math.pow(10, VOLDB / 20); this.lim.disconnect(); this.lim.connect(this.out); this.out.connect(this.ac.destination); }
     this.ac.addEventListener('statechange', () => this.settle());
     for (let k = 0; k < 2; k++) {
-      const el = new Audio(); el.preload = 'auto'; el.loop = true;
+      const el = new Audio(); el.preload = 'auto'; el.loop = !ALB.on; el.addEventListener('ended', () => albNext(el));
       const src = this.ac.createMediaElementSource(el), g = this.ac.createGain(); g.gain.value = 0;
       src.connect(g); g.connect(this.gain); this.els.push(el); this.srcs.push(src); this.g.push(g);
     }
@@ -1327,6 +1354,8 @@ const A = {
     if (!this.gain) return;
     const hot = this.clipState === 'hot', t = this.ac.currentTime, gp = this.gain.gain, want = this.muted || hot ? 0 : this.clipState === 'armed' ? BED * DUCK : BED, v = gp.value;
     gp.cancelScheduledValues(t); gp.setValueAtTime(v, t);
+    /* R19 wall: dozed, the bed goes to a true zero over 3 s (dozeSet pauses the decks once it is there) */
+    if (WL && this.doze) { if (v > 1e-4) curve(gp, t + 0.01, 3, false); this.buses(); return; }
     /* R10: a clip owns the speakers outright: the bed goes to a true zero in 250 ms (-24 dB was still audible under a quiet
        clip), and back from zero it rises on the equal-power curve over 1.5 s */
     if (hot) gp.linearRampToValueAtTime(0, t + 0.25);
@@ -1340,9 +1369,25 @@ const A = {
      the incoming key would rub against the outgoing one); quiet under an armed clip. the noise bus only minds the clip */
   buses() {
     if (!this.sfx) return;
-    const t = this.ac.currentTime, hot = this.clipState === 'hot', hold = t < this.keyHold - 0.02;
-    this.sfx.gain.setTargetAtTime(this.muted || hot || hold ? 0 : this.clipState === 'armed' ? 0.2 : 1, t, hot || hold ? 0.03 : 0.1);
-    this.nfx.gain.setTargetAtTime(this.muted || hot ? 0 : 1, t, 0.05);
+    const t = this.ac.currentTime, hot = this.clipState === 'hot', hold = t < this.keyHold - 0.02, dz = WL && this.doze;
+    this.sfx.gain.setTargetAtTime(this.muted || hot || hold || dz ? 0 : this.clipState === 'armed' ? 0.2 * SFXG : SFXG, t, hot || hold ? 0.03 : 0.1);
+    this.nfx.gain.setTargetAtTime(this.muted || hot || dz ? 0 : 1, t, 0.05);
+  },
+  /* R19 wall, sound=touch: wallsound.js calls this once nobody has touched the screen for ?handsoff= seconds, and again on the next touch.
+     dozed: master to zero over 3 s, tone buses quiet, decks paused where they are; awake: the bed rises over 1.5 s from there (or the bed the
+     rooms asked for meanwhile starts). play, commit and rearm are held while dozed by wallsound.js */
+  dozeSet(on) {
+    on = !!on && !!WL; if (on === this.doze) return;
+    clearTimeout(this.dozeT); this.doze = on;
+    if (!this.ac || !this.gain) return;
+    if (on) {
+      /* the decks pause when the audio clock has passed the end of the fade, not 3.1 s of wall clock after it began: a loaded machine's audio runs behind, and the bed must not be cut mid-fade.
+         a context that is not running makes no sound, so nothing waits for it */
+      const end = this.ac.currentTime + 3.1, park = (n) => { if (!this.doze) return; if (this.ac.state === 'running' && this.ac.currentTime < end && n < 100) { this.dozeT = setTimeout(() => park(n + 1), 300); return; } this.els.forEach((e, k) => { if (!e.paused) { this.keep(k); e.pause(); } }); };
+      this.level(); this.dozeT = setTimeout(() => park(0), 3100); return;
+    }
+    this.wasHot = this.gain.gain.value <= 1e-4; this.level();
+    if (this.want && !(this.cur >= 0 && this.els[this.cur].dataset.t === this.want)) this.play(this.want, this.wantXf); else this.rearm();
   },
   holdKeys(sec) {
     if (!this.ac) return;
@@ -1368,6 +1413,7 @@ const A = {
   /* xf (make.js passes it: 0.6 same key, 0.9 near, 1.8 far) sets the kind of change; a room change passes none and the
      kind comes from the keys of the bed sounding now and the one asked for (bedRel) */
   play(track, xf) {
+    if (ALB.on && track && track !== ALB.f) albEnd(); /* R20: a bed asked for by name (the make wheel) ends the record's run */
     this.want = track; this.wantXf = xf; if (!this.on || !track) return;
     if (this.cur >= 0 && this.els[this.cur].dataset.t === track) return;
     const now = performance.now(), busy = now - this.reqT < 350 || this.coT; this.reqT = now;
@@ -1395,14 +1441,14 @@ const A = {
     if (this.clipState === 'hot') {
       if (old >= 0) { this.keep(old); const og = this.g[old].gain; og.cancelScheduledValues(t); og.setValueAtTime(0, t); this.els[old].pause(); }
       if (!kept) this.load(el, track); else el.pause();
-      g.cancelScheduledValues(t); g.setValueAtTime(1, t); el.dataset.t = track; this.cur = nx;
+      g.cancelScheduledValues(t); g.setValueAtTime(1, t); el.dataset.t = track; this.cur = nx; setChip();
       return T.total;
     }
     /* the deck being reused may still be sounding: swapping its src while audible is a click, so take it to silence
        first, no steeper than 0.0125 of full level per 10 ms */
     const hv = g.value, loud = !kept && hv > 0.001, out = loud ? Math.max(0.04, hv * 0.8) : 0;
     if (!kept) { g.cancelScheduledValues(t); g.setValueAtTime(loud ? hv : 0, t); if (loud) g.linearRampToValueAtTime(0, t + out); }
-    el.dataset.t = track; this.cur = nx;
+    el.dataset.t = track; this.cur = nx; setChip();
     /* far keys: the outgoing bed leaves now, over about a bar, and the new one waits through a beat of silence */
     if (rel === 'far' && old >= 0) { curve(this.g[old].gain, t + 0.01, T.out, false); this.park(old, this.gen[old], T.out * 1000 + 250); }
     const start = () => {
@@ -1449,6 +1495,8 @@ const A = {
     }, ms);
   },
   mute(m) { this.muted = m; this.level(); audioChanged(); },
+  /* R20: the one switch the chip, the m key, the tracklist and the settings knob use; unmuting also starts the sound */
+  setMuted(m) { m = !!m; if (m !== this.muted) this.mute(m); if (!m) this.unlock(); setChip(); },
   /* interface tones: D minor pentatonic, quiet, skipped when muted. step 0 = D4, five steps an octave.
      each tone is moved to the nearest one that is also in the key of the bed that is playing (see inKey below) */
   /* R18 V8: a room voice (the chain's sonic, the hover voice) counts as input: the field plays itself only once nothing has sounded for 20 s */
@@ -1621,6 +1669,7 @@ function shape(rel, from, to) {
    moved onto its own beat grid (bed_meta b0 + whole beats) so it enters on a beat */
 const LAST = {};
 function resumeAt(track) {
+  if (ALB.on && ALB.f === track) return 0; /* R20: the record's run plays a song from its start */
   const m = META && META[track + '.mp3'], L = LAST[track];
   let pos = L && performance.now() - L.at < 600000 && (!m || L.pos < m.dur - 8) ? L.pos : m && m.mixin > 0 && m.mixin < 12 ? m.mixin : 0;
   if (m && m.bpm > 0 && pos > 0) { const b = 60 / m.bpm, k = Math.round((pos - m.b0) / b); pos = Math.max(0, m.b0 + k * b); }
@@ -1699,7 +1748,166 @@ let goK = -1, goT = 0;
 let jumpTo = -1, jumpT = 0, jumpTimer = 0, lastScroll = 0;
 /* camelot keys of my tracks (exhibit/data/tracks.json): bedRel() reads them to choose how two beds change over */
 let KEYS = null;
+/* R20 THE NOW-PLAYING LINE. the chip (#mute) says what is sounding: my song (title, key, bpm, from exhibit/data/tracks.json)
+   or the artist a post is playing from spotify. a press on it while the sound plays opens the tracklist: any of the 22 songs
+   plays from there and the next follows when it ends, over every stop, until a bed is asked for by name (the make wheel) or
+   "let the rooms choose" gives the beds back to the stops. setChip() is the one writer of #mute (the coordinator's ask): every
+   site that changes the sound calls it and nothing else writes the chip, so a lane can move or rename the control freely */
+const ALB = { on: false, i: -1, f: '', list: [] }, TITLES = {};
+let chipClip = '', chipHint = '', chipPend = false, npDlg = null, npBack = null;
+function albPlay(i) {
+  const L = ALB.list; if (!L.length) return;
+  i = ((i % L.length) + L.length) % L.length;
+  ALB.on = true; ALB.i = i; ALB.f = L[i].f;
+  A.els.forEach((el) => { el.loop = false; });
+  if (chipClip) try { ctx.stopPosts(); } catch (e) {}
+  A.setMuted(false);
+  A.play(ALB.f, 0.9);
+  setChip();
+}
+function albNext(el) { if (ALB.on && A.cur >= 0 && A.els[A.cur] === el) albPlay(ALB.i + 1); }
+function albEnd() {
+  if (!ALB.on) return;
+  ALB.on = false; ALB.i = -1; ALB.f = '';
+  A.els.forEach((el) => { el.loop = true; });
+  setChip();
+}
+function toggleMute() { if (WL) return; /* R19 wall: ?sound= decides, not a visitor */ A.setMuted(!A.muted); }
+const npCopy = () => Object.assign({ title: 'the soundtrack', lead: 'the songs i made about this log. pick one and the next follows; the rooms stop choosing until you hand it back.',
+  rooms: 'let the rooms choose', mute: 'sound off', unmute: 'sound on', close: 'close', from: 'from Spotify', open: 'the tracklist', tapAnywhere: '♪ tap anywhere for sound', tapShort: 'tap for sound' },
+  (ATL.deps && ATL.deps.COPY && ATL.deps.COPY.np) || {});
+const CHIPCSS = 'html.atlas .atlas-topbar #mute.is-np{max-width:min(38ch,40vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:none}' +
+  'html.atlas #atlas-dock #mute.is-np{min-width:0;overflow:hidden}' +
+  'html.atlas #mute .np-w{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:normal}' +
+  '@media (max-width:759px){html.atlas #atlas-dock #mute.is-np{flex-grow:2}html.atlas #atlas-dock #mute.is-np::after{content:attr(data-np);content:attr(data-np)/"";align-self:stretch;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}}' +
+  '@media (min-width:760px){html.atlas #atlas-dock #mute.is-np::before{content:none}}' +
+  'html.atlas .atlas-topbar #mute.is-hint{max-width:min(38ch,40vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+  '@media (max-width:759px){html.atlas #atlas-dock #mute.is-hint{flex-grow:2;min-width:0;overflow:hidden}html.atlas #atlas-dock #mute.is-hint::before{content:none}html.atlas #atlas-dock #mute.is-hint::after{content:attr(data-hint);content:attr(data-hint)/"";margin-top:0;max-width:100%;min-width:0;max-height:2.5em;overflow:hidden;white-space:normal;line-height:1.25;text-align:center}}' +
+  '@media (max-width:759px){html.atlas #atlas-dock #mute.np-fit.np-fit{flex-grow:1}html.atlas #atlas-dock #mute.is-hint.np-fit::after{content:attr(data-hint-s);content:attr(data-hint-s)/"";font-size:10px;letter-spacing:0}}' +
+  'html.atlas #np-list .np-lead{margin:0 0 12px;color:var(--mute);font:400 12px/1.5 var(--mono)}' +
+  'html.atlas #np-list .np-ctl{display:flex;gap:8px;margin:0 0 10px}' +
+  'html.atlas #np-list .np-ctl button{flex:1 1 0;font:600 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ice);background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:3px;padding:10px 8px;min-height:44px;cursor:pointer}' +
+  'html.atlas #np-list .np-ctl button[hidden]{display:none}' +
+  'html.atlas #np-list .np-rows{list-style:none;margin:0;padding:0}' +
+  'html.atlas #np-list .np-rows button{display:grid;grid-template-columns:2.2em minmax(0,1fr) auto;gap:10px;align-items:baseline;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);color:var(--ink);font:500 13px/1.3 var(--mono);padding:11px 4px;min-height:44px;cursor:pointer}' +
+  'html.atlas #np-list .np-rows button:hover{background:rgba(255,255,255,.04)}' +
+  'html.atlas #np-list .np-rows .np-n,html.atlas #np-list .np-rows .np-k{color:var(--mute);font-size:11px;white-space:nowrap}' +
+  'html.atlas #np-list .np-rows button[aria-current="true"],html.atlas #np-list .np-rows button[aria-current="true"] .np-n{color:var(--ice)}' +
+  'html.atlas #np-list button:focus-visible{outline:2px solid var(--ice);outline-offset:2px}';
+{ const st = document.createElement('style'); st.id = 'np-css'; st.textContent = CHIPCSS; document.head.appendChild(st); }
+function bedLine(f) { return f && TITLES[f] ? TITLES[f] + (KEYS && KEYS[f] ? ' · ' + KEYS[f] : '') + (BPMS && BPMS[f] ? ' · ' + BPMS[f] + ' bpm' : '') : ''; }
+function setChip() {
+  const b = document.getElementById('mute'); if (!b) return;
+  /* a press in progress keeps the chip as it was (CHROME_MAP 3a: its width must not move under the pointer); freeAud says it */
+  if (audHold) { chipPend = true; return; }
+  chipPend = false;
+  const s = A.state();
+  let t, np = '';
+  if (s === 'on' || s === 'muted') chipHint = '';
+  if (WL) t = s === 'on' ? 'sound on' : s === 'muted' ? 'sound off' : '♪ tap for sound'; /* the wall says what it said before R20 */
+  else if (!ATLAS) t = A.muted ? 'sound off' : 'sound on';
+  else if (s === 'muted') t = 'sound off';
+  else if (s !== 'on') t = chipHint || '♪ tap for sound';
+  else {
+    np = chipClip ? chipClip + ' · ' + npCopy().from : bedLine(A.cur >= 0 && A.els[A.cur] ? A.els[A.cur].dataset.t : '');
+    t = np ? '♪ ' + np : 'sound on';
+  }
+  /* the now-playing words sit in a span: a measure that clips a text line by its holder's ancestors (r12_overlap) then
+     stops where the chip's ellipsis does, instead of reading the whole title as running off the screen */
+  const w = b.firstElementChild;
+  if (np) { if (!(w && w.className === 'np-w' && b.childNodes.length === 1 && w.textContent === t)) { const s = document.createElement('span'); s.className = 'np-w'; s.textContent = t; b.textContent = ''; b.appendChild(s); } }
+  else if (w || b.textContent !== t) b.textContent = t;
+  b.classList.toggle('is-np', !!np);
+  /* the phone dock shows its words through ::after (panels.css): the hint goes there whole, as the now-playing line does */
+  const hint = !np && chipHint && t === chipHint ? chipHint.replace(/^♪\s*/, '') : '';
+  b.classList.toggle('is-hint', !!hint);
+  if (hint) { b.dataset.hint = hint; b.dataset.hintS = npCopy().tapShort; } else { delete b.dataset.hint; delete b.dataset.hintS; }
+  fitChip(b);
+  /* the title: a crowded desk bar ellipsizes the line after a few words, a hover gives it back whole */
+  if (np) { b.dataset.np = np; b.title = t; b.setAttribute('aria-label', 'now playing: ' + np + '. ' + npCopy().open); b.setAttribute('aria-haspopup', 'dialog'); }
+  else { delete b.dataset.np; b.removeAttribute('title'); b.removeAttribute('aria-label'); b.removeAttribute('aria-haspopup'); }
+  b.setAttribute('aria-pressed', String(s === 'muted'));
+  if (npDlg) npSync();
+}
+/* the phone dock: the chip's long line (now playing, or the iphone's hint) widens it (flex-grow 2) only while the dock keeps
+   its height. a dock with more buttons (the plain record's six, 320 to 360 px wide) wraps their labels when squeezed, and a
+   taller dock relayouts the room (chrome.js writeInsets): there the chip keeps its share (np-fit) and the hint its short
+   words. both layouts are measured in one task, so no observer ever sees the taller one */
+function fitChip(b) {
+  b.classList.remove('np-fit');
+  const d = b.closest && b.closest('#atlas-dock');
+  if (!d || !(b.classList.contains('is-np') || b.classList.contains('is-hint'))) return;
+  const grown = d.getBoundingClientRect().height; b.classList.add('np-fit');
+  if (grown <= d.getBoundingClientRect().height + 0.5) b.classList.remove('np-fit');
+}
+addEventListener('resize', () => { const b = document.getElementById('mute'); if (b && !audHold) fitChip(b); });
+if (ATLAS && ATL.ready) ATL.ready.then(() => { const b = document.getElementById('mute'); if (b && !audHold) fitChip(b); });
+/* the post's voice: the chip names the artist while a post is the sound (sm:clip; a cue loaded out of sight is not) */
+addEventListener('sm:clip', (e) => {
+  const d = (e && e.detail) || {};
+  const c = d.state === 'playing' || d.state === 'armed' || d.state === 'cueing' ? String(d.artist || '') : '';
+  if (c !== chipClip) { chipClip = c; setChip(); }
+});
+function npSync() {
+  const d = npDlg; if (!d) return;
+  const C = npCopy(), cur = ALB.on ? ALB.f : A.cur >= 0 && A.els[A.cur] ? A.els[A.cur].dataset.t : '';
+  d.querySelectorAll('.np-rows button').forEach((b) => b.setAttribute('aria-current', String(!!cur && b.dataset.f === cur && !A.muted)));
+  const snd = d.querySelector('.np-snd'); snd.textContent = A.muted ? C.unmute : C.mute; snd.setAttribute('aria-pressed', String(A.muted));
+  d.querySelector('.np-rooms').hidden = !ALB.on;
+}
+function npBuild() {
+  const C = npCopy(), d = npDlg = document.createElement('dialog');
+  d.id = 'np-list'; d.className = 'atlas-panel'; d.setAttribute('aria-label', C.title);
+  d.innerHTML = '<div class="a-pn-head"><p class="a-pn-title"></p><button type="button" class="a-pn-close" data-close></button></div>' +
+    '<div class="a-pn-body" data-body><p class="np-lead"></p><div class="np-ctl"><button type="button" class="np-snd"></button><button type="button" class="np-rooms"></button></div><ol class="np-rows"></ol></div>';
+  d.querySelector('.a-pn-title').textContent = C.title;
+  d.querySelector('[data-close]').textContent = C.close;
+  d.querySelector('.np-lead').textContent = C.lead;
+  d.querySelector('.np-rooms').textContent = C.rooms;
+  const ol = d.querySelector('.np-rows');
+  ALB.list.forEach((t, i) => {
+    const li = document.createElement('li'), b = document.createElement('button');
+    b.type = 'button'; b.dataset.f = t.f;
+    [['np-n', String(i + 1).padStart(2, '0')], ['np-t', t.t || t.f], ['np-k', [t.k, +t.bpm ? +t.bpm + ' bpm' : ''].filter(Boolean).join(' · ')]].forEach(([c, x]) => { const s = document.createElement('span'); s.className = c; s.textContent = x; b.appendChild(s); });
+    b.addEventListener('click', () => albPlay(i));
+    li.appendChild(b); ol.appendChild(li);
+  });
+  d.querySelector('.np-snd').addEventListener('click', () => A.setMuted(!A.muted));
+  d.querySelector('.np-rooms').addEventListener('click', () => { albEnd(); const r = rooms[active]; if (r && r.mod && r.mod.track) A.play(r.mod.track); npSync(); });
+  d.querySelector('[data-close]').addEventListener('click', () => d.close());
+  d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+  /* a modal owns its keys (the panels' rule): arrows and space must not step the tour behind it; tab wraps at the two ends */
+  d.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key !== 'Tab' || e.ctrlKey || e.metaKey) return;
+    const s = [...d.querySelectorAll('button')].filter((x) => !x.hidden && x.getClientRects().length > 0); if (!s.length) return;
+    const a = document.activeElement, f = s[0], l = s[s.length - 1];
+    if (e.shiftKey ? (a === f || a === d) : a === l) { e.preventDefault(); try { (e.shiftKey ? l : f).focus(); } catch (x) {} }
+  });
+  d.addEventListener('close', () => { const b = npBack && npBack.isConnected ? npBack : document.getElementById('mute'); if (b && b.focus) try { b.focus({ preventScroll: true }); } catch (x) {} });
+  document.body.appendChild(d);
+}
+function npOpen() {
+  if (!ALB.list.length) { toggleMute(); return; } /* tracks.json never came: the chip is the plain switch it was */
+  if (!npDlg) npBuild();
+  npSync();
+  if (npDlg.open) return;
+  npBack = document.activeElement;
+  try { npDlg.showModal(); } catch (e) { npDlg.setAttribute('open', ''); }
+  const f = npDlg.querySelector('.np-rows [aria-current="true"]') || npDlg.querySelector('.np-snd');
+  if (f) try { f.focus(); } catch (e) {}
+}
+/* an iphone (webkit) starts no sound before a touch on this page: the chip says so for a few seconds, with no veil (R20
+   item 17). not a toast: its show and hide moved the caption card, and chrome.js relayouted the room under it */
+if (ATLAS && !WL && !ATL.kiosk) ATL.ready.then(() => setTimeout(() => {
+  let ios = false; try { ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); } catch (e) {}
+  if (!ios || A.muted || A.state() === 'on') return;
+  chipHint = npCopy().tapAnywhere; setChip();
+  setTimeout(() => { if (chipHint) { chipHint = ''; setChip(); } }, 4200);
+}, 600));
 const ctx = {
+  /* R19: the wall lanes hang their interfaces here (sound, out, reset, card: exhibit/atlas/wallmode.js); empty off the wall */
+  wall: {},
   /* a room that demonstrates itself has shown the visitor what to do: no idle hint after that */
   acted(id) { acted.add(id); clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on'); },
   reduced, coarse, particles: P, audio: A, stage, PAL, PROV, PROV_CHIP, FAM, famColor, hash, V,
@@ -2026,8 +2234,8 @@ async function activateRoom(i, via, instant) {
   if (ATLAS) { ATL.arrive = null; ATL.trip = null; trailCut(performance.now()); }
   if (ATLAS) atlasPreEnter();
   SKIN = r.mod && SKINS.indexOf(r.mod.skin) >= 0 ? r.mod.skin : null; /* the room's material (ART#7); enter() may still change it */
-  const bed0 = A.cur >= 0 ? A.els[A.cur].dataset.t : '', sameBed = !(r.mod && r.mod.track) || r.mod.track === bed0; /* DA P2-3: the line a settle waits on is the outgoing bed's; a stop that brings its own bed waits on none */
-  if (r.mod) { if (r.mod.track) A.play(r.mod.track); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
+  const bed0 = A.cur >= 0 ? A.els[A.cur].dataset.t : '', sameBed = ALB.on || !(r.mod && r.mod.track) || r.mod.track === bed0; /* DA P2-3: the line a settle waits on is the outgoing bed's; a stop that brings its own bed waits on none */
+  if (r.mod) { if (r.mod.track && !ALB.on) A.play(r.mod.track); if (r.mod.enter) try { r.mod.enter(ctx); } catch (e) { console.warn(e); } }
   layMark();
   if (ATLAS) MORPH.hk = trip && !!(prev.mod && prev.mod.hueTrip);
   if (trip) { const D = tripSec(); stopTrip(m0, via, performance.now(), D + (sameBed ? A.landOn(D, Math.min(1, D / 2)) : 0)); } /* R18 V3: the settle ends on the bed's bar line (none muted, in a clip, without a bed, or under a new bed) */
@@ -2099,7 +2307,7 @@ function stepWalk(d, via) {
   return ctx.go(w[q], { via });
 }
 
-ctx.data('tracks').then((d) => { KEYS = {}; BPMS = {}; (d.tracks || []).forEach((t) => { KEYS[t.f] = t.k; BPMS[t.f] = +t.bpm || 0; }); }).catch(() => {});
+ctx.data('tracks').then((d) => { KEYS = {}; BPMS = {}; (d.tracks || []).forEach((t) => { KEYS[t.f] = t.k; BPMS[t.f] = +t.bpm || 0; TITLES[t.f] = t.t || t.f; }); ALB.list = (d.tracks || []).filter((t) => t && t.f); setChip(); }).catch(() => {});
 
 /* a room is called what its placard calls it, numbered the way the page numbers it: the threshold is not a room */
 const BASE_TITLE = document.title;
@@ -2147,7 +2355,7 @@ addEventListener('keydown', (e) => {
   if (ATLAS) { atlasKey(e); return; }
   if (e.key === 'ArrowDown' || e.key === 'PageDown' || (e.key === ' ' && !e.target.closest('button,a,[role=button]'))) { e.preventDefault(); ctx.go(active + 1); }
   else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); ctx.go(active - 1); }
-  else if (e.key === 'm') { $('#mute').click(); }
+  else if (e.key === 'm') { toggleMute(); }
   else if (e.key === 'l') { toggleLabel(); }
   else if (e.key === 'Home') { e.preventDefault(); ctx.go(0); }
   else if (e.key === 'End') { e.preventDefault(); let k = rooms.length - 1; while (k > 0 && (rooms[k].el.hidden || rooms[k].el.dataset.side)) k--; ctx.go(k); } /* the end of the walk, not the side room */
@@ -2173,18 +2381,25 @@ function atlasKey(e) {
   else if (k === '+' || k === '=') { e.preventDefault(); try { VIEW.zoomBy(1.25); } catch (x) {} }
   else if (k === '-') { e.preventDefault(); try { VIEW.zoomBy(0.8); } catch (x) {} }
   else if (k === 'r' || k === 'Escape') { try { VIEW.home({}); } catch (x) {} }
-  else if (k === 'm') { $('#mute').click(); }
+  else if (k === 'm') { toggleMute(); }
   else if (k === 'l') { toggleLabel(); }
 }
 
 /* threshold */
 const enter = $('#enter'), enterQuiet = $('#enter-quiet'), muteBtn = $('#mute');
-function begin(sound) { if (ATLAS) return; /* the doors are hidden in atlas mode; the tour engine owns arrival (§2.1) */ document.body.classList.add('entered'); if (sound) { A.unlock(); } else { A.muted = true; muteBtn.setAttribute('aria-pressed', 'true'); muteBtn.textContent = 'sound off'; } ctx.go(1); }
+function begin(sound) { if (ATLAS) return; /* the doors are hidden in atlas mode; the tour engine owns arrival (§2.1) */ document.body.classList.add('entered'); if (sound) { A.unlock(); } else { A.muted = true; setChip(); } ctx.go(1); }
 enter.addEventListener('click', () => begin(true));
 enterQuiet.addEventListener('click', () => begin(false));
-muteBtn.addEventListener('click', () => { const m = !A.muted; A.mute(m); if (!m) A.unlock(); muteBtn.setAttribute('aria-pressed', String(m)); muteBtn.textContent = m ? 'sound off' : ATLAS && A.state() !== 'on' ? '♪ tap for sound' : 'sound on'; });
-/* atlas: the button says the state (K5), so it catches up when the context starts running a moment after the click */
-if (ATLAS) A.onChange((s) => { if (s === 'on') muteBtn.textContent = 'sound on'; });
+/* R20: muted, a press on the chip brings the sound back; before it has started, a press starts it; while it plays, a press opens
+   the tracklist (any song, or sound off). off the atlas it is the plain switch it always was */
+muteBtn.addEventListener('click', () => {
+  if (WL) return; /* R19 wall: ?sound= decides, not a visitor */
+  if (!ATLAS || A.muted) { toggleMute(); return; }
+  if (A.state() !== 'on') { A.setMuted(false); return; }
+  npOpen();
+});
+/* the chip says the state (K5), so it catches up when the context starts running a moment after the press */
+A.onChange(() => setChip());
 /* a hidden tab is suspended by the shell (A.away keeps that from reading as sound off); back in view it resumes, and if the
    browser will not resume without a gesture (ios), sound reads off again and the next tap arms it */
 document.addEventListener('visibilitychange', () => {
@@ -2208,8 +2423,8 @@ function renderLabel() {
   const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
   const box = $('.lb-body', labelDlg); box.textContent = '';
   box.appendChild(el('p', 'lb-k', L.kicker)); box.appendChild(el('h3', 'lb-t', L.title)); if (L.by) box.appendChild(el('p', 'lb-by', L.by));
-  const dl = el('dl', 'lb-rows'); L.rows.forEach(([k, v, o]) => { if (o && o.atlasOnly && !ATLAS) return; if (o && o.rollbackOnly && ATLAS) return; if (o && o.need && !tierHas(o.need)) return; dl.appendChild(el('dt', '', k)); dl.appendChild(el('dd', '', ATLAS && o && o.atlas ? o.atlas : v)); }); /* a third element carries the atlas-mode wording; ?atlas=0 reads the second */ box.appendChild(dl);
-  if (L.more) { const a = el('a', 'lb-more', L.more[1] + ' →'); a.href = L.more[0]; box.appendChild(a); }
+  const dl = el('dl', 'lb-rows'); L.rows.forEach(([k, v, o]) => { if (o && o.atlasOnly && !ATLAS) return; if (o && o.rollbackOnly && ATLAS) return; if (o && o.need && !tierHas(o.need)) return; dl.appendChild(el('dt', '', k)); dl.appendChild(el('dd', '', window.__wall && o && o.wall ? o.wall : ATLAS && o && o.atlas ? o.atlas : v)); }); /* a third element carries the atlas-mode wording; ?atlas=0 reads the second */ box.appendChild(dl);
+  if (L.more && !window.__wall) { const a = el('a', 'lb-more', L.more[1] + ' →'); a.href = L.more[0]; box.appendChild(a); }
 }
 /* a label row that describes a tier-B view (the day cursor, search over the whole roster) is shown only once that file has
    loaded (W54): the universe reports what it has (K4) */
@@ -2261,7 +2476,7 @@ if (labelBtn && labelDlg) {
 /* ------------------------------------------------------------------ idle hints: one line, only after a visitor has done nothing in a room for a while */
 const hintEl = $('#hint'); let hintT = 0, acted = new Set();
 /* R5: the atlas line says how to listen (and how to touch, on a coarse pointer); the rollback keeps HINTS */
-const hintOf = (id) => (ATLAS && ((coarse && HINTS_TOUCH[id]) || HINTS_ATLAS[id])) || HINTS[id];
+const hintOf = (id) => (ATLAS && (((coarse || window.__wall) && HINTS_TOUCH[id]) || HINTS_ATLAS[id])) || HINTS[id];
 function armHint() {
   clearTimeout(hintT); if (hintEl) hintEl.classList.remove('on');
   const id = rooms[Math.max(0, active)].id; if (!hintEl || !hintOf(id) || acted.has(id) || KIOSK) return;
@@ -2361,8 +2576,8 @@ const didAct = (e) => { if (active < 0 || !e.target.closest || !e.target.closest
 addEventListener('pointerdown', didAct, { passive: true }); addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ' || /^[tqn]$/i.test(e.key) || /^Arrow(Left|Right)$/.test(e.key)) didAct(e); });
 
 /* ------------------------------------------------------------------ kiosk: exhibit.html?kiosk=1 runs unattended. it walks the rooms, lets each one demonstrate itself, and starts over */
-const KIOSK = /[?&]kiosk=1\b/.test(location.search); let kioskT = 0, demoT = 0, lastTouch = 0;
-const HANDSOFF = 45000; /* nothing demonstrates itself until the screen has been left alone this long */
+const KIOSK = !!window.__wall || /[?&]kiosk=1\b/.test(location.search); let kioskT = 0, demoT = 0, lastTouch = 0;
+const HANDSOFF = window.__wall ? window.__wall.opts.handsoff * 1000 : 45000; /* nothing demonstrates itself until the screen has been left alone this long (a wall sets it: ?wall=1&handsoff=, seconds) */
 /* a demo is a sequence of timers. the moment a real hand arrives, stop the one that is running and do not start another */
 function stopDemo() {
   clearTimeout(demoT); demoT = 0; ctx.demoStopped = true;
@@ -2394,7 +2609,9 @@ const againBtn = $('#again'); if (againBtn) againBtn.addEventListener('click', (
 
 /* ------------------------------------------------------------------ signature: the title and the byline, quietly, in the corner of the stage,
    so the frames a visitor photographs carry them. drawn on the overlay canvas, which is aria-hidden, so no screen reader has to hear it twice. */
-const SIG = 'mostly the machine · astralcrest', SIGFONT = '500 10px "JetBrains Mono", ui-monospace, Menlo, monospace';
+const SIG = 'mostly the machine · astralcrest', SIGMONO = '"JetBrains Mono", ui-monospace, Menlo, monospace';
+/* wall: at least 1% of the screen's height (10 px is a desk size; a canvas font takes any object with a toString, so it follows the window) */
+const SIGFONT = window.__wall ? { toString: () => '500 ' + Math.max(10, Math.round(innerHeight * 0.0102)) + 'px ' + SIGMONO } : '500 10px ' + SIGMONO;
 const forcedColors = matchMedia('(forced-colors: active)'); /* the field keeps its own palette there, so the signature has to carry its own contrast */
 let sigOn = false, sigX = 0, sigY = 0, sigW = 0, sigT = -1e9;
 /* --atlas-foot (the band from the stage's foot to the viewport's) and --atlas-stage-top: exhibit.html grounds the bands
@@ -2569,66 +2786,11 @@ resize(); P.scatter();
 /* the side room (your own export) stays out of the walk: one quiet link in the finale opens it, or a direct #yours link */
 function openSide(id) { const k = rooms.findIndex((r) => r.id === id && r.el.dataset.side); if (k < 0) return false; rooms[k].el.hidden = false; goK = -1; requestAnimationFrame(() => ctx.go(k)); return true; }
 document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a) return; const id = a.getAttribute('href').slice(1); if (openSide(id)) { e.preventDefault(); return; } const k = rooms.findIndex((r) => r.id === id); if (k >= 0) { e.preventDefault(); goK = -1; ctx.go(k); } });
-/* R11 AUDIO2: "drop the needle" lands on a new page, and a new page may not start sound by itself (ios least of all: its
-   context waits for a gesture made here). so ?enter=sound puts up one veil, and its tap is that gesture: it unlocks the
-   audio and starts the tour in the same press. until then the tour waits parked (url.js reads ATL.veil), so the deck never
-   shows pause over silence. the tour starts once the context runs (1.5 s at most: a browser that refuses still gets its
-   tour). enter or space does the same, escape and the second button come in quietly */
-const VEILCSS = '#needle-veil{position:fixed;inset:0;z-index:95;background:radial-gradient(110% 80% at 50% 42%,rgba(10,1,24,.74),rgba(10,1,24,.95) 70%);transition:opacity .42s ease;-webkit-tap-highlight-color:transparent}' +
-  '#needle-veil.is-off{opacity:0;pointer-events:none}' +
-  '#needle-veil .nv-go{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0 16px 12vh;box-sizing:border-box;border:0;background:none;color:#f0eaff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(22px,4.5vh,40px);font:italic 400 clamp(25px,6.2vw,42px)/1.15 ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;letter-spacing:.005em;text-shadow:0 2px 18px rgba(10,1,24,.9)}' +
-  '#needle-veil .nv-go:focus{outline:none}#needle-veil .nv-go:focus-visible .nv-t{outline:1px solid rgba(240,234,255,.7);outline-offset:10px;border-radius:2px}' +
-  '#needle-veil .nv-rec{position:relative;width:min(46vw,30vh,210px);aspect-ratio:1/1}' +
-  '#needle-veil .nv-rec::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 50%,#0a0118 0 2.2%,#d8d2ea 2.6% 15%,#9b93b5 15.4% 16.2%,transparent 16.6%),radial-gradient(circle at 57% 40%,rgba(10,1,24,.55) 0 1.6%,transparent 2%),conic-gradient(from 200deg,rgba(255,255,255,0) 0 8%,rgba(255,255,255,.08) 12%,rgba(255,255,255,0) 18% 58%,rgba(255,255,255,.06) 62%,rgba(255,255,255,0) 68%),repeating-radial-gradient(circle at 50% 50%,#0c0716 0 1.5px,#1a1229 1.5px 3px);box-shadow:0 0 0 1px rgba(216,210,234,.16),0 26px 70px rgba(0,0,0,.65);animation:nv-spin 1.8s linear infinite}' +
-  '#needle-veil .nv-arm{position:absolute;right:-16%;top:-4%;width:2px;height:74%;margin-right:-1px;background:linear-gradient(#e9e3f7,#a59dbf);transform-origin:50% 7px;transform:rotate(4deg);transition:transform .42s cubic-bezier(.3,.7,.3,1)}' +
-  '#needle-veil .nv-arm::before{content:"";position:absolute;left:50%;top:0;width:14px;height:14px;margin-left:-7px;box-sizing:border-box;border-radius:50%;background:#1a1229;border:2px solid #d8d2ea}' +
-  '#needle-veil .nv-arm::after{content:"";position:absolute;left:50%;bottom:-3px;width:8px;height:15px;margin-left:-5px;border-radius:2px;background:#d8d2ea;transform:rotate(-14deg)}' +
-  '#needle-veil.is-off .nv-arm{transform:rotate(24deg)}' +
-  '#needle-veil .nv-q{position:absolute;left:50%;bottom:calc(max(20px,env(safe-area-inset-bottom)) + 7vh);transform:translateX(-50%);min-height:44px;padding:0 16px;border:1px solid rgba(216,210,234,.3);border-radius:3px;background:#0d0420;color:rgba(240,234,255,.84);font:500 13px/1 "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.05em;white-space:nowrap;cursor:pointer}' +
-  '#needle-veil .nv-q:focus-visible{outline:1px solid rgba(240,234,255,.8);outline-offset:3px}' +
-  '@keyframes nv-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){#needle-veil .nv-rec::before{animation:none}#needle-veil,#needle-veil .nv-arm{transition:none}}';
-function needleVeil() {
-  ATL.veil = true;
-  const css = document.createElement('style'); css.textContent = VEILCSS; document.head.appendChild(css);
-  const v = document.createElement('div'); v.id = 'needle-veil'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-modal', 'true'); v.setAttribute('aria-label', 'sound');
-  v.innerHTML = '<button type="button" class="nv-go"><span class="nv-rec" aria-hidden="true"><span class="nv-arm"></span></span><span class="nv-t">tap to drop the needle</span></button><button type="button" class="nv-q">or drop it quietly</button>';
-  document.body.appendChild(v);
-  const goB = v.querySelector('.nv-go'), qB = v.querySelector('.nv-q');
-  let done = false;
-  const roll = (t0) => {
-    const T = FAC.tour, dt = performance.now() - t0;
-    if ((A.ac && !A.on && !A.muted && dt < 1500) || (!atlasReady && dt < 20000)) { setTimeout(() => roll(t0), 40); return; }
-    if (T.active && T.active.id && !T.isPlaying()) T.resume();
-  };
-  const go = (quiet) => {
-    if (done) return; done = true;
-    if (quiet) { A.muted = true; muteBtn.setAttribute('aria-pressed', 'true'); muteBtn.textContent = 'sound off'; audioChanged(); } else A.unlock();
-    ATL.veil = false; v.classList.add('is-off'); removeEventListener('keydown', key, true);
-    setTimeout(() => { v.remove(); css.remove(); }, reduced ? 0 : 460);
-    roll(performance.now());
-  };
-  const key = (e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    e.stopImmediatePropagation();
-    if (e.key === 'Tab') { e.preventDefault(); (document.activeElement === goB ? qB : goB).focus(); }
-    else if (e.key === 'Escape') { e.preventDefault(); go(true); }
-    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(document.activeElement === qB); }
-  };
-  goB.addEventListener('click', () => go(false)); qB.addEventListener('click', () => go(true));
-  addEventListener('keydown', key, true);
-  try { goB.focus({ preventScroll: true }); } catch (e) {}
-  /* R18 (the coordinator's ask): the unlock is tried here, at boot, while a press carried over from the landing still counts
-     (chromium carries it across a same-origin hop), not seconds later when the chrome mounts; chrome.js veilTry still words
-     the ask for a browser that refuses it, and finds the veil already gone when this let it through */
-  try { A.unlock(); } catch (e) {}
-  const t0 = performance.now();
-  (function wait() { if (done) return; if (A.on && A.ac && A.ac.state === 'running') { go(false); return; } if (performance.now() - t0 < 4000) setTimeout(wait, 50); })();
-}
 let start;
 if (!ATLAS) {
   if (location.hash && rooms.some((r) => '#' + r.id === location.hash && r.el.dataset.side)) rooms.find((r) => '#' + r.id === location.hash).el.hidden = false;
   start = Math.max(0, rooms.findIndex((r) => '#' + r.id === location.hash));
-  if (start > 0) { document.body.classList.add('entered'); A.muted = true; muteBtn.setAttribute('aria-pressed', 'true'); muteBtn.textContent = 'sound off'; rooms[start].el.scrollIntoView(); }
+  if (start > 0) { document.body.classList.add('entered'); A.muted = true; setChip(); rooms[start].el.scrollIntoView(); }
 } else {
   /* atlas: `#<room>` (and `#<room>&a=…&c=…`) lands on that stop; `#tour=…` starts at the threshold and url.js routes it
      once it mounts. muting follows ?enter=quiet or the visitor only (§5): a deep link never lands muted */
@@ -2645,7 +2807,7 @@ if (!ATLAS) {
     const S = ((TOURSM.TOURS || []).find((t) => t.id === id) || {}).stops;
     if (S && n <= S.length) { let j = n - 1; while (j < S.length - 1 && S[j] && S[j].pending) j++; const q = S[j] ? rooms.findIndex((r) => r.id === S[j].room && !r.el.dataset.side && !r.el.hidden) : -1; if (q >= 0) start = q; }
   }
-  if (ATL.enter === 'quiet') { A.muted = true; muteBtn.setAttribute('aria-pressed', 'true'); muteBtn.textContent = 'sound off'; audioChanged(); }
+  if (ATL.enter === 'quiet') { A.muted = true; setChip(); audioChanged(); }
   /* W45: every kind of gesture arms, not only a press: a touch is given user activation on its pointerup / touchend, not its
      pointerdown, and a screen reader's activation arrives as a click. it keeps asking on every gesture until the context
      is running and the bed is playing (a first press that was refused is not the end of it); muted, it waits for the
@@ -2655,17 +2817,23 @@ if (!ATLAS) {
      so while a pointer is down the state is held where it was, and published once the press has finished (its click
      included). registered before `arm`, so the hold is in place when arming runs */
   const holdAud = () => { audHold = true; clearTimeout(audHoldT); audHoldT = setTimeout(freeAud, 1500); };
-  const freeAud = () => { clearTimeout(audHoldT); audHold = false; if (audPend) { audPend = false; audioChanged(); } };
+  const freeAud = () => { clearTimeout(audHoldT); audHold = false; if (audPend) { audPend = false; audioChanged(); } if (chipPend) setChip(); };
   addEventListener('pointerdown', (e) => { if (e.isTrusted) holdAud(); }, { capture: true, passive: true });
   ['pointerup', 'pointercancel'].forEach((t) => addEventListener(t, () => { if (audHold) setTimeout(freeAud, 0); }, { capture: true, passive: true }));
   const arm = (e) => {
     if (!e.isTrusted || A.muted) return;
     if (e.type === 'keydown' && (e.metaKey || e.ctrlKey || e.altKey || e.key === 'Escape')) return;
-    if (A.on && A.ac && A.ac.state === 'running' && (A.cur < 0 || !A.els[A.cur].paused)) return;
-    A.unlock();
+    if (!(A.on && A.ac && A.ac.state === 'running' && (A.cur < 0 || !A.els[A.cur].paused))) A.unlock();
+    /* R20: and the stop's cued post starts (post.js kick: after the sound is on; webkit rings spotify's ▶ instead) */
+    try { kick(e); } catch (x) {}
   };
   ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach((t) => addEventListener(t, arm, { capture: true, passive: true }));
-  if (ATL.enter === 'sound' && !ATL.kiosk && !A.on) needleVeil();
+  /* R20: ?enter=sound has no veil. a press carried over from the landing (chromium carries it across a same-origin hop)
+     starts the sound now; any other arrival waits for its first gesture (W45 above) while the chip says "♪ tap for sound" */
+  if (ATL.enter === 'sound' && !A.muted && !ATL.kiosk) { let act = false; try { act = !!(navigator.userActivation && navigator.userActivation.hasBeenActive); } catch (e) {} if (act) try { A.unlock(); } catch (e) {} }
+  /* R19 wall: sound=on tries the unlock now, as ?enter=sound does (it passes with the autoplay switch; a refusal leaves the context suspended and the first touch finishes it);
+     sound=off is the quiet state from the start. sound=touch waits for the first trusted pointerdown, which the kiosk block above already takes */
+  if (WL && WO.sound === 'on') { try { A.unlock(); } catch (e) {} } else if (WL && WO.sound === 'off') { A.muted = true; setChip(); audioChanged(); }
 }
 activate(start, ATLAS ? 'url' : undefined);
 requestAnimationFrame(loop);
@@ -2697,13 +2865,15 @@ const MODS = [
   ['search', (api) => { ctx.search = api; }],
   ['ladder', (api) => { ctx.ladder = api; }],
   ['photo', (api) => { ATL.photo = api; }],
+  /* R19: the wall's lanes, last of all and only under ?wall=1; a lane file that is missing or throws is skipped there */
+  ...(window.__wall ? [['wallmode', (api) => { ATL.wall = api; }]] : []),
 ];
 async function mountAtlas() {
   const [copyM, toursM, staticM] = await Promise.all([atlasImport('copy'), atlasImport('tours'), atlasImport('search-static')]);
   const COPY = copyM.COPY || copyM.default || {};
   if (COPY.stats && typeof COPY.stats === 'object') Object.assign(ctx.stats, COPY.stats);
   const deps = { COPY, TOURS: toursM.TOURS || [], LADDER: toursM.LADDER || { levels: [] }, DWELL: toursM.DWELL || { short: 0.45, normal: 1, long: 1.7 },
-    SEARCH_STATIC: staticM.SEARCH_STATIC || staticM.default || {}, GF, P, A, KIOSK, DEBUG, NODRIFT, NOGLYPH, lowPower, reduced, coarse, rooms, stage, relayout };
+    SEARCH_STATIC: staticM.SEARCH_STATIC || staticM.default || {}, GF, P, A, KIOSK, DEBUG, NODRIFT, NOGLYPH, lowPower, reduced, coarse, rooms, stage, relayout, WALL };
   ATL.deps = deps;
   const loadedP = Promise.all(MODS.map(([n]) => atlasImport(n)));
   /* R5 perf: the atlas sheets load media-swapped (exhibit.html <head>); the chrome waits for them, 3 s at most, so it never

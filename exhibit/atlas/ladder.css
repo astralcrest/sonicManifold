@@ -299,3 +299,5 @@ html.atlas .atlas-ladder-chip.al-chip-off{visibility:hidden;pointer-events:none}
 /* R8 DECK: the dial stands on the deck's right end (panels.css html.atlas-deck). ladder.js keeps the knob 150px over the
    rail's foot so the readout fits under it; over the deck, so its ground covers the deck's own words while it is open */
 html.atlas.atlas-deck .atlas-ladder{top:auto;bottom:6px;height:300px;z-index:7}
+/* R19 wall: the last rung (20x16, centered on its point) ran 5 px off the screen's foot; ten more px of rail clearance seats it 5 px inside */
+html.wallmode.atlas.atlas-deck .atlas-ladder{bottom:16px}

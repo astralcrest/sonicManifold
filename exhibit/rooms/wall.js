@@ -19,6 +19,10 @@
    region labels over the sorted piles; the pile percentages stay exact numbers on the overlay (D3). no idle drift here.
    at ?atlas=0 none of this runs: the pad keeps its own pointerdown, the window pointerup, and today's touch-action. */
 const GUESS_KEY = 'exhibit.wall.guess';
+/* R20 MOBILE: the guess is asked once. one made before the record counts (the url's ?guess=N, the landing's own copy under
+   LAND_KEY), and one passed over (?guess=skip, a press with the slider untouched, the answer shown first by the tour, a pile
+   link or the press) sets ASKED_KEY for the session, so stop 2 never asks once the answer is out */
+const ASKED_KEY = 'exhibit.wall.asked', LAND_KEY = 'sm.guess';
 const TICK_STEP = [8, 3, -2]; /* tapped A5, shuffled A4, served A3: octaves of the same note, so the count reads as one line at three heights */
 /* categorical glyph families by P.cat: 1..3 = P.prov + 1 once flooded. before the flood every dot is neutral, but not
    all through ONE cap (round 2, W(barcode)): glyphfield's picker always spends a cell's TOP tone on the last two marks
@@ -70,13 +74,22 @@ export default {
     const pad = document.createElement('div'); pad.style.cssText = 'position:absolute;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none'; pad.addEventListener('contextmenu', (e) => e.preventDefault()); root.appendChild(pad); this.pad = pad;
     const cue = document.createElement('button'); cue.type = 'button'; cue.className = 'cue'; cue.textContent = 'press and hold'; cue.style.touchAction = 'none'; cue.addEventListener('contextmenu', (e) => e.preventDefault()); root.appendChild(cue); this.cue = cue;
     /* the guess: read once, asked once. sessionStorage can throw in private windows, so every touch of it is guarded */
-    this.guess = null; try { const g = sessionStorage.getItem(GUESS_KEY); if (g != null && g !== '' && isFinite(+g)) this.guess = Math.max(0, Math.min(100, Math.round(+g))); } catch (e) {}
+    this.guess = null; this.asked = false;
+    /* R20 MOBILE: a guess from before the record (the url, the landing) counts; the kiosks (?kiosk=1, the wall) read only
+       what they read before, so one visitor's guess on a shared screen never greets the next */
+    { const num = (g) => (g != null && g !== '' && isFinite(+g) ? Math.max(0, Math.min(100, Math.round(+g))) : null);
+      const kio = document.documentElement.classList.contains('kiosk') || !!window.__wall;
+      let q = null; if (!kio) try { q = new URLSearchParams(location.search).get('guess'); } catch (e) {}
+      this.guess = num(q);
+      if (this.guess == null) try { this.guess = num(sessionStorage.getItem(GUESS_KEY)); } catch (e) {}
+      if (this.guess == null && !kio) try { this.guess = num(localStorage.getItem(LAND_KEY)); } catch (e) {}
+      if (q === 'skip') this.asked = true; else if (!kio) try { this.asked = sessionStorage.getItem(ASKED_KEY) === '1'; } catch (e) {} }
     this.kiosk = document.documentElement.classList.contains('kiosk');
     if (this.dim && !sec.querySelector('#wall-verdict')) {
       const v = document.createElement('p'); v.className = 'say dim'; v.id = 'wall-verdict'; v.hidden = true; v.setAttribute('aria-live', 'polite');
       this.dim.insertAdjacentElement('afterend', v); this.verdict = v;
     } else this.verdict = sec.querySelector('#wall-verdict');
-    if (!this.kiosk) this.buildGuess(root);
+    if (!this.kiosk) this.buildGuess(root, ctx);
     const down = (x, y) => { if (this.done) return this.reset(ctx); this.holding = true; if (this.r === 0) { this.cx = x; this.cy = y; this.commitGuess(); if (this.A) { this.reach(); this.syncAngle(ctx, 'flood'); } } cue.style.opacity = '0'; this.startSwell(ctx); };
     const up = () => { this.holding = false; this._lt = 0; this.viaCue = false; this.releaseSwell(ctx); if (!this.done && this.r > 0) { cue.textContent = 'keep holding'; cue.style.opacity = '.7'; } };
     this._down = down; this._up = up;
@@ -87,9 +100,9 @@ export default {
     this.live = live;
     /* atlas: the wall lives in world px under the camera, so every screen point is unapplied first (identity at home) */
     const toW = (x, y) => (this.A ? ctx.view.unapply(x, y) : [x, y]);
-    const onDown = (e) => { if (!live()) return; if (e.target.closest('a,button:not(.cue)')) return; if (this.A) this.viaCue = e.currentTarget === cue; const w = toW(e.clientX, e.clientY); down(w[0], w[1]); };
+    const onDown = (e) => { if (!live()) return; if (e.target.closest('a,button:not(.cue)')) return; if (window.__wall && this.holding && (this.hand || (this._pid != null && e.pointerId !== this._pid))) return; /* wall: a hold goes on for the hand that began it; a second finger is not a press */ if (this.A) this.viaCue = e.currentTarget === cue; if (window.__wall) this._pid = e.pointerId; const w = toW(e.clientX, e.clientY); down(w[0], w[1]); };
     /* atlas: the pad's release arrives through ctx.gesture (hold.end); the window listener is only the cue's way out */
-    const onUp = () => { if (this.A && !this.viaCue) return; if (this.holding || this.swellOn) up(); };
+    const onUp = (e) => { if (window.__wall && this._pid != null && e && e.pointerId !== this._pid) return; /* wall: only the finger that pressed ends the hold */ if (this.A && !this.viaCue) return; if (this.holding || this.swellOn) { this._pid = null; up(); } };
     if (!this.A) pad.addEventListener('pointerdown', onDown);
     cue.addEventListener('pointerdown', onDown);
     addEventListener('pointerup', onUp); addEventListener('pointercancel', onUp);
@@ -168,7 +181,7 @@ export default {
   },
   /* --- the guess. one quiet line under the cue, a range input in ice, the number printed live. sits in the room-body
      (viewport coordinates) so it can never push the wall text; placeGuess() puts it just under the cue --- */
-  buildGuess(root) {
+  buildGuess(root, ctx) {
     if (!document.getElementById('wall-guess-css')) {
       const st = document.createElement('style'); st.id = 'wall-guess-css';
       st.textContent = '.wg{position:absolute;transform:translateX(-50%);width:min(320px,calc(100vw - 32px));box-sizing:border-box;text-align:center;font:500 11.5px/1.45 var(--mono);letter-spacing:.02em;color:var(--mute);background:rgba(10,1,24,.86);border:1px solid var(--line);border-radius:12px;padding:10px 14px 6px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:opacity .35s ease}'
@@ -187,6 +200,14 @@ export default {
            press-and-hold pill gets a solid ground, since the woven glyph wall ran straight through its words */
         + 'html.atlas .wg input[type=range]{height:44px;margin:-8px 0}'
         + 'html.atlas section[data-room=wall] .cue{background:rgba(10,1,24,.94);border-color:rgba(134,203,254,.35)}'
+        /* R20 MOBILE (ROOT_CAUSES 5): the pill sits at the picture's centre, and its own pointerdown took both fingers of a
+           pinch as two presses. on a touch screen it is a label over the pad: a finger on it lands on the pad under it,
+           which holds the same way (ctx.gesture, 160 ms of stillness), and two fingers there pinch the camera. the keys
+           still reach it; not on the wall kiosk */
+        + '@media (pointer:coarse){html.atlas:not([data-wall]) section[data-room=wall] .cue{pointer-events:none}}'
+        /* R20 MOBILE (ROOT_CAUSES 4): the browser takes no pan on the strip (the slider already takes none), so a flick that
+           starts on its words reaches the page turn in buildGuess() */
+        + '@media (pointer:coarse){html.atlas .wg{touch-action:none}}'
         /* R1-a: on a phone the card itself was 11.4% of the chrome budget on top of PRESS AND HOLD (r2_M3 k1). the
            question is already read out by the caption (tours.js), so the label collapses to a11y-only text and the
            slider + its live "you say N" share one <=56px row with no card box at all -- data-keepout (JS) keeps a
@@ -201,18 +222,37 @@ export default {
     wg.addEventListener('contextmenu', (e) => e.preventDefault());
     const lab = document.createElement('label'); lab.htmlFor = 'wall-guess'; lab.className = 'ai-voice-p'; lab.textContent = 'before you press: of every 100 of my plays, how many do you think i chose myself?';
     const inp = document.createElement('input'); inp.type = 'range'; inp.id = 'wall-guess'; inp.min = '0'; inp.max = '100'; inp.step = '1'; inp.value = '50';
-    inp.setAttribute('aria-label', 'your guess: of every 100 of my plays, how many i chose myself'); inp.setAttribute('aria-valuetext', 'you say 50');
+    inp.setAttribute('aria-label', 'your guess: of every 100 of my plays, how many i chose myself'); inp.setAttribute('aria-valuetext', 'no guess yet');
     /* the number in print only: the slider's own aria-valuetext already says it, so this is not a live region (it used to be an <output>, role=status, and every arrow was read twice) */
-    const out = document.createElement('span'); out.className = 'wg-out'; out.id = 'wall-guess-out'; out.setAttribute('aria-hidden', 'true'); out.textContent = 'you say 50';
-    inp.addEventListener('input', () => { out.textContent = 'you say ' + inp.value; inp.setAttribute('aria-valuetext', 'you say ' + inp.value); });
+    /* R20 MOBILE: no number until the visitor moves it: the thumb's resting 50 is not their guess */
+    const out = document.createElement('span'); out.className = 'wg-out'; out.id = 'wall-guess-out'; out.setAttribute('aria-hidden', 'true'); out.textContent = 'slide to guess';
+    inp.addEventListener('input', () => { this.wgTouched = true; out.textContent = 'you say ' + inp.value; inp.setAttribute('aria-valuetext', 'you say ' + inp.value); });
     wg.append(lab, inp, out); root.appendChild(wg); this.wg = wg; this.wgIn = inp;
+    /* R20 MOBILE (ROOT_CAUSES 4): upright, the strip lies in the band under the dots, where a thumb starts its swipe. a flick up
+       or down that starts on it turns the page as one on the picture does (ctx.gesture's own test and turn), and gives back
+       whatever the slider took from that finger; a sideways slide still sets the guess */
+    const G = () => { const g = ctx && ctx.gesture; return g && typeof g.flickDir === 'function' && typeof g.turn === 'function' ? g : null; };
+    const ft = (e) => { const g = G(); return g && typeof g.flickT === 'function' ? g.flickT(e) : performance.now(); };
+    let fl = null;
+    wg.addEventListener('pointerdown', (e) => { fl = G() && (e.pointerType === 'touch' || e.pointerType === 'pen') ? { id: e.pointerId, p0: [ft(e), e.clientX, e.clientY], vs: [], v: inp.value, t: !!this.wgTouched, o: out.textContent, vt: inp.getAttribute('aria-valuetext') } : null; });
+    wg.addEventListener('pointermove', (e) => { if (fl && e.pointerId === fl.id) { fl.vs.push([ft(e), e.clientX, e.clientY]); if (fl.vs.length > 16) fl.vs.shift(); } }, { passive: true });
+    wg.addEventListener('pointercancel', (e) => { if (fl && e.pointerId === fl.id) fl = null; });
+    wg.addEventListener('pointerup', (e) => {
+      const f = fl, g = G(); fl = null; if (!f || !g || e.pointerId !== f.id) return;
+      const dir = g.flickDir(f.p0, f.vs.concat([[ft(e), e.clientX, e.clientY]]));
+      if (!dir) return;
+      inp.value = f.v; this.wgTouched = f.t; out.textContent = f.o; inp.setAttribute('aria-valuetext', f.vt);
+      g.turn(dir, { on: 'guess' });
+    });
   },
   commitGuess() {
     if (!this.wg || this.wg.hidden || this.guess != null) return;
+    if (!this.wgTouched) { this.wg.hidden = true; this.passGuess(); return; } /* R20 MOBILE: a press with the slider untouched passes */
     const g = Math.max(0, Math.min(100, Math.round(+this.wgIn.value) || 0)); this.guess = g;
-    try { sessionStorage.setItem(GUESS_KEY, String(g)); } catch (e) {}
+    try { sessionStorage.setItem(GUESS_KEY, String(g)); localStorage.setItem(LAND_KEY, String(g)); } catch (e) {}
     this.wg.hidden = true;
   },
+  passGuess() { if (this.asked || this.guess != null) return; this.asked = true; if (!this.kiosk) try { sessionStorage.setItem(ASKED_KEY, '1'); } catch (e) {} },
   /* R1-c (beauty P2-10): on a wide screen the grid fills only part of the stage's height (it is square-ish, the
      stage is not), so centring the card in the STAGE sat it and the hold pill on the slab's own lower middle,
      with the empty part of the stage wasted below. both now stand in that empty part instead, stacked under the
@@ -237,6 +277,12 @@ export default {
       return;
     }
     const s = ctx.stage(); this.wg.style.left = (s.x + s.w / 2) + 'px';
+    /* R20 MOBILE (ROOT_CAUSES 5b): when the band under the dots holds it (an upright phone), the strip stands there and not
+       across the middle of the picture, so a pinch, a pan or a flick that starts on the picture is the picture's */
+    if (this.A && this.rows > 0 && this.cell > 0) {
+      const gB = Math.round(this.oy + this.rows * this.cell), h0 = this.wg.offsetHeight || 44, room = s.y + s.h - gB;
+      if (h0 <= 56 && room >= h0 + 4) { this.wg.style.top = Math.round(gB + (room - h0) / 2) + 'px'; return; }
+    }
     let t = Math.round(s.y + s.h / 2 + 30);
     /* the panel is ~110px tall and grows as the label wraps; on a short phone half-the-stage-plus-30 put its
        bottom edge on the kicker. keep it inside the stage. offsetHeight is 0 while it is hidden, and copy()
@@ -252,7 +298,7 @@ export default {
     const b = this.belowSlab(ctx); if (b) this.cue.style.top = Math.round(b.slabB + 14 + (this.cue.offsetHeight || 44) / 2) + 'px';
   },
   /* shown only while the wall is still white and untouched, and only until a guess exists */
-  syncGuess() { if (this.wg) this.wg.hidden = !(this.guess == null && !this.done && this.r === 0); },
+  syncGuess() { if (this.wg) this.wg.hidden = !(this.guess == null && !this.asked && !this.done && this.r === 0); },
   verdictText() {
     const g = this.guess; if (g == null) return '';
     const T = this.pctVals && this.pctVals[0] != null ? this.pctVals[0] : 19, d = g - T;
@@ -305,6 +351,7 @@ export default {
   },
   copy() {
     const st = this.done ? 2 : this.r > 0 ? 1 : 0;
+    if (st && this.guess == null) this.passGuess(); /* R20 MOBILE: the colours are out, so the question is spent */
     /* write only on a real change: #wall-say and #wall-verdict are live, and a same-text rewrite (every enter()) is read out again */
     const put = (el, s) => { if (el.textContent !== s) el.textContent = s; };
     put(this.say, st === 0 ? 'this is what a streaming log says my taste is: one dot for every play, all of them the same color.'
@@ -381,7 +428,7 @@ export default {
   frame(g, t, bands, w, h, ctx) {
     if (!this.ready) return;
     const k = this.A ? 1 / (ctx.view.z || 1) : 1;
-    if (this.A) { ctx0.debug = !!ctx.atlas.debug; this.prec.length = 0; if (this.riso) return; if (this.pour) { this.pour.frame(g, t, k); return this.handDraw(ctx, g, k); } this.drawMargin(g, k, ctx); if (this.press) this.drawPress(g, k); }
+    if (this.A) { ctx0.debug = !!ctx.atlas.debug; this.prec.length = 0; this.numHud(ctx, t); if (this.riso) return; if (this.pour) { this.pour.frame(g, t, k); return this.handDraw(ctx, g, k); } this.drawMargin(g, k, ctx); if (this.press) this.drawPress(g, k); }
     if (this.holding && !this.done) {
       const dt = this._lt ? Math.min(64, t - this._lt) : 16.7; this._lt = t;
       this.r += 0.9 * dt; /* px per second from the frame timestamp, not per frame, so 120 Hz doesn't double the speed */
@@ -430,10 +477,10 @@ export default {
      below runs at ?atlas=0: every entry point is reached only through `this.A` or through the atlas-only room contract. */
   angles: [{ id: 'unsorted', name: 'unsorted' }, { id: 'flood', name: 'flood' }, { id: 'sorted', name: 'sorted' }, { id: 'pour', name: 'pour' }, { id: 'press', name: 'the press' }],
   /* R5 R3: the pour angle lives in the lazy wall.pour.js, which owns this.pour while it runs */
-  pourIn(ctx, o) { import('./wall.pour.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx, o)).catch((e) => console.warn('pour', e)); return o.instant || ctx.reduced || o.via !== 'tour' ? 0 : 4600; },
+  pourIn(ctx, o) { this.passGuess(); import('./wall.pour.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx, o)).catch((e) => console.warn('pour', e)); return o.instant || ctx.reduced || o.via !== 'tour' ? 0 : 4600; },
   unpour(ctx, re) { if (this.tally) this.tally.stop(); if (this.pour) this.pour.stop(re); },
   /* R11 PRESS: the press angle (a two-ink print of the whole log) lives in the lazy wall.press.js, which owns this.riso while it is up */
-  pressIn(ctx, o) { import('./wall.press.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx, o)).catch((e) => console.warn('press', e)); return o.instant || ctx.reduced || o.via !== 'tour' ? 0 : 2400; },
+  pressIn(ctx, o) { this.passGuess(); import('./wall.press.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx, o)).catch((e) => console.warn('press', e)); return o.instant || ctx.reduced || o.via !== 'tour' ? 0 : 2400; },
   unpress() { if (this.riso) this.riso.stop(); },
   /* R6 ME: once the pour has landed, the lazy wall.hand.js lifts the song i pressed play on most by hand out of the mint jar */
   handDraw(ctx, g, k) { if (this.tally) return this.tally.draw(g, k); if (this._handP || this.pour.st().ph < 2) return; this._handP = import('./wall.hand.js' + new URL(import.meta.url).search).then((m) => m.default(this, ctx)).catch((e) => console.warn('hand', e)); },
@@ -464,6 +511,7 @@ export default {
           const pr = this.press; this.press = null;
           if (!ok(p)) return;
           if (this.done) { this.reset(ctx); return; }
+          if (window.__wall && this.holding && !this.hand) return; /* wall: the cue is held already */
           this.hand = true; this.viaCue = false; this._floodT = performance.now();
           this._down(pr ? pr.wx : p.wx, pr ? pr.wy : p.wy);
         },
@@ -609,6 +657,23 @@ export default {
     return false;
   },
 
+  /* R20 MOBILE (ROOT_CAUSES 20): the pile and jar counts are canvas text and the pile names live in the label layer, so the
+     colour key's step-off (chrome.js ksStep walks this room's own elements) never saw them and the key settled on them.
+     upright, an empty box over them, a "hud" by its class (aria-hidden, no pointer, never a keepout, so the names stay put),
+     is one more thing it steps above. not on the wall kiosk */
+  numHud(ctx, t) {
+    if (t - (this._nhT || 0) < 160) return; this._nhT = t;
+    let el = this.numhud, l = 1e9, tp = 1e9, r = -1e9, b = -1e9;
+    const add = (x0, y0, x1, y1) => { l = Math.min(l, x0); tp = Math.min(tp, y0); r = Math.max(r, x1); b = Math.max(b, y1); };
+    if (!window.__wall && !this.riso && (this.sorted || this.pour) && !(innerWidth > innerHeight * 1.15)) {
+      if (this.sorted && !this.pour && this.pileX && this.pileY >= 0) for (const x of this.pileX) { const a = ctx.view.apply(x, this.pileY); add(a[0] - 16, a[1] - 3, a[0] + 16, a[1] + 14); }
+      document.querySelectorAll('#atlas-labels .lab').forEach((e) => { const q = e.getBoundingClientRect(); if (q.width && q.bottom > 0 && q.top < innerHeight && getComputedStyle(e).visibility !== 'hidden') add(q.left, q.top - 12, q.right, q.bottom); });
+    }
+    if (!(r > l)) { if (el && !el.hidden) el.hidden = true; return; }
+    if (!el) { el = this.numhud = document.createElement('div'); el.className = 'wall-numhud'; el.setAttribute('aria-hidden', 'true'); el.style.cssText = 'position:absolute;pointer-events:none'; this.root.appendChild(el); }
+    const k = [l, tp, r - l, b - tp].map(Math.round).join(',');
+    if (el.hidden || el.dataset.k !== k) { el.hidden = false; el.dataset.k = k; const s = el.style; s.left = Math.round(l) + 'px'; s.top = Math.round(tp) + 'px'; s.width = Math.round(r - l) + 'px'; s.height = Math.round(b - tp) + 'px'; }
+  },
   /* the numbers this room prints on the overlay, in world px (atlas_precision) */
   precision() { return this.prec ? this.prec.slice() : []; },
   keepout() {

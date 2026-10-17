@@ -162,6 +162,17 @@ const CARD_FILE = 'who-pressed-play.png';
 const NEUTRAL = 'a split is neither good nor bad: it is only who pressed play.';
 const TOP3 = 'add my top 3 artists to the card';
 
+/* R19 the wall (exhibit.html?wall=1): the room runs on demo data and takes no file, no drop and no link out; a code carries the
+   real thing to the visitor's own phone. the privacy line is TS#18; the tour caption for this stop (TS#19) is patched in
+   atlas/wallout.js */
+const ONWALL = () => !!(window.__wall && window.__wall.on);
+const WALL_PRIVACY = 'on this wall the room runs on demo data. nothing of yours is read here.';
+const WALL_ASK = 'scan the code to run yours on your phone, or try the demo.';
+const WALL_NOTBI = 'this is not a bridge index. that one needs the jumps between artists and a map to score them against.';
+const WALL_AGAIN = 'start over';
+const WALL_QR = 'scan to run yours on your own phone';
+const WALL_URL = 'https://astralcrest.github.io/sonicManifold/exhibit.html#yours';
+
 const ERRS = {
   notjson: (n) => 'i could not read ' + n + ' as json. the files you want are the ones named streaming_history_audio_*.json.',
   notarray: (n) => n + ' is json, but it is not a list of plays. try one of the streaming_history_audio_*.json files.',
@@ -270,7 +281,10 @@ section[data-room=yours] .y-short{font:400 11px/1.4 var(--mono);color:var(--mute
 section[data-room=yours] .y-open{margin:0;padding:6px 0;border:0;background:none;color:var(--ice);font:500 11px/1.4 var(--mono);text-decoration:underline;text-underline-offset:3px;cursor:pointer;white-space:nowrap}
 section[data-room=yours] .y-open:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 /* R1-e: the folded button sat 40x23 on touch. min-height on the flex item (its row centres it, nothing else moves) */
-@media (pointer:coarse){section[data-room=yours] .y-open{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}}`;
+@media (pointer:coarse){section[data-room=yours] .y-open{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}}
+html.wallmode section[data-room=yours] .y-pn.wallq{padding-right:calc(var(--yqr,0px) + 22px);min-height:var(--yqr,0px)}
+html.wallmode section[data-room=yours] .y-qr{position:absolute;top:0;right:0;line-height:0;border-radius:6px;overflow:hidden;forced-color-adjust:none}
+html.wallmode section[data-room=yours] .y-qr svg{display:block}`;
 
 /* ------------------------------------------------------------------ the room */
 
@@ -286,8 +300,9 @@ export default {
     const Q = { pn: '.y-pn', intro: '.y-intro', ask: '.y-ask', pick: '.y-pick', dem: '.y-demo', wait: '.y-wait', live: '.y-live', errEl: '.y-err', res: '.y-res', tag: '.y-tag', them: '.y-them', mineEl: '.y-mine', say: '.y-say', more: '.y-more', fine: '.y-fine', ruleEl: '.y-rule', notEl: '.y-not', again: '.y-again', probe: '.y-probe', cardEl: '.y-card', topc: '.y-topc', priv: '.y-priv', file: '.y-file', shortEl: '.y-short', opn: '.y-open' };
     for (const k in Q) this[k] = root.querySelector(Q[k]);
 
-    this.ask.textContent = ASK; this.pick.textContent = 'choose files'; this.dem.textContent = 'use demo data';
-    this.wait.textContent = WAIT; this.priv.textContent = PRIVACY; this.notEl.textContent = NOTBI;
+    this.WALL = ONWALL();
+    this.ask.textContent = this.WALL ? WALL_ASK : ASK; this.pick.textContent = 'choose files'; this.dem.textContent = 'use demo data';
+    this.wait.textContent = WAIT; this.priv.textContent = this.WALL ? WALL_PRIVACY : PRIVACY; this.notEl.textContent = this.WALL ? WALL_NOTBI : NOTBI;
     this.probe.textContent = PROBE + ' →';
     this.topc.nextElementSibling.textContent = TOP3;
     this.shortEl.textContent = SHORT; this.foldOpen(false);
@@ -297,18 +312,20 @@ export default {
     this.pick.addEventListener('click', () => { this.file.value = ''; this.file.click(); });
     this.file.addEventListener('change', () => { if (this.file.files && this.file.files.length) this.read(this.file.files); });
     this.dem.addEventListener('click', () => this.runDemo());
-    this.again.addEventListener('click', () => { this.reset(); this.pick.focus(); });
+    this.again.addEventListener('click', () => { this.reset(); (this.WALL ? this.dem : this.pick).focus(); });
+    if (this.WALL) this.wallize(ctx);
     this.more.addEventListener('click', () => this.fineOpen(this.fine.hidden, true));
 
     /* the whole room is the drop target, not just the panel */
     const sec = root.closest('section') || root;
     let over = 0;
     const stop = (e) => { e.preventDefault(); e.stopPropagation(); };
-    sec.addEventListener('dragenter', (e) => { stop(e); over++; this.pn.classList.add('drag'); });
-    sec.addEventListener('dragover', (e) => { stop(e); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; });
+    sec.addEventListener('dragenter', (e) => { stop(e); over++; if (!this.WALL) this.pn.classList.add('drag'); });
+    sec.addEventListener('dragover', (e) => { stop(e); if (e.dataTransfer) e.dataTransfer.dropEffect = this.WALL ? 'none' : 'copy'; });
     sec.addEventListener('dragleave', (e) => { stop(e); if (--over <= 0) { over = 0; this.pn.classList.remove('drag'); } });
     sec.addEventListener('drop', (e) => {
       stop(e); over = 0; this.pn.classList.remove('drag');
+      if (this.WALL) return;
       const f = e.dataTransfer && e.dataTransfer.files;
       if (f && f.length) this.read(f);
     });
@@ -319,11 +336,12 @@ export default {
     if (this.A) {
       const on = () => sec.classList.contains('is-active');
       const files = (e) => !!(e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0);
-      document.addEventListener('dragover', (e) => { if (!on() || !files(e)) return; e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; this.pn.classList.add('drag'); });
+      document.addEventListener('dragover', (e) => { if (!on() || !files(e)) return; e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = this.WALL ? 'none' : 'copy'; if (!this.WALL) this.pn.classList.add('drag'); });
       document.addEventListener('dragleave', (e) => { if (on() && !e.relatedTarget) this.pn.classList.remove('drag'); });
       document.addEventListener('drop', (e) => {
         if (!on() || !files(e)) return;
         e.preventDefault(); this.pn.classList.remove('drag');
+        if (this.WALL) return;
         const f = e.dataTransfer.files; if (f && f.length) this.read(f);
       });
     }
@@ -360,6 +378,7 @@ export default {
      visitor's file exists in the tab there is nothing left to go and get. it is why the network log during a
      parse is empty, which is the promise this room makes. */
   warm() {
+    if (this.WALL) return;
     if (!this.cardP) this.cardP = import('../atlas/card.js' + ((this.ctx && this.ctx.V) || '')).catch(() => null);
     if (this.worker || this.noWorker) return;
     try { this.worker = new Worker(new URL('./yours.worker.js', import.meta.url), { type: 'module' }); }
@@ -384,7 +403,7 @@ export default {
   },
 
   read(files) {
-    if (this.state === 'busy') return;
+    if (this.WALL || this.state === 'busy') return;
     this.demo = false;
     this.busy(true);
     this.errEl.textContent = '';
@@ -486,6 +505,7 @@ export default {
   /* the share card (exhibit/atlas/card.js, fetched while the room idles): the two triples, the stricter reading in small
      type, the pseudonym and the url. no file name, no dates, no artists unless the visitor ticks the box; nothing sent */
   setCard() {
+    if (this.WALL) return;
     const t = this.theirs; if (!t) return;
     if (!this.cardP) this.warm();
     this.cardP.then((C) => {
@@ -534,6 +554,25 @@ export default {
 
   portraitStack(s) { return innerWidth <= innerHeight * 1.15 && s.w < 560; },
 
+  /* R19 the wall: demo only. no picker, no file input, no probe link, no card bar; a code to run it on a phone stands in the
+     panel's top right corner, a third of the stage's short side at most, whole pixels per module */
+  wallize(ctx) {
+    [this.pick, this.file, this.probe, this.wait, this.cardEl].forEach((n) => { if (n && n.parentNode) n.parentNode.removeChild(n); });
+    this.pn.classList.add('wallq');
+    this.qrBox = document.createElement('div'); this.qrBox.className = 'y-qr'; this.pn.appendChild(this.qrBox);
+    this.again.textContent = WALL_AGAIN;
+    import('../atlas/qr.js' + ((ctx && ctx.V) || '')).then((M) => { this.QRM = M; if (this.ready) this.repaint(); else if (this.s) this.wallQr(this.s); }).catch(() => {});
+  },
+  wallQr(s) {
+    const M = this.QRM, box = this.qrBox; if (!M || !box) return;
+    const q = this.qrEnc || (this.qrEnc = M.encode(WALL_URL)), n = q.size + 8;
+    const m = Math.max(3, Math.min(10, Math.round(Math.min(s.h * 0.34, s.w * 0.34) / n)));
+    if (m === this.qrM) return;
+    this.qrM = m;
+    const svg = M.toSvg(q, { module: m, label: WALL_QR }); svg.setAttribute('data-qr-url', WALL_URL);
+    box.replaceChildren(svg); this.pn.style.setProperty('--yqr', n * m + 'px');
+  },
+
   /* two strings get shorter when the stage is short, so the result and its controls stay on one screen */
   retext() {
     const sq = this.pn.classList.contains('squeeze') || this.pn.classList.contains('compact');
@@ -544,6 +583,7 @@ export default {
   /* the panel sits at the top of the stage and the walls stand under it */
   layout(ctx) {
     const s = ctx.stage(); this.s = s;
+    if (this.WALL) this.wallQr(s);
     this.pn.classList.toggle('squeeze', s.h < 380);
     /* atlas, an upright phone: the panel folds to the ask, its two buttons and one line (css .compact), and the walls
        stand side by side on one baseline under it: the yours box beside mine, never stacked under it */

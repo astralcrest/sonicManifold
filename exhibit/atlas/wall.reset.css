@@ -1,0 +1,42 @@
+/* R19 RESET: drift and dim, the calm control, the docent's corner ring, the resting slate. every rule keys on html.wallmode (never html.wall).
+   wallreset.js sets the variables and attributes below. the cover and the slate carry their own inline styles, so they work without this sheet */
+
+/* statics (the stop bar, the caption band, the stepper, the ladder, the bottom bar, the calm control, anything marked .wall-static) drift
+   in a 3 px circle and dim after 30 s without a touch (burn-in). only leaf elements: a filter or translate on an ancestor would become the
+   containing block of its position:fixed children. translate composes with an element's own transform */
+html.wallmode[data-wall-drift="on"] :is(#ai-stop, #ai-liner, #ai-go, #atlas-onboard, .atlas-ladder, .atlas-ladder-chip, #top > nav.atlas-topbar, #wall-calm, .wall-static) {
+  translate: var(--wall-dx, 0px) var(--wall-dy, 0px);
+}
+html.wallmode.wall-dim[data-wall-drift="on"] :is(#ai-stop, #ai-liner, #ai-go, #atlas-onboard, .atlas-ladder, .atlas-ladder-chip, #top > nav.atlas-topbar, #wall-calm, .wall-static) {
+  filter: brightness(var(--wall-dim, 1));
+}
+
+/* the calm control: a visible switch in the reach band (WCAG 2.2.2, 2.3.3). its size (75 mm at the stated panel width, at least 64 px) and
+   place (above the ladder, in the lower 57% of the screen) come from wallreset.js */
+html.wallmode #wall-calm {
+  position: fixed; z-index: 7; right: var(--wall-calm-r, 10px); bottom: var(--wall-calm-b, 260px);
+  width: var(--wall-calm-d, 76px); height: var(--wall-calm-d, 76px); margin: 0; padding: 0; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--wall-calm-d, 76px) * .06);
+  border: 2px solid rgba(240, 234, 255, .46); border-radius: 50%; background: rgba(10, 1, 24, .74);
+  color: var(--ink, #f0eaff); font: 500 calc(var(--wall-calm-d, 76px) * .21)/1 var(--mono, ui-monospace, Menlo, monospace); letter-spacing: .04em; text-transform: lowercase;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+html.wallmode #wall-calm > span:last-child { opacity: .72; }
+html.wallmode #wall-calm[aria-pressed="true"] { border-color: var(--ice, #86cbfe); color: var(--ice, #86cbfe); background: rgba(134, 203, 254, .14); }
+html.wallmode #wall-calm[aria-pressed="true"] > span:last-child { opacity: 1; }
+html.wallmode #wall-calm:focus-visible { outline: 2px solid var(--ice, #86cbfe); outline-offset: 3px; }
+
+/* the docent's corner: invisible until a press has lasted a moment, then a ring that fills as the five seconds run out */
+html.wallmode #wall-corner { position: fixed; z-index: 9; width: 100px; height: 100px; pointer-events: none; opacity: 0; }
+html.wallmode #wall-corner[data-c="br"] { right: 0; bottom: 0; }
+html.wallmode #wall-corner[data-c="bl"] { left: 0; bottom: 0; }
+html.wallmode #wall-corner[data-c="tr"] { right: 0; top: 0; }
+html.wallmode #wall-corner[data-c="tl"] { left: 0; top: 0; }
+html.wallmode #wall-corner::before { content: ""; position: absolute; inset: 16px; border: 3px solid var(--ice, #86cbfe); border-radius: 50%; }
+html.wallmode #wall-corner.held { animation: wall-ring var(--wall-corner-ms, 5s) linear forwards; }
+@keyframes wall-ring { 0%, 16% { opacity: 0; transform: scale(.5); } 100% { opacity: .9; transform: scale(1); } }
+
+/* the resting slate: ground and two quiet lines, drifting and dimmed like every other static */
+html.wallmode dialog#wall-rest p { margin: 0; text-align: center; font: 500 clamp(18px, 2.6vh, 44px)/1.8 var(--mono, ui-monospace, Menlo, monospace); letter-spacing: .05em; color: var(--ink, #f0eaff); opacity: .66; translate: var(--wall-dx, 0px) var(--wall-dy, 0px); }
+html.wallmode.wall-dim dialog#wall-rest p { opacity: .42; }
+html.wallmode dialog#wall-cover::backdrop, html.wallmode dialog#wall-rest::backdrop { background: transparent; }

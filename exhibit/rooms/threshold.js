@@ -550,9 +550,9 @@ export default {
     return [cx - R * 0.95, cy - R * 1.0];
   },
   setLabels(ctx) {
-    const [x, y] = this.labelAt(), plays = (ctx.stats && ctx.stats.plays) || 97427;
-    ctx.labels.set('threshold', [{ id: 'plays', text: plays.toLocaleString('en-US') + ' plays', x, y, space: 'world', kind: 'region', pri: 6, r: 4,
-      go: (c) => { c.view.flyTo(POSES.close, { speed: 'slow', lock: plays.toLocaleString('en-US') + ' plays' }); } }]);
+    const [x, y] = this.labelAt(), plays = (ctx.stats && ctx.stats.plays) || 97427, t = plays.toLocaleString('en-US') + ' plays';
+    ctx.labels.set('threshold', [{ id: 'plays', text: t, x, y, space: 'world', kind: 'region', pri: 6, r: 4,
+      go: window.__wall || ctx.atlas.kiosk ? (c) => { c.view.flyTo(POSES.close, { speed: 'slow', lock: t }); } : void 0 }]);
   },
   moveLabel(ctx) { if (!this.s) return; const [x, y] = this.labelAt(); ctx.labels.update('threshold', 'plays', { x, y }); this.moveKey(); },
   setAngle(k, ctx, o = {}) {

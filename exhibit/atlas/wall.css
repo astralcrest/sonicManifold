@@ -1,0 +1,21 @@
+/* R19 CORE: the wall profile's own sheet. only exhibit.html?wall=1 links it (wallboot.js), and every rule keys on html.wallmode
+   anyway. never html.wall: the legacy .wall rules would hide the page */
+
+/* no page zoom (P0-1): a pinch that starts on the chrome would zoom the whole page and stay zoomed. scrollers still scroll; the
+   stage keeps its own touch-action:none, so a pinch there still moves the camera. exhibit.html's own style carries the same rule
+   so it holds before this sheet arrives */
+html.wallmode{touch-action:pan-x pan-y}
+
+/* a wall has no owner at the glass: nothing selects, no callout, no tap flash */
+html.wallmode,html.wallmode body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+
+/* the exits a stranger could take that this lane closes (R19 DIGEST 1.3): the end card's export, report and colophon, the yours
+   room's "the full probe" and "the full lab", and a failure notice's plain-page link. the guard in wallboot.js stops them
+   anyway; hiding them means no dead control is ever shown */
+html.wallmode #ai-end-export,html.wallmode #ai-end-report,html.wallmode #ai-end-colophon,
+html.wallmode a.btn.ghost[href],
+html.wallmode #atlas-bootfail a[href*="atlas=0"]{display:none!important}
+
+/* dig opens a text field, and a wall has no keyboard (P2-11, D18 option A). ?wall=1&dig=1 brings it back (option B) */
+html.wallmode:not([data-wall-dig="1"]) .as-bar,
+html.wallmode:not([data-wall-dig="1"]) [data-a="atlas"]{display:none!important}

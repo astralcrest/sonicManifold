@@ -1,0 +1,5 @@
+/* R19 SOUND: on the wall the installer sets the sound (?sound=touch|on|off) and a visitor cannot mute the room, so the legacy sound chip is gone,
+   and so is the settings panel's sound switch, which only clicks that chip. the invite that replaces "tap for sound" is LABEL's.
+   linked by wallboot.js with the other wall sheets. */
+html.wallmode #mute,
+html.wallmode .k-sw[data-k="sound"]{display:none!important}

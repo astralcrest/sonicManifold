@@ -428,7 +428,7 @@ export default {
     }
     this.dTour(ctx);
     document.addEventListener('selectstart', this.noSel); tryf(() => ctx.idle.hold('game', true)); /* no long-press selection; no first tap spent waking the chrome */
-    D.kbd.textContent = ctx.coarse ? 'swipe the card up if i tapped it, down if the queue did · tap a name to hear it' : 't or → i tapped · q or ← it queued · n next · rest on a name to hear it';
+    D.kbd.textContent = ctx.coarse ? 'swipe the card up if i tapped it, down if the queue did · tap a name to hear it' : 't or → i tapped · q or ← it queued · n next · click a name to hear it';
     if (!this.ready || !D.pairs) { P.scatter && P.scatter(); return; }
     if (!D.seed) {
       const m = /^#game(?:=|&(?:.*&)?s=)([a-z0-9]{1,16})/i.exec(String((ctx.atlas && ctx.atlas.hash0) || ''));

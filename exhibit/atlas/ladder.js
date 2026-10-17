@@ -125,6 +125,10 @@ function wmedian(pairs) {
 
 export function mount(ctx, deps) {
   if (!ctx.atlas || !ctx.atlas.on) return null;
+  /* R20 RECORD_CHROME (the owner: "way too many buttons"): the plain record has no scale ladder, no rungs and no "1 mark"
+     readout; only the wall (KIOSK) builds it. the rooms' calls land on this quiet stand-in (the shell queues them until a
+     module answers), so nothing waits on a ladder that is not there */
+  if (!(deps && deps.KIOSK)) return { readout() {}, level() {}, onPick() { return () => {}; } };
   const GF = (deps && deps.GF) || null, P = (deps && deps.P) || null, ROOMS = (deps && deps.rooms) || [];
   /* no glyph pass this visit (?glyph=0, or glyphfield.js failed to load and the shell kept its stub): every mark on
      screen is one dot, so the readout counts dots (four plays each on a phone), never a glyph that is not drawn */
@@ -625,12 +629,14 @@ export function mount(ctx, deps) {
      250 ms). from a placement's second ask on, the column is read once and each ask counts the same device pixels from
      per-row ink sums (getImageData truncates its arguments; off-canvas pixels are transparent either way) */
   let inkCol = null, inkAsks = 0, inkT = 0, inkB = 0;
-  const overlayBlocked = (L, T, R, Bt) => overlayInk(L, T, R, Bt) > 30 * (devicePixelRatio || 1) ** 2;
+  /* the overlay's real device scale: the wall budget keeps it under devicePixelRatio, and a readback at the wrong scale lands off its rect */
+  const ovlScale = () => (window.__wall && ovlEl && ovlEl.width && innerWidth ? ovlEl.width / innerWidth : devicePixelRatio || 1);
+  const overlayBlocked = (L, T, R, Bt) => overlayInk(L, T, R, Bt) > 30 * ovlScale() ** 2;
   function overlayInk(L, T, R, Bt) {
     if (ovlBad) return 0;
     try {
       if (!ovlCtx) { ovlEl = document.getElementById('overlay'); ovlCtx = ovlEl && ovlEl.getContext && ovlEl.getContext('2d'); if (!ovlCtx) { ovlBad = true; return 0; } }
-      const dpr = devicePixelRatio || 1;
+      const dpr = ovlScale();
       const x0 = Math.max(0, Math.floor(L)), y0 = Math.max(0, Math.floor(T));
       const w = Math.max(0, Math.ceil(R) - x0), h = Math.max(0, Math.ceil(Bt) - y0);
       if (w <= 0 || h <= 0) return 0;
@@ -667,7 +673,7 @@ export function mount(ctx, deps) {
       setOff(false);
       const cw = chip.getBoundingClientRect().width || 80;
       const hx = Math.round(innerWidth - 12 - cw);
-      if (force || chipKey !== 'home') { chipKey = 'home'; chip.style.left = hx + 'px'; chip.style.top = 'calc(env(safe-area-inset-top, 0px) - 6px)'; /* R13: below a notch, level with the masthead's own padded row */ chip.style.right = 'auto'; }
+      if (force || chipKey !== 'home') { chipKey = 'home'; chip.style.left = hx + 'px'; chip.style.top = 'calc(env(safe-area-inset-top, 0px) + 4px)'; /* R20 MOBILE R3 2026-10-17: was -6px, which put the chip above the glass on phones */ /* R13: below a notch, level with the masthead's own padded row */ chip.style.right = 'auto'; }
       else if (parseInt(chip.style.left, 10) !== hx) chip.style.left = hx + 'px';
       return;
     }
