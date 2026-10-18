@@ -16,7 +16,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/bridge-index.html">
 <meta property="og:title" content="your turn: the probe &middot; sonic manifold">
-<meta property="og:description" content="Drop your Spotify export; the probe runs locally and tells you whether you steer more than you ride. Nothing leaves your machine.">
+<meta property="og:description" content="Drop your Spotify export; the probe runs locally and tells you how much more your taps cross than your queue's. Nothing leaves your machine.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="your turn: the probe &middot; sonic manifold">
@@ -223,14 +223,14 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
 <div class="wrap" role="main">
   <a href="./" style="display:inline-block;margin-bottom:6px;padding:14px 10px 14px 0;min-height:44px;box-sizing:border-box;color:var(--dim,#7c808c);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:1.5px;text-transform:lowercase;text-decoration:none">&larr;&nbsp;sonic manifold</a>
   <p class="eyebrow">your turn &middot; the probe</p>
-  <h1>how much do <em style="font-style:italic;color:var(--ui)">you</em> steer the queue?</h1>
+  <h1>how much more do <em style="font-style:italic;color:var(--ui)">your</em> taps cross than your queue?</h1>
   <p class="sub">
     drop your own spotify <b>extended streaming history</b> and get one number: how much
     more you cross between your listening communities when <b>you</b> pick the next track
     versus when <b>the queue</b> plays on by itself. the path out of n&nbsp;=&nbsp;1:
     each person computes their own index, on their own machine.
   </p>
-  <p class="turns">your turn, three ways: <b>the probe</b> measures (this page) &middot; <a href="yourturn.html">the guide</a> walks you through your export &middot; <a href="exhibit.html">the exhibit</a> lets you play with mine.</p>
+  <p class="turns">your turn, three ways: <b>the probe</b> measures (this page) &middot; <a href="yourturn.html">the guide</a> walks you through your export &middot; <a href="exhibit.html">the record</a> lets you play with mine.</p>
 
   <section aria-labelledby="sec-howto">
     <h2 id="sec-howto">&#9698;&#9700; how it works</h2>
@@ -1382,7 +1382,7 @@ button.ghost.demo:hover{background:rgba(134,203,254,.08)}
     var v=document.getElementById("verdict");
     var clears = r.BI > r.floor_CI95[1];
     v.innerHTML = clears
-      ? "when you steer, you cross listening communities more often than your queue does: an in-log ratio of <span class='bi'>"+r.BI.toFixed(1)+"×</span>, clearing the <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> mechanical floor (what pure chance would give)."
+      ? "your taps cross listening communities more often than your queue does: an in-log ratio of <span class='bi'>"+r.BI.toFixed(1)+"×</span>, clearing the <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> mechanical floor (what pure chance would give)."
       : "your bridge index is <span class='bi'>"+r.BI.toFixed(2)+"×</span>, which does <b>not</b> clear its <span class='fl'>"+r.floor_mean.toFixed(2)+"×</span> shuffle floor: no bridge signal on this log.";
 
     document.getElementById("refline").innerHTML = (isDemo ? "<b>an invented listener, not me.</b> " : "") +

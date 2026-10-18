@@ -76,7 +76,7 @@ export function mount(ctx, deps) {
     coachThrTouch: CC.coachThrTouch || ['▶ plays the tour. ⏭ next stop.', 'drag to turn, pinch to zoom.', 'hold a name to hear the artist.', 'each room’s wall label: ⋯ more.'],
     coachThrDesk: CC.coachThrDesk || ['it plays itself. space pauses, → moves on.', 'drag to turn the record. the wheel zooms.', 'rest on a name to hear the artist.', 'l opens the wall label. ? lists the keys.'],
   };
-  if (PLAIN) Object.assign(T, { pauseTour: PW.pause || '‖ pause', playTour: PW.play || '▶ play', trackOf: PW.stopOf || 'stop {k} of {n}', trackLead: PW.stopLead || '{n} stops', sideRoom: PW.stopSide || 'a side room' });
+  if (PLAIN) Object.assign(T, { pauseTour: PW.pause || '‖ pause the tour', playTour: PW.play || '▶ tour', trackOf: PW.stopOf || 'stop {k} of {n}', trackLead: PW.stopLead || '{n} stops', sideRoom: PW.stopSide || 'a side room' });
   const fillN = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (k in o ? o[k] : m));
   const LP = (TOURS.find((t) => t.id === 'grand') || {}).name || 'the long play';
   const fillStop = (s, name) => s.replace('{stop}', name);
@@ -192,7 +192,7 @@ export function mount(ctx, deps) {
   const lineEl = doc.createElement('p');
   lineEl.id = 'atlas-onboard'; lineEl.setAttribute('data-idle', 'hide'); lineEl.hidden = true;
   const lineOnb = doc.createElement('span'); lineOnb.className = 'ai-line-onb'; lineOnb.hidden = true;
-  const lineSnd = doc.createElement('span'); lineSnd.className = 'ai-line-snd'; lineSnd.hidden = true; lineSnd.textContent = T.sound;
+  const lineSnd = doc.createElement('span'); lineSnd.className = 'ai-line-snd'; lineSnd.hidden = true; lineSnd.textContent = PLAIN ? '' : T.sound; /* R21: the plain record never asks for a tap to hear it */
   lineSnd.setAttribute('aria-hidden', 'true');
   lineEl.append(lineOnb, lineSnd);
   body.appendChild(lineEl);

@@ -11,9 +11,12 @@ export function mount(ctx, deps) {
   const { GF, P, coarse, lowPower, rooms, relayout } = deps || {};
   /* R20 RECORD_CHROME (the owner, 2026-10-16: "way too many buttons, and I don't even know what anything means"): the plain
      record. every visit but the gallery wall (?wall=1 / ?kiosk=1 keeps the chrome it was built and gated with) gets ten controls
-     on a desk and six plus the title on a phone, in plain words (copy.js plain) */
+     on a desk and six plus the title on a phone, in plain words (copy.js plain).
+     R21 2026-10-17 (the owner: "stop gating every play"; "every issues ive had is still the same"): seven on a desk (the title, the
+     stops, previous, play, next, the sound chip, about) and five plus the stop row on a phone. find an artist, only songs i chose
+     and how this works live in about now; "/" still finds an artist and "?" opens about */
   const PLAIN = !(deps && deps.KIOSK);
-  const PW = Object.assign({ prev: 'previous', next: 'next', lift: 'only songs i chose', liftAria: 'only songs i chose: the plays shuffle and the queue started leave the record', about: 'about', helpAria: 'help: how this works', stopsHead: 'the stops', stopsWhat: '{n} stops, from one play to the whole log. pick one.', help: {} }, (deps && deps.COPY && deps.COPY.plain) || {});
+  const PW = Object.assign({ prev: 'previous', next: 'next', lift: 'only songs i chose', liftAria: 'only songs i chose: the plays shuffle and the queue started leave the record', about: 'about', helpAria: 'help: how this works', stopsHead: 'the stops', stopsWhat: '{n} stops, from one play to the whole log. pick one.', stops: 'the stops', findBtn: 'find an artist', soundtrack: 'the soundtrack', help: {} }, (deps && deps.COPY && deps.COPY.plain) || {});
   if (PLAIN) document.documentElement.classList.add('atlas-plain');
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const $ = (s, r) => (r || document).querySelector(s);
@@ -378,7 +381,8 @@ export function mount(ctx, deps) {
   const helpDlg = panelShell('atlas-help', 'help');
   (function buildHelp() {
     const body = $('[data-body]', helpDlg), H = Object.assign({}, (deps && deps.COPY && deps.COPY.help && deps.COPY.help.back) || {}, PLAIN ? PW.help : {});
-    let html = '<p class="a-back-h">' + esc(H.head || 'how to play this record') + '</p>' +
+    let html = PLAIN ? '<p class="a-back-h">' + esc(H.head || 'how this works') + '</p><ul class="lb-lines" data-lines></ul>' : /* R21: the eight lines (helpLines), filled on open */
+      '<p class="a-back-h">' + esc(H.head || 'how to play this record') + '</p>' +
       '<p class="a-back-p">' + esc((coarse && H.howTouch) || H.how || 'drag turns it, the wheel zooms, a click on a name takes you there. the tour plays itself. space pauses it; it also waits while this is open.') + '</p>' +
       '<p class="a-back-p a-back-hear">' + esc((coarse && H.hearTouch) || H.hear || 'a click on a name plays that artist from spotify. ♪ up top says what is playing.') + '</p>' +
       /* R18 wave 3 (V8): the click note and the idle rings only run for a fine pointer without reduced motion; the line follows them */
@@ -398,9 +402,10 @@ export function mount(ctx, deps) {
   /* R18 INTUIT: help holds the tour while it is open (a stranger read it while the tour walked two rooms on behind it) and lets
      it carry on when it closes, unless the visitor changed it meanwhile */
   let helpHeld = false;
-  function openHelp() { try { if (ctx.tour && ctx.tour.isPlaying()) { ctx.tour.pause('help'); helpHeld = true; } } catch (e) {} openDialog(helpDlg); }
+  function openHelp() { try { if (ctx.tour && ctx.tour.isPlaying()) { ctx.tour.pause('help'); helpHeld = true; } } catch (e) {} const l = $('[data-lines]', helpDlg); if (l) l.innerHTML = helpLines(); openDialog(helpDlg); }
   helpDlg.addEventListener('close', () => { if (!helpHeld) return; helpHeld = false; try { const a = ctx.tour.active; if (a.id && !a.playing && a.why === 'help') ctx.tour.resume(); } catch (e) {} });
-  ctx.keys.on('?', () => { openHelp(); return true; });
+  /* R21: on the plain record "?" opens about at its how this works (help lives there now) */
+  ctx.keys.on('?', () => { if (PLAIN && labelDlg) aboutOpen(true); else openHelp(); return true; });
 
   /* -------------------------------------------------------------- v / g / y setting cycles */
   function cycle(key, opts) { const i = opts.indexOf(get(key)); set(key, opts[(i + 1 + opts.length) % opts.length]); try { ctx.toast((key === 'detail' ? (CP.detail || 'detail') + ': ' + DETAIL_SAY[get(key)] : key + ': ' + get(key))); } catch (e) {} }
@@ -435,9 +440,7 @@ export function mount(ctx, deps) {
       '<button type="button" class="a-btn a-dk" data-a="prev" aria-label="previous stop">' + esc(PW.prev) + '</button>',
       '<button type="button" class="a-btn a-dk" data-a="next" aria-label="next stop">' + esc(PW.next) + '</button>',
       '<span id="mute-top" style="display:contents"></span>',
-      '<button type="button" class="a-btn a-lift" data-a="lift" aria-pressed="false" aria-label="' + esc(PW.liftAria) + '">' + esc(PW.lift) + '</button>',
       '<button type="button" class="a-btn" data-a="about" aria-haspopup="dialog">' + esc(PW.about) + '</button>',
-      '<button type="button" class="a-btn" data-a="help" aria-label="' + esc(PW.helpAria) + '">?</button>',
     ].join('') : [
       '<button type="button" class="a-btn" data-a="home">from the top</button>',
       '<button type="button" class="a-btn" data-a="atlas">dig /</button>',
@@ -472,10 +475,9 @@ export function mount(ctx, deps) {
   const dbtn = (a, ic, word, extra) => '<button type="button" data-a="' + a + '"' + (extra || '') + '><span class="d-ic" aria-hidden="true">' + ic + '</span>' + word + '</button>';
   dock.innerHTML = PLAIN ? '<div class="d-row">' +
     dbtn('prev', '⏮︎', PW.prev, ' aria-label="previous stop"') +
-    '<button type="button" data-a="play" aria-label="play the tour"><span class="d-ic" aria-hidden="true">▶︎</span><span class="d-w">play</span></button>' +
+    '<button type="button" data-a="play" aria-label="play the tour"><span class="d-ic" aria-hidden="true">▶︎</span><span class="d-w">tour</span></button>' +
     dbtn('next', '⏭︎', PW.next, ' aria-label="next stop"') +
     '<span id="mute-slot" style="display:contents"></span>' +
-    '<button type="button" data-a="lift" class="d-lift" aria-pressed="false" aria-label="' + esc(PW.liftAria) + '"><span class="d-w">' + esc(PW.lift) + '</span></button>' +
     '<button type="button" data-a="about" class="d-about" aria-haspopup="dialog"><span class="d-w">' + esc(PW.about) + '</span></button>' +
     '</div>' : '<div class="d-more" id="atlas-dock-more" role="group" aria-label="more" hidden>' + [
     ['home', '⌂', 'from the top'], ['atlas', '⌕', 'dig'], ['tours', '◎', 'the tour'], ['time', '◔', 'the day'], ['settings', '◐', 'knobs'],
@@ -483,7 +485,7 @@ export function mount(ctx, deps) {
   ].map((r) => dbtn(r[0], r[1], r[2])).join('') + dbtn('label', '▤', 'label', ' class="d-label"') + '</div>' +
     '<div class="d-row">' +
     dbtn('prev', '⏮︎', 'prev', ' aria-label="previous stop"') +
-    '<button type="button" data-a="play" aria-label="play the tour"><span class="d-ic" aria-hidden="true">▶︎</span><span class="d-w">play</span></button>' +
+    '<button type="button" data-a="play" aria-label="play the tour"><span class="d-ic" aria-hidden="true">▶︎</span><span class="d-w">tour</span></button>' +
     dbtn('next', '⏭︎', 'next', ' aria-label="next stop"') +
     '<span id="mute-slot" style="display:contents"></span>' +
     dbtn('more', '⋯', 'more', ' aria-expanded="false" aria-controls="atlas-dock-more"') +
@@ -505,7 +507,7 @@ export function mount(ctx, deps) {
   function syncPlay() {
     let on = false; try { on = !!(ctx.tour && ctx.tour.isPlaying && ctx.tour.isPlaying()); } catch (e) {}
     const ic = playBtn.firstChild, w = playBtn.lastChild, t = on ? '‖' : '▶︎';
-    if (ic.textContent !== t) { ic.textContent = t; w.textContent = on ? 'pause' : 'play'; playBtn.setAttribute('aria-label', on ? 'pause the tour' : 'play the tour'); }
+    if (ic.textContent !== t) { ic.textContent = t; w.textContent = on ? 'pause' : 'tour'; playBtn.setAttribute('aria-label', on ? 'pause the tour' : 'play the tour'); }
   }
   /* panels mounts before tour.js replaces the ctx.tour facade: subscribe once the real engine is there */
   let tourHooked = null;
@@ -565,7 +567,7 @@ export function mount(ctx, deps) {
   let liftT = 0;
   function syncLift() {
     const p = platter(), on = !!(p && p.lifted);
-    document.querySelectorAll('.atlas-topbar [data-a="lift"], #atlas-dock [data-a="lift"]').forEach((b) => { if (b.getAttribute('aria-pressed') !== String(on)) b.setAttribute('aria-pressed', String(on)); });
+    document.querySelectorAll('.atlas-topbar [data-a="lift"], #atlas-dock [data-a="lift"], #label [data-ab="lift"]').forEach((b) => { if (b.getAttribute('aria-pressed') !== String(on)) b.setAttribute('aria-pressed', String(on)); });
   }
   function doLift() {
     const p = platter(); clearInterval(liftT);
@@ -575,37 +577,58 @@ export function mount(ctx, deps) {
     liftT = setInterval(() => { const q = platter(); if ((q && (q.lifted || q.lift(true))) || performance.now() - t0 > 6000) { clearInterval(liftT); syncLift(); } }, 120);
   }
   if (PLAIN) setInterval(syncLift, 400);
-  /* about (R20; the old wall label): what this is (the one headline and its caveats), then this stop's label (shell.js renderLabel
-     refills .lb-body on every open and stop), then the reader notes, the colour key with its colour words, share and a picture;
-     upright, where there is no bar for them, the stops, find an artist and help too. built around .lb-body, never inside it */
+  /* about (R20; the old wall label): what this is (the one headline and its caveats), then (R21) what the bar gave up: find an
+     artist, only songs i chose, the soundtrack (and upright, the stops), then how this works in eight lines, then this stop's label
+     (shell.js renderLabel refills .lb-body on every open and stop), the reader notes, the color key with its color words, share and
+     a picture. built around .lb-body, never inside it */
   const labelDlg = PLAIN ? document.getElementById('label') : null;
   function aboutKey() {
     return '<div class="a-ckey lb-key"><p class="a-lbl a-ckey-h">' + esc(PW.keyHead || CK.head) + '</p><ul class="a-ckey-l">' + CK.rows.map((r) => '<li><i class="a-ckey-s c-' + esc(r[0]) + '" aria-hidden="true"></i><span><b>' + esc(r[0]) + '</b> ' + esc(r[1]) + '</span></li>').join('') + '</ul><p class="a-ckey-f">' + esc(CK.foot) + '</p></div>';
+  }
+  /* R21: how this works, eight lines at most (COPY.plain.help; a touch screen reads its own words where keys would not be true) */
+  function helpLines() {
+    const H = PW.help || {}, T = (k) => (coarse && H[k + 'Touch']) || H[k] || '';
+    let n = 0; try { n = recCount(); } catch (e) {}
+    n = n || (ctx.stops || []).filter((x) => !x.side).length || '';
+    const li = (h) => (h ? '<li>' + h + '</li>' : '');
+    const cols = (H.colors || []).map((c) => '<span class="lb-c c-' + esc(c[0]) + '">' + esc(c[0]) + '</span>: ' + esc(c[1]) + '.').join(' ');
+    return li(esc((P && P.perDot > 1 && H.dot3) || H.dot || '')) + li(cols) + li(esc(fill(T('step'), { n }))) + li(esc(T('play'))) +
+      li(esc(T('name'))) + li(esc(T('find'))) + li(esc(T('lift'))) + li(esc(T('sound')));
   }
   function aboutDress() {
     if (!labelDlg) return;
     const body = $('.lb-body', labelDlg); if (!body) return;
     labelDlg.setAttribute('aria-label', PW.about);
     const x = $('.lb-x', labelDlg); if (x) x.setAttribute('aria-label', 'close about');
+    const btn = (a, h, cls, attrs) => '<button type="button" class="lb-a' + (cls ? ' ' + cls : '') + '" data-ab="' + a + '"' + (attrs || '') + '>' + h + '</button>';
     if (!$('#lb-lead', labelDlg)) {
       const lead = document.createElement('div'); lead.id = 'lb-lead'; lead.className = 'lb-lead';
-      lead.innerHTML = '<h2 class="lb-h">' + esc(PW.title || 'mostly the machine') + '</h2>' + (PW.statement || []).map((s, i) => '<p' + (i ? '' : ' class="lb-1"') + '>' + esc(s) + '</p>').join('') + '<p class="lb-sec">' + esc(PW.noteHead || 'this stop') + '</p>';
+      lead.innerHTML = '<h2 class="lb-h">' + esc(PW.title || 'mostly the machine') + '</h2>' + (PW.statement || []).map((s, i) => '<p' + (i ? '' : ' class="lb-1"') + '>' + esc(s) + '</p>').join('') +
+        '<p class="lb-acts lb-tools">' + btn('find', esc(PW.findBtn) + (coarse ? '' : ' <kbd class="lb-kbd" aria-hidden="true">/</kbd>'), 'lb-find') +
+        btn('lift', esc(PW.lift), 'lb-lift', ' aria-pressed="false" aria-label="' + esc(PW.liftAria) + '"') +
+        (ctx.audio && typeof ctx.audio.tracklist === 'function' ? btn('soundtrack', esc(PW.soundtrack), '', ' aria-haspopup="dialog"') : '') +
+        btn('stops', esc(PW.stops), 'lb-up', ' aria-haspopup="dialog"') + '</p>' +
+        '<div class="lb-help" id="lb-help"><p class="lb-sec">' + esc((PW.help && PW.help.head) || 'how this works') + '</p><ul class="lb-lines" data-lines></ul></div>' +
+        '<p class="lb-sec">' + esc(PW.noteHead || 'this stop') + '</p>';
       labelDlg.insertBefore(lead, body);
     }
+    const ul = $('[data-lines]', labelDlg); if (ul) ul.innerHTML = helpLines();
     let ab = $('#lb-about', labelDlg);
     if (!ab) {
       ab = document.createElement('div'); ab.id = 'lb-about'; ab.className = 'lb-about';
-      const btn = (a, t) => '<button type="button" class="lb-a" data-ab="' + a + '">' + esc(t) + '</button>';
-      ab.innerHTML = '<p class="lb-acts">' + btn('notes', PW.notesLink) + '</p>' + aboutKey() +
-        '<p class="lb-acts">' + btn('share', PW.share) + btn('picture', PW.picture) + '</p><p class="lb-said"></p>' +
-        '<p class="lb-acts lb-up">' + btn('stops', PW.stops) + btn('find', PW.findBtn) + btn('help', PW.helpBtn) + '</p>';
+      ab.innerHTML = '<p class="lb-acts">' + btn('notes', esc(PW.notesLink)) + '</p>' + aboutKey() +
+        '<p class="lb-acts">' + btn('share', esc(PW.share)) + btn('picture', esc(PW.picture)) + '</p><p class="lb-said"></p>';
       body.insertAdjacentElement('afterend', ab);
-      ab.addEventListener('click', aboutClick);
     }
     const said = $('.lb-said', ab); if (said) said.textContent = '';
+    syncLift();
+  }
+  function aboutOpen(help) {
+    try { if (!ctx.label.isOpen) ctx.label.open(); } catch (x) {}
+    if (help) requestAnimationFrame(() => { const h = $('#lb-help', labelDlg); if (h && labelDlg.open) try { h.scrollIntoView({ block: 'start' }); } catch (x) {} });
   }
   function aboutClick(e) {
-    const b = e.target.closest && e.target.closest('[data-ab]'); if (!b) return;
+    const b = e.target.closest && e.target.closest('[data-ab]'); if (!b || !labelDlg.contains(b)) return;
     const a = b.dataset.ab, said = $('.lb-said', labelDlg);
     if (a === 'share') {
       const done = (ok) => { if (said) said.textContent = ok ? PW.shared : PW.shareManual + ': ' + location.href; };
@@ -618,15 +641,23 @@ export function mount(ctx, deps) {
       else done(false);
       return;
     }
+    /* R21: about closes first and the press runs once it has. about's close hands focus back to whatever opened it, which would
+       take it straight off a search input opened before then */
+    labelDlg.addEventListener('close', () => aboutRun(a), { once: true });
     try { labelDlg.close(); } catch (x) {}
+  }
+  function aboutRun(a) {
     if (a === 'notes') { openNotes(tourLens() || null, curRoom()); return; } /* a reader's lens opens on that reader's tab, as the cut note chip did */
-    if (a === 'picture') { const P = ctx.atlas && ctx.atlas.photo; if (P && typeof P.open === 'function') setTimeout(() => { try { P.open(); } catch (x) {} }, 0); return; }
+    if (a === 'picture') { const P = ctx.atlas && ctx.atlas.photo; if (P && typeof P.open === 'function') try { P.open(); } catch (x) {} return; }
     if (a === 'stops') { openTours(); return; }
     if (a === 'find') { try { ctx.search.open(); } catch (x) {} return; }
+    if (a === 'lift') { doLift(); return; }
+    if (a === 'soundtrack') { try { ctx.audio.tracklist(); } catch (x) {} return; }
     if (a === 'help') openHelp();
   }
   if (labelDlg) {
     aboutDress();
+    labelDlg.addEventListener('click', aboutClick);
     new MutationObserver(() => { if (labelDlg.open) aboutDress(); }).observe(labelDlg, { attributes: true, attributeFilter: ['open'] });
   }
   /* "dig the log" is "find an artist" on the plain record. search.js mounts after this module and names its bar and its sheet

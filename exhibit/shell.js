@@ -1283,6 +1283,12 @@ ATL.fieldImage = () => (img ? { data: img.data, width: PW, height: PH } : null);
 /* R19 wall (exhibit.html?wall=1): wallboot.js makes window.__wall, and only then. every wall change in the audio hangs on WL, so without
    it the graph, the levels and the chip are what they were. VOLDB is the installer's output trim (?vol=, dB) */
 const WL = window.__wall || null, WO = (WL && WL.opts) || {}, SFXG = WL ? 1.41 : 1, VOLDB = WL && isFinite(+WO.vol) ? Math.min(0, Math.max(-30, +WO.vol)) : 0;
+/* R21 (the owner: "stop gating every play"): the plain record (every visit but ?wall=1 / ?kiosk=1) asks nothing before its sound.
+   the bed starts with the first press anywhere unless the visitor turned the sound off here, on the front or in the lab:
+   localStorage "sm.sound" = "off", the one key all three read and write */
+const PLAINR = ATLAS && !WL && !ATL.kiosk, SNDKEY = 'sm.sound';
+function sndPref() { try { return localStorage.getItem(SNDKEY); } catch (e) { return null; } }
+function sndSave(m) { try { localStorage.setItem(SNDKEY, m ? 'off' : 'on'); } catch (e) {} }
 /* sound is ON only while the AudioContext is actually running (K5). unlock() may be called from any gesture, any number of
    times: it builds the graph once, asks the context to resume, and starts each deck's <audio> once inside a gesture (ios
    lets an element play outside a tap only after it has played inside one). a gesture without user activation (a touch
@@ -1496,7 +1502,7 @@ const A = {
   },
   mute(m) { this.muted = m; this.level(); audioChanged(); },
   /* R20: the one switch the chip, the m key, the tracklist and the settings knob use; unmuting also starts the sound */
-  setMuted(m) { m = !!m; if (m !== this.muted) this.mute(m); if (!m) this.unlock(); setChip(); },
+  setMuted(m) { m = !!m; if (m !== this.muted) this.mute(m); if (PLAINR) sndSave(m); if (!m) this.unlock(); setChip(); },
   /* interface tones: D minor pentatonic, quiet, skipped when muted. step 0 = D4, five steps an octave.
      each tone is moved to the nearest one that is also in the key of the bed that is playing (see inKey below) */
   /* R18 V8: a room voice (the chain's sonic, the hover voice) counts as input: the field plays itself only once nothing has sounded for 20 s */
@@ -1802,10 +1808,19 @@ function setChip() {
   if (audHold) { chipPend = true; return; }
   chipPend = false;
   const s = A.state();
-  let t, np = '';
+  let t, np = '', tip = '';
   if (s === 'on' || s === 'muted') chipHint = '';
   if (WL) t = s === 'on' ? 'sound on' : s === 'muted' ? 'sound off' : '♪ tap for sound'; /* the wall says what it said before R20 */
   else if (!ATLAS) t = A.muted ? 'sound off' : 'sound on';
+  /* R21: the plain record's chip says its state and a press flips it: "♪ sound on" from the first frame (the sound starts with the
+     first press anywhere), "♪ mute" once muted. what is playing moves to its hover title; the tracklist opens from about */
+  else if (PLAINR) {
+    const W = (ATL.deps && ATL.deps.COPY && ATL.deps.COPY.plain) || {};
+    /* R21 DA: the label is the command: play music (nothing started yet), mute (playing), unmute (muted); data-w is the dock's one word */
+    t = s === 'muted' ? W.soundUnmute || '♪ unmute' : s === 'on' ? W.soundMute || '♪ mute' : W.soundPlay || '♪ play music';
+    b.dataset.w = s === 'muted' ? 'unmute' : s === 'on' ? 'mute' : 'music';
+    if (s === 'on') tip = chipClip ? chipClip + ' · ' + npCopy().from : bedLine(A.cur >= 0 && A.els[A.cur] ? A.els[A.cur].dataset.t : '');
+  }
   else if (s === 'muted') t = 'sound off';
   else if (s !== 'on') t = chipHint || '♪ tap for sound';
   else {
@@ -1826,6 +1841,7 @@ function setChip() {
   /* the title: a crowded desk bar ellipsizes the line after a few words, a hover gives it back whole */
   if (np) { b.dataset.np = np; b.title = t; b.setAttribute('aria-label', 'now playing: ' + np + '. ' + npCopy().open); b.setAttribute('aria-haspopup', 'dialog'); }
   else { delete b.dataset.np; b.removeAttribute('title'); b.removeAttribute('aria-label'); b.removeAttribute('aria-haspopup'); }
+  if (tip) b.title = tip;
   b.setAttribute('aria-pressed', String(s === 'muted'));
   if (npDlg) npSync();
 }
@@ -1897,14 +1913,11 @@ function npOpen() {
   const f = npDlg.querySelector('.np-rows [aria-current="true"]') || npDlg.querySelector('.np-snd');
   if (f) try { f.focus(); } catch (e) {}
 }
-/* an iphone (webkit) starts no sound before a touch on this page: the chip says so for a few seconds, with no veil (R20
-   item 17). not a toast: its show and hide moved the caption card, and chrome.js relayouted the room under it */
-if (ATLAS && !WL && !ATL.kiosk) ATL.ready.then(() => setTimeout(() => {
-  let ios = false; try { ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); } catch (e) {}
-  if (!ios || A.muted || A.state() === 'on') return;
-  chipHint = npCopy().tapAnywhere; setChip();
-  setTimeout(() => { if (chipHint) { chipHint = ''; setChip(); } }, 4200);
-}, 600));
+/* R21: about's "the soundtrack" opens the tracklist (the plain record's chip only flips the sound now) */
+A.tracklist = () => { if (ALB.list.length) npOpen(); };
+/* R21: the iphone's "♪ tap anywhere for sound" (R20 item 17) is gone: the plain record, the only place it ran, says "♪ sound on"
+   before the first touch on every screen */
+if (PLAINR && ATL.ready) ATL.ready.then(() => setChip());
 const ctx = {
   /* R19: the wall lanes hang their interfaces here (sound, out, reset, card: exhibit/atlas/wallmode.js); empty off the wall */
   wall: {},
@@ -2355,7 +2368,7 @@ addEventListener('keydown', (e) => {
   if (ATLAS) { atlasKey(e); return; }
   if (e.key === 'ArrowDown' || e.key === 'PageDown' || (e.key === ' ' && !e.target.closest('button,a,[role=button]'))) { e.preventDefault(); ctx.go(active + 1); }
   else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); ctx.go(active - 1); }
-  else if (e.key === 'm') { toggleMute(); }
+  else if (e.key === 'm') { if (PLAINR && !A.muted && A.state() !== 'on') { A.unlock(); setChip(); } else toggleMute(); }
   else if (e.key === 'l') { toggleLabel(); }
   else if (e.key === 'Home') { e.preventDefault(); ctx.go(0); }
   else if (e.key === 'End') { e.preventDefault(); let k = rooms.length - 1; while (k > 0 && (rooms[k].el.hidden || rooms[k].el.dataset.side)) k--; ctx.go(k); } /* the end of the walk, not the side room */
@@ -2394,6 +2407,8 @@ enterQuiet.addEventListener('click', () => begin(false));
    the tracklist (any song, or sound off). off the atlas it is the plain switch it always was */
 muteBtn.addEventListener('click', () => {
   if (WL) return; /* R19 wall: ?sound= decides, not a visitor */
+  /* R21 DA: on the plain record the chip's first press starts the sound (its label says play music); after that it flips mute */
+  if (PLAINR) { if (!A.muted && A.state() !== 'on') { A.unlock(); setChip(); return; } toggleMute(); return; }
   if (!ATLAS || A.muted) { toggleMute(); return; }
   if (A.state() !== 'on') { A.setMuted(false); return; }
   npOpen();
@@ -2808,6 +2823,9 @@ if (!ATLAS) {
     if (S && n <= S.length) { let j = n - 1; while (j < S.length - 1 && S[j] && S[j].pending) j++; const q = S[j] ? rooms.findIndex((r) => r.id === S[j].room && !r.el.dataset.side && !r.el.hidden) : -1; if (q >= 0) start = q; }
   }
   if (ATL.enter === 'quiet') { A.muted = true; setChip(); audioChanged(); }
+  /* R21: a visitor who turned the sound off anywhere on the site arrives muted (the chip reads "♪ mute") and no press arms it */
+  if (PLAINR && !A.muted && sndPref() === 'off') { A.muted = true; audioChanged(); }
+  if (PLAINR) setChip();
   /* W45: every kind of gesture arms, not only a press: a touch is given user activation on its pointerup / touchend, not its
      pointerdown, and a screen reader's activation arrives as a click. it keeps asking on every gesture until the context
      is running and the bed is playing (a first press that was refused is not the end of it); muted, it waits for the
@@ -2823,13 +2841,15 @@ if (!ATLAS) {
   const arm = (e) => {
     if (!e.isTrusted || A.muted) return;
     if (e.type === 'keydown' && (e.metaKey || e.ctrlKey || e.altKey || e.key === 'Escape')) return;
+    /* R21: a first press on the chip (or m) is handled by the chip's own click (a start when nothing plays, else a mute): not here, or it would start a moment before the click flips it */
+    if (PLAINR && ((e.target && e.target.closest && e.target.closest('#mute')) || (e.type === 'keydown' && e.key === 'm'))) return;
     if (!(A.on && A.ac && A.ac.state === 'running' && (A.cur < 0 || !A.els[A.cur].paused))) A.unlock();
     /* R20: and the stop's cued post starts (post.js kick: after the sound is on; webkit rings spotify's ▶ instead) */
     try { kick(e); } catch (x) {}
   };
-  ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach((t) => addEventListener(t, arm, { capture: true, passive: true }));
+  ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach((t) => addEventListener(t, arm, { capture: true, passive: true }));
   /* R20: ?enter=sound has no veil. a press carried over from the landing (chromium carries it across a same-origin hop)
-     starts the sound now; any other arrival waits for its first gesture (W45 above) while the chip says "♪ tap for sound" */
+     starts the sound now; any other arrival waits for its first gesture (W45 above), the plain record's chip saying "♪ sound on" (R21) */
   if (ATL.enter === 'sound' && !A.muted && !ATL.kiosk) { let act = false; try { act = !!(navigator.userActivation && navigator.userActivation.hasBeenActive); } catch (e) {} if (act) try { A.unlock(); } catch (e) {} }
   /* R19 wall: sound=on tries the unlock now, as ?enter=sound does (it passes with the autoplay switch; a refusal leaves the context suspended and the first touch finishes it);
      sound=off is the quiet state from the start. sound=touch waits for the first trusted pointerdown, which the kiosk block above already takes */

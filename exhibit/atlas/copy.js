@@ -141,18 +141,21 @@ export const COPY = {
   },
 
   // R20 RECORD_CHROME (the owner, 2026-10-16: "There are way too many buttons, and I don't even know what anything means"): the
-  // plain record's words. every visit but the gallery wall (?wall=1, which keeps the chrome strings above) reads these.
+  // plain record's words. R21 2026-10-17: the bar keeps seven (find an artist, only songs i chose and help moved into about; the
+  // sound chip says its state, soundOn / soundMute, and help is eight lines inside about). every visit but the gallery wall (?wall=1, which keeps the chrome strings above) reads these.
   // panels.js: the bar, the dock, the stops sheet, help, about, and the name on search's bar and sheet (find). chrome.js: the
   // stop counter and play / pause.
   // the statement is the one headline (SIMPLIFY_PLAN section 2) with its caveats, which live here and on the front's sub line
   plain: {
     title: 'mostly the machine',
     prev: 'previous', next: 'next',
-    play: '▶ play', pause: '‖ pause',
+    play: '▶ tour', pause: '‖ pause the tour',
     lift: 'only songs i chose',
     liftAria: 'only songs i chose: the plays shuffle and the queue started leave the record',
     about: 'about', helpAria: 'help: how this works',
     find: 'find an artist',
+    soundPlay: '♪ play music', soundMute: '♪ mute', soundUnmute: '♪ unmute', /* R21 DA: the label is the command */
+    soundtrack: 'the soundtrack',
     stopOf: 'stop {k} of {n}', stopOfShort: '{k} of {n}', stopLead: '{n} stops', stopSide: 'a side room',
     stopsHead: 'the stops', stopsWhat: '{n} stops, from one play to the whole log. pick one.',
     statement: [
@@ -165,13 +168,25 @@ export const COPY = {
     keyHead: 'what the colors mean',
     share: 'share this stop', shared: 'link copied', shareManual: 'select and copy the link',
     picture: 'take a picture',
-    stops: 'the stops', findBtn: 'find an artist', helpBtn: 'how this works',
+    stops: 'the stops', findBtn: 'find an artist',
+    // R21: how this works, eight lines at most, in about (and in the old help sheet, which nothing on the plain bar opens now).
+    // a *Touch line replaces its desk line on a touch screen; {n} is the number of stops
     help: {
       head: 'how this works',
-      how: 'the record plays itself, one stop at a time. pause holds it; previous and next step by hand. it waits while a sheet like this one is open, and wherever a stop asks you something. drag turns the picture; the wheel zooms.',
-      howTouch: 'previous and next step from stop to stop. play runs the stop you are on, then waits for you. drag to turn, pinch to zoom.',
-      keys: 'space or p: play or pause · ← → or j k: previous, next · /: find an artist · l: about · m: sound · ?: this',
-      keysTouch: 'about holds what this is, this stop’s note, the color key and a link to share.',
+      dot: 'each dot is one play.',
+      dot3: 'each dot is three plays on this screen.',
+      colors: [['mint', 'i pressed play'], ['amber', 'shuffle'], ['violet', 'the queue']],
+      step: 'previous and next (or ← →) step through the {n} stops.',
+      stepTouch: 'previous and next step through the {n} stops.',
+      play: 'tour (or space) walks them for you; pause the tour holds it.',
+      playTouch: 'tour walks them for you; pause holds it.',
+      name: 'click a name to hear that artist from Spotify.',
+      nameTouch: 'tap a name to hear that artist from Spotify.',
+      find: 'press / to find an artist.',
+      findTouch: 'find an artist, above, looks one up.',
+      lift: 'only songs i chose lifts the app’s plays off the record.',
+      sound: 'the sound starts with your first press; ♪ (or m) mutes and unmutes it.',
+      soundTouch: 'the sound starts with your first touch; ♪ mutes and unmutes it.',
     },
   },
 

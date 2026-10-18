@@ -71,41 +71,45 @@ button{font:inherit;color:inherit}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 :focus-visible{outline:2px solid var(--ice);outline-offset:3px}
 
-/* top */
-.top{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 8px;font:600 11px/1 var(--mono);letter-spacing:.16em;color:var(--mute)}
-.top b{color:var(--ink);font-weight:700;text-transform:uppercase}
-.skip{position:absolute;left:8px;top:-80px;z-index:9;padding:12px 14px;background:var(--bg);color:var(--ink);border:1px solid var(--ice);font:600 13px/1 var(--mono);text-decoration:none}
+/* top: the title and the five doors, on every screen (R21 2026-10-17: the doors are on the first screen) */
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;column-gap:28px;border-bottom:1px solid var(--faint)}
+.brand{display:flex;align-items:baseline;gap:12px;margin:0;padding:12px 0;font:600 11px/1 var(--mono);letter-spacing:.16em;color:var(--mute)}
+.brand b{color:var(--ink);font-weight:700;text-transform:uppercase}
+.tnav{display:flex;flex-wrap:wrap;column-gap:26px}
+.tnav a{display:inline-flex;align-items:center;min-height:44px;font:600 14.5px/1.2 var(--sans);color:var(--ink);text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.tnav a:hover{color:var(--ice)}
+.tnav a[aria-current]{text-decoration:underline;text-decoration-color:var(--ice);text-decoration-thickness:2px;text-underline-offset:7px}
+.skip{position:absolute;left:8px;top:-80px;z-index:9;display:inline-flex;align-items:center;min-height:44px;padding:0 14px;background:var(--bg);color:var(--ink);border:1px solid var(--ice);font:600 13px/1 var(--mono);text-decoration:none}
 .skip:focus{top:8px}
 
-/* 1. the pour */
-.s1{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;min-height:calc(100vh - 34px);min-height:calc(100svh - 34px);padding-bottom:40px}
-.stage{position:relative;height:clamp(200px,31vh,300px);height:clamp(200px,31svh,300px);--gutw:44px;--gapw:12px}
+/* 1. the finding, stated first: the headline, the jars (they pour themselves once), the strict-count switch, the key */
+.s1{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"h" "vis" "toy" "key";align-content:start;padding:20px 0 44px}
+.s1-h{grid-area:h}.s1-vis{grid-area:vis;margin-top:22px}.s1-toy{grid-area:toy;margin-top:22px}.s1-key{grid-area:key}
+.hl{font:750 clamp(29px,7.4vw,46px)/1.08 var(--sans);letter-spacing:-.028em;margin:0 0 14px;max-width:16em;color:var(--ink)}
+.sub{font:500 14px/1.55 var(--mono);color:var(--ink);max-width:36rem}
+.sub+.sub{margin-top:8px}
+.stage{position:relative;height:clamp(220px,33vh,300px);height:clamp(220px,33svh,300px);--gutw:44px;--gapw:12px}
 .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.labels{display:grid;grid-template-columns:var(--gutw) repeat(3,minmax(0,1fr));column-gap:var(--gapw);--gutw:44px;--gapw:12px;min-height:74px;margin-top:8px;font:500 11px/1.35 var(--mono);color:var(--mute)}
-.labels .cap{grid-column:1/-1;align-self:start}
-.jl{opacity:0;transition:opacity .45s ease}
-.poured .jl{opacity:1}
+.slice{position:absolute;left:0;bottom:0;margin:0;padding:0 2px 0 8px;font:600 11px/1.3 var(--sans);color:var(--ink);pointer-events:none}
+.labels{display:grid;grid-template-columns:calc(var(--gutw) - var(--gapw)) repeat(3,minmax(0,1fr));column-gap:var(--gapw);--gutw:44px;--gapw:12px;margin-top:8px;font:500 11px/1.35 var(--mono);color:var(--ink)}
 .jl b{display:block;font:700 16px/1.25 var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);letter-spacing:-.01em}
 .jl .nm{display:block;font-weight:700}
 .jl-0 .nm{color:var(--mint)}.jl-1 .nm{color:var(--amber)}.jl-2 .nm{color:var(--violet)}
-.ask{font:700 clamp(26px,6.6vw,50px)/1.1 var(--sans);letter-spacing:-.026em;margin:18px 0 0;max-width:15em}
-.ruler{position:relative;height:62px;margin:16px 0 4px;touch-action:pan-y;cursor:ew-resize;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-.ruler canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.ruler.locked{cursor:default}
-.hint{font:500 13px/1.45 var(--mono);color:var(--mute);min-height:19px}
-.answer{font:700 clamp(21px,5.2vw,30px)/1.2 var(--mono);letter-spacing:-.015em;margin:2px 0 0}
-.answer:empty{display:none}
-.slot{min-height:calc(2.4 * clamp(21px,5.2vw,30px))}
-.js .reveal{opacity:0;visibility:hidden;transition:opacity .9s ease,visibility 0s linear .9s}
-.js .reveal.on{opacity:1;visibility:visible;transition:opacity .9s ease}
-.js .reveal.now,.now .jl{transition:none}
-.hl{font:750 clamp(25px,6vw,44px)/1.08 var(--sans);letter-spacing:-.028em;margin:18px 0 10px;max-width:17em}
-.sub{font:500 13.5px/1.55 var(--mono);color:var(--mute);max-width:36rem}
-.key{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:5px;font:400 14px/1.4 var(--sans);color:var(--mute)}
-.key b{color:var(--ink);font-weight:650}
+.both{grid-column:3/5;margin:10px 0 0;text-align:center;font:600 11px/1.4 var(--mono)}
+.both .brk{display:block;height:7px;border:1px solid var(--hair);border-top:0;margin:0 0 6px}
+.both b{font-weight:750;white-space:nowrap}
+.cnt-l{font:600 12px/1.3 var(--mono);letter-spacing:.04em;color:var(--mute);margin:0 0 8px}
+.cnt{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);max-width:480px;padding:3px;border:1px solid var(--hair);border-radius:4px}
+.cnt button{appearance:none;-webkit-appearance:none;min-height:48px;padding:8px 10px;border:0;border-radius:2px;background:transparent;color:var(--ink);font:600 14.5px/1.25 var(--sans);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cnt button b{font:750 15px/1 var(--mono)}
+.cnt button[aria-pressed="true"]{background:var(--mint);color:var(--bg)}
+.cnt button[aria-pressed="false"]:hover{box-shadow:inset 0 0 0 1px var(--hair)}
+.key{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:5px;font:400 14.5px/1.4 var(--sans);color:var(--ink)}
+.key b{font-weight:650}
+.key li:nth-child(1) b{color:var(--mint)}.key li:nth-child(2) b{color:var(--amber)}.key li:nth-child(3) b{color:var(--violet)}
 .key i{display:inline-block;width:3px;height:13px;margin-right:9px;vertical-align:-1px}
 .key .km{background:var(--mint)}.key .ks{background:var(--amber)}.key .kq{background:var(--violet)}
-.knote{font:400 14px/1.4 var(--sans);color:var(--mute);margin:10px 0 0;max-width:36rem}
+.knote{font:400 14px/1.45 var(--sans);color:var(--mute);margin:12px 0 0;max-width:36rem}
 
 /* sections */
 .sec{padding:76px 0 84px}
@@ -169,6 +173,9 @@ button{font:inherit;color:inherit}
 .punch{font:750 clamp(20px,4.4vw,28px)/1.2 var(--sans);letter-spacing:-.02em;margin:24px 0 18px;max-width:22em}
 .tell .punch{margin:4px 0 12px}
 #b-again{margin-top:24px}
+.skipgame{margin-top:12px}
+.linkbtn{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;min-height:44px;font:500 14px/1.4 var(--mono);color:var(--ink);text-align:left;text-decoration:underline;text-decoration-color:var(--ice);text-underline-offset:4px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.linkbtn:hover{color:var(--ice)}
 
 /* 3. genre */
 .switch{display:grid;grid-template-columns:1fr 1fr;width:100%;max-width:480px;padding:4px;border:1px solid var(--hair);border-radius:4px;background:transparent;cursor:pointer;position:relative;margin:22px 0 14px;min-height:52px;-webkit-tap-highlight-color:transparent}
@@ -318,25 +325,42 @@ button{font:inherit;color:inherit}
   .sec{padding:110px 0 120px}
 }
 @media (min-width:980px){
-  .s1{grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:64px;align-items:start;align-content:center;min-height:calc(100vh - 34px);padding-bottom:24px}
-  .s1-vis{order:2}
-  .stage{height:min(540px,62vh);--gutw:64px;--gapw:22px}
+  .s1{grid-template-columns:minmax(0,5fr) minmax(0,7fr);grid-template-areas:"h vis" "key vis" "toy vis" ". vis";grid-template-rows:auto auto auto 1fr;column-gap:64px;padding:34px 0 36px}
+  .s1-vis{margin-top:4px;align-self:start}
+  .s1-toy{margin-top:24px}
+  .key{margin-top:18px}
+  .hl{font-size:clamp(38px,3.3vw,48px);margin-bottom:18px}
+  .stage{height:min(540px,58vh);--gutw:64px;--gapw:22px}
   .labels{--gutw:64px;--gapw:22px;font-size:12px}
   .jl b{font-size:20px}
-  .ask{margin-top:0}
+  .both{font-size:12px}
+  .slice{font-size:12.5px}
 }
-/* a phone on its side: the field beside the question, so the ruler is on the first screen */
+/* a phone on its side: the jars beside the headline */
 @media (min-width:540px) and (max-width:979px) and (max-height:540px) and (orientation:landscape){
-  .s1{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:32px;align-items:start}
-  .s1-vis{order:2}
-  .stage{height:min(300px,64vh)}
-  .ask{margin-top:6px;font-size:clamp(22px,3.6vw,30px)}
+  .s1{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"h vis" "key vis" "toy vis" ". vis";grid-template-rows:auto auto auto 1fr;column-gap:32px}
+  .s1-vis{margin-top:0;align-self:start}
+  .stage{height:min(240px,50vh)}
+  .hl{font-size:clamp(22px,3.6vw,30px)}
+}
+@media (max-width:420px){
+  .labels{font-size:10.5px}
+}
+@media (max-width:759px){
+  .top{display:block}
+  .brand{padding:12px 0 0}
+  .tnav{justify-content:space-between;column-gap:10px}
+  .tnav a{font-size:13.5px}
+}
+@media (min-width:340px) and (max-width:380px){
+  .tnav{column-gap:8px}
+  .tnav a{font-size:13px}
 }
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important}
 }
 @media (min-width:760px){.graves[aria-busy="true"]{min-height:840px}}
-html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .game,html:not(.js) .switch,html:not(.js) .g-chart,html:not(.js) .maps,html:not(.js) .drawrow,html:not(.js) .sl-label,html:not(.js) .slider,html:not(.js) .dial,html:not(.js) .readout,html:not(.js) .dleg,html:not(.js) .graves,html:not(.js) .ghint,html:not(.js) .do,html:not(.js) .player,html:not(.js) .prog,html:not(.js) .tracks{display:none}
+html:not(.js) .stage,html:not(.js) .cnt-l,html:not(.js) .cnt,html:not(.js) .skipgame,html:not(.js) .game,html:not(.js) .switch,html:not(.js) .g-chart,html:not(.js) .maps,html:not(.js) .drawrow,html:not(.js) .sl-label,html:not(.js) .slider,html:not(.js) .dial,html:not(.js) .readout,html:not(.js) .dleg,html:not(.js) .graves,html:not(.js) .ghint,html:not(.js) .do,html:not(.js) .player,html:not(.js) .prog,html:not(.js) .tracks{display:none}
 @media (forced-colors:active){
   .btn,.switch,.card,.door1,.stone .front,.back{forced-color-adjust:auto;border:1px solid ButtonText}
   .btn.solid{background:ButtonFace;color:ButtonText}
@@ -348,44 +372,59 @@ html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .ga
   .key i,.dleg i{forced-color-adjust:none}
   .tally i{background:GrayText}.tally i.me,.tally i.app{background:Highlight}
   .kick::after{background:none;border-bottom:1px dotted GrayText}
+  .cnt{border:1px solid ButtonText}
+  .cnt button[aria-pressed="true"]{forced-color-adjust:none;background:CanvasText;color:Canvas}
+  .both .brk{border-color:CanvasText}
 }
 </style>
 </head>
 <body>
-<a class="skip" href="#argument">skip to the question</a>
+<a class="skip" href="#argument">skip to the findings</a>
 <div class="wrap">
-<header class="top" id="top"><b>sonic manifold</b><span>by astralcrest</span></header>
+<header class="top" id="top">
+  <p class="brand"><b>sonic manifold</b><span>by astralcrest</span></p>
+  <nav class="tnav" aria-label="five doors">
+    <a href="./" aria-current="page">findings</a>
+    <a href="exhibit.html">the record</a>
+    <a href="lab.html">the lab</a>
+    <a href="researcher.html">the report</a>
+    <a href="yourturn.html">your turn</a>
+  </nav>
+</header>
 <main id="argument">
 
-<section class="s1" id="finding" aria-labelledby="q">
+<section class="s1" id="finding" aria-labelledby="hl">
+  <div class="s1-h">
+    <h1 class="hl" id="hl">the app, not i, pressed play on 81 of every 100 of my Spotify plays.</h1>
+    <p class="sub">97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count.</p>
+    <p class="sub">two counts because the app changed what it logs in october 2023. the strict count is the one that holds across that change.</p>
+  </div>
   <div class="s1-vis">
-    <div class="stage" id="stage"><canvas id="pour" aria-hidden="true"></canvas></div>
+    <div class="stage" id="stage"><canvas id="pour" aria-hidden="true"></canvas><p class="slice" id="slice" hidden>the rest of the 19: my back and skip presses</p></div>
     <div class="labels" id="labels">
-      <p class="cap" id="cap">97,427 plays. one tick each.<br>each line of ticks is 100 plays.</p>
       <div></div>
-      <div class="jl jl-0" hidden><span class="nm">i tapped</span><b id="c0">0</b><span>19 of every 100</span></div>
-      <div class="jl jl-1" hidden><span class="nm">shuffle</span><b id="c1">0</b><span>17 of every 100</span></div>
-      <div class="jl jl-2" hidden><span class="nm">the queue</span><b id="c2">0</b><span>64 of every 100</span></div>
+      <div class="jl jl-0"><span class="nm">i tapped</span><b id="c0">18,591</b><span id="r0">19 of every 100</span></div>
+      <div class="jl jl-1"><span class="nm">shuffle</span><b id="c1">16,262</b><span id="r1">17 of every 100</span></div>
+      <div class="jl jl-2"><span class="nm">the queue</span><b id="c2">62,574</b><span id="r2">64 of every 100</span></div>
+      <p class="both"><span class="brk" aria-hidden="true"></span>the app's two jars together: <b id="both-n">78,836 = 81 of every 100</b></p>
     </div>
   </div>
-  <div class="s1-text">
-    <h1 class="ask" id="q">of every 100 of my Spotify plays, how many did i press play on myself?</h1>
-    <div class="ruler" id="ruler" role="slider" tabindex="0" aria-label="your guess, out of every 100 plays" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="no guess yet" aria-describedby="hint"><canvas id="ruler-cv" aria-hidden="true"></canvas></div>
-    <div class="slot">
-      <p class="hint" id="hint">drag along the ruler, then let go.<span class="sr"> or use the arrow keys, then press enter.</span></p>
-      <p class="answer" id="answer" aria-live="polite"></p>
+  <div class="s1-toy">
+    <p class="cnt-l" id="cnt-l">count as mine:</p>
+    <div class="cnt" role="group" aria-labelledby="cnt-l">
+      <button type="button" id="cnt-all" aria-pressed="true">every press i made: <b>19</b></button>
+      <button type="button" id="cnt-strict" aria-pressed="false">the strictest count: <b>11.5</b></button>
     </div>
-    <div class="reveal" id="reveal">
-      <h2 class="hl">the app, not i, pressed play on 81 of every 100 of my Spotify plays.</h2>
-      <p class="sub">97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count.</p>
-      <p class="sub">two counts because the app changed what it logs in october 2023. the strict count is the one that holds across that change.</p>
-      <ul class="key">
-        <li><i class="km"></i><b>i tapped:</b> i started the song myself.</li>
-        <li><i class="ks"></i><b>shuffle:</b> i hit shuffle; the order was the app's.</li>
-        <li><i class="kq"></i><b>the queue:</b> the app served the next song by itself.</li>
-      </ul>
-      <p class="knote">the strictest count keeps only the play button, a click on a row and a remote; back and skip presses that landed on a song are left out.</p>
-    </div>
+    <p class="sr" id="cnt-say" aria-live="polite"></p>
+    <p class="knote">the strictest count: play button, row click, remote; back and skip presses are left out.</p>
+    <p class="knote" id="snd-note">&#9834; any press on this page starts my soundtrack. the bar at the bottom stops it.</p>
+  </div>
+  <div class="s1-key">
+    <ul class="key">
+      <li><i class="km"></i><b>i tapped:</b> i started the song myself.</li>
+      <li><i class="ks"></i><b>shuffle:</b> i hit shuffle; the order was the app's.</li>
+      <li><i class="kq"></i><b>the queue:</b> the next song started by itself; my own albums and playlists count here, and a few plays with no clear start.</li>
+    </ul>
   </div>
 </section>
 
@@ -395,11 +434,12 @@ html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .ga
     <div>
       <h2 id="h-s2">can you tell my taps from the app's?</h2>
       <p class="lede">ten plays from the log, five mine and five the app's. guess who pressed play on each; after the tenth, i show you what gives it away.</p>
+      <p class="skipgame" id="skipgame"><button class="linkbtn" id="b-tell" type="button">skip the game: show me the tell</button></p>
     </div>
     <div>
       <div class="game" id="game" aria-busy="true">
         <div class="tally" id="tally" aria-hidden="true"></div>
-        <p class="round mono" id="round">round 1 of 10</p>
+        <p class="round mono" id="round">round 1 of 10 · 0 right</p>
         <article class="card" id="card" aria-live="polite">
           <p class="ct" id="c-t">dealing ten cards&hellip;</p>
           <p class="ca" id="c-a"></p>
@@ -419,7 +459,7 @@ html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .ga
         <p class="r-score" id="r-score" tabindex="-1"></p>
         <p class="note">in the log it is 11.5 me to 64 queue; here i dealt you five and five.</p>
         <div class="tell">
-          <h3>the tell</h3>
+          <h3 id="tell-h" tabindex="-1">the tell</h3>
           <p class="punch">a tap interrupts the song before it; the queue waits for it to end.</p>
           <p class="lede">how the play before each card ended. i hid it during the game.</p>
           <ol class="tell-rows" id="tell-rows"></ol>
@@ -459,6 +499,7 @@ html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .ga
     <div class="g-quotes quotes">
       <div class="quote"><p>ambient/lofi reaches me <b>0.636</b> times as often by my own hand as by the queue.</p><span class="mono">likely range 0.569 to 0.710</span></div>
       <div class="quote"><p>hip-hop and r&amp;b reach me <b>1.22</b> times as often by my own hand.</p></div>
+      <p class="small">the less firm of the two: counted per track, not per play, hip-hop reads below 1.</p>
     </div>
   </div>
 </section>
@@ -469,13 +510,14 @@ html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .ga
   <p class="lede">388 artists, one dot each, shaded by genre family. an arc joins a play to the next one.</p>
   <p class="legend">arc: a step to another family. loop: a step within one.</p>
   <div class="maps">
-    <div class="mapbox"><h3 class="k-me">100 steps i started</h3><canvas class="mapcv" id="map-me" aria-hidden="true"></canvas><div class="count"><b class="k-me" id="ct-me">?</b><span>of 100 crossed over</span></div></div>
-    <div class="mapbox"><h3 class="k-q">100 steps the queue started</h3><canvas class="mapcv" id="map-q" aria-hidden="true"></canvas><div class="count"><b class="k-q" id="ct-q">?</b><span>of 100 crossed over</span></div></div>
+    <div class="mapbox"><h3 class="k-me">100 steps i started</h3><canvas class="mapcv" id="map-me" aria-hidden="true"></canvas><div class="count"><b class="k-me" id="ct-me">69.9</b><span>of 100 crossed over</span></div></div>
+    <div class="mapbox"><h3 class="k-q">100 steps the queue started</h3><canvas class="mapcv" id="map-q" aria-hidden="true"></canvas><div class="count"><b class="k-q" id="ct-q">66.3</b><span>of 100 crossed over</span></div></div>
   </div>
-  <div class="drawrow"><button class="btn solid" id="b-draw" type="button">draw the steps</button></div>
+  <div class="drawrow"><button class="btn" id="b-draw" type="button">draw them again</button></div>
   <p class="lzfail" hidden>this part did not load. reload the page to try again.</p>
   <p class="dir">a direction, not a size.</p>
   <p class="lede">my taps cross over more often; how much more is not settled.</p>
+  <p class="small">three stricter checks (the tail, arm rules, coverage) can't tell it from no difference.</p>
   <p class="small">the paper: 69.9 vs 66.3 of 100 crossed to another genre family. ratio 1.05 (1.03 to 1.08).</p>
   <p class="small">the arcs join real pairs of genre families, drawn to the paper's rates.</p>
 </section>
@@ -484,25 +526,26 @@ html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .ga
   <p class="kick"><b>5</b> the instrument that lies</p>
   <div class="inst">
     <div>
-      <h2 id="h-s5">train the map on what the app played, and the crossing ratio climbs on its own.</h2>
+      <h2 id="h-s5">train a learned map on what the app played, and the crossing ratio climbs on its own.</h2>
       <p class="lede">the more of the map's training music the app picked, the higher the needle reads.</p>
       <p class="do">drag the slider and watch the needle.</p>
       <p class="sl-label" id="sl-label">the app's share of what the map learned from</p>
-      <div class="slider" id="slider" role="slider" tabindex="0" aria-labelledby="sl-label" aria-valuemin="0.12" aria-valuemax="1" aria-valuenow="0.12" aria-valuetext="0.12, the ratio reads 1.0">
+      <div class="slider" id="slider" role="slider" tabindex="0" aria-labelledby="sl-label" aria-valuemin="0.12" aria-valuemax="1" aria-valuenow="0.86" aria-valuetext="0.86, the ratio reads 1.4">
         <div class="track"></div>
         <div class="ends" aria-hidden="true"><span>0.12</span><span>1.00</span></div>
-        <span class="val mono" id="sl-val" aria-hidden="true">0.12</span>
-        <div class="thumb" id="sl-thumb"></div>
+        <span class="val mono" id="sl-val" aria-hidden="true" style="left:84.09%;transform:translateX(-50%)">0.86</span>
+        <div class="thumb" id="sl-thumb" style="left:84.09%"></div>
       </div>
     </div>
     <div>
       <svg class="dial" id="dial" viewBox="0 0 420 236" aria-hidden="true"></svg>
-      <div class="readout"><b class="mono" id="ix">1.0</b><span>the ratio reads</span></div>
+      <div class="readout"><b class="mono" id="ix">1.4</b><span id="ix-say">the ratio reads</span></div>
       <p class="dleg"><span><i class="sw-ice"></i>1.0 no difference</span><span><i class="sw-dead"></i>1.61 withdrawn</span></p>
     </div>
   </div>
   <noscript><p class="note">at 0.12 the ratio reads 1.0; at 1.00 it reads 1.5.</p></noscript>
-  <p class="caption">no true difference is built in. the first headline, 1.61, is <span class="k-dead">withdrawn</span> because of this.</p>
+  <p class="caption">at 0.86, about this log's own share, the same real plays read 1.4.</p>
+  <p class="caption">no difference built in, it still reads 1.13; the first headline, 1.61, is <span class="k-dead">withdrawn</span>.</p>
 </section>
 
 <section class="sec" id="kills" aria-labelledby="h-s6">
@@ -512,14 +555,14 @@ html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .ga
   <p class="ghint">tap a stone to see what killed it.</p>
   <div class="graves" id="graves" role="listbox" tabindex="0" aria-label="sixteen graves. tap a stone to see what killed it." aria-busy="true"></div>
   <p class="lzfail" hidden>this part did not load. reload the page to try again.</p>
-  <p class="small gsmall">every kill condition i pre-declared was written down before i saw the result; the post-hoc ones are labeled.</p>
+  <p class="small gsmall">kill conditions were set before the results where they could be; the report marks which.</p>
   <p class="glink"><a href="researcher.html#graveyard">all eighteen, in the report</a></p>
 </section>
 
 <section class="sec" id="yours" aria-labelledby="h-s7">
   <p class="kick"><b>7</b> your turn</p>
   <h2 id="h-s7">count your own crossings.</h2>
-  <p class="lede">the same crossing count, on your own listening. it needs your extended streaming history from Spotify; the next page shows how to ask for it.</p>
+  <p class="lede">a looser, quicker cousin of the crossing count, run on your own listening. it builds its map from your own stream, so it reads high: compare yourself with other people, not with my number. it needs your extended streaming history from Spotify; the next page shows how to ask for it.</p>
   <a class="door1" href="bridge-index.html"><span class="dt">run it on your own Spotify export.</span> <span class="dd">nothing leaves your browser.<span class="go" aria-hidden="true"> &rarr;</span></span></a>
 </section>
 
@@ -545,7 +588,7 @@ html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .ga
   <h2 id="h-s9">three doors</h2>
   <nav aria-label="three doors">
     <ul class="doors">
-      <li><a class="door" href="exhibit.html?enter=sound#tour=grand&amp;stop=1"><span class="dt">the record <i aria-hidden="true">&rarr;</i></span><span class="dd">the exhibit: an art piece in eighteen stops, with sound.</span></a>
+      <li><a class="door" href="exhibit.html?enter=sound#tour=grand&amp;stop=1"><span class="dt">the record <i aria-hidden="true">&rarr;</i></span><span class="dd">an art piece in eighteen stops, with sound.</span></a>
         <p class="more" id="tours"><a href="exhibit.html?enter=sound#tour=ninety&amp;stop=1">in a hurry? the ninety-second cut</a><a href="exhibit.html#notes">liner notes for scientists, musicians and artists</a></p></li>
       <li><a class="door" href="lab.html"><span class="dt">the lab <i aria-hidden="true">&rarr;</i></span><span class="dd">every chart.</span></a></li>
       <li><a class="door" href="researcher.html"><span class="dt">the report <i aria-hidden="true">&rarr;</i></span><span class="dd">the paper's claims in plain words.</span></a></li>
@@ -559,13 +602,14 @@ html:not(.js) .s1-vis,html:not(.js) .ruler,html:not(.js) .slot,html:not(.js) .ga
 <div class="wrap"><p class="fnote">astralcrest &middot; 2026 &middot; built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a></p></div>
 <nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}@media (pointer:coarse){.sleeve a{min-height:44px}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i><a href="exhibit.html" data-p="exhibit.html">the record</a></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">how it was made</a></span><a class="up" href="#top">back to the top &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav>
 </footer>
+<div id="player-dock"></div>
 
 <script>
 (function () {
 'use strict';
 
 /* ---------- data: each section's sidecar is fetched when the section nears the screen ---------- */
-var V = {"taste":"f80735e03e","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"5ad1c51dfd"};
+var V = {"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"5ad1c51dfd","hear":"32c1ba0b88"};
 var READY = {};
 function getJSON(name) {
   return fetch('front/data/' + name + '.json?v=' + (V[name] || '0'), { credentials: 'same-origin' }).then(function (r) {
@@ -589,7 +633,6 @@ function lazy(sec, names, init) {
   }, { rootMargin: '100% 0px 100% 0px' });
   io.observe(sec);
 }
-var GUESS_KEY = 'exhibit.wall.guess';
 
 /* ---------- utilities ---------- */
 var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -625,26 +668,25 @@ function fitCanvas(cv) {
 }
 readColors();
 
-/* ---------- 1. the guess and the pour ---------- */
+/* ---------- 1. the finding: three jars that pour themselves once, and the strict count ---------- */
+/* R21 2026-10-17: the front states the headline first; no ruler, no guess, no field of ticks */
 var N = 97427, COUNT = [18591, 16262, 62574], STRICT_LVL = 11.5;
-var COLOR_MS = 620, POUR_MS = 1900;
-var S1 = { G: -1, dragging: false, locked: false, phase: 'field', tStart: 0, raf: 0, pid: null, size: '' };
+var POUR_MS = 1100;
+var S1 = { phase: 'wait', tStart: 0, raf: 0, size: '', strict: false, k: 0, kraf: 0, final: false };
 var ARM = new Uint8Array(N), JA = new Float32Array(N), JB = new Float32Array(N);
 (function () {
-  var k = 0, a, j, r = mulberry32(97427);
-  for (a = 0; a < 3; a++) for (j = 0; j < COUNT[a]; j++) ARM[k++] = a;
-  for (var i = N - 1; i > 0; i--) { j = Math.floor(r() * (i + 1)); var t = ARM[i]; ARM[i] = ARM[j]; ARM[j] = t; }
-  var q = mulberry32(19);
-  for (i = 0; i < N; i++) { JA[i] = q(); JB[i] = q(); }
+  var k = 0, q = mulberry32(19);
+  for (var a = 0; a < 3; a++) for (var j = 0; j < COUNT[a]; j++) ARM[k++] = a;
+  for (var i = 0; i < N; i++) { JA[i] = q(); JB[i] = q(); }
 })();
-var FX, FY, JX, JY, T0, FL, SW;
+var FY, JX, JY, T0, FL;
 
 function s1Layout() {
   var cv = $('#pour');
   var f = fitCanvas(cv);
   var key = f.wd + 'x' + f.hd;
   if (key === S1.size && S1.buf) return;
-  S1.size = key;
+  S1.size = key; S1.final = false;
   var ctx = cv.getContext('2d');
   S1.cv = cv; S1.ctx = ctx; S1.W = f.W; S1.H = f.H; S1.d = f.d; S1.wd = f.wd; S1.hd = f.hd;
   S1.img = ctx.createImageData(f.wd, f.hd);
@@ -652,103 +694,62 @@ function s1Layout() {
   var st = getComputedStyle($('#stage'));
   var gutw = parseFloat(st.getPropertyValue('--gutw')) || 44, gapw = parseFloat(st.getPropertyValue('--gapw')) || 12;
   var d = f.d, wd = f.wd, hd = f.hd;
-  var lines = Math.ceil(N / 100), cg = Math.round(10 * d), maxH = hd - Math.round(14 * d);
-  var cfgs = [[3, 4], [3, 3], [2, 4], [2, 3], [1, 3], [2, 2], [1, 2], [1, 1]], P = null, i, c;
-  for (i = 0; i < cfgs.length && !P; i++) {
-    var tp = cfgs[i][0], lp = cfgs[i][1], lw = 100 * tp;
-    var cols = Math.max(1, Math.floor((wd + cg) / (lw + cg))), lpc = Math.ceil(lines / cols);
-    if (lpc * lp <= maxH) P = { tp: tp, lp: lp, lw: lw, cols: cols, lpc: lpc, h: lpc * lp };
-  }
-  if (!P) { var cols1 = Math.max(1, Math.floor((wd + cg) / (100 + cg))), lpc1 = Math.ceil(lines / cols1); P = { tp: 1, lp: maxH / lpc1, lw: 100, cols: cols1, lpc: lpc1, h: maxH }; }
-  P.cg = P.cols > 1 ? Math.min(Math.round(1.5 * cg), Math.floor((wd - P.cols * P.lw) / (P.cols - 1))) : cg;
-  P.x0 = Math.round((wd - (P.cols * P.lw + (P.cols - 1) * P.cg)) / 2);
-  P.tw = P.tp >= 3 ? P.tp - 1 : 1;
-  P.y0 = Math.round((hd - P.h) / 2);
-  P.th = Math.max(1, Math.floor(P.lp) - 1);
   var gut = Math.round(gutw * d), gap = Math.round(gapw * d);
-  var top = Math.round((f.W < 560 ? 46 : 54) * d), bot = hd - Math.max(1, Math.round(d));
+  var top = Math.round(10 * d), bot = hd - Math.max(1, Math.round(d));
   var jw = Math.floor((wd - gut - 2 * gap) / 3), inset = Math.max(2, Math.round(3 * d));
   var jars = [0, 1, 2].map(function (a) { return { x: gut + a * (jw + gap), w: jw }; });
   var iw = jw - 2 * inset, ih = bot - top - inset;
-  var tpj = Math.max(2, P.tp), colsJ = Math.max(1, Math.floor(iw / tpj)), rowsJ = Math.ceil(N / colsJ), rpj = ih / rowsJ;
-  S1.P = P;
-  S1.J = { gut: gut, gap: gap, top: top, bot: bot, jw: jw, jars: jars, inset: inset, iw: iw, ih: ih, tpj: tpj, twj: tpj - 1, colsJ: colsJ, rpj: rpj, thj: Math.max(1, Math.ceil(rpj)) };
-  FX = new Int16Array(N); FY = new Int16Array(N); JX = new Int16Array(N); JY = new Int16Array(N);
-  T0 = new Float32Array(N); FL = new Float32Array(N); SW = new Float32Array(N);
-  for (i = 0; i < N; i++) {
-    var L = (i / 100) | 0, k = i - L * 100;
-    c = (L / P.lpc) | 0;
-    var r = L - c * P.lpc;
-    FX[i] = P.x0 + c * (P.lw + P.cg) + k * P.tp;
-    FY[i] = P.y0 + Math.round(r * P.lp);
-    SW[i] = (FX[i] / wd) * (COLOR_MS - 160) + JB[i] * 140;
-  }
-  var by = [[], [], []];
-  for (i = 0; i < N; i++) by[ARM[i]].push(i);
-  var end = 0, lift = 24 * d;
+  var tpj = 2, colsJ = Math.max(1, Math.floor(iw / tpj)), rowsJ = Math.ceil(N / colsJ), rpj = ih / rowsJ;
+  S1.J = { gut: gut, gap: gap, top: top, bot: bot, jw: jw, jars: jars, inset: inset, iw: iw, ih: ih, colsJ: colsJ, rpj: rpj, thj: Math.max(1, Math.ceil(rpj)) };
+  FY = new Int16Array(N); JX = new Int16Array(N); JY = new Int16Array(N); T0 = new Float32Array(N); FL = new Float32Array(N);
+  /* one pour rate for all three jars: mine and shuffle stop early, the queue keeps filling */
+  var end = 0, i = 0, most = Math.max(COUNT[0], COUNT[1], COUNT[2]);
   for (var a = 0; a < 3; a++) {
-    var Ls = by[a], n = Ls.length;
-    var keyv = new Float32Array(N);
-    for (i = 0; i < n; i++) keyv[Ls[i]] = FY[Ls[i]] + JA[Ls[i]] * lift;
-    Ls.sort(function (p, q) { return keyv[q] - keyv[p]; });
     var jx0 = jars[a].x + inset;
-    for (var s = 0; s < n; s++) {
-      var t = Ls[s], col = s % colsJ, row = (s / colsJ) | 0;
-      JX[t] = jx0 + col * tpj;
-      JY[t] = Math.round(bot - inset - (row + 1) * rpj);
-      T0[t] = COLOR_MS + 60 + (s / n) * POUR_MS + JB[t] * 150;
-      FL[t] = 520 + JA[t] * 380;
-      if (T0[t] + FL[t] > end) end = T0[t] + FL[t];
+    for (var s = 0; s < COUNT[a]; s++, i++) {
+      JX[i] = jx0 + (s % colsJ) * tpj;
+      JY[i] = Math.round(bot - inset - (((s / colsJ) | 0) + 1) * rpj);
+      FY[i] = Math.round(top - (6 + JA[i] * 46) * d);
+      T0[i] = (s / most) * POUR_MS + JB[i] * 90;
+      FL[i] = 240 + JA[i] * 220;
+      if (T0[i] + FL[i] > end) end = T0[i] + FL[i];
     }
   }
-  S1.tEnd = end + 40;
+  S1.tEnd = end + 30;
+  slicePlace();
 }
 
 function lvl(v) { var J = S1.J; return J.bot - J.inset - (v / 100) * J.ih; }
 
 function s1Render(t) {
   if (!S1.buf) return;
-  var buf = S1.buf, wd = S1.wd, hd = S1.hd, P = S1.P, J = S1.J, d = S1.d;
-  buf.fill(0);
-  var ink = u32(C.ink, C.light ? 0.4 : 0.32), inkD = u32(C.ink, C.light ? 0.95 : 0.85), ice = u32(C.ice, 0.85), iceD = u32(C.ice, 1);
-  var AC = [u32(C.mint, 1), u32(C.amber, 1), u32(C.violet, 1)];
-  var AS2 = J.tpj === 2 ? [u32(C.mint, 0.5), u32(C.amber, 0.5), u32(C.violet, 0.5)] : null;
-  var G = S1.G, th = P.th, tw = P.tw, thj = J.thj, twj = J.twj, streak = Math.max(2, Math.round(2.2 * d)), lift = 34 * d;
-  var cnt = [0, 0, 0], field = t < 0, PI = Math.PI;
-  for (var i = 0; i < N; i++) {
-    var x, y, h, c, w = 1, c2 = 0;
-    if (field || t < T0[i]) {
-      x = FX[i]; y = FY[i]; h = th; w = tw;
-      if (!field && t >= SW[i]) c = AC[ARM[i]];
-      else { var kk = i % 100, dec = kk % 10 === 9; c = kk < G ? (dec ? iceD : ice) : (dec ? inkD : ink); }
-    } else {
-      var p = (t - T0[i]) / FL[i];
-      if (p >= 1) { x = JX[i]; y = JY[i]; h = thj; w = twj; c = AC[ARM[i]]; if (AS2) c2 = AS2[ARM[i]]; cnt[ARM[i]]++; }
-      else {
-        var e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-        x = Math.round(FX[i] + (JX[i] - FX[i]) * e);
-        y = Math.round(FY[i] + (JY[i] - FY[i]) * p * p - (0.3 + JA[i] * 0.7) * lift * Math.sin(PI * p));
-        h = streak; c = AC[ARM[i]];
+  var done = t >= S1.tEnd;
+  if (!done || !S1.final) {
+    var buf = S1.buf, wd = S1.wd, hd = S1.hd, J = S1.J, d = S1.d;
+    buf.fill(0);
+    var AC = [u32(C.mint, 1), u32(C.amber, 1), u32(C.violet, 1)], AS2 = [u32(C.mint, 0.5), u32(C.amber, 0.5), u32(C.violet, 0.5)];
+    var thj = J.thj, streak = Math.max(2, Math.round(2.2 * d));
+    for (var i = 0; i < N; i++) {
+      if (t < T0[i]) continue;
+      var p = (t - T0[i]) / FL[i], x = JX[i], y, h, c = AC[ARM[i]], c2 = 0;
+      if (p >= 1) { y = JY[i]; h = thj; c2 = AS2[ARM[i]]; }
+      else { y = Math.round(FY[i] + (JY[i] - FY[i]) * p * p); h = streak; }
+      for (var rr = 0; rr < h; rr++) {
+        var yy = y + rr; if (yy < 0 || yy >= hd) continue;
+        var o = yy * wd + x;
+        buf[o] = c;
+        if (c2) buf[o + 1] = c2;
       }
     }
-    if (x < 0 || x + w >= wd) continue;
-    for (var rr = 0; rr < h; rr++) {
-      var yy = y + rr; if (yy < 0 || yy >= hd) continue;
-      var o = yy * wd + x;
-      for (var dx = 0; dx < w; dx++) buf[o + dx] = c;
-      if (c2) buf[o + w] = c2;
-    }
+    S1.final = done;
   }
   S1.ctx.putImageData(S1.img, 0, 0);
-  if (!field) {
-    $('#c0').textContent = fmt(cnt[0]); $('#c1').textContent = fmt(cnt[1]); $('#c2').textContent = fmt(cnt[2]);
-    s1Over(t);
-  }
+  s1Over(t);
 }
 
 function s1Over(t) {
-  var c = S1.ctx, d = S1.d, J = S1.J;
-  var a = clamp(t / 420, 0, 1);
+  var c = S1.ctx, d = S1.d, J = S1.J, m = J.jars[0];
+  var a = clamp(t / 300, 0, 1), b = clamp((t - S1.tEnd + 240) / 360, 0, 1);
   var lw = Math.max(1, Math.round(d)), half = lw % 2 ? 0.5 : 0;
   c.save();
   c.lineWidth = lw;
@@ -760,196 +761,117 @@ function s1Over(t) {
     for (var v = 10; v < 100; v += 10) { var y = Math.round(lvl(v)) + half, len = (v === 50 ? 8 : 4) * d; c.moveTo(x0, y); c.lineTo(x0 + len, y); }
     c.stroke();
   });
-  var b = clamp((t - S1.tEnd + 120) / 520, 0, 1);
-  if (b > 0) {
-    var m = J.jars[0];
-    c.globalAlpha = b;
-    // the strict count: a cut across the mint fill at 11.5 of every 100
-    var ys = Math.round(lvl(STRICT_LVL)) + half;
-    c.strokeStyle = C.bg; c.lineWidth = Math.max(1, Math.round(1.6 * d));
-    c.beginPath(); c.moveTo(m.x + J.inset, ys); c.lineTo(m.x + m.w - J.inset, ys); c.stroke();
-    // the visitor's guess, across the mint jar
-    if (S1.G >= 0) {
-      var yg = Math.round(lvl(S1.G)) + half;
-      c.strokeStyle = C.ice; c.lineWidth = Math.max(1, Math.round(1.4 * d));
-      c.setLineDash([3 * d, 2 * d]);
-      c.beginPath(); c.moveTo(m.x - 4 * d, yg); c.lineTo(m.x + m.w, yg); c.stroke();
-      c.setLineDash([]);
+  /* the strict count: above 11.5 of every 100 the mint fill turns to a hatched slice */
+  var k = S1.k, xa = m.x + J.inset, xb = m.x + m.w - J.inset;
+  if (k > 0) {
+    var yTop = Math.floor(lvl(COUNT[0] / N * 100)) - lw, ys = Math.round(lvl(STRICT_LVL));
+    var yk = Math.round(yTop + (ys - yTop) * k);
+    if (yk > yTop) {
+      c.clearRect(xa, yTop, xb - xa, yk - yTop);
+      c.save();
+      c.beginPath(); c.rect(xa, yTop, xb - xa, yk - yTop); c.clip();
+      c.strokeStyle = C.mint; c.lineWidth = Math.max(1, Math.round(1.25 * d));
+      var hh = yk - yTop, stp = Math.max(4, Math.round(6 * d));
+      c.beginPath();
+      for (var hx = xa - hh; hx < xb; hx += stp) { c.moveTo(hx, yk); c.lineTo(hx + hh, yTop); }
+      c.stroke();
+      c.restore();
+      c.strokeStyle = C.mint; c.lineWidth = lw;
+      c.beginPath(); c.moveTo(xa, yTop + half); c.lineTo(xb, yTop + half); c.moveTo(xa, yk - half); c.lineTo(xb, yk - half); c.stroke();
     }
-    // gutter labels, pushed apart so they never collide
+  }
+  /* gutter labels, pushed apart so they never collide */
+  if (b > 0) {
     var fs = (S1.W < 560 ? 9.5 : 11) * d;
-    c.font = '600 ' + fs + 'px ' + MONO;
     c.textBaseline = 'middle'; c.textAlign = 'right';
     var labs = [
-      { y: lvl(100), t: ['100'], col: rgba(C.ink, 0.55) },
-      { y: lvl(COUNT[0] / N * 100), t: ['19'], col: C.mint },
-      { y: lvl(STRICT_LVL), t: ['11.5', 'strict'], col: C.mint }
+      { y: lvl(100), t: ['100'], col: rgba(C.ink, 0.55), a: 1 },
+      { y: lvl(COUNT[0] / N * 100), t: ['19'], col: C.mint, a: 1 }
     ];
-    if (S1.G >= 0) labs.push({ y: lvl(S1.G), t: ['you ' + S1.G], col: C.ice });
+    if (k > 0) labs.push({ y: lvl(STRICT_LVL), t: ['11.5', 'strict'], col: C.mint, a: k });
     labs.forEach(function (L) { L.h = L.t.length * fs * 1.15; L.y0 = L.y - fs * 0.58; });
     labs.sort(function (p, q) { return p.y0 - q.y0; });
-    for (var k = 1; k < labs.length; k++) { var prev = labs[k - 1]; if (labs[k].y0 < prev.y0 + prev.h + 2 * d) labs[k].y0 = prev.y0 + prev.h + 2 * d; }
+    for (var n = 1; n < labs.length; n++) { var prev = labs[n - 1]; if (labs[n].y0 < prev.y0 + prev.h + 2 * d) labs[n].y0 = prev.y0 + prev.h + 2 * d; }
     var over = labs[labs.length - 1].y0 + labs[labs.length - 1].h - (J.bot + fs * 0.4);
     if (over > 0) labs.forEach(function (L) { L.y0 -= over; });
     var gx = m.x - 6 * d;
     labs.forEach(function (L) {
-      c.fillStyle = L.col;
+      c.globalAlpha = b * L.a; c.fillStyle = L.col;
       L.t.forEach(function (s, k2) { c.font = (k2 ? '500 ' + (fs * 0.92) : '700 ' + fs) + 'px ' + MONO; c.fillText(s, gx, L.y0 + fs * 0.58 + k2 * fs * 1.15); });
     });
-    // the app's two jars, bracketed
-    var x0 = J.jars[1].x, x1 = J.jars[2].x + J.jars[2].w, yb = J.top - 10 * d;
-    c.strokeStyle = rgba(C.ink, 0.7); c.lineWidth = lw;
-    c.beginPath(); c.moveTo(x0 + half, yb + 6 * d); c.lineTo(x0 + half, yb + half); c.lineTo(x1 - half, yb + half); c.lineTo(x1 - half, yb + 6 * d); c.stroke();
-    c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillStyle = C.ink;
-    var full = "the app's two jars together: 78,836 = 81 of every 100";
-    c.font = '600 ' + fs + 'px ' + MONO;
-    if (c.measureText(full).width <= x1 - x0) c.fillText(full, (x0 + x1) / 2, yb - 5 * d);
-    else { c.fillText("the app's two jars together:", (x0 + x1) / 2, yb - 5 * d - fs * 1.2); c.fillText('78,836 = 81 of every 100', (x0 + x1) / 2, yb - 5 * d); }
     c.globalAlpha = 1;
   }
   c.restore();
 }
 
-var R = { el: $('#ruler'), cv: $('#ruler-cv') };
-function rLayout() { var f = fitCanvas(R.cv); R.W = f.W; R.H = f.H; R.d = f.d; R.ctx = R.cv.getContext('2d'); }
-var RP = 4;
-function rX(g) { return RP + (g / 100) * (R.W - 2 * RP); }
-function rG(clientX) { var r = R.cv.getBoundingClientRect(); return clamp(Math.round(((clientX - r.left - RP) / (r.width - 2 * RP)) * 100), 0, 100); }
-function rDraw() {
-  if (!R.ctx) rLayout();
-  var c = R.ctx; if (!c) return;
-  var d = R.d, W = R.W, H = R.H, G = S1.G, L = S1.locked;
-  c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, W, H);
-  var base = H - 12, step = (W - 2 * RP) / 100, w = Math.max(1, Math.min(2.6, step * 0.38));
-  c.lineWidth = w;
-  for (var k = 0; k < 100; k++) {
-    var x = RP + (k + 0.5) * step, n = k + 1, h = n % 10 === 0 ? 36 : n % 5 === 0 ? 28 : 21;
-    c.strokeStyle = L ? (k < 19 ? C.mint : k < 36 ? C.amber : C.violet) : (k < G ? C.ice : rgba(C.ink, 0.3));
-    c.beginPath(); c.moveTo(x, base); c.lineTo(x, base - h); c.stroke();
-  }
-  c.strokeStyle = rgba(C.ink, 0.3); c.lineWidth = 1;
-  c.beginPath(); c.moveTo(RP, base + 3.5); c.lineTo(W - RP, base + 3.5); c.stroke();
-  var busy = null;
-  c.textBaseline = 'top';
-  if (G >= 0) {
-    var gx = rX(G);
-    c.fillStyle = C.ice;
-    c.beginPath(); c.moveTo(gx - 6, 1); c.lineTo(gx + 6, 1); c.lineTo(gx, 9); c.closePath(); c.fill();
-    c.strokeStyle = C.ice; c.lineWidth = 1.5;
-    c.beginPath(); c.moveTo(gx, 9); c.lineTo(gx, base + 8); c.stroke();
-    /* the guess as a number beside the marker, so the drag is not blind */
-    c.font = '700 12px ' + MONO;
-    var tw = c.measureText(String(G)).width, onRight = gx + 9 + tw <= W - RP;
-    c.textAlign = onRight ? 'left' : 'right';
-    c.fillText(String(G), onRight ? gx + 9 : gx - 9, 0);
-    busy = onRight ? [gx - 6, gx + 9 + tw] : [gx - 9 - tw, gx + 6];
-  }
-  /* the scale's two ends; one steps aside when the guess sits on it */
-  c.font = '600 11px ' + MONO; c.fillStyle = rgba(C.ink, 0.6);
-  [[RP, 'left', '0'], [W - RP, 'right', '100']].forEach(function (e) {
-    var ew = c.measureText(e[2]).width, x0 = e[1] === 'left' ? e[0] : e[0] - ew;
-    if (busy && x0 - 6 < busy[1] && x0 + ew + 6 > busy[0]) return;
-    c.textAlign = e[1]; c.fillText(e[2], e[0], 1);
-  });
+/* the label of the hatched slice sits in the mint jar, just above the fill */
+function slicePlace() {
+  var el = $('#slice'), J = S1.J;
+  if (!el || !J) return;
+  var m = J.jars[0], d = S1.d;
+  el.style.left = ((m.x + J.inset) / d).toFixed(1) + 'px';
+  el.style.width = ((m.w - 2 * J.inset) / d).toFixed(1) + 'px';
+  el.style.bottom = (S1.H - lvl(COUNT[0] / N * 100) / d + 8).toFixed(1) + 'px';
 }
-function setGuess(g) {
-  if (S1.locked) return;
-  S1.G = g;
-  R.el.setAttribute('aria-valuenow', String(Math.max(0, g)));
-  R.el.setAttribute('aria-valuetext', g < 0 ? 'no guess yet' : g + ' of every 100');
-  if (!S1.pending) {
-    S1.pending = true;
-    requestAnimationFrame(function () { S1.pending = false; rDraw(); if (!S1.locked) s1Render(-1); });
-  }
-}
-function lockGuess(how) {
-  how = how || 'drag';
-  if (S1.locked || (how !== 'past' && S1.G < 0)) return;
-  S1.locked = true;
-  var g = how === 'past' ? -1 : S1.G;
-  S1.G = g;
-  R.el.classList.add('locked');
-  R.el.setAttribute('tabindex', '-1');
-  R.el.setAttribute('role', 'img');
-  R.el.setAttribute('aria-label', (g >= 0 ? 'you said ' + g + '. ' : '') + '19 i tapped, 17 shuffle, 64 the queue, of every 100.');
-  R.el.removeAttribute('aria-valuenow'); R.el.removeAttribute('aria-valuetext'); R.el.removeAttribute('aria-valuemin'); R.el.removeAttribute('aria-valuemax');
-  if (document.activeElement === R.el) R.el.blur();
-  if (how === 'drag') { try { sessionStorage.setItem(GUESS_KEY, String(g)); } catch (e) { /* storage blocked: the guess is just not handed on */ } }
-  if (how === 'past') { try { sessionStorage.setItem('exhibit.wall.asked', '1'); } catch (e) { /* the record's stop 2 would ask once more; nothing worse */ } }
-  $('#hint').hidden = true;
-  $('#answer').innerHTML = (g >= 0 ? 'you said <span class="k-ice">' + g + '</span>. ' : '') + 'i started <span class="k-me">19</span> of every 100.';
-  rDraw();
-  $('#cap').hidden = true;
-  Array.prototype.forEach.call(document.querySelectorAll('.jl'), function (el) { el.hidden = false; });
-  if (how !== 'drag' || still()) {
-    /* a guess held from earlier this session, or a visitor who scrolled on: the answer at once, still */
-    S1.phase = 'done';
-    if (how !== 'drag') $('#labels').classList.add('now');
-    $('#labels').classList.add('poured');
-    s1Render(1e9);
-    showReveal(how !== 'drag');
-    return;
-  }
-  requestAnimationFrame(function () { $('#labels').classList.add('poured'); });
+
+function s1Pour() {
   if (!S1.buf) s1Layout();
+  if (still()) { S1.phase = 'done'; s1Render(1e9); return; }
   S1.phase = 'pour';
   S1.tStart = performance.now();
-  var endAt = S1.tEnd + 700;
+  var stop = S1.tEnd + 260;
   var step = function (now) {
     var t = now - S1.tStart;
-    s1Render(t);
-    if (t < endAt) S1.raf = requestAnimationFrame(step);
+    if (t < stop) { s1Render(t); S1.raf = requestAnimationFrame(step); }
     else { S1.phase = 'done'; s1Render(1e9); }
-    if (t >= S1.tEnd - 200 && !S1.revealed) showReveal();
   };
   S1.raf = requestAnimationFrame(step);
 }
-function showReveal(instant) {
-  S1.revealed = true;
-  var el = $('#reveal');
-  if (instant) el.classList.add('now');
-  el.classList.add('on');
+
+/* the switch: count as mine every press, or only the play button (the headline's 81 holds either way) */
+var SAY = ['every press i made: 19 of every 100, 18,591 plays.',
+  'the strictest count: 11.5 of every 100. the rest of the 19 were my back and skip presses.'];
+function s1Count(strict) {
+  strict = !!strict;
+  if (strict === S1.strict) return;
+  S1.strict = strict;
+  $('#cnt-all').setAttribute('aria-pressed', String(!strict));
+  $('#cnt-strict').setAttribute('aria-pressed', String(strict));
+  /* R21: the strict position shows the refereed share only (11.5 of every 100, the report's number); no raw count sits next to the 97,427 total */
+  $('#c0').textContent = strict ? '11.5' : '18,591';
+  $('#r0').textContent = strict ? 'of every 100 plays, by the strictest count' : '19 of every 100';
+  /* R21 DA: in the strict view every slot is a share, so 11.5 never sits beside a raw count */
+  $('#c1').textContent = strict ? '17' : '16,262'; $('#r1').textContent = strict ? 'of every 100' : '17 of every 100';
+  $('#c2').textContent = strict ? '64' : '62,574'; $('#r2').textContent = strict ? 'of every 100' : '64 of every 100';
+  $('#both-n').textContent = strict ? '81 of every 100' : '78,836 = 81 of every 100';
+  $('#slice').hidden = !strict;
+  $('#cnt-say').textContent = SAY[strict ? 1 : 0];
+  var to = strict ? 1 : 0, from = S1.k;
+  cancelAnimationFrame(S1.kraf);
+  if (still() || S1.phase !== 'done') { S1.k = to; if (S1.phase === 'done') s1Render(1e9); return; }
+  var t0 = performance.now(), D = 460;
+  var step = function (now) {
+    var p = clamp((now - t0) / D, 0, 1);
+    S1.k = from + (to - from) * (1 - Math.pow(1 - p, 3));
+    s1Render(1e9);
+    if (p < 1) S1.kraf = requestAnimationFrame(step);
+  };
+  S1.kraf = requestAnimationFrame(step);
 }
-R.el.addEventListener('pointerdown', function (e) {
-  if (S1.locked) return;
-  if (e.pointerType === 'mouse' && e.button !== 0) return;
-  S1.dragging = true; S1.pid = e.pointerId; S1.before = S1.G;
-  try { R.el.setPointerCapture(e.pointerId); } catch (err) { /* capture is optional */ }
-  setGuess(rG(e.clientX));
-});
-R.el.addEventListener('pointermove', function (e) { if (S1.dragging && e.pointerId === S1.pid) setGuess(rG(e.clientX)); });
-R.el.addEventListener('pointerup', function (e) {
-  if (!S1.dragging || e.pointerId !== S1.pid) return;
-  S1.dragging = false;
-  setGuess(rG(e.clientX));
-  lockGuess();
-});
-R.el.addEventListener('pointercancel', function () { if (S1.dragging) { S1.dragging = false; setGuess(S1.before); } });
-R.el.addEventListener('keydown', function (e) {
-  if (S1.locked) return;
-  var g = S1.G < 0 ? 0 : S1.G, k = e.key;
-  if (k === 'ArrowRight' || k === 'ArrowUp') g += e.shiftKey ? 10 : 1;
-  else if (k === 'ArrowLeft' || k === 'ArrowDown') g -= e.shiftKey ? 10 : 1;
-  else if (k === 'PageUp') g += 10;
-  else if (k === 'PageDown') g -= 10;
-  else if (k === 'Home') g = 0;
-  else if (k === 'End') g = 100;
-  else if (k === 'Enter' || k === ' ') { e.preventDefault(); if (S1.G < 0) setGuess(0); lockGuess(); return; }
-  else return;
-  e.preventDefault();
-  setGuess(clamp(g, 0, 100));
-});
+$('#cnt-all').addEventListener('click', function () { s1Count(false); });
+$('#cnt-strict').addEventListener('click', function () { s1Count(true); });
 
 /* ---------- 2. the taste test ---------- */
 var DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 var hourWords = function (h) { return h === 0 ? '12 am' : h === 12 ? '12 pm' : h < 12 ? h + ' am' : (h - 12) + ' pm'; };
 var mmss = function (s) { s = Math.round(s); return s >= 900 ? '15:00 or more' : Math.floor(s / 60) + ':' + pad2(s % 60); };
-var TS = { rows: [], used: [], deck: [], i: 0, right: 0, answers: [], answered: false };
+var TS = { rows: [], used: [], deck: [], i: 0, right: 0, answers: [], answered: false, wantTell: false };
 function tsInit(d) {
   TS.rows = d.rows; /* every row as logged: a '!' in a song title is data, not copy */
   $('#game').removeAttribute('aria-busy');
   $('#b-me').disabled = false; $('#b-app').disabled = false;
   tsDeal();
+  if (TS.wantTell) { TS.wantTell = false; tsTell(); }
 }
 function tsDeal() {
   var usedSet = TS.used;
@@ -962,7 +884,7 @@ function tsDeal() {
   TS.deck = deck; TS.i = 0; TS.right = 0; TS.answers = []; TS.answered = false;
   var tally = $('#tally'); tally.innerHTML = '';
   for (var k = 0; k < 10; k++) tally.appendChild(document.createElement('i'));
-  $('#result').hidden = true; $('#game').hidden = false;
+  $('#result').hidden = true; $('#game').hidden = false; $('#skipgame').hidden = false;
   tsShow();
 }
 function tsShow() {
@@ -1000,10 +922,11 @@ function beforeText(r) {
   var how = r.pe === 'done' ? 'ran to its end (' + mmss(r.pm) + ')' : r.pe === 'skip' ? 'was skipped or sent back at ' + mmss(r.pm) : 'was stopped at ' + mmss(r.pm);
   return { what: what, how: how };
 }
-function tsResult() {
-  $('#game').hidden = true;
+function tsResult(skipped) {
+  $('#game').hidden = true; $('#skipgame').hidden = true;
   var res = $('#result'); res.hidden = false;
-  $('#r-score').innerHTML = 'you got ' + TS.right + ' of 10. <span>chance is 5.</span>';
+  $('#r-score').hidden = !!skipped;
+  if (!skipped) $('#r-score').innerHTML = 'you got ' + TS.right + ' of 10. <span>chance is 5.</span>';
   var ol = $('#tell-rows'); ol.innerHTML = '';
   TS.answers.forEach(function (a, k) {
     var r = a.r, b = beforeText(r), li = document.createElement('li');
@@ -1020,7 +943,7 @@ function tsResult() {
     ol.appendChild(li);
   });
   drawAuc();
-  $('#r-score').focus({ preventScroll: true });
+  (skipped ? $('#tell-h') : $('#r-score')).focus({ preventScroll: true });
   var top = res.getBoundingClientRect().top;
   if (top < 0 || top > window.innerHeight * 0.7) res.scrollIntoView({ block: 'start', behavior: still() ? 'auto' : 'smooth' });
 }
@@ -1044,6 +967,13 @@ $('#b-again').addEventListener('click', function () {
   if (top < 0) g.scrollIntoView({ block: 'start', behavior: still() ? 'auto' : 'smooth' });
   $('#b-me').focus({ preventScroll: true });
 });
+/* the finding is never gated by the game: the tell at once, for the ten cards on the table */
+function tsTell() {
+  if (!TS.deck.length) { TS.wantTell = true; return; }
+  for (var k = TS.answers.length; k < 10; k++) TS.answers.push({ r: TS.deck[k], ok: null });
+  tsResult(true);
+}
+$('#b-tell').addEventListener('click', tsTell);
 
 /* ---------- 3. by genre ---------- */
 var GS = null, GMAX = 32, FAMS = [], GROWS = [];
@@ -1170,7 +1100,7 @@ function mDraw(t) {
       c.fillRect(p[0] - rr, p[1] - rr, 2 * rr, 2 * rr);
     }
     if (!m.arcs) return;
-    var crossed = 0, col = C[m.col];
+    var col = C[m.col];
     c.lineWidth = 1;
     m.arcs.forEach(function (a, i) {
       var pr = t >= 1e8 ? 1 : clamp((t - i * STAG) / DUR, 0, 1);
@@ -1183,18 +1113,18 @@ function mDraw(t) {
       if (pr >= 1) {
         c.fillStyle = col;
         var e = 1.8 * m.dk, P0 = m.pts[a.A]; c.fillRect(P0[0] - e, P0[1] - e, 2 * e, 2 * e);
-        if (a.cross) { var P1 = m.pts[a.B]; c.fillRect(P1[0] - e, P1[1] - e, 2 * e, 2 * e); crossed++; }
+        if (a.cross) { var P1 = m.pts[a.B]; c.fillRect(P1[0] - e, P1[1] - e, 2 * e, 2 * e); }
       }
     });
-    m.ct.textContent = crossed;
   });
 }
 function mRun() {
+  MP.ran = true;
   if (!MP.ready) { MP.want = true; return; }
   var r = Math.random;
   MP.maps.forEach(function (m) { m.arcs = sampleArcs(m.arm, m.target, r); });
   var btn = $('#b-draw');
-  if (still()) { mDraw(1e9); btn.textContent = 'draw again'; return; }
+  if (still()) { mDraw(1e9); btn.textContent = 'draw them again'; return; }
   btn.disabled = true;
   MP.t0 = performance.now();
   var end = 99 * STAG + DUR + 30;
@@ -1203,7 +1133,7 @@ function mRun() {
     var t = now - MP.t0;
     mDraw(t);
     if (t < end) MP.raf = requestAnimationFrame(step);
-    else { mDraw(1e9); btn.disabled = false; btn.textContent = 'draw again'; }
+    else { mDraw(1e9); btn.disabled = false; btn.textContent = 'draw them again'; }
   };
   MP.raf = requestAnimationFrame(step);
 }
@@ -1211,7 +1141,7 @@ $('#b-draw').addEventListener('click', mRun);
 
 /* ---------- 5. the instrument that lies ---------- */
 var LV = [0.12, 0.25, 0.50, 0.65, 0.80, 0.86, 1.00], IX = [0.98, 1.07, 1.19, 1.26, 1.37, 1.43, 1.47];
-var SL = { el: $('#slider'), i: 0, ang: null, raf: 0 };
+var SL = { el: $('#slider'), i: -1, ang: null, raf: 0 };
 var DIAL = { cx: 210, cy: 212, r: 172, lo: 0.9, hi: 1.7 };
 function dAng(v) { return Math.PI + ((v - DIAL.lo) / (DIAL.hi - DIAL.lo)) * Math.PI; }
 function dPt(v, rr) { var a = dAng(v); return [DIAL.cx + Math.cos(a) * rr, DIAL.cy + Math.sin(a) * rr]; }
@@ -1241,7 +1171,7 @@ function slSet(i, animate) {
   $('#sl-thumb').style.left = pos;
   var val = $('#sl-val'); val.style.left = pos; val.textContent = v.toFixed(2);
   val.style.transform = i === 0 ? 'translateX(-2px)' : i === LV.length - 1 ? 'translateX(calc(-100% + 2px))' : 'translateX(-50%)';
-  $('#ix').textContent = ix;
+  $('#ix').textContent = ix; $('#ix-say').textContent = 'the ratio reads';
   SL.el.setAttribute('aria-valuenow', String(v));
   SL.el.setAttribute('aria-valuetext', v.toFixed(2) + ', the ratio reads ' + ix);
   var target = dAng(parseFloat(ix));
@@ -1257,6 +1187,9 @@ function slSet(i, animate) {
   };
   SL.raf = requestAnimationFrame(step);
 }
+/* R21 2026-10-17: at rest the needle sits on the dial's own curve, at the detent nearest this log's share (0.86 reads 1.43);
+   the planted-null figure (a true 1.000 reads 1.132 at 0.87) is a different measurement and stays off this dial */
+function slRest() { slSet(5, false); }
 (function () {
   var el = SL.el;
   LV.forEach(function (v) { var d = document.createElement('div'); d.className = 'det'; d.style.left = slPos(v) + '%'; el.insertBefore(d, el.firstChild.nextSibling); });
@@ -1271,15 +1204,15 @@ function slSet(i, animate) {
   el.addEventListener('pointercancel', function () { drag = false; });
   el.addEventListener('keydown', function (e) {
     var k = e.key, i = SL.i;
-    if (k === 'ArrowRight' || k === 'ArrowUp') i++;
-    else if (k === 'ArrowLeft' || k === 'ArrowDown') i--;
+    if (k === 'ArrowRight' || k === 'ArrowUp') i = i < 0 ? LV.length - 1 : i + 1;
+    else if (k === 'ArrowLeft' || k === 'ArrowDown') i = i < 0 ? LV.length - 2 : i - 1;
     else if (k === 'Home') i = 0;
     else if (k === 'End') i = LV.length - 1;
     else return;
     e.preventDefault(); slSet(i, true);
   });
   drawDial();
-  slSet(0, false);
+  slRest();
 })();
 
 /* ---------- 6. the graveyard ---------- */
@@ -1363,122 +1296,44 @@ GV.box.addEventListener('keydown', function (e) {
   GV.stones[GV.active].scrollIntoView({ block: 'nearest' });
 });
 
-/* ---------- 8. the soundtrack ---------- */
-var TR = [], AU = { el: null, cur: -1, active: 0, want: false };
-var BED = 'https://astralcrest.github.io/sonicManifold/audio/bed/';
-function auInit(d) {
-  TR = d.tracks;
-  var ol = $('#tracks');
-  TR.forEach(function (t, k) {
-    var li = document.createElement('li'); li.id = 'trk-' + k; li.setAttribute('role', 'option'); li.setAttribute('aria-selected', 'false');
-    var n = document.createElement('span'); n.className = 'tn'; n.textContent = pad2(k + 1);
-    var tt = document.createElement('span'); tt.className = 'tt'; tt.textContent = t.t;
-    var kk = document.createElement('span'); kk.className = 'tk'; kk.textContent = t.k;
-    var bb = document.createElement('span'); bb.className = 'tb'; bb.textContent = t.bpm + ' bpm';
-    li.appendChild(n); li.appendChild(tt); li.appendChild(kk); li.appendChild(bb);
-    li.addEventListener('click', function () { AU.active = k; auPlay(k); });
-    ol.appendChild(li);
-  });
-  ol.removeAttribute('aria-busy');
-  auAct();
-  if (AU.want) { AU.want = false; auPlay(0); }
-}
-function auEnsure() {
-  if (AU.el) return AU.el;
-  var a = new Audio(); a.preload = 'auto';
-  a.addEventListener('ended', function () { if (AU.cur + 1 < TR.length) auPlay(AU.cur + 1); else { AU.cur = -1; auSync(); } });
-  a.addEventListener('timeupdate', function () { var p = a.duration ? a.currentTime / a.duration : 0; $('#prog').style.width = (p * 100).toFixed(2) + '%'; });
-  a.addEventListener('play', auSync); a.addEventListener('pause', auSync);
-  a.addEventListener('error', function () { if (AU.cur >= 0) $('#now').textContent = 'this track did not load. tap it to try again.'; });
-  AU.el = a; return a;
-}
-function auPlay(k) {
-  var a = auEnsure();
-  AU.cur = k;
-  a.src = BED + TR[k].f + '.mp3';
-  var pr = a.play(); if (pr && pr.catch) pr.catch(function () { /* blocked or interrupted; the button still works */ });
-  auSync();
-}
-function auSync() {
-  var a = AU.el, playing = a && !a.paused && AU.cur >= 0;
-  $('#b-play').innerHTML = (playing ? '<span aria-hidden="true">&#10073;&#10073;</span> pause' : '<span aria-hidden="true">&#9654;</span> ' + (AU.cur >= 0 ? 'play' : 'play the album'));
-  if (AU.cur >= 0) { var t = TR[AU.cur]; $('#now').innerHTML = (playing ? 'now playing: ' : 'paused: ') + '<b></b> · ' + t.k + ' · ' + t.bpm + ' bpm'; $('#now b').textContent = pad2(AU.cur + 1) + ' ' + t.t; }
-  else { $('#now').textContent = 'nothing is playing.'; $('#prog').style.width = '0'; }
-  Array.prototype.forEach.call($('#tracks').children, function (li, k) { li.classList.toggle('cur', k === AU.cur); li.setAttribute('aria-selected', k === AU.cur ? 'true' : 'false'); });
-}
-$('#b-play').addEventListener('click', function () {
-  if (!TR.length) { AU.want = true; return; }
-  var a = AU.el;
-  if (!a || AU.cur < 0) { auPlay(0); return; }
-  if (a.paused) { var pr = a.play(); if (pr && pr.catch) pr.catch(function () { /* see auPlay */ }); }
-  else a.pause();
-});
-var auAct = function () {
-  var ol = $('#tracks');
-  if (!TR.length) return;
-  Array.prototype.forEach.call(ol.children, function (li, k) { li.classList.toggle('active', k === AU.active && ol === document.activeElement); });
-  ol.setAttribute('aria-activedescendant', 'trk-' + AU.active);
-};
-(function () {
-  var ol = $('#tracks');
-  ol.addEventListener('focus', auAct); ol.addEventListener('blur', auAct);
-  ol.addEventListener('keydown', function (e) {
-    if (!TR.length) return;
-    var k = e.key, a = AU.active;
-    if (k === 'ArrowDown') a++; else if (k === 'ArrowUp') a--; else if (k === 'Home') a = 0; else if (k === 'End') a = TR.length - 1;
-    else if (k === 'Enter' || k === ' ') { e.preventDefault(); auPlay(AU.active); return; }
-    else return;
-    e.preventDefault(); AU.active = clamp(a, 0, TR.length - 1); auAct();
-    ol.children[AU.active].scrollIntoView({ block: 'nearest' });
-  });
-})();
-
 /* ---------- boot, resize, theme ---------- */
 function layoutAll(first) {
   var before = S1.size;
   s1Layout();
-  if (S1.size !== before || first) s1Render(S1.phase === 'field' ? -1 : 1e9);
-  rLayout(); rDraw();
+  if (first) s1Pour();
+  else if (S1.size !== before && S1.phase === 'done') s1Render(1e9);
   if (MP.ready) { mLayout(); mDraw(MP.raf && $('#b-draw').disabled ? performance.now() - MP.t0 : 1e9); }
   gvPlace();
 }
-/* a guess already made this session, here or in the record, is not asked for again */
-(function () {
-  var held = null;
-  try { var s = sessionStorage.getItem(GUESS_KEY); if (s != null && s !== '' && isFinite(+s)) held = clamp(Math.round(+s), 0, 100); } catch (e) { /* storage blocked */ }
-  if (held !== null) { S1.G = held; lockGuess('held'); }
-})();
 function boot() {
   layoutAll(true);
   lazy($('#taste'), ['taste'], tsInit);
   lazy($('#genre'), ['genre'], gInit);
   lazy($('#map'), ['nodes', 'pairs'], mInit);
   lazy($('#kills'), ['graveyard'], gvInit);
-  lazy($('#album'), ['tracks'], auInit);
-  /* the answer is never held hostage: scroll on past the question and it shows, still */
+  /* the crossing steps draw themselves once, when the maps come into view */
   if ('IntersectionObserver' in window) {
-    var past = new IntersectionObserver(function (es) {
-      var e = es[es.length - 1];
-      if (S1.locked) { past.disconnect(); return; }
-      if (!e.isIntersecting && e.boundingClientRect.bottom <= 0 && !S1.dragging) { past.disconnect(); lockGuess('past'); }
-    });
-    past.observe($('#finding'));
-  }
+    var seen = new IntersectionObserver(function (es) {
+      for (var i = 0; i < es.length; i++) if (es[i].isIntersecting) { seen.disconnect(); if (!MP.ran) mRun(); return; }
+    }, { threshold: 0.35 });
+    seen.observe($('.maps'));
+  } else mRun();
 }
-/* the heavy layout waits for the first paint, so the question shows at once */
+/* the heavy layout waits for the first paint, so the headline shows at once */
 requestAnimationFrame(function () { setTimeout(boot, 0); });
 var rz = 0;
 window.addEventListener('resize', function () { cancelAnimationFrame(rz); rz = requestAnimationFrame(function () { layoutAll(false); }); });
 var onTheme = function () {
   readColors();
-  if (S1.phase !== 'pour') s1Render(S1.phase === 'field' ? -1 : 1e9);
-  rDraw();
+  S1.final = false;
+  if (S1.phase === 'done') s1Render(1e9);
   if (MP.ready) mDraw(1e9);
 };
 if (lightQ.addEventListener) lightQ.addEventListener('change', onTheme); else if (lightQ.addListener) lightQ.addListener(onTheme);
-window.addEventListener('pageshow', function (e) { if (e.persisted) auSync(); });
-window.__ledger = { S1: S1, TS: TS, MP: MP, SL: SL, GV: GV, AU: AU, READY: READY, V: V, render: s1Render, lock: lockGuess };
+/* R21 2026-10-17: nothing to lock any more (no guess); lock stays callable as a no-op */
+window.__ledger = { S1: S1, TS: TS, MP: MP, SL: SL, GV: GV, READY: READY, V: V, render: s1Render, count: s1Count, lock: function () {} };
 })();
 </script>
+<script src="front/music.js?v=ec88ce9da8" defer></script>
 </body>
 </html>

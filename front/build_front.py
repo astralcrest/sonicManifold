@@ -10,7 +10,9 @@
 
 The default template (front/template.html) loads its data lazily: the build writes the content stamps into its
 /*@STAMPS@*/{} marker, and the page fetches front/data/<name>.json?v=<stamp> when a section nears the screen.
-Derived sidecars come from public, already-shipping files under exhibit/data/; taste, genre and graveyard are kept here.
+Derived sidecars come from public, already-shipping files under exhibit/data/; taste, genre and graveyard are kept here,
+and so are hear.json and the taste rows' "u" (Spotify track ids for the front's "hear it" chips: titles, artists, ids only).
+A script the template loads as front/<name>.js?v=@HASH@ gets the first 10 hex of its sha1 in place of @HASH@.
 The name and privacy gates live with the private tests (atlas_door.mjs scans index.html and every sidecar), not in this
 public script.
 """
@@ -27,7 +29,10 @@ DATA = os.path.join(HERE, 'data')
 EXH = os.path.join(ROOT, 'exhibit', 'data')
 LAZY_BUDGET = 120 * 1024
 INLINE_BUDGET = int(1.5 * 1024 * 1024)
-NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks']
+NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear']
+TASTE_KEYS = ('t', 'a', 'h', 'w', 'p', 'n', 'pt', 'pa', 'pe', 'pm', 'arm')
+TID = re.compile(r'^[0-9A-Za-z]{22}$')
+SCRIPT = re.compile(r'(front/[a-z0-9_]+\.js)\?v=@HASH@')
 ARMS = ['tap', 'shuffle', 'served']
 
 # the lab's graveyard text (R20/LAB_MUSIC/lab.html.before, card 10) and the paper's month wording (researcher.html: "the
@@ -64,6 +69,11 @@ def cut_pack(pack):
     """taste, genre and graveyard from a proto_data pack (the 2026-10-16 takeaways pack)."""
     t = load(os.path.join(pack, 'taste_sample.json'))
     rows = t['rows']  # unfiltered: a '!' in a song title is data, not copy
+    tp = os.path.join(DATA, 'taste.json')
+    ids = {(r['t'], r['a']): r['u'] for r in load(tp)['rows'] if 'u' in r} if os.path.exists(tp) else {}
+    for r in rows:  # a re-cut keeps the track ids already matched
+        if (r['t'], r['a']) in ids:
+            r['u'] = ids[(r['t'], r['a'])]
     write_if_changed('taste', dump({'v': 1, 'n': len(rows), 'rows': rows}))
     g = load(os.path.join(pack, 'genre_strict.json'))
     write_if_changed('genre', dump({'v': 1, 'fam_order': g['fam_order'],
@@ -108,8 +118,14 @@ def validate():
     if len(rows) != 180 or sum(r['arm'] == 'me' for r in rows) != 90 or sum(r['arm'] == 'app' for r in rows) != 90:
         errs.append('taste: 180 rows, 90 me and 90 app')
     for r in rows:
-        if not all(k in r for k in ('t', 'a', 'h', 'w', 'p', 'n', 'pt', 'pa', 'pe', 'pm', 'arm')):
+        if not all(k in r for k in TASTE_KEYS):
             errs.append('taste: a row lacks a field'); break
+    for r in rows:
+        if set(r) - set(TASTE_KEYS) - {'u'} or ('u' in r and not TID.match(r['u'])):
+            errs.append('taste: a row carries more than the game\'s fields and one track id'); break
+    h = d['hear']
+    if set(h) != {'v', 'tap', 'queue'} or any(set(h[k]) != {'t', 'a', 'u'} or not TID.match(h[k]['u']) for k in ('tap', 'queue')):
+        errs.append('hear: tap and queue, each a title, an artist and a track id, nothing else')
     if len(d['genre']['fam_order']) != 14:
         errs.append('genre: 14 families')
     if d['pairs']['fam_order'] != d['genre']['fam_order']:
@@ -173,7 +189,19 @@ def build(tpl_path, d):
         if tpl.count('/*@STAMPS@*/{}') != 1:
             sys.exit('the template must hold /*@STAMPS@*/{} exactly once')
         stamps = {k: stamp(k) for k in NAMES}
-        return tpl.replace('/*@STAMPS@*/{}', json.dumps(stamps, separators=(',', ':'))), LAZY_BUDGET, True
+        out = tpl.replace('/*@STAMPS@*/{}', json.dumps(stamps, separators=(',', ':')))
+        for src in sorted(set(SCRIPT.findall(out))):
+            p = os.path.join(ROOT, src)
+            if not os.path.exists(p):
+                sys.exit('the template loads %s, which is not there' % src)
+            with open(p, 'rb') as f:
+                b = f.read()
+            if '\u2014'.encode('utf-8') in b:
+                sys.exit('%s: an em-dash' % src)
+            out = out.replace(src + '?v=@HASH@', src + '?v=' + hashlib.sha1(b).hexdigest()[:10])
+        if '@HASH@' in out:
+            sys.exit('a @HASH@ the build cannot resolve')
+        return out, LAZY_BUDGET, True
     for marker, prefix in (('/*__DATA__*/', ''), ('/*@DATA@*/', 'D_')):
         if marker in tpl:
             if tpl.count(marker) != 1:

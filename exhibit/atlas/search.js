@@ -745,7 +745,16 @@ export function mount(ctx, deps) {
   function onSlash(e) {
     if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
     if (isTypingTarget(e.target)) return;
-    if (ctx.label && ctx.label.isOpen) return;
+    if (ctx.label && ctx.label.isOpen) {
+      /* R21 2026-10-17: on the plain record find an artist lives in about, so "/" there closes about and opens the search once
+         about's close has handed focus back */
+      const d = document.getElementById('label');
+      if (!d || !document.documentElement.classList.contains('atlas-plain')) return;
+      e.preventDefault();
+      d.addEventListener('close', () => { open(); st.byKey = true; }, { once: true });
+      ctx.label.close();
+      return;
+    }
     e.preventDefault();
     open(); st.byKey = true;
   }
