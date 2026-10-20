@@ -1,0 +1,118 @@
+{
+ "public_ok": true,
+ "lane": "STRESSMIN",
+ "bars": {
+  "tap_share": {
+   "stress": 0.2172790031162487,
+   "recovery": 0.2291302663386379,
+   "diff": 0.011851263222389215,
+   "lo": -0.02376660145401951,
+   "hi": 0.047559334661687665,
+   "mde": 0.05017803062213799,
+   "n_stress": 1722,
+   "n_recovery": 5686
+  },
+  "tap_share_still_only": {
+   "stress": 0.20888368552777248,
+   "recovery": 0.21540791888398417,
+   "diff": 0.006524233356211719,
+   "lo": -0.03300579265315401,
+   "hi": 0.042568705829336896,
+   "mde": 0.053654036947011666,
+   "n_stress": 1564,
+   "n_recovery": 4933
+  },
+  "tempo_z": {
+   "stress": -0.03728981401398146,
+   "recovery": -0.022567284929761997,
+   "diff": 0.014722529084219452,
+   "lo": -0.13285793097043339,
+   "hi": 0.1505402096977229,
+   "mde": 0.20369212545255747,
+   "n_stress": 413,
+   "n_recovery": 1619
+  },
+  "rms_z": {
+   "stress": -0.05328500725355659,
+   "recovery": -0.02573958828981148,
+   "diff": 0.02754541896374513,
+   "lo": -0.20542564840495633,
+   "hi": 0.19185630073992568,
+   "mde": 0.28439085376514545,
+   "n_stress": 413,
+   "n_recovery": 1619
+  },
+  "ambient_lofi_share": {
+   "stress": 0.105501353741427,
+   "recovery": 0.0751551864676059,
+   "diff": -0.030346167273821084,
+   "lo": -0.046780043338752894,
+   "hi": -0.0047201371407481285,
+   "mde": 0.03026445184917458,
+   "n_stress": 1722,
+   "n_recovery": 5686,
+   "verdict": "KILLED (negative sign is a between-day and era artifact; do not draw a direction)",
+   "show": "rose stamp, no arrow",
+   "within_day_referee_post_hoc": {
+    "diff": -0.004,
+    "ci95": [
+     -0.022,
+     0.005
+    ],
+    "mde": 0.02
+   }
+  }
+ },
+ "event_study": {
+  "D": -0.009072163512840061,
+  "lo": -0.025989675474563798,
+  "hi": 0.009487997052942511,
+  "mde": 0.026011218084519835,
+  "mean_event_pre": 0.08963142082508976,
+  "mean_matched_control": 0.09870358433792983,
+  "n_events": 4549,
+  "n_control_windows": 13329,
+  "label": "stress-to-recovery sign flips (flicker transitions)",
+  "sustained_onsets_referee_post_hoc": {
+   "diff": -0.021,
+   "ci95": [
+    -0.082,
+    0.02
+   ],
+   "mde": 0.073,
+   "n_events": 263,
+   "n_controls": 302,
+   "verdict": "UNDERPOWERED"
+  }
+ },
+ "stillness": {
+  "share_still_stress": 0.908246225319396,
+  "share_still_recovery": 0.867569468870911
+ },
+ "music_present_share": {
+  "stress": 0.06237548447857427,
+  "recovery": 0.1833779469152127,
+  "caveat": "descriptive, direction unknown, not a music-to-physiology claim; stratified recovery minus stress +0.08 to +0.11"
+ },
+ "verdicts": {
+  "H1": "NULL-WITH-MDE",
+  "H1_still": "NULL (uninformative control)",
+  "H2_tempo": "NULL-WITH-MDE",
+  "H2_rms": "NULL-WITH-MDE",
+  "H3": "KILLED",
+  "H4": "NULL-WITH-MDE (flicker transitions only); UNDERPOWERED for sustained onsets"
+ },
+ "caveats": [
+  "the state is a signed 0-100 score split by sign, not a two-state label; near-zero rows of both signs are the normal zone and the state flickers (median run 10 minutes)",
+  "H1 to H3 compare content inside minutes that have music, and music is present about 3x as often in recovery minutes; the contrasts are conditional on music being present",
+  "stress is HR and motion derived so calm and sitting still overlap; the still restriction is weak and missing step records count as 0 steps",
+  "the file does not say whether the timestamp starts or ends the 5-minute bin; the nulls hold under both anchors",
+  "one account, within-subject",
+  "tempo and rms come from 27% of units (matched tracks); tempo has octave errors",
+  "bars are stratum-weighted (hour x weekday) means",
+  "the H4 event study is about flicker transitions; sustained recovery onsets are underpowered"
+ ],
+ "headline": "i found no sign that what plays follows my stress state: when music is on, tapped share, tempo and loudness look the same in stress and recovery minutes",
+ "caption": "when music is on, tap share, tempo and loudness look the same in stress and recovery",
+ "state_definition": "a signed 0-100 score split by sign; near-zero rows of both signs are the normal zone"
+}

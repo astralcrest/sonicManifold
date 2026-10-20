@@ -1,0 +1,225 @@
+{
+ "public_ok": true,
+ "distribution": {
+  "all": {
+   "n": 648,
+   "median": 66.278025,
+   "q1": 29.145366666666668,
+   "q3": 154.60382916666666
+  },
+  "weekday": {
+   "n": 468,
+   "median": 58.102824999999996,
+   "q1": 25.968,
+   "q3": 136.75462083333332
+  },
+  "weekend": {
+   "n": 180,
+   "median": 100.3048,
+   "q1": 46.529466666666664,
+   "q3": 182.38755
+  },
+  "by_month_of_year": {
+   "1": {
+    "n": 58,
+    "median": 51.57711666666667,
+    "q1": 14.287412499999999,
+    "q3": 124.08794999999999
+   },
+   "2": {
+    "n": 46,
+    "median": 51.90853333333333,
+    "q1": 25.875287500000002,
+    "q3": 140.62465833333334
+   },
+   "3": {
+    "n": 60,
+    "median": 49.21116666666667,
+    "q1": 23.603633333333335,
+    "q3": 120.92027083333333
+   },
+   "4": {
+    "n": 59,
+    "median": 36.269466666666666,
+    "q1": 21.800741666666667,
+    "q3": 84.27575833333333
+   },
+   "5": {
+    "n": 39,
+    "median": 61.40555,
+    "q1": 33.099716666666666,
+    "q3": 128.36310833333334
+   },
+   "6": {
+    "n": 53,
+    "median": 98.62105,
+    "q1": 35.63571666666667,
+    "q3": 187.33585
+   },
+   "7": {
+    "n": 58,
+    "median": 86.95669166666667,
+    "q1": 46.616529166666666,
+    "q3": 209.31942083333334
+   },
+   "8": {
+    "n": 59,
+    "median": 87.76373333333332,
+    "q1": 33.61839166666667,
+    "q3": 172.06044166666666
+   },
+   "9": {
+    "n": 50,
+    "median": 79.21940833333335,
+    "q1": 46.63895,
+    "q3": 141.94230833333333
+   },
+   "10": {
+    "n": 59,
+    "median": 74.89356666666666,
+    "q1": 33.98278333333333,
+    "q3": 169.930525
+   },
+   "11": {
+    "n": 53,
+    "median": 110.21104999999999,
+    "q1": 57.68561666666667,
+    "q3": 204.40315
+   },
+   "12": {
+    "n": 54,
+    "median": 50.832224999999994,
+    "q1": 25.317466666666668,
+    "q3": 137.56185833333333
+   }
+  },
+  "unit": "minutes from the ring wake to the first qualified play (30 s or more)",
+  "by_month_of_year_note": "untested; about two nights per month-of-year per year over about two years, confounded with a single year; never caption as a seasonal shape"
+ },
+ "weekend_minus_weekday_median_min": {
+  "est": 42.201975000000004,
+  "ci95": [
+   16.99214416666666,
+   64.34688624999997
+  ],
+  "ci975": [
+   13.26925343749999,
+   68.09562177083333
+  ],
+  "se": 11.740356234305768,
+  "mde": 32.87299745605615
+ },
+ "score_vs_latency": {
+  "ready": {
+   "n": 648,
+   "spearman": -0.029684914169578525,
+   "spearman_ci95": [
+    -0.13203076806490338,
+    0.05452006247749856
+   ],
+   "rankreg": -0.061917721439423506,
+   "rankreg_ci95": [
+    -0.1526809335210767,
+    0.033184492984398385
+   ],
+   "mde": 0.13383977876340186
+  },
+  "sleep": {
+   "n": 648,
+   "spearman": -0.0314458311337292,
+   "spearman_ci95": [
+    -0.1469546094306846,
+    0.07199527947631133
+   ],
+   "rankreg": -0.026925082733924844,
+   "rankreg_ci95": [
+    -0.12939136583547414,
+    0.05165720615492035
+   ],
+   "mde": 0.1313562223311011
+  }
+ },
+ "arms": {
+  "label": "logging note only, no verdict (NOT A TEST: at a first play the start reason records a resumed queue, not who chose); no rose, no violet bar",
+  "served_first_share": 0.3741721854304636,
+  "tap_first_share": 0.4817880794701987,
+  "shuffle_first_share": 0.14403973509933773
+ },
+ "posthoc_repeat": {
+  "first_share": 0.8302469135802469,
+  "others_share": 0.8708910307672881,
+  "diff_ci95": [
+   -0.06654023684126041,
+   -0.012409510572629666
+  ],
+  "note": "exploratory and likely mechanical; exclude same-day earlier plays before quoting",
+  "post_hoc": true
+ },
+ "counts": {
+  "waking_days_with_play": 648,
+  "waking_days_without_play": 46
+ },
+ "caveats": [
+  "one account, within-subject",
+  "wake means the ring's last asleep segment ended, not getting out of bed; latency runs to the first play of 30 s or more (any play counts: median about 60 min)",
+  "wake time from the ring sleep record as written into the phone health app; latency is clock-free but weekday and month labels use one fixed local clock",
+  "about 5 percent of wakes fall before 05:00 on the fixed clock, so some nights are measured from a middle-of-the-night wake",
+  "the arm comparison at a first play is a logging note, not a test",
+  "month-of-year medians are untested and confounded with a single year",
+  "post hoc repeat comparison is exploratory and likely mechanical"
+ ],
+ "verdict": {
+  "distribution": "SURVIVES-WITH-CAVEAT (descriptive)",
+  "weekend_minus_weekday": "SURVIVES-WITH-CAVEAT (descriptive; controls post hoc)",
+  "score_vs_latency": "NULL-WITH-MDE",
+  "first_play_arm": "NOT A TEST",
+  "posthoc_repeat": "POST HOC, likely mechanical",
+  "by_month_of_year": "untested"
+ },
+ "headline": "my first full song comes about an hour after the ring says i woke, later on weekends by 42 min, and sleep or readiness scores show no detectable link (MDE about 0.13 rank-SD)",
+ "caption": "median 66 min from waking to the first song; later on weekends, unmoved by sleep scores",
+ "referee_post_hoc": {
+  "label": "REFEREE POST HOC (not in run.py)",
+  "weekend_vs_weekday_log_latency_ratio": {
+   "month_fe": [
+    1.6,
+    [
+     1.28,
+     1.96
+    ]
+   ],
+   "wake_hour_bins_plus_month_fe": [
+    1.72,
+    [
+     1.3,
+     2.13
+    ]
+   ],
+   "wake_hour_linear_plus_month_fe": [
+    1.82,
+    [
+     1.32,
+     2.28
+    ]
+   ]
+  },
+  "scores_with_wake_hour_fe": {
+   "ready": {
+    "rankreg": -0.055,
+    "ci95": [
+     -0.136,
+     0.03
+    ],
+    "mde": 0.117
+   },
+   "sleep": {
+    "rankreg": -0.039,
+    "ci95": [
+     -0.128,
+     0.046
+    ],
+    "mde": 0.124
+   }
+  }
+ }
+}

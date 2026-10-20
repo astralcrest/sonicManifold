@@ -89,7 +89,7 @@ def cut_pack(pack):
 
 
 def derive():
-    """nodes, pairs and tracks from the public exhibit data (the map's 388 artists, its weft, the 22 tracks)."""
+    """nodes, pairs and tracks from the public exhibit data (the map's 388 artists, its weft, the 23 tracks)."""
     un = load(os.path.join(EXH, 'universe_nodes.json'))
     nodes = []
     for k, n in enumerate(un['nodes']):
@@ -146,8 +146,8 @@ def validate():
             errs.append('graveyard %d: verdict cut short' % x['n'])
     if G15_TO not in g[14]['result'] or G15_FROM in json.dumps(g, ensure_ascii=False):
         errs.append('graveyard 15: month wording is not the paper\'s')
-    if len(d['tracks']['tracks']) != 22:
-        errs.append('tracks: 22 tracks')
+    if len(d['tracks']['tracks']) != 23:
+        errs.append('tracks: 23 tracks')
     return d, errs
 
 

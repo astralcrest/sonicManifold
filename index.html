@@ -320,7 +320,7 @@ button{font:inherit;color:inherit}
   .back{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:32px;padding:18px 22px 20px}
   .back .br .lab:first-child{margin-top:2px}
   .back .ver{margin-top:14px}
-  .doors{grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+  .doors{grid-template-columns:repeat(4,minmax(0,1fr));gap:28px}
   .inst{grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:48px}
   .sec{padding:110px 0 120px}
 }
@@ -571,13 +571,13 @@ html:not(.js) .stage,html:not(.js) .cnt-l,html:not(.js) .cnt,html:not(.js) .skip
   <div class="two">
     <div>
       <h2 id="h-s8">the soundtrack</h2>
-      <p class="credit">22 tracks, made on Suno by astralcrest from this log.</p>
+      <p class="credit">23 tracks, made on Suno by astralcrest from this log.</p>
       <div class="player"><button class="btn solid" id="b-play" type="button"><span aria-hidden="true">&#9654;</span> play the album</button><p class="now" id="now" aria-live="polite">nothing is playing.</p></div>
       <div class="prog" aria-hidden="true"><i id="prog"></i></div>
     </div>
     <div>
       <p class="credit do">beside each title: its key on the Camelot wheel, and its tempo.</p>
-      <ol class="tracks" id="tracks" role="listbox" tabindex="0" aria-label="the soundtrack, 22 tracks. choose one to play it." aria-busy="true"></ol>
+      <ol class="tracks" id="tracks" role="listbox" tabindex="0" aria-label="the soundtrack, 23 tracks. choose one to play it." aria-busy="true"></ol>
       <p class="lzfail" hidden>this part did not load. reload the page to try again.</p>
     </div>
   </div>
@@ -585,13 +585,14 @@ html:not(.js) .stage,html:not(.js) .cnt-l,html:not(.js) .cnt,html:not(.js) .skip
 
 <section class="sec" id="links" aria-labelledby="h-s9">
   <p class="kick"><b>9</b> keep going</p>
-  <h2 id="h-s9">three doors</h2>
-  <nav aria-label="three doors">
+  <h2 id="h-s9">four doors</h2>
+  <nav aria-label="four doors">
     <ul class="doors">
       <li><a class="door" href="exhibit.html?enter=sound#tour=grand&amp;stop=1"><span class="dt">the record <i aria-hidden="true">&rarr;</i></span><span class="dd">an art piece in eighteen stops, with sound.</span></a>
         <p class="more" id="tours"><a href="exhibit.html?enter=sound#tour=ninety&amp;stop=1">in a hurry? the ninety-second cut</a><a href="exhibit.html#notes">liner notes for scientists, musicians and artists</a></p></li>
       <li><a class="door" href="lab.html"><span class="dt">the lab <i aria-hidden="true">&rarr;</i></span><span class="dd">every chart.</span></a></li>
       <li><a class="door" href="researcher.html"><span class="dt">the report <i aria-hidden="true">&rarr;</i></span><span class="dd">the paper's claims in plain words.</span></a></li>
+      <li><a class="door" href="editions/"><span class="dt">twelve editions <i aria-hidden="true">&rarr;</i></span><span class="dd">the same findings told twelve ways: a hall of light, a broadsheet, an arcade, a planetarium.</span></a></li>
     </ul>
   </nav>
 </section>
@@ -609,7 +610,7 @@ html:not(.js) .stage,html:not(.js) .cnt-l,html:not(.js) .cnt,html:not(.js) .skip
 'use strict';
 
 /* ---------- data: each section's sidecar is fetched when the section nears the screen ---------- */
-var V = {"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"5ad1c51dfd","hear":"32c1ba0b88"};
+var V = {"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"024e71ba8d","hear":"32c1ba0b88"};
 var READY = {};
 function getJSON(name) {
   return fetch('front/data/' + name + '.json?v=' + (V[name] || '0'), { credentials: 'same-origin' }).then(function (r) {

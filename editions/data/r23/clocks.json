@@ -1,0 +1,229 @@
+{
+ "public_ok": true,
+ "unit": "ring (24 consecutive months, oldest first, unlabelled: no month or year labels may be shown)",
+ "clock": "one fixed local 24-hour clock, hours from midnight",
+ "caveats": [
+  "one person, within-subject only",
+  "local clock from nearest-workout offsets (per instant), not timezone ground truth",
+  "listening is awake time so some coupling is mechanical; the step clock tracks sleep as well as listening does",
+  "24 months are 12 year-over-year pairs, not 24 independent units",
+  "sleep phase = ring-staged nights relayed through Apple Health",
+  "ring phases are circular means of plays and nights, not exact bedtimes; rings are unlabelled by design"
+ ],
+ "rings": [
+  {
+   "ring": 1,
+   "listen_h": 14.61,
+   "sleep_mid_h": 3.8,
+   "n_plays": 1718,
+   "tap_h": 14.54,
+   "served_h": 14.6
+  },
+  {
+   "ring": 2,
+   "listen_h": 14.81,
+   "sleep_mid_h": 4.02,
+   "n_plays": 1130,
+   "tap_h": 15.01,
+   "served_h": 14.74
+  },
+  {
+   "ring": 3,
+   "listen_h": 15.15,
+   "sleep_mid_h": 4.38,
+   "n_plays": 1499,
+   "tap_h": 14.89,
+   "served_h": 15.15
+  },
+  {
+   "ring": 4,
+   "listen_h": 14.72,
+   "sleep_mid_h": 4.0,
+   "n_plays": 1642,
+   "tap_h": 15.01,
+   "served_h": 14.84
+  },
+  {
+   "ring": 5,
+   "listen_h": 14.8,
+   "sleep_mid_h": 4.02,
+   "n_plays": 1724,
+   "tap_h": 15.23,
+   "served_h": 15.35
+  },
+  {
+   "ring": 6,
+   "listen_h": 15.36,
+   "sleep_mid_h": 4.12,
+   "n_plays": 1248,
+   "tap_h": 14.73,
+   "served_h": 16.28
+  },
+  {
+   "ring": 7,
+   "listen_h": 14.48,
+   "sleep_mid_h": 4.49,
+   "n_plays": 1274,
+   "tap_h": 13.93,
+   "served_h": 14.44
+  },
+  {
+   "ring": 8,
+   "listen_h": 13.67,
+   "sleep_mid_h": 4.15,
+   "n_plays": 1125,
+   "tap_h": 13.65,
+   "served_h": 13.73
+  },
+  {
+   "ring": 9,
+   "listen_h": 14.56,
+   "sleep_mid_h": 3.88,
+   "n_plays": 1012,
+   "tap_h": 14.31,
+   "served_h": 14.61
+  },
+  {
+   "ring": 10,
+   "listen_h": 14.5,
+   "sleep_mid_h": 3.78,
+   "n_plays": 2337,
+   "tap_h": 14.06,
+   "served_h": 14.63
+  },
+  {
+   "ring": 11,
+   "listen_h": 14.71,
+   "sleep_mid_h": 4.04,
+   "n_plays": 1802,
+   "tap_h": 14.09,
+   "served_h": 14.8
+  },
+  {
+   "ring": 12,
+   "listen_h": 14.99,
+   "sleep_mid_h": 4.19,
+   "n_plays": 1888,
+   "tap_h": 14.8,
+   "served_h": 14.52
+  },
+  {
+   "ring": 13,
+   "listen_h": 15.28,
+   "sleep_mid_h": 4.05,
+   "n_plays": 1715,
+   "tap_h": 13.64,
+   "served_h": 15.36
+  },
+  {
+   "ring": 14,
+   "listen_h": 16.43,
+   "sleep_mid_h": 4.83,
+   "n_plays": 2175,
+   "tap_h": 15.37,
+   "served_h": 17.07
+  },
+  {
+   "ring": 15,
+   "listen_h": 15.17,
+   "sleep_mid_h": 4.52,
+   "n_plays": 1663,
+   "tap_h": 15.35,
+   "served_h": 15.08
+  },
+  {
+   "ring": 16,
+   "listen_h": 14.29,
+   "sleep_mid_h": 3.75,
+   "n_plays": 1630,
+   "tap_h": 13.76,
+   "served_h": 14.47
+  },
+  {
+   "ring": 17,
+   "listen_h": 14.58,
+   "sleep_mid_h": 3.98,
+   "n_plays": 2602,
+   "tap_h": 14.74,
+   "served_h": 14.48
+  },
+  {
+   "ring": 18,
+   "listen_h": 14.24,
+   "sleep_mid_h": 4.13,
+   "n_plays": 2063,
+   "tap_h": 14.29,
+   "served_h": 14.24
+  },
+  {
+   "ring": 19,
+   "listen_h": 15.54,
+   "sleep_mid_h": 5.15,
+   "n_plays": 4262,
+   "tap_h": 15.18,
+   "served_h": 15.7
+  },
+  {
+   "ring": 20,
+   "listen_h": 16.33,
+   "sleep_mid_h": 5.36,
+   "n_plays": 3184,
+   "tap_h": 16.21,
+   "served_h": 16.27
+  },
+  {
+   "ring": 21,
+   "listen_h": 15.66,
+   "sleep_mid_h": 4.98,
+   "n_plays": 3073,
+   "tap_h": 15.29,
+   "served_h": 15.6
+  },
+  {
+   "ring": 22,
+   "listen_h": 15.41,
+   "sleep_mid_h": 5.01,
+   "n_plays": 3392,
+   "tap_h": 15.0,
+   "served_h": 15.35
+  },
+  {
+   "ring": 23,
+   "listen_h": 15.88,
+   "sleep_mid_h": 5.2,
+   "n_plays": 4763,
+   "tap_h": 15.92,
+   "served_h": 15.6
+  },
+  {
+   "ring": 24,
+   "listen_h": 17.17,
+   "sleep_mid_h": 5.18,
+   "n_plays": 1579,
+   "tap_h": 17.48,
+   "served_h": 17.09
+  }
+ ],
+ "headline_numbers_superseded_by_the_referee": {
+  "note": "superseded by the referee: test 1 is KILLED as a music claim (real unit is 12 year-over-year pairs; partial r 0.49, p 0.11, MDE 0.76 once the step clock is held fixed); test 3 is KILLED (restatement of session order)",
+  "test1_r": 0.83,
+  "test3_diff_h": 0.31
+ },
+ "shuffle_h_dropped": "arm phases for shuffle were a circular mean of a near-uniform spread in some months; dropped",
+ "verdict": {
+  "test1": "KILLED as a music claim (survives only as my waking day moves with my sleep)",
+  "test2": "NULL-WITH-MDE, uninformative (only |r| > 0.76 detectable)",
+  "test3": "KILLED (restatement of session order)",
+  "posthoc_concentration": "null, underpowered"
+ },
+ "headline": "my listening clock moves with my sleep clock, but so does my step clock: once the step clock is held fixed, the music adds nothing i can detect (partial r 0.49, p 0.11, 12 year-over-year pairs, MDE 0.76)",
+ "caption": "listening, sleep and step clocks drift together; music adds nothing beyond that",
+ "step_clock_partial": {
+  "label": "REFEREE POST HOC (not in run.py)",
+  "partial_r": 0.49,
+  "perm_p": 0.11,
+  "n_pairs": 12,
+  "mde": 0.76
+ },
+ "owner_call": "unlabelled rings still show a level shift in the later rings; the owner decides whether a dial ships at all"
+}

@@ -21,7 +21,7 @@
 const soft = (u, d) => import(u).catch(() => import(u + '&retry=1')).catch(() => d);
 const [PM, LM] = await Promise.all([
   soft('./post.js?v=14', { postCSS: '', post() {}, stopAll() {}, playClip() {}, clipsAllowed: () => false, grant() {}, hasTrack: () => Promise.resolve(false), hasTrackNow: () => false, playQuiet() {}, dwell() {}, undwell() {}, postState: () => ({}), kick() {} }),
-  soft('./labels.js?v=25', { LABELS: {}, HINTS: {}, HINTS_ATLAS: {}, HINTS_TOUCH: {} }),
+  soft('./labels.js?v=26', { LABELS: {}, HINTS: {}, HINTS_ATLAS: {}, HINTS_TOUCH: {} }),
 ]);
 const { postCSS, post, stopAll, playClip, clipsAllowed, grant, hasTrack, hasTrackNow, playQuiet, dwell, undwell, postState, kick } = PM;
 const { LABELS, HINTS, HINTS_ATLAS, HINTS_TOUCH } = LM;
@@ -1755,7 +1755,7 @@ let jumpTo = -1, jumpT = 0, jumpTimer = 0, lastScroll = 0;
 /* camelot keys of my tracks (exhibit/data/tracks.json): bedRel() reads them to choose how two beds change over */
 let KEYS = null;
 /* R20 THE NOW-PLAYING LINE. the chip (#mute) says what is sounding: my song (title, key, bpm, from exhibit/data/tracks.json)
-   or the artist a post is playing from spotify. a press on it while the sound plays opens the tracklist: any of the 22 songs
+   or the artist a post is playing from spotify. a press on it while the sound plays opens the tracklist: any of the 23 songs
    plays from there and the next follows when it ends, over every stop, until a bed is asked for by name (the make wheel) or
    "let the rooms choose" gives the beds back to the stops. setChip() is the one writer of #mute (the coordinator's ask): every
    site that changes the sound calls it and nothing else writes the chip, so a lane can move or rename the control freely */

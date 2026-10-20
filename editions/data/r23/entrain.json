@@ -1,0 +1,144 @@
+{
+ "public_ok": true,
+ "headline": {
+  "share_observed": 0.20141969831410825,
+  "share_null": 0.18814510191427133,
+  "delta": 0.013274596399836905,
+  "ci95": [
+   -0.019722368079486314,
+   0.04792966751668055
+  ],
+  "mde": 0.0489157309216411,
+  "n_minutes": 1127,
+  "n_tracks": 271,
+  "n_days": 372
+ },
+ "hist": {
+  "bins": [
+   0.0,
+   1.0,
+   2.0,
+   3.0,
+   4.0,
+   5.0,
+   6.0,
+   7.0,
+   8.0,
+   9.0,
+   10.0,
+   11.0,
+   12.0,
+   13.0,
+   14.0,
+   15.0,
+   16.0,
+   17.0,
+   18.0,
+   19.0,
+   20.0,
+   21.0
+  ],
+  "obs": [
+   0.049689440993788817,
+   0.05146406388642413,
+   0.06299911268855368,
+   0.037267080745341616,
+   0.05412599822537711,
+   0.04614019520851819,
+   0.04525288376220053,
+   0.04259094942324756,
+   0.05412599822537711,
+   0.044365572315882874,
+   0.05944986690328305,
+   0.04791481810115351,
+   0.05146406388642413,
+   0.05856255545696539,
+   0.05412599822537711,
+   0.04614019520851819,
+   0.04259094942324756,
+   0.055900621118012424,
+   0.03904170363797693,
+   0.05678793256433008,
+   0.0
+  ],
+  "null": [
+   0.04413487133984029,
+   0.04431233362910381,
+   0.052990239574090506,
+   0.044010647737355815,
+   0.05038154392191659,
+   0.048340727595385984,
+   0.04906832298136646,
+   0.050221827861579416,
+   0.05430346051464064,
+   0.043407275953859806,
+   0.056291038154392195,
+   0.053948535936113574,
+   0.051783496007098494,
+   0.056645962732919254,
+   0.049813664596273295,
+   0.04498669032830523,
+   0.04873114463176575,
+   0.054001774622892636,
+   0.04653061224489796,
+   0.056095829636202306,
+   0.0
+  ]
+ },
+ "by_source": {
+  "tap": {
+   "obs": 0.16933638443935928,
+   "null": 0.18584284562207692,
+   "delta": -0.016506461182717633,
+   "lo": -0.05317776735174543,
+   "hi": 0.02211035325374468,
+   "n": 437
+  },
+  "served": {
+   "obs": 0.22365591397849463,
+   "null": 0.19131403014924672,
+   "delta": 0.032341883829247894,
+   "lo": -0.008312235805931838,
+   "hi": 0.07565608796317745,
+   "n": 465
+  },
+  "shuffle": {
+   "obs": 0.23036649214659685,
+   "null": 0.18774228628726203,
+   "delta": 0.04262420585933486,
+   "lo": -0.07264529541615959,
+   "hi": 0.15550465648295395,
+   "n": 191
+  }
+ },
+ "tap_minus_served": {
+  "diff": -0.04884834501196553,
+  "ci95": [
+   -0.10364111637409916,
+   0.005184395342632165
+  ],
+  "post_hoc": true
+ },
+ "secondary": {
+  "bpm_per_bpm": 0.01640323174309677,
+  "ci95": [
+   -0.058205923539002564,
+   0.0826882452207596
+  ],
+  "mde": 0.09996138258872363,
+  "n": 2575
+ },
+ "caveats": [
+  "only 423 tracks have a tempo; 1127 walking intervals qualify out of 21,734 steady-walk intervals",
+  "tempo is an estimate and can be off by a factor of two; harmonics are allowed",
+  "one account, within-subject",
+  "the chance baseline draws tempos from my plays at the same hour of day",
+  "about three quarters of the intervals are ring step records, the rest watch and phone; all are interval averages, so a short lock is diluted",
+  "the tempo file has only 20 distinct values, about 4.6 percent apart near walking pace, so the 2 percent window cannot resolve a lock",
+  "the heart rate secondary is a within-workout association, not a test of music changing heart rate"
+ ],
+ "verdict": "NULL-WITH-MDE",
+ "referee": "NULL-WITH-MDE",
+ "headline_sentence": "i found no sign that my steps lock to the tempo of the track playing (a lock in fewer than about 1 in 20 intervals could hide here).",
+ "caption": "no step-to-beat lock above 5 points: 20.1% vs 18.8% by chance"
+}

@@ -1,0 +1,154 @@
+{
+ "public_ok": true,
+ "headline": "within a day, my moving minutes are more shuffle and a bit more tapping, not less (tap +3 to +8 points depending on the step sensor)",
+ "verdict": "KILLED-AND-REVERSED (tap); reversal SURVIVES-WITH-CAVEAT at +3 to +8 points depending on step sensor; shuffle rise SURVIVES",
+ "by_step_bin": [
+  {
+   "bin": "0",
+   "n": 30299,
+   "tap": 0.1633717284398825,
+   "shuffle": 0.14901481897092314,
+   "served": 0.6876134525891943
+  },
+  {
+   "bin": "1-99",
+   "n": 43008,
+   "tap": 0.20328776041666666,
+   "shuffle": 0.13557942708333334,
+   "served": 0.6611328125
+  },
+  {
+   "bin": "100-399",
+   "n": 18291,
+   "tap": 0.23312011371712865,
+   "shuffle": 0.22453665737247827,
+   "served": 0.5423432289103931
+  },
+  {
+   "bin": "400+",
+   "n": 4147,
+   "tap": 0.21220159151193635,
+   "shuffle": 0.3448275862068966,
+   "served": 0.442970822281167
+  }
+ ],
+ "adjusted_diff_400_minus_0": {
+  "tap": 0.062061258901672384,
+  "tap_ci": [
+   0.03295826229488006,
+   0.10408119834074851
+  ],
+  "shuffle": 0.14556826450607338,
+  "shuffle_ci": [
+   0.0677542287874524,
+   0.2161493016702954
+  ],
+  "mde_tap": 0.052,
+  "mde_shuffle": 0.104
+ },
+ "within_day_null": {
+  "tap_null_mean": -0.012463074393432532,
+  "tap_null_sd": 0.007157301068423189,
+  "shuffle_null_mean": 0.05125887664732005,
+  "p": "<= 0.001",
+  "note": "the between-day part; day-shift surrogate tap +0.4/+0.3/+1.5, shuffle -0.9/+0.6/+3.4 points (referee post hoc)"
+ },
+ "eras": [
+  {
+   "era": "earlier logging (sensor mix and logging change confounded; do not read as a habit change)",
+   "n": 31542,
+   "tap_diff": 0.030708144977283983,
+   "ci": [
+    0.011388137700784624,
+    0.0485518450286084
+   ],
+   "n_by_bin": [
+    10149,
+    13008,
+    6361,
+    2024
+   ]
+  },
+  {
+   "era": "later logging (sensor mix and logging change confounded; do not read as a habit change)",
+   "n": 64203,
+   "tap_diff": 0.144760051626222,
+   "ci": [
+    0.09129638115407589,
+    0.19918994299998358
+   ],
+   "n_by_bin": [
+    20150,
+    30000,
+    11930,
+    2123
+   ]
+  }
+ ],
+ "daily": {
+  "delta_r2": 0.004827950130622094,
+  "ci": [
+   1.2319875854766025e-05,
+   0.016437681043173235
+  ],
+  "days": 1336
+ },
+ "coverage": {
+  "unknown_share_of_plays": 0.014877920795135353,
+  "unknown_n": 1446
+ },
+ "caveats": [
+  "one person, one account; every claim is within-subject",
+  "steps come from three overlapping sources and the unknown bin is only 1.5 percent of plays because the coverage radius is 30 minutes",
+  "the within-day shuffle null is not centered on zero; the observed value is compared with it, not with zero",
+  "the eras are post hoc and split at the one disclosed instrument change",
+  "association only: moving may change what i can reach, not what i want",
+  "some of the extra tapping is forward skips, not chosen plays",
+  "the zero-step bin means still, not verified worn",
+  "the era panel is confounded with step-sensor mix"
+ ],
+ "colors": {
+  "tap": "mint",
+  "shuffle": "amber",
+  "served": "violet",
+  "killed": "rose",
+  "neutral": "ice"
+ },
+ "verdict_note": "prereg named this branch SURVIVES-WITH-CAVEAT; run.py emitted REVERSAL",
+ "caption": "within a day, moving minutes are more shuffle and a bit more tapping, not less",
+ "by_step_bin_note": "raw shares; served falls 68.8 to 44.3 percent raw; dose is not monotone",
+ "watch_only_referee_post_hoc": {
+  "label": "REFEREE POST HOC (not in run.py)",
+  "tap_day_fe": {
+   "diff": 0.033,
+   "ci95": [
+    0.008,
+    0.054
+   ]
+  },
+  "shuffle_day_fe": {
+   "diff": 0.146,
+   "ci95": [
+    0.061,
+    0.214
+   ]
+  },
+  "tap_by_era": {
+   "earlier": {
+    "diff": 0.027,
+    "ci95": [
+     0.007,
+     0.046
+    ]
+   },
+   "later": {
+    "diff": 0.045,
+    "ci95": [
+     0.0,
+     0.099
+    ]
+   }
+  }
+ },
+ "eras_note": "sensor mix and logging change confounded; Watch-only eras +2.7 vs +4.5"
+}

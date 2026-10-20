@@ -1,0 +1,301 @@
+{
+ "public_ok": true,
+ "lane": "BODYSTATE",
+ "method": "partial rank correlation, 30-day detrend, month-of-year and weekday fixed effects, 28-day block bootstrap (2000), Holm",
+ "days_included": 501,
+ "primary_cells": [
+  {
+   "outcome": "skip",
+   "exposure": "readiness",
+   "n": 487,
+   "rho": 0.03,
+   "ci": [
+    -0.07,
+    0.122
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.183,
+   "mde_05": 0.138,
+   "survives": false,
+   "verdict": "NULL-WITH-MDE"
+  },
+  {
+   "outcome": "skip",
+   "exposure": "oura_low_rest_hr",
+   "n": 491,
+   "rho": 0.053,
+   "ci": [
+    -0.049,
+    0.145
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.186,
+   "mde_05": 0.14,
+   "survives": false,
+   "verdict": "NULL-WITH-MDE"
+  },
+  {
+   "outcome": "repeat",
+   "exposure": "readiness",
+   "n": 487,
+   "rho": -0.078,
+   "ci": [
+    -0.192,
+    0.035
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.21,
+   "mde_05": 0.159,
+   "survives": false,
+   "verdict": "NULL-WITH-MDE"
+  },
+  {
+   "outcome": "repeat",
+   "exposure": "oura_low_rest_hr",
+   "n": 491,
+   "rho": 0.029,
+   "ci": [
+    -0.067,
+    0.111
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.176,
+   "mde_05": 0.133,
+   "survives": false,
+   "verdict": "NULL-WITH-MDE"
+  },
+  {
+   "outcome": "tap",
+   "exposure": "readiness",
+   "n": 487,
+   "rho": 0.08,
+   "ci": [
+    0.002,
+    0.156
+   ],
+   "p_holm": 0.36,
+   "mde_holm": 0.147,
+   "mde_05": 0.111,
+   "survives": false,
+   "verdict": "NULL-WITH-MDE"
+  },
+  {
+   "outcome": "tap",
+   "exposure": "oura_low_rest_hr",
+   "n": 491,
+   "rho": 0.005,
+   "ci": [
+    -0.108,
+    0.102
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.198,
+   "mde_05": 0.15,
+   "survives": false,
+   "verdict": "NULL-WITH-MDE"
+  },
+  {
+   "outcome": "novelty",
+   "exposure": "readiness",
+   "n": 487,
+   "rho": 0.062,
+   "ci": [
+    -0.028,
+    0.15
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.171,
+   "mde_05": 0.129,
+   "survives": false,
+   "verdict": "NULL-WITH-MDE"
+  },
+  {
+   "outcome": "novelty",
+   "exposure": "oura_low_rest_hr",
+   "n": 491,
+   "rho": 0.014,
+   "ci": [
+    -0.076,
+    0.105
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.171,
+   "mde_05": 0.129,
+   "survives": false,
+   "verdict": "NULL-WITH-MDE"
+  }
+ ],
+ "secondary_cells": [
+  {
+   "outcome": "skip",
+   "exposure": "apple_hrv_sdnn",
+   "n": 374,
+   "rho": -0.016,
+   "ci": [
+    -0.121,
+    0.089
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.197,
+   "mde_05": 0.149,
+   "survives": false
+  },
+  {
+   "outcome": "skip",
+   "exposure": "apple_resting_hr",
+   "n": 386,
+   "rho": 0.176,
+   "ci": [
+    0.084,
+    0.271
+   ],
+   "p_holm": 0.008,
+   "mde_holm": 0.18,
+   "mde_05": 0.136,
+   "verdict": "SURVIVES-WITH-CAVEAT (same-day, one instrument, activity-confounded)",
+   "rho_activity_adjusted": 0.134,
+   "rho_activity_adjusted_ci": [
+    0.018,
+    0.239
+   ],
+   "weekday_preserving_shift_p": 0.014,
+   "counts_as": "one signal with the other Apple RHR cell (skip and tap overlap through the forward button)",
+   "style": "ice outline, caveated"
+  },
+  {
+   "outcome": "repeat",
+   "exposure": "apple_hrv_sdnn",
+   "n": 374,
+   "rho": -0.026,
+   "ci": [
+    -0.124,
+    0.082
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.195,
+   "mde_05": 0.147,
+   "survives": false
+  },
+  {
+   "outcome": "repeat",
+   "exposure": "apple_resting_hr",
+   "n": 386,
+   "rho": 0.04,
+   "ci": [
+    -0.061,
+    0.153
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.202,
+   "mde_05": 0.152,
+   "survives": false
+  },
+  {
+   "outcome": "tap",
+   "exposure": "apple_hrv_sdnn",
+   "n": 374,
+   "rho": 0.007,
+   "ci": [
+    -0.093,
+    0.103
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.188,
+   "mde_05": 0.142,
+   "survives": false
+  },
+  {
+   "outcome": "tap",
+   "exposure": "apple_resting_hr",
+   "n": 386,
+   "rho": 0.186,
+   "ci": [
+    0.11,
+    0.285
+   ],
+   "p_holm": 0.008,
+   "mde_holm": 0.168,
+   "mde_05": 0.127,
+   "verdict": "SURVIVES-WITH-CAVEAT (same-day, one instrument, activity-confounded)",
+   "rho_activity_adjusted": 0.167,
+   "rho_activity_adjusted_ci": [
+    0.07,
+    0.278
+   ],
+   "weekday_preserving_shift_p": 0.027,
+   "counts_as": "one signal with the other Apple RHR cell (skip and tap overlap through the forward button)",
+   "style": "ice outline, caveated"
+  },
+  {
+   "outcome": "novelty",
+   "exposure": "apple_hrv_sdnn",
+   "n": 374,
+   "rho": -0.121,
+   "ci": [
+    -0.217,
+    -0.011
+   ],
+   "p_holm": 0.222,
+   "mde_holm": 0.197,
+   "mde_05": 0.149,
+   "survives": false
+  },
+  {
+   "outcome": "novelty",
+   "exposure": "apple_resting_hr",
+   "n": 386,
+   "rho": -0.028,
+   "ci": [
+    -0.117,
+    0.06
+   ],
+   "p_holm": 1.0,
+   "mde_holm": 0.168,
+   "mde_05": 0.127,
+   "survives": false
+  }
+ ],
+ "agreement": {
+  "oura_low_rest_hr~apple_resting_hr": {
+   "raw": {
+    "n": 427,
+    "spearman": 0.8532153227873899
+   },
+   "detrended": {
+    "n": 424,
+    "spearman": 0.297018880001163
+   }
+  },
+  "readiness~apple_hrv_sdnn": {
+   "raw": {
+    "n": 417,
+    "spearman": 0.39722851066233555
+   },
+   "detrended": {
+    "n": 414,
+    "spearman": 0.13946515888790592
+   }
+  }
+ },
+ "verdict": "NULL-WITH-MDE (primary Oura grid); Apple daytime resting HR vs same-day skip and tap = ONE correlate, SURVIVES-WITH-CAVEAT, partly activity",
+ "color_code": {
+  "null": "ice",
+  "caveated_apple_pair": "ice outline",
+  "mde_band": "faint ice",
+  "note": "mint is reserved for i tapped and is never used for survives"
+ },
+ "caveats": [
+  "one subject, about 500 days in the overlap window",
+  "oura hrv field is not in the daily export; the hrv balance score is empty in the window, so that column was not tested",
+  "apple resting hr is a same-day measure and is a secondary instrument",
+  "tap and skip share are mechanically linked",
+  "daily summaries only, no intra-day timing",
+  "post hoc event-day grid not run: fewer than 20 events",
+  "apple resting hr is a waking-window statistic over the same hours as the listening, not a morning measure",
+  "the two apple cells (skip and tap) are one signal, not two findings",
+  "the same-day apple correlate shrinks to about 0.13 to 0.17 once daily activity is controlled"
+ ],
+ "headline": "i found no sign that how my body felt in the morning changes how i listen that day: every interval stays inside plus or minus 0.2; the estimates are all under 0.1",
+ "caption": "no link of 0.2 or more between morning body state and what i skip, repeat, tap or try",
+ "apple_resting_hr_note": "Apple daytime resting HR (a waking-window measure, not morning) moves with same-day skipping, rho about 0.18, one signal, partly shared with that day's activity, and absent in Oura's overnight rest HR"
+}

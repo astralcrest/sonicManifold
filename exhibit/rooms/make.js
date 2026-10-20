@@ -46,7 +46,7 @@ export default {
       + 'section[data-room="make"] .mk-next{margin:0;font:400 12px/1.4 var(--mono);color:var(--mute)}'
       + 'section[data-room="make"] .mk-end{margin:0;font:400 11px/1.45 var(--mono);color:var(--mute);max-width:30rem}'
       /* the mixing desk. ice = the queued deck and the control that acts on it (reserved neutral-UI hue);
-         mint = the deck that is sounding (reserved: the tapped share, which is what all 22 tracks came out of) */
+         mint = the deck that is sounding (reserved: the tapped share, which is what all 23 tracks came out of) */
       + 'section[data-room="make"] .mk-desk{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:3px;pointer-events:auto}'
       + 'section[data-room="make"] .mk-blend{flex:none;font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--bg);background:var(--ice);border:1px solid var(--ice);border-radius:2px;padding:10px 13px;min-height:34px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}'
       + 'section[data-room="make"] .mk-blend:disabled{background:transparent;color:var(--mute);border-color:var(--line);cursor:default}'
@@ -74,7 +74,7 @@ export default {
       + 'section[data-room="make"] .mk-trk:focus-visible{outline:2px solid var(--mint);outline-offset:3px;border-color:var(--mint)}'
       + 'section[data-room="make"] .mk-trk:disabled{cursor:default}'
       + 'section[data-room="make"] .mk-trk[aria-pressed="true"]{border-color:var(--mint);box-shadow:0 0 0 3px rgba(33,246,188,.16)}'
-      /* the phone picker: the same 22 tracks as a strip of 44px chips sorted by key, under a wheel that is then only a picture.
+      /* the phone picker: the same 23 tracks as a strip of 44px chips sorted by key, under a wheel that is then only a picture.
          it scrolls sideways, so an up or down swipe on it still walks the rooms. these are today's rules, and ?atlas=0 keeps
          them to the pixel; the atlas pages them (below) */
       + 'section[data-room="make"] .mk-chips{display:none;position:relative;grid-auto-flow:column;grid-template-rows:repeat(var(--rows,2),44px);grid-auto-columns:max-content;gap:5px 6px;margin:1px 0 2px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;pointer-events:auto;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}'
@@ -792,7 +792,7 @@ export default {
     const off = layer.style.display === 'none' || getComputedStyle(layer).display === 'none'; /* labels switched off: every key keeps its plain name */
     if (off || shown.size) this.labelEls.forEach(({ el, num, letter }) => { const key = num + letter; if (this.keysWith.has(key)) el.classList.toggle('mk-bare', off || !shown.has(key)); });
   },
-  /* the wheel's names: every key that holds a track, the 22 titles (revealed as the camera closes in) and the two decks */
+  /* the wheel's names: every key that holds a track, the 23 titles (revealed as the camera closes in) and the two decks */
   atlasLabels(ctx) {
     if (this.beat !== 3 || !this.ready || !this.trackPos.length) { ctx.labels.set('make', []); return; }
     const items = [], z = +ctx.view.z || 1; this.kz = z;
