@@ -7,7 +7,7 @@
 export const FLAGS = {
   statement: 'bolder',   /* D5: 'bolder' | 'science' | 'plain' */
   medium: 'suno',        /* D6: 'suno' (made on suno in the medium line) | 'tracks' ("22 original tracks" only) | 'colophon' (the colophon's own words) */
-  debt: true,            /* D7: keep the gcdatlas line in the credits */
+  debt: false,
   brand: 'proper',       /* D8: 'proper' capitalizes Spotify and Suno (the digest's default, as in the colophon, researcher page and lab) | 'lower' writes them lowercase, as the exhibit's labels do */
   runningTime: false,    /* D9: the tombstone's dimensions line carries no running time */
   epigraph: null,        /* D10: none. the owner supplies a line if she wants one; no lane drafts a lyric, so this stays null */
@@ -135,7 +135,7 @@ export const CREDITS = {
     spotify: "spotify's own player. it asks once; nothing loads from spotify until you say yes.",
     qr: 'a code, not a player. scan it to hear the song on your own phone. nothing reaches spotify from this screen.',
   },
-  debt: 'the glyph renderer and the fly-to path started from what gcdatlas.com does; the rest is mine.',
+  debt: '',
   report: 'Streaming Logs Are Not Preference Logs: A Single-Subject Provenance Audit of the Human–Recommender Loop.',
   privacy: 'astralcrest is a pseudonym. no device, place or exact timestamp leaves the export.',
   contact: 'questions or a dataset of your own · astralcrestlab@proton.me',
