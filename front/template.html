@@ -9,7 +9,7 @@
 var h=location.hash;if(!h)return;
 var base=h.split('?')[0];
 if(base.slice(0,6)==='#tour='||base==='#atlas'||base==='#notes'){location.replace('exhibit.html'+h);return;}
-var own={'#argument':1,'#finding':1,'#scenes':1,'#links':1,'#album':1,'#top':1,'#deeper':1,'#kills':1,'#tours':1};
+var own={'#argument':1,'#finding':1,'#scenes':1,'#links':1,'#album':1,'#top':1,'#deeper':1,'#kills':1,'#tours':1,'#act-count':1,'#act-shape':1,'#act-met':1,'#act-body':1,'#act-record':1};
 if(!own[base])location.replace('lab.html'+h);
 })();
 </script>
@@ -40,134 +40,238 @@ if(!own[base])location.replace('lab.html'+h);
 <meta name="twitter:description" content="97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count. eighteen claims withdrawn. sixteen are graves you can visit. 0 of 11 new candidates survived unqualified.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og-card.png">
 <style>
-:root{
-  --bg:#06010f;--ink:#efe9ff;--mute:rgba(239,233,255,.66);--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);
-  --mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff6e9c;--ice:#9fd8ff;
-  --card:rgba(239,233,255,.04);--shadow:rgba(0,0,0,.6);
-  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
-  --serif:"Cormorant Garamond","Playfair Display",Georgia,"Times New Roman",serif;
-  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Segoe UI",Roboto,Arial,sans-serif;
-  --gut:16px;--sl-line:var(--faint);--sl-fog:var(--mute);--sl-on:var(--ice);color-scheme:dark;
-}
-*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans);overflow-x:hidden}
+:root{--bg:#06010f;--ink:#efe9ff;--dim:#8d85a6;--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff6b8a;--ice:#9fd8ff;--mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;--serif:"Cormorant Garamond","Playfair Display",Georgia,serif}
+*{box-sizing:border-box}
+html{background:var(--bg);color-scheme:dark;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Inter",system-ui,sans-serif;-webkit-text-size-adjust:100%;overflow-x:hidden}
 a{color:var(--ice)}
-.skip{position:absolute;left:-999px;top:8px;z-index:50;padding:8px 12px;background:var(--bg);color:var(--ink)}.skip:focus{left:12px}
-.wrap{max-width:1280px;margin:0 auto;padding:0 var(--gut)}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;position:relative;z-index:3}
-.brand{margin:0;font:500 12px/1 var(--mono);letter-spacing:.14em;text-transform:lowercase;white-space:nowrap}.brand b{font-weight:600}.brand span{color:var(--mute);margin-left:.6em}
-.tnav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}.tnav::-webkit-scrollbar{display:none}
-.tnav a{display:inline-flex;align-items:center;min-height:40px;padding:0 10px;font:500 12px/1 var(--mono);letter-spacing:.06em;color:var(--mute);text-decoration:none;white-space:nowrap;border-radius:999px}
-.tnav a:hover,.tnav a:focus-visible{color:var(--ink)}.tnav a[aria-current]{color:var(--ink);background:var(--card)}
-/* the hero */
-.s1{position:relative;min-height:min(92vh,980px);display:flex;flex-direction:column;justify-content:flex-end;padding:12vh 0 6vh;isolation:isolate}
-.still{position:absolute;top:-60px;bottom:0;left:calc(50% - 50vw);width:100vw;z-index:-1;background:#06010f url(front/sky_still.jpg) center 40%/cover no-repeat;opacity:.95}
-.still::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,1,15,.1) 0%,rgba(6,1,15,.55) 55%,var(--bg) 100%)}
-.s1 h1{margin:0;max-width:16ch;font:italic 300 clamp(34px,6.4vw,92px)/1.02 var(--serif);letter-spacing:-.015em;text-wrap:balance}
-.s1 h1 b{font-style:normal;font-weight:600}.s1 .t{color:var(--mint)}.s1 .s{color:var(--amber)}.s1 .v{color:var(--violet)}
-.s1 .thesis{margin:18px 0 0;max-width:40ch;font:300 clamp(18px,2.2vw,26px)/1.3 var(--serif);font-style:italic;color:var(--ink)}
-.s1 .mute{margin:14px 0 0;max-width:60ch;color:var(--mute);font-size:15px}
-.cnt{display:flex;gap:8px;margin:22px 0 0;flex-wrap:wrap;align-items:center}
-.cnt button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--hair);background:rgba(6,1,15,.5);color:var(--ink);font:500 12px/1 var(--mono);letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)}
-.cnt button[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
-.cnt .note{font:12px/1.5 var(--mono);color:var(--mute);flex-basis:100%}
-.cnt .note:empty{display:none}
-/* sections */
-.sec{padding:54px 0 10px}
-.sec h2{margin:0 0 6px;font:italic 300 clamp(24px,3.4vw,40px)/1.1 var(--serif);letter-spacing:-.01em}
-.sec .lead{margin:0 0 22px;max-width:62ch;color:var(--mute)}
-.scenes{list-style:none;margin:0;padding:0;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-.scene{position:relative;display:block;border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--faint);text-decoration:none;color:var(--ink);min-height:100%;transition:transform .25s ease,border-color .25s ease}
-.scene:hover,.scene:focus-visible{transform:translateY(-3px);border-color:var(--hair)}
-.scene img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;background:#0c0520}
-.scene .n{position:absolute;left:12px;top:10px;font:500 11px/1 var(--mono);letter-spacing:.14em;color:rgba(239,233,255,.8);background:rgba(6,1,15,.55);padding:6px 8px;border-radius:999px}
-.scene .m{padding:14px 16px 18px}
-.scene h3{margin:0;font:600 22px/1.1 var(--serif);letter-spacing:.01em}
-.scene p{margin:6px 0 0;color:var(--mute);font-size:14px;line-height:1.45}
-.scene .so{display:block;margin-top:8px;font:500 11px/1 var(--mono);letter-spacing:.1em;color:var(--ice)}
-.doors{list-style:none;margin:0;padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-.door{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--faint);background:var(--card);text-decoration:none;color:var(--ink);min-height:44px}
+canvas#field{position:fixed;inset:0;width:100%;height:100%;z-index:0;touch-action:pan-y}
+.top{position:fixed;top:0;left:0;right:0;z-index:35;display:flex;align-items:center;gap:14px;padding:10px max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));font:11px/1 var(--mono);letter-spacing:.14em;text-transform:lowercase;color:var(--dim);background:linear-gradient(rgba(6,1,15,.92),rgba(6,1,15,0));pointer-events:none}
+.top>*{pointer-events:auto}
+.top .brand{color:var(--ink);text-decoration:none;font-weight:700;letter-spacing:.18em;min-height:40px;display:inline-flex;align-items:center;white-space:nowrap}
+.top .brand small{font-weight:400;color:var(--dim);margin-left:.6em;letter-spacing:.1em}
+.dots{display:flex;gap:4px;margin-left:auto}
+.dots a{min-height:40px;min-width:40px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:var(--dim);font-size:10px;letter-spacing:.08em}
+.dots a i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.5;font-style:normal}
+.dots a[aria-current]{color:var(--ink)}.dots a[aria-current] i{opacity:1;box-shadow:0 0 10px var(--ink)}
+.dots a span{display:none;margin-left:6px}
+@media (min-width:900px){.dots a span{display:inline}.dots a{padding:0 6px}}
+.chip{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(10,4,24,.8);color:var(--ink);font:12px/1 var(--mono);letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;text-decoration:none;backdrop-filter:blur(6px)}
+.chip[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
+.chip.go{border-color:var(--mint);color:var(--mint)}
+main{position:relative;z-index:2}
+.act{position:relative;min-height:150vh;pointer-events:none}
+#act-count{min-height:170vh}#act-met{min-height:280vh}#act-record{min-height:120vh}
+.copy{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:72px max(16px,env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));max-width:min(100%,760px);pointer-events:none}
+.copy>*{pointer-events:auto}
+.copy .k{font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 10px}
+.copy h2,.copy h1{margin:0;font:italic 300 clamp(28px,5vw,62px)/1.04 var(--serif);letter-spacing:-.012em;color:var(--ink);text-shadow:0 2px 24px rgba(6,1,15,.9)}
+.copy h1 b,.copy h2 b{font-style:normal;font-weight:600}.t{color:var(--mint)}.s{color:var(--amber)}.v{color:var(--violet)}.dimw{color:var(--dim);font-size:.6em}
+.copy .so{margin:12px 0 0;font:italic 300 clamp(17px,2vw,22px)/1.3 var(--serif);color:var(--ink);max-width:40ch;text-shadow:0 2px 18px rgba(6,1,15,.9)}
+.copy .sub{margin:8px 0 0;color:var(--dim);font-size:clamp(12px,1.25vw,14px);max-width:60ch;text-shadow:0 1px 12px rgba(6,1,15,.9)}
+.copy .num{display:none;margin:10px 0 0;font:12px/1.6 var(--mono);color:var(--ice);max-width:70ch}
+.copy .num .kill{color:var(--rose)}.copy .num .null{color:var(--ice)}
+html.deep .copy .num{display:block}
+.bar{display:flex;gap:8px;margin:16px 0 0;flex-wrap:wrap;align-items:center}
+#strict-note,#tally{font:11px/1.6 var(--mono);color:var(--dim);margin:8px 0 0;max-width:60ch}
+#tally b{color:var(--ink);font-weight:500}#tally .t{color:var(--mint)}#tally .s{color:var(--amber)}#tally .v{color:var(--violet)}
+#when{position:fixed;right:max(16px,env(safe-area-inset-right));top:58px;z-index:4;pointer-events:none;text-align:right;font:300 clamp(30px,6vw,84px)/1 var(--serif);color:var(--ink);letter-spacing:-.02em;opacity:0;transition:opacity .4s}
+#when small{display:block;font:11px/1.6 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+html.in-met #when{opacity:1}
+#key{display:none;gap:6px;flex-wrap:wrap;margin:10px 0 0;max-width:720px}
+#key.on{display:flex}
+#key button{min-height:34px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(10,4,24,.72);color:var(--ink);font:11px/1 var(--mono);display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+#key button i{width:8px;height:8px;border-radius:50%;background:var(--k);box-shadow:0 0 8px var(--k)}
+#key button[aria-pressed=true]{border-color:var(--k);box-shadow:0 0 0 1px var(--k) inset}
+#key.dim button:not([aria-pressed=true]){opacity:.45}
+#tip{position:fixed;z-index:6;pointer-events:none;display:none;padding:8px 10px;border-radius:10px;background:rgba(12,5,30,.92);border:1px solid rgba(255,255,255,.12);font:11px/1.5 var(--mono);color:var(--dim);white-space:nowrap}
+#tip b{color:var(--ink);font-weight:500}#tip.on{display:block}
+#scard{position:fixed;z-index:12;max-width:min(380px,calc(100vw - 32px));padding:14px 40px 14px 16px;border-radius:14px;background:rgba(12,5,30,.94);border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.6);backdrop-filter:blur(10px);display:none}
+#scard.on{display:block}
+#scard h2{margin:0;font:600 clamp(19px,2.8vw,26px)/1.1 var(--serif)}
+#scard .m{font:11px/1.5 var(--mono);color:var(--dim);margin:4px 0 6px}
+#scard .q{font:italic 300 17px/1.3 var(--serif);margin:0 0 6px}#scard .q b{font-style:normal;font-weight:600;color:var(--mint)}
+#scard .t{font:11px/1.5 var(--mono);letter-spacing:.1em;text-transform:uppercase;margin:4px 0 8px}
+#scard .t.null,#scard .t.descriptive{color:var(--ice)}#scard .t.killed,#scard .t.reversed{color:var(--rose)}
+#scard ul{margin:0;padding:0 0 0 14px;font:11px/1.55 var(--mono);color:var(--dim)}
+#scard .arm{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:6px 0 4px}#scard .arm i{display:block;height:100%}
+#scard .leg{font:10px/1.4 var(--mono);color:var(--dim)}
+#scard .pv{margin-top:10px;display:flex;align-items:center;gap:10px;font:11px/1.3 var(--mono);color:var(--dim)}
+#scard .pv img{width:40px;height:40px;border-radius:6px;object-fit:cover;background:#1a1030}#scard .pv a{color:var(--ice);text-decoration:none}#scard .pv b{color:var(--ink);font-weight:500;display:block}
+#scard .x,#deep .x{position:absolute;top:8px;right:8px;min-height:36px;min-width:36px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);cursor:pointer;font-size:16px}
+#curve{position:fixed;inset:0;z-index:3;display:none;pointer-events:none;background:rgba(6,1,15,.78)}
+#curve.on{display:block}
+#curve svg{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(92vw,900px);height:min(56vh,520px);overflow:visible}
+#curve text{font:11px var(--mono);fill:var(--dim)}
+#curve .big{font:italic 300 clamp(14px,2vw,24px) var(--serif);fill:var(--ink)}
+#deep{position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);z-index:30;background:rgba(8,2,20,.97);border-left:1px solid rgba(255,255,255,.1);padding:56px 22px 24px;overflow:auto;transform:translateX(100%);transition:transform .35s ease}
+#deep.on{transform:none}#deep .x{position:sticky;top:0;float:right;margin:-4px -4px 0 0}
+#deep h3{font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:22px 0 8px}
+#deep h4{font:italic 300 22px/1.1 var(--serif);margin:34px 0 4px;color:var(--ink)}
+#deep p{margin:0 0 10px;font-size:14px}
+#deep .lv{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+#deep .lv button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);font:12px/1 var(--mono);cursor:pointer}
+#deep .lv button[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
+#deep .d{display:none}#deep[data-lv="1"] .d1,#deep[data-lv="2"] .d1,#deep[data-lv="2"] .d2,#deep[data-lv="3"] .d1,#deep[data-lv="3"] .d2,#deep[data-lv="3"] .d3{display:block}
+#deep .num{font:600 30px/1 var(--serif);color:var(--ice)}#deep .num small{font:12px/1 var(--mono);color:var(--dim);margin-left:6px}
+#deep .kill{color:var(--rose)}#deep .null{color:var(--ice)}#deep .mono{color:var(--dim);font:11px/1.5 var(--mono)}
+.last{position:relative;z-index:2;background:linear-gradient(rgba(6,1,15,0),rgba(6,1,15,.96) 18%);padding:40px max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left))}
+.wrap{max-width:1100px;margin:0 auto}
+.doors{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;list-style:none;padding:0;margin:0}
+.door{display:block;padding:16px 18px;border:1px solid var(--faint);border-radius:12px;text-decoration:none;color:var(--ink);background:rgba(10,4,24,.6);min-height:88px}
 .door:hover,.door:focus-visible{border-color:var(--hair)}
-.door b{display:block;font:600 18px/1.2 var(--serif)}.door span{display:block;margin-top:4px;color:var(--mute);font-size:13px}
-.album{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
-.album p{margin:0;max-width:58ch;color:var(--mute)}
-#b-play{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--hair);background:transparent;color:var(--ink);font:500 13px/1 var(--mono);letter-spacing:.06em;cursor:pointer}
-.honest{margin:40px 0 0;padding:18px 0 0;border-top:1px solid var(--faint);color:var(--mute);font-size:13px;max-width:76ch}
-.honest p{margin:0 0 6px}
-.foot{margin-top:40px}
-.fnote{margin:0;padding:18px 0 6px;color:var(--mute);font:12px/1.6 var(--mono)}
-.fnote a{color:var(--mute)}
-@media (max-width:640px){.s1{min-height:88vh;padding-top:10vh}.s1 h1{font-size:clamp(32px,10.4vw,46px)}.sec{padding:40px 0 8px}.scenes{grid-template-columns:1fr 1fr;gap:10px}.scene h3{font-size:18px}.scene p{font-size:12.5px}.scene img{aspect-ratio:4/3}.still{background-position:62% 30%}}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.scene{transition:none}}
+.door b{display:block;font:italic 400 22px/1.1 var(--serif);margin-bottom:6px}.door span{color:var(--dim);font-size:13px}
+.door.big{border-color:var(--mint);grid-column:1 / -1}.door.big b{font-size:30px;color:var(--mint)}
+#album{margin-top:28px}
+#album h2{font:italic 300 26px/1.1 var(--serif);margin:0 0 8px}
+#album p{color:var(--dim);max-width:62ch;margin:0 0 12px;font-size:14px}
+#b-play{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--mint);background:transparent;color:var(--mint);font:13px/1 var(--mono);letter-spacing:.06em;cursor:pointer}
+.honest{color:var(--dim);font-size:12px;margin:14px 0 0;max-width:70ch;font-family:var(--mono);line-height:1.6}
+.foot{position:relative;z-index:2;background:var(--bg)}
+.fnote{color:var(--dim);font:12px/1.6 var(--mono);margin:0;padding:12px max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left))}
+.fnote a{color:var(--dim)}
+@media (max-width:640px){.copy{padding-bottom:calc(72px + env(safe-area-inset-bottom));max-width:100%}.copy .sub{display:none}.top{gap:8px;font-size:10px}.top .brand small{display:none}.chip{padding:0 11px;font-size:11px}.bar{gap:6px}#when{top:50px;left:16px;right:auto;text-align:left;font-size:28px}#deep{padding-top:52px}.dots a{min-width:30px}.dots{gap:0}.top .brand{letter-spacing:.08em}#b-deep .xw{display:none}}
+@media (prefers-reduced-motion:reduce){#deep,#when{transition:none}}
 </style>
 </head>
 <body>
-<a class="skip" href="#argument">skip to the findings</a>
-<div class="wrap">
+<canvas id="field" aria-label="every play as a mote of light; the scroll turns the river into the sky, the sky into the years, the years into seven traces, and all of it into one record"></canvas>
 <header class="top" id="top">
-  <p class="brand"><b>sonic manifold</b><span>by astralcrest</span></p>
-  <nav class="tnav" aria-label="five doors">
-    <a href="./" aria-current="page">findings</a>
-    <a href="#scenes">the scenes</a>
-    <a href="exhibit.html">the record</a>
-    <a href="lab.html">the lab</a>
-    <a href="researcher.html">the report</a>
-  </nav>
+  <a class="brand" href="./">sonic manifold <small>by astralcrest</small></a>
+  <nav class="dots" aria-label="the five acts"><a href="#act-count"><i></i><span>the count</span></a><a href="#act-shape"><i></i><span>the shape</span></a><a href="#act-met"><i></i><span>who introduced us</span></a><a href="#act-body"><i></i><span>the body</span></a><a href="#act-record"><i></i><span>the record</span></a></nav>
+  <button type="button" class="chip" id="b-deep" aria-pressed="false">deep<span class="xw"> science</span></button>
 </header>
+<div id="when" aria-live="off"><small>we met in</small><span id="ym">september 2019</span></div>
+<div id="tip"></div>
+<div id="curve" aria-hidden="true"><svg id="svg" viewBox="0 0 900 520" preserveAspectRatio="xMidYMid meet"></svg></div>
+<aside id="scard" role="dialog" aria-live="polite"></aside>
 <main id="argument">
-<section class="s1" id="finding" aria-labelledby="hl">
-  <div class="still" aria-hidden="true"></div>
-  <h1 id="hl">i pressed play on <b class="t" id="c0">19</b> of every 100. shuffle picked <b class="s" id="c1">17</b>. the queue served <b class="v" id="c2">64</b>.</h1>
-  <p class="thesis">my taste has a shape. the app lives in one corner of it.</p>
-  <p class="mute">one listener's log, 97,427 plays, 2019 to 2026, read as art, science and music. every claim was pre-declared and refereed; the ones that died are still here, marked. the songs are mine: press anywhere and the album plays.</p>
-  <div class="cnt" role="group" aria-label="how to count a press">
-    <button type="button" id="cnt-all" aria-pressed="true">every press</button>
-    <button type="button" id="cnt-strict" aria-pressed="false">strictest count</button>
-    <span class="note" id="cnt-note"></span>
+<section class="act" id="act-count" aria-labelledby="hl">
+  <div class="copy">
+    <p class="k">one listener's log · 97,427 plays · 2019 to 2026</p>
+    <h1 id="hl">i pressed play on <b class="t">19</b> of every 100. shuffle picked <b class="s">17</b>. the queue served <b class="v">64</b>.</h1>
+    <p class="so">every play as a mote of light, colored by whose hand started it. the app runs most of my days.</p>
+    <p class="sub">hover a month. the clock turns the same plays by hour of day. the strictest count keeps only the play button, the track row and the remote.</p>
+    <p id="strict-note"></p>
+    <p class="num">by the strictest count 11.5 of 100: 7.6 of the 19 were my back and skip presses. october 2023: the app changed how it records a start, so the bands before and after that line are not the same instrument.</p>
+    <div class="bar"><button type="button" class="chip" id="b-strict" aria-pressed="false">strictest count</button><button type="button" class="chip" id="b-clock" aria-pressed="false">the clock</button><button type="button" class="chip b-deeper" data-act="count">deeper</button></div>
   </div>
 </section>
-<section class="sec" id="scenes" aria-labelledby="h-s2">
-  <h2 id="h-s2">five scenes</h2>
-  <p class="lead">each one is a page you can move through, with the music on, and a "the science" switch that goes three levels deep: the sentence, the numbers, the test.</p>
-  <ol class="scenes">
-    <li><a class="scene" href="editions/river.html"><span class="n">01</span><img src="editions/river/thumb.jpg" alt="" loading="lazy" width="960" height="600"><div class="m"><h3>who pressed play</h3><p>every play as a mote of light, 2019 to 2026, colored by whose hand started it. turn the river into a clock.</p><span class="so">so what: the queue runs most of my days</span></div></a></li>
-    <li><a class="scene" href="editions/sky.html"><span class="n">02</span><img src="editions/sky/thumb.jpg" alt="" loading="lazy" width="960" height="600"><div class="m"><h3>the sky</h3><p>1,986 artists as stars, placed by the evenings they shared. light one family, or color the sky by who pressed play. tap a star and it sings.</p><span class="so">so what: my taste has a shape</span></div></a></li>
-    <li><a class="scene" href="editions/born.html"><span class="n">03</span><img src="editions/born/thumb.jpg" alt="" loading="lazy" width="960" height="600"><div class="m"><h3>who introduced us</h3><p>artists appear in the order we met, lit by whose hand pressed first, and go to ash when the last play passes.</p><span class="so">so what: the ones i went looking for stayed</span></div></a></li>
-    <li><a class="scene" href="editions/body.html"><span class="n">04</span><img src="editions/body/thumb.jpg" alt="" loading="lazy" width="960" height="600"><div class="m"><h3>the body</h3><p>seven tests of my body answering the music, drawn as seven traces. the quiet ones are nulls with their blind spot; the rose ones died.</p><span class="so">so what: the music moves, the body does not</span></div></a></li>
-    <li><a class="scene" href="exhibit.html"><span class="n">05</span><img src="front/record_still.jpg" alt="" loading="lazy" width="960" height="600"><div class="m"><h3>the record</h3><p>a sculpture of every play, six rooms, the album as the soundtrack. the last word.</p><span class="so">so what: beauty counts too</span></div></a></li>
-  </ol>
+<section class="act" id="act-shape" aria-labelledby="h-shape">
+  <div class="copy">
+    <p class="k">the same plays, gathered into 1,986 artists</p>
+    <h2 id="h-shape">my taste has a shape. the app lives in one corner of it.</h2>
+    <p class="so">stars placed by the evenings they shared. where it pools violet, the app chose. where it goes mint, i did.</p>
+    <p class="sub">drag to turn the sky. tap a star and it sings. the families light one constellation at a time.</p>
+    <p class="num">ambient/lofi reaches me through the app: 0.636 [0.569, 0.710] under-tapped by the strictest count. hip-hop/r&amp;b i reach for: 1.22 over-tapped, the less firm of the two. when i pick the next song i cross families slightly more often: 69.9 vs 66.3 of 100, a direction, not a size.</p>
+    <div class="bar"><button type="button" class="chip" id="b-mode" aria-pressed="false">who pressed play</button><button type="button" class="chip" id="b-key" aria-pressed="false">families</button><button type="button" class="chip b-deeper" data-act="shape">deeper</button></div>
+    <div id="key" role="group" aria-label="genre families"></div>
+  </div>
 </section>
-<section class="sec" id="links" aria-labelledby="h-s3">
-  <h2 id="h-s3">go deeper</h2>
-  <ul class="doors">
-    <li><a class="door" href="lab.html"><b>the lab</b><span>every chart, every interval, the ledger of what died and why.</span></a></li>
-    <li><a class="door" href="researcher.html"><b>the report</b><span>the methods, the pre-registrations, the smallest effects each test could see.</span></a></li>
-    <li><a class="door" href="editions/index.html"><b>sixteen editions</b><span>the same data, sixteen ways: a hall, a crate, a broadsheet, an arcade, a planetarium.</span></a></li>
-    <li><a class="door" href="yourturn.html"><b>your turn</b><span>run the same count on your own export, on your own machine.</span></a></li>
-  </ul>
+<section class="act" id="act-met" aria-labelledby="h-met">
+  <div class="copy">
+    <p class="k">scroll, and the years pass</p>
+    <h2 id="h-met">the ones i went looking for stayed.</h2>
+    <p class="so">each spark is an artist appearing the month we met, lit by the hand that pressed first. ash when the last play passes.</p>
+    <p id="tally"></p>
+    <p class="num" id="n-met"></p>
+    <div class="bar"><button type="button" class="chip" id="b-curve" aria-pressed="false">the curve</button><button type="button" class="chip b-deeper" data-act="met">deeper</button></div>
+  </div>
 </section>
-<section class="sec" id="album" aria-labelledby="h-s4">
-  <h2 id="h-s4">my soundtrack</h2>
-  <div class="album"><p>twenty-three songs i wrote for this, keyed and tempo-matched so one hands into the next. the first press anywhere on the site starts them; the dock at the bottom holds play, next and mute, and your choice carries across every page.</p><button type="button" id="b-play">play my soundtrack</button></div>
-  <div class="honest">
-    <p>counts are over plays of 30 seconds or more. "every press" counts track row, play button, remote, skip forward and back as my hand; the strictest count leaves the skips out: 7.6 of the 19 were my back and skip presses.</p>
-    <p>october 2023: the app changed how it records a start. nothing on this site says music changes the body. one listener, one log: a direction, never a size.</p>
+<section class="act" id="act-body" aria-labelledby="h-body">
+  <div class="copy">
+    <p class="k">seven pre-declared tests · the music, the watch, the ring</p>
+    <h2 id="h-body">i looked seven ways for my body answering the music. it never did.</h2>
+    <p class="so">the quiet lines are nulls inside the smallest effect each test could have seen. the rose lines died. the crosses are claims that died before them.</p>
+    <p class="sub">tap a trace or a cross. the album's own pulse moves the lines that were allowed to move; it never moves the nulls.</p>
+    <p class="num" id="n-body"></p>
+    <div class="bar"><button type="button" class="chip b-deeper" data-act="body">deeper</button></div>
+  </div>
+</section>
+<section class="act" id="act-record" aria-labelledby="h-record">
+  <div class="copy">
+    <p class="k">every play, pressed into one record</p>
+    <h2 id="h-record">the last word is the record.</h2>
+    <p class="so">97,427 plays as grooves of light, 2019 at the rim, 2026 at the center. six rooms inside, the album as the soundtrack.</p>
+    <div class="bar"><a class="chip go" href="exhibit.html">enter the record</a><button type="button" class="chip b-deeper" data-act="record">deeper</button></div>
   </div>
 </section>
 </main>
-</div>
+<section class="last" id="links" aria-labelledby="h-links">
+  <div class="wrap">
+    <h2 id="h-links" class="k" style="font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 12px">go deeper</h2>
+    <ul class="doors">
+      <li><a class="door big" href="exhibit.html"><b>the record</b><span>a sculpture of every play, six rooms, the album as the soundtrack.</span></a></li>
+      <li><a class="door" href="lab.html"><b>the lab</b><span>every chart, every interval, the ledger of what died and why.</span></a></li>
+      <li><a class="door" href="researcher.html"><b>the report</b><span>the methods, the pre-registrations, the smallest effects each test could see.</span></a></li>
+      <li><a class="door" href="yourturn.html"><b>your turn</b><span>run the same count on your own export, on your own machine.</span></a></li>
+    </ul>
+    <div id="album">
+      <h2>my soundtrack</h2>
+      <p>twenty-three songs i wrote for this, keyed and tempo-matched so one hands into the next. the first press anywhere on the site starts them; the dock at the bottom holds play, next and mute, and your choice carries across every page.</p>
+      <button type="button" id="b-play">play my soundtrack</button>
+      <p class="honest">every claim was pre-declared and refereed; the ones that died are still here, marked. nothing on this page says music changes the body, or that the app knows me. the strictest count, the genre numbers and the crossing rate are directions with intervals, not sizes. counts are plays of 30 seconds or more.</p>
+    </div>
+  </div>
+</section>
+<aside id="deep" data-lv="1" aria-hidden="true" aria-label="the science, three depths"><button class="x" id="deepx" type="button" aria-label="close">×</button>
+ <h3>how deep</h3><div class="lv"><button type="button" data-lv="1" aria-pressed="true">the sentence</button><button type="button" data-lv="2">the numbers</button><button type="button" data-lv="3">the test</button></div>
+ <h4 id="deep-count">the count</h4>
+ <p class="d1" id="d-s1"></p>
+ <p class="d2"><span class="num">19<small>of 100</small></span> my hand, counting every press. <span class="num">11.5</span> by the strictest count: <span id="d-s2"></span> shuffle 17, the queue 64. the river draws the first count; the strictest count has no month-by-month series, so the switch changes only the headline.</p>
+ <p class="d3" id="d-s3"></p>
+ <h3>the river</h3>
+ <p class="d1">height is how much i listened that month; the bands are whose hand started the plays. october 2023: the app changed how it records a start, so the bands before and after that line are not the same instrument.</p>
+ <p class="d2" id="d-r2"></p>
+ <p class="d3">each month's three counts come from the play log (plays of 30 seconds or more). a mote is a fixed number of plays; motes are placed at random inside their band and drift, so the picture is a count, not a position. nothing in the river is a test.</p>
+ <h3>the clock</h3>
+ <p class="d1" id="d-c1"></p>
+ <p class="d2" id="d-c2"></p>
+ <p class="d3">one fixed clock all year (no per-play timezone or daylight-saving data was kept), so the hours are only roughly local. a share, not a volume.</p>
+ <h4 id="deep-shape">the shape</h4>
+ <h3>the map</h3>
+ <p class="d1">artists that shared my evenings sit near each other. far apart means little. the map learned from every play, and the app started most of them. the map is the picture, not the proof.</p>
+ <p class="d2">a personal word2vec on 5,489 sittings (a 30-minute silence closes one), then umap to three dimensions, cosine, 18 neighbors. 1,986 artists placed; the rest wait at the edge. the glow around each star is the plays themselves, one mote per dozen, landing on the artist in proportion to the hand that started them.</p>
+ <p class="d3">the embedding is trained on all 97,427 plays, so its geometry reflects the queue as much as me. that is why no finding on this page is read off the map; the refereed numbers below come from genre tags, not from distances.</p>
+ <h3>families</h3>
+ <p class="d1">counted by play, ambient and lo-fi reach me mostly through the app; hip-hop and r&amp;b are the ones i reach for.</p>
+ <p class="d2" id="d-g2"></p>
+ <p class="d3">arm rate = tapped share within a family over the tapped share overall, strict definition, same-artist control, 28-day block bootstrap. families are a collapse of 1,067 tags; the fine tags only feed the tag-noise check.</p>
+ <h3>the crossing</h3>
+ <p class="d1" id="d-b1"></p>
+ <p class="d2" id="d-b2"></p>
+ <p class="d3">a genre-family crossing rate per arm, same-artist pairs excluded, intervals from a 28-day block bootstrap. the earlier embedding-distance version of this number was withdrawn; the sky never claims it.</p>
+ <h4 id="deep-met">who introduced us</h4>
+ <p class="d1" id="d-i1"></p>
+ <p class="d2" id="d-i2"></p>
+ <p class="d3">unit = an artist with two plays or more. introducer = the arm of our first play: my tap (track row, play button, remote, skip forward or back), shuffle, or the queue on its own. an artist is "still with me" while its last play is within 90 days of the end of the log. survival by kaplan-meier, interval from a 28-day block bootstrap over the months we met. pre-registered on a hash before the numbers. this is selection, not treatment: a first tap is usually a search for a name i already carried, so the sentence says what i already knew, never that the queue fails.</p>
+ <h3>my hand, four more ways</h3>
+ <p class="d1" id="d-h1"></p>
+ <div class="d2" id="d-h2"></div>
+ <p class="d3" id="d-h3"></p>
+ <h4 id="deep-body">the body</h4>
+ <p class="d1" id="d-f1"></p>
+ <div class="d2" id="d-f2"></div>
+ <p class="d3">each lane was pre-declared on a hash before any number: unit, clock, arms, model, kill rule, and the smallest effect it could detect at 80 percent power (the blind spot). intervals come from a 28-day block bootstrap; nulls are tested against within-day permutations. a lane is "killed" when a control removes it, "reversed" when the sign came out against the pre-declared direction, "null" when the interval holds zero with the blind spot stated, "descriptive" when it is a number with caveats and no claim. nothing on this page is a claim that music changes the body.</p>
+ <h3>the tiers</h3>
+ <div class="d1" id="d-t1"></div>
+ <h3>the graveyard</h3>
+ <p class="d1">sixteen earlier claims, each with what killed it. a claim stays dead once a valid control removes it; it never comes back as a weaker version of itself.</p>
+ <div class="d2" id="d-g3"></div>
+ <h4 id="deep-record">the record</h4>
+ <p class="d1">one groove per month, 2019 at the rim and 2026 at the center; the color of each mote is the hand that pressed play. the record you can enter is the same data as a sculpture, with six rooms and the album as the soundtrack.</p>
+ <p class="d2">97,427 plays of 30 seconds or more. the shares in every room are the ones on this page: 19 / 17 / 64, and 11.5 by the strictest count.</p>
+ <p class="d3">the ledger of every claim, alive and dead, lives in <a href="lab.html">the lab</a>; the methods and pre-registrations in <a href="researcher.html">the report</a>. october 2023: the app changed how it records a start.</p>
+</aside>
 <footer class="foot" id="deeper">
-<div class="wrap"><p class="fnote">astralcrest &middot; 2026 &middot; built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a></p></div>
+<p class="fnote">astralcrest &middot; 2026 &middot; built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a></p>
 <nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}@media (pointer:coarse){.sleeve a{min-height:44px}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i><a href="exhibit.html" data-p="exhibit.html">the record</a></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">how it was made</a></span><a class="up" href="#top">back to the top &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav>
 </footer>
 <div id="player-dock"></div>
-<script>
-(function(){var ST=/*@STAMPS@*/{};window.__front={stamps:ST,strict:false};
-var c0=document.getElementById('c0'),ba=document.getElementById('cnt-all'),bs=document.getElementById('cnt-strict'),note=document.getElementById('cnt-note');
-function set(strict){window.__front.strict=strict;c0.textContent=strict?'11.5':'19';ba.setAttribute('aria-pressed',String(!strict));bs.setAttribute('aria-pressed',String(strict));note.textContent=strict?'play button, track row or remote only: 7.6 of the 19 were my back and skip presses.':''}
-ba.addEventListener('click',function(){set(false)});bs.addEventListener('click',function(){set(true)});
-})();
-</script>
+<script>(function(){var ST=/*@STAMPS@*/{};window.__front={stamps:ST,spine:true};var io='IntersectionObserver' in window&&document.getElementById('act-met');if(io){new IntersectionObserver(function(es){for(var i=0;i<es.length;i++)document.documentElement.classList.toggle('in-met',es[i].isIntersecting)},{rootMargin:'-45% 0px -45% 0px'}).observe(io)}})();</script>
+<script src="editions/data/pack.js?v=r25e" defer></script>
+<script src="front/spine.js?v=@HASH@" defer></script>
 <script src="front/music.js?v=@HASH@" defer></script>
 </body>
 </html>
