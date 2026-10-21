@@ -45,7 +45,7 @@ SM = {
   'genre_anchor': {'over_served': {'family': 'ambient/lofi', 'strict': 0.636, 'lo': 0.569, 'hi': 0.710}, 'chosen': {'family': 'hip-hop · r&b', 'strict': 1.22, 'lo': None, 'hi': None, 'caveat': 'the less firm of the two: counted per track, not per play, hip-hop reads below 1'}},
   'top': top, 'hall': {'artists': artists, 'placed': hall['placed'], 'placed_plays': hall['placed_plays'], 'sessions': hall.get('sessions')},
   'months': months, 'nodes': old.get('nodes'), 'edges_sample': old.get('edges_sample'),
-  'soundtrack': [{'f': t['f'], 't': t['t'], 'k': t['k'], 'bpm': t['bpm'], 'src': 'audio/bed/' + t['f'] + '.mp3', 'dur': meta.get(t['f'] + '.mp3', {}).get('dur'), 'b0': meta.get(t['f'] + '.mp3', {}).get('b0')} for t in tracks],
+  'soundtrack': [{'f': t['f'], 't': t['t'].lower(), 'k': t['k'], 'bpm': t['bpm'], 'src': 'audio/bed/' + t['f'] + '.mp3', 'dur': meta.get(t['f'] + '.mp3', {}).get('dur'), 'b0': meta.get(t['f'] + '.mp3', {}).get('b0')} for t in tracks],
   'genre': genre, 'pairs': pairs, 'hear': hear, 'graveyard': grave['graves'], 'clock': clock, 'bail': bail,
   'arrivals': {'n': arr['n'], 'arm_order': arr['arm_order'], 'counts': arr['counts'], 'pb_edges': arr['pb_edges']},
   'era_note': 'october 2023: the app changed how it records a start',

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en"><head><!--R24AU-START--><script>(function(){var A=window.Audio;if(!A||A.__sm)return;var F=function(s){var a=s===undefined?new A():new A(s);window.__smAu=a;return a};F.prototype=A.prototype;F.__sm=1;window.Audio=F})()</script><!--R24AU-END--><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>flight recorder</title>
 <meta name="description" content="97,427 plays, read off an instrument panel. of every 100 plays, 81 were chosen for me.">
@@ -704,7 +704,7 @@ function audio(){
  try{var AC=window.AudioContext||window.webkitAudioContext;if(AC){PL.ctx=new AC();var src=PL.ctx.createMediaElementSource(a);PL.an=PL.ctx.createAnalyser();PL.an.fftSize=1024;PL.an.smoothingTimeConstant=.6;src.connect(PL.an);PL.an.connect(PL.ctx.destination);PL.td=new Uint8Array(PL.an.fftSize);PL.fd=new Uint8Array(PL.an.frequencyBinCount)}}catch(e){PL.an=null}
  return a;
 }
-function save(){var a=PL.a;if(a)ssSet({k:PL.cur,t:PL.cur>=0?Math.floor(a.currentTime||0):0,p:PL.up?1:0})}
+function save(){var a=PL.a;if(a)ssSet({at:Date.now(),k:PL.cur,t:PL.cur>=0?Math.floor(a.currentTime||0):0,p:PL.up?1:0})}
 function playEl(a){try{if(PL.ctx&&PL.ctx.state==='suspended')PL.ctx.resume()}catch(e){}var p;try{p=a.play()}catch(e){p=null}if(p&&p.catch)p.catch(function(e){if(e&&e.name==='NotAllowedError')PL.blocked=true;sync()})}
 function go(k,t,user){
  var a=audio(),src='../'+TR[k].src;
@@ -714,7 +714,7 @@ function go(k,t,user){
  if(t>0)a.addEventListener('loadedmetadata',function f(){a.removeEventListener('loadedmetadata',f);try{if(t<a.duration-1)a.currentTime=t}catch(e){}});
  playEl(a);save();sync();mark();
 }
-function begin(user){var s=ssGet(),k=s.k>=0?s.k:0,t=s.k>=0?+s.t||0:0;audio();go(Math.min(k,TR.length-1),t,user)}
+function begin(user){var s=ssGet(),k=s.k>=0?s.k:0,t=s.k>=0&&Date.now()-(+s.at||0)<180000?+s.t||0:0;audio();go(Math.min(k,TR.length-1),t,user)}
 function toggle(){var a=PL.a;if(!a||PL.cur<0){begin(true);return}
  if(a.paused){PL.up=false;if(a.muted)a.muted=false;lsSet('on');playEl(a)}else{PL.up=true;a.pause()}save()}
 function showDock(){$('dock').hidden=false;html.classList.add('dock')}
@@ -823,4 +823,4 @@ el.querySelector('ol').innerHTML=S.lanes.map(function(l){return '<li><p class="s
 })();</script>
 </section>
 <!--R23SCI-END-->
-</body></html>
+<!--R24NEXT-START--><script>(function(){function f(){if(document.getElementById('sm-next'))return;var b=Array.prototype.filter.call(document.querySelectorAll('button'),function(x){return /^(mute|unmute|silence|quiet|sound)$/i.test((x.textContent||'').trim())})[0]||document.getElementById('mute');if(!b)return;var n=b.cloneNode(false);n.id='sm-next';n.type='button';n.textContent='next';n.removeAttribute('aria-pressed');n.setAttribute('aria-label','next song');n.style.minHeight='32px';b.parentNode.insertBefore(n,b);n.addEventListener('click',function(e){e.stopPropagation();var a=window.__smAu||document.querySelector('audio');if(!a||!a.getAttribute('src')){var p=Array.prototype.filter.call(document.querySelectorAll('button'),function(x){return /^(play|play the album|▶|play music)$/i.test((x.textContent||'').trim())})[0];if(p)p.click();return}try{a.pause()}catch(x){}try{a.dispatchEvent(new Event('ended'))}catch(x){}})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',f);else f()})()</script><!--R24NEXT-END--></body></html>

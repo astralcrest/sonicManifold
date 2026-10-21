@@ -93,7 +93,7 @@ function el() {
 }
 /* from where this visit left it (sessionStorage), else track 1 */
 function begin(user) {
-  var s = ssGet(), k = s.k >= 0 ? s.k : 0, t = s.k >= 0 ? +s.t || 0 : 0, a = el();
+  var s = ssGet(), k = s.k >= 0 ? s.k : 0, t = s.k >= 0 && Date.now() - (+s.at || 0) < 180000 ? +s.t || 0 : 0, a = el();
   A.started = true;
   if (A.tr) { go(Math.min(k, A.tr.length - 1), t, user); return; }
   A.pend = true;
@@ -125,7 +125,7 @@ function toggle() {
   else { A.up = true; a.pause(); }
   save();
 }
-function save() { var a = A.el; if (a) ssSet({ k: A.cur, t: A.cur >= 0 ? Math.floor(a.currentTime || 0) : 0, p: A.up ? 1 : 0 }); }
+function save() { var a = A.el; if (a) ssSet({ at: Date.now(), k: A.cur, t: A.cur >= 0 ? Math.floor(a.currentTime || 0) : 0, p: A.up ? 1 : 0 }); }
 function prog() {
   var a = A.el, w = (a.duration ? 100 * a.currentTime / a.duration : 0).toFixed(2) + '%', g = $('#prog'), n = Date.now();
   if (g) g.style.width = w;
@@ -160,6 +160,8 @@ function dock() {
   D.bar = mk('i', 'pd-bar', d); D.bar.setAttribute('aria-hidden', 'true');
   D.t = mk('p', 'pd-t', d);
   D.play = mk('button', 'pd-b', d); D.play.type = 'button'; D.play.addEventListener('click', toggle);
+  D.next = mk('button', 'pd-b', d); D.next.type = 'button'; D.next.textContent = 'next'; D.next.setAttribute('aria-label', 'next song');
+  D.next.addEventListener('click', function () { if (A.tr && A.cur >= 0) go((A.cur + 1) % A.tr.length, 0, true); else begin(true); });
   D.mute = mk('button', 'pd-b', d); D.mute.type = 'button';
   D.mute.addEventListener('click', function () { var a = A.el; if (!a) { lsSet('on'); begin(true); return; } a.muted = !a.muted; lsSet(a.muted ? 'off' : 'on'); sync(); });
   D.el = d; d.hidden = false; html.classList.add('sm-dock');

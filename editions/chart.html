@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head>
+<head><!--R24AU-START--><script>(function(){var A=window.Audio;if(!A||A.__sm)return;var F=function(s){var a=s===undefined?new A():new A(s);window.__smAu=a;return a};F.prototype=A.prototype;F.__sm=1;window.Audio=F})()</script><!--R24AU-END-->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>a chart of what was played</title>
@@ -958,5 +958,5 @@ el.querySelector('ol').innerHTML=S.lanes.map(function(l){return '<li><p class="s
 })();</script>
 </section>
 <!--R23SCI-END-->
-</body>
+<!--R24NEXT-START--><script>(function(){function f(){if(document.getElementById('sm-next'))return;var b=Array.prototype.filter.call(document.querySelectorAll('button'),function(x){return /^(mute|unmute|silence|quiet|sound)$/i.test((x.textContent||'').trim())})[0]||document.getElementById('mute');if(!b)return;var n=b.cloneNode(false);n.id='sm-next';n.type='button';n.textContent='next';n.removeAttribute('aria-pressed');n.setAttribute('aria-label','next song');n.style.minHeight='32px';b.parentNode.insertBefore(n,b);n.addEventListener('click',function(e){e.stopPropagation();var a=window.__smAu||document.querySelector('audio');if(!a||!a.getAttribute('src')){var p=Array.prototype.filter.call(document.querySelectorAll('button'),function(x){return /^(play|play the album|▶|play music)$/i.test((x.textContent||'').trim())})[0];if(p)p.click();return}try{a.pause()}catch(x){}try{a.dispatchEvent(new Event('ended'))}catch(x){}})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',f);else f()})()</script><!--R24NEXT-END--></body>
 </html>
