@@ -2,6 +2,12 @@
  "v": 1,
  "tracks": [
   {
+   "f": "autotropic",
+   "t": "autotropic",
+   "k": "11A",
+   "bpm": 136
+  },
+  {
    "f": "cross-entropy-zero",
    "t": "cross-entropy zero",
    "k": "6A",
@@ -42,12 +48,6 @@
    "t": "hitting the infinite derivative",
    "k": "11A",
    "bpm": 66
-  },
-  {
-   "f": "autotropic",
-   "t": "autotropic",
-   "k": "11A",
-   "bpm": 136
   },
   {
    "f": "fruititarian",

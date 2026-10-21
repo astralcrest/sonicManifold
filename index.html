@@ -610,7 +610,7 @@ html:not(.js) .stage,html:not(.js) .cnt-l,html:not(.js) .cnt,html:not(.js) .skip
 'use strict';
 
 /* ---------- data: each section's sidecar is fetched when the section nears the screen ---------- */
-var V = {"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"ee863b59a8","hear":"32c1ba0b88"};
+var V = {"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"9f65301c74","hear":"32c1ba0b88"};
 var READY = {};
 function getJSON(name) {
   return fetch('front/data/' + name + '.json?v=' + (V[name] || '0'), { credentials: 'same-origin' }).then(function (r) {
