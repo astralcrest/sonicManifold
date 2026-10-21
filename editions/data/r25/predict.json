@@ -1,0 +1,1 @@
+{"per_arm": {"tap": {"n": 16021, "h_bits": 3.23, "repeat": 0.199}, "shuffle": {"n": 15311, "h_bits": 3.3, "repeat": 0.147}, "served": {"n": 59930, "h_bits": 2.61, "repeat": 0.241}, "strict": {"n": 9072, "h_bits": 2.86, "repeat": 0.188}}, "diff_tap": {"v": 0.63, "lo": 0.41, "hi": 0.67, "mde": 0.2}, "diff_strict": {"v": 0.25, "lo": 0.02, "hi": 0.31, "mde": 0.21}}

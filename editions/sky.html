@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>the sky · sonicManifold</title>
+<meta name="description" content="1,986 artists as stars, placed by the evenings they shared. color them by family, or by who pressed play.">
+<style>
+:root{--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--ice:#9fd8ff;--night:#06010f;--ink:#efe9ff;--dim:#8d85a6}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--night);color:var(--ink);font:15px/1.45 -apple-system,"Inter",system-ui,sans-serif;overflow:hidden;-webkit-text-size-adjust:100%}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+a{color:var(--ice)}
+.strip{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);z-index:5;pointer-events:none}
+.strip a{pointer-events:auto;text-decoration:none;color:var(--dim);min-height:40px;display:inline-flex;align-items:center;font-size:12px}
+.strip a:hover{color:var(--ink)}
+#head{position:fixed;left:16px;right:16px;top:52px;z-index:4;pointer-events:none;max-width:720px}
+#head h1{margin:0;font:italic 300 clamp(26px,4.6vw,54px)/1.05 "Cormorant Garamond","Playfair Display",Georgia,serif;letter-spacing:-.01em}
+#head p{margin:8px 0 0;color:var(--dim);font-size:clamp(13px,1.4vw,16px);max-width:60ch}
+#head b{color:var(--ink);font-weight:500}
+#key{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));display:flex;gap:6px;padding:0 12px;overflow-x:auto;scrollbar-width:none;z-index:5}
+#key::-webkit-scrollbar{display:none}
+#key button{flex:0 0 auto;min-height:36px;padding:0 11px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(10,4,24,.72);color:var(--ink);font:12px/1 ui-monospace,Menlo,monospace;display:inline-flex;align-items:center;gap:7px;cursor:pointer;backdrop-filter:blur(6px)}
+#key button i{width:9px;height:9px;border-radius:50%;background:var(--k);box-shadow:0 0 8px var(--k)}
+#key button[aria-pressed=true]{border-color:var(--k);box-shadow:0 0 0 1px var(--k) inset}
+#key.dim button:not([aria-pressed=true]){opacity:.45}
+#bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;z-index:6;background:linear-gradient(transparent,rgba(6,1,15,.9) 40%)}
+#bar button,#bar a.b{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(10,4,24,.8);color:var(--ink);font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+#bar button[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
+#now{flex:1;min-width:0;font:11px/1.3 ui-monospace,Menlo,monospace;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#card{position:fixed;z-index:7;max-width:min(360px,calc(100vw - 32px));padding:14px 16px;border-radius:14px;background:rgba(12,5,30,.9);border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.6);backdrop-filter:blur(10px);display:none}
+#card.on{display:block}
+#card h2{margin:0;font:600 clamp(20px,3vw,28px)/1.05 "Cormorant Garamond",Georgia,serif;letter-spacing:.02em}
+#card .m{font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--dim);margin:4px 0 8px}
+#card .q{font:italic 300 18px/1.2 "Cormorant Garamond",Georgia,serif;margin:0 0 8px}
+#card .q b{font-style:normal;color:var(--mint);font-weight:600}
+.arm{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:6px 0 4px}
+.arm i{display:block;height:100%}
+#card .leg{font:10px/1.4 ui-monospace,Menlo,monospace;color:var(--dim)}
+#card .pv{margin-top:10px;display:flex;align-items:center;gap:10px;font:11px/1.3 ui-monospace,Menlo,monospace;color:var(--dim)}
+#card .pv img{width:40px;height:40px;border-radius:6px;object-fit:cover;background:#1a1030}
+#card .pv a{color:var(--ice);text-decoration:none}
+#card .pv b{color:var(--ink);font-weight:500;display:block}
+#deep{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:8;background:rgba(8,2,20,.96);border-left:1px solid rgba(255,255,255,.1);padding:64px 22px 24px;overflow:auto;transform:translateX(100%);transition:transform .35s ease}
+#deep.on{transform:none}
+#deep h3{font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:22px 0 8px}
+#deep p{margin:0 0 10px;font-size:14px}
+#deep .lv{display:flex;gap:6px;margin-top:6px}
+#deep .lv button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);font:12px/1 ui-monospace,Menlo,monospace;cursor:pointer}
+#deep .lv button[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
+#deep .d{display:none}#deep[data-lv="1"] .d1,#deep[data-lv="2"] .d1,#deep[data-lv="2"] .d2,#deep[data-lv="3"] .d1,#deep[data-lv="3"] .d2,#deep[data-lv="3"] .d3{display:block}
+#deep .num{font:600 34px/1 "Cormorant Garamond",Georgia,serif;color:var(--ice)}
+#deep .num small{font:12px/1 ui-monospace,Menlo,monospace;color:var(--dim);margin-left:6px}
+#deep .kill{color:#ff6b8a}#deep .null{color:var(--ice)}
+#deep .x{position:absolute;top:14px;right:14px;min-height:40px;min-width:40px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);cursor:pointer}
+#hint{position:fixed;left:16px;bottom:calc(112px + env(safe-area-inset-bottom));font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--dim);z-index:4;pointer-events:none;transition:opacity .6s}
+@media (max-width:640px){#head{top:44px}#head p{display:none}#hint{display:none}#bar{gap:6px}#bar button,#bar a.b{padding:0 10px;font-size:11px}}
+@media (prefers-reduced-motion:reduce){#deep{transition:none}}
+</style></head>
+<body>
+<nav class="strip"><a href="index.html">sonicManifold · one of the editions</a><a href="../index.html">back to the front</a></nav>
+<canvas id="c" aria-label="1,986 artists as stars"></canvas>
+<header id="head"><h1 id="h1">my taste has a shape. the app lives in one corner of it.</h1><p id="sub"><b>1,986 artists</b> as stars, placed by the evenings they shared. drag the sky. tap a star and it sings. the key below colors it by family; <b>who pressed play</b> colors it by whose hand started the song.</p></header>
+<div id="hint">drag to turn · tap a star · tap a family to light only it</div>
+<div id="key" role="group" aria-label="genre families"></div>
+<div id="bar">
+ <button id="mode" type="button" aria-pressed="false">who pressed play</button>
+ <button id="deepb" type="button" aria-pressed="false">the science</button>
+ <span id="now">press anywhere and my album plays</span>
+ <button id="play" type="button">play</button><button id="next" type="button">next</button><button id="mute" type="button">mute</button>
+</div>
+<aside id="card" role="dialog" aria-live="polite"></aside>
+<aside id="deep" data-lv="1" aria-label="the science behind this sky"><button class="x" id="deepx" type="button" aria-label="close">×</button>
+ <h3>how deep</h3><div class="lv"><button type="button" data-lv="1" aria-pressed="true">the sentence</button><button type="button" data-lv="2">the numbers</button><button type="button" data-lv="3">the test</button></div>
+ <h3>the map</h3>
+ <p class="d1">artists that shared my evenings sit near each other. far apart means little. the map learned from every play, and the app started most of them. the map is the picture, not the proof.</p>
+ <p class="d2">a personal word2vec on 5,489 sittings (a 30-minute silence closes one), then umap to three dimensions, cosine, 18 neighbors. 1,986 artists placed; the rest wait at the edge. the spread around each star is drawing, not data.</p>
+ <p class="d3">the embedding is trained on all 97,427 plays, so its geometry reflects the queue as much as me. that is why no finding on this page is read off the map; the refereed numbers below come from genre tags, not from distances.</p>
+ <h3>who pressed play</h3>
+ <p class="d1" id="s1"></p>
+ <p class="d2"><span class="num">19<small>of 100</small></span> i pressed play. <span class="num">11.5</span> by the strictest count. shuffle 17, the queue 64. <span id="s2"></span></p>
+ <p class="d3" id="s3"></p>
+ <h3>families</h3>
+ <p class="d1" id="g1"></p>
+ <p class="d2" id="g2"></p>
+ <p class="d3" id="g3"></p>
+ <h3>the crossing</h3>
+ <p class="d1" id="b1"></p>
+ <p class="d2" id="b2"></p>
+ <p class="d3">a genre-family crossing rate per arm, same-artist pairs excluded, intervals from a 28-day block bootstrap. the earlier embedding-distance version of this number was withdrawn; the sky never claims it.</p>
+ <h3>my hand</h3>
+ <p class="d1" id="h1s"></p>
+ <div class="d2" id="h2s"></div>
+ <p class="d3" id="h3s"></p>
+ <h3>the body</h3>
+ <p class="d1" id="r1"></p>
+ <div class="d2" id="r2"></div>
+ <p class="d3">pre-declared on a hash before the numbers, 28-day blocks, smallest detectable effect at 80% power. kills stay killed. the full ledger lives in <a href="../lab.html">the lab</a>.</p>
+ <p class="d1" style="color:var(--dim);font-size:12px;margin-top:18px">nothing on this page says music changes the body. october 2023: the app changed how it records a start.</p>
+</aside>
+<script src="data/pack.js"></script>
+<script>
+(function(){
+var S=window.SM,$=function(i){return document.getElementById(i)};
+var FAM=S.families,PAL={'ambient/lofi':'#7cc7ff','classical':'#f4ecd0','electronic':'#ff4fa3','experimental':'#c7f464','folk/country':'#d9a066','funk/disco':'#ff7a3d','hip-hop · r&b':'#ff2e55','jazz':'#ffd36b','other':'#a0a0b8','pop':'#ff9ad5','rock/metal':'#d7d7d7','soundtrack':'#9fe0d8','world/desi':'#ffb347','untagged':'#6b7280'};
+var MINT=[33,246,188],AMBER=[245,166,35],VIOLET=[139,111,214];
+/* ---------- data ---------- */
+var A=S.hall.artists.filter(function(a){return a.xyz}).map(function(a){var n=a.p||1;return{n:a.n,f:a.f,p:a.p,t:a.t,s:a.s,v:a.v,x:a.xyz[0],y:a.xyz[1],z:a.xyz[2],tap:a.t/n,sh:a.s/n,sv:a.v/n,r:Math.pow(Math.log1p(a.p),1.1)}});
+(function(){['x','y','z'].forEach(function(k){var v=A.map(function(a){return a[k]}).sort(function(p,q){return p-q}),n=v.length,med=v[n>>1],lo=v[Math.floor(n*.04)],hi=v[Math.floor(n*.96)],sc=Math.max(hi-med,med-lo)||1;A.forEach(function(a){a[k]=Math.max(-1.6,Math.min(1.6,(a[k]-med)/sc*0.95))})})})();
+var byName={};A.forEach(function(a,i){byName[a.n]=i});
+var maxP=A.reduce(function(m,a){return Math.max(m,a.p)},1);
+/* constellations: each star joins its nearest family-mate (a forest per family) */
+var LINES=[];(function(){var g={};A.forEach(function(a,i){(g[a.f]=g[a.f]||[]).push(i)});Object.keys(g).forEach(function(f){var ix=g[f];if(ix.length<2)return;for(var u=0;u<ix.length;u++){var a=A[ix[u]],best=-1,bd=1e9;for(var w=0;w<ix.length;w++){if(w===u)continue;var b=A[ix[w]],d=(a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)+(a.z-b.z)*(a.z-b.z);if(d<bd){bd=d;best=ix[w]}}if(best>=0&&bd<0.09)LINES.push([ix[u],best,f])}})})();
+/* bridges: the sampled artist pairs with their crossing arms, matched by name */
+var BR=[];(function(){var N=S.nodes||[],E=S.edges_sample||[];E.forEach(function(e){var a=N[e.a],b=N[e.b];if(!a||!b)return;var i=byName[a.n],j=byName[b.n];if(i==null||j==null)return;BR.push({i:i,j:j,tap:e.tap_rate||0,auto:e.auto_rate||0})});BR.sort(function(p,q){return (q.tap+q.auto)-(p.tap+p.auto)});BR=BR.slice(0,160)})();
+/* ---------- view ---------- */
+var cv=$('c'),g=cv.getContext('2d'),W=0,H=0,DPR=1,rx=-0.35,ry=0.6,vx=0,vy=0.0018,zoom=1,mode='fam',only=null,sel=-1,hover=-1,t0=performance.now();
+var SPR={};function sprite(col){if(SPR[col])return SPR[col];var c=document.createElement('canvas');c.width=c.height=64;var x=c.getContext('2d'),r=x.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,col);r.addColorStop(.22,col.replace(')',',.75)').replace('rgb(','rgba('));r.addColorStop(.55,col.replace(')',',.18)').replace('rgb(','rgba('));r.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=r;x.fillRect(0,0,64,64);return SPR[col]=c}
+function hex2rgb(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+function armCol(a){var r=Math.round(a.tap*MINT[0]+a.sh*AMBER[0]+a.sv*VIOLET[0]),gg=Math.round(a.tap*MINT[1]+a.sh*AMBER[1]+a.sv*VIOLET[1]),b=Math.round(a.tap*MINT[2]+a.sh*AMBER[2]+a.sv*VIOLET[2]);return 'rgb('+r+','+gg+','+b+')'}
+function famCol(f){var c=hex2rgb(PAL[f]||'#a0a0b8');return 'rgb('+c[0]+','+c[1]+','+c[2]+')'}
+function size(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;g.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener('resize',size);size();
+var P=new Float32Array(A.length*3);
+function project(){var cx=Math.cos(rx),sx=Math.sin(rx),cy=Math.cos(ry),sy=Math.sin(ry),R=Math.min(W,H)*0.46*zoom,ox=W>900?W*0.56:W*0.5,oy=H*0.5;for(var i=0;i<A.length;i++){var a=A[i],x=a.x*cy-a.z*sy,z=a.x*sy+a.z*cy,y=a.y*cx-z*sx;z=a.y*sx+z*cx;var d=1/(1.9+z);P[i*3]=ox+x*R*d*1.9;P[i*3+1]=oy+y*R*d*1.9;P[i*3+2]=d}}
+var LBL=A.map(function(a,i){return i}).sort(function(i,j){return A[j].p-A[i].p}).slice(0,W<640?40:90);
+function draw(now){var dt=Math.min(50,now-t0);t0=now;if(!drag){ry+=vy*dt*0.06;rx+=vx*dt*0.06;vy*=0.995;vx*=0.995;if(Math.abs(vy)<0.0012&&!drag)vy=0.0012*Math.sign(vy||1)}
+ project();g.globalCompositeOperation='source-over';g.fillStyle='#06010f';g.fillRect(0,0,W,H);
+ var grd=g.createRadialGradient(W*.5,H*.52,0,W*.5,H*.52,Math.max(W,H)*.6);grd.addColorStop(0,'rgba(60,30,110,.22)');grd.addColorStop(1,'rgba(6,1,15,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
+ g.globalCompositeOperation='lighter';
+ /* lines */
+ g.lineWidth=1;
+ if(mode==='fam'){for(var l=0;l<LINES.length;l++){var L=LINES[l];if(only&&L[2]!==only)continue;var i=L[0],j=L[1],d=(P[i*3+2]+P[j*3+2])*.5;g.strokeStyle=famCol(L[2]);g.globalAlpha=(only?0.42:0.14)*Math.min(1,d*2.2);g.beginPath();g.moveTo(P[i*3],P[i*3+1]);g.lineTo(P[j*3],P[j*3+1]);g.stroke()}}
+ else{for(var b=0;b<BR.length;b++){var e=BR[b],i2=e.i,j2=e.j,tapMore=e.tap>e.auto;g.strokeStyle=tapMore?'rgb(33,246,188)':'rgb(139,111,214)';g.globalAlpha=0.22*Math.min(1,(P[i2*3+2]+P[j2*3+2])*1.1);g.lineWidth=tapMore?1.4:1;g.beginPath();g.moveTo(P[i2*3],P[i2*3+1]);g.lineTo(P[j2*3],P[j2*3+1]);g.stroke()}g.lineWidth=1}
+ /* stars */
+ for(var k=0;k<A.length;k++){var a=A[k],d2=P[k*3+2],col=mode==='fam'?famCol(a.f):armCol(a),dimmed=only&&a.f!==only,s=(1.5+a.r*2.1)*d2*1.5*(W<640?.8:1);if(k===sel||k===hover)s*=1.7;g.globalAlpha=(dimmed?0.06:(0.95-0.4*Math.sqrt(a.p/maxP)))*Math.min(1,d2*2.4);g.drawImage(sprite(col),P[k*3]-s,P[k*3+1]-s,s*2,s*2);if(k===sel||k===hover){g.globalAlpha=1;g.drawImage(sprite('rgb(255,255,255)'),P[k*3]-s*.5,P[k*3+1]-s*.5,s,s)}}
+ /* names */
+ g.globalCompositeOperation='source-over';g.textBaseline='middle';var RECT=[];
+ for(var m=0;m<LBL.length;m++){var q=LBL[m],a3=A[q],d3=P[q*3+2];if(only&&a3.f!==only)continue;var fs=Math.round((W<640?11:13)+Math.sqrt(a3.p/maxP)*(W<640?12:20))*Math.min(1.2,d3*2.1);if(fs<10)continue;g.font='italic '+fs+'px "Cormorant Garamond",Georgia,serif';var tw=g.measureText(a3.n).width,rx0=P[q*3]+fs*.55,ry0=P[q*3+1]-fs*.6,hit=false;for(var rr=0;rr<RECT.length;rr++){var R=RECT[rr];if(rx0<R[0]+R[2]&&rx0+tw>R[0]&&ry0<R[1]+R[3]&&ry0+fs*1.2>R[1]){hit=true;break}}if(hit&&q!==sel)continue;RECT.push([rx0,ry0,tw,fs*1.2]);g.globalAlpha=Math.min(1,d3*2.2)*(q===sel||q===hover?1:.82);g.fillStyle='rgba(0,0,0,.55)';g.fillText(a3.n,P[q*3]+fs*.55+1,P[q*3+1]+1);g.fillStyle=q===sel?'#fff':'#efe9ff';g.fillText(a3.n,P[q*3]+fs*.55,P[q*3+1])}
+ if(sel>=0){var sx=P[sel*3],sy=P[sel*3+1];g.globalAlpha=.9;g.strokeStyle='#fff';g.lineWidth=1;g.beginPath();g.arc(sx,sy,14,0,6.283);g.stroke()}
+ g.globalAlpha=1;requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+/* ---------- input ---------- */
+var drag=false,lx=0,ly=0,moved=0,pid=null;
+cv.addEventListener('pointerdown',function(e){drag=true;moved=0;lx=e.clientX;ly=e.clientY;pid=e.pointerId;cv.setPointerCapture(pid)});
+cv.addEventListener('pointermove',function(e){if(drag){var dx=e.clientX-lx,dy=e.clientY-ly;moved+=Math.abs(dx)+Math.abs(dy);ry+=dx*0.005;rx+=dy*0.005;vy=dx*0.0006;vx=dy*0.0006;lx=e.clientX;ly=e.clientY}else if(e.pointerType==='mouse'){hover=nearest(e.clientX,e.clientY,18);cv.style.cursor=hover>=0?'pointer':'grab'}});
+function up(e){if(!drag)return;drag=false;try{cv.releasePointerCapture(pid)}catch(x){}if(moved<8){var k=nearest(e.clientX,e.clientY,W<640?26:18);select(k)}}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',function(e){zoom=Math.max(.6,Math.min(2.6,zoom*(e.deltaY<0?1.08:.93)));e.preventDefault()},{passive:false});
+function nearest(x,y,rad){var best=-1,bd=rad*rad;for(var i=0;i<A.length;i++){if(only&&A[i].f!==only)continue;var dx=P[i*3]-x,dy=P[i*3+1]-y,d=dx*dx+dy*dy-A[i].r*3;if(d<bd){bd=d;best=i}}return best}
+/* ---------- card + previews ---------- */
+var card=$('card'),PV=null,pvReady=false,pvA=null,pvEl=null;
+function fetchPV(){if(PV!==null)return;PV={};fetch('data/previews.json').then(function(r){return r.ok?r.json():null}).then(function(j){PV=j&&j.a||{};if(sel>=0)sing(A[sel].n)}).catch(function(){PV={};pvReady=true})}
+function select(k){sel=k;if(k<0){card.classList.remove('on');hush();return}var a=A[k],per=Math.round(a.tap*100),sh=Math.round(a.sh*100),sv=100-per-sh;
+ card.innerHTML='<h2>'+esc(a.n)+'</h2><div class="m">'+a.p.toLocaleString('en-US')+' plays · '+esc(a.f)+'</div><p class="q">i pressed play on <b>'+per+'</b> of every 100</p><div class="arm"><i style="width:'+per+'%;background:var(--mint)"></i><i style="width:'+sh+'%;background:var(--amber)"></i><i style="width:'+sv+'%;background:var(--violet)"></i></div><div class="leg">shuffle '+sh+' · the queue '+sv+' · counted per play, this artist only</div><div class="pv" id="pv"></div>';
+ card.classList.add('on');place();fetchPV();sing(a.n)}
+function place(){if(sel<0)return;var x=P[sel*3],y=P[sel*3+1],cw=card.offsetWidth||320,ch=card.offsetHeight||160,left=x+22,top=y-ch*.5;if(left+cw>W-12)left=x-cw-22;if(left<12)left=12;top=Math.max(60,Math.min(H-ch-130,top));card.style.left=left+'px';card.style.top=top+'px'}
+setInterval(function(){if(sel>=0&&card.classList.contains('on'))place()},120);
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function sing(name){var box=$('pv');if(!box)return;if(!PV||PV===null||!PV[name]){box.innerHTML=pvReady?'<span>the album keeps playing: no preview for this one.</span>':'<span>finding its sound…</span>';return}
+ var p=PV[name][0];box.innerHTML='<img alt="" src="'+esc(p.a||'')+'"><div><b>'+esc(p.t)+'</b><span>30 seconds · <a href="'+esc(p.l||'#')+'" target="_blank" rel="noopener">open in Apple Music</a></span></div>';
+ if(pvA===name)return;pvA=name;if(!pvEl){pvEl=new Audio();pvEl.preload='auto';pvEl.addEventListener('ended',function(){unduck()})}
+ pvEl.src=p.u;duck();var q=pvEl.play();if(q&&q.catch)q.catch(function(){unduck()})}
+function hush(){pvA=null;if(pvEl){try{pvEl.pause()}catch(x){}}unduck()}
+function duck(){var a=au;if(a)a.volume=0.18}function unduck(){var a=au;if(a)a.volume=1}
+/* ---------- key + mode + deep ---------- */
+var key=$('key');FAM.forEach(function(f){var b=document.createElement('button');b.type='button';b.setAttribute('aria-pressed','false');b.style.setProperty('--k',PAL[f]||'#a0a0b8');b.innerHTML='<i></i>'+esc(f);b.addEventListener('click',function(){only=only===f?null:f;Array.prototype.forEach.call(key.children,function(c){c.setAttribute('aria-pressed',String(c===b&&only===f))});key.classList.toggle('dim',!!only);if(mode!=='fam'){setMode('fam')}if(only){$('h1').textContent=f+': '+A.filter(function(a){return a.f===f}).length+' artists in one constellation.'}else resetHead()});key.appendChild(b)});
+function resetHead(){$('h1').textContent=mode==='fam'?'my taste has a shape. the app lives in one corner of it.':'where the violet pools, the app chose. where it goes mint, i did.'}
+function setMode(m){mode=m;$('mode').setAttribute('aria-pressed',String(m==='arm'));if(m==='arm'){only=null;key.classList.remove('dim');Array.prototype.forEach.call(key.children,function(c){c.setAttribute('aria-pressed','false')})}resetHead()}
+$('mode').addEventListener('click',function(){setMode(mode==='fam'?'arm':'fam')});
+var deep=$('deep');$('deepb').addEventListener('click',function(){var on=!deep.classList.contains('on');deep.classList.toggle('on',on);$('deepb').setAttribute('aria-pressed',String(on))});$('deepx').addEventListener('click',function(){deep.classList.remove('on');$('deepb').setAttribute('aria-pressed','false')});
+Array.prototype.forEach.call(deep.querySelectorAll('.lv button'),function(b){b.addEventListener('click',function(){deep.setAttribute('data-lv',b.getAttribute('data-lv'));Array.prototype.forEach.call(deep.querySelectorAll('.lv button'),function(c){c.setAttribute('aria-pressed',String(c===b))})})});
+(function fill(){var d=S.defs||{},ga=S.genre_anchor||{},dr=S.direction||{},c=S.copy||{};
+ $('s1').textContent=S.headline||'';$('s2').textContent=(c.left_out||'7.6 of the 19 were my back and skip presses')+'.';
+ $('s3').textContent='tapped means '+(d.tapped||'a play i started by hand')+'. strict means '+(d.strict||'play button, track row or remote; back and skip presses left out')+'. served means '+(d.served||'the queue poured it in')+'.';
+ var os=ga.over_served||{},ch=ga.chosen||{};
+ $('g1').textContent='counted by play, ambient and lo-fi reach me mostly through the app; hip-hop and r&b are the ones i reach for.';
+ $('g2').innerHTML='ambient/lofi <span class="num">'+(os.strict||'0.636')+'</span> under-tapped ['+(os.lo||'0.569')+', '+(os.hi||'0.710')+'] by the strictest count. hip-hop/r&b <span class="num">'+(ch.strict||'1.22')+'</span> over-tapped, the less firm of the two: counted per track, not per play, hip-hop reads below 1.';
+ $('g3').textContent='arm rate = tapped share within a family over the tapped share overall, strict definition, same-artist control, 28-day block bootstrap. families are a collapse of 1,067 tags; the fine tags only feed the tag-noise check.';
+ $('b1').textContent=dr.short||'when i pick the next song i cross genre families slightly more often. a direction, not a size.';
+ $('b2').innerHTML='<span class="num">'+(dr.tap||69.9)+'</span> vs <span class="num">'+(dr.queue||66.3)+'</span> of 100 next tracks crossed to another family, my hand vs the queue. ratio '+(dr.bi||1.05)+' ['+(dr.lo||1.03)+', '+(dr.hi||1.08)+'].';
+ var h=S.r25||{},hl=h.lanes||[];$('h1s').textContent=h.frame||'';$('h2s').innerHTML=hl.map(function(l){var cls=l.tier==='reversed'||l.tier==='killed'?'kill':'null';return '<p><span class="'+cls+'">'+esc(l.tier||'')+'</span> · '+esc(l.sentence||'')+'</p>'}).join('');$('h3s').innerHTML=hl.map(function(l){return '<b>'+esc(l.q)+'</b>: '+(l.numbers||[]).map(esc).join('; ')+'.'}).join('<br>');
+var r=S.r23||{},lanes=r.lanes||[];$('r1').textContent=r.frame||'seven more tests, from scratch, over the music, the watch and the ring: every claim that music changes the body came back null or died.';
+ $('r2').innerHTML=lanes.map(function(l){var cls=l.tier==='killed'||l.tier==='reversed'?'kill':l.tier==='null'?'null':'';return '<p><span class="'+cls+'">'+esc(l.tier||'')+'</span> · '+esc(l.sentence||l.q||'')+'</p>'}).join('');
+})();
+/* ---------- the album (shared rule: first press anywhere, sm.sound shared) ---------- */
+var TR=S.soundtrack,KEY='sm.sound',au=null,cur=-1,started=false;
+function lsGet(){try{return localStorage.getItem(KEY)}catch(e){return null}}function lsSet(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+function ael(){if(au)return au;au=new Audio();au.preload='auto';au.addEventListener('ended',function(){go((cur+1)%TR.length,false)});['play','pause','volumechange'].forEach(function(t){au.addEventListener(t,sync)});return au}
+function go(k,user){var a=ael();cur=k;started=true;if(user){a.muted=false;lsSet('on')}a.src='../'+TR[k].src;if(pvA)a.volume=0.18;var p;try{p=a.play()}catch(e){}if(p&&p.catch)p.catch(function(){});sync()}
+function sync(){var on=au&&!au.paused&&cur>=0;$('play').textContent=on?'pause':'play';$('mute').textContent=(au?au.muted:lsGet()==='off')?'unmute':'mute';$('now').textContent=cur>=0?(on?'':'paused: ')+String(cur+1).padStart(2,'0')+' '+TR[cur].t+' · '+TR[cur].k+' · '+TR[cur].bpm+' bpm':(lsGet()==='off'?'the album is muted. unmute to play it.':'press anywhere and my album plays')}
+$('play').addEventListener('click',function(){if(!au||cur<0){go(0,true);return}if(au.paused){au.muted=false;lsSet('on');au.play().catch(function(){})}else au.pause();sync()});
+$('next').addEventListener('click',function(){go(cur<0?0:(cur+1)%TR.length,true)});
+$('mute').addEventListener('click',function(){var a=ael();if(cur<0){lsSet('on');go(0,true);return}a.muted=!a.muted;lsSet(a.muted?'off':'on');sync()});
+function press(e){if(!e.isTrusted||started)return;var t=e.target;if(t&&t.closest&&t.closest('a[href],#bar,#deep,#card,#key'))return;if(lsGet()==='off')return;go(0,false)}
+addEventListener('pointerup',press);addEventListener('keydown',function(e){if(!/^(Tab|Shift|Control|Alt|Meta|Escape)$/.test(e.key))press(e)});
+addEventListener('keydown',function(e){if(e.key==='Escape'){select(-1);deep.classList.remove('on')}});
+setTimeout(function(){$('hint').style.opacity='0'},9000);
+})();
+</script>
+</body></html>

@@ -69,6 +69,20 @@ SM['r23'] = {
   'lanes': [{'id': i, 'q': q, 'tier': t, 'sentence': s_, 'numbers': n, 'caption': c, 'data': json.load(open(R + 'editions/data/r23/' + i + '.json'))} for (i, q, t, s_, n, c) in R23],
 }
 
+# R25 log lanes (2026-10-20): five pre-declared, log-only; public copies in editions/data/r25/; REPORT in out/r25
+R25 = [
+  ('intro', 'who introduced us', 'descriptive', 'the artists i went looking for stayed: 55 of 100 were still with me a year after our first play; of the ones the queue brought in, 38 of 100. a sign of what i already knew, not a verdict on the queue.', ['365-day survival 0.55 (my tap) vs 0.38 (the queue) vs 0.37 (shuffle)', '+0.17 [+0.11, +0.24], MDE 0.10, 3,795 artists with two plays or more', 'median life 317 days (my tap) vs 106 (the queue)'], 'the artists i reached for first stayed a year; the queue\'s, less often'),
+  ('predict', 'whose next song is easier to guess', 'descriptive', 'the queue\'s next artist is easier to guess than mine: 2.6 bits of surprise against 3.2 for my hand (2.9 by the strictest count). that is what a queue is; it does not say the app knows me.', ['conditional entropy of the next artist: served 2.61 bits, shuffle 3.30, my tap 3.23, strict 2.86', 'tap minus served +0.63 bits [+0.41, +0.67]; strict minus served +0.25 [+0.02, +0.31], MDE 0.21', 'the queue repeats the artist 24 times in 100; my strict tap, 19'], 'the queue\'s next artist is easier to guess than mine'),
+  ('xent', 'how far the queue sits from my hand, by year', 'descriptive', 'since 2022, between a fifth and a third of the queue\'s plays each year went to artists i never once pressed play on that year. a curve, not a test.', ['served plays on never-tapped artists: 19, 22, 35, 24, 19 of 100 (2022 to 2026)', 'distance between my strict taps and the queue (jensen-shannon, 0 to 1): 0.45, 0.48, 0.57, 0.49, 0.48', 'october 2023: the app changed how it records a start'], 'a fifth to a third of the queue each year never got a press from me'),
+  ('lag', 'does the queue follow last year\'s hand', 'descriptive', 'the queue follows my hand within the year, not the year before: every year it sits far closer to that year\'s taps than to the previous year\'s. no lag i can see.', ['distance to this year\'s taps 0.48 to 0.57; to last year\'s 0.75 to 0.84', 'mean difference -0.29 [-0.31, -0.25], four year pairs, MDE 0.04', 'pre-declared direction; descriptive by the PREREG'], 'the queue tracks this year\'s hand, not last year\'s'),
+  ('grammar', 'does a tap steer the queue', 'reversed', 'after i press play, the queue leaves that genre family sooner, not later: 46 of 100 next plays share the family, against 51 when the queue runs on its own, and the gap holds for twelve plays. my hand is a turn, not a steer.', ['same family at the next play: 45.8 of 100 after my strict tap vs 51.0 queue-only', 'excess -5.2 points [-8.2, -2.2], MDE 4.5; negative at every lag 1 to 12', '5,915 taps with twelve plays after them; 30,379 queue-only baselines'], 'a tap is a turn, not a steer: the queue drifts out of the family sooner'),
+]
+SM['r25'] = {
+  'title': 'five more, from the log alone',
+  'frame': 'five pre-declared tests over the listening log, no body data: who introduced us, whose next song is easier to guess, how far the queue sits from my hand, whether it lags me, and whether a tap steers it. one died and reversed; the rest are descriptive with intervals.',
+  'lanes': [{'id': i, 'q': q, 'tier': t, 'sentence': s_, 'numbers': n, 'caption': c, 'data': json.load(open(R + 'editions/data/r25/' + i + '.json'))} for (i, q, t, s_, n, c) in R25],
+}
+
 for k in ('tap_m', 'shuffle_m', 'served_m'):
     if k in old: SM[k] = old[k]
 if isinstance(months, dict):
