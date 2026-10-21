@@ -52,6 +52,10 @@ a{color:var(--ice)}
 #hint{position:fixed;left:16px;bottom:calc(112px + env(safe-area-inset-bottom));font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--dim);z-index:4;pointer-events:none;transition:opacity .6s}
 @media (max-width:640px){#head{top:44px}#head p{display:none}#hint{display:none}#bar{gap:6px}#bar button,#bar a.b{padding:0 10px;font-size:11px}}
 @media (prefers-reduced-motion:reduce){#deep{transition:none}}
+
+.strip a{white-space:nowrap}
+#bar{overflow-x:auto;scrollbar-width:none}#bar::-webkit-scrollbar{display:none}#bar button,#bar a.b{white-space:nowrap;flex:0 0 auto}
+@media (max-width:640px){.strip{padding:8px 12px;font-size:10px}.strip a{font-size:10px;letter-spacing:.1em}#when{font-size:30px;top:46px;right:12px}#head{max-width:62vw}}
 </style></head>
 <body>
 <nav class="strip"><a href="index.html">sonicManifold · one of the editions</a><a href="../index.html">back to the front</a></nav>

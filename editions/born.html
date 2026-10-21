@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>who introduced us · sonicManifold</title>
+<meta name="description" content="1,985 artists appear in the order we met, lit by whose hand started the first play. the ones i went looking for stayed.">
+<style>
+:root{--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--ice:#9fd8ff;--night:#06010f;--ink:#efe9ff;--dim:#8d85a6;--ash:#3a3350}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--night);color:var(--ink);font:15px/1.45 -apple-system,"Inter",system-ui,sans-serif;overflow:hidden;-webkit-text-size-adjust:100%}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+a{color:var(--ice)}
+.strip{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);z-index:5;pointer-events:none}
+.strip a{pointer-events:auto;text-decoration:none;color:var(--dim);min-height:40px;display:inline-flex;align-items:center;font-size:12px}
+#head{position:fixed;left:16px;right:16px;top:52px;z-index:4;pointer-events:none;max-width:640px}
+#head h1{margin:0;font:italic 300 clamp(26px,4.4vw,52px)/1.05 "Cormorant Garamond","Playfair Display",Georgia,serif;letter-spacing:-.01em}
+#tally{margin:10px 0 0;font:12px/1.7 ui-monospace,Menlo,monospace;color:var(--dim)}
+#tally b{color:var(--ink);font-weight:500}#tally .t{color:var(--mint)}#tally .s{color:var(--amber)}#tally .v{color:var(--violet)}
+#when{position:fixed;right:16px;top:52px;z-index:4;pointer-events:none;text-align:right;font:300 clamp(34px,7vw,92px)/1 "Cormorant Garamond",Georgia,serif;color:var(--ink);letter-spacing:-.02em}
+#when small{display:block;font:11px/1.6 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+#scrub{position:fixed;left:16px;right:16px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:5;height:40px;display:flex;align-items:center}
+#scrub input{width:100%;-webkit-appearance:none;appearance:none;height:40px;background:transparent;margin:0;cursor:pointer}
+#scrub input::-webkit-slider-runnable-track{height:2px;background:rgba(255,255,255,.22)}
+#scrub input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--ink);margin-top:-8px;box-shadow:0 0 12px rgba(255,255,255,.6)}
+#scrub input::-moz-range-track{height:2px;background:rgba(255,255,255,.22)}#scrub input::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--ink);border:0}
+#bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;z-index:6;background:linear-gradient(transparent,rgba(6,1,15,.9) 40%)}
+#bar button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(10,4,24,.8);color:var(--ink);font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center}
+#bar button[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
+#now{flex:1;min-width:0;font:11px/1.3 ui-monospace,Menlo,monospace;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#card{position:fixed;z-index:7;max-width:min(340px,calc(100vw - 32px));padding:14px 16px;border-radius:14px;background:rgba(12,5,30,.92);border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.6);backdrop-filter:blur(10px);display:none}
+#card.on{display:block}
+#card h2{margin:0;font:600 clamp(20px,3vw,26px)/1.05 "Cormorant Garamond",Georgia,serif}
+#card .m{font:11px/1.5 ui-monospace,Menlo,monospace;color:var(--dim);margin:4px 0 6px}
+#card .q{font:italic 300 17px/1.25 "Cormorant Garamond",Georgia,serif;margin:0}
+#card .q b{font-style:normal;font-weight:600}
+#card .pv{margin-top:10px;display:flex;align-items:center;gap:10px;font:11px/1.3 ui-monospace,Menlo,monospace;color:var(--dim)}
+#card .pv img{width:40px;height:40px;border-radius:6px;object-fit:cover;background:#1a1030}#card .pv a{color:var(--ice);text-decoration:none}#card .pv b{color:var(--ink);font-weight:500;display:block}
+#curve{position:fixed;inset:0;z-index:3;display:none;pointer-events:none;background:rgba(6,1,15,.78)}
+#curve.on{display:block}
+#curve svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,900px);height:min(62vh,520px);overflow:visible}
+#curve text{font:11px ui-monospace,Menlo,monospace;fill:var(--dim)}
+#curve .big{font:italic 300 clamp(16px,2.2vw,24px) "Cormorant Garamond",Georgia,serif;fill:var(--ink)}
+#deep{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:8;background:rgba(8,2,20,.96);border-left:1px solid rgba(255,255,255,.1);padding:64px 22px 24px;overflow:auto;transform:translateX(100%);transition:transform .35s ease}
+#deep.on{transform:none}
+#deep h3{font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:22px 0 8px}
+#deep p{margin:0 0 10px;font-size:14px}
+#deep .lv{display:flex;gap:6px;margin-top:6px}
+#deep .lv button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);font:12px/1 ui-monospace,Menlo,monospace;cursor:pointer}
+#deep .lv button[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
+#deep .d{display:none}#deep[data-lv="1"] .d1,#deep[data-lv="2"] .d1,#deep[data-lv="2"] .d2,#deep[data-lv="3"] .d1,#deep[data-lv="3"] .d2,#deep[data-lv="3"] .d3{display:block}
+#deep .num{font:600 34px/1 "Cormorant Garamond",Georgia,serif;color:var(--ice)}#deep .num small{font:12px/1 ui-monospace,Menlo,monospace;color:var(--dim);margin-left:6px}
+#deep .x{position:absolute;top:14px;right:14px;min-height:40px;min-width:40px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);cursor:pointer}
+@media (max-width:640px){#head{top:44px;max-width:60vw}#head h1{font-size:22px}#tally{font-size:10px;line-height:1.6}#when{top:44px}#bar{gap:6px}#bar button{padding:0 10px;font-size:11px}#now{display:none}}
+@media (prefers-reduced-motion:reduce){#deep{transition:none}}
+
+.strip a{white-space:nowrap}
+#bar{overflow-x:auto;scrollbar-width:none}#bar::-webkit-scrollbar{display:none}#bar button,#bar a.b{white-space:nowrap;flex:0 0 auto}
+@media (max-width:640px){.strip{padding:8px 12px;font-size:10px}.strip a{font-size:10px;letter-spacing:.1em}#when{font-size:30px;top:46px;right:12px}#head{max-width:62vw}}
+</style></head>
+<body>
+<nav class="strip"><a href="index.html">sonicManifold · one of the editions</a><a href="sky.html">the sky</a></nav>
+<canvas id="c" aria-label="artists appearing in the order we met"></canvas>
+<header id="head"><h1 id="h1">the ones i went looking for stayed.</h1><div id="tally"></div></header>
+<div id="when" aria-live="off"><small>we met in</small><span id="ym">2019</span></div>
+<div id="curve" aria-hidden="true"><svg id="svg" viewBox="0 0 900 520" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div id="scrub"><input id="sl" type="range" min="0" max="80" value="0" step="1" aria-label="month"></div>
+<div id="bar">
+ <button id="run" type="button" aria-pressed="false">play the years</button>
+ <button id="cv" type="button" aria-pressed="false">the curve</button>
+ <button id="deepb" type="button" aria-pressed="false">the science</button>
+ <span id="now">press anywhere and my album plays</span>
+ <button id="play" type="button">play</button><button id="next" type="button">next</button><button id="mute" type="button">mute</button>
+</div>
+<aside id="card" role="dialog" aria-live="polite"></aside>
+<aside id="deep" data-lv="1" aria-label="the science behind this scene"><button class="x" id="deepx" type="button" aria-label="close">×</button>
+ <h3>how deep</h3><div class="lv"><button type="button" data-lv="1" aria-pressed="true">the sentence</button><button type="button" data-lv="2">the numbers</button><button type="button" data-lv="3">the test</button></div>
+ <h3>who introduced us</h3>
+ <p class="d1" id="s1"></p>
+ <p class="d2" id="s2"></p>
+ <p class="d3">unit = an artist with two plays or more. introducer = the arm of our first play: my tap (track row, play button, remote, skip forward or back), shuffle, or the queue on its own. an artist is "still with me" while its last play is within 90 days of the end of the log. survival by kaplan-meier, interval from a 28-day block bootstrap over the months we met. pre-registered on a hash before the numbers. this is selection, not treatment: a first tap is usually a search for a name i already carried, so the sentence says what i already knew, never that the queue fails.</p>
+ <h3>what you are seeing</h3>
+ <p class="d1">each spark is an artist, placed where it sits in the sky, appearing in the month of our first play. the color is the hand that started it. a spark goes to ash when our last play passes. the curve shows how many of each color were still with me a year later, over every artist with two plays or more.</p>
+ <p class="d2" id="w2"></p>
+ <p class="d3">1,985 artists with five plays or more are drawn (the test used 3,795 with two or more). months are counted from the first month of the log; no finer date is kept here. october 2023: the app changed how it records a start.</p>
+ <h3>the other four</h3>
+ <div class="d2" id="o2"></div>
+ <p class="d1" style="color:var(--dim);font-size:12px;margin-top:18px">nothing on this page says the app knows me or fails me. the ledger lives in <a href="../lab.html">the lab</a>.</p>
+</aside>
+<script src="data/pack.js"></script>
+<script>
+(function(){
+var S=window.SM,$=function(i){return document.getElementById(i)};
+var COL={t:[33,246,188],s:[245,166,35],v:[139,111,214]},NAME={t:'my tap',s:'shuffle',v:'the queue'};
+var M=S.months,NM=M.length;
+var pos={};S.hall.artists.forEach(function(a){if(a.xyz)pos[a.n]=a.xyz});
+var A=S.intro.rows.filter(function(r){return pos[r.n]}).map(function(r){var p=pos[r.n];return{n:r.n,f:r.f,m:r.m,a:r.a,l:r.l,v:r.v,p:r.p,x:p[0],y:p[1],z:p[2],end:r.v?1e9:r.m+r.l/30.4}});
+(function(){['x','y','z'].forEach(function(k){var v=A.map(function(a){return a[k]}).sort(function(p,q){return p-q}),n=v.length,med=v[n>>1],lo=v[Math.floor(n*.04)],hi=v[Math.floor(n*.96)],sc=Math.max(hi-med,med-lo)||1;A.forEach(function(a){a[k]=Math.max(-1.6,Math.min(1.6,(a[k]-med)/sc*0.95))})})})();
+A.forEach(function(a){a.r=Math.pow(Math.log1p(a.p),1.1)});
+var maxP=A.reduce(function(m,a){return Math.max(m,a.p)},1);
+/* ---------- view ---------- */
+var cv=$('c'),g=cv.getContext('2d'),W=0,H=0,DPR=1,cur=0,running=false,last=0,acc=0,sel=-1,hover=-1,ry=0.5,rx=-0.3;
+function size(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;g.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener('resize',size);size();
+var P=new Float32Array(A.length*3);
+function project(){var cx=Math.cos(rx),sx=Math.sin(rx),cy=Math.cos(ry),sy=Math.sin(ry),R=Math.min(W,H)*0.44,ox=W>900?W*0.52:W*0.5,oy=H*0.5;for(var i=0;i<A.length;i++){var a=A[i],x=a.x*cy-a.z*sy,z=a.x*sy+a.z*cy,y=a.y*cx-z*sx;z=a.y*sx+z*cx;var d=1/(1.9+z);P[i*3]=ox+x*R*d*1.9;P[i*3+1]=oy+y*R*d*1.9;P[i*3+2]=d}}
+var SPR={};function sprite(key,col){if(SPR[key])return SPR[key];var c=document.createElement('canvas');c.width=c.height=64;var x=c.getContext('2d'),r=x.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,col);r.addColorStop(.25,col.replace(')',',.7)').replace('rgb(','rgba('));r.addColorStop(.6,col.replace(')',',.15)').replace('rgb(','rgba('));r.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=r;x.fillRect(0,0,64,64);return SPR[key]=c}
+function rgb(c){return 'rgb('+c[0]+','+c[1]+','+c[2]+')'}
+var ASH=sprite('ash','rgb(70,60,96)');
+var LBL=A.map(function(a,i){return i}).sort(function(i,j){return A[j].p-A[i].p}).slice(0,W<640?30:70);
+function draw(now){var dt=Math.min(60,now-last);last=now;ry+=0.00004*dt;
+ if(running){acc+=dt;if(acc>1100){acc=0;setMonth(cur+1);if(cur>=NM-1){running=false;$('run').setAttribute('aria-pressed','false');$('run').textContent='play the years';showCurve(true)}}}
+ project();g.globalCompositeOperation='source-over';g.fillStyle='#06010f';g.fillRect(0,0,W,H);
+ var grd=g.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,Math.max(W,H)*.6);grd.addColorStop(0,'rgba(50,25,95,.2)');grd.addColorStop(1,'rgba(6,1,15,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
+ g.globalCompositeOperation='lighter';var tfrac=acc/1100,RECT=[];
+ for(var k=0;k<A.length;k++){var a=A[k];if(a.m>cur)continue;var d=P[k*3+2],gone=a.end<cur,age=cur-a.m,fresh=age===0?1-tfrac:0,s=(1.4+a.r*1.9)*d*1.5*(W<640?.8:1);
+  if(gone){g.globalAlpha=0.35*Math.min(1,d*2.4);g.drawImage(ASH,P[k*3]-s*.6,P[k*3+1]-s*.6,s*1.2,s*1.2);continue}
+  var col=rgb(COL[a.a]);if(k===sel||k===hover)s*=1.7;g.globalAlpha=(0.9-0.35*Math.sqrt(a.p/maxP))*Math.min(1,d*2.4)*(curveOn?.35:1);g.drawImage(sprite(a.a,col),P[k*3]-s,P[k*3+1]-s,s*2,s*2);
+  if(fresh>0){g.globalAlpha=fresh*.9;g.strokeStyle=col;g.lineWidth=1.2;g.beginPath();g.arc(P[k*3],P[k*3+1],s*(1+3*(1-fresh)),0,6.283);g.stroke()}}
+ g.globalCompositeOperation='source-over';g.textBaseline='middle';
+ for(var m=0;m<(curveOn?0:LBL.length);m++){var q=LBL[m],b=A[q];if(b.m>cur)continue;var d3=P[q*3+2],fs=Math.round((W<640?11:13)+Math.sqrt(b.p/maxP)*(W<640?12:20))*Math.min(1.2,d3*2.1);if(fs<10)continue;g.font='italic '+fs+'px "Cormorant Garamond",Georgia,serif';var tw=g.measureText(b.n).width,x0=P[q*3]+fs*.55,y0=P[q*3+1]-fs*.6,hit=false;for(var rr=0;rr<RECT.length;rr++){var R=RECT[rr];if(x0<R[0]+R[2]&&x0+tw>R[0]&&y0<R[1]+R[3]&&y0+fs*1.2>R[1]){hit=true;break}}if(hit&&q!==sel)continue;RECT.push([x0,y0,tw,fs*1.2]);g.globalAlpha=(b.end<cur?.35:.85)*Math.min(1,d3*2.2);g.fillStyle='rgba(0,0,0,.55)';g.fillText(b.n,x0+1,P[q*3+1]+1);g.fillStyle=b.end<cur?'#8d85a6':'#efe9ff';g.fillText(b.n,x0,P[q*3+1])}
+ if(sel>=0){g.globalAlpha=.9;g.strokeStyle='#fff';g.lineWidth=1;g.beginPath();g.arc(P[sel*3],P[sel*3+1],14,0,6.283);g.stroke()}
+ g.globalAlpha=1;requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+/* ---------- month ---------- */
+function setMonth(m){cur=Math.max(0,Math.min(NM-1,m));$('sl').value=cur;var ym=M[cur].split('-'),MO=['january','february','march','april','may','june','july','august','september','october','november','december'];$('ym').textContent=MO[+ym[1]-1]+' '+ym[0];
+ var met=0,t=0,s=0,v=0,alive=0,ash=0;A.forEach(function(a){if(a.m>cur)return;met++;if(a.a==='t')t++;else if(a.a==='s')s++;else v++;if(a.end<cur)ash++;else alive++});
+ $('tally').innerHTML='<b>'+met.toLocaleString('en-US')+'</b> artists met so far · <span class="t">i reached for '+t+'</span> · <span class="s">shuffle dealt '+s+'</span> · <span class="v">the queue brought '+v+'</span><br><b>'+alive.toLocaleString('en-US')+'</b> still playing · '+ash.toLocaleString('en-US')+' gone to ash';
+ if(sel>=0&&A[sel].m>cur)select(-1)}
+$('sl').addEventListener('input',function(){running=false;$('run').setAttribute('aria-pressed','false');$('run').textContent='play the years';setMonth(+this.value);showCurve(false)});
+$('run').addEventListener('click',function(){if(cur>=NM-1&&!running)setMonth(0);running=!running;acc=0;this.setAttribute('aria-pressed',String(running));this.textContent=running?'pause the years':'play the years';if(running)showCurve(false)});
+setMonth(0);
+/* ---------- curve (kaplan-meier by hand, per introducer) ---------- */
+function km(rows){var ev=rows.map(function(r){return{t:r.l,e:!r.v}}).sort(function(a,b){return a.t-b.t}),n=ev.length,at=n,S=1,pts=[[0,1]],i=0;while(i<n){var j=i,d=0;while(j<n&&ev[j].t===ev[i].t){if(ev[j].e)d++;j++}if(d>0){S*=1-d/at;pts.push([ev[i].t,S])}at-=(j-i);i=j}return pts}
+var curveOn=false;
+function showCurve(on){curveOn=on;$('curve').classList.toggle('on',on);$('curve').setAttribute('aria-hidden',String(!on));$('cv').setAttribute('aria-pressed',String(on));if(!on)return;select(-1);var svg=$('svg');if(svg.childNodes.length)return;
+ var KM=(function(){var r=S.r25||{},I=null;(r.lanes||[]).forEach(function(l){if(l.id==='intro')I=l});var k=I&&I.data&&I.data.km;if(k&&I.data.per_arm)k.__pa={t:I.data.per_arm.tap,s:I.data.per_arm.shuffle,v:I.data.per_arm.served};return k})()||{},L=80,R=640,T=40,B=440,X=function(d){return L+(R-L)*Math.min(1,d/1095)},Y=function(s){return B-(B-T)*s},h='';
+ h+='<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="rgba(255,255,255,.2)"/>';
+ [0,365,730,1095].forEach(function(d){h+='<text x="'+X(d)+'" y="'+(B+18)+'" text-anchor="middle">'+(d?d/365+(d===365?' year':' years'):'first play')+'</text>'});
+ [0.25,0.5,0.75,1].forEach(function(s){h+='<line x1="'+L+'" y1="'+Y(s)+'" x2="'+R+'" y2="'+Y(s)+'" stroke="rgba(255,255,255,.07)"/><text x="'+(L-10)+'" y="'+(Y(s)+4)+'" text-anchor="end">'+Math.round(s*100)+' of 100</text>'});
+ h+='<line x1="'+X(365)+'" y1="'+T+'" x2="'+X(365)+'" y2="'+B+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 4"/>';
+ var ends=[];['v','s','t'].forEach(function(arm){var pts=KM[arm]?KM[arm].pts.slice(1):km(A.filter(function(r){return r.a===arm})),d='M'+L+','+Y(1),y=1;pts.forEach(function(p){if(p[0]>1095)return;d+='L'+X(p[0])+','+Y(y)+'L'+X(p[0])+','+Y(p[1]);y=p[1]});d+='L'+R+','+Y(y);var s365=1;for(var i=0;i<pts.length;i++){if(pts[i][0]<=365)s365=pts[i][1]}var PA=(KM.__pa||{})[arm];if(PA&&PA.s365)s365=PA.s365;h+='<path d="'+d+'" fill="none" stroke="'+rgb(COL[arm])+'" stroke-width="2.2" opacity=".95"/><circle cx="'+X(365)+'" cy="'+Y(s365)+'" r="4" fill="'+rgb(COL[arm])+'"/>';ends.push({arm:arm,y:Y(y),s:s365})});
+ ends.sort(function(a,b){return a.y-b.y});for(var e=1;e<ends.length;e++){if(ends[e].y-ends[e-1].y<22)ends[e].y=ends[e-1].y+22}
+ ends.forEach(function(e){h+='<text class="big" x="'+(R+10)+'" y="'+(e.y+6)+'" style="fill:'+rgb(COL[e.arm])+'">'+NAME[e.arm]+' · '+Math.round(e.s*100)+' of 100 at a year</text>'});
+ h+='<text class="big" x="'+L+'" y="'+(T-12)+'">still with me, by whose hand we met (every artist with two plays or more)</text>';
+ svg.innerHTML=h}
+$('cv').addEventListener('click',function(){showCurve(!curveOn)});
+/* ---------- input + card + previews ---------- */
+var drag=false,lx=0,ly=0,moved=0,pid=null;
+cv.addEventListener('pointerdown',function(e){drag=true;moved=0;lx=e.clientX;ly=e.clientY;pid=e.pointerId;cv.setPointerCapture(pid)});
+cv.addEventListener('pointermove',function(e){if(drag){var dx=e.clientX-lx,dy=e.clientY-ly;moved+=Math.abs(dx)+Math.abs(dy);ry+=dx*0.005;rx+=dy*0.005;lx=e.clientX;ly=e.clientY}else if(e.pointerType==='mouse'){hover=nearest(e.clientX,e.clientY,18);cv.style.cursor=hover>=0?'pointer':'grab'}});
+function up(e){if(!drag)return;drag=false;try{cv.releasePointerCapture(pid)}catch(x){}if(moved<8)select(nearest(e.clientX,e.clientY,W<640?26:18))}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+function nearest(x,y,rad){var best=-1,bd=rad*rad;for(var i=0;i<A.length;i++){if(A[i].m>cur)continue;var dx=P[i*3]-x,dy=P[i*3+1]-y,d=dx*dx+dy*dy-A[i].r*3;if(d<bd){bd=d;best=i}}return best}
+var card=$('card'),PV=null,pvReady=false,pvA=null,pvEl=null;
+function fetchPV(){if(PV!==null)return;PV={};fetch('data/previews.json').then(function(r){return r.ok?r.json():null}).then(function(j){PV=j&&j.a||{};pvReady=true;if(sel>=0)sing(A[sel].n)}).catch(function(){PV={};pvReady=true})}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function select(k){sel=k;if(k<0){card.classList.remove('on');hush();return}var a=A[k],ym=M[a.m].split('-'),MO=['january','february','march','april','may','june','july','august','september','october','november','december'],life=a.l<45?'a few weeks':a.l<400?Math.round(a.l/30.4)+' months':(a.l/365).toFixed(1)+' years';
+ card.innerHTML='<h2>'+esc(a.n)+'</h2><div class="m">'+esc(a.f)+' · '+a.p.toLocaleString('en-US')+' plays</div><p class="q">we met in '+MO[+ym[1]-1]+' '+ym[0]+', by <b style="color:'+rgb(COL[a.a])+'">'+NAME[a.a]+'</b>. '+(a.v?'still playing after '+life+'.':'stayed '+life+'.')+'</p><div class="pv" id="pv"></div>';
+ card.classList.add('on');place();fetchPV();sing(a.n)}
+function place(){if(sel<0)return;var x=P[sel*3],y=P[sel*3+1],cw=card.offsetWidth||320,ch=card.offsetHeight||160,left=x+22,top=y-ch*.5;if(left+cw>W-12)left=x-cw-22;if(left<12)left=12;top=Math.max(60,Math.min(H-ch-130,top));card.style.left=left+'px';card.style.top=top+'px'}
+setInterval(function(){if(sel>=0&&card.classList.contains('on'))place()},120);
+function sing(name){var box=$('pv');if(!box)return;if(!PV||!PV[name]){box.innerHTML=pvReady?'<span>the album keeps playing: no preview for this one.</span>':'<span>finding its sound…</span>';return}
+ var p=PV[name][0];box.innerHTML='<img alt="" src="'+esc(p.a||'')+'"><div><b>'+esc(p.t)+'</b><span>30 seconds · <a href="'+esc(p.l||'#')+'" target="_blank" rel="noopener">open in Apple Music</a></span></div>';
+ if(pvA===name)return;pvA=name;if(!pvEl){pvEl=new Audio();pvEl.preload='auto';pvEl.addEventListener('ended',unduck)}pvEl.src=p.u;duck();var q=pvEl.play();if(q&&q.catch)q.catch(unduck)}
+function hush(){pvA=null;if(pvEl){try{pvEl.pause()}catch(x){}}unduck()}
+function duck(){if(au)au.volume=0.18}function unduck(){if(au)au.volume=1}
+/* ---------- deep ---------- */
+var deep=$('deep');$('deepb').addEventListener('click',function(){var on=!deep.classList.contains('on');deep.classList.toggle('on',on);$('deepb').setAttribute('aria-pressed',String(on))});$('deepx').addEventListener('click',function(){deep.classList.remove('on');$('deepb').setAttribute('aria-pressed','false')});
+Array.prototype.forEach.call(deep.querySelectorAll('.lv button'),function(b){b.addEventListener('click',function(){deep.setAttribute('data-lv',b.getAttribute('data-lv'));Array.prototype.forEach.call(deep.querySelectorAll('.lv button'),function(c){c.setAttribute('aria-pressed',String(c===b))})})});
+(function(){var r=S.r25||{},ls=r.lanes||[],I=null;ls.forEach(function(l){if(l.id==='intro')I=l});
+ $('s1').textContent=I?I.sentence:'';$('s2').innerHTML=I?I.numbers.map(esc).join('.<br>')+'.':'';
+ var t=0,s=0,v=0;A.forEach(function(a){if(a.a==='t')t++;else if(a.a==='s')s++;else v++});$('w2').textContent='of the '+A.length.toLocaleString('en-US')+' drawn here, '+t+' began with my tap, '+s+' with shuffle, '+v+' with the queue. the curve is drawn from the test\'s own 3,795 artists with two plays or more; the sparks are the ones with five or more.';
+ $('o2').innerHTML=ls.filter(function(l){return l.id!=='intro'}).map(function(l){return '<p><span style="color:'+(l.tier==='reversed'?'#ff6b8a':'var(--ice)')+'">'+esc(l.tier)+'</span> · '+esc(l.sentence)+'</p>'}).join('')})();
+/* ---------- album ---------- */
+var TR=S.soundtrack,KEY='sm.sound',au=null,ck=-1,started=false;
+function lsGet(){try{return localStorage.getItem(KEY)}catch(e){return null}}function lsSet(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+function ael(){if(au)return au;au=new Audio();au.preload='auto';au.addEventListener('ended',function(){go((ck+1)%TR.length,false)});['play','pause','volumechange'].forEach(function(t){au.addEventListener(t,sync)});return au}
+function go(k,user){var a=ael();ck=k;started=true;if(user){a.muted=false;lsSet('on')}a.src='../'+TR[k].src;if(pvA)a.volume=0.18;var p;try{p=a.play()}catch(e){}if(p&&p.catch)p.catch(function(){});sync()}
+function sync(){var on=au&&!au.paused&&ck>=0;$('play').textContent=on?'pause':'play';$('mute').textContent=(au?au.muted:lsGet()==='off')?'unmute':'mute';$('now').textContent=ck>=0?(on?'':'paused: ')+String(ck+1).padStart(2,'0')+' '+TR[ck].t+' · '+TR[ck].k+' · '+TR[ck].bpm+' bpm':(lsGet()==='off'?'the album is muted. unmute to play it.':'press anywhere and my album plays')}
+$('play').addEventListener('click',function(){if(!au||ck<0){go(0,true);return}if(au.paused){au.muted=false;lsSet('on');au.play().catch(function(){})}else au.pause();sync()});
+$('next').addEventListener('click',function(){go(ck<0?0:(ck+1)%TR.length,true)});
+$('mute').addEventListener('click',function(){var a=ael();if(ck<0){lsSet('on');go(0,true);return}a.muted=!a.muted;lsSet(a.muted?'off':'on');sync()});
+function press(e){if(!e.isTrusted||started)return;var t=e.target;if(t&&t.closest&&t.closest('a[href],#bar,#deep,#card,#scrub'))return;if(lsGet()==='off')return;go(0,false)}
+addEventListener('pointerup',press);addEventListener('keydown',function(e){if(e.key==='Escape'){select(-1);deep.classList.remove('on')}else if(!/^(Tab|Shift|Control|Alt|Meta)$/.test(e.key))press(e)});
+})();
+</script>
+</body></html>

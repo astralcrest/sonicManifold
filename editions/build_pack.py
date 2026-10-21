@@ -83,6 +83,8 @@ SM['r25'] = {
   'lanes': [{'id': i, 'q': q, 'tier': t, 'sentence': s_, 'numbers': n, 'caption': c, 'data': json.load(open(R + 'editions/data/r25/' + i + '.json'))} for (i, q, t, s_, n, c) in R25],
 }
 
+SM['intro'] = json.load(open(R + 'editions/data/r25/intro_artists.json'))  # born scene: per-artist introducer rows
+
 for k in ('tap_m', 'shuffle_m', 'served_m'):
     if k in old: SM[k] = old[k]
 if isinstance(months, dict):
