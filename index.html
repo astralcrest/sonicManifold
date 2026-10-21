@@ -63,13 +63,14 @@ canvas#field{position:fixed;inset:0;width:100%;height:100%;z-index:0;touch-actio
 main{position:relative;z-index:2}
 .act{position:relative;min-height:150vh;pointer-events:none}
 #act-count{min-height:170vh}#act-met{min-height:280vh}#act-record{min-height:120vh}
-.copy{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:72px max(16px,env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));max-width:min(100%,760px);pointer-events:none}
+.copy{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:72px max(16px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));max-width:100%;pointer-events:none;background:linear-gradient(180deg,rgba(6,1,15,0) 0,rgba(6,1,15,0) 40%,var(--bg) 50%)}
+@media (min-width:900px){.copy{justify-content:center;width:min(44vw,640px);padding:72px 110px 72px 28px;background:linear-gradient(90deg,var(--bg) 0,var(--bg) 82%,rgba(6,1,15,0) 100%)}}
 .copy>*{pointer-events:auto}
 .copy .k{font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 10px}
-.copy h2,.copy h1{margin:0;font:italic 300 clamp(28px,5vw,62px)/1.04 var(--serif);letter-spacing:-.012em;color:var(--ink);text-shadow:0 2px 24px rgba(6,1,15,.9)}
+.copy h2,.copy h1{margin:0;font:italic 300 clamp(26px,3.3vw,50px)/1.06 var(--serif);letter-spacing:-.012em;color:var(--ink)}
 .copy h1 b,.copy h2 b{font-style:normal;font-weight:600}.t{color:var(--mint)}.s{color:var(--amber)}.v{color:var(--violet)}.dimw{color:var(--dim);font-size:.6em}
-.copy .so{margin:12px 0 0;font:italic 300 clamp(17px,2vw,22px)/1.3 var(--serif);color:var(--ink);max-width:40ch;text-shadow:0 2px 18px rgba(6,1,15,.9)}
-.copy .sub{margin:8px 0 0;color:var(--dim);font-size:clamp(12px,1.25vw,14px);max-width:60ch;text-shadow:0 1px 12px rgba(6,1,15,.9)}
+.copy .so{margin:12px 0 0;font:italic 300 clamp(16px,1.5vw,20px)/1.35 var(--serif);color:var(--ink);max-width:44ch}
+.copy .sub{margin:8px 0 0;color:var(--dim);font-size:clamp(12px,1.1vw,14px);line-height:1.5;max-width:60ch}
 .copy .num{display:none;margin:10px 0 0;font:12px/1.6 var(--mono);color:var(--ice);max-width:70ch}
 .copy .num .kill{color:var(--rose)}.copy .num .null{color:var(--ice)}
 html.deep .copy .num{display:block}
@@ -131,7 +132,7 @@ html.in-met #when{opacity:1}
 .foot{position:relative;z-index:2;background:var(--bg)}
 .fnote{color:var(--dim);font:12px/1.6 var(--mono);margin:0;padding:12px max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left))}
 .fnote a{color:var(--dim)}
-@media (max-width:640px){.copy{padding-bottom:calc(72px + env(safe-area-inset-bottom));max-width:100%}.copy .sub{display:none}.top{gap:8px;font-size:10px}.top .brand small{display:none}.chip{padding:0 11px;font-size:11px}.bar{gap:6px}#when{top:50px;left:16px;right:auto;text-align:left;font-size:28px}#deep{padding-top:52px}.dots a{min-width:30px}.dots{gap:0}.top .brand{letter-spacing:.08em}#b-deep .xw{display:none}}
+@media (max-width:640px){.copy .sub{display:none}#tally{display:none}html.deep #tally{display:block}.top{gap:8px;font-size:10px}.top .brand small{display:none}.chip{padding:0 11px;font-size:11px}.bar{gap:6px}#when{top:50px;left:16px;right:auto;text-align:left;font-size:28px}#deep{padding-top:52px}.dots a{min-width:30px}.dots{gap:0}.top .brand{letter-spacing:.08em}#b-deep .xw{display:none}}
 @media (prefers-reduced-motion:reduce){#deep,#when{transition:none}}
 </style>
 </head>
@@ -140,7 +141,7 @@ html.in-met #when{opacity:1}
 <header class="top" id="top">
   <a class="brand" href="./">sonic manifold <small>by astralcrest</small></a>
   <nav class="dots" aria-label="the five acts"><a href="#act-count"><i></i><span>the count</span></a><a href="#act-shape"><i></i><span>the shape</span></a><a href="#act-met"><i></i><span>who introduced us</span></a><a href="#act-body"><i></i><span>the body</span></a><a href="#act-record"><i></i><span>the record</span></a></nav>
-  <button type="button" class="chip" id="b-deep" aria-pressed="false">deep<span class="xw"> science</span></button>
+  <button type="button" class="chip" id="b-deep" aria-pressed="false">deep<span class="xw">&nbsp;science</span></button>
 </header>
 <div id="when" aria-live="off"><small>we met in</small><span id="ym">september 2019</span></div>
 <div id="tip"></div>
@@ -193,8 +194,8 @@ html.in-met #when{opacity:1}
   <div class="copy">
     <p class="k">every play, pressed into one record</p>
     <h2 id="h-record">the last word is the record.</h2>
-    <p class="so">97,427 plays as grooves of light, 2019 at the rim, 2026 at the center. six rooms inside, the album as the soundtrack.</p>
-    <div class="bar"><a class="chip go" href="exhibit.html">enter the record</a><button type="button" class="chip b-deeper" data-act="record">deeper</button></div>
+    <p class="so">97,427 plays as grooves of light, 2019 at the rim, 2026 at the center. one groove per month, mint where i pressed, violet where the queue did.</p>
+    <div class="bar"><button type="button" class="chip b-deeper" data-act="record">deeper</button></div>
   </div>
 </section>
 </main>
@@ -202,7 +203,6 @@ html.in-met #when{opacity:1}
   <div class="wrap">
     <h2 id="h-links" class="k" style="font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 12px">go deeper</h2>
     <ul class="doors">
-      <li><a class="door big" href="exhibit.html"><b>the record</b><span>a sculpture of every play, six rooms, the album as the soundtrack.</span></a></li>
       <li><a class="door" href="lab.html"><b>the lab</b><span>every chart, every interval, the ledger of what died and why.</span></a></li>
       <li><a class="door" href="researcher.html"><b>the report</b><span>the methods, the pre-registrations, the smallest effects each test could see.</span></a></li>
       <li><a class="door" href="yourturn.html"><b>your turn</b><span>run the same count on your own export, on your own machine.</span></a></li>
@@ -266,12 +266,12 @@ html.in-met #when{opacity:1}
 </aside>
 <footer class="foot" id="deeper">
 <p class="fnote">astralcrest &middot; 2026 &middot; built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a></p>
-<nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}@media (pointer:coarse){.sleeve a{min-height:44px}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i><a href="exhibit.html" data-p="exhibit.html">the record</a></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">how it was made</a></span><a class="up" href="#top">back to the top &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav>
+<nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}@media (pointer:coarse){.sleeve a{min-height:44px}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">how it was made</a></span><a class="up" href="#top">back to the top &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav>
 </footer>
 <div id="player-dock"></div>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"9f65301c74","hear":"32c1ba0b88"};window.__front={stamps:ST,spine:true};var io='IntersectionObserver' in window&&document.getElementById('act-met');if(io){new IntersectionObserver(function(es){for(var i=0;i<es.length;i++)document.documentElement.classList.toggle('in-met',es[i].isIntersecting)},{rootMargin:'-45% 0px -45% 0px'}).observe(io)}})();</script>
 <script src="editions/data/pack.js?v=r25e" defer></script>
-<script src="front/spine.js?v=16059f4db2" defer></script>
+<script src="front/spine.js?v=cb3ad3bad3" defer></script>
 <script src="front/music.js?v=d04f789a28" defer></script>
 </body>
 </html>
