@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>the body · sonicManifold</title>
+<meta name="description" content="seven pre-declared tests of the body answering the music, drawn as seven traces. the quiet ones are nulls with their blind spot; the rose ones died.">
+<style>
+:root{--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--ice:#9fd8ff;--rose:#ff6b8a;--night:#06010f;--ink:#efe9ff;--dim:#8d85a6}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--night);color:var(--ink);font:15px/1.45 -apple-system,"Inter",system-ui,sans-serif;overflow:hidden;-webkit-text-size-adjust:100%}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+a{color:var(--ice)}
+.strip{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);z-index:5;pointer-events:none}
+.strip a{pointer-events:auto;text-decoration:none;color:var(--dim);min-height:40px;display:inline-flex;align-items:center;font-size:12px;white-space:nowrap}
+#head{position:fixed;left:16px;right:16px;top:52px;z-index:4;pointer-events:none;max-width:760px}
+#head h1{margin:0;font:italic 300 clamp(24px,4.2vw,50px)/1.05 "Cormorant Garamond","Playfair Display",Georgia,serif;letter-spacing:-.01em}
+#head p{margin:8px 0 0;color:var(--dim);font-size:clamp(12px,1.3vw,15px);max-width:64ch}
+#head b{color:var(--ink);font-weight:500}#head i.n{color:var(--ice);font-style:normal}#head i.k{color:var(--rose);font-style:normal}
+#bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;z-index:6;background:linear-gradient(transparent,rgba(6,1,15,.9) 40%);overflow-x:auto;scrollbar-width:none}
+#bar::-webkit-scrollbar{display:none}
+#bar button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(10,4,24,.8);color:var(--ink);font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;flex:0 0 auto}
+#bar button[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
+#now{flex:1;min-width:0;font:11px/1.3 ui-monospace,Menlo,monospace;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#card{position:fixed;z-index:7;max-width:min(420px,calc(100vw - 32px));padding:14px 16px;border-radius:14px;background:rgba(12,5,30,.94);border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.6);backdrop-filter:blur(10px);display:none}
+#card.on{display:block}
+#card h2{margin:0;font:600 clamp(19px,2.6vw,25px)/1.1 "Cormorant Garamond",Georgia,serif}
+#card .t{font:11px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;margin:4px 0 8px}
+#card .t.null,#card .t.descriptive{color:var(--ice)}#card .t.killed,#card .t.reversed{color:var(--rose)}
+#card p{margin:0 0 8px;font:italic 300 17px/1.3 "Cormorant Garamond",Georgia,serif}
+#card ul{margin:0;padding:0 0 0 14px;font:11px/1.55 ui-monospace,Menlo,monospace;color:var(--dim)}
+#deep{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:8;background:rgba(8,2,20,.96);border-left:1px solid rgba(255,255,255,.1);padding:64px 22px 24px;overflow:auto;transform:translateX(100%);transition:transform .35s ease}
+#deep.on{transform:none}
+#deep h3{font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:22px 0 8px}
+#deep p{margin:0 0 10px;font-size:14px}
+#deep .lv{display:flex;gap:6px;margin-top:6px}
+#deep .lv button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);font:12px/1 ui-monospace,Menlo,monospace;cursor:pointer}
+#deep .lv button[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
+#deep .d{display:none}#deep[data-lv="1"] .d1,#deep[data-lv="2"] .d1,#deep[data-lv="2"] .d2,#deep[data-lv="3"] .d1,#deep[data-lv="3"] .d2,#deep[data-lv="3"] .d3{display:block}
+#deep .kill{color:var(--rose)}#deep .null{color:var(--ice)}
+#deep .x{position:absolute;top:14px;right:14px;min-height:40px;min-width:40px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);cursor:pointer}
+@media (max-width:640px){.strip{padding:8px 12px}.strip a{font-size:10px;letter-spacing:.1em}#head{top:44px}#head p{display:none}#bar{gap:6px}#bar button{padding:0 10px;font-size:11px}#now{display:none}}
+@media (prefers-reduced-motion:reduce){#deep{transition:none}}
+@media (max-width:640px){.strip{gap:10px}.strip a{overflow:hidden;text-overflow:ellipsis;max-width:56vw}.strip a+a{max-width:40vw}}
+</style></head>
+<body>
+<nav class="strip"><a href="index.html">sonicManifold · one of the editions</a><a href="born.html">who introduced us</a></nav>
+<canvas id="c" aria-label="seven traces, one per test"></canvas>
+<header id="head"><h1 id="h1">i looked seven ways for my body answering the music. it never did.</h1><p>seven pre-declared tests over my music, my watch and my ring, each refereed. the <i class="n">quiet lines</i> are nulls, drawn inside the smallest effect each test could have seen. the <i class="k">rose lines</i> died. below them, the <i class="k">sixteen crosses</i> are claims that died before these. tap any of them. the music moves; the body does not.</p></header>
+<div id="bar">
+ <button id="deepb" type="button" aria-pressed="false">the science</button>
+ <span id="now">press anywhere and my album plays</span>
+ <button id="play" type="button">play</button><button id="next" type="button">next</button><button id="mute" type="button">mute</button>
+</div>
+<aside id="card" role="dialog" aria-live="polite"></aside>
+<aside id="deep" data-lv="1" aria-label="the science behind this scene"><button class="x" id="deepx" type="button" aria-label="close">×</button>
+ <h3>how deep</h3><div class="lv"><button type="button" data-lv="1" aria-pressed="true">the sentence</button><button type="button" data-lv="2">the numbers</button><button type="button" data-lv="3">the test</button></div>
+ <h3>what the body did not do</h3>
+ <p class="d1" id="f1"></p>
+ <div class="d2" id="f2"></div>
+ <p class="d3">each lane was pre-declared on a hash before any number: unit, clock, arms, model, kill rule, and the smallest effect it could detect at 80 percent power (the blind spot). intervals come from a 28-day block bootstrap; nulls are tested against within-day permutations. a lane is "killed" when a control removes it, "reversed" when the sign came out against the pre-declared direction, "null" when the interval holds zero with the blind spot stated, "descriptive" when it is a number with caveats and no claim. nothing on this page is a claim that music changes the body.</p>
+ <h3>the tiers</h3>
+ <div class="d1" id="t1"></div>
+ <h3>the graveyard</h3>
+ <p class="d1">sixteen earlier claims, each with what killed it. a claim stays dead once a valid control removes it; it never comes back as a weaker version of itself.</p>
+ <div class="d2" id="g2"></div>
+ <p class="d1" style="color:var(--dim);font-size:12px;margin-top:18px">the ledger lives in <a href="../lab.html">the lab</a>. october 2023: the app changed how it records a start.</p>
+</aside>
+<script src="data/pack.js"></script>
+<script>
+(function(){
+var S=window.SM,$=function(i){return document.getElementById(i)},R=S.r23||{},L=R.lanes||[],G=S.graveyard||[],TIER=R.tiers||{};
+var SHORT={entrain:'steps and the beat',loudness:'the ear’s thermostat',hands:'does moving make me passive?',wake:'waking to the first song',clocks:'the listening clock and the sleep clock',bodystate:'morning body, day’s listening',stressmin:'what plays in a stressed minute'};
+var cv=$('c'),g=cv.getContext('2d'),W=0,H=0,DPR=1,t0=performance.now(),sel=-1,gsel=-1,hover=-1,ghover=-1,amp=0;
+function size(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;g.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener('resize',size);size();
+function lanes(){var top=H*(W<640?0.2:0.34),bot=H*0.78,n=L.length,gap=(bot-top)/Math.max(1,n-1);return L.map(function(l,i){return top+gap*i})}
+function gy(){return H*0.86}
+var seedN=[];for(var i=0;i<4096;i++)seedN.push(Math.random()*2-1);
+function noise(x,t,i){var k=(x*0.11+t*0.0013+i*97)%4096;var a=Math.floor(k),f=k-a,s0=seedN[(a+4096)%4096],s1=seedN[(a+1)%4096];return s0+(s1-s0)*f}
+function spike(p){/* one heartbeat-shaped bump, p in 0..1 */var q=(p-0.5)*14;var qrs=Math.exp(-q*q*2.2)*1.0-Math.exp(-(q+1.1)*(q+1.1)*4)*0.35-Math.exp(-(q-1.3)*(q-1.3)*3)*0.25;var tw=Math.exp(-(q-4.5)*(q-4.5)*0.6)*0.22;return qrs+tw}
+function draw(now){var t=now-t0,ys=lanes(),lx=W<640?16:Math.max(24,W*0.04),rx=W-(W<640?16:Math.max(24,W*0.04)),len=rx-lx;
+ g.fillStyle='#06010f';g.fillRect(0,0,W,H);
+ var ba=1+amp*2.2;
+ for(var i=0;i<L.length;i++){var l=L[i],y=ys[i],tier=l.tier,isSel=i===sel||i===hover,band=(W<640?10:14);
+  if(tier==='null'){g.fillStyle='rgba(159,216,255,'+(isSel?.16:.09)+')';g.fillRect(lx,y-band,len,band*2);g.fillStyle='rgba(159,216,255,.35)';g.fillRect(lx,y-band,len,1);g.fillRect(lx,y+band-1,len,1)}
+  g.beginPath();var col=tier==='killed'||tier==='reversed'?'255,107,138':'159,216,255';
+  for(var x=lx;x<=rx;x+=2){var u=(x-lx)/len,yy=y;
+   if(tier==='null'){yy=y+noise(x,t,i)*band*0.42}
+   else if(tier==='descriptive'){var ph=((u*3.2-t*0.00032)%1+1)%1;yy=y-spike(ph)*band*2.4*ba+noise(x,t,i)*1.2}
+   else if(tier==='reversed'){var ph2=((u*3.2-t*0.00032)%1+1)%1;yy=y+spike(ph2)*band*2.4*ba+noise(x,t,i)*1.2}
+   else{var kx=0.56,ph3=((u*3.2-t*0.00032)%1+1)%1;if(u<kx){var fade=Math.min(1,(kx-u)*6);yy=y-spike(ph3)*band*2.4*ba*fade+noise(x,t,i)*1.2}else yy=y+noise(x,t,i)*0.5}
+   if(x===lx)g.moveTo(x,yy);else g.lineTo(x,yy)}
+  g.strokeStyle='rgba('+col+','+(isSel?1:.75)+')';g.lineWidth=isSel?2:1.4;g.shadowColor='rgba('+col+',.8)';g.shadowBlur=isSel?16:8;g.stroke();g.shadowBlur=0;
+  if(tier==='killed'){var kx2=lx+len*0.56;g.strokeStyle='rgba(255,107,138,.95)';g.lineWidth=2;g.beginPath();g.moveTo(kx2-7,y-7);g.lineTo(kx2+7,y+7);g.moveTo(kx2+7,y-7);g.lineTo(kx2-7,y+7);g.stroke()}
+  g.font=(W<640?'11px':'13px')+' ui-monospace,Menlo,monospace';g.textBaseline='bottom';var ly=tier==='null'?y-band-6:y-band*2.6-4;g.fillStyle=isSel?'#efe9ff':'#8d85a6';g.fillText((SHORT[l.id]||l.q),lx,ly);
+  var tl=TIER[tier]||tier;g.textAlign='right';g.fillStyle=tier==='killed'||tier==='reversed'?'rgba(255,107,138,.9)':'rgba(159,216,255,.9)';g.fillText(W<640?(tier==='reversed'?'reversed':tier):tl,rx,ly);g.textAlign='left'}
+ /* graveyard crosses */
+ var yg=gy(),n=G.length,step=len/(n+1);g.textBaseline='bottom';g.font=(W<640?'10px':'11px')+' ui-monospace,Menlo,monospace';g.fillStyle='#8d85a6';g.fillText('the graveyard · '+n+' earlier claims, each killed by a control',lx,yg-18);
+ for(var j=0;j<n;j++){var cx=lx+step*(j+1),s=j===gsel||j===ghover?9:6,pulse=0.6+0.4*Math.sin(t*0.002+j);g.strokeStyle='rgba(255,107,138,'+(0.5+0.5*pulse)+')';g.lineWidth=j===gsel||j===ghover?2.4:1.6;g.shadowColor='rgba(255,107,138,.9)';g.shadowBlur=j===gsel||j===ghover?14:5;g.beginPath();g.moveTo(cx-s,yg-s);g.lineTo(cx+s,yg+s);g.moveTo(cx+s,yg-s);g.lineTo(cx-s,yg+s);g.stroke();g.shadowBlur=0}
+ requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+/* ---------- hit testing + card ---------- */
+var card=$('card');
+function hit(x,y){var ys=lanes();for(var i=0;i<ys.length;i++)if(Math.abs(y-ys[i])<22)return{lane:i};var lx=W<640?16:Math.max(24,W*0.04),len=W-2*lx,step=len/(G.length+1);if(Math.abs(y-gy())<22){var j=Math.round((x-lx)/step)-1;if(j>=0&&j<G.length&&Math.abs(x-(lx+step*(j+1)))<step*.5)return{grave:j}}return null}
+cv.addEventListener('pointermove',function(e){if(e.pointerType!=='mouse')return;var h=hit(e.clientX,e.clientY);hover=h&&h.lane!=null?h.lane:-1;ghover=h&&h.grave!=null?h.grave:-1;cv.style.cursor=h?'pointer':'default'});
+cv.addEventListener('pointerup',function(e){var h=hit(e.clientX,e.clientY);if(!h){sel=-1;gsel=-1;card.classList.remove('on');return}if(h.lane!=null)showLane(h.lane,e.clientX,e.clientY);else showGrave(h.grave,e.clientX,e.clientY)});
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function showLane(i,x,y){sel=i;gsel=-1;var l=L[i];card.innerHTML='<h2>'+esc(l.q)+'</h2><div class="t '+esc(l.tier)+'">'+esc(TIER[l.tier]||l.tier)+'</div><p>'+esc(l.sentence)+'</p><ul>'+(l.numbers||[]).map(function(n){return '<li>'+esc(n)+'</li>'}).join('')+'</ul>';card.classList.add('on');place(x,y)}
+function showGrave(j,x,y){gsel=j;sel=-1;var q=G[j];card.innerHTML='<h2>'+esc(q.title)+'</h2><div class="t killed">killed · '+esc(q.killed_by)+'</div><p>'+esc(q.claim)+'</p><ul><li>'+esc(q.result)+'</li></ul>';card.classList.add('on');place(x,y)}
+function place(x,y){var cw=card.offsetWidth||360,ch=card.offsetHeight||160,left=x+16,top=y+16;if(left+cw>W-12)left=Math.max(12,x-cw-16);if(top+ch>H-80)top=Math.max(60,y-ch-16);card.style.left=left+'px';card.style.top=top+'px'}
+/* ---------- deep ---------- */
+var deep=$('deep');$('deepb').addEventListener('click',function(){var on=!deep.classList.contains('on');deep.classList.toggle('on',on);$('deepb').setAttribute('aria-pressed',String(on))});$('deepx').addEventListener('click',function(){deep.classList.remove('on');$('deepb').setAttribute('aria-pressed','false')});
+Array.prototype.forEach.call(deep.querySelectorAll('.lv button'),function(b){b.addEventListener('click',function(){deep.setAttribute('data-lv',b.getAttribute('data-lv'));Array.prototype.forEach.call(deep.querySelectorAll('.lv button'),function(c){c.setAttribute('aria-pressed',String(c===b))})})});
+$('f1').textContent=R.frame||'';
+$('f2').innerHTML=L.map(function(l){var cls=l.tier==='killed'||l.tier==='reversed'?'kill':'null';return '<p><span class="'+cls+'">'+esc(l.tier)+'</span> · <b>'+esc(l.q)+'</b> '+esc(l.sentence)+'<br><span style="color:var(--dim);font:11px/1.5 ui-monospace,Menlo,monospace">'+(l.numbers||[]).map(esc).join(' · ')+'</span></p>'}).join('');
+$('t1').innerHTML=Object.keys(TIER).map(function(k){return '<p><span class="'+(k==='killed'||k==='reversed'?'kill':'null')+'">'+esc(k)+'</span> · '+esc(TIER[k])+'</p>'}).join('');
+$('g2').innerHTML=G.map(function(q){return '<p><b>'+esc(q.title)+'</b> · '+esc(q.claim)+' <span class="kill">killed by '+esc(q.killed_by)+'</span></p>'}).join('');
+/* ---------- album + analyser ---------- */
+var TR=S.soundtrack,KEY='sm.sound',au=null,ck=-1,started=false,an=null,buf=null;
+function lsGet(){try{return localStorage.getItem(KEY)}catch(e){return null}}function lsSet(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+function ael(){if(au)return au;au=new Audio();au.preload='auto';au.crossOrigin='anonymous';au.addEventListener('ended',function(){go((ck+1)%TR.length,false)});['play','pause','volumechange'].forEach(function(t){au.addEventListener(t,sync)});return au}
+function wire(){if(an)return;try{var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;var ctx=new AC(),src=ctx.createMediaElementSource(au);an=ctx.createAnalyser();an.fftSize=512;src.connect(an);an.connect(ctx.destination);buf=new Uint8Array(an.frequencyBinCount);if(ctx.state==='suspended')ctx.resume();(function tick(){if(an&&au&&!au.paused&&!au.muted){an.getByteTimeDomainData(buf);var s=0;for(var i=0;i<buf.length;i++){var v=(buf[i]-128)/128;s+=v*v}amp=amp*0.85+Math.sqrt(s/buf.length)*0.15*3}else amp*=0.95;requestAnimationFrame(tick)})()}catch(e){an=null}}
+function go(k,user){var a=ael();ck=k;started=true;if(user){a.muted=false;lsSet('on')}a.src='../'+TR[k].src;var p;try{p=a.play()}catch(e){}if(p&&p.catch)p.catch(function(){});wire();sync()}
+function sync(){var on=au&&!au.paused&&ck>=0;$('play').textContent=on?'pause':'play';$('mute').textContent=(au?au.muted:lsGet()==='off')?'unmute':'mute';$('now').textContent=ck>=0?(on?'':'paused: ')+String(ck+1).padStart(2,'0')+' '+TR[ck].t+' · '+TR[ck].k+' · '+TR[ck].bpm+' bpm':(lsGet()==='off'?'the album is muted. unmute to play it.':'press anywhere and my album plays')}
+$('play').addEventListener('click',function(){if(!au||ck<0){go(0,true);return}if(au.paused){au.muted=false;lsSet('on');au.play().catch(function(){})}else au.pause();sync()});
+$('next').addEventListener('click',function(){go(ck<0?0:(ck+1)%TR.length,true)});
+$('mute').addEventListener('click',function(){var a=ael();if(ck<0){lsSet('on');go(0,true);return}a.muted=!a.muted;lsSet(a.muted?'off':'on');sync()});
+function press(e){if(!e.isTrusted||started)return;var t=e.target;if(t&&t.closest&&t.closest('a[href],#bar,#deep,#card'))return;if(lsGet()==='off')return;go(0,false)}
+addEventListener('pointerup',press);addEventListener('keydown',function(e){if(e.key==='Escape'){sel=-1;gsel=-1;card.classList.remove('on');deep.classList.remove('on')}else if(!/^(Tab|Shift|Control|Alt|Meta)$/.test(e.key))press(e)});
+})();
+</script>
+</body></html>
