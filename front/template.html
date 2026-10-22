@@ -64,6 +64,7 @@ main{position:relative;z-index:2}
 .act{position:relative;min-height:150vh;pointer-events:none}
 #act-count{min-height:170vh}#act-met{min-height:280vh}#act-record{min-height:120vh}
 .copy{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:72px max(16px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));max-width:100%;pointer-events:none;background:linear-gradient(180deg,rgba(6,1,15,0) 0,rgba(6,1,15,0) 40%,var(--bg) 50%)}
+@media (max-width:899px){html.sm-dock .copy{padding-bottom:calc(80px + env(safe-area-inset-bottom))}}
 @media (min-width:900px){.copy{justify-content:center;width:min(44vw,640px);padding:72px 110px 72px 28px;background:linear-gradient(90deg,var(--bg) 0,var(--bg) 82%,rgba(6,1,15,0) 100%)}}
 .copy>*{pointer-events:auto}
 .copy .k{font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 10px}
@@ -166,7 +167,7 @@ html.in-met #when{opacity:1}
     <p class="so">stars placed by the evenings they shared. where it pools violet, the app chose. where it goes mint, i did.</p>
     <p class="sub">drag to turn the sky. tap a star and it sings. the families light one constellation at a time.</p>
     <p class="num">ambient/lofi reaches me through the app: 0.636 [0.569, 0.710] under-tapped by the strictest count. hip-hop/r&amp;b i reach for: 1.22 over-tapped, the less firm of the two. when i pick the next song i cross families slightly more often: 69.9 vs 66.3 of 100, a direction, not a size.</p>
-    <div class="bar"><button type="button" class="chip" id="b-mode" aria-pressed="false">who pressed play</button><button type="button" class="chip" id="b-key" aria-pressed="false">families</button><button type="button" class="chip b-deeper" data-act="shape">deeper</button></div>
+    <div class="bar"><button type="button" class="chip" id="b-mode" aria-pressed="false">who pressed play</button><button type="button" class="chip" id="b-key" aria-pressed="false">families</button><button type="button" class="chip" id="b-sky" aria-pressed="false">what sounds alike</button><button type="button" class="chip b-deeper" data-act="shape">deeper</button></div>
     <div id="key" role="group" aria-label="genre families"></div>
   </div>
 </section>
@@ -235,7 +236,7 @@ html.in-met #when{opacity:1}
  <p class="d2">a personal word2vec on 5,489 sittings (a 30-minute silence closes one), then umap to three dimensions, cosine, 18 neighbors. 1,986 artists placed; the rest wait at the edge. the glow around each star is the plays themselves, one mote per dozen, landing on the artist in proportion to the hand that started them.</p>
  <p class="d3">the embedding is trained on all 97,427 plays, so its geometry reflects the queue as much as me. that is why no finding on this page is read off the map; the refereed numbers below come from genre tags, not from distances.</p>
  <h3>two skies</h3>
- <p class="d1">what sat together in my evenings and what sounds alike are two different maps. artists that share my sessions do not sound alike, except right next door.</p>
+ <p class="d1">what sat together in my evenings and what sounds alike are two different maps. artists that share my sessions do not sound alike, except right next door. my own 23 songs, run through the same models, land together in one corner of the sound map, beside the house, the desi pop and the r&amp;b.</p>
  <p class="d2">one 30-second preview per artist, embedded by two audio models (mert, clap), 1,889 artists, 89 of every 100 plays covered. rank correlation between the sessions map and the sound map: 0.01 and below, inside the permutation null. the ten nearest neighbors agree on 1.5 to 1.9 of every 100 pairs, five times chance and still almost never. the genre families do hold together in sound, 0.02 to 0.09 cosine above their permuted selves.</p>
  <p class="d3">pre-registered as sound lane S1 (the prereg hashed before any number), mantel correlation on cosine distances with 500 label permutations, 10-nearest jaccard, within-minus-between family similarity. two sound lanes died in the same run: the queue does not sound closer to last year's taps than to this year's, and my taps do not sound farther from my own past than the queue's plays do; both ran the other way by a hair, 0.001 to 0.008 cosine. a zero-shot mood read, post hoc, says my hand leans to faster and away from ambient and relaxed, no effect above 0.14 of a standard deviation.</p>
  <h3>families</h3>

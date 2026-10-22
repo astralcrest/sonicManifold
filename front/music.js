@@ -374,5 +374,5 @@ near('#genre', '0px', genreRow);
 /* a stored mute ("off") shows the dock muted instead of hiding it, and hides the first-screen note that promises a start */
 if (lsGet() === 'off' || lite) { var sn = $('#snd-note'); if (sn) sn.hidden = true; }
 if (lsGet() === 'off') { dock(); sync(); }
-window.__smMusic = { A: A, S: S, D: D };
+window.__smMusic = { A: A, S: S, D: D, go: function (k) { go(k, 0, true); } };
 })();

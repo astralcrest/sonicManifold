@@ -29,7 +29,7 @@ DATA = os.path.join(HERE, 'data')
 EXH = os.path.join(ROOT, 'exhibit', 'data')
 LAZY_BUDGET = 120 * 1024
 INLINE_BUDGET = int(1.5 * 1024 * 1024)
-NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear']
+NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear', 'sky']
 TASTE_KEYS = ('t', 'a', 'h', 'w', 'p', 'n', 'pt', 'pa', 'pe', 'pm', 'arm')
 TID = re.compile(r'^[0-9A-Za-z]{22}$')
 SCRIPT = re.compile(r'(front/[a-z0-9_]+\.js)\?v=@HASH@')
