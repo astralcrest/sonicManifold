@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>sonic manifold · node</title>
+<meta name="description" content="one listener's log as 90,057 crisp squares that flow, sort, and land on their artists. five scenes, one sentence each.">
+<meta name="robots" content="noindex">
+<style>
+:root{--night:#06010f;--ink:#efe9ff;--mute:#9a90b8;--line:#2a2140;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--gold:#ffd36b}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--night);color:var(--ink);font-family:-apple-system,"Helvetica Neue",Inter,Arial,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+#gl,#lab{position:fixed;left:0;top:0;width:100vw;height:calc(100vh - var(--band));display:block;touch-action:none}
+#lab{pointer-events:none}
+body{--band:132px}
+@media (max-width:720px){body{--band:168px}}
+#band{position:fixed;left:0;right:0;bottom:0;height:var(--band);border-top:1px solid var(--line);background:var(--night);padding:16px 24px calc(12px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr auto;gap:12px 24px;align-items:center}
+#k{grid-column:1/-1;font:11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+#cap{font-size:clamp(15px,1.5vw,21px);line-height:1.3;font-weight:500;letter-spacing:-.01em;max-width:64ch}
+#cap b{font-weight:600}
+#cap .m{color:var(--mint)}#cap .a{color:var(--amber)}#cap .v{color:var(--violet)}#cap .g{color:var(--gold)}
+#ctl{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+button{appearance:none;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:9px 14px;font:13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}
+button[aria-pressed=true]{border-color:var(--mint);color:var(--mint)}
+button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+#dots{display:flex;gap:6px;align-items:center;margin-right:8px}
+#dots i{width:6px;height:6px;border:1px solid var(--mute);display:block}
+#dots i.on{background:var(--ink);border-color:var(--ink)}
+#leg{display:none;gap:10px 14px;flex-wrap:wrap;font:12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--mute);grid-column:1/-1}
+#leg span{display:inline-flex;align-items:center;gap:6px}#leg i{width:8px;height:8px;display:inline-block}
+body.fam #leg{display:flex}
+@media (max-width:720px){#band{grid-template-columns:1fr;padding:12px 16px calc(10px + env(safe-area-inset-bottom))}#ctl{justify-content:flex-start}#cap{font-size:16px;max-width:none}#leg{font-size:11px}}
+#wm{position:fixed;left:24px;top:18px;font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;pointer-events:none}
+#wm b{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas><canvas id="lab"></canvas>
+<div id="wm"><b>sonic manifold</b> &nbsp;by astralcrest</div>
+<div id="band" role="region" aria-label="caption and controls">
+  <div id="k">scene 1 of 5 · one listener's log · 97,427 plays · 2019 to 2026</div>
+  <p id="cap">loading the log.</p>
+  <div id="ctl"><div id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div><button id="prev" type="button" aria-label="previous scene">&larr;</button><button id="next" type="button" aria-label="next scene">&rarr;</button><button id="auto" type="button" aria-pressed="false">auto</button><button id="snd" type="button" aria-pressed="false">&#9834; sound</button></div>
+  <div id="leg"></div>
+</div>
+<audio id="au" preload="none"></audio>
+<script>
+(function () {
+'use strict';
+var $ = function (i) { return document.getElementById(i); };
+var cv = $('gl'), lab = $('lab'), gl = cv.getContext('webgl', { antialias: false, alpha: false, preserveDrawingBuffer: true });
+if (!gl) { $('cap').textContent = 'this piece needs webgl.'; return; }
+var g2 = lab.getContext('2d');
+var DPR = Math.min(2, window.devicePixelRatio || 1), W = 1, H = 1, phone = false;
+var HAND = [[0x21, 0xf6, 0xbc], [0xf5, 0xa6, 0x23], [0x8b, 0x6f, 0xd6]];
+var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ff7a3d', 'hip-hop · r&b': '#ff2e55', 'jazz': '#ffd36b', 'pop': '#ff9ad5', 'rock/metal': '#c9c9d6', 'soundtrack': '#8fe0d4', 'world/desi': '#ffb347', 'other': '#8d8da6', 'untagged': '#5e5a74' };
+var hx = function (h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; };
+var D = null, N = 0, ART = [], SONG = [];
+var pArt, pHand, pJit;            // per particle: artist index, hand, jitter seed
+var bufFrom, bufTo, bufCF, bufCT, bufDelay, bufSize;
+var FROM, TO, CF, CT, DEL, SIZ;
+var scene = 0, t0 = 0, T = 1, rotY = 0.35, rotX = -0.25, drag = null, auto = false, autoAt = 0, ptr = [-9, -9], ptrOn = 0, sel = -1;
+var CAPS = [
+  ['scene 1 of 5 · one listener\'s log · 97,427 plays · 2019 to 2026', 'every square is one play, flowing in the order it happened. <b class="m">mint: i pressed play.</b> <b class="a">amber: shuffle.</b> <b class="v">violet: the app played it on its own.</b>'],
+  ['scene 2 of 5 · who pressed play', 'sorted by hand. <b class="m">i pressed play on 19 of every 100.</b> <b class="a">shuffle picked 17.</b> <b class="v">the app chose 64.</b> by the strictest count, my own presses are 11.5.'],
+  ['scene 3 of 5 · the shape of a taste', 'the plays land on their artists: <b>1,986 of them</b>, placed near the ones they shared evenings with. the app pools in one corner. drag to turn.'],
+  ['scene 4 of 5 · the families', 'the same map by genre family. <b>ambient and lo-fi reach me through the app.</b> <b>hip-hop and r&amp;b i reach for.</b> everything else, both hands alike.'],
+  ['scene 5 of 5 · what sounds alike', 'placed by sound instead, a map made from the audio itself. <b class="g">the gold squares are my own 23 songs.</b> tap one and it plays.']
+];
+var VS = 'attribute vec4 aF;attribute vec4 aT;attribute vec3 aCF;attribute vec3 aCT;attribute float aD;attribute float aS;uniform float uT;uniform vec2 uRes;uniform vec2 uRot;uniform vec2 uPtr;uniform float uPtrOn;uniform float uTime;uniform float uFlow;varying vec3 vC;varying float vA;' +
+'vec2 proj(vec4 p){ if(p.w<0.5){ return p.xy; } float cx=cos(uRot.x),sx=sin(uRot.x),cy=cos(uRot.y),sy=sin(uRot.y); float x=p.x*cy-p.z*sy, z=p.x*sy+p.z*cy; float y=p.y*cx-z*sx; z=p.y*sx+z*cx; float d=1.0/(1.9+z); float R=min(uRes.x,uRes.y)*0.46; return vec2(uRes.x*0.5+x*R*d*1.9, uRes.y*0.5+y*R*d*1.9); }' +
+'void main(){ float k=clamp((uT*1.35-aD*0.35),0.0,1.0); k=k*k*(3.0-2.0*k); vec2 a=proj(aF), b=proj(aT); vec2 p=mix(a,b,k); if(aT.w<0.5&&uFlow>0.5){ p.x=mod(p.x+uTime*uFlow*34.0, uRes.x+40.0)-20.0; p.y+=sin(uTime*0.7+aD*6.28)*3.0; }' +
+' vec2 dp=p-uPtr; float r=length(dp); float R2=min(uRes.x,uRes.y)*0.16; if(uPtrOn>0.0&&r<R2){ float s=(1.0-r/R2); float an=s*s*1.6*uPtrOn; float c=cos(an),sn=sin(an); dp=vec2(dp.x*c-dp.y*sn,dp.x*sn+dp.y*c)*(1.0+s*0.35); p=uPtr+dp; }' +
+' vec2 nd=vec2(p.x/uRes.x*2.0-1.0, 1.0-p.y/uRes.y*2.0); gl_Position=vec4(nd,0.0,1.0); gl_PointSize=aS; vC=mix(aCF,aCT,k); vA=1.0; }';
+var FS = 'precision mediump float;varying vec3 vC;varying float vA;void main(){ gl_FragColor=vec4(vC,1.0); }';
+function sh(t, s) { var o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; }
+var prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog); gl.useProgram(prog);
+var U = {}; ['uT', 'uRes', 'uRot', 'uPtr', 'uPtrOn', 'uTime', 'uFlow'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+var AT = {}; ['aF', 'aT', 'aCF', 'aCT', 'aD', 'aS'].forEach(function (n) { AT[n] = gl.getAttribLocation(prog, n); });
+function mkbuf(arr, loc, size) { var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, arr, gl.DYNAMIC_DRAW); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0); return b; }
+function resize() { W = cv.clientWidth; H = cv.clientHeight; phone = W < 720; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); lab.width = cv.width; lab.height = cv.height; gl.viewport(0, 0, cv.width, cv.height); if (D) { layout(scene, true); } }
+var mul = function (a, b) { var x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
+function build(j) {
+  D = j; var A = j.a; N = 0; A.forEach(function (a) { N += a[2] + a[3] + a[4]; });
+  ART = A.map(function (a, i) { return { n: a[0], f: a[1], t: a[2], s: a[3], v: a[4], p: a[2] + a[3] + a[4], xyz: a[5], sx: a[6], i: i }; });
+  SONG = j.s.map(function (s) { return { t: s[0], f: s[1], xyz: s[2] }; });
+  var NS = SONG.length, NT = N + NS;
+  pArt = new Int32Array(NT); pHand = new Uint8Array(NT); pJit = new Float32Array(NT * 3);
+  var k = 0;
+  ART.forEach(function (a, i) { [a.t, a.s, a.v].forEach(function (c, h) { for (var q = 0; q < c; q++) { pArt[k] = i; pHand[k] = h; pJit[k * 3] = mul(k, 7) - 0.5; pJit[k * 3 + 1] = mul(k, 13) - 0.5; pJit[k * 3 + 2] = mul(k, 29) - 0.5; k++; } }); });
+  for (var s = 0; s < NS; s++) { pArt[N + s] = -1 - s; pHand[N + s] = 3; }
+  FROM = new Float32Array(NT * 4); TO = new Float32Array(NT * 4); CF = new Float32Array(NT * 3); CT = new Float32Array(NT * 3); DEL = new Float32Array(NT); SIZ = new Float32Array(NT);
+  for (var i = 0; i < NT; i++) { DEL[i] = mul(i, 3); SIZ[i] = (i >= N ? 7 : 2) * DPR; }
+  // scale the two maps the way the front does (median, 4 to 96 pct, clamp)
+  ['xyz', 'sx'].forEach(function (key) { for (var ax = 0; ax < 3; ax++) { var v = ART.filter(function (a) { return a[key]; }).map(function (a) { return a[key][ax]; }).sort(function (p, q) { return p - q; }); var n = v.length, med = v[n >> 1], lo = v[Math.floor(n * .04)], hi = v[Math.floor(n * .96)], sc = Math.max(hi - med, med - lo) || 1; ART.forEach(function (a) { if (a[key]) a[key][ax] = Math.max(-1.6, Math.min(1.6, (a[key][ax] - med) / sc * 0.95)); }); } });
+  bufFrom = mkbuf(FROM, AT.aF, 4); bufTo = mkbuf(TO, AT.aT, 4); bufCF = mkbuf(CF, AT.aCF, 3); bufCT = mkbuf(CT, AT.aCT, 3); bufDelay = mkbuf(DEL, AT.aD, 1); bufSize = mkbuf(SIZ, AT.aS, 1);
+  layout(0, true); FROM.set(TO); CF.set(CT); up(bufFrom, FROM); up(bufCF, CF); T = 1;
+  // day order for the river: particle k of hand h takes the day where hand h's cumulative count passes k
+  var days = j.days, cum = [[], [], []], tot = [0, 0, 0];
+  for (var h = 0; h < 3; h++) { var c = 0; for (var d = 0; d < days.length; d++) { c += days[d][h]; cum[h].push(c); } tot[h] = c; }
+  var seen = [0, 0, 0]; DAY = new Float32Array(NT);
+  var HT = [0, 0, 0]; for (var q0 = 0; q0 < N; q0++) HT[pHand[q0]]++;
+  for (var q2 = 0; q2 < N; q2++) { var hh = pHand[q2], target = (seen[hh]++ + 0.5) / Math.max(1, HT[hh]) * tot[hh]; var lo2 = 0, hi2 = days.length - 1; while (lo2 < hi2) { var m = (lo2 + hi2) >> 1; if (cum[hh][m] < target) lo2 = m + 1; else hi2 = m; } DAY[q2] = lo2 / days.length; }
+  layout(0, true); FROM.set(TO); CF.set(CT); up(bufFrom, FROM); up(bufCF, CF);
+  setCap(0); loop(0);
+}
+var DAY = null;
+function up(b, arr) { gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferSubData(gl.ARRAY_BUFFER, 0, arr); }
+function col(i, mode) { var a = ART[pArt[i]]; if (pArt[i] < 0) return hx('#ffd36b'); if (mode === 'fam') return hx(FAMC[a.f] || FAMC.other); return HAND[pHand[i]]; }
+function layout(s, immediate) {
+  var NT = N + SONG.length, Wd = W * DPR, Hd = H * DPR, i, a;
+  var mode = s === 3 ? 'fam' : 'hand';
+  for (i = 0; i < NT; i++) {
+    var c = col(i, mode); CT[i * 3] = c[0] / 255; CT[i * 3 + 1] = c[1] / 255; CT[i * 3 + 2] = c[2] / 255;
+    var o = i * 4; TO[o + 3] = 0;
+    if (i >= N) { // songs: hidden off-screen unless scene 5
+      if (s === 4) { var sg = SONG[i - N]; TO[o] = sg.xyz[0]; TO[o + 1] = sg.xyz[1]; TO[o + 2] = sg.xyz[2]; TO[o + 3] = 1; } else { TO[o] = -50; TO[o + 1] = -50; TO[o + 2] = 0; }
+      continue;
+    }
+    a = ART[pArt[i]];
+    if (s === 0) { var lane = pHand[i]; TO[o] = DAY ? DAY[i] * (Wd + 40) - 20 : mul(i, 5) * Wd; TO[o + 1] = Hd * (0.2 + lane * 0.3) + (pJit[i * 3 + 1]) * Hd * 0.22; TO[o + 2] = 0; }
+    else if (s === 1) { // three columns of packed squares, heights by share
+      TO[o + 3] = 0;
+    }
+    else if (s === 2 || s === 3) { var r = 0.012 + 0.03 * Math.sqrt(a.p / 5300); TO[o] = a.xyz[0] + pJit[i * 3] * r * 2; TO[o + 1] = a.xyz[1] + pJit[i * 3 + 1] * r * 2; TO[o + 2] = a.xyz[2] + pJit[i * 3 + 2] * r * 2; TO[o + 3] = 1; }
+    else if (s === 4) { if (a.sx) { var r2 = 0.012 + 0.03 * Math.sqrt(a.p / 5300); TO[o] = a.sx[0] + pJit[i * 3] * r2 * 2; TO[o + 1] = a.sx[1] + pJit[i * 3 + 1] * r2 * 2; TO[o + 2] = a.sx[2] + pJit[i * 3 + 2] * r2 * 2; TO[o + 3] = 1; } else { TO[o] = -50; TO[o + 1] = -50; TO[o + 2] = 0; } }
+  }
+  if (s === 1) { // pack: each hand a column; squares in a grid, cell 3px (desk) or 2.2px (phone), bottom aligned
+    var counts = [0, 0, 0]; for (i = 0; i < N; i++) counts[pHand[i]]++;
+    var cell = (phone ? 2.4 : 3.2) * DPR, colW = Math.min(Wd * 0.22, 260 * DPR), perRow = Math.max(8, Math.floor(colW / cell)), gap = (Wd - 3 * colW) / 4, fill = [0, 0, 0];
+    var maxRows = Math.max.apply(null, counts.map(function (c) { return Math.ceil(c / perRow); })), avail = Hd - 120 * DPR, cellY = Math.min(cell, avail / maxRows);
+    for (i = 0; i < N; i++) { var hh = pHand[i], q = fill[hh]++, rr = Math.floor(q / perRow), cc = q % perRow, x0 = gap + hh * (colW + gap), o2 = i * 4; TO[o2] = x0 + cc * cell + cell * 0.5; TO[o2 + 1] = Hd - 60 * DPR - rr * cellY; TO[o2 + 2] = 0; TO[o2 + 3] = 0; }
+  }
+  if (immediate) { FROM.set(TO); CF.set(CT); up(bufFrom, FROM); up(bufCF, CF); T = 1; }
+  up(bufTo, TO); up(bufCT, CT);
+}
+function go(s) {
+  s = (s + 5) % 5; if (s === scene && T >= 1) return;
+  // freeze the current rendered state as the new "from" (bake the river's flow offset first)
+  var NT = N + SONG.length;
+  if (scene === 0) { var fx = performance.now() / 1000 * 34, span = cv.width + 40; for (var f0 = 0; f0 < N; f0++) { var fo = f0 * 4; if (TO[fo + 3] < 0.5) { TO[fo] = (((TO[fo] + 20 + fx) % span) + span) % span - 20; } } } for (var i = 0; i < NT; i++) { var k = Math.max(0, Math.min(1, T * 1.35 - DEL[i] * 0.35)); k = k * k * (3 - 2 * k); var o = i * 4; if (FROM[o + 3] === TO[o + 3]) { FROM[o] += (TO[o] - FROM[o]) * k; FROM[o + 1] += (TO[o + 1] - FROM[o + 1]) * k; FROM[o + 2] += (TO[o + 2] - FROM[o + 2]) * k; } else if (k > 0.5) { FROM[o] = TO[o]; FROM[o + 1] = TO[o + 1]; FROM[o + 2] = TO[o + 2]; FROM[o + 3] = TO[o + 3]; } CF[i * 3] += (CT[i * 3] - CF[i * 3]) * k; CF[i * 3 + 1] += (CT[i * 3 + 1] - CF[i * 3 + 1]) * k; CF[i * 3 + 2] += (CT[i * 3 + 2] - CF[i * 3 + 2]) * k; }
+  up(bufFrom, FROM); up(bufCF, CF);
+  scene = s; layout(s, false); T = 0; t0 = performance.now(); sel = -1; setCap(s); autoAt = performance.now();
+}
+function setCap(s) { $('k').textContent = CAPS[s][0]; $('cap').innerHTML = CAPS[s][1]; document.body.classList.toggle('fam', s === 3); var ds = $('dots').children; for (var i = 0; i < 5; i++) ds[i].className = i === s ? 'on' : ''; if (s === 3 && !$('leg').children.length) { var fams = ART.reduce(function (m, a) { m[a.f] = (m[a.f] || 0) + a.p; return m; }, {}); Object.keys(fams).filter(function (f) { return FAMC[f] && f !== 'untagged' && f !== 'other'; }).sort(function (p, q) { return fams[q] - fams[p]; }).slice(0, 12).forEach(function (f) { var sp = document.createElement('span'); sp.innerHTML = '<i style="background:' + FAMC[f] + '"></i>' + f; $('leg').appendChild(sp); }); } }
+function proj3(p) { var cx = Math.cos(rotX), sx = Math.sin(rotX), cy = Math.cos(rotY), sy = Math.sin(rotY); var x = p[0] * cy - p[2] * sy, z = p[0] * sy + p[2] * cy, y = p[1] * cx - z * sx; z = p[1] * sx + z * cx; var d = 1 / (1.9 + z), R = Math.min(W, H) * 0.46; return [W * 0.5 + x * R * d * 1.9, H * 0.5 + y * R * d * 1.9, d]; }
+function labels() {
+  g2.setTransform(DPR, 0, 0, DPR, 0, 0); g2.clearRect(0, 0, W, H);
+  if (scene < 2 || T < 0.6) return;
+  var key = scene === 4 ? 'sx' : 'xyz', items = [], cap = phone ? 10 : 26;
+  var fs0 = phone ? 12 : 14; g2.textBaseline = 'middle';
+  ART.slice().sort(function (p, q) { return q.p - p.p; }).slice(0, 120).forEach(function (a) { if (!a[key]) return; var p = proj3(a[key]); items.push({ a: a, p: p }); });
+  if (scene === 4) SONG.forEach(function (s) { var p = proj3(s.xyz); items.unshift({ s: s, p: p }); });
+  var R = [], n = 0;
+  for (var i = 0; i < items.length && n < cap + (scene === 4 ? SONG.length : 0); i++) {
+    var it = items[i], fs = it.s ? (phone ? 12 : 14) : Math.round(fs0 + 10 * Math.sqrt(it.a.p / 5300) * Math.min(1.3, it.p[2] * 2));
+    g2.font = (it.s ? 'italic ' : '') + '500 ' + fs + 'px -apple-system, "Helvetica Neue", Inter, Arial, sans-serif';
+    var txt = it.s ? it.s.t : it.a.n, w = g2.measureText(txt).width, x = it.p[0] + 8, y = it.p[1];
+    if (x + w > W - 12) x = it.p[0] - w - 8;
+    if (y < 14 || y > H - 14 || x < 8) continue;
+    var hit = false; for (var r = 0; r < R.length; r++) { if (x < R[r][0] + R[r][2] + 6 && x + w + 6 > R[r][0] && y - fs * 0.6 < R[r][1] + R[r][3] && y + fs * 0.6 > R[r][1]) { hit = true; break; } }
+    if (hit) continue; R.push([x, y - fs * 0.6, w, fs * 1.2]); n++;
+    g2.fillStyle = it.s ? (sel === SONG.indexOf(it.s) ? '#ffffff' : '#ffd36b') : 'rgba(239,233,255,' + Math.min(1, 0.55 + it.p[2]) + ')';
+    g2.fillText(txt, x, y);
+    if (it.s) { g2.fillStyle = '#ffd36b'; g2.fillRect(it.p[0] - 4, it.p[1] - 4, 8, 8); }
+  }
+}
+function loop(now) {
+  if (T < 1) { T = Math.min(1, (now - t0) / 1900); }
+  if (scene >= 2 && !drag) rotY += 0.0009;
+  gl.useProgram(prog); gl.clearColor(6 / 255, 1 / 255, 15 / 255, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.uniform1f(U.uT, T); gl.uniform2f(U.uRes, cv.width, cv.height); gl.uniform2f(U.uRot, rotX, rotY); gl.uniform2f(U.uPtr, ptr[0] * DPR, ptr[1] * DPR); gl.uniform1f(U.uPtrOn, ptrOn); gl.uniform1f(U.uTime, now / 1000); gl.uniform1f(U.uFlow, scene === 0 ? 1 : 0);
+  gl.drawArrays(gl.POINTS, 0, N + SONG.length);
+  labels();
+  if (auto && now - autoAt > 14000) go(scene + 1);
+  requestAnimationFrame(loop);
+}
+// input
+cv.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, y: e.clientY, moved: 0 }; cv.setPointerCapture(e.pointerId); ptr = [e.clientX, e.clientY]; ptrOn = 1; });
+cv.addEventListener('pointermove', function (e) { ptr = [e.clientX, e.clientY]; if (e.pointerType === 'mouse' && !drag) ptrOn = 0.6; if (drag) { var dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.moved += Math.abs(dx) + Math.abs(dy); if (scene >= 2) { rotY += dx * 0.005; rotX = Math.max(-1.2, Math.min(1.2, rotX + dy * 0.005)); } drag.x = e.clientX; drag.y = e.clientY; } });
+function up2(e) { if (drag && drag.moved < 8) { tap(e.clientX, e.clientY); } drag = null; ptrOn = 0; }
+cv.addEventListener('pointerup', up2); cv.addEventListener('pointercancel', function () { drag = null; ptrOn = 0; }); cv.addEventListener('pointerleave', function () { if (!drag) ptrOn = 0; });
+function tap(x, y) { if (scene === 4) { var best = -1, bd = 30 * 30; SONG.forEach(function (s, i) { var p = proj3(s.xyz), d = (p[0] - x) * (p[0] - x) + (p[1] - y) * (p[1] - y); if (d < bd) { bd = d; best = i; } }); if (best >= 0) { play(best); return; } } }
+var au = $('au'), cur = -1, sndOn = false;
+function play(i) { sel = i; cur = i; au.src = '../audio/bed/' + SONG[i].f + '.mp3'; au.play().then(function () { sndOn = true; $('snd').setAttribute('aria-pressed', 'true'); }).catch(function () { }); }
+au.addEventListener('ended', function () { if (sndOn) play((cur + 1) % SONG.length); });
+$('snd').addEventListener('click', function () { if (sndOn) { au.pause(); sndOn = false; this.setAttribute('aria-pressed', 'false'); } else play(cur < 0 ? 0 : cur); });
+$('prev').addEventListener('click', function () { go(scene - 1); }); $('next').addEventListener('click', function () { go(scene + 1); });
+$('auto').addEventListener('click', function () { auto = !auto; this.setAttribute('aria-pressed', String(auto)); autoAt = performance.now(); });
+window.addEventListener('keydown', function (e) { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(scene + 1); } else if (e.key === 'ArrowLeft') go(scene - 1); });
+window.addEventListener('resize', resize); resize();
+if (/[?&]auto=1/.test(location.search)) { auto = true; $('auto').setAttribute('aria-pressed', 'true'); }
+fetch('data/node.json').then(function (r) { return r.json(); }).then(build).catch(function (e) { $('cap').textContent = 'the log did not load. ' + e; });
+})();
+</script>
+</body>
+</html>
