@@ -3,23 +3,22 @@
 <head>
 <meta charset="utf-8">
 <script>
-/* deep-link shim: #tour=…, #atlas and #notes (the liner notes) forward into the atlas; the front's own ids stay (#tours is the
-   two small lines under the record door); everything else forwards to the lab as before (old index.html#graveyard meant the lab) */
+/* deep-link shim: #tour=…, #atlas and #notes (the liner notes) forward into the atlas; the front's own ids stay; everything
+   else forwards to the lab as before (old index.html#graveyard meant the lab) */
 (function(){
 var h=location.hash;if(!h)return;
 var base=h.split('?')[0];
 if(base.slice(0,6)==='#tour='||base==='#atlas'||base==='#notes'){location.replace('exhibit.html'+h);return;}
-var own={'#argument':1,'#finding':1,'#scenes':1,'#links':1,'#album':1,'#top':1,'#deeper':1,'#kills':1,'#tours':1,'#act-count':1,'#act-shape':1,'#act-met':1,'#act-body':1,'#act-record':1};
+var own={'#room':1,'#np':1,'#deep':1,'#links':1,'#album':1,'#top':1,'#deeper':1,'#sky':1};
 if(!own[base])location.replace('lab.html'+h);
 })();
 </script>
 <script>document.documentElement.className="js"</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f6f4ee" media="(prefers-color-scheme: light)">
-<title>sonic manifold: who pressed play</title>
-<meta name="description" content="the app, not i, pressed play on 81 of every 100 of my Spotify plays. 97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count.">
+<meta name="theme-color" content="#06010f">
+<title>sonic manifold: the radio</title>
+<meta name="description" content="every artist i have heard, placed by how they sound. drag a line and listen. the app, not i, pressed play on 81 of every 100 of my Spotify plays: 97,427 plays, 2019 to 2026.">
 <meta name="robots" content="index, follow, noai, noimageai">
 <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/svg+xml" href="/sonicManifold/favicon.svg">
@@ -30,258 +29,155 @@ if(!own[base])location.replace('lab.html'+h);
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/">
 <meta property="og:title" content="the app, not i, pressed play on 81 of every 100 of my Spotify plays.">
-<meta property="og:description" content="97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count. eighteen claims withdrawn. sixteen are graves you can visit. 0 of 11 new candidates survived unqualified.">
-<meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og-card.png">
+<meta property="og:description" content="97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count. every artist i have heard, placed by how they sound: drag a line and listen.">
+<meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og-radio.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="the app, not i, pressed play on 81 of every 100 of my Spotify plays.">
+<meta property="og:image:alt" content="the radio: every artist placed by sound, a mint line with seven stops across it, the text in its own column">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="the app, not i, pressed play on 81 of every 100 of my Spotify plays.">
-<meta name="twitter:description" content="97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count. eighteen claims withdrawn. sixteen are graves you can visit. 0 of 11 new candidates survived unqualified.">
-<meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og-card.png">
+<meta name="twitter:description" content="97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count. every artist i have heard, placed by how they sound: drag a line and listen.">
+<meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og-radio.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-:root{--bg:#06010f;--ink:#efe9ff;--dim:#8d85a6;--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff6b8a;--ice:#9fd8ff;--mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;--serif:"Cormorant Garamond","Playfair Display",Georgia,serif}
+:root{--bg:#06010f;--panel:#0d0719;--card:#120a22;--ink:#efe9ff;--dim:#9a90b8;--mute:#9a90b8;--line:#2a2140;--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);--shadow:rgba(0,0,0,.5);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;--sans:"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace}
 *{box-sizing:border-box}
-html{background:var(--bg);color-scheme:dark;scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Inter",system-ui,sans-serif;-webkit-text-size-adjust:100%;overflow-x:hidden}
+html{background:var(--bg);color-scheme:dark;height:100%}
+body{margin:0;height:100%;height:100dvh;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-text-size-adjust:100%;overflow:hidden;display:grid;grid-template-rows:minmax(0,56fr) minmax(0,44fr)}
 a{color:var(--ice)}
-canvas#field{position:fixed;inset:0;width:100%;height:100%;z-index:0;touch-action:pan-y}
-.top{position:fixed;top:0;left:0;right:0;z-index:35;display:flex;align-items:center;gap:14px;padding:10px max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));font:11px/1 var(--mono);letter-spacing:.14em;text-transform:lowercase;color:var(--dim);background:linear-gradient(rgba(6,1,15,.92),rgba(6,1,15,0));pointer-events:none}
+#stage{position:relative;min-height:0;background:var(--bg)}
+canvas#sky{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.top{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left));font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:lowercase;color:var(--dim);pointer-events:none}
 .top>*{pointer-events:auto}
-.top .brand{color:var(--ink);text-decoration:none;font-weight:700;letter-spacing:.18em;min-height:40px;display:inline-flex;align-items:center;white-space:nowrap}
-.top .brand small{font-weight:400;color:var(--dim);margin-left:.6em;letter-spacing:.1em}
-.dots{display:flex;gap:4px;margin-left:auto}
-.dots a{min-height:40px;min-width:40px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:var(--dim);font-size:10px;letter-spacing:.08em}
-.dots a i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.5;font-style:normal}
-.dots a[aria-current]{color:var(--ink)}.dots a[aria-current] i{opacity:1;box-shadow:0 0 10px var(--ink)}
-.dots a span{display:none;margin-left:6px}
-@media (min-width:900px){.dots a span{display:inline}.dots a{padding:0 6px}}
-.chip{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(10,4,24,.8);color:var(--ink);font:12px/1 var(--mono);letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;text-decoration:none;backdrop-filter:blur(6px)}
-.chip[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
-.chip.go{border-color:var(--mint);color:var(--mint)}
-main{position:relative;z-index:2}
-.act{position:relative;min-height:150vh;pointer-events:none}
-#act-count{min-height:170vh}#act-met{min-height:280vh}#act-record{min-height:120vh}
-.copy{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:72px max(16px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));max-width:100%;pointer-events:none;background:linear-gradient(180deg,rgba(6,1,15,0) 0,rgba(6,1,15,0) 40%,var(--bg) 50%)}
-@media (max-width:899px){html.sm-dock .copy{padding-bottom:calc(80px + env(safe-area-inset-bottom))}}
-@media (min-width:900px){.copy{justify-content:center;width:min(44vw,640px);padding:72px 110px 72px 28px;background:linear-gradient(90deg,var(--bg) 0,var(--bg) 82%,rgba(6,1,15,0) 100%)}}
-.copy>*{pointer-events:auto}
-.copy .k{font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 10px}
-.copy h2,.copy h1{margin:0;font:italic 300 clamp(26px,3.3vw,50px)/1.06 var(--serif);letter-spacing:-.012em;color:var(--ink)}
-.copy h1 b,.copy h2 b{font-style:normal;font-weight:600}.t{color:var(--mint)}.s{color:var(--amber)}.v{color:var(--violet)}.dimw{color:var(--dim);font-size:.6em}
-.copy .so{margin:12px 0 0;font:italic 300 clamp(16px,1.5vw,20px)/1.35 var(--serif);color:var(--ink);max-width:44ch}
-.copy .sub{margin:8px 0 0;color:var(--dim);font-size:clamp(12px,1.1vw,14px);line-height:1.5;max-width:60ch}
-.copy .num{display:none;margin:10px 0 0;font:12px/1.6 var(--mono);color:var(--ice);max-width:70ch}
-.copy .num .kill{color:var(--rose)}.copy .num .null{color:var(--ice)}
-html.deep .copy .num{display:block}
-.bar{display:flex;gap:8px;margin:16px 0 0;flex-wrap:wrap;align-items:center}
-#strict-note,#tally{font:11px/1.6 var(--mono);color:var(--dim);margin:8px 0 0;max-width:60ch}
-#tally b{color:var(--ink);font-weight:500}#tally .t{color:var(--mint)}#tally .s{color:var(--amber)}#tally .v{color:var(--violet)}
-#when{position:fixed;right:max(16px,env(safe-area-inset-right));top:58px;z-index:4;pointer-events:none;text-align:right;font:300 clamp(30px,6vw,84px)/1 var(--serif);color:var(--ink);letter-spacing:-.02em;opacity:0;transition:opacity .4s}
-#when small{display:block;font:11px/1.6 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-html.in-met #when{opacity:1}
-#key{display:none;gap:6px;flex-wrap:wrap;margin:10px 0 0;max-width:720px}
-#key.on{display:flex}
-#key button{min-height:34px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(10,4,24,.72);color:var(--ink);font:11px/1 var(--mono);display:inline-flex;align-items:center;gap:7px;cursor:pointer}
-#key button i{width:8px;height:8px;border-radius:50%;background:var(--k);box-shadow:0 0 8px var(--k)}
-#key button[aria-pressed=true]{border-color:var(--k);box-shadow:0 0 0 1px var(--k) inset}
-#key.dim button:not([aria-pressed=true]){opacity:.45}
-#tip{position:fixed;z-index:6;pointer-events:none;display:none;padding:8px 10px;border-radius:10px;background:rgba(12,5,30,.92);border:1px solid rgba(255,255,255,.12);font:11px/1.5 var(--mono);color:var(--dim);white-space:nowrap}
-#tip b{color:var(--ink);font-weight:500}#tip.on{display:block}
-#scard{position:fixed;z-index:12;max-width:min(380px,calc(100vw - 32px));padding:14px 40px 14px 16px;border-radius:14px;background:rgba(12,5,30,.94);border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.6);backdrop-filter:blur(10px);display:none}
-#scard.on{display:block}
-#scard h2{margin:0;font:600 clamp(19px,2.8vw,26px)/1.1 var(--serif)}
-#scard .m{font:11px/1.5 var(--mono);color:var(--dim);margin:4px 0 6px}
-#scard .q{font:italic 300 17px/1.3 var(--serif);margin:0 0 6px}#scard .q b{font-style:normal;font-weight:600;color:var(--mint)}
-#scard .t{font:11px/1.5 var(--mono);letter-spacing:.1em;text-transform:uppercase;margin:4px 0 8px}
-#scard .t.null,#scard .t.descriptive{color:var(--ice)}#scard .t.killed,#scard .t.reversed{color:var(--rose)}
-#scard ul{margin:0;padding:0 0 0 14px;font:11px/1.55 var(--mono);color:var(--dim)}
-#scard .arm{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:6px 0 4px}#scard .arm i{display:block;height:100%}
-#scard .leg{font:10px/1.4 var(--mono);color:var(--dim)}
-#scard .pv{margin-top:10px;display:flex;align-items:center;gap:10px;font:11px/1.3 var(--mono);color:var(--dim)}
-#scard .pv img{width:40px;height:40px;border-radius:6px;object-fit:cover;background:#1a1030}#scard .pv a{color:var(--ice);text-decoration:none}#scard .pv b{color:var(--ink);font-weight:500;display:block}
-#scard .x,#deep .x{position:absolute;top:8px;right:8px;min-height:36px;min-width:36px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);cursor:pointer;font-size:16px}
-#curve{position:fixed;inset:0;z-index:3;display:none;pointer-events:none;background:rgba(6,1,15,.78)}
-#curve.on{display:block}
-#curve svg{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(92vw,900px);height:min(56vh,520px);overflow:visible}
-#curve text{font:11px var(--mono);fill:var(--dim)}
-#curve .big{font:italic 300 clamp(14px,2vw,24px) var(--serif);fill:var(--ink)}
-#deep{position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);z-index:30;background:rgba(8,2,20,.97);border-left:1px solid rgba(255,255,255,.1);padding:56px 22px 24px;overflow:auto;transform:translateX(100%);transition:transform .35s ease}
-#deep.on{transform:none}#deep .x{position:sticky;top:0;float:right;margin:-4px -4px 0 0}
-#deep h3{font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:22px 0 8px}
-#deep h4{font:italic 300 22px/1.1 var(--serif);margin:34px 0 4px;color:var(--ink)}
-#deep p{margin:0 0 10px;font-size:14px}
-#deep .lv{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
-#deep .lv button{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);font:12px/1 var(--mono);cursor:pointer}
-#deep .lv button[aria-pressed=true]{border-color:var(--ice);color:var(--ice)}
-#deep .d{display:none}#deep[data-lv="1"] .d1,#deep[data-lv="2"] .d1,#deep[data-lv="2"] .d2,#deep[data-lv="3"] .d1,#deep[data-lv="3"] .d2,#deep[data-lv="3"] .d3{display:block}
-#deep .num{font:600 30px/1 var(--serif);color:var(--ice)}#deep .num small{font:12px/1 var(--mono);color:var(--dim);margin-left:6px}
-#deep .kill{color:var(--rose)}#deep .null{color:var(--ice)}#deep .mono{color:var(--dim);font:11px/1.5 var(--mono)}
-.last{position:relative;z-index:2;background:linear-gradient(rgba(6,1,15,0),rgba(6,1,15,.96) 18%);padding:40px max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left))}
-.wrap{max-width:1100px;margin:0 auto}
-.doors{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;list-style:none;padding:0;margin:0}
-.door{display:block;padding:16px 18px;border:1px solid var(--faint);border-radius:12px;text-decoration:none;color:var(--ink);background:rgba(10,4,24,.6);min-height:88px}
-.door:hover,.door:focus-visible{border-color:var(--hair)}
-.door b{display:block;font:italic 400 22px/1.1 var(--serif);margin-bottom:6px}.door span{color:var(--dim);font-size:13px}
-.door.big{border-color:var(--mint);grid-column:1 / -1}.door.big b{font-size:30px;color:var(--mint)}
-#album{margin-top:28px}
-#album h2{font:italic 300 26px/1.1 var(--serif);margin:0 0 8px}
-#album p{color:var(--dim);max-width:62ch;margin:0 0 12px;font-size:14px}
-#b-play{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--mint);background:transparent;color:var(--mint);font:13px/1 var(--mono);letter-spacing:.06em;cursor:pointer}
-.honest{color:var(--dim);font-size:12px;margin:14px 0 0;max-width:70ch;font-family:var(--mono);line-height:1.6}
-.foot{position:relative;z-index:2;background:var(--bg)}
-.fnote{color:var(--dim);font:12px/1.6 var(--mono);margin:0;padding:12px max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left))}
+.top .brand{color:var(--ink);text-decoration:none;font-weight:500;min-height:40px;display:inline-flex;align-items:center;white-space:nowrap;background:var(--bg);padding:0 8px;margin-left:-8px}
+.top .brand small{font-weight:400;color:var(--dim);margin-left:.6em}
+.chip{appearance:none;-webkit-appearance:none;min-height:40px;padding:0 14px;border-radius:3px;border:1px solid var(--line);background:var(--bg);color:var(--mint);font:500 12px/1 var(--mono);letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;gap:.5em;white-space:nowrap;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.chip:hover{border-color:var(--mint)}
+.chip[aria-pressed="true"]{background:var(--mint);color:var(--bg);border-color:var(--mint)}
+.chip:focus-visible,.nr:focus-visible,.door:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+#hint{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:10px;z-index:4;font:500 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--mint);background:var(--bg);padding:4px 8px 4px 0;pointer-events:none}
+#hint:empty{display:none}
+#room{position:relative;min-height:0;overflow:auto;overscroll-behavior:contain;background:var(--panel);border-top:2px solid var(--line);padding:18px max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left));-webkit-overflow-scrolling:touch}
+#room h1{margin:0 0 10px;font:600 22px/1.15 var(--sans);letter-spacing:-.01em}
+#room h1 span{color:var(--mint)}
+#room h2{margin:22px 0 8px;font:600 15px/1.3 var(--sans)}
+.sub{margin:0 0 14px;color:var(--ink);opacity:.86;font-size:13.5px;line-height:1.45}
+.sub b{font-weight:600;color:var(--ink)}
+#np{background:var(--bg);border:1px solid var(--line);padding:12px 14px 10px}
+#np small,#now,.fine,.how,.k{display:block;font:400 11.5px/1.45 var(--mono);color:var(--dim)}
+#np-n{display:block;font:600 24px/1.1 var(--sans);margin:4px 0 2px;min-height:1.1em;word-break:break-word}
+#np-t{display:block;font:400 13px/1.3 var(--sans);color:var(--ink);opacity:.8;min-height:1.3em}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
+.row .chip{min-height:40px}
+.row .chip.on{color:var(--ink)}
+#b-play{color:var(--gold)}
+#now{margin:0 0 4px;min-height:1.45em}#now:not(:empty)::before{content:"the album, underneath \00b7  "}
+#player-dock{display:none!important}html.sm-dock body{padding-bottom:0!important}
+#a-sp{border:0;padding:0 2px;min-height:40px;color:var(--mint);text-decoration:underline;text-underline-offset:3px}
+#mood{margin:14px 0 0}
+#mood .k{margin-bottom:6px}
+.mb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);align-items:center;gap:10px;margin:0 0 5px;font:400 12.5px/1.3 var(--sans)}
+.mb i{display:block;height:9px;background:var(--ice);justify-self:start;width:100%}
+.mb span{color:var(--ink);opacity:.85}
+#near{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.nr{appearance:none;-webkit-appearance:none;display:flex;align-items:center;gap:10px;min-height:40px;padding:0;border:0;background:transparent;color:var(--ink);font:500 13.5px/1.2 var(--sans);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nr::before{content:"";flex:0 0 10px;width:10px;height:10px;background:var(--violet)}
+.nr:hover{color:var(--mint)}
+.nr.on{color:var(--mint)}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;margin:14px 0 0;font:400 11.5px/1.4 var(--mono);color:var(--dim)}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{width:9px;height:9px;display:inline-block}
+.how{margin:14px 0 0}
+#deep{margin:18px 0 0;padding:14px;background:var(--bg);border:1px solid var(--line)}
+#deep h3{margin:0 0 6px;font:600 14px/1.3 var(--sans)}
+#deep p{margin:0 0 10px;font-size:13px;line-height:1.5}
+#deep .br{display:grid;grid-template-columns:7.5em minmax(0,1fr) 5.5em;align-items:center;gap:10px;margin:0 0 6px;font:400 12px/1.3 var(--mono);color:var(--dim)}
+#deep .br i{display:block;height:10px}
+#deep .br b{font-weight:500;color:var(--ink)}
+.doors{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0;padding:0;list-style:none}
+.door{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--line);color:var(--ink);text-decoration:none;font:500 13px/1 var(--sans);background:var(--bg)}
+.door:hover{border-color:var(--ink)}
+.door small{color:var(--dim);margin-left:.6em;font:400 11px/1 var(--mono)}
+.foot{margin:22px -16px -24px;padding:0 0 0;background:var(--panel)}
+.fnote{margin:0;padding:0 16px;font:400 11px/1.5 var(--mono);color:var(--dim)}
 .fnote a{color:var(--dim)}
-@media (max-width:640px){.copy .sub{display:none}#tally{display:none}html.deep #tally{display:block}.top{gap:8px;font-size:10px}.top .brand small{display:none}.chip{padding:0 11px;font-size:11px}.bar{gap:6px}#when{top:50px;left:16px;right:auto;text-align:left;font-size:28px}#deep{padding-top:52px}.dots a{min-width:30px}.dots{gap:0}.top .brand{letter-spacing:.08em}#b-deep .xw{display:none}}
-@media (prefers-reduced-motion:reduce){#deep,#when{transition:none}}
+.honest{margin:6px 0 0}
+@media (max-width:899px){.row .chip{padding:0 11px;font-size:11.5px}}
+@media (min-width:900px){
+ body{grid-template-rows:none;grid-template-columns:minmax(0,1fr) clamp(380px,34vw,560px)}
+ #room{border-top:0;border-left:2px solid var(--line);padding:26px 32px 32px}
+ #room h1{font-size:30px;margin-bottom:14px}
+ .sub{font-size:14.5px}
+ #np-n{font-size:30px}
+ .top{padding:12px 20px}
+ #hint{left:20px;bottom:14px;font-size:12px}
+ .foot{margin:26px -32px -32px}
+ .fnote{padding:0 32px}
+ canvas#sky{cursor:crosshair}
+}
+@media (max-height:620px) and (max-width:899px){body{grid-template-rows:minmax(0,50fr) minmax(0,50fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (forced-colors:active){.chip,.door,#np,#deep{border:1px solid CanvasText}}
 </style>
 </head>
 <body>
-<canvas id="field" aria-label="every play as a mote of light; the scroll turns the river into the sky, the sky into the years, the years into seven traces, and all of it into one record"></canvas>
+<div id="stage">
+<canvas id="sky" aria-label="every artist i have heard as a square, placed by how they sound; squares sized by plays and colored by family; gold squares are my own songs. tap a square to hear 30 seconds of it, or drag a line across the map for a radio of stops along it"></canvas>
 <header class="top" id="top">
-  <a class="brand" href="./">sonic manifold <small>by astralcrest</small></a>
-  <nav class="dots" aria-label="the five acts"><a href="#act-count"><i></i><span>the count</span></a><a href="#act-shape"><i></i><span>the shape</span></a><a href="#act-met"><i></i><span>who introduced us</span></a><a href="#act-body"><i></i><span>the body</span></a><a href="#act-record"><i></i><span>the record</span></a></nav>
-  <button type="button" class="chip" id="b-deep" aria-pressed="false">deep<span class="xw">&nbsp;science</span></button>
+  <a class="brand" href="./">sonic manifold<small>by astralcrest</small></a>
+  <button type="button" class="chip" id="b-deep" aria-pressed="false" aria-controls="deep">deep science</button>
 </header>
-<div id="when" aria-live="off"><small>we met in</small><span id="ym">september 2019</span></div>
-<div id="tip"></div>
-<div id="curve" aria-hidden="true"><svg id="svg" viewBox="0 0 900 520" preserveAspectRatio="xMidYMid meet"></svg></div>
-<aside id="scard" role="dialog" aria-live="polite"></aside>
-<main id="argument">
-<section class="act" id="act-count" aria-labelledby="hl">
-  <div class="copy">
-    <p class="k">i · the count · one listener's log · 97,427 plays · 2019 to 2026</p>
-    <h1 id="hl">i pressed play on <b class="t">19</b> of every 100. shuffle picked <b class="s">17</b>. the queue served <b class="v">64</b>.</h1>
-    <p class="so">every play as a mote of light, colored by whose hand started it. the app runs most of my days.</p>
-    <p class="sub">hover a month. the clock turns the same plays by hour of day. the strictest count keeps only the play button, the track row and the remote.</p>
-    <p id="strict-note"></p>
-    <p class="num">by the strictest count 11.5 of 100: 7.6 of the 19 were my back and skip presses. october 2023: the app changed how it records a start, so the bands before and after that line are not the same instrument.</p>
-    <div class="bar"><button type="button" class="chip" id="b-strict" aria-pressed="false">strictest count</button><button type="button" class="chip" id="b-clock" aria-pressed="false">the clock</button><button type="button" class="chip b-deeper" data-act="count">deeper</button></div>
+<div id="hint" aria-hidden="true"></div>
+</div>
+<aside id="room" aria-label="the radio">
+<h1 id="hl">every artist i have heard, placed by how they sound. <span>drag a line and listen.</span></h1>
+<p class="sub">near means sounds alike to a model that never saw my log. gold squares are my own songs, placed by the same ears. of 97,427 plays, 2019 to 2026, <b>i pressed play on 19 of every 100</b>; shuffle picked 17 and the queue served 64.</p>
+<div id="np" aria-live="polite">
+  <small id="np-k">nothing is playing. tap a square, or drag a line.</small>
+  <b id="np-n">the radio</b>
+  <span id="np-t"></span>
+  <div class="row">
+    <button type="button" class="chip" id="b-pp">play</button>
+    <button type="button" class="chip" id="b-next">next</button>
+    <span id="album"><button type="button" class="chip" id="b-play">play my soundtrack</button></span>
+    <a class="chip" id="a-sp" href="https://open.spotify.com/" target="_blank" rel="noopener">open in spotify</a>
   </div>
-</section>
-<section class="act" id="act-shape" aria-labelledby="h-shape">
-  <div class="copy">
-    <p class="k">ii · the shape · the same plays, gathered into 1,986 artists</p>
-    <h2 id="h-shape">my taste has a shape. the app lives in one corner of it.</h2>
-    <p class="so">stars placed by the evenings they shared. where it pools violet, the app chose. where it goes mint, i did.</p>
-    <p class="sub">drag to turn the sky. tap a star and it sings. the families light one constellation at a time.</p>
-    <p class="num">ambient/lofi reaches me through the app: 0.636 [0.569, 0.710] under-tapped by the strictest count. hip-hop/r&amp;b i reach for: 1.22 over-tapped, the less firm of the two. when i pick the next song i cross families slightly more often: 69.9 vs 66.3 of 100, a direction, not a size.</p>
-    <div class="bar"><button type="button" class="chip" id="b-mode" aria-pressed="false">who pressed play</button><button type="button" class="chip" id="b-key" aria-pressed="false">families</button><button type="button" class="chip" id="b-sky" aria-pressed="false">what sounds alike</button><button type="button" class="chip" id="b-years" aria-pressed="false">as it grew</button><button type="button" class="chip b-deeper" data-act="shape">deeper</button></div>
-    <div id="key" role="group" aria-label="genre families"></div>
-  </div>
-</section>
-<section class="act" id="act-met" aria-labelledby="h-met">
-  <div class="copy">
-    <p class="k">iii · who introduced us · scroll, and the years pass</p>
-    <h2 id="h-met">the ones i went looking for stayed.</h2>
-    <p class="so">each spark is an artist appearing the month we met, lit by the hand that pressed first. ash when the last play passes.</p>
-    <p id="tally"></p>
-    <p class="num" id="n-met"></p>
-    <div class="bar"><button type="button" class="chip" id="b-curve" aria-pressed="false">the curve</button><button type="button" class="chip b-deeper" data-act="met">deeper</button></div>
-  </div>
-</section>
-<section class="act" id="act-body" aria-labelledby="h-body">
-  <div class="copy">
-    <p class="k">iv · the body · seven pre-declared tests · the music, the watch, the ring</p>
-    <h2 id="h-body">i looked seven ways for my body answering the music. it never did.</h2>
-    <p class="so">the quiet lines are nulls inside the smallest effect each test could have seen. the rose lines died. the crosses are claims that died before them.</p>
-    <p class="sub">tap a trace or a cross. the album's own pulse moves the lines that were allowed to move; it never moves the nulls.</p>
-    <p class="num" id="n-body"></p>
-    <div class="bar"><button type="button" class="chip b-deeper" data-act="body">deeper</button></div>
-  </div>
-</section>
-<section class="act" id="act-record" aria-labelledby="h-record">
-  <div class="copy">
-    <p class="k">v · the record · every play, pressed into one record</p>
-    <h2 id="h-record">the last word is the record.</h2>
-    <p class="so">97,427 plays as grooves of light, 2019 at the rim, 2026 at the center. one groove per month, mint where i pressed, violet where the queue did.</p>
-    <p class="num">after the seven in the body, twelve more pre-declared tests on the log and on the sound: three died, two reversed, seven are directions or curves. what held everywhere: hip-hop/r&amp;b i reach for, ambient/lofi reaches me through the app, and the map of who shared my evenings is not the map of what sounds alike.</p>
-    <div class="bar"><button type="button" class="chip b-deeper" data-act="record">deeper</button></div>
-  </div>
-</section>
-</main>
-<section class="last" id="links" aria-labelledby="h-links">
-  <div class="wrap">
-    <h2 id="h-links" class="k" style="font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 12px">go deeper</h2>
-    <ul class="doors">
-      <li><a class="door" href="lab.html"><b>the lab</b><span>every chart, every interval, the ledger of what died and why.</span></a></li>
-      <li><a class="door" href="researcher.html"><b>the report</b><span>the methods, the pre-registrations, the smallest effects each test could see.</span></a></li>
-      <li><a class="door" href="yourturn.html"><b>your turn</b><span>run the same count on your own export, on your own machine.</span></a></li>
-    </ul>
-    <div id="album">
-      <h2>my soundtrack</h2>
-      <p>twenty-three songs i wrote for this, keyed and tempo-matched so one hands into the next. the first press anywhere on the site starts them; the dock at the bottom holds play, next and mute, and your choice carries across every page.</p>
-      <button type="button" id="b-play">play my soundtrack</button>
-      <p class="honest">every claim was pre-declared and refereed; the ones that died are still here, marked. nothing on this page says music changes the body, or that the app knows me. the strictest count, the genre numbers and the crossing rate are directions with intervals, not sizes. counts are plays of 30 seconds or more.</p>
-    </div>
-  </div>
-</section>
-<aside id="deep" data-lv="1" aria-hidden="true" aria-label="the science, three depths"><button class="x" id="deepx" type="button" aria-label="close">×</button>
- <h3>how deep</h3><div class="lv"><button type="button" data-lv="1" aria-pressed="true">the sentence</button><button type="button" data-lv="2">the numbers</button><button type="button" data-lv="3">the test</button></div>
- <h4 id="deep-count">the count</h4>
- <p class="d1" id="d-s1"></p>
- <p class="d2"><span class="num">19<small>of 100</small></span> my hand, counting every press. <span class="num">11.5</span> by the strictest count: <span id="d-s2"></span> shuffle 17, the queue 64. the river draws the first count; the strictest count has no month-by-month series, so the switch changes only the headline.</p>
- <p class="d3" id="d-s3"></p>
- <h3>the river</h3>
- <p class="d1">height is how much i listened that month; the bands are whose hand started the plays. october 2023: the app changed how it records a start, so the bands before and after that line are not the same instrument.</p>
- <p class="d2" id="d-r2"></p>
- <p class="d3">each month's three counts come from the play log (plays of 30 seconds or more). a mote is a fixed number of plays; motes are placed at random inside their band and drift, so the picture is a count, not a position. nothing in the river is a test.</p>
- <h3>the clock</h3>
- <p class="d1" id="d-c1"></p>
- <p class="d2" id="d-c2"></p>
- <p class="d3">one fixed clock all year (no per-play timezone or daylight-saving data was kept), so the hours are only roughly local. a share, not a volume.</p>
- <h4 id="deep-shape">the shape</h4>
- <h3>the map</h3>
- <p class="d1">artists that shared my evenings sit near each other. far apart means little. the map learned from every play, and the app started most of them. the map is the picture, not the proof.</p>
- <p class="d2">a personal word2vec on 5,489 sittings (a 30-minute silence closes one), then umap to three dimensions, cosine, 18 neighbors. 1,986 artists placed; the rest wait at the edge. the glow around each star is the plays themselves, one mote per dozen, landing on the artist in proportion to the hand that started them.</p>
- <p class="d3">the embedding is trained on all 97,427 plays, so its geometry reflects the queue as much as me. that is why no finding on this page is read off the map; the refereed numbers below come from genre tags, not from distances.</p>
+  <p id="now" aria-live="off"></p>
+  <small class="fine">30 s apple preview per stop; the whole song opens in the app. my soundtrack is the album, by me, and it plays underneath.</small>
+</div>
+<div id="mood" hidden><small class="k">what the sound model hears (zero-shot, top four of 30 prompts)</small></div>
+<h2 id="h-near">call and response: six nearest in sound</h2>
+<ol id="near" aria-labelledby="h-near"></ol>
+<div class="key" id="key" aria-label="color key"></div>
+<p class="how">how: three 30 s previews per artist, a sound model (CLAP) hears them, two axes (UMAP) place them. squares sized by plays. the radio walks the line you drew, then the nearest sounds.</p>
+<section id="deep" hidden aria-label="the science">
+ <h3>the count</h3>
+ <p>19 of every 100 plays started with my hand. 7.6 of the 19 were my back and skip presses, so 11.5 by the strictest count. shuffle 17, the queue 64. plays of 30 seconds or more; october 2023: the app changed how it records a start.</p>
+ <h3>the queue's run, in sound</h3>
+ <div class="br"><b>after my press</b><i style="background:var(--mint);width:100%"></i><span>0.242 apart</span></div>
+ <div class="br"><b>after the queue</b><i style="background:var(--violet);width:86%"></i><span>0.209 apart</span></div>
+ <p>the queue's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
  <h3>two skies</h3>
- <p class="d1">what sat together in my evenings and what sounds alike are two different maps. artists that share my sessions do not sound alike, except right next door. my own 23 songs, run through the same models, land together in one corner of the sound map, beside the house, the desi pop and the r&amp;b.</p>
- <p class="d2">up to three 30-second previews per artist, 3,902 clips, embedded by two audio models (mert, clap), 1,889 artists, 89 of every 100 plays covered. rank correlation between the sessions map and the sound map: 0.02 and below, at the edge of the permutation null. the ten nearest neighbors agree on 1.9 to 2.6 of every 100 pairs, seven times chance and still almost never. the genre families do hold together in sound, 0.02 to 0.09 cosine above their permuted selves.</p>
- <p class="d3">pre-registered as sound lane S1 (the prereg hashed before any number), mantel correlation on cosine distances with 500 label permutations, 10-nearest jaccard, within-minus-between family similarity. two sound lanes died in the same run: the queue does not sound closer to last year's taps than to this year's, and my taps do not sound farther from my own past than the queue's plays do; both ran the other way by a hair, 0.001 to 0.013 cosine pooled. a zero-shot mood read, post hoc, says my hand leans to faster and away from ambient and relaxed, no effect above 0.18 of a standard deviation. which preview stands for an artist moves its neighbors: with one clip or up to three, the artist vectors agree (median cosine 0.97) but their ten nearest neighbors overlap 18 of 100, so local neighbors in the sound map are soft and only the global reads are kept.</p>
- <h3>the sky as it grew</h3>
- <p class="d1">the same map, retrained on the evenings so far at eight cuts and lined up with the last one. stars move most while the sky is young, then keep a small drift that never quite stops. the clock adds little: by day and by night, both hands reach for nearly the same families.</p>
- <p class="d2">cut to cut, the median move is 0.059 in cosine at the first pair and 0.047 to 0.052 from the fourth on (306 to 1,691 artists per pair). by the hour, desi and world music fall away at night for both hands, about 5 of every 100 plays fewer than in the day (my taps -0.054 [-0.079, -0.016], the queue -0.049 [-0.080, -0.012]); every other family swing sits inside its interval. my hand is on the play button 16 of every 100 plays at night and 18 to 21 by day, intervals touching.</p>
- <p class="d3">pre-registered as log lanes 6 and 7, hashed before any number. the drift falls by construction, the training set is cumulative, so the curve is a description, not a finding. the one test in the lane ran the other way: i expected artists the queue introduced to drift more than the ones i went looking for, matched on plays; mine drift more, -0.017 [-0.021, -0.014] in cosine. a reversal, logged, not a finding: an artist i reach for travels through more different evenings than one the queue keeps in its own neighborhood, and the vectors share one embedding, so the interval is too narrow. a third lane, bursts by hand, was withdrawn before running: served runs are the queue by definition.</p>
- <h3>families</h3>
- <p class="d1">counted by play, ambient and lo-fi reach me mostly through the app; hip-hop and r&amp;b are the ones i reach for.</p>
- <p class="d2" id="d-g2"></p>
- <p class="d3">arm rate = tapped share within a family over the tapped share overall, strict definition, same-artist control, 28-day block bootstrap. families are a collapse of 1,067 tags; the fine tags only feed the tag-noise check.</p>
- <h3>the crossing</h3>
- <p class="d1" id="d-b1"></p>
- <p class="d2" id="d-b2"></p>
- <p class="d3">a genre-family crossing rate per arm, same-artist pairs excluded, intervals from a 28-day block bootstrap. the earlier embedding-distance version of this number was withdrawn; the sky never claims it.</p>
- <h4 id="deep-met">who introduced us</h4>
- <p class="d1" id="d-i1"></p>
- <p class="d2" id="d-i2"></p>
- <p class="d3">unit = an artist with two plays or more. introducer = the arm of our first play: my tap (track row, play button, remote, skip forward or back), shuffle, or the queue on its own. an artist is "still with me" while its last play is within 90 days of the end of the log. survival by kaplan-meier, interval from a 28-day block bootstrap over the months we met. pre-registered on a hash before the numbers. this is selection, not treatment: a first tap is usually a search for a name i already carried, so the sentence says what i already knew, never that the queue fails.</p>
- <h3>my hand, four more ways</h3>
- <p class="d1" id="d-h1"></p>
- <div class="d2" id="d-h2"></div>
- <p class="d3" id="d-h3"></p>
- <h4 id="deep-body">the body</h4>
- <p class="d1" id="d-f1"></p>
- <div class="d2" id="d-f2"></div>
- <p class="d3">each lane was pre-declared on a hash before any number: unit, clock, arms, model, kill rule, and the smallest effect it could detect at 80 percent power (the blind spot). intervals come from a 28-day block bootstrap; nulls are tested against within-day permutations. a lane is "killed" when a control removes it, "reversed" when the sign came out against the pre-declared direction, "null" when the interval holds zero with the blind spot stated, "descriptive" when it is a number with caveats and no claim. nothing on this page is a claim that music changes the body.</p>
- <h3>the tiers</h3>
- <div class="d1" id="d-t1"></div>
- <h3>the graveyard</h3>
- <p class="d1">sixteen earlier claims, each with what killed it. a claim stays dead once a valid control removes it; it never comes back as a weaker version of itself.</p>
- <div class="d2" id="d-g3"></div>
- <h4 id="deep-record">the record</h4>
- <p class="d1">one groove per month, 2019 at the rim and 2026 at the center; the color of each mote is the hand that pressed play. the record you can enter is the same data as a sculpture, with six rooms and the album as the soundtrack.</p>
- <p class="d2">97,427 plays of 30 seconds or more. the shares in every room are the ones on this page: 19 / 17 / 64, and 11.5 by the strictest count.</p>
- <p class="d3">the ledger of every claim, alive and dead, lives in <a href="lab.html">the lab</a>; the methods and pre-registrations in <a href="researcher.html">the report</a>. october 2023: the app changed how it records a start.</p>
-</aside>
+ <p>the sessions map (who i play in the same evenings) and this sound map are different maps. artists that sit together in my evenings do not sit together in sound.</p>
+ <h3>the families</h3>
+ <p>when i tap, ambient and lofi get 0.636 of the share the queue gives them [0.569, 0.710]; hip-hop and r&amp;b 1.22, the less firm of the two. every other family moves with the queue.</p>
+ <p class="k">pre-registered on a hash before any number; intervals from a block bootstrap. the ledger of every claim, alive and dead, is in <a href="lab.html">the lab</a>; methods in <a href="researcher.html">the report</a>. ledger rows 341 to 346 for the run.</p>
+</section>
+<ul class="doors" id="links">
+ <li><a class="door" href="lab.html">the lab<small>every chart</small></a></li>
+ <li><a class="door" href="researcher.html">the report<small>methods</small></a></li>
+ <li><a class="door" href="yourturn.html">your turn<small>your export</small></a></li>
+</ul>
 <footer class="foot" id="deeper">
 <p class="fnote">astralcrest &middot; 2026 &middot; built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a></p>
-<nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}@media (pointer:coarse){.sleeve a{min-height:44px}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">how it was made</a></span><a class="up" href="#top">back to the top &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav>
+<nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "IBM Plex Mono","JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}@media (pointer:coarse){.sleeve a{min-height:44px}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">how it was made</a></span><a class="up" href="#top">back to the top &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav>
 </footer>
+</aside>
 <div id="player-dock"></div>
-<script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"eb7a2bdede","years":"2203550b8a"};window.__front={stamps:ST,spine:true};var io='IntersectionObserver' in window&&document.getElementById('act-met');if(io){new IntersectionObserver(function(es){for(var i=0;i<es.length;i++)document.documentElement.classList.toggle('in-met',es[i].isIntersecting)},{rootMargin:'-45% 0px -45% 0px'}).observe(io)}})();</script>
-<script src="editions/data/pack.js?v=r25e" defer></script>
-<script src="front/spine.js?v=f9d7434fd7" defer></script>
-<script src="front/music.js?v=b4aec6b2ae" defer></script>
+<script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"a899ef5706","pv":"381d21eeee"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,radio:true};})();</script>
+<script src="front/radio.js?v=69c4e6c480" defer></script>
+<script src="front/music.js?v=fb7dd30425" defer></script>
 </body>
 </html>

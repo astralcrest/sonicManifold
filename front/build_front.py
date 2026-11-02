@@ -12,6 +12,8 @@ The default template (front/template.html) loads its data lazily: the build writ
 /*@STAMPS@*/{} marker, and the page fetches front/data/<name>.json?v=<stamp> when a section nears the screen.
 Derived sidecars come from public, already-shipping files under exhibit/data/; taste, genre and graveyard are kept here,
 and so are hear.json and the taste rows' "u" (Spotify track ids for the front's "hear it" chips: titles, artists, ids only).
+radio.json and pv.json (the radio map: artist names, sound-map positions, families, play counts by hand, six nearest in
+sound, top mood tags; one Apple 30 s preview per artist) are cut privately from the same public sidecars and committed.
 A script the template loads as front/<name>.js?v=@HASH@ gets the first 10 hex of its sha1 in place of @HASH@.
 The name and privacy gates live with the private tests (atlas_door.mjs scans index.html and every sidecar), not in this
 public script.
@@ -29,7 +31,7 @@ DATA = os.path.join(HERE, 'data')
 EXH = os.path.join(ROOT, 'exhibit', 'data')
 LAZY_BUDGET = 120 * 1024
 INLINE_BUDGET = int(1.5 * 1024 * 1024)
-NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear', 'sky', 'years']
+NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear', 'sky', 'years', 'radio', 'pv']
 TASTE_KEYS = ('t', 'a', 'h', 'w', 'p', 'n', 'pt', 'pa', 'pe', 'pm', 'arm')
 TID = re.compile(r'^[0-9A-Za-z]{22}$')
 SCRIPT = re.compile(r'(front/[a-z0-9_]+\.js)\?v=@HASH@')
@@ -148,6 +150,14 @@ def validate():
         errs.append('graveyard 15: month wording is not the paper\'s')
     if len(d['tracks']['tracks']) != 23:
         errs.append('tracks: 23 tracks')
+    r = d['radio']
+    n = len(r['n'])
+    if n < 1000 or any(len(r[k]) != n for k in ('xy', 'f', 'h', 'nn', 'md')) or r['fam'] != d['genre']['fam_order']:
+        errs.append('radio: one row per artist, the genre family order')
+    if len(r['s']) != 23 or set(x['f'] for x in r['s']) != set(t['f'] for t in d['tracks']['tracks']):
+        errs.append('radio: the 23 songs')
+    if set(d['pv']['a']) != set(r['n']) or any(len(v) != 2 or not v[1].startswith('https://') for v in d['pv']['a'].values()):
+        errs.append('pv: one title and one https preview per radio artist')
     return d, errs
 
 
