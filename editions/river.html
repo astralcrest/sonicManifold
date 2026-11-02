@@ -30,7 +30,7 @@ a{color:var(--ice)}
 #deep .d{display:none}#deep[data-lv="1"] .d1,#deep[data-lv="2"] .d1,#deep[data-lv="2"] .d2,#deep[data-lv="3"] .d1,#deep[data-lv="3"] .d2,#deep[data-lv="3"] .d3{display:block}
 #deep .num{font:600 34px/1 "Cormorant Garamond",Georgia,serif;color:var(--ice)}#deep .num small{font:12px/1 ui-monospace,Menlo,monospace;color:var(--dim);margin-left:6px}
 #deep .x{position:absolute;top:14px;right:14px;min-height:40px;min-width:40px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);cursor:pointer}
-@media (max-width:640px){.strip{padding:8px 12px}.strip a{font-size:10px;letter-spacing:.1em;max-width:56vw}.strip a+a{max-width:40vw}#head{top:68px}#head p{display:none}#bar{gap:6px}#bar button{padding:0 10px;font-size:11px}#now{display:none}}
+@media (max-width:640px){.strip{padding:8px 12px}.strip a{font-size:10px;letter-spacing:.1em;max-width:56vw}.strip a+a{max-width:40vw}#head{top:68px}#head p{display:none}#bar{gap:6px;flex-wrap:wrap;overflow:visible;row-gap:6px}#bar button{padding:0 10px;font-size:11px;white-space:nowrap}#now{display:none}}
 @media (prefers-reduced-motion:reduce){#deep{transition:none}}
 
 .strip{flex-wrap:nowrap;gap:10px}.strip a{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

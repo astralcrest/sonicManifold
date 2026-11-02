@@ -18,7 +18,7 @@ a{color:var(--ice)}
 #scrub{position:fixed;left:16px;right:16px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:5;height:40px;display:flex;align-items:center}
 #scrub input{width:100%;-webkit-appearance:none;appearance:none;height:40px;background:transparent;margin:0;cursor:pointer}
 #scrub input::-webkit-slider-runnable-track{height:2px;background:rgba(255,255,255,.22)}
-#scrub input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--ink);margin-top:-8px;box-shadow:0 0 12px rgba(255,255,255,.6)}
+#scrub input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--ink);margin-top:-8px}
 #scrub input::-moz-range-track{height:2px;background:rgba(255,255,255,.22)}#scrub input::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--ink);border:0}
 #bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;z-index:6;background:linear-gradient(transparent,rgba(6,1,15,.9) 40%)}
 #bar button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(10,4,24,.8);color:var(--ink);font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center}
@@ -52,6 +52,7 @@ a{color:var(--ice)}
 
 .strip a{white-space:nowrap}
 #bar{overflow-x:auto;scrollbar-width:none}#bar::-webkit-scrollbar{display:none}#bar button,#bar a.b{white-space:nowrap;flex:0 0 auto}
+@media (max-width:640px){#bar{flex-wrap:wrap;overflow:visible;row-gap:6px}#scrub{bottom:calc(112px + env(safe-area-inset-bottom))}}
 @media (max-width:640px){.strip{padding:8px 12px;font-size:10px}.strip a{font-size:10px;letter-spacing:.1em}#when{font-size:30px;top:68px;right:12px}#head{max-width:62vw}}
 @media (max-width:640px){.strip{gap:10px}.strip a{overflow:hidden;text-overflow:ellipsis;max-width:56vw}.strip a+a{max-width:40vw}}
 @media (max-width:640px){#head{top:140px}#when{font-size:30px}}

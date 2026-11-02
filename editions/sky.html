@@ -50,7 +50,7 @@ a{color:var(--ice)}
 #deep .kill{color:#ff6b8a}#deep .null{color:var(--ice)}
 #deep .x{position:absolute;top:14px;right:14px;min-height:40px;min-width:40px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);cursor:pointer}
 #hint{position:fixed;left:16px;bottom:calc(112px + env(safe-area-inset-bottom));font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--dim);z-index:4;pointer-events:none;transition:opacity .6s}
-@media (max-width:640px){#head{top:68px}#head p{display:none}#hint{display:none}#bar{gap:6px}#bar button,#bar a.b{padding:0 10px;font-size:11px}}
+@media (max-width:640px){#head{top:68px}#head p{display:none}#hint{display:none}#key{bottom:calc(112px + env(safe-area-inset-bottom))}#bar{gap:6px;flex-wrap:wrap;overflow:visible;row-gap:6px}#now{display:none}#bar button,#bar a.b{padding:0 10px;font-size:11px}}
 @media (prefers-reduced-motion:reduce){#deep{transition:none}}
 
 .strip a{white-space:nowrap}
