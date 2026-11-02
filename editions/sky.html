@@ -10,7 +10,7 @@ a{color:var(--ice)}
 .strip{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);z-index:5;pointer-events:none}
 .strip a{pointer-events:auto;text-decoration:none;color:var(--dim);min-height:40px;display:inline-flex;align-items:center;font-size:12px}
 .strip a:hover{color:var(--ink)}
-#head{position:fixed;left:16px;right:16px;top:52px;z-index:4;pointer-events:none;max-width:720px}
+#head{position:fixed;left:16px;right:16px;top:80px;z-index:4;pointer-events:none;max-width:720px}
 #head h1{margin:0;font:italic 300 clamp(26px,4.6vw,54px)/1.05 "Cormorant Garamond","Playfair Display",Georgia,serif;letter-spacing:-.01em}
 #head p{margin:8px 0 0;color:var(--dim);font-size:clamp(13px,1.4vw,16px);max-width:60ch}
 #head b{color:var(--ink);font-weight:500}
@@ -50,16 +50,17 @@ a{color:var(--ice)}
 #deep .kill{color:#ff6b8a}#deep .null{color:var(--ice)}
 #deep .x{position:absolute;top:14px;right:14px;min-height:40px;min-width:40px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink);cursor:pointer}
 #hint{position:fixed;left:16px;bottom:calc(112px + env(safe-area-inset-bottom));font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--dim);z-index:4;pointer-events:none;transition:opacity .6s}
-@media (max-width:640px){#head{top:44px}#head p{display:none}#hint{display:none}#bar{gap:6px}#bar button,#bar a.b{padding:0 10px;font-size:11px}}
+@media (max-width:640px){#head{top:68px}#head p{display:none}#hint{display:none}#bar{gap:6px}#bar button,#bar a.b{padding:0 10px;font-size:11px}}
 @media (prefers-reduced-motion:reduce){#deep{transition:none}}
 
 .strip a{white-space:nowrap}
 #bar{overflow-x:auto;scrollbar-width:none}#bar::-webkit-scrollbar{display:none}#bar button,#bar a.b{white-space:nowrap;flex:0 0 auto}
 @media (max-width:640px){.strip{padding:8px 12px;font-size:10px}.strip a{font-size:10px;letter-spacing:.1em}#when{font-size:30px;top:46px;right:12px}#head{max-width:62vw}}
 @media (max-width:640px){.strip{gap:10px}.strip a{overflow:hidden;text-overflow:ellipsis;max-width:56vw}.strip a+a{max-width:40vw}}
+.strip{flex-wrap:nowrap;gap:10px}.strip a{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style></head>
 <body>
-<nav class="strip"><a href="index.html">sonicManifold · one of the editions</a><a href="../index.html">back to the front</a></nav>
+<nav class="strip"><a href="index.html">sonicManifold · the editions</a><a href="../index.html">back to the front</a></nav>
 <canvas id="c" aria-label="1,986 artists as stars"></canvas>
 <header id="head"><h1 id="h1">my taste has a shape. the app lives in one corner of it.</h1><p id="sub"><b>1,986 artists</b> as stars, placed by the evenings they shared. drag the sky. tap a star and it sings. the key below colors it by family; <b>who pressed play</b> colors it by whose hand started the song.</p></header>
 <div id="hint">drag to turn · tap a star · tap a family to light only it</div>
