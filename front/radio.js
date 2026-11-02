@@ -297,6 +297,9 @@ var bdp = $('#b-deep'); if (bdp) bdp.addEventListener('click', function () {
   bdp.setAttribute('aria-pressed', on ? 'true' : 'false'); doc.documentElement.classList.toggle('deep', on);
   if (d) { d.hidden = !on; if (on) d.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
 });
+var brm = $('#b-rooms'); if (brm) brm.addEventListener('click', function () {
+  var r = $('#rooms'); if (!r) return; r.scrollIntoView({ block: 'start', behavior: 'smooth' }); var a = r.querySelector('a'); if (a) a.focus({ preventScroll: true });
+});
 doc.addEventListener('keydown', function (e) {
   if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
   if (e.key === 'n' || e.key === 'N') { if (R) next(); }
@@ -312,6 +315,6 @@ fetchJ('radio').then(function (j) {
   setTimeout(function () { prefetchPV().catch(function () { /* fetched again on the first press */ }); }, 2500);
   window.__radio = { S: S, n: function () { return R.n.length; }, X: X, Y: Y, SX: SX, SY: SY, pv: function () { return pv; }, play: function (i) { play(i, 'tap'); }, line: makeLine };
 }, function () {
-  text('#np-k', 'the map did not load here. the doors below still open.');
+  text('#np-k', 'the map did not load here. the other rooms below still open.');
 });
 })();

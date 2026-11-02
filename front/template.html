@@ -9,7 +9,8 @@
 var h=location.hash;if(!h)return;
 var base=h.split('?')[0];
 if(base.slice(0,6)==='#tour='||base==='#atlas'||base==='#notes'){location.replace('exhibit.html'+h);return;}
-var own={'#room':1,'#np':1,'#deep':1,'#links':1,'#album':1,'#top':1,'#deeper':1,'#sky':1};
+var own={'#room':1,'#np':1,'#deep':1,'#rooms':1,'#album':1,'#top':1,'#deeper':1,'#sky':1};
+if(base.slice(0,5)==='#act-'){location.replace('story.html'+h);return;}
 if(!own[base])location.replace('lab.html'+h);
 })();
 </script>
@@ -52,7 +53,7 @@ canvas#sky{display:block;width:100%;height:100%;touch-action:none;cursor:crossha
 .top{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left));font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:lowercase;color:var(--dim);pointer-events:none}
 .top>*{pointer-events:auto;flex:0 1 auto;min-width:0}
 .top .brand{color:var(--ink);text-decoration:none;font-weight:500;min-height:40px;display:inline-flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--bg);padding:0 8px;margin-left:-8px}
-.top .chip{flex:0 0 auto}
+.top .chip{flex:0 0 auto}.top .tb{display:inline-flex;gap:6px;flex:0 0 auto}
 @media (max-width:419px){.top .brand small{display:none}}
 .top .brand small{font-weight:400;color:var(--dim);margin-left:.6em}
 .chip{appearance:none;-webkit-appearance:none;min-height:40px;padding:0 14px;border-radius:3px;border:1px solid var(--line);background:var(--bg);color:var(--mint);font:500 12px/1 var(--mono);letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;gap:.5em;white-space:nowrap;text-decoration:none;-webkit-tap-highlight-color:transparent}
@@ -99,10 +100,12 @@ html.sm-pv #album{display:none}
 #deep .br{display:grid;grid-template-columns:7.5em minmax(0,1fr) 5.5em;align-items:center;gap:10px;margin:0 0 6px;font:400 12px/1.3 var(--mono);color:var(--dim)}
 #deep .br i{display:block;height:10px}
 #deep .br b{font-weight:500;color:var(--ink)}
-.doors{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0;padding:0;list-style:none}
-.door{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--line);color:var(--ink);text-decoration:none;font:500 13px/1 var(--sans);background:var(--bg)}
-.door:hover{border-color:var(--ink)}
-.door small{color:var(--dim);margin-left:.6em;font:400 11px/1 var(--mono)}
+.kick{margin:0 0 8px;font:500 11px/1.45 var(--mono);letter-spacing:.06em;color:var(--mint)}
+.rooms{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;margin:14px 0 0}
+.rooms .k{grid-column:1/-1;margin:0 0 2px}
+.rm{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:6px 10px;border:1px solid var(--line);color:var(--ink);text-decoration:none;font:600 13px/1.2 var(--sans);background:var(--bg)}
+.rm:hover,.rm:focus-visible{border-color:var(--mint);outline:0}
+.rm small{color:var(--dim);margin-top:2px;font:400 10.5px/1.3 var(--mono)}
 .foot{margin:22px -16px -24px;padding:0 0 0;background:var(--panel)}
 .fnote{margin:0;padding:0 16px;font:400 11px/1.5 var(--mono);color:var(--dim)}
 .fnote a{color:var(--dim)}
@@ -111,10 +114,11 @@ html.sm-pv #album{display:none}
  .row .chip{padding:0 11px;font-size:11.5px}
  /* phone: the player sits right under the headline so pause and next are on the first screen; the key and the how line follow the intro */
  #room{display:flex;flex-direction:column}
- #room h1{order:-3}#np{order:-2}.sub{order:-1;margin-top:14px}.key,.how{order:0}
- #mood,#h-near,#near,#deep,.doors,.foot{order:1}
+ .kick{order:-4}#room h1{order:-3}#np,.rooms{order:-2}.sub{order:-1;margin-top:14px}.key,.how{order:0}
+ #mood,#h-near,#near,#deep,.foot{order:1}
 }
-@media (max-width:359px){#room h1{font-size:18px}#np-n{font-size:20px}}
+@media (max-width:359px){#room h1{font-size:18px}#np-n{font-size:20px}.top{letter-spacing:.04em}.top .chip{padding:0 9px;letter-spacing:.03em}}
+@media (max-width:339px){.top{padding-left:10px;padding-right:10px}.top .brand{font-size:10px}}
 @media (min-width:900px){
  body{grid-template-rows:none;grid-template-columns:minmax(0,1fr) clamp(380px,34vw,560px)}
  #room{border-top:0;border-left:2px solid var(--line);padding:26px 32px 32px}
@@ -133,7 +137,7 @@ html.sm-pv #album{display:none}
  #room{border-top:0;border-left:2px solid var(--line)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-@media (forced-colors:active){.chip,.door,#np,#deep{border:1px solid CanvasText}}
+@media (forced-colors:active){.chip,.rm,#np,#deep{border:1px solid CanvasText}}
 </style>
 </head>
 <body>
@@ -141,11 +145,12 @@ html.sm-pv #album{display:none}
 <canvas id="sky" aria-label="every artist i have heard as a square, placed by how they sound; squares sized by plays and colored by family; gold squares are my own songs. tap a square to hear 30 seconds of it, or drag a line across the map for a radio of stops along it"></canvas>
 <header class="top" id="top">
   <a class="brand" href="./">sonic manifold<small>by astralcrest</small></a>
-  <button type="button" class="chip" id="b-deep" aria-pressed="false" aria-controls="deep">deep science</button>
+  <span class="tb"><button type="button" class="chip" id="b-rooms" aria-controls="rooms">rooms</button><button type="button" class="chip" id="b-deep" aria-pressed="false" aria-controls="deep">deep science</button></span>
 </header>
 <div id="hint" aria-hidden="true"></div>
 </div>
 <aside id="room" aria-label="the radio">
+<p class="kick">sonicManifold · my spotify log, 2019 to 2026, as rooms you can walk through. this room is the radio.</p>
 <h1 id="hl">every artist i have heard, placed by how they sound. <span>drag a line and listen.</span></h1>
 <p class="sub">near means sounds alike to a model that never saw my log. gold squares are my own songs, placed by the same ears. the log says <b>i pressed play on 19 of every 100</b> of 97,427 plays, 2019 to 2026; shuffle picked 17 and the queue served 64. the map does not know that. it only hears.</p>
 <div id="np" aria-live="polite">
@@ -161,6 +166,16 @@ html.sm-pv #album{display:none}
   <p id="now" aria-live="off"></p>
   <small class="fine">30 s apple preview per stop; the whole song opens in the app. my soundtrack is the album, by me, and it plays underneath.</small>
 </div>
+<nav class="rooms" id="rooms" aria-label="every room of the site">
+ <small class="k">the other rooms</small>
+ <a class="rm" href="story.html">the story<small>five acts, the record last</small></a>
+ <a class="rm" href="story.html#act-record">the record<small>the album, by me</small></a>
+ <a class="rm" href="lab.html">the lab<small>every chart</small></a>
+ <a class="rm" href="editions/index.html">twelve editions<small>the same log, twelve ways</small></a>
+ <a class="rm" href="researcher.html">the report<small>methods, every claim</small></a>
+ <a class="rm" href="yourturn.html">your turn<small>your own export</small></a>
+ <a class="rm" href="colophon.html">how it was made<small>tools, sources</small></a>
+</nav>
 <div id="mood" hidden><small class="k">what the sound model hears (zero-shot, top four of 30 prompts)</small></div>
 <h2 id="h-near">call and response: six nearest in sound</h2>
 <ol id="near" aria-labelledby="h-near"></ol>
@@ -179,11 +194,6 @@ html.sm-pv #album{display:none}
  <p>when i tap, ambient and lofi get 0.636 of the share the queue gives them [0.569, 0.710]; hip-hop and r&amp;b 1.22, the less firm of the two. every other family moves with the queue.</p>
  <p class="k">pre-registered on a hash before any number; intervals from a block bootstrap. the ledger of every claim, alive and dead, is in <a href="lab.html">the lab</a>; methods in <a href="researcher.html">the report</a>. ledger rows 341 to 346 for the run.</p>
 </section>
-<ul class="doors" id="links">
- <li><a class="door" href="lab.html">the lab<small>every chart</small></a></li>
- <li><a class="door" href="researcher.html">the report<small>methods</small></a></li>
- <li><a class="door" href="yourturn.html">your turn<small>your export</small></a></li>
-</ul>
 <footer class="foot" id="deeper">
 <p class="fnote">astralcrest &middot; 2026 &middot; built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a></p>
 <nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "IBM Plex Mono","JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}@media (pointer:coarse){.sleeve a{min-height:44px}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">how it was made</a></span><a class="up" href="#top">back to the top &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav>
