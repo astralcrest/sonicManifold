@@ -9,7 +9,7 @@
 var h=location.hash;if(!h)return;
 var base=h.split('?')[0];
 if(base.slice(0,6)==='#tour='||base==='#atlas'||base==='#notes'){location.replace('exhibit.html'+h);return;}
-var own={'#a-count':1,'#a-hand':1,'#a-keep':1,'#a-coda':1,'#a-record':1,'#np':1,'#top':1,'#deeper':1,'#album':1,'#field':1};
+var own={'#a-count':1,'#a-hand':1,'#a-maps':1,'#a-keep':1,'#a-coda':1,'#a-record':1,'#np':1,'#top':1,'#deeper':1,'#album':1,'#field':1};
 if(base.slice(0,5)==='#act-'){location.replace('story.html'+h);return;}
 if(!own[base])location.replace('lab.html'+h);
 })();
@@ -19,7 +19,7 @@ if(!own[base])location.replace('lab.html'+h);
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#06010f">
 <title>sonic manifold: the field</title>
-<meta name="description" content="the queue fills my hours. my hand fills my library. every artist i have heard, placed by how they sound, in five acts you can play: 97,427 plays, 2019 to 2026.">
+<meta name="description" content="the queue fills my hours. my hand fills my library. every artist i have heard, placed by how they sound, in six acts you can play: 97,427 plays, 2019 to 2026.">
 <meta name="robots" content="index, follow, noai, noimageai">
 <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="/sonicManifold/favicon.ico">
 <link rel="icon" type="image/svg+xml" href="/sonicManifold/favicon.svg">
@@ -30,14 +30,14 @@ if(!own[base])location.replace('lab.html'+h);
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/">
 <meta property="og:title" content="the queue fills my hours. my hand fills my library.">
-<meta property="og:description" content="97,427 plays, 2019 to 2026. i pressed play on 19 of every 100; of the songs i pressed, i kept 42 of 100, of the queue's, 16. every artist i have heard, placed by how they sound, in five acts you can play.">
+<meta property="og:description" content="97,427 plays, 2019 to 2026. i pressed play on 19 of every 100; of the songs i pressed, i kept 42 of 100, of the queue's, 16. every artist i have heard, placed by how they sound, in six acts you can play.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og-field.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="the field: every artist as a crisp point in a 3D sound map, the text in its own column">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="the queue fills my hours. my hand fills my library.">
-<meta name="twitter:description" content="97,427 plays, 2019 to 2026. i pressed play on 19 of every 100; of the songs i pressed, i kept 42 of 100, of the queue's, 16. every artist i have heard, placed by how they sound, in five acts you can play.">
+<meta name="twitter:description" content="97,427 plays, 2019 to 2026. i pressed play on 19 of every 100; of the songs i pressed, i kept 42 of 100, of the queue's, 16. every artist i have heard, placed by how they sound, in six acts you can play.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og-field.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,7 +80,7 @@ html.sm-pv #album{display:none}
 html.sm-mine #np .row,html.sm-mine #np .fine{display:none}
 #now{margin:6px 0 0;min-height:1.45em}#now:not(:empty)::before{content:"the album \00b7  "}
 .act{min-height:calc(100dvh - var(--top));padding:18px 0 28px;border-bottom:1px solid var(--line);scroll-margin-top:var(--top)}
-html[data-scene=hand] #hint{display:none}
+html[data-scene=hand] #hint,html[data-scene=maps] #hint{display:none}
 .act:last-of-type{border-bottom:0}
 .kick{margin:0 0 8px;font:500 11px/1.45 var(--mono);letter-spacing:.06em;color:var(--mint)}
 .act h1,.act h2{margin:0 0 10px;font:600 22px/1.15 var(--sans);letter-spacing:-.01em}
@@ -124,7 +124,7 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
  #np{top:0;padding:16px 0 10px}
  #np-n{font-size:24px}
  .act{min-height:100dvh;padding:28px 0 36px;scroll-margin-top:0}
- html[data-scene=hand] #hint{display:block}
+ html[data-scene=hand] #hint,html[data-scene=maps] #hint{display:block}
  .act h1,.act h2{font-size:28px;margin-bottom:14px}
  .so{font-size:14.5px}
  .top{padding:12px 20px}
@@ -141,9 +141,9 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 </head>
 <body>
 <div id="stage">
-<canvas id="field" aria-label="every artist i have heard as a crisp point in a three-dimensional sound map, sized by plays, colored by the hand that played it most; the scroll turns the field into a ring of who led to whom, two rows of kept songs, the newest months, and my own songs in gold. tap a point to hear 30 seconds of it, or drag a line for a radio of stops along it"></canvas>
+<canvas id="field" aria-label="every artist i have heard as a crisp point in a three-dimensional sound map, sized by plays, colored by the hand that played it most; the scroll turns the field into a ring of who led to whom, the same artists drawn by what followed what, two rows of kept songs, the newest months, and my own songs in gold. tap a point to hear 30 seconds of it, or drag a line for a radio of stops along it"></canvas>
 <header class="top" id="top"><a class="brand" href="./">sonic manifold<small>by astralcrest</small></a></header>
-<nav class="dots" aria-label="the five acts"><a href="#a-count"><i></i><span>the count</span></a><a href="#a-hand"><i></i><span>the hand</span></a><a href="#a-keep"><i></i><span>what stays</span></a><a href="#a-coda"><i></i><span>the coda</span></a><a href="#a-record"><i></i><span>the record</span></a></nav>
+<nav class="dots" aria-label="the six acts"><a href="#a-count"><i></i><span>the count</span></a><a href="#a-hand"><i></i><span>the hand</span></a><a href="#a-maps"><i></i><span>the two maps</span></a><a href="#a-keep"><i></i><span>what stays</span></a><a href="#a-coda"><i></i><span>the coda</span></a><a href="#a-record"><i></i><span>the record</span></a></nav>
 <div id="hint" aria-hidden="true">tap a point to hear it. drag a line for a radio.</div>
 </div>
 <main id="col">
@@ -161,7 +161,7 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 </div>
 
 <section class="act" id="a-count" aria-labelledby="hl">
-<p class="kick">sonicManifold &middot; the field &middot; my spotify log, 2019 to 2026, in five acts you can play.</p>
+<p class="kick">sonicManifold &middot; the field &middot; my spotify log, 2019 to 2026, in six acts you can play.</p>
 <h1 id="hl">the queue fills my hours. <span>my hand fills my library.</span></h1>
 <p class="so">of every 100 plays, i pressed play on <b>19</b>. shuffle took 17. the queue took 64. the color is the hand: <span style="color:var(--mint)">mint, me</span>; <span style="color:var(--amber)">amber, shuffle</span>; <span style="color:var(--violet)">violet, the queue</span>.</p>
 <p class="how">how: every artist i have heard, placed by how it sounds to a model (CLAP, three 30 s previews each; three axes, UMAP). near = alike to the model, not to me. tap a point; drag a line for a radio of stops.</p>
@@ -193,8 +193,21 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 <details class="deep"><summary>deeper</summary><p>bridge index 1.05 [1.03, 1.08], pre-registered, conditional, with three stated failure conditions; CLAP 1.047 and MERT 1.026 are directionally consistent, not corroborating. the run: +0.034 [+0.025, +0.044] apart after my press, ledger 341; it says the queue's run was broken, not that the model knows taste. the families: when i tap, ambient and lofi get 0.636 of the share the queue gives them [0.569, 0.710]; hip-hop and r&amp;b 1.22, the less firm of the two.</p></details>
 </section>
 
+<section class="act" id="a-maps" aria-labelledby="h-maps">
+<p class="kick">act three &middot; the two maps</p>
+<h2 id="h-maps">the same artists, drawn twice: <span>by how they sound, and by what followed what.</span></h2>
+<p class="so">every point is an artist. the first map places them by sound; the second by the log, each artist pulled toward the ones that played next to it. <span class="mint">mint: two artists my hand pressed one after the other.</span> <span style="color:var(--violet)">violet: two the queue played in a row.</span></p>
+<div class="game" id="maps">
+  <small class="k">fly between the maps</small>
+  <div class="row"><button type="button" class="chip" id="m-sound">by sound</button><button type="button" class="chip" id="m-graph">by what followed</button></div>
+  <p class="r" id="m-mode">by sound. the queue's lines are short here: its next song sounds like the last. watch where my lines go.</p>
+</div>
+<p class="how">how: the second map is a force layout of the transition graph (consecutive plays inside a sitting, different artists, shuffle steps dropped), the same 1,871 artists. a press line joins two presses of mine with nothing but the queue between them; a queue line joins two served plays in a row. 1,600 lines of each, drawn at random, so the eye compares spread, not count. tap a point to hear it in either map.</p>
+<details class="deep"><summary>deeper</summary><p id="m-deep">seven pre-registered lanes on the two geometries ran on 2026-11-03 with an adversarial referee; the verdicts land here when the referee signs them. nothing in this act is a size.</p></details>
+</section>
+
 <section class="act" id="a-keep" aria-labelledby="h-keep">
-<p class="kick">act three &middot; what stays</p>
+<p class="kick">act four &middot; what stays</p>
 <h2 id="h-keep">i keep <span>what i press.</span></h2>
 <p class="so">of songs not yet in my library, i kept <b>42 of 100</b> that i pressed and <b>16 of 100</b> the queue chose. 84 of 100 of those likes landed on the first hearing, 47 seconds in. in-sample, awaiting replication.</p>
 <div class="game" id="g47">
@@ -207,7 +220,7 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 </section>
 
 <section class="act" id="a-coda" aria-labelledby="h-coda">
-<p class="kick">act four &middot; the coda</p>
+<p class="kick">act five &middot; the coda</p>
 <h2 id="h-coda">the newest months could not re-judge the headline. <span>they showed the habit moving.</span></h2>
 <p class="so">five months of new plays the analysis never saw were too few to judge the headline on their own; the return-time result held. in those months shuffle fell from 17 to 1.5 of every 100 plays and the queue rose from 64 to 75. not the same picture; the frozen export stays the analysis set.</p>
 <ul class="dead" aria-label="withdrawn this round">
@@ -220,7 +233,7 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 </section>
 
 <section class="act" id="a-record" aria-labelledby="h-record">
-<p class="kick">act five &middot; the record</p>
+<p class="kick">act six &middot; the record</p>
 <h2 id="h-record">23 songs i made from this, <span>placed by the same ears.</span></h2>
 <p class="so">each gold point is one of my songs, heard by the same model and set beside its nearest artist. tap one to hear it; tap the point to see who it sits beside.</p>
 <div id="album">

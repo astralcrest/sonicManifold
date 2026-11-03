@@ -1,6 +1,6 @@
-/* the front = THE FIELD (2026-11-03). one crisp canvas behind five acts: every artist i have heard, placed in the 3D sound map
+/* the front = THE FIELD (2026-11-03). one crisp canvas behind six acts: every artist i have heard, placed in the 3D sound map
    (CLAP UMAP), drawn flat and sharp at device pixels; no glow, no blur. the acts follow the narrative: the count, the hand,
-   what stays, the coda, the record. seven things to play: drag a line (a radio of stops), whose hand? (guess me or the
+   the two maps (the same artists by sound and by what followed what), what stays, the coda, the record. eight things to play: fly between the maps, drag a line (a radio of stops), whose hand? (guess me or the
    queue), be the queue / be my hand (hear the run and hear it break), the ring you can play (who led to whom), the
    47-second game (keep or let go), where my songs land (each placed by sound beside its nearest artist), bring your export.
    data: front/data/field.json (+ pv.json previews, taste.json the game rows). one sound at a time: the album holds while a
@@ -16,12 +16,12 @@ var cv = $('#field'), ctx = cv && cv.getContext('2d'), stage = $('#stage');
 if (!cv || !ctx) return;
 var DPR = 1, W = 1, H = 1, phone = false, reduce = false;
 try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { /* no hint */ }
-var F = null, PV = null, pvP = null, pv = null, TASTE = null;
+var F = null, PV = null, pvP = null, pv = null, TASTE = null, MAPS = null, mapsP = null;
 var N = 0, P3 = null, PL = [], PMAX = 1, SZ = [], FC = [], HC = [], NN = [], KNN = [], TOP = [], names = [];
 var SX = [], SY = [], SA = [], SR = [];       /* screen x, y, alpha, radius this frame */
 var RING = [], RA = {}, RI = {}, MINE = [], Q = [], SONG = [], SNB = [];
 var scene = 0, blend = 0, from = 0, tStart = 0, yaw = 0.62, pitch = 0.36, last = 0, raf = 0, dirty = true;
-var S = { now: -1, line: null, drag: null, played: {}, playing: false, pend: -1, errs: 0, user: false, hover: -1, mine: -1, mode: '', trail: [], rim: -1, game: null, wh: null, pips: null };
+var S = { now: -1, line: null, drag: null, played: {}, playing: false, pend: -1, errs: 0, user: false, hover: -1, mine: -1, mode: '', trail: [], rim: -1, game: null, wh: null, pips: null, mt: 0, mb: 0, mFrom: 0, mT0: 0 };
 var ease = function (t) { return t < 0 ? 0 : t > 1 ? 1 : 1 - Math.pow(1 - t, 3); };
 
 function hex(h) { h = h.slice(1); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
@@ -91,21 +91,29 @@ function ringXY(k, rr, out) { var a = RA[k]; out[0] = cam.cx + rr * Math.cos(a);
 /* the per-scene camera: the field sits left of the column on a desk and above the panel on a phone */
 function frame() {
   if (scene === 1) { cam.r = Math.min(W, H) * (phone ? 0.33 : 0.40); cam.cx = W * (phone ? 0.5 : 0.5); cam.cy = H * (phone ? 0.5 : 0.5); }
+  else if (scene === C_MAPS) { cam.r = Math.min(W, H) * (phone ? 0.43 : 0.46); cam.cx = W * 0.5; cam.cy = H * 0.5; }
   else { cam.r = phone ? Math.min(W * 0.62, H * 0.9) * 0.78 : Math.min(W * 0.74, H * 0.96) * 0.84; cam.cx = W * 0.5; cam.cy = H * 0.5; }
 }
 
 /* ---------- scenes ---------- */
-var SCENES = ['count', 'hand', 'keep', 'coda', 'record'];
+var SCENES = ['count', 'hand', 'maps', 'keep', 'coda', 'record'];
+var C_COUNT = 0, C_HAND = 1, C_MAPS = 2, C_KEEP = 3, C_CODA = 4, C_RECORD = 5;
 function setScene(k) {
   if (k === scene) return;
   from = scene; scene = k; blend = 0; tStart = 0; dirty = true;
   S.hover = -1; S.rim = -1;
   html.setAttribute('data-scene', SCENES[k]);
-  if (k !== 2 && S.game) endGame(true);
+  if (k !== C_KEEP && S.game) endGame(true);
+  if (k === C_MAPS) loadMaps();
   tick();
 }
-/* positions for the artists in a scene: 3D field (0, 2, 3, 4) or the ring (1); alpha per scene */
+/* positions for the artists in a scene: 3D field (count, keep, coda, record), the ring (hand) or the flat two maps (maps); alpha per scene */
+function mapXY(i, out) {
+  var a = F.xy[i], b = MAPS ? MAPS.g[i] : a, m = S.mb;
+  out[0] = cam.cx + ((a[0] + (b[0] - a[0]) * m) / 1000 - 0.5) * 2 * cam.r; out[1] = cam.cy + ((a[1] + (b[1] - a[1]) * m) / 1000 - 0.5) * 2 * cam.r;
+}
 function place(k, i, out) {
+  if (k === C_MAPS) { mapXY(i, out); out[2] = 0.9; out[3] = 0.9; return; }
   if (k === 1) {
     var r = RI[i];
     if (r === undefined) { proj3(P3[i * 3] * 0.2, P3[i * 3 + 1] * 0.2, P3[i * 3 + 2] * 0.2, tmp); out[0] = tmp[0]; out[1] = tmp[1]; out[2] = 0; return; }
@@ -113,13 +121,14 @@ function place(k, i, out) {
   }
   proj3(P3[i * 3], P3[i * 3 + 1], P3[i * 3 + 2], tmp); out[0] = tmp[0]; out[1] = tmp[1];
   var depth = 1 - Math.min(1, Math.max(0, (tmp[2] - 1.9) / 2.6));
-  out[2] = (k === 2 || k === 3) ? 0.22 : k === 4 ? 0.35 : 0.55 + 0.45 * depth;
+  out[2] = (k === C_KEEP || k === C_CODA) ? 0.22 : k === C_RECORD ? 0.35 : 0.55 + 0.45 * depth;
   out[3] = 0.75 + 0.5 * depth;
 }
 var pa = [0, 0, 0, 1], pb = [0, 0, 0, 1];
 function layout(now) {
   if (!tStart) tStart = now;
   blend = reduce ? 1 : ease((now - tStart) / 900);
+  if (S.mb !== S.mt) { var mk = reduce ? 1 : ease((now - S.mT0) / 1100); S.mb = S.mFrom + (S.mt - S.mFrom) * mk; if (mk >= 1) S.mb = S.mt; }
   frame();
   var i, k = blend;
   for (i = 0; i < N; i++) {
@@ -175,8 +184,8 @@ function paint(now) {
   layout(now); words = [];
   var inRing = scene === 1 && blend >= 1, field = scene !== 1;
   /* threads in the field (desk): the skeleton of the map, three nearest each */
-  if (field && !phone && scene !== 2 && scene !== 3 && blend >= 1) {
-    g.lineWidth = 0.6; g.strokeStyle = 'rgba(189,211,255,' + (scene === 4 ? 0.05 : 0.09) + ')'; g.beginPath();
+  if (field && !phone && (scene === C_COUNT || scene === C_RECORD) && blend >= 1) {
+    g.lineWidth = 0.6; g.strokeStyle = 'rgba(189,211,255,' + (scene === C_RECORD ? 0.05 : 0.09) + ')'; g.beginPath();
     for (k = 0; k < KNN.length; k += 2) { i = KNN[k]; var j = KNN[k + 1]; g.moveTo(SX[i], SY[i]); g.lineTo(SX[j], SY[j]); }
     g.stroke();
   }
@@ -193,23 +202,29 @@ function paint(now) {
       g.strokeStyle = 'rgba(33,246,188,' + ((hi < 0 ? 0.45 + 0.45 * m.w / 1000 : on2 ? 1 : 0.07) * la).toFixed(3) + ')'; g.lineWidth = (on2 ? 1.8 : 0.6) + 1.6 * m.w / 1000; g.stroke(minePaths[k]);
     }
   }
+  /* the two maps' lines: the queue's runs in violet under, my press-to-press in mint over */
+  if (MAPS && (scene === C_MAPS || (from === C_MAPS && blend < 1))) {
+    var ma = scene === C_MAPS ? blend : 1 - blend, hot = S.now >= 0 ? S.now : S.hover, LQ = MAPS.lq, LP = MAPS.lp, e;
+    for (k = 0; k < LQ.length; k++) { e = LQ[k]; var onq = hot >= 0 && (e[0] === hot || e[1] === hot); g.strokeStyle = 'rgba(139,111,214,' + ((hot < 0 ? 0.22 + 0.4 * e[2] / 1000 : onq ? 0.95 : 0.04) * ma).toFixed(3) + ')'; g.lineWidth = (onq ? 1.5 : 0.6) + 1.0 * e[2] / 1000; g.beginPath(); g.moveTo(SX[e[0]], SY[e[0]]); g.lineTo(SX[e[1]], SY[e[1]]); g.stroke(); }
+    for (k = 0; k < LP.length; k++) { e = LP[k]; var onp = hot >= 0 && (e[0] === hot || e[1] === hot); g.strokeStyle = 'rgba(33,246,188,' + ((hot < 0 ? 0.22 + 0.5 * e[2] / 1000 : onp ? 1 : 0.05) * ma).toFixed(3) + ')'; g.lineWidth = (onp ? 1.8 : 0.55) + 1.1 * e[2] / 1000; g.beginPath(); g.moveTo(SX[e[0]], SY[e[0]]); g.lineTo(SX[e[1]], SY[e[1]]); g.stroke(); }
+  }
   /* the artists */
   var tint = scene === 0 || (from === 0 && blend < 1 && scene !== 1);
   for (k = 0; k < N; k++) {
     i = TOP[N - 1 - k]; var a = SA[i]; if (a <= 0.01) continue;
     var col = scene === 1 && blend >= 1 ? (FAMC[F.fam[RING[RI[i]] ? RING[RI[i]][3] : F.f[i]]] || MUTE) : tint ? HC[i] : FC[i];
-    if (scene === 4 && !isNb(i)) a *= 0.5;
+    if (scene === C_RECORD && !isNb(i)) a *= 0.5;
     dot(g, SX[i], SY[i], SR[i], a >= 0.99 ? col : dim(col, a));
   }
   /* the songs: gold in the field */
-  if (field && scene !== 2 && scene !== 3) {
+  if (field && (scene === C_COUNT || scene === C_RECORD)) {
     var sp = [0, 0, 0];
     for (k = 0; k < SONG.length; k++) {
       var s = SONG[k].p; proj3(s[0] / 1000, s[1] / 1000, s[2] / 1000, sp);
-      if (scene === 4) { var nb = SNB[k]; g.strokeStyle = S.mine === k ? GOLD : 'rgba(255,211,107,.35)'; g.lineWidth = S.mine === k ? 1.5 : 0.8; g.beginPath(); g.moveTo(sp[0], sp[1]); g.lineTo(SX[nb], SY[nb]); g.stroke(); }
-      dot(g, sp[0], sp[1], scene === 4 ? 4 : 3, GOLD);
+      if (scene === C_RECORD) { var nb = SNB[k]; g.strokeStyle = S.mine === k ? GOLD : 'rgba(255,211,107,.35)'; g.lineWidth = S.mine === k ? 1.5 : 0.8; g.beginPath(); g.moveTo(sp[0], sp[1]); g.lineTo(SX[nb], SY[nb]); g.stroke(); }
+      dot(g, sp[0], sp[1], scene === C_RECORD ? 4 : 3, GOLD);
       if (S.mine === k) ring(g, sp[0], sp[1], 9, GOLD, 1.5);
-      if (scene === 4 && (S.mine === k || k < (phone ? 4 : 8))) word(g, sp[0] + 9, sp[1], SONG[k].t.toLowerCase(), phone ? 10.5 : 11.5, 500, true, GOLD);
+      if (scene === C_RECORD && (S.mine === k || k < (phone ? 4 : 8))) word(g, sp[0] + 9, sp[1], SONG[k].t.toLowerCase(), phone ? 10.5 : 11.5, 500, true, GOLD);
     }
   }
   /* the line and its stops */
@@ -237,8 +252,14 @@ function paint(now) {
     g.font = '500 ' + (phone ? 10 : 11) + 'px ' + MONO; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = MINT; g.fillText('inside: my press', cam.cx, cam.cy - 9); g.fillStyle = VIOLET; g.fillText('outside: the queue', cam.cx, cam.cy + 9);
   }
-  /* the pips: the keep grid (scene 2) and the hold-out rows (scene 3) */
-  if ((scene === 2 || scene === 3) && blend >= 1) pips(g);
+  if (scene === C_MAPS && blend >= 1) {
+    g.font = '500 ' + (phone ? 10 : 11) + 'px ' + MONO; g.textAlign = 'center'; g.textBaseline = 'bottom';
+    var ly = Math.min(H - 8, cam.cy + cam.r + (phone ? 14 : 18)), t1 = S.mb < 0.5 ? 'by sound' : 'by what followed', t2 = phone ? 'mint: my press, then my press · violet: the queue\u2019s run' : 'mint: two presses of mine in a row · violet: two of the queue\u2019s in a row';
+    if (!MAPS) t1 = 'the second map is loading…';
+    g.fillStyle = INK; g.fillText(t1, cam.cx, ly - (phone ? 14 : 16)); g.fillStyle = MUTE; g.fillText(t2, cam.cx, ly);
+  }
+  /* the pips: the keep grid and the hold-out rows */
+  if ((scene === C_KEEP || scene === C_CODA) && blend >= 1) pips(g);
   if (S.game && S.game.on) countdown(g, now);
 }
 var rimOrder = [];
@@ -252,7 +273,7 @@ function rimName(g, k, col, fs, w) {
 function isNb(i) { for (var k = 0; k < SNB.length; k++) if (SNB[k] === i) return true; return false; }
 /* two rows of 100 points: what i pressed, what the queue chose; lit = kept (42, 16). scene 3: the frozen export vs the newest months (shuffle 17 to 1.5, the queue 64 to 75) */
 function pips(g) {
-  var rows = scene === 2 ? [['i pressed play', 42, MINT], ['the queue chose', 16, VIOLET]] : [['the frozen export, of 100 plays', [19, 17, 64]], ['the newest months, of 100 plays', [0, 1.5, 75]]];
+  var rows = scene === C_KEEP ? [['i pressed play', 42, MINT], ['the queue chose', 16, VIOLET]] : [['the frozen export, of 100 plays', [19, 17, 64]], ['the newest months, of 100 plays', [0, 1.5, 75]]];
   var cols = phone ? 20 : 25, cell = Math.min((W - 60) / cols, phone ? 11 : 16), rowsN = 100 / cols, bh = rowsN * cell, gap = phone ? 44 : 56;
   var x0 = Math.round((W - cols * cell) / 2), y0 = Math.round(cam.cy - (rows.length * bh + gap) / 2), r = cell * 0.3, k, i, c, rr;
   for (k = 0; k < rows.length; k++) {
@@ -260,12 +281,12 @@ function pips(g) {
     g.font = '500 ' + (phone ? 10.5 : 12) + 'px ' + MONO; g.textAlign = 'left'; g.textBaseline = 'bottom'; g.fillStyle = INK; g.fillText(rows[k][0], x0, y - 8);
     for (i = 0; i < 100; i++) {
       c = i % cols; rr = (i / cols) | 0; var x = x0 + c * cell + cell / 2, yy = y + rr * cell + cell / 2, col;
-      if (scene === 2) col = i < rows[k][1] ? rows[k][2] : dim(rows[k][2], .22);
+      if (scene === C_KEEP) col = i < rows[k][1] ? rows[k][2] : dim(rows[k][2], .22);
       else { var h = rows[k][1]; col = i < h[0] ? MINT : i < h[0] + Math.round(h[1]) ? AMBER : i < h[0] + Math.round(h[1]) + h[2] ? VIOLET : dim(ICE, .25); if (k === 1 && i < 100 - 75 - 2) col = dim(ICE, .25); }
       dot(g, x, yy, r, col);
     }
     g.textBaseline = 'top'; g.fillStyle = MUTE;
-    var cap = scene === 2 ? (rows[k][1] + ' of 100 kept') : (k === 0 ? (phone ? 'mint 19 me · amber 17 shuffle · violet 64 queue' : 'mint 19 my press · amber 17 shuffle · violet 64 the queue') : (phone ? 'shuffle 1.5 · queue 75 · me about the same' : 'shuffle 1.5 · the queue 75 · my press about the same'));
+    var cap = scene === C_KEEP ? (rows[k][1] + ' of 100 kept') : (k === 0 ? (phone ? 'mint 19 me · amber 17 shuffle · violet 64 queue' : 'mint 19 my press · amber 17 shuffle · violet 64 the queue') : (phone ? 'shuffle 1.5 · queue 75 · me about the same' : 'shuffle 1.5 · the queue 75 · my press about the same'));
     g.fillText(cap, Math.min(x0, W - g.measureText(cap).width - 8), y + bh + 6);
   }
 }
@@ -279,8 +300,8 @@ function countdown(g, now) {
 function tick() { if (!raf) raf = requestAnimationFrame(step); }
 function step(now) {
   raf = 0;
-  var moving = blend < 1 || (S.game && S.game.on) || S.drag;
-  if (!reduce && (scene === 0 || scene === 4) && !S.drag && blend >= 1 && !S.line) { yaw += 0.00045 * Math.min(40, now - (last || now)); moving = true; }
+  var moving = blend < 1 || (S.game && S.game.on) || S.drag || S.mb !== S.mt;
+  if (!reduce && (scene === 0 || scene === C_RECORD) && !S.drag && blend >= 1 && !S.line) { yaw += 0.00045 * Math.min(40, now - (last || now)); moving = true; }
   last = now;
   paint(now);
   if (moving || dirty) { dirty = false; tick(); }
@@ -313,7 +334,7 @@ function up(e) {
   var p = at(e);
   if (d.on) { line(d.x0, d.y0, p[0], p[1]); wake(); return; }
   if (scene === 1) { var r = nearRim(p[0], p[1]); if (r >= 0) { S.rim = r; var ai = RING[r][0]; if (ai >= 0) play(ai, 'rim'); else wake(); } return; }
-  if (scene === 4) { var k = nearSong(p[0], p[1]); if (k >= 0) { mine(k); return; } }
+  if (scene === C_RECORD) { var k = nearSong(p[0], p[1]); if (k >= 0) { mine(k); return; } }
   var i = near(p[0], p[1], phone ? 18 : 14); if (i >= 0) { S.line = null; play(i, 'tap'); } else wake();
 }
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', function () { S.drag = null; wake(); });
@@ -470,6 +491,10 @@ on('#b-pp', function () { var a = el(); if (S.playing) { S.user = true; a.pause(
 on('#b-next', function () { S.user = false; next(); });
 on('#b-queue', function () { S.mode = 'queue'; S.line = null; walk(); text('#h-mode', 'the queue walks: each next song is the nearest in sound to the last. hear how close it stays.'); });
 on('#b-hand', function () { S.mode = 'hand'; S.line = null; breakRun(); text('#h-mode', 'my hand breaks the run: the next song is far in sound, another family. hear the jump.'); });
+function loadMaps() { if (!mapsP) mapsP = fetchJ('maps').then(function (j) { MAPS = j; wake(); return j; }, function () { mapsP = null; }); return mapsP; }
+function flyTo(t) { if (S.mt === t && S.mb === t) return; S.mFrom = S.mb; S.mt = t; S.mT0 = performance.now(); loadMaps(); wake(); }
+on('#m-sound', function () { flyTo(0); text('#m-mode', 'by sound. the queue\u2019s lines are short here: its next song sounds like the last. watch where my lines go.'); });
+on('#m-graph', function () { flyTo(1); text('#m-mode', 'by what followed. every line is short now, by construction: this map was drawn from the lines. the question is which map the other hand\u2019s lines respect.'); });
 on('#g-start', startGame); on('#g-keep', function () { answer(true, false); }); on('#g-go', function () { answer(false, false); });
 on('#w-start', whose); on('#w-me', function () { whAnswer(true); }); on('#w-app', function () { whAnswer(false); });
 function songs() {

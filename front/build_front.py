@@ -32,7 +32,7 @@ DATA = os.path.join(HERE, 'data')
 EXH = os.path.join(ROOT, 'exhibit', 'data')
 LAZY_BUDGET = 120 * 1024
 INLINE_BUDGET = int(1.5 * 1024 * 1024)
-NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear', 'sky', 'years', 'radio', 'pv', 'field']
+NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear', 'sky', 'years', 'radio', 'pv', 'field', 'maps']
 TASTE_KEYS = ('t', 'a', 'h', 'w', 'p', 'n', 'pt', 'pa', 'pe', 'pm', 'arm')
 TID = re.compile(r'^[0-9A-Za-z]{22}$')
 SCRIPT = re.compile(r'(front/[a-z0-9_]+\.js)\?v=@HASH@')
@@ -166,6 +166,13 @@ def validate():
         errs.append('field: the 23 songs')
     if not fd['ring'] or not fd['mine'] or not fd['q'] or any(x[0] >= n for x in fd['ring']):
         errs.append('field: the ring, its inside and its outside')
+    mp = d['maps']
+    if len(mp['g']) != n or any(len(p) != 2 or not (0 <= p[0] <= 1000 and 0 <= p[1] <= 1000) for p in mp['g']):
+        errs.append('maps: one second-map position per radio artist, 0 to 1000')
+    if not mp['lp'] or not mp['lq'] or any(len(x) != 3 or x[0] >= n or x[1] >= n or not (0 <= x[2] <= 1000) for x in mp['lp'] + mp['lq']):
+        errs.append('maps: press-to-press and queue-run pairs as index pairs with a weight')
+    if set(mp) != {'v', 'g', 'lp', 'lq', 'k'}:
+        errs.append('maps: carries more than the two maps need')
     return d, errs
 
 
