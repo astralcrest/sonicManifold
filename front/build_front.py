@@ -12,7 +12,8 @@ The default template (front/template.html) loads its data lazily: the build writ
 /*@STAMPS@*/{} marker, and the page fetches front/data/<name>.json?v=<stamp> when a section nears the screen.
 Derived sidecars come from public, already-shipping files under exhibit/data/; taste, genre and graveyard are kept here,
 and so are hear.json and the taste rows' "u" (Spotify track ids for the front's "hear it" chips: titles, artists, ids only).
-radio.json and pv.json (the radio map: artist names, sound-map positions, families, play counts by hand, six nearest in
+field.json (the field: the radio artists with a 3D sound position, the who-led-to-whom ring with its bundled inside, the
+23 songs placed by sound) is cut privately from radio.json + node.json + tracks.json and committed. radio.json and pv.json (the radio map: artist names, sound-map positions, families, play counts by hand, six nearest in
 sound, top mood tags; one Apple 30 s preview per artist) are cut privately from the same public sidecars and committed.
 A script the template loads as front/<name>.js?v=@HASH@ gets the first 10 hex of its sha1 in place of @HASH@.
 The name and privacy gates live with the private tests (atlas_door.mjs scans index.html and every sidecar), not in this
@@ -31,7 +32,7 @@ DATA = os.path.join(HERE, 'data')
 EXH = os.path.join(ROOT, 'exhibit', 'data')
 LAZY_BUDGET = 120 * 1024
 INLINE_BUDGET = int(1.5 * 1024 * 1024)
-NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear', 'sky', 'years', 'radio', 'pv']
+NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear', 'sky', 'years', 'radio', 'pv', 'field']
 TASTE_KEYS = ('t', 'a', 'h', 'w', 'p', 'n', 'pt', 'pa', 'pe', 'pm', 'arm')
 TID = re.compile(r'^[0-9A-Za-z]{22}$')
 SCRIPT = re.compile(r'(front/[a-z0-9_]+\.js)\?v=@HASH@')
@@ -158,6 +159,13 @@ def validate():
         errs.append('radio: the 23 songs')
     if set(d['pv']['a']) != set(r['n']) or any(len(v) != 2 or not v[1].startswith('https://') for v in d['pv']['a'].values()):
         errs.append('pv: one title and one https preview per radio artist')
+    fd = d['field']
+    if fd['n'] != r['n'] or any(len(fd[k]) != n for k in ('p', 'xy', 'f', 'h', 'nn')) or fd['fam'] != r['fam']:
+        errs.append('field: the radio artists, in the radio order, with a 3D position each')
+    if len(fd['s']) != 23 or set(x['f'] for x in fd['s']) != set(t['f'] for t in d['tracks']['tracks']):
+        errs.append('field: the 23 songs')
+    if not fd['ring'] or not fd['mine'] or not fd['q'] or any(x[0] >= n for x in fd['ring']):
+        errs.append('field: the ring, its inside and its outside')
     return d, errs
 
 

@@ -179,7 +179,7 @@ function press(e) {
   if (t && t.closest) {
     var l = t.closest('a[href]');
     if (l && (l.getAttribute('href') || '').charAt(0) !== '#') return; /* a link that leaves: leave in silence */
-    if (t.closest('.hear, .hcard, #tracks, #b-play, #player-dock')) return;
+    if (t.closest('.hear, .hcard, #tracks, #b-play, #player-dock, #np, #field, .game, #songs, .dots')) return;
   }
   if (A.blocked && A.cur >= 0 && !A.up) { A.blocked = false; start(A.el); return; }
   if (A.started || S.playing || lite || lsGet() === 'off' || ssGet().p) return;
