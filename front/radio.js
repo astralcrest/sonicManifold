@@ -1,6 +1,6 @@
-/* the front = THE RADIO (pick 2, 2026-11-02). one canvas: every artist with a sound vector as a crisp square, placed by the
+/* the front = THE RADIO (pick 2, 2026-11-02). one canvas: every artist with a sound vector as a crisp round point, placed by the
    sound map (two UMAP axes over CLAP vectors of three 30 s previews), sized by plays, colored by family; per-play motes
-   jittered round each artist; gold squares = my songs placed by the same ears. a tap plays that artist's 30 s Apple
+   no dust; gold points = my songs placed by the same ears. a tap plays that artist's 30 s Apple
    preview at once, inside the gesture; a drag draws a line and the radio walks its stops; when the stops run out it
    walks the nearest sounds. the text lives in its own solid room (#room). no veil, no toast, nothing asks first.
    data: front/data/radio.json (positions, families, hands, six nearest, mood tags) and front/data/pv.json (one preview
@@ -38,7 +38,7 @@ function fit() {
   var n = R.n.length, ih = H - TOP - BOT, iw = W * (1 - 2 * PADX);
   PMAX = 1; P = [];
   for (var i = 0; i < n; i++) { var h = R.h[i], p = h[0] + h[1] + h[2]; P.push(p); if (p > PMAX) PMAX = p; }
-  var smin = 2, smax = phone ? 5 : 7;
+  var smin = 1.5, smax = phone ? 4 : 5.5;
   X = []; Y = []; SZ = [];
   for (i = 0; i < n; i++) { X.push(PADX * W + R.xy[i][0] / 1000 * iw); Y.push(TOP + R.xy[i][1] / 1000 * ih); SZ.push(Math.round(smin + (smax - smin) * Math.sqrt(P[i] / PMAX))); }
   SX = []; SY = [];
@@ -49,27 +49,23 @@ function still() {
   base = doc.createElement('canvas'); base.width = cv.width; base.height = cv.height;
   var g = base.getContext('2d'); g.setTransform(DPR, 0, 0, DPR, 0, 0);
   g.fillStyle = BG; g.fillRect(0, 0, W, H);
-  var r = rng(20261102), per = phone ? 20 : 8, jit = phone ? 6 : 9, ms = DPR >= 2 ? 1 : 2, n = R.n.length, i, k, order = [];
-  /* motes: one device-crisp dot each (1 css px on retina, 2 on a 1x screen); never a fractional rect, that would blur */
-  for (i = 0; i < n; i++) {
-    var m = Math.max(1, Math.round(P[i] / per)); g.fillStyle = dim(famc(i), .4);
-    for (k = 0; k < m; k++) g.fillRect(Math.round(X[i] + gauss(r) * jit), Math.round(Y[i] + gauss(r) * jit), ms, ms);
-    order.push(i);
-  }
+  var n = R.n.length, i, k, order = [];
+  for (i = 0; i < n; i++) order.push(i);
   order.sort(function (a, b) { return P[a] - P[b]; });
-  for (k = 0; k < n; k++) { i = order[k]; var s = SZ[i]; g.fillStyle = famc(i); g.fillRect(Math.round(X[i] - s / 2), Math.round(Y[i] - s / 2), s, s); }
+  /* one round point per artist, no dust: the quiet of the mockup */
+  for (k = 0; k < n; k++) { i = order[k]; dot(g, X[i], Y[i], SZ[i], dim(famc(i), P[i] / PMAX > .05 ? 1 : .7)); }
   boxes = [[0, 0, W, TOP - 4]]; lbox = {};
-  /* every gold square first, each one an obstacle, so no label is ever drawn through a square or a square through a label */
-  for (k = 0; k < R.s.length; k++) { g.fillStyle = GOLD; g.fillRect(Math.round(SX[k] - 2.5), Math.round(SY[k] - 2.5), 5, 5); boxes.push([SX[k] - 4, SY[k] - 4, SX[k] + 4, SY[k] + 4]); }
+  /* every gold point first, each one an obstacle, so no label is ever drawn through a point or a point through a label */
+  for (k = 0; k < R.s.length; k++) { dot(g, SX[k], SY[k], 5, GOLD); boxes.push([SX[k] - 4, SY[k] - 4, SX[k] + 4, SY[k] + 4]); }
   var fs = phone ? 10.5 : 11; g.font = '500 ' + fs + 'px ' + SANS; g.textBaseline = 'middle'; g.textAlign = 'left';
   var ss = R.s.slice().map(function (s, j) { return j; }).sort(function (a, b) { return SY[a] - SY[b]; }), placed = 0;
-  for (k = 0; k < ss.length && placed < (phone ? 5 : 8); k++) {
+  for (k = 0; k < ss.length && placed < (phone ? 3 : 5); k++) {
     var j = ss[k], t = R.s[j].t.toLowerCase(), tw = g.measureText(t).width, x = SX[j], y = SY[j];
     var b = plate([[x + 8, y], [x - 8 - tw, y], [x + 8, y + fs * 1.2], [x + 8, y - fs * 1.2]], tw, fs * .7);
     if (!b) continue;
     boxes.push(b); placed++; g.fillStyle = BG; g.fillRect(Math.round(b[0] - 3), Math.round(b[1]), Math.round(tw + 6), Math.round(fs * 1.4)); g.fillStyle = GOLD; g.fillText(t, b[0], (b[1] + b[3]) / 2);
   }
-  var top = order.slice().reverse().slice(0, phone ? 4 : 8);
+  var top = order.slice().reverse().slice(0, phone ? 3 : 6);
   for (k = 0; k < top.length; k++) {
     i = top[k]; var f2 = phone ? 11 : 11.5; g.font = '500 ' + f2 + 'px ' + SANS;
     var nm = R.n[i], w2 = g.measureText(nm).width, hx = X[i] + SZ[i] / 2 + 5;
@@ -103,8 +99,9 @@ function word(g, x, y, t, fs, w, mono, fill, align, skip) {
   g.fillStyle = BG; g.fillRect(Math.round(b[0]), Math.round(b[1]), Math.round(b[2] - b[0]), Math.round(b[3] - b[1]));
   g.fillStyle = fill; g.fillText(t, b[0] + 3, (b[1] + b[3]) / 2);
 }
-function sq(g, x, y, s, fill) { g.fillStyle = fill; g.fillRect(Math.round(x - s / 2), Math.round(y - s / 2), s, s); }
-function box(g, x, y, s, stroke, lw) { g.strokeStyle = stroke; g.lineWidth = lw; g.strokeRect(Math.round(x - s / 2) + .5, Math.round(y - s / 2) + .5, s, s); }
+function dot(g, x, y, s, fill) { g.fillStyle = fill; g.beginPath(); g.arc(x, y, s / 2, 0, 6.2832); g.fill(); }
+function sq(g, x, y, s, fill) { dot(g, x, y, s, fill); }
+function box(g, x, y, s, stroke, lw) { g.strokeStyle = stroke; g.lineWidth = lw; g.beginPath(); g.arc(x, y, s / 2, 0, 6.2832); g.stroke(); }
 function paint() {
   if (!base) return;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(base, 0, 0);
@@ -179,7 +176,7 @@ function room(i, why) {
 }
 function roomMine(j) {
   var s = R.s[j];
-  text('#np-k', 'now playing · one of mine, placed by its sound'); text('#np-n', s.t.toLowerCase()); text('#np-t', 'by me, on the album. the gold squares are the album, heard by the same model.');
+  text('#np-k', 'now playing · one of mine, placed by its sound'); text('#np-n', s.t.toLowerCase()); text('#np-t', 'by me, on the album. the gold points are the album, heard by the same model.');
   var a = $('#a-sp'); if (a) a.hidden = true;
   var cr = $('#cr'); if (cr) cr.hidden = true;
   var h = $('#hint'); if (h) h.textContent = '';
@@ -301,7 +298,7 @@ var rt = 0;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (!R) return; fit(); still(); paint(); }, 120); });
 fetchJ('radio').then(function (j) {
   R = j; fit(); still(); paint();
-  var h = $('#hint'); if (h) h.textContent = phone ? 'squares are artists, near is alike. tap one, or drag a line.' : 'squares are artists, near is alike. tap one for 30 s, drag a line for a radio. n: next.';
+  var h = $('#hint'); if (h) h.textContent = phone ? 'points are artists, near is alike. tap one, or drag a line.' : 'points are artists, near is alike. tap one for 30 s, drag a line for a radio. n: next.';
   if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(function () { still(); paint(); });
   setTimeout(function () { prefetchPV().catch(function () { /* fetched again on the first press */ }); }, 2500);
   window.__radio = { S: S, n: function () { return R.n.length; }, X: X, Y: Y, SX: SX, SY: SY, pv: function () { return pv; }, play: function (i) { play(i, 'tap'); }, line: makeLine };

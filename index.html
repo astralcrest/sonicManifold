@@ -84,7 +84,7 @@ html.sm-pv #album{display:none}
 #cr{margin:18px 0 0}
 .fan{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:0 18px;align-items:center}
 .call{display:flex;align-items:center;gap:8px;font:600 13.5px/1.2 var(--sans);color:var(--ink);word-break:break-word}
-.call::before{content:"";flex:0 0 9px;width:9px;height:9px;background:var(--mint)}
+.call::before{content:"";flex:0 0 9px;width:9px;height:9px;border-radius:50%;background:var(--mint)}
 #near{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:0}
 .nr{appearance:none;-webkit-appearance:none;display:flex;align-items:center;gap:8px;width:100%;min-height:36px;padding:0;border:0;background:transparent;color:var(--ink);font:500 13px/1.2 var(--sans);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .nr::before{content:"";flex:0 0 22px;width:22px;height:1px;background:var(--violet)}
@@ -138,7 +138,7 @@ html.sm-pv #album{display:none}
 </head>
 <body>
 <div id="stage">
-<canvas id="sky" aria-label="every artist i have heard as a square, placed by how they sound; squares sized by plays and colored by family; gold squares are my own songs. tap a square to hear 30 seconds of it, or drag a line across the map for a radio of stops along it"></canvas>
+<canvas id="sky" aria-label="every artist i have heard as a point, placed by how they sound; points sized by plays and colored by family; gold points are my own songs. tap a point to hear 30 seconds of it, or drag a line across the map for a radio of stops along it"></canvas>
 <header class="top" id="top">
   <a class="brand" href="./">sonic manifold<small>by astralcrest</small></a>
   <span class="tb"><button type="button" class="chip" id="b-rooms" aria-controls="rooms">rooms</button><button type="button" class="chip" id="b-deep" aria-pressed="false" aria-controls="deep">deep science</button></span>
@@ -148,10 +148,10 @@ html.sm-pv #album{display:none}
 <aside id="room" aria-label="the radio">
 <p class="kick">sonicManifold · the radio · my spotify log, 2019 to 2026, as rooms you can walk through.</p>
 <h1 id="hl">every artist i have heard, placed by how they sound. <span>drag a line and listen.</span></h1>
-<p class="sub"><b>so what:</b> the queue's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. <span class="mint">a direction, not a size.</span> the log says i pressed play on 19 of every 100 plays; the map does not know that. it only hears.</p>
-<p class="how">how: three 30 s previews per artist, a sound model (CLAP) hears them, two axes (UMAP) place them. near = sounds alike to the model, nothing about me. gold = my songs, heard by the same ears. sound: apple 30 s previews; the full song opens in spotify.</p>
+<p class="sub"><b>so what:</b> the queue's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. <span class="mint">a direction, not a size.</span></p>
+<p class="how">how: a sound model (CLAP) hears three 30 s previews per artist; two axes (UMAP) place them. near = alike to the model, not to me. gold = my songs.</p>
 <div id="np" aria-live="polite">
-  <small id="np-k">nothing is playing. tap a square, or drag a line.</small>
+  <small id="np-k">nothing is playing. tap a point, or drag a line.</small>
   <b id="np-n">the radio</b>
   <span id="np-t"></span>
   <div class="row">
@@ -161,7 +161,7 @@ html.sm-pv #album{display:none}
     <a class="chip" id="a-sp" href="https://open.spotify.com/" target="_blank" rel="noopener">open in spotify</a>
   </div>
   <p id="now" aria-live="off"></p>
-  <small class="fine">one sound at a time: my album waits while a preview plays, and comes back when it stops.</small>
+  <small class="fine">one sound at a time: my album waits while a preview plays.</small>
 </div>
 <section id="cr" hidden aria-labelledby="h-near">
  <h2 id="h-near">call and response: pick one, the six nearest in sound answer</h2>
@@ -169,15 +169,13 @@ html.sm-pv #album{display:none}
 </section>
 <section id="deep" hidden aria-label="the science">
  <h3>the count</h3>
- <p>19 of every 100 plays started with my hand. 7.6 of the 19 were my back and skip presses, so 11.5 by the strictest count. shuffle 17, the queue 64. plays of 30 seconds or more; october 2023: the app changed how it records a start.</p>
+ <p>19 of every 100 plays started with my hand. 7.6 of the 19 were my back and skip presses, so 11.5 by the strictest count. shuffle 17, the queue 64. plays of 30 seconds or more; october 2023: the app changed how it records a start. five months of new plays the analysis never saw were too few to judge this on their own; the return-time result held. of songs not yet in my library, i kept 42 of 100 that i pressed and 16 of 100 the queue chose, usually on the first hearing (in-sample, awaiting replication).</p>
  <h3>my path vs the queue's path, in sound</h3>
  <div class="br"><b>after my press</b><i style="background:var(--mint);width:100%"></i><span>0.242 apart</span></div>
  <div class="br"><b>after the queue</b><i style="background:var(--violet);width:86%"></i><span>0.209 apart</span></div>
  <p>difference +0.034 [+0.025, +0.044], pre-registered direction held, ledger 341. it says the queue's run was broken, not that the model knows taste.</p>
  <h3>two skies</h3>
  <p>the sessions map (who i play in the same evenings) and this sound map are different maps. artists that sit together in my evenings do not sit together in sound.</p>
- <h3>the new data (november 2026)</h3>
- <p>five months of new plays the analysis never saw were too few to judge the headline on their own; the return-time result held. counting only songs not already in my library, a song i pressed got kept 42 of 100 times; a song the queue chose, 16 of 100. when i keep a song, i usually keep it the first time i hear it. the artists in my library sit nearer the sound of what i play most. in-sample, awaiting replication; ledger rows 347 to 372.</p>
  <h3>the families</h3>
  <p>when i tap, ambient and lofi get 0.636 of the share the queue gives them [0.569, 0.710]; hip-hop and r&amp;b 1.22, the less firm of the two. every other family moves with the queue.</p>
  <p class="k">pre-registered on a hash before any number; intervals from a block bootstrap. the ledger of every claim, alive and dead, is in <a href="lab.html">the lab</a>; methods in <a href="researcher.html">the report</a>. ledger rows 341 to 346 for the run.</p>
@@ -194,7 +192,7 @@ html.sm-pv #album{display:none}
 </aside>
 <div id="player-dock"></div>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"a899ef5706","pv":"381d21eeee"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,radio:true};})();</script>
-<script src="front/radio.js?v=7cbdbbab84" defer></script>
+<script src="front/radio.js?v=cc2e6847e7" defer></script>
 <script src="front/music.js?v=c9a1268937" defer></script>
 </body>
 </html>
