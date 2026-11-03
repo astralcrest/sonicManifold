@@ -171,8 +171,13 @@ def validate():
         errs.append('maps: one second-map position per radio artist, 0 to 1000')
     if not mp['lp'] or not mp['lq'] or any(len(x) != 3 or x[0] >= n or x[1] >= n or not (0 <= x[2] <= 1000) for x in mp['lp'] + mp['lq']):
         errs.append('maps: press-to-press and queue-run pairs as index pairs with a weight')
-    if set(mp) != {'v', 'g', 'lp', 'lq', 'k'}:
-        errs.append('maps: carries more than the two maps need')
+    if set(mp) != {'v', 'g', 'lp', 'lq', 'k', 'c', 'cm'}:
+        errs.append('maps: carries more than the two maps and the neighborhoods need')
+    n_c = len(mp['cm'])
+    if len(mp['c']) != n or any(not (-1 <= c < n_c) for c in mp['c']) or any(len(x) != 3 or not (0 <= x[2] <= 1000) for x in mp['cm']):
+        errs.append('maps: a neighborhood index per artist (-1 outside the giant component) and [size, family, queue share] per neighborhood')
+    if any(isinstance(x, str) for x in mp['cm']) or any(x[1] >= len(r['fam']) for x in mp['cm']):
+        errs.append('maps: a neighborhood is named by a family index, never by a string')
     return d, errs
 
 

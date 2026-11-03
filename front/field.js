@@ -1,4 +1,4 @@
-/* the front = THE FIELD (2026-11-03). one crisp canvas behind six acts: every artist i have heard, placed in the 3D sound map
+/* the front = THE FIELD (2026-11-03). one crisp canvas behind seven acts: every artist i have heard, placed in the 3D sound map
    (CLAP UMAP), drawn flat and sharp at device pixels; no glow, no blur. the acts follow the narrative: the count, the hand,
    the two maps (the same artists by sound and by what followed what), what stays, the coda, the record. eight things to play: fly between the maps, drag a line (a radio of stops), whose hand? (guess me or the
    queue), be the queue / be my hand (hear the run and hear it break), the ring you can play (who led to whom), the
@@ -81,9 +81,10 @@ function fit() {
   pathsDirty = true; dirty = true;
 }
 var cam = { cx: 0, cy: 0, r: 1 };
+var dolly = 1; /* a slow push-in on every act change in the field; the ring and the flat maps keep their own frame */
 function proj3(x, y, z, out) {
   var cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
-  var x1 = x * cy - z * sy, z1 = x * sy + z * cy, y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp + 3.2, s = 2.6 / z2;
+  var x1 = x * cy - z * sy, z1 = x * sy + z * cy, y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp + 3.2, s = 2.6 / z2 * dolly;
   out[0] = cam.cx + x1 * s * cam.r; out[1] = cam.cy - y1 * s * cam.r; out[2] = z2;
 }
 var tmp = [0, 0, 0];
@@ -96,15 +97,18 @@ function frame() {
 }
 
 /* ---------- scenes ---------- */
-var SCENES = ['count', 'hand', 'maps', 'keep', 'coda', 'record'];
-var C_COUNT = 0, C_HAND = 1, C_MAPS = 2, C_KEEP = 3, C_CODA = 4, C_RECORD = 5;
+var SCENES = ['count', 'hand', 'maps', 'hoods', 'keep', 'coda', 'record'];
+var C_COUNT = 0, C_HAND = 1, C_MAPS = 2, C_HOODS = 3, C_KEEP = 4, C_CODA = 5, C_RECORD = 6;
+/* the neighborhoods: eight crisp hues for the eight largest, the rest muted; the color is the neighborhood, never the hand */
+var HOODC = ['#5fb8ff', '#ff5c7a', '#ffd36b', '#b8ec4a', '#ff8fd6', '#f5a623', '#c9c2ff', '#8fd3b6'];
+var ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii'];
 function setScene(k) {
   if (k === scene) return;
   from = scene; scene = k; blend = 0; tStart = 0; dirty = true;
   S.hover = -1; S.rim = -1;
   html.setAttribute('data-scene', SCENES[k]);
   if (k !== C_KEEP && S.game) endGame(true);
-  if (k === C_MAPS) loadMaps();
+  if (k === C_MAPS || k === C_HOODS) loadMaps();
   tick();
 }
 /* positions for the artists in a scene: 3D field (count, keep, coda, record), the ring (hand) or the flat two maps (maps); alpha per scene */
@@ -112,8 +116,14 @@ function mapXY(i, out) {
   var a = F.xy[i], b = MAPS ? MAPS.g[i] : a, m = S.mb;
   out[0] = cam.cx + ((a[0] + (b[0] - a[0]) * m) / 1000 - 0.5) * 2 * cam.r; out[1] = cam.cy + ((a[1] + (b[1] - a[1]) * m) / 1000 - 0.5) * 2 * cam.r;
 }
+function hoodXY(i, out) {
+  var b = MAPS ? MAPS.g[i] : F.xy[i];
+  var rr = phone ? cam.r * 0.72 : cam.r, cyy = phone ? cam.cy - cam.r * 0.3 : cam.cy;
+  out[0] = cam.cx + (b[0] / 1000 - 0.5) * 2 * rr; out[1] = cyy + (b[1] / 1000 - 0.5) * 2 * rr;
+}
 function place(k, i, out) {
   if (k === C_MAPS) { mapXY(i, out); out[2] = 0.9; out[3] = 0.9; return; }
+  if (k === C_HOODS) { hoodXY(i, out); out[2] = MAPS && MAPS.c[i] < 0 ? 0.3 : 0.92; out[3] = 0.95; return; }
   if (k === 1) {
     var r = RI[i];
     if (r === undefined) { proj3(P3[i * 3] * 0.2, P3[i * 3 + 1] * 0.2, P3[i * 3 + 2] * 0.2, tmp); out[0] = tmp[0]; out[1] = tmp[1]; out[2] = 0; return; }
@@ -125,9 +135,12 @@ function place(k, i, out) {
   out[3] = 0.75 + 0.5 * depth;
 }
 var pa = [0, 0, 0, 1], pb = [0, 0, 0, 1];
+var reveal = 0, revT0 = 0; /* the overture: the field assembles in the order i first heard its artists, eight cuts by day count */
 function layout(now) {
   if (!tStart) tStart = now;
   blend = reduce ? 1 : ease((now - tStart) / 900);
+  if (reveal < 8) { if (!revT0) revT0 = now; reveal = reduce ? 8 : 8 * ease((now - revT0) / 7000); if (reveal >= 7.999) reveal = 8; }
+  dolly = (scene === C_HAND || scene === C_MAPS || scene === C_HOODS) ? 1 : 0.93 + 0.07 * blend;
   if (S.mb !== S.mt) { var mk = reduce ? 1 : ease((now - S.mT0) / 1100); S.mb = S.mFrom + (S.mt - S.mFrom) * mk; if (mk >= 1) S.mb = S.mt; }
   frame();
   var i, k = blend;
@@ -135,6 +148,7 @@ function layout(now) {
     place(scene, i, pa);
     if (k < 1) { place(from, i, pb); SX[i] = pb[0] + (pa[0] - pb[0]) * k; SY[i] = pb[1] + (pa[1] - pb[1]) * k; SA[i] = pb[2] + (pa[2] - pb[2]) * k; SR[i] = SZ[i] * ((pb[3] || 1) + ((pa[3] || 1) - (pb[3] || 1)) * k); }
     else { SX[i] = pa[0]; SY[i] = pa[1]; SA[i] = pa[2]; SR[i] = SZ[i] * (pa[3] || 1); }
+    if (reveal < 8 && scene === C_COUNT && F.y0[i] >= reveal) SA[i] = 0;
   }
 }
 
@@ -182,9 +196,9 @@ function paint(now) {
   var g = ctx, i, k;
   g.setTransform(DPR, 0, 0, DPR, 0, 0); g.fillStyle = BG; g.fillRect(0, 0, W, H);
   layout(now); words = [];
-  var inRing = scene === 1 && blend >= 1, field = scene !== 1;
+  var inRing = scene === 1 && blend >= 1, field = scene !== 1, grown = reveal >= 8;
   /* threads in the field (desk): the skeleton of the map, three nearest each */
-  if (field && !phone && (scene === C_COUNT || scene === C_RECORD) && blend >= 1) {
+  if (field && !phone && (scene === C_COUNT || scene === C_RECORD) && blend >= 1 && grown) {
     g.lineWidth = 0.6; g.strokeStyle = 'rgba(189,211,255,' + (scene === C_RECORD ? 0.05 : 0.09) + ')'; g.beginPath();
     for (k = 0; k < KNN.length; k += 2) { i = KNN[k]; var j = KNN[k + 1]; g.moveTo(SX[i], SY[i]); g.lineTo(SX[j], SY[j]); }
     g.stroke();
@@ -209,10 +223,10 @@ function paint(now) {
     for (k = 0; k < LP.length; k++) { e = LP[k]; var onp = hot >= 0 && (e[0] === hot || e[1] === hot); g.strokeStyle = 'rgba(33,246,188,' + ((hot < 0 ? 0.22 + 0.5 * e[2] / 1000 : onp ? 1 : 0.05) * ma).toFixed(3) + ')'; g.lineWidth = (onp ? 1.8 : 0.55) + 1.1 * e[2] / 1000; g.beginPath(); g.moveTo(SX[e[0]], SY[e[0]]); g.lineTo(SX[e[1]], SY[e[1]]); g.stroke(); }
   }
   /* the artists */
-  var tint = scene === 0 || (from === 0 && blend < 1 && scene !== 1);
+  var tint = scene === 0 || (from === 0 && blend < 1 && scene !== 1), hoods = scene === C_HOODS && MAPS && S.hoodBy !== 'hand';
   for (k = 0; k < N; k++) {
     i = TOP[N - 1 - k]; var a = SA[i]; if (a <= 0.01) continue;
-    var col = scene === 1 && blend >= 1 ? (FAMC[F.fam[RING[RI[i]] ? RING[RI[i]][3] : F.f[i]]] || MUTE) : tint ? HC[i] : FC[i];
+    var col = hoods ? (MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? HOODC[MAPS.c[i]] : MUTE) : scene === C_HOODS ? HC[i] : scene === 1 && blend >= 1 ? (FAMC[F.fam[RING[RI[i]] ? RING[RI[i]][3] : F.f[i]]] || MUTE) : tint ? HC[i] : FC[i];
     if (scene === C_RECORD && !isNb(i)) a *= 0.5;
     dot(g, SX[i], SY[i], SR[i], a >= 0.99 ? col : dim(col, a));
   }
@@ -242,8 +256,35 @@ function paint(now) {
     if (S.trail.length > 1 && scene !== 1) { g.strokeStyle = 'rgba(33,246,188,.5)'; g.lineWidth = 1; g.beginPath(); for (k = 0; k < S.trail.length; k++) { i = S.trail[k]; if (k) g.lineTo(SX[i], SY[i]); else g.moveTo(SX[i], SY[i]); } g.stroke(); }
   }
   if (S.hover >= 0 && S.hover !== S.now && SA[S.hover] > 0.3) { ring(g, SX[S.hover], SY[S.hover], 7, ICE, 1); word(g, SX[S.hover] + 11, SY[S.hover], names[S.hover], phone ? 10.5 : 11.5, 500, false, ICE); }
-  /* the big names */
-  if (scene === 0 && blend >= 1) for (k = 0; k < (phone ? 3 : 6); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 5, SY[i], names[i], phone ? 11 : 12, 500, false, INK); }
+  /* the overture's count, then the big names, sized by rank */
+  if (scene === 0 && blend >= 1 && !grown) {
+    var heard = 0; for (k = 0; k < N; k++) if (F.y0[k] < reveal) heard++;
+    g.font = '600 ' + (phone ? 30 : 46) + 'px ' + SANS; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = INK;
+    g.fillText(String(heard).replace(/\B(?=(\d{3})+(?!\d))/g, ','), phone ? 14 : 22, phone ? 90 : 82);
+    g.font = '500 ' + (phone ? 10 : 11.5) + 'px ' + MONO; g.fillStyle = MUTE;
+    g.fillText('artists, in the order i first heard them', phone ? 14 : 22, phone ? 108 : 104);
+  }
+  if (scene === 0 && blend >= 1 && grown) for (k = 0; k < (phone ? 4 : 10); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 5, SY[i], names[i], phone ? 12 - k * 0.3 : 17 - k * 0.65, k < 3 ? 600 : 500, false, INK); }
+  /* the neighborhoods: a numeral and the family that fills each, at its center; the color is the neighborhood */
+  if (scene === C_HOODS && blend >= 1 && MAPS && !S.quiet) {
+    var cx = [], cy2 = [], cn = [], ci, nh = Math.min(8, MAPS.cm.length);
+    for (ci = 0; ci < nh; ci++) { cx.push(0); cy2.push(0); cn.push(0); }
+    for (k = 0; k < N; k++) { ci = MAPS.c[k]; if (ci >= 0 && ci < nh) { cx[ci] += SX[k]; cy2[ci] += SY[k]; cn[ci]++; } }
+    var byHand = S.hoodBy === 'hand';
+    for (ci = 0; ci < nh; ci++) if (cn[ci]) {
+      var lab = phone ? ROMAN[ci] : ROMAN[ci] + ' · ' + (byHand ? 'the queue ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100' : 'mostly ' + F.fam[MAPS.cm[ci][1]]);
+      word(g, cx[ci] / cn[ci] - (phone ? 8 : 30), cy2[ci] / cn[ci], lab, phone ? 12 : 12, 600, true, byHand ? VIOLET : HOODC[ci]);
+    }
+    /* the caption and, on the phone, the key: top left, the text's own room */
+    var lx = phone ? 14 : 22, lh = phone ? 13 : 15, ly = phone ? H - 10 - lh * (nh + 1.4) : 66;
+    g.font = '500 ' + (phone ? 10.5 : 11.5) + 'px ' + MONO; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    g.fillStyle = INK; g.fillText(byHand ? 'the same ' + MAPS.cm.length + ' neighborhoods, colored by the hand' : MAPS.cm.length + ' neighborhoods, from what followed what alone', lx, ly);
+    g.fillStyle = MUTE; g.fillText(byHand ? (phone ? 'mint me · amber shuffle · violet the queue' : 'mint: my press · amber: shuffle · violet: the queue') : (phone ? 'named by the family that fills it most' : 'the label is the family that fills it most; the numeral is its size rank'), lx, ly + lh);
+    if (phone) for (ci = 0; ci < nh; ci++) {
+      g.fillStyle = byHand ? VIOLET : HOODC[ci];
+      g.fillText(ROMAN[ci] + ' · ' + (byHand ? 'the queue ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100' : F.fam[MAPS.cm[ci][1]]), lx, ly + lh * (ci + 2.4));
+    }
+  }
   if (inRing) {
     var big = 0, bigs = [], seen = [];
     for (k = 0; k < RING.length && big < (phone ? 8 : 14); k++) { var r0 = RING[rimOrder[k]]; var ok2 = true; for (i = 0; i < seen.length; i++) { var dA = Math.abs(RA[rimOrder[k]] - seen[i]); dA = Math.min(dA, 6.2832 - dA); if (dA < (phone ? 0.24 : 0.14)) ok2 = false; } if (!ok2) continue; seen.push(RA[rimOrder[k]]); bigs.push(rimOrder[k]); big++; }
@@ -300,7 +341,7 @@ function countdown(g, now) {
 function tick() { if (!raf) raf = requestAnimationFrame(step); }
 function step(now) {
   raf = 0;
-  var moving = blend < 1 || (S.game && S.game.on) || S.drag || S.mb !== S.mt;
+  var moving = blend < 1 || reveal < 8 || (S.game && S.game.on) || S.drag || S.mb !== S.mt;
   if (!reduce && (scene === 0 || scene === C_RECORD) && !S.drag && blend >= 1 && !S.line) { yaw += 0.00045 * Math.min(40, now - (last || now)); moving = true; }
   last = now;
   paint(now);
@@ -495,6 +536,15 @@ function loadMaps() { if (!mapsP) mapsP = fetchJ('maps').then(function (j) { MAP
 function flyTo(t) { if (S.mt === t && S.mb === t) return; S.mFrom = S.mb; S.mt = t; S.mT0 = performance.now(); loadMaps(); wake(); }
 on('#m-sound', function () { flyTo(0); text('#m-mode', 'by sound. every line is short here, whichever hand drew it. the queue\u2019s run sits a shade tighter.'); });
 on('#m-graph', function () { flyTo(1); text('#m-mode', 'by what followed. every line is short now, by construction: this map was drawn from the lines. the question is which map the other hand\u2019s lines respect.'); });
+on('#n-hood', function () { S.hoodBy = ''; text('#n-mode', 'colored by neighborhood. the label is the family that fills it most; the shape is the second map.'); wake(); });
+on('#n-hand', function () { S.hoodBy = 'hand'; text('#n-mode', 'colored by the hand that played each artist most. the label is the share of each neighborhood\u2019s inside steps the queue took.'); wake(); });
+/* the sound pill: one press starts my album; previews still take their turn (one sound at a time) */
+on('#b-sound', function () {
+  var M = window.__smMusic; if (!M || !M.toggle) return; M.toggle();
+  var lab = function () { var a = M.A && M.A.el, on = a && !a.paused; text('#b-sound', on ? 'sound: on' : 'sound'); html.classList.toggle('sm-album', !!on); };
+  if (M.A && M.A.el && !M.A.el.__pill) { M.A.el.__pill = 1; ['play', 'pause', 'ended'].forEach(function (t) { M.A.el.addEventListener(t, lab); }); }
+  setTimeout(lab, 400);
+});
 on('#g-start', startGame); on('#g-keep', function () { answer(true, false); }); on('#g-go', function () { answer(false, false); });
 on('#w-start', whose); on('#w-me', function () { whAnswer(true); }); on('#w-app', function () { whAnswer(false); });
 function songs() {
@@ -521,7 +571,7 @@ fetchJ('field').then(function (j) {
   songs(); acts(); if (ro) ro.observe(stage); else addEventListener('resize', function () { fit(); wake(); });
   $$('.lz').forEach(function (e) { e.hidden = true; });
   var R = (window.__ledger && window.__ledger.READY) || {}; R.field = true;
-  window.__field = { S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; } };
+  window.__field = { S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; }, reveal: function () { return reveal; }, grow: function () { reveal = 8; wake(); }, hoods: function () { return MAPS ? MAPS.cm.length : 0; } };
   wake();
   if (!lite()) setTimeout(prefetchPV, 1200);
 }, function () { var h = $('#hint'); if (h) h.textContent = 'the map did not load here. the story is below.'; });
