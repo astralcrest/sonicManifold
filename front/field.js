@@ -252,7 +252,7 @@ function paint(now) {
     g.font = '500 ' + (phone ? 10 : 11) + 'px ' + MONO; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = MINT; g.fillText('inside: my press', cam.cx, cam.cy - 9); g.fillStyle = VIOLET; g.fillText('outside: the queue', cam.cx, cam.cy + 9);
   }
-  if (scene === C_MAPS && blend >= 1) {
+  if (scene === C_MAPS && blend >= 1 && !S.quiet) {
     g.font = '500 ' + (phone ? 10 : 11) + 'px ' + MONO; g.textAlign = 'center'; g.textBaseline = 'bottom';
     var ly = Math.min(H - 8, cam.cy + cam.r + (phone ? 14 : 18)), t1 = S.mb < 0.5 ? 'by sound' : 'by what followed', t2 = phone ? 'mint: my press, then my press · violet: the queue\u2019s run' : 'mint: two presses of mine in a row · violet: two of the queue\u2019s in a row';
     if (!MAPS) t1 = 'the second map is loading…';
@@ -493,7 +493,7 @@ on('#b-queue', function () { S.mode = 'queue'; S.line = null; walk(); text('#h-m
 on('#b-hand', function () { S.mode = 'hand'; S.line = null; breakRun(); text('#h-mode', 'my hand breaks the run: the next song is far in sound, another family. hear the jump.'); });
 function loadMaps() { if (!mapsP) mapsP = fetchJ('maps').then(function (j) { MAPS = j; wake(); return j; }, function () { mapsP = null; }); return mapsP; }
 function flyTo(t) { if (S.mt === t && S.mb === t) return; S.mFrom = S.mb; S.mt = t; S.mT0 = performance.now(); loadMaps(); wake(); }
-on('#m-sound', function () { flyTo(0); text('#m-mode', 'by sound. the queue\u2019s lines are short here: its next song sounds like the last. watch where my lines go.'); });
+on('#m-sound', function () { flyTo(0); text('#m-mode', 'by sound. every line is short here, whichever hand drew it: the next artist sounds like the last. the queue\u2019s run sits a shade tighter.'); });
 on('#m-graph', function () { flyTo(1); text('#m-mode', 'by what followed. every line is short now, by construction: this map was drawn from the lines. the question is which map the other hand\u2019s lines respect.'); });
 on('#g-start', startGame); on('#g-keep', function () { answer(true, false); }); on('#g-go', function () { answer(false, false); });
 on('#w-start', whose); on('#w-me', function () { whAnswer(true); }); on('#w-app', function () { whAnswer(false); });
