@@ -102,14 +102,17 @@ function begin(user) {
   tracks().then(function () { if (A.pend) go(Math.min(k, A.tr.length - 1), t, user); }, function () { A.pend = false; A.started = false; sync(); });
 }
 function go(k, t, user) {
-  var a = el(), src = BED + A.tr[k].f + '.mp3';
+  var a = el(), src = BED + A.tr[k].f + '.mp3', held = S.held && !user;
   A.started = true; A.pend = false; A.cur = k;
-  if (user) { A.up = false; if (a.muted) a.muted = false; lsSet('on'); } /* any play press of the visitor's writes on */
-  hush();
+  if (user) { A.up = false; if (a.muted) a.muted = false; lsSet('on'); yieldPV(); } /* any play press of the visitor's writes on, and stops a preview */
+  hush(); S.held = held;
   if (a.getAttribute('src') !== src) a.src = src; else if (!t) try { a.currentTime = 0; } catch (e) { /* not seekable yet */ }
   if (t > 0) seek(a, t);
-  start(a); save(); sync();
+  if (!held) start(a); /* held = a preview is playing: the album waits, cued, until release() */
+  save(); sync();
 }
+/* one sound at a time: a play press of the album stops the radio's preview (the front sets __radioYield) */
+function yieldPV() { S.held = false; if (window.__radioYield) try { window.__radioYield(); } catch (e) { /* the preview is the front's */ } }
 function seek(a, t) {
   if (a.readyState >= 1) { try { a.currentTime = t; } catch (e) { /* see go */ } return; }
   a.addEventListener('loadedmetadata', function f() { a.removeEventListener('loadedmetadata', f); try { if (t < a.duration - 1) a.currentTime = t; } catch (e) { /* see go */ } });
@@ -121,7 +124,7 @@ function start(a) {
 function toggle() {
   var a = A.el;
   if (!a || A.cur < 0) { if (!A.pend) begin(true); return; }
-  if (a.paused) { A.up = false; if (a.muted) a.muted = false; lsSet('on'); hush(); start(a); }
+  if (a.paused) { A.up = false; if (a.muted) a.muted = false; lsSet('on'); yieldPV(); hush(); start(a); }
   else { A.up = true; a.pause(); }
   save();
 }
@@ -202,7 +205,7 @@ function api() {
 }
 /* spotify's controller methods return nothing and can throw inside its own frame */
 function cmd(m) { var c = S.ctl; if (!c) return; try { var r = (typeof c[m] === 'function' ? c[m] : c.play).call(c); if (r && r.catch) r.catch(function () {}); } catch (e) { /* see above */ } }
-function holdAlbum() { var a = A.el; if (a && !a.paused) { a.pause(); S.held = true; } }
+function holdAlbum() { S.held = true; var a = A.el; if (a && !a.paused) a.pause(); }
 function release() { if (!S.held) return; S.held = false; var a = A.el; if (a && a.paused && A.cur >= 0 && !A.up) start(a); }
 function hush() { if (S.ctl && (S.playing || S.want)) { S.want = false; cmd('pause'); } S.held = false; }
 function stopHere() { S.want = false; cmd('pause'); if (!S.heard) release(); }
@@ -374,5 +377,5 @@ near('#genre', '0px', genreRow);
 /* a stored mute ("off") shows the dock muted instead of hiding it, and hides the first-screen note that promises a start */
 if (lsGet() === 'off' || lite) { var sn = $('#snd-note'); if (sn) sn.hidden = true; }
 if (lsGet() === 'off') { dock(); sync(); }
-window.__smMusic = { A: A, S: S, D: D, go: function (k) { go(k, 0, true); }, tracks: tracks, toggle: toggle };
+window.__smMusic = { A: A, S: S, D: D, go: function (k) { go(k, 0, true); }, tracks: tracks, toggle: toggle, hold: holdAlbum, release: release };
 })();

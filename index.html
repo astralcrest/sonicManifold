@@ -69,31 +69,29 @@ canvas#sky{display:block;width:100%;height:100%;touch-action:none;cursor:crossha
 .sub{margin:0 0 14px;color:var(--ink);opacity:.86;font-size:13.5px;line-height:1.45}
 .sub b{font-weight:600;color:var(--ink)}
 #np{background:var(--bg);border:1px solid var(--line);padding:12px 14px 10px}
-#np small,#now,.fine,.how,.k{display:block;font:400 11.5px/1.45 var(--mono);color:var(--dim)}
+#np small,#now,.fine,.how,.k{display:block;font:400 11.5px/1.5 var(--mono);color:var(--dim)}
+.sub .mint{color:var(--mint);font-weight:600}
 #np-n{display:block;font:600 24px/1.1 var(--sans);margin:4px 0 2px;min-height:1.1em;word-break:break-word}
 #np-t{display:block;font:400 13px/1.3 var(--sans);color:var(--ink);opacity:.8;min-height:1.3em}
 .row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
 .row .chip{min-height:40px}
 .row .chip.on{color:var(--ink)}
 #b-play{color:var(--gold)}
-#now{margin:0 0 4px;min-height:1.45em}#now:not(:empty)::before{content:"the album, underneath \00b7  "}
+#now{margin:0 0 4px;min-height:1.45em}#now:not(:empty)::before{content:"the album \00b7  "}
 #player-dock{display:none!important}html.sm-dock body{padding-bottom:0!important}
 html.sm-pv #album{display:none}
 #a-sp{border:0;padding:0 2px;min-height:40px;color:var(--mint);text-decoration:underline;text-underline-offset:3px}
-#mood{margin:14px 0 0}
-#mood .k{margin-bottom:6px}
-.mb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);align-items:center;gap:10px;margin:0 0 5px;font:400 12.5px/1.3 var(--sans)}
-.mb i{display:block;height:9px;background:var(--ice);justify-self:start;width:100%}
-.mb span{color:var(--ink);opacity:.85}
-#near{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
-.nr{appearance:none;-webkit-appearance:none;display:flex;align-items:center;gap:10px;min-height:40px;padding:0;border:0;background:transparent;color:var(--ink);font:500 13.5px/1.2 var(--sans);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.nr::before{content:"";flex:0 0 10px;width:10px;height:10px;background:var(--violet)}
+#cr{margin:18px 0 0}
+.fan{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:0 18px;align-items:center}
+.call{display:flex;align-items:center;gap:8px;font:600 13.5px/1.2 var(--sans);color:var(--ink);word-break:break-word}
+.call::before{content:"";flex:0 0 9px;width:9px;height:9px;background:var(--mint)}
+#near{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:0}
+.nr{appearance:none;-webkit-appearance:none;display:flex;align-items:center;gap:8px;width:100%;min-height:36px;padding:0;border:0;background:transparent;color:var(--ink);font:500 13px/1.2 var(--sans);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nr::before{content:"";flex:0 0 22px;width:22px;height:1px;background:var(--violet)}
+.nr::after{content:"";order:-1;flex:0 0 7px;width:7px;height:7px;background:var(--violet);margin-right:-8px;display:none}
 .nr:hover{color:var(--mint)}
 .nr.on{color:var(--mint)}
-.key{display:flex;flex-wrap:wrap;gap:6px 14px;margin:14px 0 0;font:400 11.5px/1.4 var(--mono);color:var(--dim)}
-.key span{display:inline-flex;align-items:center;gap:6px}
-.key i{width:9px;height:9px;display:inline-block}
-.how{margin:14px 0 0}
+.how{margin:0 0 16px}
 #deep{margin:18px 0 0;padding:14px;background:var(--bg);border:1px solid var(--line)}
 #deep h3{margin:0 0 6px;font:600 14px/1.3 var(--sans)}
 #deep p{margin:0 0 10px;font-size:13px;line-height:1.5}
@@ -101,11 +99,9 @@ html.sm-pv #album{display:none}
 #deep .br i{display:block;height:10px}
 #deep .br b{font-weight:500;color:var(--ink)}
 .kick{margin:0 0 8px;font:500 11px/1.45 var(--mono);letter-spacing:.06em;color:var(--mint)}
-.rooms{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;margin:14px 0 0}
-.rooms .k{grid-column:1/-1;margin:0 0 2px}
-.rm{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:6px 10px;border:1px solid var(--line);color:var(--ink);text-decoration:none;font:600 13px/1.2 var(--sans);background:var(--bg)}
-.rm:hover,.rm:focus-visible{border-color:var(--mint);outline:0}
-.rm small{color:var(--dim);margin-top:2px;font:400 10.5px/1.3 var(--mono)}
+.rooms{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:18px 0 0}
+.rm{display:flex;align-items:center;justify-content:center;min-height:44px;padding:6px 8px;border:1px solid var(--hair);color:var(--ink);text-decoration:none;font:500 12px/1.2 var(--mono);letter-spacing:.04em;background:var(--bg);text-align:center}
+.rm:hover,.rm:focus-visible{border-color:var(--mint);color:var(--mint);outline:0}
 .foot{margin:22px -16px -24px;padding:0 0 0;background:var(--panel)}
 .fnote{margin:0;padding:0 16px;font:400 11px/1.5 var(--mono);color:var(--dim)}
 .fnote a{color:var(--dim)}
@@ -114,10 +110,10 @@ html.sm-pv #album{display:none}
  .row .chip{padding:0 11px;font-size:11.5px}
  /* phone: the player sits right under the headline so pause and next are on the first screen; the key and the how line follow the intro */
  #room{display:flex;flex-direction:column}
- .kick{order:-4}#room h1{order:-3}#np,.rooms{order:-2}.sub{order:-1;margin-top:14px}.key,.how{order:0}
- #mood,#h-near,#near,#deep,.foot{order:1}
+ .kick{order:-4}#room h1{order:-3}#np{order:-2}.sub{order:-1;margin-top:14px}.how{order:0}
+ #cr,#deep,.rooms,.foot{order:1}
 }
-@media (max-width:359px){#room h1{font-size:18px}#np-n{font-size:20px}.top{letter-spacing:.04em}.top .chip{padding:0 9px;letter-spacing:.03em}}
+@media (max-width:359px){#room h1{font-size:18px}#np-n{font-size:20px}.rooms{grid-template-columns:1fr}.top{letter-spacing:.04em}.top .chip{padding:0 9px;letter-spacing:.03em}}
 @media (max-width:339px){.top{padding-left:10px;padding-right:10px}.top .brand{font-size:10px}}
 @media (min-width:900px){
  body{grid-template-rows:none;grid-template-columns:minmax(0,1fr) clamp(380px,34vw,560px)}
@@ -150,9 +146,10 @@ html.sm-pv #album{display:none}
 <div id="hint" aria-hidden="true"></div>
 </div>
 <aside id="room" aria-label="the radio">
-<p class="kick">sonicManifold · my spotify log, 2019 to 2026, as rooms you can walk through. this room is the radio.</p>
+<p class="kick">sonicManifold · the radio · my spotify log, 2019 to 2026, as rooms you can walk through.</p>
 <h1 id="hl">every artist i have heard, placed by how they sound. <span>drag a line and listen.</span></h1>
-<p class="sub">near means sounds alike to a model that never saw my log. gold squares are my own songs, placed by the same ears. the log says <b>i pressed play on 19 of every 100</b> of 97,427 plays, 2019 to 2026; shuffle picked 17 and the queue served 64. the map does not know that. it only hears.</p>
+<p class="sub"><b>so what:</b> the queue's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. <span class="mint">a direction, not a size.</span> the log says i pressed play on 19 of every 100 plays; the map does not know that. it only hears.</p>
+<p class="how">how: three 30 s previews per artist, a sound model (CLAP) hears them, two axes (UMAP) place them. near = sounds alike to the model, nothing about me. gold = my songs, heard by the same ears. sound: apple 30 s previews; the full song opens in spotify.</p>
 <div id="np" aria-live="polite">
   <small id="np-k">nothing is playing. tap a square, or drag a line.</small>
   <b id="np-n">the radio</b>
@@ -164,36 +161,30 @@ html.sm-pv #album{display:none}
     <a class="chip" id="a-sp" href="https://open.spotify.com/" target="_blank" rel="noopener">open in spotify</a>
   </div>
   <p id="now" aria-live="off"></p>
-  <small class="fine">30 s apple preview per stop; the whole song opens in the app. my soundtrack is the album, by me, and it plays underneath.</small>
+  <small class="fine">one sound at a time: my album waits while a preview plays, and comes back when it stops.</small>
 </div>
-<nav class="rooms" id="rooms" aria-label="every room of the site">
- <small class="k">the other rooms</small>
- <a class="rm" href="story.html">the story<small>five acts, the record last</small></a>
- <a class="rm" href="story.html#act-record">the record<small>the last act, the album</small></a>
- <a class="rm" href="lab.html">the lab<small>every chart</small></a>
- <a class="rm" href="editions/index.html">the editions<small>seventeen, the same log</small></a>
- <a class="rm" href="researcher.html">the report<small>methods, every claim</small></a>
- <a class="rm" href="yourturn.html">your turn<small>your own export</small></a>
- <a class="rm" href="colophon.html">how it was made<small>tools, sources</small></a>
-</nav>
-<div id="mood" hidden><small class="k">what the sound model hears (zero-shot, top four of 30 prompts)</small></div>
-<h2 id="h-near">call and response: six nearest in sound</h2>
-<ol id="near" aria-labelledby="h-near"></ol>
-<div class="key" id="key" aria-label="color key"></div>
-<p class="how">how: three 30 s previews per artist, a sound model (CLAP) hears them, two axes (UMAP) place them. squares sized by plays. the radio walks the line you drew, then the nearest sounds.</p>
+<section id="cr" hidden aria-labelledby="h-near">
+ <h2 id="h-near">call and response: pick one, the six nearest in sound answer</h2>
+ <div class="fan"><b id="cr-now" class="call"></b><ol id="near"></ol></div>
+</section>
 <section id="deep" hidden aria-label="the science">
  <h3>the count</h3>
  <p>19 of every 100 plays started with my hand. 7.6 of the 19 were my back and skip presses, so 11.5 by the strictest count. shuffle 17, the queue 64. plays of 30 seconds or more; october 2023: the app changed how it records a start.</p>
- <h3>the queue's run, in sound</h3>
+ <h3>my path vs the queue's path, in sound</h3>
  <div class="br"><b>after my press</b><i style="background:var(--mint);width:100%"></i><span>0.242 apart</span></div>
  <div class="br"><b>after the queue</b><i style="background:var(--violet);width:86%"></i><span>0.209 apart</span></div>
- <p>the queue's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
+ <p>difference +0.034 [+0.025, +0.044], pre-registered direction held, ledger 341. it says the queue's run was broken, not that the model knows taste.</p>
  <h3>two skies</h3>
  <p>the sessions map (who i play in the same evenings) and this sound map are different maps. artists that sit together in my evenings do not sit together in sound.</p>
  <h3>the families</h3>
  <p>when i tap, ambient and lofi get 0.636 of the share the queue gives them [0.569, 0.710]; hip-hop and r&amp;b 1.22, the less firm of the two. every other family moves with the queue.</p>
  <p class="k">pre-registered on a hash before any number; intervals from a block bootstrap. the ledger of every claim, alive and dead, is in <a href="lab.html">the lab</a>; methods in <a href="researcher.html">the report</a>. ledger rows 341 to 346 for the run.</p>
 </section>
+<nav class="rooms" id="rooms" aria-label="the doors">
+ <a class="rm" href="story.html#act-record">the record</a>
+ <a class="rm" href="#deeper">the rooms</a>
+ <a class="rm" href="colophon.html">how it was made</a>
+</nav>
 <footer class="foot" id="deeper">
 <p class="fnote">astralcrest &middot; 2026 &middot; built by one listener, on my own data &middot; <a href="mailto:astralcrestlab@proton.me">astralcrestlab@proton.me</a></p>
 <nav class="sleeve" aria-label="sonic manifold, every room"><style>.sleeve{display:flex;flex-wrap:wrap;align-items:center;column-gap:.55em;max-width:1280px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--sl-line,rgba(189,166,255,.19));font:500 11px/1.4 "IBM Plex Mono","JetBrains Mono","SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:lowercase}.sleeve a{display:inline-flex;align-items:center;min-height:32px;color:var(--sl-fog,#a49bbd);text-decoration:none}.sleeve a:hover,.sleeve a:focus-visible,.sleeve a[aria-current]{color:var(--sl-on,#86cbfe)}.sleeve a[aria-current]{text-decoration:underline;text-underline-offset:4px}.sleeve span{display:inline-flex;align-items:center;column-gap:.55em;white-space:nowrap}.sleeve i{font-style:normal;color:var(--sl-fog,#a49bbd);opacity:.55}.sleeve .up{margin-left:auto;padding-left:1em}@media (max-width:559px){.sleeve{display:grid;grid-template-columns:1fr 1fr;column-gap:1em}.sleeve i{display:none}.sleeve .up{margin-left:0;padding-left:0}}@media (forced-colors:active){.sleeve a,.sleeve a[aria-current],.sleeve a:hover,.sleeve a:focus-visible{color:LinkText;-webkit-text-fill-color:LinkText}}@media (pointer:coarse){.sleeve a{min-height:44px}}</style><a href="./" data-p="index.html">sonic manifold</a><span><i aria-hidden="true">&middot;</i></span><span><i aria-hidden="true">&middot;</i><a href="story.html" data-p="story.html">the story</a></span><span><i aria-hidden="true">&middot;</i><a href="lab.html" data-p="lab.html">the lab</a></span><span><i aria-hidden="true">&middot;</i><a href="researcher.html" data-p="researcher.html">the report</a></span><span><i aria-hidden="true">&middot;</i><a href="yourturn.html" data-p="yourturn.html bridge-index.html">your turn</a></span><span><i aria-hidden="true">&middot;</i><a href="editions/index.html" data-p="editions">the editions</a></span><span><i aria-hidden="true">&middot;</i><a href="colophon.html" data-p="colophon.html">how it was made</a></span><a class="up" href="#top">back to the top &uarr;</a><script>(function(){var p=location.pathname.split('/').pop()||'index.html',a=document.querySelectorAll('.sleeve a[data-p]');for(var i=0;i<a.length;i++)if((' '+a[i].getAttribute('data-p')+' ').indexOf(' '+p+' ')>-1)a[i].setAttribute('aria-current','page')})()</script></nav>
@@ -201,7 +192,7 @@ html.sm-pv #album{display:none}
 </aside>
 <div id="player-dock"></div>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"a899ef5706","pv":"381d21eeee"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,radio:true};})();</script>
-<script src="front/radio.js?v=d4d613b1b9" defer></script>
-<script src="front/music.js?v=fb7dd30425" defer></script>
+<script src="front/radio.js?v=7cbdbbab84" defer></script>
+<script src="front/music.js?v=c9a1268937" defer></script>
 </body>
 </html>

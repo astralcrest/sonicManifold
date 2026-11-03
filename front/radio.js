@@ -5,7 +5,7 @@
    walks the nearest sounds. the text lives in its own solid room (#room). no veil, no toast, nothing asks first.
    data: front/data/radio.json (positions, families, hands, six nearest, mood tags) and front/data/pv.json (one preview
    per artist), both stamped by the build. the album is music.js's: it starts on the first press like everywhere else on
-   the site and is held at 15 percent under a preview. */
+   the site; one sound at a time: it holds while a preview plays and comes back when the preview stops. */
 (function () {
 'use strict';
 var doc = document, $ = function (s) { return doc.querySelector(s); };
@@ -19,7 +19,6 @@ var R = null, PV = null, pvP = null, pv = null, base = null;
 var W = 0, H = 0, DPR = 1, phone = false, TOP = 50, BOT = 30, PADX = .05;
 var X = [], Y = [], SZ = [], P = [], PMAX = 1, SX = [], SY = [], boxes = [], lbox = {};
 var S = { now: -1, line: null, trail: [], played: {}, playing: false, pend: -1, hover: -1, drag: null, errs: 0, user: false, mine: -1 };
-var duckT = 0;
 
 function hex(h) { h = h.slice(1); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
 var BGc = hex(BG);
@@ -39,7 +38,7 @@ function fit() {
   var n = R.n.length, ih = H - TOP - BOT, iw = W * (1 - 2 * PADX);
   PMAX = 1; P = [];
   for (var i = 0; i < n; i++) { var h = R.h[i], p = h[0] + h[1] + h[2]; P.push(p); if (p > PMAX) PMAX = p; }
-  var smin = 3, smax = phone ? 11 : 15;
+  var smin = 2, smax = phone ? 5 : 7;
   X = []; Y = []; SZ = [];
   for (i = 0; i < n; i++) { X.push(PADX * W + R.xy[i][0] / 1000 * iw); Y.push(TOP + R.xy[i][1] / 1000 * ih); SZ.push(Math.round(smin + (smax - smin) * Math.sqrt(P[i] / PMAX))); }
   SX = []; SY = [];
@@ -50,32 +49,33 @@ function still() {
   base = doc.createElement('canvas'); base.width = cv.width; base.height = cv.height;
   var g = base.getContext('2d'); g.setTransform(DPR, 0, 0, DPR, 0, 0);
   g.fillStyle = BG; g.fillRect(0, 0, W, H);
-  var r = rng(20261102), per = phone ? 6 : 3, jit = phone ? 6 : 9, n = R.n.length, i, k, order = [];
+  var r = rng(20261102), per = phone ? 20 : 8, jit = phone ? 6 : 9, ms = DPR >= 2 ? 1 : 2, n = R.n.length, i, k, order = [];
+  /* motes: one device-crisp dot each (1 css px on retina, 2 on a 1x screen); never a fractional rect, that would blur */
   for (i = 0; i < n; i++) {
-    var m = Math.max(1, Math.round(P[i] / per)); g.fillStyle = dim(famc(i), .55);
-    for (k = 0; k < m; k++) g.fillRect(Math.round(X[i] + gauss(r) * jit) - 1, Math.round(Y[i] + gauss(r) * jit) - 1, 2, 2);
+    var m = Math.max(1, Math.round(P[i] / per)); g.fillStyle = dim(famc(i), .4);
+    for (k = 0; k < m; k++) g.fillRect(Math.round(X[i] + gauss(r) * jit), Math.round(Y[i] + gauss(r) * jit), ms, ms);
     order.push(i);
   }
   order.sort(function (a, b) { return P[a] - P[b]; });
   for (k = 0; k < n; k++) { i = order[k]; var s = SZ[i]; g.fillStyle = famc(i); g.fillRect(Math.round(X[i] - s / 2), Math.round(Y[i] - s / 2), s, s); }
   boxes = [[0, 0, W, TOP - 4]]; lbox = {};
   /* every gold square first, each one an obstacle, so no label is ever drawn through a square or a square through a label */
-  for (k = 0; k < R.s.length; k++) { g.fillStyle = GOLD; g.fillRect(Math.round(SX[k] - 3.5), Math.round(SY[k] - 3.5), 7, 7); boxes.push([SX[k] - 5, SY[k] - 5, SX[k] + 5, SY[k] + 5]); }
-  var fs = phone ? 11.5 : 12.5; g.font = '600 ' + fs + 'px ' + SANS; g.textBaseline = 'middle'; g.textAlign = 'left';
-  var ss = R.s.slice().map(function (s, j) { return j; }).sort(function (a, b) { return SY[a] - SY[b]; });
-  for (k = 0; k < ss.length; k++) {
+  for (k = 0; k < R.s.length; k++) { g.fillStyle = GOLD; g.fillRect(Math.round(SX[k] - 2.5), Math.round(SY[k] - 2.5), 5, 5); boxes.push([SX[k] - 4, SY[k] - 4, SX[k] + 4, SY[k] + 4]); }
+  var fs = phone ? 10.5 : 11; g.font = '500 ' + fs + 'px ' + SANS; g.textBaseline = 'middle'; g.textAlign = 'left';
+  var ss = R.s.slice().map(function (s, j) { return j; }).sort(function (a, b) { return SY[a] - SY[b]; }), placed = 0;
+  for (k = 0; k < ss.length && placed < (phone ? 5 : 8); k++) {
     var j = ss[k], t = R.s[j].t.toLowerCase(), tw = g.measureText(t).width, x = SX[j], y = SY[j];
     var b = plate([[x + 8, y], [x - 8 - tw, y], [x + 8, y + fs * 1.2], [x + 8, y - fs * 1.2]], tw, fs * .7);
     if (!b) continue;
-    boxes.push(b); g.fillStyle = BG; g.fillRect(Math.round(b[0] - 3), Math.round(b[1]), Math.round(tw + 6), Math.round(fs * 1.4)); g.fillStyle = GOLD; g.fillText(t, b[0], (b[1] + b[3]) / 2);
+    boxes.push(b); placed++; g.fillStyle = BG; g.fillRect(Math.round(b[0] - 3), Math.round(b[1]), Math.round(tw + 6), Math.round(fs * 1.4)); g.fillStyle = GOLD; g.fillText(t, b[0], (b[1] + b[3]) / 2);
   }
-  var top = order.slice().reverse().slice(0, phone ? 11 : 28);
+  var top = order.slice().reverse().slice(0, phone ? 4 : 8);
   for (k = 0; k < top.length; k++) {
-    i = top[k]; var f2 = Math.round((phone ? 11 : 11.5) + (phone ? 3 : 5) * Math.sqrt(P[i] / PMAX)); g.font = '600 ' + f2 + 'px ' + SANS;
+    i = top[k]; var f2 = phone ? 11 : 11.5; g.font = '500 ' + f2 + 'px ' + SANS;
     var nm = R.n[i], w2 = g.measureText(nm).width, hx = X[i] + SZ[i] / 2 + 5;
     var bb = plate([[hx, Y[i]], [X[i] - SZ[i] / 2 - 5 - w2, Y[i]]], w2, f2 * .72);
     if (!bb) continue;
-    boxes.push(bb); lbox[i] = [bb[0] - 3, bb[1], bb[2] + 3, bb[1] + f2 * 1.44]; g.fillStyle = BG; g.fillRect(Math.round(bb[0] - 3), Math.round(bb[1]), Math.round(w2 + 6), Math.round(f2 * 1.44)); g.fillStyle = INK; g.fillText(nm, bb[0], Y[i]);
+    var lb = [bb[0] - 3, bb[1], bb[2] + 3, bb[1] + f2 * 1.44]; boxes.push(lb); lbox[i] = lb; g.fillStyle = BG; g.fillRect(Math.round(bb[0] - 3), Math.round(bb[1]), Math.round(w2 + 6), Math.round(f2 * 1.44)); g.fillStyle = INK; g.fillText(nm, bb[0], Y[i]);
   }
 }
 /* the first spot in the list that is on the map and clear of every placed box, as [x0,y0,x1,y1]; null when none is */
@@ -89,12 +89,14 @@ function plate(spots, tw, hh) {
 /* a word on the map always sits on a solid patch of night: the text has its own room even out here. returns its box;
    a word that would land on an earlier one this frame moves to the other side, then below */
 var words = [];
-function word(g, x, y, t, fs, w, mono, fill, align) {
+function word(g, x, y, t, fs, w, mono, fill, align, skip) {
   g.font = w + ' ' + fs + 'px ' + (mono ? MONO : SANS); g.textBaseline = 'middle'; g.textAlign = 'left';
-  var tw = g.measureText(t).width, h = fs * 1.5, tries = align === 'fixed' ? [[x, y]] : [[x, y], [x - tw - 16 - (SZ[S.now] || 0), y], [x, y + h + 2], [x, y - h - 2]], b = null, i, q, ok;
+  var tw = g.measureText(t).width, h = fs * 1.5, tries = align === 'fixed' ? [[x, y]] : [[x, y], [x - tw - 22, y], [x, y + h + 2], [x, y - h - 2], [x - tw - 22, y + h + 2], [x - tw - 22, y - h - 2]], b = null, i, q, ok;
   for (i = 0; i < tries.length; i++) {
     b = [tries[i][0] - 3, tries[i][1] - h / 2, tries[i][0] + tw + 3, tries[i][1] + h / 2]; ok = b[0] >= 0 && b[2] <= W;
     for (q = 0; ok && q < words.length; q++) { var o = words[q]; if (!(b[2] < o[0] || b[0] > o[2] || b[3] < o[1] || b[1] > o[3])) ok = false; }
+    /* and clear of the still layer's labels (gold songs, the eight names), except the one this word replaces */
+    for (q = 0; ok && q < boxes.length; q++) { var o2 = boxes[q]; if (o2 !== skip && q > 0 && !(b[2] < o2[0] || b[0] > o2[2] || b[3] < o2[1] || b[1] > o2[3])) ok = false; }
     if (ok) break;
   }
   words.push(b);
@@ -107,27 +109,30 @@ function paint() {
   if (!base) return;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(base, 0, 0);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  var g = ctx, i, k, L = S.line, fs = phone ? 12 : 13, late = []; words = [];
+  var g = ctx, i, k, L = S.line, fs = phone ? 11 : 11.5, late = []; words = [];
   if (S.now >= 0) { var nb = SZ[S.now] / 2 + 8; words.push([X[S.now] - nb, Y[S.now] - nb, X[S.now] + nb, Y[S.now] + nb]); }
-  if (S.trail.length > 1) { g.strokeStyle = dim(MINT, .45); g.lineWidth = 1.5; g.beginPath(); for (i = 0; i < S.trail.length; i++) { var t = S.trail[i]; if (i) g.lineTo(X[t], Y[t]); else g.moveTo(X[t], Y[t]); } g.stroke(); }
-  if (S.drag && S.drag.on) { g.strokeStyle = MINT; g.lineWidth = 2; g.beginPath(); g.moveTo(S.drag.x0, S.drag.y0); g.lineTo(S.drag.x1, S.drag.y1); g.stroke(); sq(g, S.drag.x0, S.drag.y0, 6, MINT); sq(g, S.drag.x1, S.drag.y1, 6, MINT); }
+  if (S.trail.length > 1) { g.strokeStyle = dim(MINT, .4); g.lineWidth = 1; g.beginPath(); for (i = 0; i < S.trail.length; i++) { var t = S.trail[i]; if (i) g.lineTo(X[t], Y[t]); else g.moveTo(X[t], Y[t]); } g.stroke(); }
+  if (S.drag && S.drag.on) { g.strokeStyle = MINT; g.lineWidth = 1.5; g.beginPath(); g.moveTo(S.drag.x0, S.drag.y0); g.lineTo(S.drag.x1, S.drag.y1); g.stroke(); sq(g, S.drag.x0, S.drag.y0, 5, MINT); sq(g, S.drag.x1, S.drag.y1, 5, MINT); }
   if (L) {
-    g.strokeStyle = MINT; g.lineWidth = 2; g.beginPath(); g.moveTo(L.x0, L.y0); g.lineTo(L.x1, L.y1); g.stroke(); sq(g, L.x0, L.y0, 6, MINT); sq(g, L.x1, L.y1, 6, MINT);
+    g.strokeStyle = MINT; g.lineWidth = 1.5; g.beginPath(); g.moveTo(L.x0, L.y0); g.lineTo(L.x1, L.y1); g.stroke(); sq(g, L.x0, L.y0, 5, MINT); sq(g, L.x1, L.y1, 5, MINT);
+    var up = L.y1 < L.y0;
+    word(g, L.x0 + 8, L.y0 + (up ? 12 : -12), 'from here', 10.5, 500, true, MINT);
+    word(g, L.x1 + 8, L.y1 + (up ? -12 : 12), 'to here: ' + L.stops.length + ' stops', 10.5, 500, true, MINT);
     for (k = 0; k < L.stops.length; k++) {
       i = L.stops[k]; var done = k < L.k, col = done ? dim(MINT, .55) : MINT;
-      box(g, X[i], Y[i], SZ[i] + 8, col, 2);
-      late.push([X[i] + SZ[i] / 2 + 8, Y[i] + fs * .1, (k + 1) + ' ' + R.n[i], done ? MUTE : INK, i]);
+      box(g, X[i], Y[i], 11, col, 1.5);
+      late.push([X[i] + 11, Y[i] + fs * .1, (k + 1) + ' ' + R.n[i], done ? MUTE : INK, i]);
     }
   }
   if (S.now >= 0) {
     var n0 = S.now, nn = R.nn[n0];
-    for (k = 0; k < nn.length; k++) { var j = nn[k]; g.strokeStyle = dim(VIOLET, .8); g.lineWidth = 1.5; g.beginPath(); g.moveTo(X[n0], Y[n0]); g.lineTo(X[j], Y[j]); g.stroke(); sq(g, X[j], Y[j], 7, VIOLET); }
-    box(g, X[n0], Y[n0], SZ[n0] + 12, MINT, 3);
-    if (!L || L.stops.indexOf(n0) < 0) late.push([X[n0] + SZ[n0] / 2 + 10, Y[n0], R.n[n0], INK, n0]);
+    for (k = 0; k < nn.length; k++) { var j = nn[k]; g.strokeStyle = dim(VIOLET, .7); g.lineWidth = 1; g.beginPath(); g.moveTo(X[n0], Y[n0]); g.lineTo(X[j], Y[j]); g.stroke(); sq(g, X[j], Y[j], 5, VIOLET); }
+    box(g, X[n0], Y[n0], 13, MINT, 2);
+    if (!L || L.stops.indexOf(n0) < 0) late.push([X[n0] + 12, Y[n0], R.n[n0], INK, n0]);
   }
-  for (k = 0; k < late.length; k++) { var lb = lbox[late[k][4]]; if (lb) { g.fillStyle = BG; g.fillRect(Math.round(lb[0]), Math.round(lb[1]), Math.round(lb[2] - lb[0]), Math.round(lb[3] - lb[1])); } word(g, late[k][0], late[k][1], late[k][2], fs, 600, false, late[k][3]); }
-  if (S.mine >= 0) { box(g, SX[S.mine], SY[S.mine], 15, GOLD, 2); }
-  if (S.hover >= 0 && S.hover !== S.now) word(g, X[S.hover] + SZ[S.hover] / 2 + 8, Y[S.hover], R.n[S.hover], fs, 600, false, INK);
+  for (k = 0; k < late.length; k++) { var lb = lbox[late[k][4]]; if (lb) { g.fillStyle = BG; g.fillRect(Math.round(lb[0]), Math.round(lb[1]), Math.round(lb[2] - lb[0]), Math.round(lb[3] - lb[1])); } word(g, late[k][0], late[k][1], late[k][2], fs, 500, false, late[k][3], null, lb); }
+  if (S.mine >= 0) { box(g, SX[S.mine], SY[S.mine], 11, GOLD, 1.5); }
+  if (S.hover >= 0 && S.hover !== S.now) word(g, X[S.hover] + 10, Y[S.hover], R.n[S.hover], fs, 500, false, INK);
 }
 
 /* ---------- picking ---------- */
@@ -165,12 +170,7 @@ function room(i, why) {
   var lead = why === 'stop' && L ? 'now playing · stop ' + (L.k + 1) + ' of ' + L.stops.length : why === 'tap' ? 'now playing · you tapped it' : why === 'pick' ? 'now playing · from the six' : why === 'near' ? 'now playing · nearest in sound to the last one' : 'now playing · my most played, to start';
   text('#np-k', lead); text('#np-n', nm); text('#np-t', '');
   var a = $('#a-sp'); if (a) { a.hidden = false; a.href = 'https://open.spotify.com/search/' + encodeURIComponent(nm); }
-  var md = $('#mood'); if (md) {
-    while (md.children.length > 1) md.removeChild(md.lastChild);
-    var m = R.md[i];
-    for (k = 0; k < 4; k++) { var row = doc.createElement('div'); row.className = 'mb'; var sp = doc.createElement('span'); sp.textContent = R.prompts[m[k]]; var bar = doc.createElement('i'); bar.style.width = Math.max(6, m[4 + k]) + '%'; row.appendChild(sp); row.appendChild(bar); md.appendChild(row); }
-    md.hidden = false;
-  }
+  text('#cr-now', nm); var cr = $('#cr'); if (cr) cr.hidden = false;
   var ol = $('#near'); if (ol) {
     ol.textContent = '';
     R.nn[i].forEach(function (j) { var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.className = 'nr'; b.textContent = R.n[j]; b.addEventListener('click', function () { S.line = null; play(j, 'pick'); }); li.appendChild(b); ol.appendChild(li); });
@@ -181,25 +181,17 @@ function roomMine(j) {
   var s = R.s[j];
   text('#np-k', 'now playing · one of mine, placed by its sound'); text('#np-n', s.t.toLowerCase()); text('#np-t', 'by me, on the album. the gold squares are the album, heard by the same model.');
   var a = $('#a-sp'); if (a) a.hidden = true;
-  var md = $('#mood'); if (md) md.hidden = true;
-  var ol = $('#near'); if (ol) ol.textContent = '';
+  var cr = $('#cr'); if (cr) cr.hidden = true;
   var h = $('#hint'); if (h) h.textContent = '';
 }
-/* one transport: while a preview plays the album chip steps aside (css on html.sm-pv) and the now line says the album is underneath */
+/* one transport: while a preview plays the album chip steps aside (css on html.sm-pv) and the album itself holds */
 function ppLabel() { var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; b.classList.toggle('on', S.playing); } doc.documentElement.classList.toggle('sm-pv', !!S.playing); }
-function key() {
-  var k = $('#key'); if (!k) return; k.textContent = '';
-  var cnt = {}; for (var i = 0; i < R.f.length; i++) cnt[R.f[i]] = (cnt[R.f[i]] || 0) + 1;
-  var fams = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; });
-  fams.forEach(function (f) { var s = doc.createElement('span'), c = doc.createElement('i'); c.style.background = FAMC[R.fam[f]] || MUTE; s.appendChild(c); s.appendChild(doc.createTextNode(R.fam[f])); k.appendChild(s); });
-  var g = doc.createElement('span'), gi = doc.createElement('i'); gi.style.background = GOLD; g.appendChild(gi); g.appendChild(doc.createTextNode('my songs')); k.appendChild(g);
-  var v = doc.createElement('span'), vi = doc.createElement('i'); vi.style.background = VIOLET; v.appendChild(vi); v.appendChild(doc.createTextNode('nearest in sound')); k.appendChild(v);
-}
 
 /* ---------- sound ---------- */
-function album() { var M = window.__smMusic; return M && M.A ? M.A : null; }
-function duck() { var A = album(); if (A && A.el) A.el.volume = .15; if (!duckT) duckT = setInterval(function () { var B = album(); if (B && B.el && B.el.volume > .2) B.el.volume = .15; }, 400); }
-function unduck() { if (duckT) { clearInterval(duckT); duckT = 0; } var A = album(); if (A && A.el) A.el.volume = 1; }
+/* one sound at a time: the album holds while a preview plays and comes back when it stops. music.js calls __radioYield when the visitor presses the album, so the preview stops then */
+function duck() { var M = window.__smMusic; if (M && M.hold) M.hold(); }
+function unduck() { var M = window.__smMusic; if (M && M.release) M.release(); }
+window.__radioYield = function () { if (pv && !pv.paused) { S.user = true; pv.pause(); } };
 function el() {
   if (pv) return pv;
   pv = new Audio(); pv.preload = 'auto';
@@ -232,8 +224,7 @@ function sound(i) {
   if (q && q.catch) q.catch(function () { S.playing = false; unduck(); ppLabel(); });
 }
 function play(i, why) {
-  S.user = false; S.mine = -1;
-  var M = window.__smMusic; if (M && M.hold) M.hold();
+  S.user = false; S.mine = -1; duck();
   S.now = i; S.played[i] = 1; S.trail.push(i); if (S.trail.length > 14) S.trail.shift();
   room(i, why); sound(i); paint();
 }
@@ -309,7 +300,7 @@ doc.addEventListener('keydown', function (e) {
 var rt = 0;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (!R) return; fit(); still(); paint(); }, 120); });
 fetchJ('radio').then(function (j) {
-  R = j; fit(); still(); paint(); key();
+  R = j; fit(); still(); paint();
   var h = $('#hint'); if (h) h.textContent = phone ? 'squares are artists, near is alike. tap one, or drag a line.' : 'squares are artists, near is alike. tap one for 30 s, drag a line for a radio. n: next.';
   if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(function () { still(); paint(); });
   setTimeout(function () { prefetchPV().catch(function () { /* fetched again on the first press */ }); }, 2500);
