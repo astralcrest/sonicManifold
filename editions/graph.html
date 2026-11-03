@@ -376,7 +376,7 @@ SCN[2]=function(tl,a){ var comp=SM.genre.comp, F=SM.genre.fam_order.slice().sort
     [[comp.tap[f]||0,RGB.mint,0],[comp.queue[f]||0,RGB.violet,1]].forEach(function(b){ var w=b[0]/mx*wMax*g, yy=y+rowH*.18+b[2]*rowH*.34, h=rowH*.26;
       cx.globalAlpha=a*(hi?1:.55); var gr=cx.createLinearGradient(x0,0,x0+Math.max(w,1),0); gr.addColorStop(0,'rgba('+b[1]+',.25)'); gr.addColorStop(1,'rgb('+b[1]+')'); cx.fillStyle=gr; cx.fillRect(x0,yy,w,h);
       blob(b[1],x0+w,yy+h/2,h*2.2,a*(hi?.9:.4),0)});
-    if(hi){ var ww=Math.max(comp.tap[f]||0,comp.queue[f]||0)/mx*wMax*g; blob(col,x0-30,y+rowH/2,rowH*1.1,a*.3,0); text(f===FAM_AMB?(phone?'0.636x':'0.636x over-served'):(phone?'1.22x':'1.22x chosen'),x0+ww+10,y+rowH*.5+4,'700 '+(phone?10:13)+'px '+MONO,'rgb('+col+')','left',a*g)} });
+    if(hi){ var ww=Math.max(comp.tap[f]||0,comp.queue[f]||0)/mx*wMax*g; blob(col,x0-30,y+rowH/2,rowH*1.1,a*.3,0); text(f===FAM_AMB?(phone?'0.71x':'0.71x over-served'):(phone?'1.24x':'1.24x chosen'),x0+ww+10,y+rowH*.5+4,'700 '+(phone?10:13)+'px '+MONO,'rgb('+col+')','left',a*g)} });
   text('mint: what i pressed · violet: what the queue picked',STG.x+STG.w/2,top+rowH*8+(phone?14:20),'500 '+(phone?10:12)+'px '+MONO,'#8f9bbd','center',a); };
 
 /* 3 the hall: nodes are the base; rays and names here */

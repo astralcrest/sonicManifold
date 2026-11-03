@@ -177,7 +177,7 @@ Array.prototype.forEach.call(deep.querySelectorAll('.lv button'),function(b){b.a
  $('s3').textContent='tapped means '+(d.tapped||'a play i started by hand')+'. strict means '+(d.strict||'play button, track row or remote; back and skip presses left out')+'. served means '+(d.served||'the queue poured it in')+'.';
  var os=ga.over_served||{},ch=ga.chosen||{};
  $('g1').textContent='counted by play, ambient and lo-fi reach me mostly through the app; hip-hop and r&b are the ones i reach for.';
- $('g2').innerHTML='ambient/lofi <span class="num">'+(os.strict||'0.636')+'</span> under-tapped ['+(os.lo||'0.569')+', '+(os.hi||'0.710')+'] by the strictest count. hip-hop/r&b <span class="num">'+(ch.strict||'1.22')+'</span> over-tapped, the less firm of the two: counted per track, not per play, hip-hop reads below 1.';
+ $('g2').innerHTML='ambient/lofi <span class="num">'+(os.strict||'0.71')+'</span> under-tapped ['+(os.lo||'0.63')+', '+(os.hi||'0.79')+'] by the strictest count. hip-hop/r&b <span class="num">'+(ch.strict||'1.24')+'</span> over-tapped, the less firm of the two: per unique track it sits at baseline, 0.94 [0.87, 1.01].';
  $('g3').textContent='arm rate = tapped share within a family over the tapped share overall, strict definition, same-artist control, 28-day block bootstrap. families are a collapse of 1,067 tags; the fine tags only feed the tag-noise check.';
  $('b1').textContent=dr.short||'when i pick the next song i cross genre families slightly more often. a direction, not a size.';
  $('b2').innerHTML='<span class="num">'+(dr.tap||69.9)+'</span> vs <span class="num">'+(dr.queue||66.3)+'</span> of 100 next tracks crossed to another family, my hand vs the queue. ratio '+(dr.bi||1.05)+' ['+(dr.lo||1.03)+', '+(dr.hi||1.08)+'].';

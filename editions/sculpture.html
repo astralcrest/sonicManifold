@@ -133,7 +133,7 @@ dl.defs dd{font:400 17px/1.35 var(--serif);color:var(--paper);margin-top:4px}
 <section class="s" data-scene="3" aria-label="genre and intent">
   <div class="cap rv">
     <p class="c">genre is not robust to who pressed play: ambient/lofi is served, hip-hop is chosen.</p>
-    <p class="fp">by the strictest count: ambient/lofi 0.636x [0.569, 0.710], hip-hop &amp; r&amp;b 1.22x (the less firm of the two: counted per track, not per play, hip-hop reads below 1). hear one i pressed play on: <a href="https://open.spotify.com/track/3YKptz29AsOlm7WAVnztBh" target="_blank" rel="noopener">Kiss from a Rose, Seal</a>. one the queue served: <a href="https://open.spotify.com/track/4ILC7NiNS3xguWthgyPCHD" target="_blank" rel="noopener">Eyes Closed, Comet 1993</a>.</p>
+    <p class="fp">by the strictest count: ambient/lofi 0.71x [0.63, 0.79], hip-hop &amp; r&amp;b 1.24x [1.19, 1.29] (the less firm of the two: per unique track it sits at baseline, 0.94 [0.87, 1.01]), on the completed family map. hear one i pressed play on: <a href="https://open.spotify.com/track/3YKptz29AsOlm7WAVnztBh" target="_blank" rel="noopener">Kiss from a Rose, Seal</a>. one the queue served: <a href="https://open.spotify.com/track/4ILC7NiNS3xguWthgyPCHD" target="_blank" rel="noopener">Eyes Closed, Comet 1993</a>.</p>
   </div>
 </section>
 
@@ -446,10 +446,10 @@ function sceneGenre(){
     }
   }
   lab(bx[0],sy-14,'ambient/lofi','txt','w','t');
-  lab(bx[0],sy-34,'0.636x','num','i','t');
+  lab(bx[0],sy-34,'0.71x','num','i','t');
   lab(bx[0],sy+Ra+(PHONE?18:26),'over-served','txt','v');
   lab(bx[1],sy-14,'hip-hop · r&b','txt','w','t');
-  lab(bx[1],sy-34,'1.22x','num','m','t');
+  lab(bx[1],sy-34,'1.24x','num','m','t');
   lab(bx[1],sy+Rh+(PHONE?18:26),'chosen','txt','m');
 }
 function sceneMix(){
