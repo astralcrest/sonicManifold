@@ -493,7 +493,7 @@ on('#b-queue', function () { S.mode = 'queue'; S.line = null; walk(); text('#h-m
 on('#b-hand', function () { S.mode = 'hand'; S.line = null; breakRun(); text('#h-mode', 'my hand breaks the run: the next song is far in sound, another family. hear the jump.'); });
 function loadMaps() { if (!mapsP) mapsP = fetchJ('maps').then(function (j) { MAPS = j; wake(); return j; }, function () { mapsP = null; }); return mapsP; }
 function flyTo(t) { if (S.mt === t && S.mb === t) return; S.mFrom = S.mb; S.mt = t; S.mT0 = performance.now(); loadMaps(); wake(); }
-on('#m-sound', function () { flyTo(0); text('#m-mode', 'by sound. every line is short here, whichever hand drew it: the next artist sounds like the last. the queue\u2019s run sits a shade tighter.'); });
+on('#m-sound', function () { flyTo(0); text('#m-mode', 'by sound. every line is short here, whichever hand drew it. the queue\u2019s run sits a shade tighter.'); });
 on('#m-graph', function () { flyTo(1); text('#m-mode', 'by what followed. every line is short now, by construction: this map was drawn from the lines. the question is which map the other hand\u2019s lines respect.'); });
 on('#g-start', startGame); on('#g-keep', function () { answer(true, false); }); on('#g-go', function () { answer(false, false); });
 on('#w-start', whose); on('#w-me', function () { whAnswer(true); }); on('#w-app', function () { whAnswer(false); });
