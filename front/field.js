@@ -37,8 +37,11 @@ function rng(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F
 var rnd = rng((Date.now() / 1000) | 0);
 
 /* ---------- data ---------- */
+var FAM0 = null;
+function apple(i) { return !!(F.fa && FAM0 && F.fa[i] !== FAM0[i]); }
 function prep(j) {
   F = j; N = F.n.length; names = F.n; P3 = new Float32Array(N * 3);
+  FAM0 = F.f; if (F.fa && F.fa.length === N) F.f = F.fa; /* the display family: Last.fm, else Apple's label (disclosed) */
   var i, k;
   for (i = 0; i < N; i++) { P3[i * 3] = F.p[i][0] / 1000; P3[i * 3 + 1] = F.p[i][1] / 1000; P3[i * 3 + 2] = F.p[i][2] / 1000; }
   PMAX = 1; PL = [];
@@ -584,7 +587,7 @@ function room(i, why) {
   var h = F.h[i], p = h[0] + h[1] + h[2], hand = h[2] >= h[0] && h[2] >= h[1] ? 'the queue' : h[1] >= h[0] ? 'shuffle' : 'my press';
   var lead = why === 'stop' && S.line ? 'stop ' + (S.line.k + 1) + ' of ' + S.line.stops.length : why === 'near' ? 'the queue walks: nearest in sound, step ' + S.trail.length : why === 'break' ? 'my hand breaks the run: far in sound, step ' + S.trail.length : why === 'rim' ? 'who led to whom' : why === 'hood' ? 'the most played artist of that room' : why === 'log' ? 'the log walks: who followed it most, step ' + S.trail.length : why === 'find' ? 'found: zoomed to it' : why === 'game' ? '47 seconds: keep or let go' : 'now playing';
   text('#np-k', lead); text('#np-n', names[i]);
-  text('#np-h', p + ' plays · mostly ' + hand + ' · ' + F.fam[F.f[i]] + (scene === C_HOODS && MAPS && MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? ' · neighborhood ' + ROMAN[MAPS.c[i]] : ''));
+  text('#np-h', p + ' plays · mostly ' + hand + ' · ' + F.fam[F.f[i]] + (apple(i) ? ' (Apple\u2019s label)' : '') + (scene === C_HOODS && MAPS && MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? ' · neighborhood ' + ROMAN[MAPS.c[i]] : ''));
   text('#np-x', scene === C_MAPS ? 'lit: mint, my press before or after it; violet, the queue\u2019s run through it.' : scene === C_HOODS ? 'lit: its steps in the graph, in its room\u2019s color when both ends share the room.' : scene === C_HAND ? 'lit on the ring: who it followed and who followed it.' : 'the violet threads: its six nearest in sound. next walks there.');
   var a = $('#a-sp'); if (a) a.href = 'https://open.spotify.com/search/' + encodeURIComponent(names[i]);
   show('#np', true);

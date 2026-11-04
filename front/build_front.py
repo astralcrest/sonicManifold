@@ -160,6 +160,8 @@ def validate():
     if set(d['pv']['a']) != set(r['n']) or any(len(v) != 2 or not v[1].startswith('https://') for v in d['pv']['a'].values()):
         errs.append('pv: one title and one https preview per radio artist')
     fd = d['field']
+    if fd.get('fa') is not None and (len(fd['fa']) != n or any(not (0 <= x < len(fd['fam'])) for x in fd['fa'])):
+        sys.exit('field.json: fa (display family) is malformed')
     if fd['n'] != r['n'] or any(len(fd[k]) != n for k in ('p', 'xy', 'f', 'h', 'nn')) or fd['fam'] != r['fam']:
         errs.append('field: the radio artists, in the radio order, with a 3D position each')
     if len(fd['s']) != 23 or set(x['f'] for x in fd['s']) != set(t['f'] for t in d['tracks']['tracks']):
