@@ -122,6 +122,24 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 .fnote{margin:0;padding:0 16px;font:400 11px/1.5 var(--mono);color:var(--dim)}
 .fnote a{color:var(--dim)}
 .lz{font:400 11.5px/1.5 var(--mono);color:var(--dim);margin:0 0 8px}
+#np-x{display:block;font:400 11.5px/1.45 var(--mono);color:var(--ice);margin:2px 0 0;min-height:1.45em}
+.led{display:grid;grid-template-columns:6.2em minmax(0,1fr);gap:4px 10px;margin:0 0 12px;padding:10px 12px;background:var(--bg);border:1px solid var(--line)}
+.led b{font:500 11px/1.5 var(--mono);letter-spacing:.06em;text-transform:lowercase}
+.led span{font:400 13px/1.45 var(--sans);color:var(--ink);opacity:.9}
+.led .t{color:var(--mint)}.led .w{color:var(--ice)}.led .s{color:var(--gold)}.led .h{color:var(--dim)}
+.key{display:flex;flex-wrap:wrap;gap:4px 10px;margin:0 0 12px;padding:0}
+.key button{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 4px 0 0;border:0;background:transparent;color:var(--ink);font:500 11px/1 var(--mono);letter-spacing:.04em;cursor:pointer;opacity:.9;-webkit-tap-highlight-color:transparent}
+.key button i{display:block;width:10px;height:10px}
+.key button.on{color:var(--mint)}.key button.off{opacity:.35}
+#hl-list{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:2px}
+#hl-list button{appearance:none;-webkit-appearance:none;display:grid;grid-template-columns:12px minmax(0,1fr);grid-template-rows:auto auto;column-gap:10px;align-items:center;width:100%;min-height:40px;padding:5px 0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#hl-list button i{grid-row:1/3;width:12px;height:12px}
+#hl-list button b{font:600 13px/1.25 var(--sans)}#hl-list button span{font:400 10.5px/1.35 var(--mono);color:var(--dim)}
+#hl-list button.on b{color:var(--mint)}#hl-list button:hover b{color:var(--mint)}
+.find{display:flex;gap:8px;align-items:center;margin:8px 0 0}
+.find input{flex:1;min-width:0;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--ink);font:400 13px/1 var(--sans)}
+.find input:focus{outline:2px solid var(--ice);outline-offset:1px}
+#f-r{font:400 11px/1.4 var(--mono);color:var(--dim);min-height:1.4em;margin:4px 0 0}
 @media (min-width:900px){
  :root{--top:100dvh}
  #stage{width:calc(100% - var(--col));height:100dvh}
@@ -149,7 +167,7 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 <canvas id="field" aria-label="every artist i have heard as a crisp point in a three-dimensional sound map, sized by plays, colored by the hand that played it most; the scroll turns the field into a ring of who led to whom, the same artists drawn by what followed what, two rows of kept songs, the newest months, and my own songs in gold. tap a point to hear 30 seconds of it, or drag a line for a radio of stops along it"></canvas>
 <header class="top" id="top"><a class="brand" href="./">sonic manifold<small>by astralcrest</small></a><button type="button" class="chip pill" id="b-sound" aria-label="play or pause my album">sound</button></header>
 <nav class="dots" aria-label="the seven acts"><a href="#a-count"><i></i><span>the count</span></a><a href="#a-hand"><i></i><span>the hand</span></a><a href="#a-maps"><i></i><span>the two maps</span></a><a href="#a-hoods"><i></i><span>the neighborhoods</span></a><a href="#a-keep"><i></i><span>what stays</span></a><a href="#a-coda"><i></i><span>the coda</span></a><a href="#a-record"><i></i><span>the record</span></a></nav>
-<div id="hint" aria-hidden="true">tap a point to hear it. drag a line for a radio.</div>
+<div id="hint" aria-hidden="true">tap a point to hear it. drag a line for a radio. pinch to zoom.</div>
 </div>
 <main id="col">
 <div id="np" aria-live="polite" hidden>
@@ -157,6 +175,7 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
   <b id="np-n"></b>
   <span id="np-t"></span>
   <small id="np-h"></small>
+  <small id="np-x"></small>
   <div class="row">
     <button type="button" class="chip" id="b-pp">pause</button>
     <button type="button" class="chip" id="b-next">next</button>
@@ -169,7 +188,8 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 <p class="kick">the count &middot; my spotify log, 2019 to 2026, in seven acts you can play.</p>
 <h1 id="hl">the queue fills my hours. <span>my hand fills my library.</span></h1>
 <p class="so">of every 100 plays, i pressed play on <b>19</b>. shuffle took 17. the queue took 64. the color is the hand: <span style="color:var(--mint)">mint, me</span>; <span style="color:var(--amber)">amber, shuffle</span>; <span style="color:var(--violet)">violet, the queue</span>.</p>
-<p class="how">how: every artist i have heard, placed by how it sounds to a model (CLAP, three 30 s previews each; three axes, UMAP). near = alike to the model, not to me. tap a point; drag a line for a radio of stops.</p>
+<div class="led"><b class="t">takeaway</b><span>most of my hours were chosen by the app. most of my library was chosen by me.</span><b class="w">why</b><span>a listening log is two hands writing one diary. the first job is to tell them apart.</span><b class="s">in the story</b><span>every act below holds the two hands side by side: by sound, by what followed, by what stayed.</span></div>
+<p class="how">how: every artist i have heard, placed by how it sounds to a model (CLAP, three 30 s previews each; three axes, UMAP). near = alike to the model, not to me. size = plays. tap a point to hear it; drag a line for a radio of stops; pinch to zoom, double tap to reset.</p>
 <p class="lz">the field is loading…</p>
 <div class="game" id="whose">
   <small class="k" id="w-k">whose hand? ten songs from the log. guess who pressed play.</small>
@@ -189,6 +209,7 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 <div class="br"><b>after the queue</b><i style="background:var(--violet);width:95%"></i><span>81 of 100</span></div>
 <div class="br"><b>after shuffle</b><i style="background:var(--amber);width:75%"></i><span>64 of 100</span></div>
 <p class="how">back within a week, by the hand that started it. the one result the newest months could judge, and it held: an artist i brought in myself came back in a later sitting within a week more often than one the queue brought in, at the same familiarity, in plays the analysis never saw.</p>
+<div class="led"><b class="t">takeaway</b><span>my press jumps a little farther in sound than the queue's next pick, and what i bring in comes back sooner.</span><b class="w">why</b><span>if the queue only walks to the nearest sound, every press of mine is a measured step off its path.</span><b class="s">in the story</b><span>this is the headline's mechanism: the hand is the part of the log that moves.</span></div>
 <div class="game">
   <small class="k">hear it: two ways to choose the next song</small>
   <div class="row"><button type="button" class="chip" id="b-queue">be the queue</button><button type="button" class="chip" id="b-hand">be my hand</button></div>
@@ -201,26 +222,32 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 <section class="act" id="a-maps" aria-labelledby="h-maps">
 <p class="kick">the two maps</p>
 <h2 id="h-maps">the same artists, drawn twice: <span>by how they sound, and by what followed what.</span></h2>
-<p class="so">every point is an artist. the first map places them by sound; the second by the log, each artist pulled toward the ones that played next to it. a model shown months it never saw told my link from the queue&rsquo;s about 69 times in 100 from how connected the two artists were, how familiar the second was and who chose the song before; about 78 once it knew whether the queue had already played that pair. the gain is the queue repeating itself, not the shape of the network. <span class="mint">mint: two artists my hand pressed one after the other.</span> <span style="color:var(--violet)">violet: two the queue played in a row.</span></p>
+<p class="so">every point is an artist. the first map places them by sound; the second by the log, each artist pulled toward the ones that played next to it. <span class="mint">mint: two artists my hand pressed one after the other.</span> <span style="color:var(--violet)">violet: two the queue played in a row.</span></p>
 <div class="game" id="maps">
-  <small class="k">fly between the maps</small>
-  <div class="row"><button type="button" class="chip" id="m-sound">by sound</button><button type="button" class="chip" id="m-graph">by what followed</button></div>
-  <p class="r" id="m-mode">by sound. every line is short here, whichever hand drew it. the queue&rsquo;s run sits a shade tighter.</p>
+  <small class="k">fly between the maps, or watch the second one grow</small>
+  <div class="row"><button type="button" class="chip on" id="m-sound">by sound</button><button type="button" class="chip" id="m-graph">by what followed</button><button type="button" class="chip" id="m-grow">as it grew</button></div>
+  <p class="r" id="m-mode">by sound: a model&rsquo;s ear placed every artist. every line is short here, whichever hand drew it; the queue&rsquo;s run sits a shade tighter.</p>
+  <div class="find"><input id="f-q" list="f-names" type="search" placeholder="find an artist, zoom to it" aria-label="find an artist" autocomplete="off"><datalist id="f-names"></datalist></div>
+  <p id="f-r"></p>
 </div>
-<p class="how">how: the second map is a force layout of the transition graph (consecutive plays inside a sitting, different artists, shuffle steps dropped), the same 1,871 artists. a press line joins two presses of mine with nothing but the queue between them; a queue line joins two served plays in a row. 1,600 lines of each, drawn at random, so the eye compares spread, not count. tap a point to hear it in either map.</p>
+<div class="led"><b class="t">takeaway</b><span>a model shown months it never saw told my link from the queue&rsquo;s about 69 times in 100; about 78 once it knew the queue had played that pair before. the gain is the queue repeating itself, not the shape of the network.</span><b class="w">why</b><span>two geometries of the same artists: one a model hears, one the log walked. where they disagree is where a hand was.</span><b class="s">in the story</b><span>the sound map is act one's field, flattened. the second map is where the neighborhoods come from.</span></div>
+<p class="how">how: the second map is a force layout of the transition graph (consecutive plays inside a sitting, different artists, shuffle steps dropped), the same 1,871 artists. a press line joins two presses of mine with nothing but the queue between them; a queue line joins two served plays in a row. 1,600 lines of each, drawn at random, so the eye compares spread, not count. color = family (Last.fm labels); tap a family in the key to light it. tap a point to hear it in either map; pinch to zoom.</p>
+<div class="key" id="key" aria-label="the families"></div>
 <details class="deep"><summary>deeper</summary><p id="m-deep">seven pre-registered lanes on the two geometries ran on 2026-11-03, the plan hashed before any number, each lane re-run by an adversarial referee. one held on months the analysis never saw: on those months, shown one link that followed my press and one the queue made, a model picked mine about 69 times in 100 knowing only how connected the two artists were, how familiar the second one was and who chose the song before, and about 78 times in 100 once it also knew whether the queue had already played that pair; chance is 50, and the gain comes from the queue repeating itself, not from the shape of the network around them. one is descriptive: the links my hand made at both ends follow sound too, far closer than random pairs; the queue&rsquo;s own links sit a shade closer in sound, a difference too small to certify. the other five (who walked a pair first, where new artists enter, whether my press share clusters on either map, the flow between families, a per-hand model of the next artist) fell under their bars or ran the other way and get no sentence; they live in the lab and the paper. nothing in this act is a size.</p></details>
 </section>
 
 <section class="act" id="a-hoods" aria-labelledby="h-hoods">
 <p class="kick">the neighborhoods</p>
 <h2 id="h-hoods">the log sorts itself into <span>11 neighborhoods.</span></h2>
-<p class="so">no sound, no label, no hand went in: only which artist followed which. the 8 largest hold 1758 artists of the 1823 on the map. each takes its name from the family that fills it most, and its numeral from its size.</p>
+<p class="so">no sound, no label, no hand went in: only which artist followed which. the 8 largest hold 1758 artists of the 1823 on the map. each takes its name from the family that fills it most, and its numeral from its size. tap a room to light it and hear its most played artist.</p>
+<ol id="hl-list" aria-label="the eight largest neighborhoods"></ol>
 <div class="game" id="hoods">
-  <small class="k">color the same shape two ways</small>
-  <div class="row"><button type="button" class="chip" id="n-hood">by neighborhood</button><button type="button" class="chip" id="n-hand">by the hand</button></div>
-  <p class="r" id="n-mode">colored by neighborhood. the label is the family that fills it most; the shape is the second map.</p>
+  <small class="k">color the same shape three ways, or walk it</small>
+  <div class="row"><button type="button" class="chip on" data-c="hood">by neighborhood</button><button type="button" class="chip" data-c="family">by family</button><button type="button" class="chip" data-c="first">by first heard</button><button type="button" class="chip" id="n-walk">the log walks</button></div>
+  <p class="r" id="n-mode">colored by neighborhood: eleven rooms the log drew from what followed what alone; the outline is the room.</p>
 </div>
-<p class="how">how: Louvain communities on the transition graph (the second map's graph, edges unweighted, resolution 1, one fixed seed), giant component only, 48 artists outside it sit on the rim. the share of each neighborhood's inside steps the queue took runs from 64 to 95 of 100. descriptive: a partition is a reading of the graph, not a finding about me.</p>
+<div class="led"><b class="t">takeaway</b><span>the log sorts itself into rooms without being told a family or a hand. each room's label is a reading of what fills it, not a finding about me.</span><b class="w">why</b><span>a room the queue walks alone would be a playlist; a room my hand walks would be a taste. the share of inside steps the queue took, 64 to 95 of 100 across the rooms, is that reading.</span><b class="s">in the story</b><span>the rooms are the second map's structure made visible. none of the community tests earned a sentence; this act is a picture.</span></div>
+<p class="how">how: Louvain communities on the transition graph (the second map's graph, edges unweighted, resolution 1, one fixed seed), giant component only, 48 artists outside it sit on the rim. first-order communities, mis-specified for the queue: its next artist depends on the last two, not one. lines = the graph's own edges, 2,400 drawn at random, colored when both ends share the color key. descriptive: a partition is a reading of the graph, not a finding about me.</p>
 <details class="deep"><summary>deeper</summary><p id="n-deep">the partition is one of many a different seed or resolution would draw, so no number on this act is certified. six pre-registered lanes ran on these neighborhoods on 2026-11-03, the plan hashed before any number, each lane re-run by an adversarial referee. none of the community lanes earned a sentence: the communities of my own press graph would not hold still across seeds (stability under the 0.80 bar at every resolution), so their agreement with sound or with the families is listed, not read; whether my press lands inside its neighborhood more often than the queue's step came out undetermined (the planted null's spread was wider than the plan allowed, with every other bar met); persistence across periods had no same-size ceiling to read against. two descriptions survived: the queue's next artist depends on the last two, not one; mine does not clearly depend on more than the last one. and the same run-break shows in a hand-crafted timbre measure, at artist level. the full rows live in the lab and the paper.</p></details>
 </section>
 
@@ -233,7 +260,8 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
   <p class="r" id="g-score"></p>
   <div class="row"><button type="button" class="chip" id="g-start">play: 47 seconds</button><span id="g-ans" hidden><button type="button" class="chip" id="g-keep">keep</button> <button type="button" class="chip" id="g-go">let it go</button></span></div>
 </div>
-<p class="how">how: the library is the account data, 3,529 liked tracks. kept = in it today. only songs that were not yet in it when they played count. the lane reruns unchanged on the next export.</p>
+<div class="led"><b class="t">takeaway</b><span>i keep what i press: 42 of 100 against the queue's 16. the like lands on the first hearing, 47 seconds in.</span><b class="w">why</b><span>a kept song is the one trace of taste the app did not write.</span><b class="s">in the story</b><span>the two rows above are the headline's second half: my hand fills my library.</span></div>
+<p class="how">how: the library is the account data, 3,529 liked tracks. kept = in it today. only songs that were not yet in it when they played count. the ruler is the first minute of a first hearing; the mark is where the like lands (median). the lane reruns unchanged on the next export.</p>
 <details class="deep"><summary>deeper</summary><p>artists my hand introduced are in the library 68 of 100 times, the queue's 30 (RR 2.27 [1.88, 2.78]); liked artists are still playing a year later 0.84 against 0.57. a like does not change the hand: +0.05 [&minus;0.05, +0.19], killed; it marks a peak (+0.64 plays a day), not a turn. liked artists sit nearer the center of what i play, in sound (&minus;0.18, permutation p &lt; 0.0005, placebo +0.02 the other way; in-sample). 19 in 20 searches were artists i already knew. 44 of 45 unlikes came within 39 seconds of the like: thumb slips. on the first hearing of a song, i kept the ones i pressed more often than the ones the queue chose, even against artists i knew as well (in-sample, awaiting replication); when i keep a song on first hearing, i usually decide within the first minute. ledger rows 347 to 380.</p></details>
 </section>
 
@@ -246,6 +274,7 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
  <li><s>a search is exploration</s><small>19 in 20 search-led plays were artists i had already played. i search to go home.</small></li>
  <li><s>a like changes the hand</s><small>+0.05 [&minus;0.05, +0.19]. a like is a peak, not a turn.</small></li>
 </ul>
+<div class="led"><b class="t">takeaway</b><span>the newest months could not re-judge the headline. shuffle fell from 17 to 1.5 of 100 and the queue rose to 75.</span><b class="w">why</b><span>a result that cannot be re-judged is not wrong. it is waiting.</span><b class="s">in the story</b><span>three claims above did not survive; the graveyard holds every one that fell, with what killed it.</span></div>
 <p class="how">killed stays killed. the graveyard holds every claim that did not survive, with what killed it.</p>
 <details class="deep"><summary>deeper</summary><p>across the whole log, by era: the frozen export, 96,740 plays, 11.6 of 100 pressed, 7.7 reached by the skip or back button, 16.8 shuffle, 64.0 the queue; the months after it, 20,425 plays, 12.0, 11.8, 1.5, 74.6. the headline numbers stay those of the frozen export; the whole log only adds the counts by era. the newest months are six clusters of 28 days, so their intervals are wide.</p></details>
 <nav class="doors" aria-label="the coda's doors"><a class="door" href="lab.html#graveyard">the graveyard</a><a class="door" href="researcher.html">the report</a></nav>
@@ -270,8 +299,8 @@ details.deep p{margin:0;padding:0 12px 10px;font-size:12.5px;line-height:1.5;col
 </section>
 </main>
 <div id="player-dock"></div>
-<script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"c81287ac4c","pv":"381d21eeee","field":"295626c3ff","maps":"935bff627d"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,field:true};})();</script>
-<script src="front/field.js?v=d5fe1a54ee" defer></script>
+<script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"c81287ac4c","pv":"381d21eeee","field":"295626c3ff","maps":"ee570e8a00"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,field:true};})();</script>
+<script src="front/field.js?v=d84fea4e24" defer></script>
 <script src="front/music.js?v=39372afec0" defer></script>
 </body>
 </html>

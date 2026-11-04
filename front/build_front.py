@@ -169,14 +169,16 @@ def validate():
     mp = d['maps']
     if len(mp['g']) != n or any(len(p) != 2 or not (0 <= p[0] <= 1000 and 0 <= p[1] <= 1000) for p in mp['g']):
         errs.append('maps: one second-map position per radio artist, 0 to 1000')
-    if not mp['lp'] or not mp['lq'] or any(len(x) != 3 or x[0] >= n or x[1] >= n or not (0 <= x[2] <= 1000) for x in mp['lp'] + mp['lq']):
-        errs.append('maps: press-to-press and queue-run pairs as index pairs with a weight')
-    if set(mp) != {'v', 'g', 'lp', 'lq', 'k', 'c', 'cm'}:
-        errs.append('maps: carries more than the two maps and the neighborhoods need')
+    if not mp['lp'] or not mp['lq'] or not mp['le'] or any(len(x) != 4 or x[0] >= n or x[1] >= n or not (0 <= x[2] <= 1000) or not (0 <= x[3] <= 8) for x in mp['lp'] + mp['lq'] + mp['le']):
+        errs.append('maps: press-to-press, queue-run and graph pairs as index pairs with a weight and a cut (0 to 8, never a date)')
+    if set(mp) != {'v', 'g', 'lp', 'lq', 'le', 'nb', 'k', 'c', 'cm'}:
+        errs.append('maps: carries more than the two maps, the neighborhoods and the walk need')
+    if len(mp['nb']) != n or any(len(x) != 4 or any(j >= n for j in x) for x in mp['nb']):
+        errs.append('maps: four graph neighbors per artist, indices only')
     n_c = len(mp['cm'])
-    if len(mp['c']) != n or any(not (-1 <= c < n_c) for c in mp['c']) or any(len(x) != 3 or not (0 <= x[2] <= 1000) for x in mp['cm']):
-        errs.append('maps: a neighborhood index per artist (-1 outside the giant component) and [size, family, queue share] per neighborhood')
-    if any(isinstance(x, str) for x in mp['cm']) or any(x[1] >= len(r['fam']) for x in mp['cm']):
+    if len(mp['c']) != n or any(not (-1 <= c < n_c) for c in mp['c']) or any(len(x) != 6 or not (0 <= x[2] <= 1000) or not (0 <= x[3] <= 1000) for x in mp['cm']):
+        errs.append('maps: a neighborhood index per artist (-1 outside the giant component) and [size, family, queue share, family share, second family, its share] per neighborhood')
+    if any(isinstance(x, str) for x in mp['cm']) or any(x[1] >= len(r['fam']) or x[4] >= len(r['fam']) for x in mp['cm']):
         errs.append('maps: a neighborhood is named by a family index, never by a string')
     return d, errs
 
