@@ -21,6 +21,7 @@ var N = 0, P3 = null, PL = [], PMAX = 1, SZ = [], FC = [], HC = [], NN = [], KNN
 var SX = [], SY = [], SA = [], SR = [];       /* screen x, y, alpha, radius this frame */
 var RING = [], RA = {}, RI = {}, RF = [], GA = {}, TX = [], EDG = [], RPX = null, RPY = null, RRING = 1, LASP = 1, RL = null, rlP = null, ZD = null, MINE = [], Q = [], SONG = [], SNB = [], RD = [], RLONE = 0, RZERO = 0, RNODOT = 0, KB = null, LFM = 0, APPL = 0, NOLAB = 0;
 var KNN2 = null, NB2 = null, DW = [], PG = null, CLB = null;
+var VA = null, lastIn = -1e9, lastPaint = 0, ZMAX = 24, hold = 0, lastTap = null, zc = null, fitB = null, drawB = null, zcOn = false, zcT = '', ov = null, ovg = null, ovRaf = 0, domC = null, domT = -1e9, domStale = true;
 var scene = 0, blend = 0, from = 0, tStart = 0, yaw = 0.62, pitch = 0.36, last = 0, raf = 0, dirty = true;
 var S = { now: -1, line: null, drag: null, played: {}, playing: false, pend: -1, errs: 0, user: false, hover: -1, mine: -1, mode: '', trail: [], rim: -1, game: null, wh: null, pips: null, mt: 0, mb: 0, mFrom: 0, mT0: 0, color: '', fam: -1, hoodHi: -1, grow: null, keepT0: 0, sn: 0, tn: [], hoodSeen: false, look: 0, lookFrom: 0, lookT0: 0, lookB: 1, like: { on: false, seq: null, k: 0 }, zb: 0 };
 /* the curve radio's camera: a glide on top of the view, eased toward the stop that is playing (field acts only) */
@@ -107,6 +108,8 @@ function fit() {
   var b = stage.getBoundingClientRect(); W = Math.max(1, Math.round(b.width)); H = Math.max(1, Math.round(b.height));
   phone = W < 700 || innerWidth < 900; DPR = Math.min(3, Math.max(1, Math.round((window.devicePixelRatio || 1) * 2) / 2));
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  if (ov) { ov.width = cv.width; ov.height = cv.height; }
+  domStale = true;
   var i, smin = phone ? 1.3 : 1.6, smax = phone ? 4 : 5.5; SZ = [];
   for (i = 0; i < N; i++) SZ.push(smin + (smax - smin) * Math.sqrt(PL[i] / PMAX));
   pathsDirty = true; dirty = true;
@@ -134,12 +137,26 @@ function isField(k) { return k === C_COUNT || k === C_RECORD; }
 /* zoom about a screen point: the artist under the finger stays under the finger */
 function zoomAt(mx, my, f) {
   if (isField(scene) && (GL.x || GL.y || GL.z !== 1)) unglide();
-  var z = Math.min(8, Math.max(1, view.z * f)); f = z / view.z; if (f === 1) return;
+  VA = null;
+  var z = Math.min(ZMAX, Math.max(1, view.z * f)); f = z / view.z; if (f === 1) return;
   var cx = cam.cx, cy = cam.cy; cx = mx - (mx - cx) * f; cy = my - (my - cy) * f;
   view.z = z; view.px = cx - cam0.cx; view.py = cy - cam0.cy; clampView(); pathsDirty = true; wake();
 }
+/* an eased move of the view (200 ms): double tap, keys, fit, find. the target is a zoom and the screen point that ends up under (tx, ty) */
+function animView(z1, x1, y1, ms) {
+  if (isField(scene) && (GL.x || GL.y || GL.z !== 1)) unglide();
+  VA = { t0: performance.now(), dur: reduce ? 1 : ms, z0: view.z, z1: z1, x0: cam.cx, y0: cam.cy, x1: x1, y1: y1 }; wake();
+}
+function zoomTo(mx, my, zt, ms) { zt = Math.min(ZMAX, Math.max(1, zt)); var f = zt / view.z; animView(zt, mx - (mx - cam.cx) * f, my - (my - cam.cy) * f, ms || 200); }
+function stepView(now) {
+  if (!VA) return;
+  var e = ease((now - VA.t0) / VA.dur);
+  view.z = VA.z0 * Math.pow(VA.z1 / VA.z0, e);
+  view.px = VA.x0 + (VA.x1 - VA.x0) * e - cam0.cx; view.py = VA.y0 + (VA.y1 - VA.y0) * e - cam0.cy;
+  if (e >= 1) { view.z = VA.z1; VA = null; } clampView(); pathsDirty = true;
+}
 function clampView() { if (view.z <= 1) { view.z = 1; view.px = 0; view.py = 0; return; } var lim = cam0.r * view.z; view.px = Math.max(-lim, Math.min(lim, view.px)); view.py = Math.max(-lim, Math.min(lim, view.py)); }
-function resetView() { view.z = 1; view.px = 0; view.py = 0; GL.x = 0; GL.y = 0; GL.z = 1; if (S.line) S.line.follow = false; pathsDirty = true; wake(); }
+function resetView() { if (isField(scene) && (GL.x || GL.y || GL.z !== 1)) unglide(); GL.x = 0; GL.y = 0; GL.z = 1; if (S.line) S.line.follow = false; S.drawArm = false; animView(1, cam0.cx, cam0.cy, 220); }
 
 /* ---------- scenes ---------- */
 var SCENES = ['count', 'hand', 'maps', 'hoods', 'keep', 'coda', 'record'];
@@ -150,7 +167,7 @@ var ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 
 function setScene(k) {
   if (k === scene) return;
   from = scene; scene = k; blend = 0; tStart = 0; dirty = true;
-  S.hover = -1; S.rim = -1; S.fam = -1; S.hoodHi = -1; S.grow = null; view.z = 1; view.px = 0; view.py = 0; GL.x = 0; GL.y = 0; GL.z = 1; pathsDirty = true;
+  S.hover = -1; S.rim = -1; S.fam = -1; S.hoodHi = -1; S.grow = null; view.z = 1; view.px = 0; view.py = 0; VA = null; S.drawArm = false; GL.x = 0; GL.y = 0; GL.z = 1; pathsDirty = true;
   if (k !== C_MAPS) S.like.seq = null;
   if (k === C_HAND) loadRing();
   S.color = k === C_HOODS ? 'hood' : 'family'; chips();
@@ -211,7 +228,7 @@ function layout(now) {
   /* as it grew: the second map assembles in the order the log happened, eight cuts by sitting count */
   var gc = 9;
   if (S.grow && (scene === C_MAPS || scene === C_HOODS)) { gc = reduce ? 8 : 8.2 * ease((now - S.grow.t0) / (S.grow.dur || 11000)); if (gc >= 8) { gc = 8; S.grow.done = true; } S.grow.c = gc; }
-  frame();
+  stepView(now); frame();
   if (scene === C_HAND || from === C_HAND) ringPos(now);
   var i, k = blend;
   for (i = 0; i < N; i++) {
@@ -488,20 +505,22 @@ function word(g, x, y, t, fs, w, mono, fill, fixed) {
   g.fillStyle = fill; g.fillText(t, b[0] + 3, (b[1] + b[3]) / 2);
 }
 /* labels keep off the rail, the card, the drawer and the player on a desk */
-var DOMW = ['.dots', '#b-deep', '#np', '.plate', '.dr', '#hint', '.top .brand', '.top .tr'];
-function domWords() {
+var DOMW = ['.dots', '#b-deep', '#np', '.plate', '.dr', '#hint', '.top .brand', '.top .tr', '#zc'];
+function domWords(now) {
   if (phone) return [];
+  if (domC && !domStale && now - domT < 160) return domC.slice();
   var out = [], sb = stage.getBoundingClientRect(), i, j, es, r;
   for (i = 0; i < DOMW.length; i++) {
     es = $$(DOMW[i]);
     for (j = 0; j < es.length; j++) { r = es[j].getBoundingClientRect(); if (r.width > 0 && r.bottom > sb.top && r.top < sb.bottom) out.push([r.left - sb.left - 4, r.top - sb.top - 4, r.right - sb.left + 4, r.bottom - sb.top + 4]); }
   }
-  return out;
+  domC = out; domT = now; domStale = false;
+  return out.slice();
 }
 function paint(now) {
   var g = ctx, i, k;
   g.setTransform(DPR, 0, 0, DPR, 0, 0); g.fillStyle = BG; g.fillRect(0, 0, W, H);
-  layout(now); words = domWords(); DW = words.slice(); KB = keyBox(g); if (KB) words.push(KB);
+  layout(now); words = domWords(now); DW = words.slice(); KB = keyBox(g); if (KB) words.push(KB);
   var inRing = scene === 1 && blend >= 1, field = scene !== 1, grown = reveal >= 8;
   /* threads in the field (desk): the skeleton of the map, three nearest each */
   if (field && !phone && (scene === C_COUNT || scene === C_RECORD) && blend >= 1 && grown) {
@@ -566,7 +585,7 @@ function paint(now) {
   /* the artists */
   var tint = scene === 0 || (from === 0 && blend < 1 && scene !== 1), cmap = (scene === C_MAPS || scene === C_HOODS) ? (S.color || (scene === C_HOODS ? 'hood' : 'family')) : '';
   for (k = 0; k < N; k++) {
-    i = TOP[N - 1 - k]; var a = SA[i]; if (a <= 0.01) continue;
+    i = TOP[N - 1 - k]; var a = SA[i]; if (a <= 0.01 || SX[i] < -24 || SX[i] > W + 24 || SY[i] < -24 || SY[i] > H + 24) continue;
     var col = cmap ? colorOf(i, cmap) : scene === 1 && blend >= 1 ? FC[i] : tint ? HC[i] : FC[i];
     if (LKs && !LKo[i]) a *= 0.4;
     if (scene === C_RECORD && !isNb(i)) a *= 0.5;
@@ -603,7 +622,6 @@ function paint(now) {
   }
   /* the curve and its stops */
   var L = S.line, lo = [0, 0], lo2 = [0, 0];
-  if (S.drag && S.drag.on && S.drag.pts) { g.strokeStyle = MINT; g.lineWidth = 1.5; g.beginPath(); for (k = 0; k < S.drag.pts.length; k++) { if (k) g.lineTo(S.drag.pts[k][0], S.drag.pts[k][1]); else g.moveTo(S.drag.pts[k][0], S.drag.pts[k][1]); } g.stroke(); }
   if (L && scene === L.scene) {
     g.strokeStyle = 'rgba(188,211,255,.42)';
     for (k = 1; k < L.c.length; k++) { lineXY(L, L.c[k - 1], lo); lineXY(L, L.c[k], lo2); g.lineWidth = L.cam ? 2.8 - 2.2 * depthAt(L, L.c[k]) : 1; g.beginPath(); g.moveTo(lo[0], lo[1]); g.lineTo(lo2[0], lo2[1]); g.stroke(); }
@@ -900,13 +918,16 @@ function clDraw(g) {
 
 /* ---------- the loop ---------- */
 function tick() { if (!raf) raf = requestAnimationFrame(step); }
+function canSpin(now) { return !reduce && (scene === 0 || scene === C_RECORD) && !S.drag && !S.pinch && !VA && view.z <= 1.05 && blend >= 1 && !S.line && S.hover < 0 && now - lastIn > 1500; }
 function step(now) {
   raf = 0;
-  var moving = blend < 1 || reveal < 8 || (S.game && S.game.on) || S.drag || S.mb !== S.mt || (S.grow && !S.grow.done) || (scene === C_KEEP && S.keepT0 && now - S.keepT0 < 1900) || gliding || S.lookB < 1;
-  if (!reduce && (scene === 0 || scene === C_RECORD) && !S.drag && blend >= 1 && !S.line) { yaw += 0.00045 * Math.min(40, now - (last || now)); moving = true; }
-  last = now;
-  paint(now);
-  if (moving || dirty) { dirty = false; tick(); }
+  var other = blend < 1 || reveal < 8 || (S.game && S.game.on) || !!VA || S.mb !== S.mt || (S.grow && !S.grow.done) || (scene === C_KEEP && S.keepT0 && now - S.keepT0 < 1900) || gliding || S.lookB < 1, spin = canSpin(now);
+  /* a slow turn needs 30 frames a second, not 120: the frames go to the hand */
+  if (spin && !other && !dirty && now - lastPaint < 30) { tick(); return; }
+  if (spin) yaw += 0.00045 * Math.min(60, now - (last || now));
+  last = now; lastPaint = now;
+  paint(now); zcSync();
+  if (other || spin || dirty) { dirty = false; tick(); }
 }
 function wake() { dirty = true; tick(); }
 function walkMode(m) { if (S.mode !== m) { S.trail = []; S.tn = []; S.sn = 0; } S.mode = m; S.line = null; }
@@ -930,50 +951,131 @@ function nearRim(x, y) {
   return best;
 }
 function pinch() { var ids = Object.keys(PTRS); if (ids.length < 2) return null; var a = PTRS[ids[0]], b = PTRS[ids[1]]; return { d: Math.hypot(a[0] - b[0], a[1] - b[1]), x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2 }; }
+/* one machine. a finger or mouse goes down: under 10 px and 300 ms it is a tap (a second tap near the first zooms in there);
+   past 10 px it is a pan when the view is zoomed, a drawn curve when it is not; zoomed, a half-second hold or the draw chip arms a curve.
+   two fingers: pinch about their midpoint, or the depth dial. the curve is drawn on its own canvas so the field never waits on it. */
+var TAP_PX = 10, TAP_MS = 300, LP_MS = 380;
+function drawing() { return !!(S.drag && S.drag.mode === 'draw'); }
+function ovBegin(d) { d.ovi = 0; d.on = true; ovFlush(); }
+function ovFlush() {
+  ovRaf = 0; var d = S.drag; if (!ov || !d || d.mode !== 'draw') return;
+  ovg.setTransform(DPR, 0, 0, DPR, 0, 0); ovg.strokeStyle = MINT; ovg.lineWidth = 1.5; ovg.lineJoin = 'round';
+  var k = Math.max(1, d.ovi || 1); ovg.beginPath(); ovg.moveTo(d.pts[k - 1][0], d.pts[k - 1][1]);
+  for (; k < d.pts.length; k++) ovg.lineTo(d.pts[k][0], d.pts[k][1]);
+  ovg.stroke(); d.ovi = d.pts.length;
+}
+function ovClear() { if (ov) ovg.clearRect(0, 0, ov.width, ov.height); }
+function endHold() { clearTimeout(hold); hold = 0; }
 cv.addEventListener('pointerdown', function (e) {
-  if (e.button && e.button !== 0) return;
-  clStop();
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  clStop(); VA = null; lastIn = e.timeStamp; domStale = true;
   var p = at(e); PTRS[e.pointerId] = p;
-  if (Object.keys(PTRS).length >= 2) { S.drag = null; S.pinch = pinch(); S.pinch.d0 = S.pinch.d; S.pinch.y0 = S.pinch.y; S.pinch.zb0 = S.zb; S.pinch.mode = ''; wake(); return; }
-  S.drag = { x0: p[0], y0: p[1], x1: p[0], y1: p[1], on: false, id: e.pointerId, t: e.timeStamp, pan: view.z > 1.05 && scene !== 1, px: view.px, py: view.py, pts: [[p[0], p[1], e.timeStamp]] };
-  if (S.drag.pan && isField(scene) && (GL.x || GL.y || GL.z !== 1)) unglide();
   try { cv.setPointerCapture(e.pointerId); } catch (x) { /* fine */ }
+  if (Object.keys(PTRS).length >= 2) {
+    endHold(); S.drag = null; ovClear();
+    var q = pinch(); q.d = Math.max(24, q.d); q.d0 = q.d; q.x0 = q.x; q.y0 = q.y; q.zb0 = S.zb; q.mode = ''; S.pinch = q; wake(); return;
+  }
+  var hit = near(p[0], p[1], phone ? 18 : 14);
+  var d = S.drag = { x0: p[0], y0: p[1], x1: p[0], y1: p[1], on: false, id: e.pointerId, t: e.timeStamp, mode: '', hit: hit, px: view.px, py: view.py, pts: [[p[0], p[1], e.timeStamp]] };
+  if (view.z > 1.05 && isField(scene) && (GL.x || GL.y || GL.z !== 1)) unglide();
+  endHold(); if (view.z > 1.05) hold = setTimeout(function () { hold = 0; if (S.drag === d && !d.mode) { d.mode = 'draw'; ovBegin(d); try { navigator.vibrate && navigator.vibrate(8); } catch (x) { /* fine */ } } }, LP_MS);
 });
 cv.addEventListener('pointermove', function (e) {
   var p = at(e);
   if (PTRS[e.pointerId]) PTRS[e.pointerId] = p;
   if (S.pinch) {
     var q = pinch(), P0 = S.pinch; if (!q) return;
-    if (!P0.mode) { if (Math.abs(q.d - P0.d0) > 16) P0.mode = 'zoom'; else if (Math.abs(q.y - P0.y0) > 16 && isField(scene)) P0.mode = 'depth'; }
+    q.d = Math.max(24, q.d);
+    if (!P0.mode) {
+      var dd = q.d - P0.d0, dx = q.x - P0.x0, dy = q.y - P0.y0;
+      if (isField(scene) && Math.abs(dy) > 12 && Math.abs(dd) < 6 && Math.abs(dx) < Math.abs(dy) * 0.5) P0.mode = 'depth';
+      else if (Math.abs(dd) > 4 || Math.hypot(dx, dy) > 6) P0.mode = 'zoom';
+      else return;
+    }
     if (P0.mode === 'depth') { S.zb = Math.max(-1, Math.min(1, P0.zb0 + (P0.y0 - q.y) / (H * 0.4))); wake(); return; }
-    if (P0.mode === 'zoom') { zoomAt(q.x, q.y, q.d / P0.d); view.px += q.x - P0.x; view.py += q.y - P0.y; clampView(); }
+    zoomAt(q.x, q.y, q.d / P0.d); view.px += q.x - P0.x; view.py += q.y - P0.y; clampView(); pathsDirty = true;
     P0.d = q.d; P0.x = q.x; P0.y = q.y; wake(); return;
   }
-  if (S.drag && S.drag.id === e.pointerId) {
-    S.drag.x1 = p[0]; S.drag.y1 = p[1];
-    if (S.drag.pan) { view.px = S.drag.px + (p[0] - S.drag.x0); view.py = S.drag.py + (p[1] - S.drag.y0); clampView(); pathsDirty = true; if (Math.hypot(p[0] - S.drag.x0, p[1] - S.drag.y0) > 6) S.drag.moved = true; wake(); return; }
-    if (S.drag.pts.length < 900) S.drag.pts.push([p[0], p[1], e.timeStamp]);
-    if (Math.hypot(p[0] - S.drag.x0, p[1] - S.drag.y0) > 12) S.drag.on = true; wake(); return;
+  var d = S.drag;
+  if (d && d.id === e.pointerId) {
+    var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null, k;
+    d.x1 = p[0]; d.y1 = p[1];
+    if (!d.mode && Math.hypot(p[0] - d.x0, p[1] - d.y0) > TAP_PX) {
+      endHold(); d.mode = view.z > 1.05 && !S.drawArm ? 'pan' : 'draw'; if (d.mode === 'draw') ovBegin(d);
+    }
+    if (d.mode === 'pan') { view.px = d.px + (p[0] - d.x0); view.py = d.py + (p[1] - d.y0); clampView(); pathsDirty = true; wake(); return; }
+    if (d.mode === 'draw') {
+      if (evs && evs.length > 1) { var b = cv.getBoundingClientRect(); for (k = 0; k < evs.length && d.pts.length < 1500; k++) d.pts.push([evs[k].clientX - b.left, evs[k].clientY - b.top, evs[k].timeStamp]); }
+      else if (d.pts.length < 1500) d.pts.push([p[0], p[1], e.timeStamp]);
+      if (!ovRaf) ovRaf = requestAnimationFrame(ovFlush);
+    }
+    return;
   }
   if (e.pointerType !== 'mouse') return;
   var h = scene === 1 ? -1 : near(p[0], p[1]); if (scene === 1) { var r = nearRim(p[0], p[1]); if (r !== S.rim) { S.rim = r; wake(); } }
   if (h !== S.hover) { S.hover = h; cv.style.cursor = h >= 0 ? 'pointer' : scene === 1 ? 'default' : 'crosshair'; wake(); }
 });
 function up(e) {
-  delete PTRS[e.pointerId]; if (S.pinch) { if (Object.keys(PTRS).length < 2) { var dep = S.pinch.mode === 'depth'; S.pinch = null; if (dep && S.line && S.line.scene === scene && S.line.cam) { restop(S.line); if (S.line.stops.length) { S.line.follow = true; play(S.line.stops[0], 'stop'); } } } S.drag = null; wake(); return; }
+  endHold(); lastIn = e.timeStamp; delete PTRS[e.pointerId];
+  if (S.pinch) {
+    if (Object.keys(PTRS).length < 2) {
+      var dep = S.pinch.mode === 'depth'; S.pinch = null;
+      if (dep && S.line && S.line.scene === scene && S.line.cam) { restop(S.line); if (S.line.stops.length) { S.line.follow = true; play(S.line.stops[0], 'stop'); } }
+      var rid = Object.keys(PTRS)[0];
+      if (rid !== undefined && view.z > 1.05) { var rp = PTRS[rid]; S.drag = { x0: rp[0], y0: rp[1], x1: rp[0], y1: rp[1], on: false, id: +rid, t: e.timeStamp, mode: 'pan', hit: -1, px: view.px, py: view.py, pts: [] }; } else S.drag = null;
+    }
+    wake(); return;
+  }
   var d = S.drag; if (!d || d.id !== e.pointerId) return; S.drag = null;
   var p = at(e);
-  if (d.pan && d.moved) { wake(); return; }
-  if (d.on) { d.pts.push([p[0], p[1], e.timeStamp]); curve(d.pts); wake(); return; }
+  if (d.mode === 'pan') { wake(); return; }
+  if (d.mode === 'draw') {
+    d.pts.push([p[0], p[1], e.timeStamp]); S.drawArm = false; ovClear();
+    if (d.pts.length > 2 || Math.hypot(p[0] - d.x0, p[1] - d.y0) > TAP_PX) curve(d.pts); wake(); return;
+  }
+  if (e.type === 'pointercancel') { wake(); return; }
+  if (lastTap && e.timeStamp - lastTap.t < 320 && Math.hypot(p[0] - lastTap.x, p[1] - lastTap.y) < 32) {
+    lastTap = null; if (view.z > ZMAX * 0.8) resetView(); else zoomTo(p[0], p[1], Math.max(view.z * 2.6, 2.6), 220); return;
+  }
+  lastTap = { t: e.timeStamp, x: p[0], y: p[1] };
   if (scene === 1) { var r = nearRim(p[0], p[1]); if (r >= 0) { S.rim = r; var ai = RING[r][0]; if (ai >= 0) play(ai, 'rim'); else wake(); } return; }
   if (scene === C_RECORD) { var k = nearSong(p[0], p[1]); if (k >= 0) { mine(k); return; } }
-  var i = near(p[0], p[1], phone ? 18 : 14); if (i >= 0) { S.line = null; if (scene === C_MAPS && S.like.on) likeFrom(i); else { S.like.seq = null; play(i, 'tap'); } } else wake();
+  var i = d.hit >= 0 ? d.hit : near(p[0], p[1], phone ? 18 : 14);
+  if (i >= 0) { S.line = null; if (scene === C_MAPS && S.like.on) likeFrom(i); else { S.like.seq = null; play(i, 'tap'); } } else wake();
 }
-cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', function (e) { delete PTRS[e.pointerId]; S.pinch = null; S.drag = null; wake(); });
-/* zoom: pinch on a trackpad arrives as a wheel with ctrl; the plain wheel keeps scrolling the story. double tap resets */
-cv.addEventListener('wheel', function (e) { if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault(); var p = at(e); zoomAt(p[0], p[1], Math.exp(-e.deltaY * 0.01)); }, { passive: false });
-cv.addEventListener('dblclick', function () { resetView(); });
-addEventListener('keydown', function (e) { if (e.target && /input|textarea/i.test(e.target.tagName)) return; if (e.key === '+' || e.key === '=') zoomAt(W / 2, H / 2, 1.3); else if (e.key === '-') zoomAt(W / 2, H / 2, 1 / 1.3); else if (e.key === '0') resetView(); });
+cv.addEventListener('pointerup', up);
+cv.addEventListener('pointercancel', function (e) { endHold(); delete PTRS[e.pointerId]; S.pinch = null; S.drag = null; ovClear(); wake(); });
+cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+/* zoom: a trackpad pinch arrives as a wheel with ctrl; ctrl, cmd or alt + wheel zooms about the cursor; the plain wheel keeps scrolling the story.
+   desktop Safari sends gesture events instead of wheel for a pinch */
+cv.addEventListener('wheel', function (e) {
+  if (!(e.ctrlKey || e.metaKey || e.altKey)) return;
+  e.preventDefault(); lastIn = e.timeStamp;
+  var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1); dy = Math.max(-80, Math.min(80, dy));
+  var p = at(e); zoomAt(p[0], p[1], Math.exp(-dy * 0.009));
+}, { passive: false });
+var gs0 = 0;
+cv.addEventListener('gesturestart', function (e) { e.preventDefault(); VA = null; gs0 = view.z; });
+cv.addEventListener('gesturechange', function (e) { e.preventDefault(); if (!gs0) return; var p = at(e); zoomAt(p[0], p[1], gs0 * e.scale / view.z); });
+cv.addEventListener('gestureend', function (e) { e.preventDefault(); gs0 = 0; });
+addEventListener('scroll', function () { domStale = true; }, { capture: true, passive: true });
+addEventListener('resize', function () { domStale = true; });
+/* the zoom chips: fit (with the zoom level) and draw, only while zoomed */
+function zcBuild() {
+  zc = doc.createElement('div'); zc.id = 'zc'; zc.hidden = true;
+  fitB = doc.createElement('button'); fitB.type = 'button'; fitB.className = 'chip'; fitB.setAttribute('aria-label', 'zoom back out to fit'); fitB.textContent = 'fit';
+  drawB = doc.createElement('button'); drawB.type = 'button'; drawB.className = 'chip'; drawB.textContent = 'draw'; drawB.setAttribute('aria-label', 'draw a curve for a radio'); drawB.setAttribute('aria-pressed', 'false');
+  fitB.addEventListener('click', function () { resetView(); }); drawB.addEventListener('click', function () { S.drawArm = !S.drawArm; zcSync(true); });
+  zc.appendChild(drawB); zc.appendChild(fitB); stage.appendChild(zc);
+  ov = doc.createElement('canvas'); ov.id = 'field-ov'; ov.setAttribute('aria-hidden', 'true'); ov.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2';
+  ov.width = cv.width; ov.height = cv.height; ovg = ov.getContext('2d'); cv.insertAdjacentElement('afterend', ov);
+}
+function zcSync(force) {
+  if (!zc) return; var on = view.z > 1.05;
+  if (on !== zcOn || force) { zcOn = on; zc.hidden = !on; domStale = true; if (!on) S.drawArm = false; drawB.classList.toggle('on', !!S.drawArm); drawB.setAttribute('aria-pressed', S.drawArm ? 'true' : 'false'); }
+  if (on) { var t = 'fit ' + (view.z < 10 ? view.z.toFixed(1) : Math.round(view.z)) + 'x'; if (t !== zcT) { zcT = t; fitB.textContent = t; } }
+}
+addEventListener('keydown', function (e) { if (e.target && /input|textarea/i.test(e.target.tagName)) return; if (e.key === '+' || e.key === '=') zoomTo(W / 2, H / 2, view.z * 1.6, 200); else if (e.key === '-') zoomTo(W / 2, H / 2, view.z / 1.6, 200); else if (e.key === '0') resetView(); });
 addEventListener('keydown', function (e) { if (e.key === 'n' && !e.metaKey && !e.ctrlKey && !(e.target && /input|textarea/i.test(e.target.tagName))) { next(); } });
 
 /* ---------- sound: one at a time ---------- */
@@ -1042,8 +1144,9 @@ function find(q) {
   if (i < 0) for (k = 0; k < N; k++) if (names[k].toLowerCase().indexOf(q) >= 0) { i = k; break; }
   if (i < 0) { text('#f-r', 'not in the field: ' + q); return; }
   text('#f-r', ''); S.line = null; S.mode = '';
-  layout(performance.now()); if (view.z < 2.5) zoomAt(SX[i], SY[i], 2.5 / view.z); layout(performance.now());
-  view.px += W / 2 - SX[i]; view.py += H / 2 - SY[i]; clampView(); pathsDirty = true;
+  VA = null; if (isField(scene) && (GL.x || GL.y || GL.z !== 1)) unglide(); layout(performance.now());
+  var zt = Math.max(view.z, 2.5), ff = zt / view.z;
+  animView(zt, W / 2 - (SX[i] - cam.cx) * ff, H / 2 - (SY[i] - cam.cy) * ff, 380);
   play(i, 'find');
 }
 /* be the queue: the nearest in sound not yet played */
@@ -1208,13 +1311,14 @@ function acts() {
    the two lines below are the refereed wording: patch them here and nowhere else. ---------- */
 var GHOST_LINE = 'the button walks to the nearest sound it has not played yet, every step, so it stays far closer than the path my listening took. that is the rule doing what it says, not a finding about me.';
 var GHOST_CAP = 'one sitting of many, near the middle of the range; the button stays closer in nearly all of them.';
-var GH = null, ghP = null, ghDraw = function () {};
+var GH = null, ghP = null, ghNear = !('IntersectionObserver' in window), ghDraw = function () {};
 function ghost() {
   text('#gh-line', GHOST_LINE); text('#gh-cap', GHOST_CAP);
   var c = $('#gh-cv'); if (!c) return;
+  if (!ghNear) new IntersectionObserver(function (es, io) { if (es[0].isIntersecting) { ghNear = true; io.disconnect(); ghDraw(); } }, { rootMargin: '900px 0px' }).observe(c);
   ghDraw = function () {
     var w = c.clientWidth, h = c.clientHeight; if (w < 10 || h < 10) return;
-    if (!GH) { if (!ghP) ghP = fetchJ('ghost').then(function (j) { GH = j; ghDraw(); }, function () { ghP = null; }); return; }
+    if (!GH) { if (!ghNear) return; if (!ghP) ghP = fetchJ('ghost').then(function (j) { GH = j; ghDraw(); }, function () { ghP = null; }); return; }
     var d = Math.min(3, Math.max(1, window.devicePixelRatio || 1)), g = c.getContext('2d'), i;
     c.width = Math.round(w * d); c.height = Math.round(h * d); g.setTransform(d, 0, 0, d, 0, 0); g.fillStyle = BG; g.fillRect(0, 0, w, h);
     /* the act's resting view: the same yaw, pitch and perspective as the field at rest */
@@ -1245,12 +1349,12 @@ fetchJ('field').then(function (j) {
   ghDraw();
   rimOrder = RING.map(function (r, k) { return k; }).sort(function (a, b) { var pa2 = RING[a][0] >= 0 ? PL[RING[a][0]] : 0, pb2 = RING[b][0] >= 0 ? PL[RING[b][0]] : 0; return pb2 - pa2; });
   html.setAttribute('data-scene', 'count');
-  songs(); key(); datalist(); chips(); acts(); if (ro) ro.observe(stage); else addEventListener('resize', function () { fit(); wake(); });
+  zcBuild(); songs(); key(); datalist(); chips(); acts(); if (ro) ro.observe(stage); else addEventListener('resize', function () { fit(); wake(); });
   $$('.lz').forEach(function (e) { e.hidden = true; });
   var R = (window.__ledger && window.__ledger.READY) || {}; R.field = true;
   window.__field = { S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; }, reveal: function () { return reveal; }, grow: function () { reveal = 8; wake(); }, hoods: function () { return MAPS ? MAPS.cm.length : 0; }, ring: function () { return { look: S.look, b: S.lookB, rl: !!RL, x: Array.prototype.slice.call(RPX), y: Array.prototype.slice.call(RPY) }; }, cl: function () { return { k: CL.k, n: CL.list ? CL.list.length : 0, one: CL.one ? CL.one.t : '', box: CLB }; }, tell: function () { clStart(0); } };
   wake(); clStart(400);
-  if (!lite()) setTimeout(prefetchPV, 1200);
+  if (!lite()) { if (window.requestIdleCallback) requestIdleCallback(prefetchPV, { timeout: 4000 }); else setTimeout(prefetchPV, 2500); }
 }, function () { var h = $('#hint'); if (h) h.textContent = 'the map did not load here. the story is below.'; });
 function lite() { try { return !!(navigator.connection && navigator.connection.saveData); } catch (e) { return false; } }
 })();

@@ -243,6 +243,7 @@ def build(tpl_path, d):
             sys.exit('the template must hold /*@STAMPS@*/{} exactly once')
         stamps = {k: stamp(k) for k in NAMES}
         out = tpl.replace('/*@STAMPS@*/{}', json.dumps(stamps, separators=(',', ':')))
+        out = out.replace('@FV@', stamps.get('field', '0'))
         for src in sorted(set(SCRIPT.findall(out))):
             p = os.path.join(ROOT, src)
             if not os.path.exists(p):
