@@ -21,7 +21,7 @@ var N = 0, P3 = null, PL = [], PMAX = 1, SZ = [], FC = [], HC = [], NN = [], KNN
 var SX = [], SY = [], SA = [], SR = [];       /* screen x, y, alpha, radius this frame */
 var RING = [], RA = {}, RI = {}, RF = [], GA = {}, TX = [], EDG = [], RPX = null, RPY = null, RRING = 1, LASP = 1, RL = null, rlP = null, ZD = null, MINE = [], Q = [], SONG = [], SNB = [], RD = [], RLONE = 0, RZERO = 0, RNODOT = 0, KB = null, LFM = 0, APPL = 0, NOLAB = 0;
 var KNN2 = null, NB2 = null, DW = [], PG = null, CLB = null;
-var VA = null, lastIn = -1e9, lastPaint = 0, ZMAX = 24, hold = 0, lastTap = null, zc = null, fitB = null, drawB = null, zcOn = false, zcT = '', ov = null, ovg = null, ovRaf = 0, domC = null, domT = -1e9, domStale = true;
+var pendT = 0, pendF = null, VA = null, lastIn = -1e9, lastPaint = 0, ZMAX = 24, hold = 0, lastTap = null, zc = null, fitB = null, drawB = null, zcOn = false, zcT = '', ov = null, ovg = null, ovRaf = 0, domC = null, domT = -1e9, domStale = true;
 var scene = 0, blend = 0, from = 0, tStart = 0, yaw = 0.62, pitch = 0.36, last = 0, raf = 0, dirty = true;
 var S = { now: -1, line: null, drag: null, played: {}, playing: false, pend: -1, errs: 0, user: false, hover: -1, mine: -1, mode: '', trail: [], rim: -1, game: null, wh: null, pips: null, mt: 0, mb: 0, mFrom: 0, mT0: 0, color: '', fam: -1, hoodHi: -1, grow: null, keepT0: 0, sn: 0, tn: [], hoodSeen: false, look: 0, lookFrom: 0, lookT0: 0, lookB: 1, like: { on: false, seq: null, k: 0 }, zb: 0 };
 /* the curve radio's camera: a glide on top of the view, eased toward the stop that is playing (field acts only) */
@@ -132,7 +132,8 @@ function frame() {
   cam.r *= view.z; cam.cx += view.px; cam.cy += view.py;
   if (scene === C_COUNT || scene === C_RECORD) { cam.r *= GL.z; cam.cx += GL.x; cam.cy += GL.y; }
 }
-function unglide() { GL.x = 0; GL.y = 0; GL.z = 1; if (S.line) S.line.follow = false; frame(); }
+/* the radio glide is folded into the view, so the picture does not jump back when a hand takes over the zoom */
+function unglide() { if (isField(scene)) { view.z = Math.min(ZMAX, view.z * GL.z); view.px += GL.x; view.py += GL.y; } GL.x = 0; GL.y = 0; GL.z = 1; if (S.line) S.line.follow = false; clampView(); frame(); }
 function isField(k) { return k === C_COUNT || k === C_RECORD; }
 /* zoom about a screen point: the artist under the finger stays under the finger */
 function zoomAt(mx, my, f) {
@@ -166,7 +167,7 @@ var HOODC = ['#5fb8ff', '#ff5c7a', '#ffd36b', '#b8ec4a', '#ff8fd6', '#f5a623', '
 var ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii'];
 function setScene(k) {
   if (k === scene) return;
-  from = scene; scene = k; blend = 0; tStart = 0; dirty = true;
+  clearTimeout(pendT); pendT = 0; from = scene; scene = k; blend = 0; tStart = 0; dirty = true;
   S.hover = -1; S.rim = -1; S.fam = -1; S.hoodHi = -1; S.grow = null; view.z = 1; view.px = 0; view.py = 0; VA = null; S.drawArm = false; GL.x = 0; GL.y = 0; GL.z = 1; pathsDirty = true;
   if (k !== C_MAPS) S.like.seq = null;
   if (k === C_HAND) loadRing();
@@ -310,10 +311,9 @@ function rimLabels(g) {
 }
 /* the curve radio: a freehand path, smoothed (Catmull-Rom); in the field its depth comes from the speed of the drag (fast = deeper) */
 function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
-function lineXY(L, p, out) {
-  if (!L.cam) { out[0] = p[0]; out[1] = p[1]; return; }
-  var r = GL.z / L.g0[2]; out[0] = L.c0[0] + GL.x + (p[0] - L.c0[0] - L.g0[0]) * r; out[1] = L.c0[1] + GL.y + (p[1] - L.c0[1] - L.g0[1]) * r;
-}
+/* a curve is stored in field coordinates: offsets from the camera center in units of the camera radius, the same frame the dots are projected in,
+   so zoom, pan, the radio glide and a resize move it exactly as they move the dots */
+function lineXY(L, p, out) { var r = cam.r * dolly; out[0] = cam.cx + p[0] * r; out[1] = cam.cy + p[1] * r; }
 function curve(raw) {
   var pts = [raw[0]], k, j, q;
   for (k = 1; k < raw.length; k++) { q = pts[pts.length - 1]; if (Math.hypot(raw[k][0] - q[0], raw[k][1] - q[1]) >= 6) pts.push(raw[k]); }
@@ -329,8 +329,9 @@ function curve(raw) {
     }
   }
   q = pts[pts.length - 1]; out.push([q[0], q[1], sd(sp[sp.length - 1])]);
-  var deep = isField(scene);
-  S.line = { c: out, scene: scene, k: 0, stops: [], cam: deep, follow: deep, g0: [GL.x, GL.y, GL.z], c0: [cam.cx - GL.x, cam.cy - GL.y] };
+  var deep = isField(scene), fr = cam.r * dolly;
+  for (k = 0; k < out.length; k++) { out[k][0] = (out[k][0] - cam.cx) / fr; out[k][1] = (out[k][1] - cam.cy) / fr; }
+  S.line = { c: out, scene: scene, k: 0, stops: [], cam: deep, follow: deep };
   S.trail = []; S.tn = []; S.sn = 0; S.like.seq = null;
   restop(S.line);
   if (!S.line.stops.length) { S.line = null; return; }
@@ -507,11 +508,11 @@ function word(g, x, y, t, fs, w, mono, fill, fixed) {
 /* labels keep off the rail, the card, the drawer and the player on a desk */
 var DOMW = ['.dots', '#b-deep', '#np', '.plate', '.dr', '#hint', '.top .brand', '.top .tr', '#zc'];
 function domWords(now) {
-  if (phone) return [];
+  var DL = phone ? ['.top .brand', '.top .tr', '#zc'] : DOMW;
   if (domC && !domStale && now - domT < 160) return domC.slice();
   var out = [], sb = stage.getBoundingClientRect(), i, j, es, r;
-  for (i = 0; i < DOMW.length; i++) {
-    es = $$(DOMW[i]);
+  for (i = 0; i < DL.length; i++) {
+    es = $$(DL[i]);
     for (j = 0; j < es.length; j++) { r = es[j].getBoundingClientRect(); if (r.width > 0 && r.bottom > sb.top && r.top < sb.bottom) out.push([r.left - sb.left - 4, r.top - sb.top - 4, r.right - sb.left + 4, r.bottom - sb.top + 4]); }
   }
   domC = out; domT = now; domStale = false;
@@ -972,7 +973,7 @@ cv.addEventListener('pointerdown', function (e) {
   var p = at(e); PTRS[e.pointerId] = p;
   try { cv.setPointerCapture(e.pointerId); } catch (x) { /* fine */ }
   if (Object.keys(PTRS).length >= 2) {
-    endHold(); S.drag = null; ovClear();
+    endHold(); clearTimeout(pendT); pendT = 0; S.drag = null; ovClear();
     var q = pinch(); q.d = Math.max(24, q.d); q.d0 = q.d; q.x0 = q.x; q.y0 = q.y; q.zb0 = S.zb; q.mode = ''; S.pinch = q; wake(); return;
   }
   var hit = near(p[0], p[1], phone ? 18 : 14);
@@ -1001,7 +1002,7 @@ cv.addEventListener('pointermove', function (e) {
     var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null, k;
     d.x1 = p[0]; d.y1 = p[1];
     if (!d.mode && Math.hypot(p[0] - d.x0, p[1] - d.y0) > TAP_PX) {
-      endHold(); d.mode = view.z > 1.05 && !S.drawArm ? 'pan' : 'draw'; if (d.mode === 'draw') ovBegin(d);
+      endHold(); clearTimeout(pendT); pendT = 0; d.mode = view.z > 1.05 && !S.drawArm ? 'pan' : 'draw'; if (d.mode === 'draw') ovBegin(d);
     }
     if (d.mode === 'pan') { view.px = d.px + (p[0] - d.x0); view.py = d.py + (p[1] - d.y0); clampView(); pathsDirty = true; wake(); return; }
     if (d.mode === 'draw') {
@@ -1015,6 +1016,7 @@ cv.addEventListener('pointermove', function (e) {
   var h = scene === 1 ? -1 : near(p[0], p[1]); if (scene === 1) { var r = nearRim(p[0], p[1]); if (r !== S.rim) { S.rim = r; wake(); } }
   if (h !== S.hover) { S.hover = h; cv.style.cursor = h >= 0 ? 'pointer' : scene === 1 ? 'default' : 'crosshair'; wake(); }
 });
+function later(f) { pendF = function () { pendF = null; f(); }; pendT = setTimeout(function () { pendT = 0; pendF(); }, 260); }
 function up(e) {
   endHold(); lastIn = e.timeStamp; delete PTRS[e.pointerId];
   if (S.pinch) {
@@ -1034,14 +1036,15 @@ function up(e) {
     if (d.pts.length > 2 || Math.hypot(p[0] - d.x0, p[1] - d.y0) > TAP_PX) curve(d.pts); wake(); return;
   }
   if (e.type === 'pointercancel') { wake(); return; }
-  if (lastTap && e.timeStamp - lastTap.t < 320 && Math.hypot(p[0] - lastTap.x, p[1] - lastTap.y) < 32) {
-    lastTap = null; if (view.z > ZMAX * 0.8) resetView(); else zoomTo(p[0], p[1], Math.max(view.z * 2.6, 2.6), 220); return;
+  if (lastTap && e.timeStamp - lastTap.t < 260 && Math.hypot(p[0] - lastTap.x, p[1] - lastTap.y) < 32) {
+    lastTap = null; clearTimeout(pendT); pendT = 0; if (view.z > ZMAX * 0.8) resetView(); else zoomTo(p[0], p[1], Math.max(view.z * 2.6, 2.6), 220); return;
   }
   lastTap = { t: e.timeStamp, x: p[0], y: p[1] };
-  if (scene === 1) { var r = nearRim(p[0], p[1]); if (r >= 0) { S.rim = r; var ai = RING[r][0]; if (ai >= 0) play(ai, 'rim'); else wake(); } return; }
+  if (pendT) { clearTimeout(pendT); pendT = 0; pendF(); }
+  if (scene === 1) { var r = nearRim(p[0], p[1]); if (r >= 0) { S.rim = r; var ai = RING[r][0]; if (ai >= 0) { later(function () { play(ai, 'rim'); }); } else wake(); } return; }
   if (scene === C_RECORD) { var k = nearSong(p[0], p[1]); if (k >= 0) { mine(k); return; } }
   var i = d.hit >= 0 ? d.hit : near(p[0], p[1], phone ? 18 : 14);
-  if (i >= 0) { S.line = null; if (scene === C_MAPS && S.like.on) likeFrom(i); else { S.like.seq = null; play(i, 'tap'); } } else wake();
+  if (i >= 0) { later(function () { S.line = null; if (scene === C_MAPS && S.like.on) likeFrom(i); else { S.like.seq = null; play(i, 'tap'); } }); } else wake();
 }
 cv.addEventListener('pointerup', up);
 cv.addEventListener('pointercancel', function (e) { endHold(); delete PTRS[e.pointerId]; S.pinch = null; S.drag = null; ovClear(); wake(); });
@@ -1352,7 +1355,7 @@ fetchJ('field').then(function (j) {
   zcBuild(); songs(); key(); datalist(); chips(); acts(); if (ro) ro.observe(stage); else addEventListener('resize', function () { fit(); wake(); });
   $$('.lz').forEach(function (e) { e.hidden = true; });
   var R = (window.__ledger && window.__ledger.READY) || {}; R.field = true;
-  window.__field = { S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; }, reveal: function () { return reveal; }, grow: function () { reveal = 8; wake(); }, hoods: function () { return MAPS ? MAPS.cm.length : 0; }, ring: function () { return { look: S.look, b: S.lookB, rl: !!RL, x: Array.prototype.slice.call(RPX), y: Array.prototype.slice.call(RPY) }; }, cl: function () { return { k: CL.k, n: CL.list ? CL.list.length : 0, one: CL.one ? CL.one.t : '', box: CLB }; }, tell: function () { clStart(0); } };
+  window.__field = { S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; }, reveal: function () { return reveal; }, grow: function () { reveal = 8; wake(); }, hoods: function () { return MAPS ? MAPS.cm.length : 0; }, ring: function () { return { look: S.look, b: S.lookB, rl: !!RL, x: Array.prototype.slice.call(RPX), y: Array.prototype.slice.call(RPY) }; }, cl: function () { return { k: CL.k, n: CL.list ? CL.list.length : 0, one: CL.one ? CL.one.t : '', box: CLB }; }, tell: function () { clStart(0); }, view: function () { return { z: view.z, px: view.px, py: view.py }; }, line: function () { var L = S.line; if (!L) return null; var o = [0, 0], pts = [], k; for (k = 0; k < L.c.length; k++) { lineXY(L, L.c[k], o); pts.push([o[0], o[1]]); } return { pts: pts, field: L.c.slice(0, 3).map(function (p) { return [p[0], p[1]]; }), stops: L.stops.map(function (i) { return [SX[i], SY[i]]; }) }; } };
   wake(); clStart(400);
   if (!lite()) { if (window.requestIdleCallback) requestIdleCallback(prefetchPV, { timeout: 4000 }); else setTimeout(prefetchPV, 2500); }
 }, function () { var h = $('#hint'); if (h) h.textContent = 'the map did not load here. the story is below.'; });
