@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>sonic manifold · recurrence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--night:#06010f;--ink:#efe9ff;--mute:#9a90b8;--line:#2a2140;--mint:#21f6bc;--mint2:#159a78;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;
+--sans:'Instrument Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden}
+.wrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:36px;padding:26px 36px 20px;height:100vh;align-items:start}
+.plot{display:flex;flex-direction:column;gap:6px}
+#cv{display:block;touch-action:none;cursor:crosshair}
+.axis{display:flex;justify-content:space-between;font:400 11px/1 var(--mono);color:var(--mute)}
+.side{display:flex;flex-direction:column;gap:9px;min-width:0;max-width:520px}
+.kick{font:500 11px/1 var(--mono);letter-spacing:.08em;color:var(--mute);text-transform:uppercase}
+h1{font:600 27px/1.12 var(--sans);letter-spacing:-.015em}
+.cap{font:400 13.5px/1.4 var(--sans);color:#d8d0ee}
+.tally{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0}
+.tally div{display:flex;flex-direction:column;gap:3px}
+.tally b{font:500 22px/1 var(--mono)}
+.tally span{font:400 11.5px/1.3 var(--sans);color:var(--mute)}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ctl button{font:500 12px/1 var(--sans);color:var(--ink);background:var(--night);border:1px solid #4a3d6e;border-radius:3px;padding:8px 11px;cursor:pointer;min-height:32px}
+.ctl button:hover{border-color:var(--ice)}
+.ctl button[aria-pressed=true]{border-color:var(--ice);color:var(--night);background:var(--ice)}
+.ctl .sit{font:400 11.5px/1.3 var(--mono);color:var(--mute);padding:0 4px}
+.lagh{font:500 12px/1.35 var(--sans);color:#d8d0ee}
+.lagh em{font-style:normal;color:var(--mint)}
+.lag{display:grid;grid-template-columns:84px 1fr 96px;gap:3px 8px;align-items:center;font:400 11px/1 var(--mono);color:var(--mute)}
+.lag .bar{display:flex;height:11px;outline:1px solid transparent;outline-offset:2px}
+.lag .bar i{display:block;height:100%}
+.lag .bar.hot{outline-color:var(--ice)}
+.lag .base{color:var(--ink)}
+.lag>span:nth-child(3n){text-align:right}
+.lag>span:nth-child(-n+3){font-size:11px;color:#6f6790}
+.lag .sep{grid-column:1/-1;height:1px;background:var(--line);margin:2px 0}
+.key{display:flex;flex-wrap:wrap;gap:4px 14px;font:400 11.5px/1.3 var(--sans);color:#d8d0ee}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{display:inline-block;width:9px;height:9px}
+.key .sh{display:none}
+.ans{display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--line);padding-top:10px}
+.ansq{font:500 13px/1.35 var(--sans);color:var(--ink)}
+.ansq small{display:block;font:400 11px/1.3 var(--mono);color:var(--mute);margin-top:3px}
+.arow{display:grid;grid-template-columns:104px 1fr 150px;gap:10px;align-items:center}
+.arow .nm{font:500 13px/1 var(--sans)}
+.arow .tr{position:relative;height:14px;background:#160f2a}
+.arow .tr i{position:absolute;left:0;top:0;bottom:0;display:block}
+.arow .tr u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ice);margin-left:-1px}
+.arow .v{font:400 11.5px/1.2 var(--mono);color:var(--mute);text-align:right;white-space:nowrap}
+.arow .v b{font:500 17px/1 var(--mono);color:var(--ink)}
+.anote{font:400 12px/1.4 var(--sans);color:#d8d0ee}
+.anote em{font-style:normal;color:var(--ice)}
+.how,.why{font:400 11px/1.45 var(--mono);color:var(--mute)}
+.why{color:#b9b0d4}
+@media (max-width:860px){
+ .wrap{grid-template-columns:1fr;gap:10px;padding:10px 16px 4px;height:auto}
+ .side{max-width:none;gap:9px;display:contents}
+ .hd{order:1}.plot{order:2}.tally{order:3}.ctl{order:4}.ans{order:5}.lagbox{order:6}.key{order:7}.how{order:8}.why{order:9}
+ .ans{gap:6px;padding-top:7px}.ansq{font-size:12px}.ansq small{font-size:11px}.arow{grid-template-columns:84px 1fr auto;gap:7px}.arow .nm{font-size:11.5px}.arow .tr{height:10px}.arow .v{font-size:11px}.arow .v b{font-size:14px}.anote{font-size:10.5px}
+ h1{font-size:19px}.cap{font-size:11.5px}.kick{display:none}.axis #axmid{display:none}
+ .wrap{gap:5px}.hd{gap:3px}.lagbox{gap:3px!important}.key .lg{display:none}.key .sh{display:inline}.axis{font-size:11px}
+ .tally{padding:4px 0;gap:6px}.tally b{font-size:17px}.tally span{font-size:10px}
+ .ctl{gap:4px;flex-wrap:nowrap}.ctl button{padding:5px 8px;font-size:11.5px;min-height:28px}.ctl .sit{padding:0}
+ .lag{grid-template-columns:86px 1fr 84px;font-size:11px;gap:2px 6px}.lag .bar{height:8px}
+ .lagh{font-size:10.5px;line-height:1.3}.key{font-size:10px;gap:2px 9px}.how,.why{font-size:11px;line-height:1.4}
+ .hd{display:flex;flex-direction:column;gap:5px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="plot">
+  <canvas id="cv" aria-label="recurrence plot of one sitting"></canvas>
+  <div class="axis"><span>play 1</span><span id="axmid">play order, left to right and top to bottom</span><span id="axn">play</span></div>
+ </div>
+ <div class="side">
+  <div class="hd">
+   <div class="kick"><a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 14 · recurrence plot · one sitting against itself</div>
+   <h1 id="hl"></h1>
+   <p class="cap">how to read it: every play of one sitting is a row and a column. a lit square = the same artist twice: near the diagonal, a quick repeat; far from it, a later return. color = who brought it back.</p>
+  </div>
+  <div class="tally" aria-live="off">
+   <div><b id="tP">0</b><span id="tPs">plays so far</span></div>
+   <div><b id="tN" style="color:var(--violet)">0</b><span id="tNs">near repeats</span></div>
+   <div><b id="tF" style="color:var(--mint)">0</b><span id="tFs">far returns</span></div>
+  </div>
+  <div class="ctl">
+   <button id="bPlay" type="button" aria-pressed="false">pause</button>
+   <button id="bSpd" type="button">speed 1×</button>
+   <button id="bPrev" type="button" aria-label="previous sitting">‹</button>
+   <span class="sit" id="sitL"></span>
+   <button id="bNext" type="button" aria-label="next sitting">›</button>
+   <button id="bFam" type="button" aria-pressed="false" title="also light pairs of different artists in the same family">family</button>
+   <button id="bRe" type="button">restart</button>
+  </div>
+  <div class="ans" id="ans"></div>
+  <div class="lagbox" style="display:flex;flex-direction:column;gap:7px">
+   <div class="lagh" id="lagh"></div>
+   <div class="lag" id="lag"></div>
+  </div>
+  <div class="key" id="key"></div>
+  <p class="how" id="how"></p>
+  <p class="why" id="why"></p>
+ </div>
+</div>
+<script>
+(function () {
+'use strict';
+var NIGHT = '#06010f', INK = '#efe9ff', MUTE = '#9a90b8', LINE = '#2a2140', ICE = '#bcd3ff';
+var ARMC = ['#8b6fd6', '#f5a623', '#21f6bc', '#159a78'];
+var ARMN = ['the queue', 'shuffle', 'i pressed play', 'i skipped to it'];
+var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#ffd36b', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#f5a623', 'untagged': '#6f6790' };
+var RATE = 6;
+var $ = function (s) { return document.getElementById(s); };
+function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
+function mix(a, b, k) { var x = hex(a), y = hex(b); return 'rgb(' + x.map(function (v, i) { return Math.round(v * (1 - k) + y[i] * k); }).join(',') + ')'; }
+function rgba(c, a) { var x = hex(c); return 'rgba(' + x[0] + ',' + x[1] + ',' + x[2] + ',' + a + ')'; }
+function per100(a, b) { return b ? Math.round(100 * a / b) : 0; }
+
+var D, S, cv = $('cv'), g = cv.getContext('2d'), artC = document.createElement('canvas'), famC = document.createElement('canvas'), ghC = document.createElement('canvas'), gg = ghC.getContext('2d'), ag = artC.getContext('2d'), fg = famC.getContext('2d');
+var st = { k: 0, t: 0, drawn: 0, play: true, spd: 1, fam: false, pings: [], tag: null, hold: 0, last: 0, hot: -1, hotT: 0 };
+var geo = {};
+var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function binOf(gap) { for (var b = 0; b < D.bins.length; b++) if (gap >= D.bins[b][0] && gap <= D.bins[b][1]) return b; return -1; }
+
+function prep(s) {
+  var n = s.n, last = {}, prev = new Array(n), run = new Array(n), famOk = new Array(n), U = D.fam.indexOf('untagged');
+  for (var j = 0; j < n; j++) {
+    prev[j] = last[s.a[j]] === undefined ? -1 : last[s.a[j]]; last[s.a[j]] = j;
+    run[j] = j > 0 && s.a[j - 1] === s.a[j] ? run[j - 1] + 1 : 1;
+    famOk[j] = s.f[j] >= 0 && s.f[j] !== U;
+  }
+  s.prev = prev; s.run = run; s.famOk = famOk;
+  var cum = { nn: [], nq: [], nf: [], nh: [], nfq: [], na: [] }, c = { nn: 0, nq: 0, nf: 0, nh: 0, nfq: 0, na: 0 };
+  for (j = 0; j < n; j++) {
+    if (prev[j] < 0) c.na++;
+    else if (j - prev[j] > D.far) { c.nf++; if (s.m[j] === 2) c.nh++; if (s.m[j] === 0) c.nfq++; }
+    else { c.nn++; if (s.m[j] === 0) c.nq++; }
+    for (var key in c) cum[key].push(c[key]);
+  }
+  s.cum = cum;
+}
+
+function layout() {
+  var dpr = window.devicePixelRatio || 1, phone = window.innerWidth <= 860, side;
+  if (phone) side = Math.min(window.innerWidth - 32, 520);
+  else side = Math.max(320, Math.min(window.innerHeight - 56 - 22, window.innerWidth - 72 - 36 - 420));
+  var s = D.sits[st.k], n = s.n, dev = Math.floor(side * dpr), stripH = Math.max(3, Math.round(5 * dpr)), gapH = Math.max(2, Math.round(3 * dpr));
+  var devH = phone ? 1e9 : Math.floor(side * dpr) - 2 * (stripH + gapH);
+  var cell = Math.max(1, Math.floor(Math.min(dev, devH) / n)), M = cell * n;
+  geo = { dpr: dpr, cell: cell, M: M, stripH: stripH, gapH: gapH, W: M, H: M + 2 * (stripH + gapH), pad: cell >= 4 ? 1 : 0, phone: phone };
+  cv.width = geo.W; cv.height = geo.H;
+  cv.style.width = geo.W / dpr + 'px'; cv.style.height = geo.H / dpr + 'px';
+  artC.width = famC.width = ghC.width = M; artC.height = famC.height = ghC.height = M;
+  gg.clearRect(0, 0, M, M);
+  for (var j = 0; j < n; j++) { for (var i = 0; i < j; i++) if (s.a[i] === s.a[j]) sq(gg, i, j, mix(ICE, '#0d0720', 0.88)); sq(gg, j, j, mix(ICE, '#0d0720', 0.8)); }
+  document.querySelector('.axis').style.width = geo.W / dpr + 'px';
+  st.drawn = 0; ag.clearRect(0, 0, M, M); fg.clearRect(0, 0, M, M);
+  catchUp();
+}
+
+function sq(c, i, j, col) { var k = geo.cell, p = geo.pad; c.fillStyle = col; c.fillRect(j * k, i * k, k - p, k - p); if (i !== j) c.fillRect(i * k, j * k, k - p, k - p); }
+
+function catchUp() {
+  var s = D.sits[st.k], upto = Math.min(s.n, Math.floor(st.t) + 1);
+  for (var j = st.drawn; j < upto; j++) {
+    for (var i = 0; i < j; i++) {
+      if (s.a[i] === s.a[j]) sq(ag, i, j, ARMC[s.m[j]]);
+      else if (s.famOk[i] && s.famOk[j] && s.f[i] === s.f[j]) sq(fg, i, j, mix(FAMC[D.fam[s.f[j]]] || MUTE, NIGHT, 0.66));
+    }
+    sq(ag, j, j, ICE);
+  }
+  st.drawn = Math.max(st.drawn, upto);
+}
+
+function event(j, now) {
+  var s = D.sits[st.k], p = s.prev[j];
+  if (p < 0) return;
+  var gap = j - p, far = gap > D.far, b = binOf(gap);
+  st.pings.push({ i: p, j: j, t0: now, far: far, col: ARMC[s.m[j]] });
+  st.hot = b; st.hotT = now;
+  if (far) st.tag = { j: j, t0: now, txt: 'play ' + (j + 1) + ' · back after ' + gap + ' plays · ' + ARMN[s.m[j]], col: ARMC[s.m[j]] };
+  else if (s.run[j] === 4) st.tag = { j: j, t0: now, txt: 'play ' + (j + 1) + ' · same artist 4 in a row · ' + ARMN[s.m[j]], col: ARMC[s.m[j]] };
+}
+
+function draw(now) {
+  var s = D.sits[st.k], k = geo.cell, M = geo.M, dpr = geo.dpr, tf = Math.min(st.t, s.n - 1), ti = Math.floor(tf);
+  g.imageSmoothingEnabled = false;
+  g.fillStyle = NIGHT; g.fillRect(0, 0, geo.W, geo.H);
+  g.fillStyle = '#0d0720'; g.fillRect(0, 0, M, M);
+  if (st.fam) g.drawImage(famC, 0, 0);
+  g.drawImage(ghC, 0, 0);
+  g.drawImage(artC, 0, 0);
+  // play strips: who brought each play, then its family
+  var y1 = M + geo.gapH, y2 = y1 + geo.stripH + geo.gapH;
+  for (var j = 0; j <= ti; j++) {
+    g.fillStyle = ARMC[s.m[j]]; g.fillRect(j * k, y1, k, geo.stripH);
+    g.fillStyle = s.famOk[j] ? FAMC[D.fam[s.f[j]]] : LINE; g.fillRect(j * k, y2, k, geo.stripH);
+  }
+  // sweep: the current play looks back along its row and column
+  var hx = ti * k, lw = Math.max(1, Math.round(dpr));
+  g.fillStyle = rgba(ICE, 0.32);
+  g.fillRect(0, hx + (k >> 1), hx, lw); g.fillRect(hx + (k >> 1), 0, lw, hx);
+  g.strokeStyle = ICE; g.lineWidth = lw;
+  var hs = Math.max(k + 4 * lw, Math.round(7 * dpr)), ho = Math.round((hs - k) / 2);
+  g.strokeRect(hx - ho + lw / 2, hx - ho + lw / 2, hs - lw, hs - lw);
+  // pings: crisp square outlines that open and fade
+  var life = 900 / Math.sqrt(st.spd);
+  st.pings = st.pings.filter(function (p) { return now - p.t0 < life; });
+  st.pings.forEach(function (p) {
+    var u = (now - p.t0) / life, r = Math.round((p.far ? 3 + 9 * u : 1 + 4 * u) * dpr), a = 1 - u;
+    g.strokeStyle = rgba(p.col, a); g.lineWidth = lw;
+    [[p.i, p.j], [p.j, p.i]].forEach(function (q) { g.strokeRect(q[1] * k - r + lw / 2, q[0] * k - r + lw / 2, k + 2 * r - lw, k + 2 * r - lw); });
+  });
+  // tag beside the sweep head
+  if (st.tag && now - st.tag.t0 < 1800 / Math.sqrt(st.spd)) {
+    var fs = Math.round((geo.phone ? 11 : 12) * dpr);
+    g.font = '500 ' + fs + 'px "IBM Plex Mono", monospace';
+    var w = g.measureText(st.tag.txt).width, tx = st.tag.j * k + 12 * dpr, ty = st.tag.j * k - 10 * dpr;
+    if (tx + w > M - 4 * dpr) tx = st.tag.j * k - w - 12 * dpr;
+    tx = Math.max(4 * dpr, tx); ty = Math.max(fs + 6 * dpr, ty);
+    g.fillStyle = NIGHT; g.fillRect(Math.round(tx - 5 * dpr), Math.round(ty - fs - 3 * dpr), Math.round(w + 10 * dpr), Math.round(fs + 9 * dpr));
+    g.strokeStyle = st.tag.col; g.lineWidth = lw; g.strokeRect(Math.round(tx - 5 * dpr) + lw / 2, Math.round(ty - fs - 3 * dpr) + lw / 2, Math.round(w + 10 * dpr) - lw, Math.round(fs + 9 * dpr) - lw);
+    g.fillStyle = st.tag.col; g.fillText(st.tag.txt, Math.round(tx), Math.round(ty));
+  }
+  // lag row linked to the latest repeat
+  var bars = document.querySelectorAll('.lag .bar[data-b]');
+  for (var b = 0; b < bars.length; b++) bars[b].classList.toggle('hot', +bars[b].getAttribute('data-b') === st.hot && now - st.hotT < 700);
+  tally(ti);
+}
+
+function tally(ti) {
+  var s = D.sits[st.k], c = s.cum;
+  $('tP').textContent = ti + 1;
+  $('tPs').textContent = 'plays, ' + c.na[ti] + ' artists';
+  $('tN').textContent = c.nn[ti];
+  $('tNs').textContent = 'near repeats, the queue brought ' + c.nq[ti];
+  $('tF').textContent = c.nf[ti];
+  $('tFs').textContent = 'far returns, i pressed ' + c.nh[ti] + ', the queue ' + c.nfq[ti];
+}
+
+function tick(now) {
+  var s = D.sits[st.k], dt = Math.min(100, now - (st.last || now)); st.last = now;
+  if (st.play) {
+    if (st.t >= s.n - 1) { st.hold += dt; if (st.hold > 2600) restart(now); }
+    else {
+      var before = Math.floor(st.t);
+      st.t = Math.min(s.n - 1, st.t + dt / 1000 * RATE * st.spd);
+      for (var j = before + 1; j <= Math.floor(st.t); j++) event(j, now);
+      catchUp();
+    }
+  }
+  draw(now);
+  requestAnimationFrame(tick);
+}
+
+function restart() { st.t = 0; st.hold = 0; st.drawn = 0; st.pings = []; st.tag = null; ag.clearRect(0, 0, geo.M, geo.M); fg.clearRect(0, 0, geo.M, geo.M); catchUp(); }
+
+function setSit(k) {
+  st.k = (k + D.sits.length) % D.sits.length;
+  var s = D.sits[st.k];
+  $('sitL').textContent = window.innerWidth <= 860 ? (st.k + 1) + '/' + D.sits.length : 'sitting ' + (st.k + 1) + ' of ' + D.sits.length + (st.k === 0 ? ' · most typical' : '');
+  $('axn').textContent = 'play ' + s.n;
+  st.t = reduce ? s.n - 1 : 0; st.hold = 0; st.pings = []; st.tag = null;
+  layout();
+}
+
+function lab0(b) { var r = D.bins[b]; return r[0] === r[1] ? (r[0] === 1 ? 'back to back' : r[0] + ' away') : (r[1] >= 9999 ? r[0] + ' or more plays away' : r[0] + ' to ' + r[1] + ' plays away'); }
+function sideText() {
+  var L = D.lag, B = D.base, nb = D.bins.length, i, a;
+  var tot = B.reduce(function (x, y) { return x + y; }, 0);
+  var farB = L.filter(function (r, b) { return D.bins[b][0] > D.far; }), nearB = L.filter(function (r, b) { return D.bins[b][1] <= D.far; });
+  function sum(rows, col) { return rows.reduce(function (x, r) { return x + (col < 0 ? r.reduce(function (p, q) { return p + q; }, 0) : r[col]); }, 0); }
+  var farN = sum(farB, -1), farH = sum(farB, 2), farQ = sum(farB, 0), nearN = sum(nearB, -1), nearQ = sum(nearB, 0);
+  var handFar = farH / farN, handAll = B[2] / tot, qNear = nearQ / nearN, qAll = B[0] / tot;
+  var qRep = qNear > qAll && farQ / farN > qAll;
+  $('hl').textContent = handFar > handAll
+    ? (qRep ? 'the queue repeats itself; my hand returns later.' : 'my hand brings artists back later; the queue does not.')
+    : (qRep ? 'when an artist comes back, it is mostly the queue repeating itself, not my hand.' : 'repeats follow everyday shares; neither the queue nor my hand stands out.');
+  var ans = $('ans'); ans.innerHTML = '';
+  var q = document.createElement('div'); q.className = 'ansq';
+  q.textContent = 'the whole log: an artist comes back after ' + (D.far + 1) + ' or more plays away. who brought it back?';
+  var qs = document.createElement('small'); qs.textContent = farN.toLocaleString('en-US') + ' returns \u00b7 bar = share of them \u00b7 ice tick = share of all plays';
+  q.appendChild(qs); ans.appendChild(q);
+  function arow(c, name, x, u) {
+    var r = document.createElement('div'); r.className = 'arow';
+    var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = name; nm.style.color = ARMC[c];
+    var tr = document.createElement('div'); tr.className = 'tr';
+    var f = document.createElement('i'); f.style.width = x + '%'; f.style.background = ARMC[c];
+    var tk = document.createElement('u'); tk.style.left = u + '%'; tr.append(f, tk);
+    var v = document.createElement('span'); v.className = 'v';
+    var bb = document.createElement('b'); bb.textContent = x; v.append(bb, document.createTextNode(' of 100 \u00b7 usual ' + u));
+    r.append(nm, tr, v); ans.appendChild(r);
+  }
+  var xq = per100(farQ, farN), uq = per100(B[0], tot), xh = per100(farH, farN), uh = per100(B[2], tot);
+  arow(0, 'the queue', xq, uq); arow(2, 'i pressed play', xh, uh);
+  function cmp(x, u) { return x === u ? 'right at its usual share' : Math.abs(x - u) + ' ' + (x > u ? 'above' : 'below') + ' its usual share'; }
+  var nt = document.createElement('p'); nt.className = 'anote';
+  var n1 = document.createElement('span'); n1.textContent = 'why the headline: the queue sits ' + cmp(xq, uq) + '; my press sits ' + (xh === uh ? 'right at it' : Math.abs(xh - uh) + (xh > uh ? ' above' : ' below')) + '. ';
+  var n2 = document.createElement('em'); n2.textContent = xh > uh ? 'so my hand does bring artists back later.' : 'so later returns lean on the queue, not on me going back.';
+  nt.append(n1, n2); ans.appendChild(nt);
+  var hb = D.lag.map(function (r) { return per100(r[2], r.reduce(function (x, y) { return x + y; }, 0)); });
+  var bmax = hb.indexOf(Math.max.apply(null, hb)), bmin = hb.lastIndexOf(Math.min.apply(null, hb));
+  $('lagh').innerHTML = '';
+  var h = document.createElement('span');
+  h.textContent = 'every repeat, by how long the artist was away: ';
+  var e = document.createElement('em'); e.textContent = 'my press peaks at ' + lab0(bmax) + ' (' + hb[bmax] + ' of 100), lowest at ' + lab0(bmin) + ' (' + hb[bmin] + ').';
+  $('lagh').append(h, e);
+  var lag = $('lag'), lab = function (b) { var r = D.bins[b]; return r[0] === r[1] ? (r[0] === 1 ? 'back to back' : r[0] + ' away') : (r[1] >= 9999 ? r[0] + ' or more' : r[0] + ' to ' + r[1]); };
+  lag.innerHTML = '<span>plays away</span><span>who brought it back</span><span>pressed · n</span>';
+  var order = [2, 3, 1, 0];
+  function row(name, r, b, cls) {
+    var n = r.reduce(function (x, y) { return x + y; }, 0), l = document.createElement('span'); l.textContent = name; if (cls) l.className = cls;
+    var bar = document.createElement('div'); bar.className = 'bar'; if (b >= 0) bar.setAttribute('data-b', b);
+    order.forEach(function (c) { var s = document.createElement('i'); s.style.width = (100 * r[c] / n) + '%'; s.style.background = ARMC[c]; s.title = ARMN[c] + ': ' + r[c].toLocaleString('en-US'); bar.appendChild(s); });
+    var v = document.createElement('span'); v.textContent = per100(r[2], n) + ' · ' + n.toLocaleString('en-US'); if (cls) v.className = cls;
+    lag.append(l, bar, v);
+  }
+  for (i = 0; i < nb; i++) row(lab(i), L[i], i, '');
+  var sep = document.createElement('div'); sep.className = 'sep'; lag.appendChild(sep);
+  row('all plays', B, -1, 'base');
+  var key = $('key'); key.innerHTML = '';
+  [[ARMC[0], 'the queue brought it', 'queue'], [ARMC[1], 'shuffle brought it', 'shuffle'], [ARMC[2], 'i pressed play', 'i pressed'], [ARMC[3], 'i skipped to it (next or back)', 'i skipped to'], [ICE, 'the play itself (diagonal)', 'the play']].forEach(function (x) {
+    var s = document.createElement('span'), sw = document.createElement('i'), a = document.createElement('b'), b = document.createElement('b'); sw.style.background = x[0]; a.className = 'lg'; b.className = 'sh'; a.textContent = x[1]; b.textContent = x[2]; a.style.fontWeight = b.style.fontWeight = '400'; s.append(sw, a, b); key.appendChild(s);
+  });
+  var s2 = document.createElement('span'); s2.textContent = 'strips under the plot: who brought each play, then its family'; s2.style.color = MUTE; key.appendChild(s2);
+  $('how').textContent = 'how: a sitting = plays of 30 s or more, no gap over 30 min; square (i, j) = plays i and j share an artist, colored by how play j started; near = away ' + D.far + ' plays or fewer, far = more; bars = every repeat in ' + D.n_plays.toLocaleString('en-US') + ' plays; descriptive, no test.';
+  $('why').textContent = 'why: each square is a real pair of plays, nothing smoothed; sittings are chosen by a stated rule (closest to the whole log, of ' + D.n_cand + ' long ones), not looks; the bars are the whole log.';
+}
+
+function scrub(ev) {
+  var r = cv.getBoundingClientRect(), x = (ev.clientX - r.left) * geo.dpr, s = D.sits[st.k];
+  var j = Math.max(0, Math.min(s.n - 1, Math.floor(x / geo.cell)));
+  if (j < st.t) { st.drawn = 0; ag.clearRect(0, 0, geo.M, geo.M); fg.clearRect(0, 0, geo.M, geo.M); }
+  st.t = j; st.hold = 0; st.pings = []; st.tag = null; catchUp(); event(j, performance.now());
+}
+
+function wire() {
+  $('bPlay').onclick = function () { st.play = !st.play; this.textContent = st.play ? 'pause' : 'play'; this.setAttribute('aria-pressed', String(!st.play)); };
+  $('bSpd').onclick = function () { st.spd = st.spd === 1 ? 2 : st.spd === 2 ? 4 : 1; this.textContent = 'speed ' + st.spd + '×'; };
+  $('bPrev').onclick = function () { setSit(st.k - 1); };
+  $('bNext').onclick = function () { setSit(st.k + 1); };
+  $('bFam').onclick = function () { st.fam = !st.fam; this.setAttribute('aria-pressed', String(st.fam)); };
+  $('bRe').onclick = function () { restart(); };
+  var down = false;
+  cv.addEventListener('pointerdown', function (e) { down = true; cv.setPointerCapture(e.pointerId); scrub(e); });
+  cv.addEventListener('pointermove', function (e) { if (down) scrub(e); });
+  cv.addEventListener('pointerup', function () { down = false; });
+  document.addEventListener('keydown', function (e) { if (e.key === ' ' && e.target === document.body) { e.preventDefault(); $('bPlay').click(); } });
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { var t = st.t; layout(); st.t = t; catchUp(); }, 120); });
+  if (reduce) { st.play = false; $('bPlay').textContent = 'play'; }
+}
+
+fetch('data/recurrence.json').then(function (r) { return r.json(); }).then(function (j) {
+  D = j; D.sits.forEach(prep); sideText(); wire(); setSit(0);
+  requestAnimationFrame(tick);
+});
+})();
+</script>
+</body>
+</html>

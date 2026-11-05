@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>sonic manifold · the room field</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --night:#06010f; --panel:#0b0618; --line:#1d1530; --ice:#bcd3ff; --text:#e8e4f4; --dim:#9a90b8; --mint:#21f6bc; --amber:#f5a623; --violet:#8b6fd6; --rose:#ff5c7a; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--night); color: var(--text); font-family: 'Instrument Sans', system-ui, sans-serif; }
+body { display: flex; overflow: hidden; }
+#stage { position: relative; flex: 1 1 auto; min-width: 0; height: 100vh; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+#panel { flex: 0 0 372px; height: 100vh; overflow-y: auto; background: var(--panel); border-left: 1px solid var(--line); padding: 22px 24px 14px; display: flex; flex-direction: column; gap: 10px; }
+.kick { font: 500 11px/1.3 'IBM Plex Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+h1 { margin: 0; font-weight: 600; font-size: 21px; line-height: 1.16; letter-spacing: -.01em; }
+.cap { margin: 0; font-size: 13.5px; line-height: 1.45; color: #cfc8e6; }
+.st { border-top: 1px solid var(--line); padding-top: 12px; }
+.st .q { font-size: 12.5px; line-height: 1.4; color: #cfc8e6; margin-bottom: 9px; }
+.row { display: grid; grid-template-columns: 92px 1fr 112px; align-items: center; gap: 9px; height: 22px; }
+.row .lb { font-size: 12.5px; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.row .lb i { width: 8px; height: 8px; display: inline-block; flex: none; }
+.bar { position: relative; height: 10px; background: #150e26; }
+.bar .f { position: absolute; left: 0; top: 0; bottom: 0; }
+.bar .ci { position: absolute; top: 4px; height: 2px; background: var(--ice); opacity: .5; }
+.bar .ch { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--ice); }
+.row .v { font: 500 12px 'IBM Plex Mono', monospace; text-align: right; color: var(--text); white-space: nowrap; }
+.row .v s { text-decoration: none; color: var(--dim); font-weight: 400; }
+.note { font: 400 11px/1.45 'IBM Plex Mono', monospace; color: var(--dim); margin-top: 7px; }
+.live { font: 400 11px/1.45 'IBM Plex Mono', monospace; color: var(--dim); min-height: 16px; }
+.live b { font-weight: 500; color: var(--text); }
+.ctl { display: flex; flex-wrap: wrap; gap: 6px; }
+.ctl button { font: 500 11px 'IBM Plex Mono', monospace; color: var(--text); background: transparent; border: 1px solid #2f2548; padding: 6px 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.ctl button i { width: 8px; height: 8px; display: inline-block; }
+.ctl button[aria-pressed="false"] { color: #6b6288; }
+.ctl button[aria-pressed="false"] i { opacity: .25; }
+.ctl button:focus-visible { outline: 1px solid var(--ice); outline-offset: 1px; }
+.how, .why { margin: 0; font: 400 11px/1.5 'IBM Plex Mono', monospace; color: #a9a0c6; }
+.how b, .why b { color: var(--ice); font-weight: 500; }
+.key { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.key div { display: flex; align-items: center; gap: 7px; font-size: 11.5px; line-height: 1.25; color: #cfc8e6; }
+.key svg { flex: none; }
+#panel > * { flex-shrink: 0; }
+.foot { margin-top: auto; font: 400 11px 'IBM Plex Mono', monospace; color: #5d5478; }
+@media (max-width: 760px) {
+  body { flex-direction: column; overflow: hidden; }
+  #stage { flex: 0 0 auto; height: 31vh; width: 100%; }
+  #panel { flex: 1 1 auto; height: auto; min-height: 0; border-left: 0; border-top: 1px solid var(--line); padding: 10px 16px 8px; gap: 7px; }
+  .kick { font-size: 11px; }
+  .st .q { margin-bottom: 5px; font-size: 12px; }
+  .note { margin-top: 4px; }
+  .live { min-height: 0; }
+  .row { height: 18px; }
+  .ctl button { padding: 5px 6px; font-size: 11px; gap: 4px; }
+  .ctl { gap: 4px; }
+  .how, .why, .note, .live { font-size: 11px; }
+  .key { gap: 4px 10px; }
+  .key div { font-size: 10.5px; gap: 5px; }
+  .row { grid-template-columns: 82px 1fr 104px; }
+  h1 { font-size: 17px; }
+  .cap { font-size: 12px; }
+  .st { padding-top: 9px; }
+}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="cv" aria-label="the sound map as a moving field: squares are real sittings walking from artist to artist, colored by what started each play"></canvas></div>
+<aside id="panel">
+  <div class="kick"><a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 07 · the room is the field</div>
+  <h1 id="hl">left alone, the queue keeps the next song in the same family. when i or shuffle break in, it strays more often.</h1>
+  <p class="cap">each moving square is a song from a real sitting, replayed in order. stir the field with your pointer; it heals.</p>
+  <div class="key" id="key"></div>
+  <div class="st">
+    <div class="q" id="q">right after a queue song, the next song stayed in the same family, per 100, by who started it:</div>
+    <div id="rows"></div>
+    <div class="note" id="note"></div>
+  </div>
+  <div class="live" id="live">&nbsp;</div>
+  <div class="ctl" id="ctl">
+    <button id="bPlay" aria-pressed="true">pause</button>
+    <button id="bSpd" aria-pressed="true">1x</button>
+    <button data-arm="0" aria-pressed="true"><i style="background:var(--violet)"></i>queue</button>
+    <button data-arm="1" aria-pressed="true"><i style="background:var(--mint)"></i>pressed</button>
+    <button data-arm="3" aria-pressed="true"><i style="background:var(--amber)"></i>shuffle</button>
+    <button id="bCur" aria-pressed="true">currents</button>
+  </div>
+  <p class="how" id="how"></p>
+  <p class="why" id="why"></p>
+  <div class="foot">sonic manifold · by astralcrest · direction 07, private</div>
+</aside>
+<script>
+(function () {
+  'use strict';
+  var NIGHT = '#06010f', ICE = '#bcd3ff';
+  var ARMC = ['#8b6fd6', '#21f6bc', '#21f6bc', '#f5a623'];
+  var ARMN = ['the queue', 'i pressed', 'i pressed', 'shuffle'];
+  var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#ffd36b', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#f5a623', 'untagged': '#6f6790' };
+  var cv = document.getElementById('cv'), g = cv.getContext('2d');
+  var D, N, FC, X0, Y0, RX, RY, OX, OY, VX, VY, SZ, LK, sitOrder, sitPtr = 0, CX = 500, CY = 500, ANG = 0;
+  var W = 0, H = 0, dpr = 1, S = 1, MX = 0, MY = 0, phone = false;
+  var parts = [], scars = [], live = [[0, 0], [0, 0], [0, 0], [0, 0]];
+  var show = [true, true, true, true], curOn = true, playing = true, speed = 1, simT = 0, last = 0;
+  var ptr = { x: -1e4, y: -1e4, px: -1e4, py: -1e4, on: false };
+
+  function fmt(n) { return n.toLocaleString('en-US'); }
+  function of100(x) { return Math.round(x * 100); }
+  function hash(a, b) { return ((a * 73856093) ^ (b * 19349663)) & 1 ? 1 : -1; }
+
+  function resize() {
+    var r = cv.getBoundingClientRect();
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    W = r.width; H = r.height; phone = window.innerWidth <= 760;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    if (!D) return;
+    // turn the map to the angle that fills this screen best; a turn keeps every distance
+    var pad = phone ? 12 : 30, best = -1, i, a;
+    for (a = 0; a < 180; a += 3) {
+      var c = Math.cos(a * Math.PI / 180), sn = Math.sin(a * Math.PI / 180), x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+      for (i = 0; i < N; i += 2) { if (!SZ[i]) continue; var u = (X0[i] - CX) * c - (Y0[i] - CY) * sn, v = (X0[i] - CX) * sn + (Y0[i] - CY) * c; if (u < x0) x0 = u; if (u > x1) x1 = u; if (v < y0) y0 = v; if (v > y1) y1 = v; }
+      var sc = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0));
+      if (sc > best) { best = sc; ANG = a; }
+    }
+    var cA = Math.cos(ANG * Math.PI / 180), sA = Math.sin(ANG * Math.PI / 180), bx0 = 1e9, bx1 = -1e9, by0 = 1e9, by1 = -1e9;
+    for (i = 0; i < N; i++) { var uu = (X0[i] - CX) * cA - (Y0[i] - CY) * sA, vv = (X0[i] - CX) * sA + (Y0[i] - CY) * cA; RX[i] = uu; RY[i] = vv; if (SZ[i]) { if (uu < bx0) bx0 = uu; if (uu > bx1) bx1 = uu; if (vv < by0) by0 = vv; if (vv > by1) by1 = vv; } }
+    S = Math.min((W - 2 * pad) / (bx1 - bx0), (H - 2 * pad) / (by1 - by0));
+    MX = W / 2 - (bx0 + bx1) / 2 * S; MY = H / 2 - (by0 + by1) / 2 * S;
+    for (i = 0; i < N; i++) { RX[i] = MX + RX[i] * S; RY[i] = MY + RY[i] * S; }
+  }
+  function px(x, y) { return MX + ((x - CX) * Math.cos(ANG * Math.PI / 180) - (y - CY) * Math.sin(ANG * Math.PI / 180)) * S; }
+  function py(x, y) { return MY + ((x - CX) * Math.sin(ANG * Math.PI / 180) + (y - CY) * Math.cos(ANG * Math.PI / 180)) * S; }
+  function sx(i) { return RX[i] + OX[i]; }
+  function sy(i) { return RY[i] + OY[i]; }
+  function snap(v) { return Math.round(v * dpr) / dpr; }
+
+  function init(data) {
+    D = data; N = D.xy.length;
+    X0 = new Float32Array(N); Y0 = new Float32Array(N); RX = new Float32Array(N); RY = new Float32Array(N); OX = new Float32Array(N); OY = new Float32Array(N); VX = new Float32Array(N); VY = new Float32Array(N); SZ = new Float32Array(N); FC = [];
+    for (var i = 0; i < N; i++) { X0[i] = D.xy[i][0]; Y0[i] = D.xy[i][1]; SZ[i] = D.p[i] ? Math.min(4.2, 1 + Math.sqrt(D.p[i]) / 11) : 0; FC.push(FAMC[D.fam[D.fa[i]]] || '#6f6790'); }
+    var wsum = 0; CX = 0; CY = 0; for (i = 0; i < N; i++) if (SZ[i]) { CX += X0[i]; CY += Y0[i]; wsum++; } CX /= wsum; CY /= wsum;
+    // currents grouped by family and by how often the queue took the path (three line weights)
+    LK = {};
+    D.links.forEach(function (l) { var f = D.fa[l[0]], t = l[2] >= 10 ? 2 : l[2] >= 4 ? 1 : 0; (LK[f + ':' + t] = LK[f + ':' + t] || { f: f, t: t, L: [] }).L.push(l); });
+    LK = Object.keys(LK).map(function (k) { return LK[k]; });
+    sitOrder = D.sit.map(function (_, i) { return i; });
+    for (var j = sitOrder.length - 1; j > 0; j--) { var r = Math.floor(rand() * (j + 1)), tmp = sitOrder[j]; sitOrder[j] = sitOrder[r]; sitOrder[r] = tmp; }
+    resize(); text(); bind();
+    var target = phone ? 80 : 140;
+    for (var p = 0; p < target; p++) parts.push(spawn(-p * 70));
+    requestAnimationFrame(frame);
+  }
+  var seed = 7; function rand() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+
+  function text() {
+    var k = D.k, rows = document.getElementById('rows'), html = '';
+    D.run.forEach(function (r) {
+      var c = ARMC[r.arm];
+      html += '<div class="row"><span class="lb"><i style="background:' + c + '"></i>' + ARMN[r.arm] + '</span>' +
+        '<span class="bar"><span class="f" style="width:' + (r.stay * 100) + '%;background:' + c + '"></span>' +
+        '<span class="ci" style="left:' + (r.lo * 100) + '%;width:' + ((r.hi - r.lo) * 100) + '%"></span>' +
+        '<span class="ch" style="left:' + (r.chance * 100) + '%"></span></span>' +
+        '<span class="v">' + of100(r.stay) + ' <s>chance ' + of100(r.chance) + '</s></span></div>';
+    });
+    rows.innerHTML = html;
+    var sh = D.run.filter(function (r) { return r.arm === 3; })[0], q = D.run.filter(function (r) { return r.arm === 0; })[0];
+    document.getElementById('note').textContent = 'white tick = chance (the same songs dealt at random); pale line = 95 in 100 range. shuffle here is rare (' + fmt(sh.n) + ' hops) and its range (' + of100(sh.lo) + ' to ' + of100(sh.hi) + ') reaches chance: a direction, not a size. typical hop, map 1000 wide: ' + q.med + ' · ' + D.run[1].med + ' · ' + sh.med + '.';
+    document.getElementById('how').innerHTML = '<b>how:</b> ' + fmt(k.hops) + ' hops between artists inside ' + fmt(k.sittings) + ' sittings; stayed = same family; ranges: ' + k.boot + ' resamples of ' + k.blocks + ' four-week blocks.';
+    document.getElementById('why').innerHTML = '<b>why:</b> measured right after a queue song because an earlier check found the gap is the run breaking, not my hand reaching farther.';
+    var key = [
+      ['<svg width="26" height="10"><path d="M1 7 Q13 0 25 7" stroke="#ff5c7a" stroke-width="1.6" fill="none" stroke-dasharray="2.5 4"/></svg>', 'a path the queue repeats in one family; thicker = more often'],
+      ['<svg width="26" height="10"><rect x="1" y="2" width="6" height="6" fill="#8b6fd6"/><rect x="10" y="2" width="6" height="6" fill="#21f6bc"/><rect x="19" y="2" width="6" height="6" fill="#f5a623"/></svg>', 'a song, colored by who started it'],
+      ['<svg width="26" height="10"><path d="M1 9 Q13 -3 25 9" stroke="#21f6bc" stroke-width="1.3" fill="none"/></svg>', 'a song that left its family (fades)'],
+      ['<svg width="26" height="10"><rect x="4" y="3" width="3" height="3" fill="#5fb8ff"/><rect x="14" y="1" width="7" height="7" fill="#ff4fa3"/></svg>', 'an artist, placed by sound; size = plays']
+    ];
+    document.getElementById('key').innerHTML = key.map(function (x) { return '<div>' + x[0] + '<span>' + x[1] + '</span></div>'; }).join('');
+  }
+
+  function spawn(delay) {
+    var si = sitOrder[sitPtr++ % sitOrder.length], s = D.sit[si];
+    var p = { s: s, k: 0, n: s.length / 3, mode: 'dwell', wait: true, until: simT + (delay < 0 ? -delay : 0) + 300, arm: s[1], a: s[0], b: s[0], cv: 0, trail: [], touched: false, x: 0, y: 0 };
+    p.x = sx(p.a); p.y = sy(p.a);
+    return p;
+  }
+
+  function startHop(p, now) {
+    if (p.k + 1 >= p.n) { return false; }
+    var a = p.s[p.k * 3], b = p.s[(p.k + 1) * 3];
+    p.a = a; p.b = b; p.arm = p.s[(p.k + 1) * 3 + 1];
+    p.cross = D.fa[a] !== D.fa[b];
+    p.cv = (p.cross ? 0.2 : 0.14) * hash(a, b);
+    var dx = X0[b] - X0[a], dy = Y0[b] - Y0[a], dist = Math.sqrt(dx * dx + dy * dy);
+    p.mode = 'hop'; p.wait = false; p.t0 = now; p.dur = 700 + 1.6 * dist;
+    return true;
+  }
+
+  function curve(a, b, cvv, out) {
+    var ax = sx(a), ay = sy(a), bx = sx(b), by = sy(b);
+    out[0] = ax; out[1] = ay; out[4] = bx; out[5] = by;
+    out[2] = (ax + bx) / 2 - (by - ay) * cvv; out[3] = (ay + by) / 2 + (bx - ax) * cvv;
+    return out;
+  }
+  var CB = [0, 0, 0, 0, 0, 0];
+  function ease(t) { return 0.5 - 0.5 * Math.cos(Math.PI * t); }
+
+  function step(dt) {
+    simT += dt;
+    var now = simT;
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      if (p.mode === 'dwell') {
+        p.x = sx(p.a === p.b ? p.a : p.b); p.y = sy(p.a === p.b ? p.a : p.b);
+        if (now >= p.until) {
+          if (p.a !== p.b) { p.k++; p.a = p.b; }
+          if (!startHop(p, now)) { parts[i] = spawn(-200 - rand() * 600); continue; }
+        }
+      } else {
+        var t = Math.min(1, (now - p.t0) / p.dur), e = ease(t);
+        curve(p.a, p.b, p.cv, CB);
+        var u = 1 - e;
+        p.x = u * u * CB[0] + 2 * u * e * CB[2] + e * e * CB[4];
+        p.y = u * u * CB[1] + 2 * u * e * CB[3] + e * e * CB[5];
+        if (t >= 1) {
+          live[p.arm][0]++; if (!p.cross) live[p.arm][1]++;
+          if (p.cross) scars.push({ a: p.a, b: p.b, cv: p.cv, arm: p.arm, t: now });
+          var rep = p.s[(p.k + 1) * 3 + 2];
+          p.mode = 'dwell'; p.until = now + 220 + 160 * Math.min(rep, 6);
+        }
+      }
+      if (p.wait) continue;
+      p.trail.push(p.x, p.y); if (p.trail.length > 16) p.trail.splice(0, 2);
+      if (ptr.on) { var ddx = p.x - ptr.x, ddy = p.y - ptr.y; if (ddx * ddx + ddy * ddy < 900) p.touched = true; }
+    }
+    while (scars.length && now - scars[0].t > 2600) scars.shift();
+    if (scars.length > 500) scars.splice(0, scars.length - 500);
+  }
+
+  function field(dtn) {
+    // the pointer pushes artists aside; a spring brings each one home (the flow heals)
+    var R = phone ? 70 : 105, R2 = R * R, pvx = ptr.x - ptr.px, pvy = ptr.y - ptr.py, sp = Math.min(40, Math.sqrt(pvx * pvx + pvy * pvy));
+    for (var i = 0; i < N; i++) {
+      if (ptr.on && sp > 0.2) {
+        var dx = RX[i] + OX[i] - ptr.x, dy = RY[i] + OY[i] - ptr.y, d2 = dx * dx + dy * dy;
+        if (d2 < R2) { var d = Math.sqrt(d2) + 0.01, f = (1 - d / R); f = f * f * sp * 0.09; VX[i] += (dx / d) * f + pvx * f * 0.03; VY[i] += (dy / d) * f + pvy * f * 0.03; }
+      }
+      if (OX[i] !== 0 || OY[i] !== 0 || VX[i] !== 0 || VY[i] !== 0) {
+        VX[i] = (VX[i] - OX[i] * 0.018 * dtn) * Math.pow(0.9, dtn); VY[i] = (VY[i] - OY[i] * 0.018 * dtn) * Math.pow(0.9, dtn);
+        OX[i] += VX[i] * dtn; OY[i] += VY[i] * dtn;
+        if (Math.abs(OX[i]) < 0.02 && Math.abs(VX[i]) < 0.02) { OX[i] = 0; VX[i] = 0; }
+        if (Math.abs(OY[i]) < 0.02 && Math.abs(VY[i]) < 0.02) { OY[i] = 0; VY[i] = 0; }
+      }
+    }
+    ptr.px = ptr.x; ptr.py = ptr.y;
+  }
+
+  function draw() {
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = NIGHT; g.fillRect(0, 0, W, H);
+    var i, k;
+    if (curOn) {
+      var off = -simT * 0.018;
+      for (k = 0; k < LK.length; k++) {
+        var grp = LK[k], col = FAMC[D.fam[grp.f]] || '#6f6790';
+        g.beginPath();
+        for (i = 0; i < grp.L.length; i++) { var l = grp.L[i]; curve(l[0], l[1], 0.16, CB); g.moveTo(CB[0], CB[1]); g.quadraticCurveTo(CB[2], CB[3], CB[4], CB[5]); }
+        var lw = [0.6, 1.1, 1.9][grp.t] * (phone ? 0.85 : 1);
+        g.lineWidth = lw; g.strokeStyle = col; g.setLineDash([]); g.globalAlpha = [0.06, 0.1, 0.17][grp.t]; g.stroke();
+        g.setLineDash([2.5, 11]); g.lineDashOffset = off; g.globalAlpha = [0.24, 0.45, 0.75][grp.t]; g.stroke();
+      }
+      g.setLineDash([]); g.globalAlpha = 1;
+    }
+    for (i = 0; i < N; i++) { if (!SZ[i]) continue; var s = SZ[i] * (phone ? 0.8 : 1); g.fillStyle = FC[i]; g.globalAlpha = curOn ? 0.45 : 0.35; g.fillRect(snap(sx(i) - s / 2), snap(sy(i) - s / 2), s, s); }
+    g.globalAlpha = 1;
+    // jump marks: a hop that left its family leaves its arc for a moment
+    for (i = 0; i < scars.length; i++) {
+      var sc = scars[i]; if (!show[sc.arm]) continue;
+      var age = (simT - sc.t) / 2600; curve(sc.a, sc.b, sc.cv, CB);
+      g.strokeStyle = ARMC[sc.arm]; g.globalAlpha = 0.65 * (1 - age); g.lineWidth = phone ? 1 : 1.2;
+      g.beginPath(); g.moveTo(CB[0], CB[1]); g.quadraticCurveTo(CB[2], CB[3], CB[4], CB[5]); g.stroke();
+    }
+    g.globalAlpha = 1;
+    if (curOn) labels();
+    var ps = phone ? 3 : 4;
+    for (i = 0; i < parts.length; i++) {
+      var p = parts[i]; if (p.wait || !show[p.arm]) continue;
+      var c = ARMC[p.arm], tr = p.trail;
+      if (tr.length > 3) { g.strokeStyle = c; g.globalAlpha = 0.55; g.lineWidth = phone ? 1 : 1.2; g.beginPath(); g.moveTo(tr[0], tr[1]); for (k = 2; k < tr.length; k += 2) g.lineTo(tr[k], tr[k + 1]); g.stroke(); g.globalAlpha = 1; }
+      g.fillStyle = c; g.fillRect(snap(p.x - ps / 2), snap(p.y - ps / 2), ps, ps);
+      if (p.touched) { g.strokeStyle = ICE; g.lineWidth = 1; g.strokeRect(snap(p.x - 3.5) + 0.5 / dpr, snap(p.y - 3.5) + 0.5 / dpr, 7, 7); }
+    }
+  }
+
+  var LB = null;
+  function labels() {
+    if (!LB || LB.w !== W || LB.h !== H) {
+      var fs = 11, placed = [];
+      g.font = '500 ' + fs + 'px "IBM Plex Mono", monospace';
+      var L = D.labels.slice().sort(function (a, b) { return b[3] - a[3]; }), keep = [];
+      L.forEach(function (l) {
+        var name = D.fam[l[0]]; if (name === 'other' || name === 'untagged') return; var w = g.measureText(name).width + 8, x = px(l[1], l[2]) - w / 2, y = py(l[1], l[2]) - 14;
+        x = Math.max(4, Math.min(W - w - 4, x)); y = Math.max(fs + 4, y);
+        var box = [x, y - fs, w, fs + 6];
+        if (placed.some(function (b) { return !(box[0] > b[0] + b[2] || box[0] + box[2] < b[0] || box[1] > b[1] + b[3] || box[1] + box[3] < b[1]); })) return;
+        placed.push(box); keep.push([name, x + 4, y, FAMC[name]]);
+      });
+      LB = { w: W, h: H, fs: fs, L: keep };
+    }
+    g.font = '500 ' + LB.fs + 'px "IBM Plex Mono", monospace'; g.textBaseline = 'alphabetic';
+    LB.L.forEach(function (l) { var w = g.measureText(l[0]).width; g.fillStyle = NIGHT; g.fillRect(l[1] - 3, l[2] - LB.fs, w + 6, LB.fs + 4); g.fillStyle = l[3]; g.fillText(l[0], l[1], l[2]); });
+  }
+
+  var liveEl = document.getElementById('live'), lastTxt = 0;
+  function liveText() {
+    var n = 0, out = 0; for (var a = 0; a < 4; a++) { n += live[a][0]; out += live[a][0] - live[a][1]; }
+    liveEl.innerHTML = 'replayed: <b>' + fmt(n) + '</b> songs; <b>' + fmt(out) + '</b> left their family (the arcs).';
+  }
+
+  function frame(ts) {
+    var dt = last ? Math.min(50, ts - last) : 16.7; last = ts;
+    field(dt / 16.7);
+    if (playing) step(dt * speed);
+    draw();
+    if (ts - lastTxt > 500) { liveText(); lastTxt = ts; }
+    requestAnimationFrame(frame);
+  }
+
+  function bind() {
+    window.addEventListener('resize', function () { resize(); LB = null; OX.fill(0); OY.fill(0); VX.fill(0); VY.fill(0); parts.forEach(function (p) { p.trail = []; }); });
+    function pos(e) { var r = cv.getBoundingClientRect(); ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; }
+    cv.addEventListener('pointermove', function (e) { if (!ptr.on) { pos(e); ptr.px = ptr.x; ptr.py = ptr.y; ptr.on = true; } else pos(e); });
+    cv.addEventListener('pointerdown', function (e) { pos(e); ptr.px = ptr.x; ptr.py = ptr.y; ptr.on = true; });
+    cv.addEventListener('pointerleave', function () { ptr.on = false; });
+    cv.addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') ptr.on = false; });
+    var bP = document.getElementById('bPlay'), bS = document.getElementById('bSpd'), bC = document.getElementById('bCur');
+    bP.onclick = function () { playing = !playing; bP.textContent = playing ? 'pause' : 'play'; bP.setAttribute('aria-pressed', playing); };
+    var SP = [0.5, 1, 2, 4], si = 1;
+    bS.onclick = function () { si = (si + 1) % SP.length; speed = SP[si]; bS.textContent = speed + 'x'; };
+    bC.onclick = function () { curOn = !curOn; bC.setAttribute('aria-pressed', curOn); };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-arm]'), function (b) {
+      b.onclick = function () { var a = +b.getAttribute('data-arm'), v = !show[a]; show[a] = v; if (a === 1) show[2] = v; b.setAttribute('aria-pressed', v); };
+    });
+    window.addEventListener('keydown', function (e) { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); bP.click(); } });
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { si = 0; speed = 0.5; bS.textContent = '0.5x'; }
+  }
+
+  fetch('data/teamlab.json').then(function (r) { return r.json(); }).then(function (d) { (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () { init(d); }); });
+})();
+</script>
+</body>
+</html>

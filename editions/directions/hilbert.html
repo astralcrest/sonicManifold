@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>sonic manifold · the hilbert fold</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#06010f; --mint:#21f6bc; --amber:#f5a623; --violet:#8b6fd6; --rose:#ff5c7a; --ice:#bcd3ff; --gold:#ffd36b;
+  --ink:#eef1fb; --mute:#8f97b3; --line:#2a2340;
+  --sans:"Instrument Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--night);color:var(--ink);font-family:var(--sans);height:100%}
+body{overflow-x:hidden}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:40px;height:100vh;padding:28px 40px;max-width:1400px;margin:0 auto}
+.stage{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;min-width:0}
+.ends{display:flex;justify-content:space-between;font:400 11px/1 var(--mono);color:var(--mute);margin-bottom:6px;letter-spacing:.02em}
+.box{position:relative;line-height:0}
+canvas{display:block;image-rendering:pixelated}
+#ov{position:absolute;left:0;top:0;cursor:crosshair;touch-action:manipulation}
+#rg{position:absolute;left:0;top:0;pointer-events:none}
+.cue{font:400 12px/1.4 var(--mono);color:var(--ice);margin-top:8px;letter-spacing:.01em}
+.cue b{font-weight:500;color:var(--ink)}
+.legend .ol{width:12px;height:12px;display:block;outline:1px solid var(--ice);outline-offset:-1px;background:var(--mint)}
+.side{display:flex;flex-direction:column;justify-content:center;gap:12px;min-width:0}
+.eyebrow{font:500 11px/1.3 var(--mono);color:var(--mute);letter-spacing:.08em;text-transform:lowercase}
+h1{font:600 30px/1.12 var(--sans);letter-spacing:-.01em;color:var(--ink)}
+.cap{font:400 15px/1.45 var(--sans);color:var(--ice)}
+.now{font:400 12px/1.5 var(--mono);color:var(--ink);min-height:54px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 0}
+.now b{font-weight:500}
+.legend{display:grid;grid-template-columns:12px auto 1fr;gap:7px 10px;align-items:center;font:400 13px/1.2 var(--sans);color:var(--ink)}
+.legend i{width:12px;height:12px;display:block}
+.legend .n{font:400 12px/1.2 var(--mono);color:var(--ice);text-align:right}
+.clump{font:400 13px/1.45 var(--sans);color:var(--ice)}
+.clump .m{font-family:var(--mono);color:var(--ink)}
+.cmp{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start}
+.cmp figure{display:flex;flex-direction:column;gap:5px;opacity:0;transition:opacity .7s linear}
+.cmp figure.on{opacity:1}
+.cmp figcaption{font:400 11px/1.3 var(--mono);color:var(--mute);max-width:172px}
+#th{display:block;image-rendering:pixelated;outline:1px solid var(--line)}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px}
+button{white-space:nowrap;font:500 12px/1 var(--mono);color:var(--ink);background:var(--night);border:1px solid #3b3358;padding:9px 8px;cursor:pointer;border-radius:0}
+button:hover{border-color:var(--ice)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--night);border-color:var(--ink)}
+button:focus-visible{outline:1px solid var(--mint);outline-offset:2px}
+.method{font:400 11px/1.5 var(--mono);color:var(--mute)}
+.method span{color:var(--ice)}
+.err{font:400 13px/1.4 var(--mono);color:var(--rose)}
+@media (max-width:900px){
+  .wrap{display:flex;flex-direction:column;height:auto;min-height:100vh;padding:12px 16px 14px;gap:8px}
+  .side{display:contents}
+  .cap{line-height:1.35}
+  .side>*{order:3}
+  .side>.head{order:1}
+  .stage{order:2}
+  h1{font-size:22px}
+  .cap{font-size:13px}
+  .now{min-height:50px;font-size:11px;line-height:1.45;padding:5px 0}
+  .legend{font-size:12px;gap:3px 8px}
+  .legend .n{font-size:11px}
+  .ends{font-size:11px}
+  .cue{font-size:11px}
+  .clump{font-size:12px;line-height:1.38}
+  .cmp{gap:10px}
+  .cmp figcaption{font-size:11px;max-width:116px}
+  .now{min-height:0}
+  .ctrls{gap:6px;flex-wrap:nowrap}
+  button{padding:8px 4px;font-size:11px;flex:1 1 auto}
+  .method{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="stage" id="stage">
+    <div class="ends" id="ends"><span>&#8601; play 1 starts here</span><span>the latest play ends here &#8600;</span></div>
+    <div class="box" id="box"><canvas id="cv" aria-label="every play as one cell along a hilbert curve, colored by what started it"></canvas><canvas id="rg" aria-hidden="true"></canvas><canvas id="ov"></canvas></div>
+    <div class="cue" id="cue">a clump = plays close in time that one hand started</div>
+  </div>
+  <div class="side" id="side">
+    <div class="head" id="head">
+      <div class="eyebrow"><a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 19 &middot; the hilbert fold</div>
+      <h1 id="hl">&nbsp;</h1>
+    </div>
+    <p class="cap" id="cap">every play in time order, one cell each, folded onto a square so plays near in time sit near each other.</p>
+    <div class="now" id="now" aria-live="polite">&nbsp;</div>
+    <div class="legend" id="legend"></div>
+    <div class="cmp">
+      <figure id="thf"><canvas id="th" aria-label="the same colors dealt onto the same curve at random"></canvas><figcaption id="thcap">the same colors, dealt at random</figcaption></figure>
+      <p class="clump" id="clump"></p>
+    </div>
+    <div class="ctrls">
+      <button id="bPlay" title="space bar works too">pause</button>
+      <button id="bSpeed">speed 1&times;</button>
+      <button id="bCurve" aria-pressed="false" title="draw each cell as a piece of the line, so you can follow time through the square">curve</button>
+      <button id="bScatter" aria-pressed="false" title="deal the same colors onto the curve at random: if the clumps vanish, they were real">scatter</button>
+      <button id="bStrict" aria-pressed="false" title="count only play, row and remote presses as mint; skip and back presses turn ice">strict only</button>
+    </div>
+    <p class="method" id="how"></p>
+    <p class="method" id="why"></p>
+  </div>
+</div>
+<script>
+(async function(){
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('en-US');
+const of100=x=>Math.round(x*100);
+const C={night:'#06010f',mint:'#21f6bc',amber:'#f5a623',violet:'#8b6fd6',ice:'#bcd3ff'};
+function hex(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+function mix(a,b,t){const A=hex(a),B=hex(b);return A.map((v,i)=>Math.round(v*(1-t)+B[i]*t))}
+function u32(rgb){return ((255<<24)|(rgb[2]<<16)|(rgb[1]<<8)|rgb[0])>>>0}
+const NIGHT=u32(hex(C.night)), ICE=u32(hex(C.ice)), ICEDIM=u32(mix(C.ice,C.night,.42));
+// the focus beat: the queue and shuffle fold into one dark machine tone, loose presses dim, only my presses stay bright
+const FL=10, MACH=mix(C.violet,C.night,.80), ICED=mix(C.ice,C.night,.62);
+function lerp(a,b,t){return a.map((v,i)=>Math.round(v*(1-t)+b[i]*t))}
+const PAL=[]; for(let l=0;l<=FL;l++){const t=l/FL; PAL.push([lerp(hex(C.violet),MACH,t),lerp(hex(C.amber),MACH,t),hex(C.mint),hex(C.mint),lerp(hex(C.ice),ICED,t)].map(u32))}
+
+let D;
+try{ D=await (await fetch('data/hilbert.json')).json(); }
+catch(e){ $('now').innerHTML='<span class="err">could not load data/hilbert.json</span>'; return; }
+const N=D.n, W=D.W, H=D.H;
+const hand=new Uint8Array(N); for(let i=0;i<N;i++) hand[i]=D.hands.charCodeAt(i)-48;
+
+// generalized hilbert (gilbert) curve; also records the folds so a hover can name its stretch
+const P=new Int32Array(W*H*2); let K=0; const blocks=[];
+const sgn=v=>v>0?1:v<0?-1:0;
+function gen(x,y,ax,ay,bx,by){
+  const w=Math.abs(ax+ay), h=Math.abs(bx+by), dax=sgn(ax), day=sgn(ay), dbx=sgn(bx), dby=sgn(by), k0=K;
+  if(h===1){ for(let i=0;i<w;i++){P[2*K]=x;P[2*K+1]=y;K++;x+=dax;y+=day} }
+  else if(w===1){ for(let i=0;i<h;i++){P[2*K]=x;P[2*K+1]=y;K++;x+=dbx;y+=dby} }
+  else{
+    let ax2=Math.floor(ax/2), ay2=Math.floor(ay/2), bx2=Math.floor(bx/2), by2=Math.floor(by/2);
+    const w2=Math.abs(ax2+ay2), h2=Math.abs(bx2+by2);
+    if(2*w>3*h){
+      if((w2%2)&&(w>2)){ax2+=dax;ay2+=day}
+      gen(x,y,ax2,ay2,bx,by); gen(x+ax2,y+ay2,ax-ax2,ay-ay2,bx,by);
+    }else{
+      if((h2%2)&&(h>2)){bx2+=dbx;by2+=dby}
+      gen(x,y,bx2,by2,ax2,ay2); gen(x+bx2,y+by2,ax,ay,bx-bx2,by-by2);
+      gen(x+(ax-dax)+(bx2-dbx),y+(ay-day)+(by2-dby),-bx2,-by2,-(ax-ax2),-(ay-ay2));
+    }
+  }
+  if(w*h>=512){
+    let x0=1e9,y0=1e9,x1=-1,y1=-1;
+    for(let i=k0;i<K;i++){const px=P[2*i],py=P[2*i+1]; if(px<x0)x0=px; if(px>x1)x1=px; if(py<y0)y0=py; if(py>y1)y1=py}
+    blocks.push([k0,K,x0,y0,x1,y1]);
+  }
+}
+if(W>=H) gen(0,0,W,0,0,H); else gen(0,0,0,H,W,0);
+blocks.sort((a,b)=>(a[1]-a[0])-(b[1]-b[0]));
+const inv=new Int32Array(W*H).fill(-1);
+for(let i=0;i<W*H;i++) inv[P[2*i+1]*W+P[2*i]]=i;
+// pipe directions: 1 right, 2 left, 4 down, 8 up
+const dir=new Uint8Array(N);
+function dbit(i,j){const dx=P[2*j]-P[2*i], dy=P[2*j+1]-P[2*i+1]; return dx===1?1:dx===-1?2:dy===1?4:8}
+for(let i=0;i<N;i++){ let b=0; if(i>0)b|=dbit(i,i-1); if(i<N-1)b|=dbit(i,i+1); dir[i]=b; }
+
+// sittings, for the hover
+const sitStart=new Int32Array(D.sit.length); {let a=0; D.sit.forEach((L,k)=>{sitStart[k]=a;a+=L});}
+function sitOf(i){let lo=0,hi=sitStart.length-1; while(lo<hi){const m=(lo+hi+1)>>1; if(sitStart[m]<=i)lo=m; else hi=m-1} return lo}
+
+// a fixed scatter: the same hands dealt again at random onto the same curve
+const perm=new Uint32Array(N); for(let i=0;i<N;i++)perm[i]=i;
+{let s=20261103>>>0; const r=()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296};
+ for(let i=N-1;i>0;i--){const j=Math.floor(r()*(i+1)); const t=perm[i];perm[i]=perm[j];perm[j]=t}}
+const handScat=new Uint8Array(N); for(let i=0;i<N;i++) handScat[i]=hand[perm[i]];
+
+const st={curve:false, scatter:false, strict:false, playing:true, speed:1, t:0, done:false};
+const SPEEDS=[.5,1,2,4];
+function shown(){return st.scatter?handScat:hand}
+function cls(h){return h===3?(st.strict?4:2):h}  // 0 queue, 1 shuffle, 2 pressed, 4 loose press shown neutral in strict mode
+function grp(h){return h===3?2:h}
+
+// numbers, all from the sidecar
+function stats(hs){
+  const isP=h=>h===2||(h===3&&!st.strict);
+  let k=0; for(let i=0;i<N;i++) if(isP(hs[i]))k++;
+  let one=0,both=0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const i=inv[y*W+x]; if(i<0||i>=N)continue; const a=isP(hs[i]);
+    if(x+1<W){const j=inv[y*W+x+1]; if(j>=0&&j<N){const b=isP(hs[j]); one+=a+b; if(a&&b)both+=2}}
+    if(y+1<H){const j=inv[(y+1)*W+x]; if(j>=0&&j<N){const b=isP(hs[j]); one+=a+b; if(a&&b)both+=2}}
+  }
+  let runs=0,inRun=0,max=0,cur=0;
+  for(let i=0;i<N;i++){ if(isP(hs[i])){cur++; if(cur===1)runs++; inRun++; if(cur>max)max=cur} else cur=0 }
+  return {k, share:k/N, nb:both/one, rnd:(k-1)/(N-1), runMean:inRun/runs, runMax:max};
+}
+const cnt=[0,0,0,0]; for(let i=0;i<N;i++)cnt[hand[i]]++;
+const S={}; function statsOf(scat){const key=(scat?'s':'o')+(st.strict?'t':'l'); return S[key]||(S[key]=stats(scat?handScat:hand))}
+const base=(()=>{const o=st.strict; st.strict=false; const r=stats(hand); st.strict=o; return r})();
+const queue=of100(cnt[0]/N), shuf=of100(cnt[1]/N), press=of100((cnt[2]+cnt[3])/N);
+const clumps=base.nb>base.rnd*1.2;
+
+$('hl').textContent=`the queue wrote ${queue} of every 100 plays. my presses ${clumps?'cluster':'scatter'}.`;
+$('how').innerHTML=`<span>how:</span> ${fmt(N)} plays of 30 s or more, 2019 to 2026, in time order along a generalized hilbert curve, ${W} by ${H} cells, one per play, colored by what started it.`;
+const within=D.check.nb_within_sitting_null;
+$('why').innerHTML=`<span>why:</span> the curve never jumps, so cells that touch are plays close in time; the random deal puts the same colors on the same curve, so any difference between the two squares is the order alone.`;
+
+function legend(){
+  const sCnt=st.strict?cnt[2]:cnt[2]+cnt[3];
+  let rows=[[C.mint, st.strict?'i pressed (play, a track in a list, remote)':'i pressed', sCnt]];
+  if(st.strict) rows.push([C.ice,'i pressed (loose: skip or back)',cnt[3]]);
+  rows.push([C.amber,'shuffle',cnt[1]],[C.violet,'the queue',cnt[0]]);
+  $('legend').innerHTML=rows.map(r=>`<i style="background:${r[0]}"></i><span>${r[1]}</span><span class="n">${of100(r[2]/N)} of 100 &middot; ${fmt(r[2])}</span>`).join('');
+}
+function clumpText(){
+  const real=statsOf(false), rand=statsOf(true), M=v=>`<span class="m">${v}</span>`;
+  const who=st.strict?'a strict press':'a mint cell', nxt=st.strict?'a strict press':'mint';
+  if(st.scatter) $('clump').innerHTML=`this is the random deal: beside ${who}, the next cell is ${nxt} ${M(of100(rand.nb))} of 100 times. my real order (left): ${M(of100(real.nb))}. same colors, new order, so the clumps come from when i pressed, not how often.`;
+  else $('clump').innerHTML=`beside ${who}, the next cell is ${nxt} ${M(of100(real.nb))} of 100 times. dealt at random (left): ${M(of100(real.rnd))}. that gap is the clumping.`+(st.strict?` strict press runs average ${M(real.runMean.toFixed(2))} plays.`:` reshuffled only inside each sitting it is still ${M(of100(within))}, so most of it is whole sittings where i drove.`);
+  $('thcap').textContent=st.scatter?'my real order':'the same colors, dealt at random';
+}
+// clumps: mint cells that touch on the square (left, right, up, down); the biggest get an outline
+const BIG=30, CL={};
+function clumpsOf(hs){
+  const key=(hs===handScat?'s':'o')+(st.strict?'t':'l'); if(CL[key]) return CL[key];
+  const isP=h=>h===2||(h===3&&!st.strict);
+  const lab=new Int32Array(W*H).fill(-1), q=new Int32Array(W*H); const big=[]; let id=0, n20=0;
+  for(let g=0;g<W*H;g++){
+    const i=inv[g]; if(i<0||i>=N||!isP(hs[i])||lab[g]>=0) continue;
+    let h=0,t=0; q[t++]=g; lab[g]=id;
+    while(h<t){ const c=q[h++], x=c%W, y=(c-x)/W;
+      for(const [nx,ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]){ if(nx<0||ny<0||nx>=W||ny>=H) continue; const nc=ny*W+nx, j=inv[nc];
+        if(j<0||j>=N||lab[nc]>=0||!isP(hs[j])) continue; lab[nc]=id; q[t++]=nc; } }
+    if(t>=BIG) big.push(Array.from(q.subarray(0,t)));
+    if(t>=20) n20++;
+    id++;
+  }
+  return CL[key]={lab,big,n20};
+}
+function legend2(){
+  const real=clumpsOf(hand), rand=clumpsOf(handScat);
+  $('legend').insertAdjacentHTML('beforeend',`<i class="ol"></i><span>outlined clump, ${BIG}+ touching cells</span><span class="n">${fmt(real.big.length)} &middot; random deal ${fmt(rand.big.length)}</span>`);
+  $('cue').innerHTML=`a clump = plays close in time that one hand started. <b>${st.scatter?'random deal':'my real order'}</b>: ${fmt((st.scatter?rand:real).big.length)} clumps of ${BIG}+ outlined`;
+}
+const rg=$('rg'), rctx=rg.getContext('2d');
+function drawRings(){
+  rctx.clearRect(0,0,rg.width,rg.height);
+  if(st.t<T_END) return;
+  const C2=clumpsOf(shown()), lw=Math.max(1,Math.round(dpr));
+  rctx.fillStyle=C.ice;
+  for(const cells of C2.big){ const id=C2.lab[cells[0]];
+    for(const c of cells){ const x=c%W, y=(c-x)/W, px=x*s, py=y*s, in_=(nx,ny)=>nx>=0&&ny>=0&&nx<W&&ny<H&&C2.lab[ny*W+nx]===id;
+      if(!in_(x+1,y)) rctx.fillRect(px+s,py-lw,lw,s+2*lw);
+      if(!in_(x-1,y)) rctx.fillRect(px-lw,py-lw,lw,s+2*lw);
+      if(!in_(x,y+1)) rctx.fillRect(px-lw,py+s,s+2*lw,lw);
+      if(!in_(x,y-1)) rctx.fillRect(px-lw,py-lw,s+2*lw,lw); } }
+}
+legend(); legend2(); clumpText();
+
+// canvas, sized in whole device pixels per cell so every cell stays crisp
+const cv=$('cv'), ov=$('ov'), ctx=cv.getContext('2d'), octx=ov.getContext('2d');
+let s=1, img=null, buf=null, dpr=1, timg=null, tbuf=null, lastL=-1;
+const tctx=$('th').getContext('2d');
+function layout(){
+  dpr=window.devicePixelRatio||1;
+  const stage=$('stage'), phone=innerWidth<=900;
+  const availW=phone?Math.min(innerWidth-32, 560):stage.clientWidth;
+  const availH=phone?availW:Math.max(200, innerHeight-56-20-26);
+  const dev=Math.floor(Math.min(availW,availH)*dpr);
+  s=Math.max(1,Math.floor(dev/Math.max(W,H)));
+  for(const c of [cv,rg,ov]){ c.width=W*s; c.height=H*s; c.style.width=(W*s/dpr)+'px'; c.style.height=(H*s/dpr)+'px'; }
+  $('ends').style.width=(W*s/dpr)+'px';
+  const th=$('th'); th.width=W; th.height=H; const tw=W/Math.max(dpr,2);
+  th.style.width=tw+'px'; th.style.height=(H/Math.max(dpr,2))+'px';
+  timg=tctx.createImageData(W,H); tbuf=new Uint32Array(timg.data.buffer); lastL=-1;
+  img=ctx.createImageData(W*s,H*s); buf=new Uint32Array(img.data.buffer); buf.fill(NIGHT);
+  ctx.imageSmoothingEnabled=false;
+  redrawAll(); clearHover();
+}
+function pipeGeom(){const pw=s<2?s:Math.max(1,Math.round(s/2.5)); return [pw,Math.floor((s-pw)/2)]}
+function fillRect(x0,y0,w,h,c){const R=W*s; for(let y=y0;y<y0+h;y++){let o=y*R+x0; for(let x=0;x<w;x++)buf[o+x]=c}}
+function paint(i,c,pipe){
+  const x=P[2*i]*s, y=P[2*i+1]*s;
+  if(!pipe||s<2){fillRect(x,y,s,s,c);return}
+  fillRect(x,y,s,s,NIGHT);
+  const [pw,o]=pipeGeom(), b=dir[i];
+  fillRect(x+o,y+o,pw,pw,c);
+  if(b&1)fillRect(x+o+pw,y+o,s-o-pw,pw,c);
+  if(b&2)fillRect(x,y+o,o,pw,c);
+  if(b&4)fillRect(x+o,y+o+pw,pw,s-o-pw,c);
+  if(b&8)fillRect(x+o,y,pw,o,c);
+}
+// timeline (seconds at 1x): the curve walks in over 20 s, then the hands wash in: queue, shuffle, presses
+const T_WALK=20, WASH=[[20.6,22.2],[22.7,24.3],[24.8,26.4]], FOCUS=[27.4,28.8], T_END=28.8, PEN=Math.round(N/200);
+function fadeL(t){return t<=FOCUS[0]?0:t>=FOCUS[1]?FL:Math.round(FL*(t-FOCUS[0])/(FOCUS[1]-FOCUS[0]))}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){st.t=T_END;st.done=true;st.playing=false}
+function walkK(t){return Math.min(N,Math.floor(N*Math.min(1,t/T_WALK)))}
+function front(g,t){const [a,b]=WASH[g]; return t<=a?0:t>=b?N:Math.floor(N*(t-a)/(b-a))}
+function look(i,t,wk,fr){
+  if(i>=wk)return NIGHT;
+  const h=shown()[i], g=grp(h);
+  if(i<fr[g]) return PAL[curL][cls(h)];
+  return (t<T_WALK&&i>=wk-PEN)?ICE:ICEDIM;
+}
+function isPipe(i,t,wk,fr){ const g=grp(shown()[i]); return i<fr[g]?st.curve:true }
+let lastWk=0, lastFr=[0,0,0], curL=0;
+function drawThumb(){
+  const on=st.t>=FOCUS[0]; $('thf').classList.toggle('on',on);
+  if(!on) return;
+  const hs=st.scatter?hand:handScat, pal=PAL[curL];
+  tbuf.fill(NIGHT); for(let i=0;i<N;i++) tbuf[P[2*i+1]*W+P[2*i]]=pal[cls(hs[i])];
+  tctx.putImageData(timg,0,0);
+}
+function redrawAll(){
+  const t=st.t, wk=walkK(t), fr=[0,1,2].map(g=>front(g,t));
+  curL=fadeL(t); drawThumb();
+  buf.fill(NIGHT);
+  for(let i=0;i<wk;i++) paint(i,look(i,t,wk,fr),isPipe(i,t,wk,fr));
+  lastWk=wk; lastFr=fr; ctx.putImageData(img,0,0); drawRings();
+}
+function step(){
+  const t=st.t, wk=walkK(t), fr=[0,1,2].map(g=>front(g,t)), hs=shown();
+  if(fadeL(t)!==curL){redrawAll();return}
+  let dirty=false;
+  if(wk!==lastWk){
+    const a=Math.max(0,Math.min(lastWk,wk)-PEN);
+    for(let i=a;i<Math.max(wk,lastWk);i++) paint(i,look(i,t,wk,fr),isPipe(i,t,wk,fr));
+    dirty=true;
+  }
+  for(let g=0;g<3;g++) if(fr[g]!==lastFr[g]){
+    for(let i=lastFr[g];i<fr[g];i++) if(grp(hs[i])===g) paint(i,look(i,t,wk,fr),isPipe(i,t,wk,fr));
+    dirty=true;
+  }
+  lastWk=wk; lastFr=fr;
+  if(dirty) ctx.putImageData(img,0,0);
+}
+function nowText(){
+  const t=st.t;
+  if(t<T_WALK){ const k=walkK(t); return `<b>folding time onto the square.</b> play ${fmt(Math.max(1,k))} of ${fmt(N)}, sitting ${fmt(sitOf(Math.max(0,k-1))+1)} of ${fmt(D.n_sit)}. the line never jumps, so what is close in time stays close.` }
+  if(t<WASH[1][0]) return `<b>the queue wrote ${queue} of every 100 cells.</b> violet = the next track arrived on its own.`;
+  if(t<WASH[2][0]) return `<b>shuffle wrote ${shuf} more.</b> amber = a shuffled list picked the track.`;
+  if(t<FOCUS[0]) return `<b>i pressed ${press}.</b> mint = i chose the track by hand. watch where they land.`;
+  if(t<T_END) return `<b>the machine steps back.</b> the queue and shuffle fold into one dark tone, so only my presses stay bright.`;
+  const act=matchMedia('(hover:hover)').matches?'hover':'tap';
+  return st.scatter?`<b>this is the random deal: no big clumps.</b> dark = the queue and shuffle. my real order is the small square below. ${act} a cell to read its run.`:`<b>mint is my hand, and it lands in clumps (outlined).</b> dark = the queue and shuffle. the small square deals the same colors at random: no clumps. ${act} a cell to read its run.`;
+}
+let prev=performance.now(), lastNow='';
+function frame(now){
+  const dt=Math.min(.1,(now-prev)/1000); prev=now;
+  if(st.playing&&!st.done){
+    st.t=Math.min(T_END,st.t+dt*st.speed);
+    if(st.t>=T_END){st.done=true;st.playing=false}
+    step(); if(st.done) drawRings();
+  }
+  if(!hovering){const n=nowText(); if(n!==lastNow){$('now').innerHTML=n;lastNow=n}}
+  $('bPlay').textContent=st.done?'replay':st.playing?'pause':'play';
+  requestAnimationFrame(frame);
+}
+
+// hover: the run of the same hand around a cell, and the fold-stretch it sits in
+let hovering=false;
+function clearHover(){octx.clearRect(0,0,ov.width,ov.height); hovering=false; lastNow=''}
+function hoverAt(cx,cy){
+  const r=ov.getBoundingClientRect();
+  const x=Math.floor((cx-r.left)/r.width*W), y=Math.floor((cy-r.top)/r.height*H);
+  if(x<0||y<0||x>=W||y>=H){clearHover();return}
+  const i=inv[y*W+x];
+  if(i<0||i>=N||i>=walkK(st.t)){clearHover();return}
+  const hs=shown(), c=cls(hs[i]);
+  let a=i,b=i; while(a>0&&cls(hs[a-1])===c)a--; while(b<N-1&&cls(hs[b+1])===c)b++;
+  const L=b-a+1;
+  octx.clearRect(0,0,ov.width,ov.height);
+  const blk=blocks.find(B=>B[0]<=i&&i<B[1]&&(B[1]-B[0])>=1500);
+  if(blk){
+    const lw=Math.max(1,Math.round(dpr)), bx=blk[2]*s, by=blk[3]*s, bw=(blk[4]-blk[2]+1)*s, bh=(blk[5]-blk[3]+1)*s;
+    octx.fillStyle=C.ice; octx.fillRect(bx,by,bw,lw); octx.fillRect(bx,by+bh-lw,bw,lw); octx.fillRect(bx,by,lw,bh); octx.fillRect(bx+bw-lw,by,lw,bh);
+  }
+  octx.fillStyle=C.night;
+  const [pw,o]=pipeGeom();
+  for(let j=a;j<=b;j++){const px=P[2*j]*s,py=P[2*j+1]*s; octx.fillRect(px,py,s,s)}
+  octx.fillStyle=C.ice;
+  for(let j=a;j<=b;j++){const px=P[2*j]*s,py=P[2*j+1]*s;
+    if(s<3){octx.fillRect(px,py,s,s);continue}
+    const d=dir[j]; octx.fillRect(px+o,py+o,pw,pw);
+    if(d&1)octx.fillRect(px+o+pw,py+o,s-o-pw,pw); if(d&2)octx.fillRect(px,py+o,o,pw);
+    if(d&4)octx.fillRect(px+o,py+o+pw,pw,s-o-pw); if(d&8)octx.fillRect(px+o,py,pw,o);
+  }
+  const name=['the queue','shuffle','i pressed','',"i pressed (loose)"][c];
+    let tx=`play <b>${fmt(i+1)}</b> of ${fmt(N)} &middot; sitting ${fmt(sitOf(i)+1)} &middot; <b>${name}</b>, ${L===1?'alone':fmt(L)+' in a row'} (lit).`;
+  if(blk){ let k=0; for(let j=blk[0];j<Math.min(blk[1],N);j++) if(cls(hs[j])===2)k++;
+    const n=Math.min(blk[1],N)-blk[0];
+    tx+=` boxed fold: plays ${fmt(blk[0]+1)} to ${fmt(Math.min(blk[1],N))}, ${of100(k/n)} of 100 pressed.`; }
+  $('now').innerHTML=tx; hovering=true;
+}
+ov.addEventListener('pointermove',e=>{ if(e.pointerType==='mouse') hoverAt(e.clientX,e.clientY) });
+ov.addEventListener('pointerdown',e=>hoverAt(e.clientX,e.clientY));
+ov.addEventListener('pointerleave',e=>{ if(e.pointerType==='mouse') clearHover() });
+
+// controls
+$('bPlay').onclick=()=>{ if(st.done){st.t=0;st.done=false;st.playing=true;clearHover();redrawAll();} else st.playing=!st.playing };
+$('bSpeed').onclick=()=>{ st.speed=SPEEDS[(SPEEDS.indexOf(st.speed)+1)%SPEEDS.length]; $('bSpeed').innerHTML=`speed ${st.speed}&times;` };
+function tog(id,key){ st[key]=!st[key]; $(id).setAttribute('aria-pressed',st[key]); clearHover(); redrawAll(); legend(); legend2(); clumpText(); }
+$('bCurve').onclick=()=>tog('bCurve','curve');
+$('bScatter').onclick=()=>tog('bScatter','scatter');
+$('bStrict').onclick=()=>tog('bStrict','strict');
+addEventListener('keydown',e=>{ if(e.key===' '&&e.target===document.body){e.preventDefault();$('bPlay').click()} });
+let rz; addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(layout,120)});
+
+layout();
+requestAnimationFrame(t=>{prev=t;frame(t)});
+window.__hilbert={clumps:()=>[clumpsOf(hand).big.length,clumpsOf(handScat).big.length],N,W,H,base,curL:()=>curL,real:()=>statsOf(false),rand:()=>statsOf(true),queue,shuf,press,check:D.check,blocks:blocks.length,diag:(()=>{let d=0;for(let i=1;i<W*H;i++){if(Math.abs(P[2*i]-P[2*i-2])+Math.abs(P[2*i+1]-P[2*i-1])!==1)d++}return d})(), s:()=>s, dpr:()=>dpr, st};
+})();
+</script>
+</body>
+</html>

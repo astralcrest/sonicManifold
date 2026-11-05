@@ -1203,9 +1203,46 @@ function acts() {
   var dots = $$('.dots a'); dots.forEach(function (a, k) { a.addEventListener('click', function (e) { e.preventDefault(); secs[k].scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }); });
   secs.forEach(function (s, k) { new IntersectionObserver(function (es) { if (dots[k]) dots[k].classList.toggle('on', es[0].isIntersecting); }, { rootMargin: phone ? '-62% 0px -18% 0px' : '-45% 0px -45% 0px' }).observe(s); });
 }
+/* ---------- the ghost tile (act i drawer): one sampled sitting, two paths from the same start, in the act's own sound-map
+   coordinates (front/data/ghost.json). drawn small inside the card, never on the field; no names, no dates, no number.
+   the two lines below are the refereed wording: patch them here and nowhere else. ---------- */
+var GHOST_LINE = 'the button walks to the nearest sound it has not played yet, every step, so it stays far closer than the path my listening took. that is the rule doing what it says, not a finding about me.';
+var GHOST_CAP = 'one sitting of many, near the middle of the range; the button stays closer in nearly all of them.';
+var GH = null, ghP = null, ghDraw = function () {};
+function ghost() {
+  text('#gh-line', GHOST_LINE); text('#gh-cap', GHOST_CAP);
+  var c = $('#gh-cv'); if (!c) return;
+  ghDraw = function () {
+    var w = c.clientWidth, h = c.clientHeight; if (w < 10 || h < 10) return;
+    if (!GH) { if (!ghP) ghP = fetchJ('ghost').then(function (j) { GH = j; ghDraw(); }, function () { ghP = null; }); return; }
+    var d = Math.min(3, Math.max(1, window.devicePixelRatio || 1)), g = c.getContext('2d'), i;
+    c.width = Math.round(w * d); c.height = Math.round(h * d); g.setTransform(d, 0, 0, d, 0, 0); g.fillStyle = BG; g.fillRect(0, 0, w, h);
+    /* the act's resting view: the same yaw, pitch and perspective as the field at rest */
+    var cy = Math.cos(0.62), sy = Math.sin(0.62), cp = Math.cos(0.36), sp = Math.sin(0.36);
+    var pj = function (x, y, z) { var x1 = x * cy - z * sy, z1 = x * sy + z * cy, y1 = y * cp - z1 * sp, s = 2.6 / (y * sp + z1 * cp + 3.2); return [x1 * s, -y1 * s]; };
+    var R = GH.r.map(function (q) { return pj(q[0] / 1000, q[1] / 1000, q[2] / 1000); }), Q2 = GH.g.map(function (q) { return pj(q[0] / 1000, q[1] / 1000, q[2] / 1000); });
+    var x0 = 9, x1 = -9, y0 = 9, y1 = -9;
+    R.concat(Q2).forEach(function (q) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); });
+    var k = Math.min((w - 40) / Math.max(1e-3, x1 - x0), (h - 40) / Math.max(1e-3, y1 - y0)), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    var X = function (v) { return Math.round(w / 2 + (v - mx) * k) + 0.5; }, Y = function (v) { return Math.round(h / 2 + (v - my) * k) + 0.5; };
+    /* every artist in the field, one dim pixel each, for the ground */
+    if (P3) { g.fillStyle = dim(ICE, 0.3); for (i = 0; i < N; i++) { var q = pj(P3[i * 3], P3[i * 3 + 1], P3[i * 3 + 2]), px = X(q[0]), py = Y(q[1]); if (px > 1 && py > 1 && px < w - 1 && py < h - 1) g.fillRect(px - 0.5, py - 0.5, 1, 1); } }
+    var line = function (P, col) {
+      g.strokeStyle = col; g.lineWidth = 1; g.beginPath();
+      P.forEach(function (q, j) { if (j) g.lineTo(X(q[0]), Y(q[1])); else g.moveTo(X(q[0]), Y(q[1])); }); g.stroke();
+      g.fillStyle = col; P.forEach(function (q) { g.fillRect(X(q[0]) - 1.5, Y(q[1]) - 1.5, 3, 3); });
+    };
+    line(R, ICE); line(Q2, VIOLET);
+    ring(g, X(R[0][0]), Y(R[0][1]), 6, INK, 1);
+  };
+  if ('ResizeObserver' in window) new ResizeObserver(function () { ghDraw(); }).observe(c);
+  ghDraw();
+}
+ghost();
 var ro = 'ResizeObserver' in window ? new ResizeObserver(function () { fit(); wake(); }) : null;
 fetchJ('field').then(function (j) {
   fit(); prep(j); fit();
+  ghDraw();
   rimOrder = RING.map(function (r, k) { return k; }).sort(function (a, b) { var pa2 = RING[a][0] >= 0 ? PL[RING[a][0]] : 0, pb2 = RING[b][0] >= 0 ? PL[RING[b][0]] : 0; return pb2 - pa2; });
   html.setAttribute('data-scene', 'count');
   songs(); key(); datalist(); chips(); acts(); if (ro) ro.observe(stage); else addEventListener('resize', function () { fit(); wake(); });
@@ -1216,4 +1253,56 @@ fetchJ('field').then(function (j) {
   if (!lite()) setTimeout(prefetchPV, 1200);
 }, function () { var h = $('#hint'); if (h) h.textContent = 'the map did not load here. the story is below.'; });
 function lite() { try { return !!(navigator.connection && navigator.connection.saveData); } catch (e) { return false; } }
+})();
+/* the glossary: every dotted term (<dfn data-g>) opens one small night box with a plain definition from front/data/gloss.json.
+   hover on a desk, tap on a phone, focus from the keyboard. the box stays inside the card or drawer that holds the term,
+   above or below it, never over the field. */
+(function () {
+'use strict';
+var doc = document, ST = (window.__front && window.__front.stamps) || {}, G = null, gP = null, box = null, cur = null, want = null, pt = 'mouse';
+function load() {
+  if (!gP) gP = fetch('front/data/gloss.json?v=' + (ST.gloss || '0'), { credentials: 'same-origin' }).then(function (r) { if (!r.ok) throw new Error('gloss ' + r.status); return r.json(); }).then(function (j) { G = (j && j.g) || {}; return G; }, function () { gP = null; return null; });
+  return gP;
+}
+function mk() { if (!box) { box = doc.createElement('p'); box.id = 'gl'; box.setAttribute('role', 'tooltip'); box.hidden = true; doc.body.appendChild(box); } return box; }
+function hide() { want = null; if (cur) { cur.classList.remove('on'); cur.removeAttribute('aria-describedby'); } cur = null; if (box) box.hidden = true; }
+function place(el) {
+  var rs = el.getClientRects(); if (!rs.length) { hide(); return; }
+  var r = el.getBoundingClientRect(), dr = el.closest('.dr'), host = dr || el.closest('.plate') || doc.getElementById('col') || doc.body, hb = host.getBoundingClientRect();
+  var top = Math.max(0, hb.top), bot = Math.min(innerHeight, hb.bottom), lft = Math.max(0, hb.left) + 8, rgt = Math.min(innerWidth, hb.right) - 8, st = doc.getElementById('stage');
+  if (!dr && st && innerWidth < 900) top = Math.max(top, st.getBoundingClientRect().bottom); /* a phone: the field owns the top of the screen */
+  if (r.bottom < top || r.top > bot) { hide(); return; }
+  var bx = mk(); bx.style.maxWidth = Math.max(160, Math.min(300, rgt - lft)) + 'px'; bx.hidden = false;
+  var bw = bx.offsetWidth, bh = bx.offsetHeight, x = Math.max(lft, Math.min(rs[0].left, rgt - bw)), y = r.bottom + 6;
+  if (y + bh > bot - 4) { var ya = r.top - 6 - bh; y = ya >= top + 4 ? ya : Math.max(top + 4, bot - bh - 4); }
+  bx.style.left = Math.round(x) + 'px'; bx.style.top = Math.round(y) + 'px';
+}
+function show(el) {
+  want = el;
+  load().then(function () {
+    if (want !== el || !G || !G[el.getAttribute('data-g')]) return;
+    if (cur && cur !== el) { cur.classList.remove('on'); cur.removeAttribute('aria-describedby'); }
+    cur = el; el.classList.add('on'); el.setAttribute('aria-describedby', 'gl');
+    var bx = mk(), t = G[el.getAttribute('data-g')], c = t.indexOf(': ');
+    bx.textContent = '';
+    if (c > 0 && c < 48) { var b = doc.createElement('b'); b.textContent = t.slice(0, c + 1); bx.appendChild(b); bx.appendChild(doc.createTextNode(' ' + t.slice(c + 2))); } else bx.textContent = t;
+    place(el);
+  });
+}
+function dfnOf(e) { var t = e.target; return t && t.closest ? t.closest('dfn[data-g]') : null; }
+Array.prototype.forEach.call(doc.querySelectorAll('dfn[data-g]'), function (d) { if (!d.closest('summary')) d.tabIndex = 0; });
+doc.addEventListener('pointerdown', function (e) { pt = e.pointerType || 'mouse'; }, true);
+doc.addEventListener('pointerover', function (e) { if (e.pointerType !== 'mouse') return; var d = dfnOf(e); if (d) show(d); });
+doc.addEventListener('pointerout', function (e) { if (e.pointerType !== 'mouse') return; var d = dfnOf(e); if (d && (d === cur || d === want) && !(e.relatedTarget && d.contains(e.relatedTarget))) hide(); });
+doc.addEventListener('click', function (e) {
+  var d = dfnOf(e);
+  if (d) { e.preventDefault(); if (pt === 'mouse') show(d); else if (cur === d) hide(); else show(d); return; } /* in a card's summary, a term never folds the card */
+  if (cur && pt !== 'mouse') hide();
+}, true);
+doc.addEventListener('focusin', function (e) { var d = dfnOf(e); if (d) show(d); });
+doc.addEventListener('focusout', function (e) { var d = dfnOf(e); if (d && d === cur) hide(); });
+doc.addEventListener('keydown', function (e) { if (e.key === 'Escape' && cur) { hide(); e.stopPropagation(); } }, true);
+addEventListener('scroll', function () { if (cur) { if (pt === 'mouse') hide(); else place(cur); } }, { capture: true, passive: true });
+addEventListener('resize', hide);
+setTimeout(load, 1500);
 })();

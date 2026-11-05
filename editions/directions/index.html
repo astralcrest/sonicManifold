@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>sonic manifold · eight more ways</title>
+<meta name="description" content="eight more ways to see one listener's play log: a room, a recurrence plot, clocks, a sand plate, a fold, a network, banded bars and a spectrogram.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--night:#06010f;--ink:#efe9ff;--mute:#9a90b8;--line:#2a2140;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--ice:#bcd3ff;--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden}
+main{max-width:1200px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;font:500 12px/1.3 var(--mono);color:var(--mute);letter-spacing:.06em}
+.top a{color:var(--ice);text-decoration:none;border-bottom:1px solid var(--line)}
+.top a:hover,.top a:focus-visible{color:var(--mint);border-color:var(--mint);outline:0}
+h1{font:600 32px/1.1 var(--sans);letter-spacing:-.015em;margin:18px 0 8px;max-width:30ch}
+.lede{font:400 15px/1.45 var(--sans);color:var(--ice);max-width:62ch}
+.key{display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 0;font:400 12px/1.3 var(--mono);color:var(--mute)}
+.key span{display:inline-flex;align-items:center;gap:7px}
+.key i{width:10px;height:10px;display:block}
+ol{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 18px;margin:26px 0 0}
+li a{display:flex;flex-direction:column;gap:9px;color:var(--ink);text-decoration:none}
+li img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;border:1px solid var(--line);background:#0d0720}
+li a:hover img,li a:focus-visible img{border-color:var(--mint)}
+li a:focus-visible{outline:0}
+.n{font:500 12px/1.2 var(--mono);color:var(--mute);letter-spacing:.06em}
+.t{font:600 16px/1.2 var(--sans)}
+li a:hover .t,li a:focus-visible .t{color:var(--mint)}
+.c{font:400 13px/1.4 var(--sans);color:var(--ice)}
+.how{font:400 12px/1.5 var(--mono);color:var(--mute);margin:30px 0 0;max-width:90ch;border-top:1px solid var(--line);padding-top:12px}
+.how b{color:var(--ice);font-weight:500}
+@media (max-width:980px){ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){main{padding-top:18px}h1{font-size:25px}.lede{font-size:14px}ol{gap:18px 12px}.t{font-size:15px}.c{font-size:13px}.how,.key,.top,.n{font-size:11px}}
+</style>
+</head>
+<body>
+<main>
+<nav class="top" aria-label="back"><a href="../../">&larr; sonic manifold</a><span>eight more ways</span></nav>
+<h1>eight more ways to see the same plays</h1>
+<p class="lede">the same play log, drawn eight different ways. every page counts the plays again when it loads, and every one asks the same question: who started the song.</p>
+<p class="key" aria-label="the colors"><span><i style="background:#21f6bc"></i>i pressed</span><span><i style="background:#f5a623"></i>shuffle</span><span><i style="background:#8b6fd6"></i>the queue</span></p>
+<ol>
+<li><a href="teamlab.html"><img src="thumbs/teamlab.jpg" width="640" height="400" alt="the room field: left alone, the queue keeps the next song in the same family; i and shuffle stray" loading="lazy" decoding="async"><span class="n">07</span><span class="t">the room field</span><span class="c">left alone, the queue keeps the next song in the same family; i and shuffle stray</span></a></li>
+<li><a href="recurrence.html"><img src="thumbs/recurrence.jpg" width="640" height="400" alt="recurrence: one sitting against itself: when an artist comes back, it is mostly the queue" loading="lazy" decoding="async"><span class="n">14</span><span class="t">recurrence</span><span class="c">one sitting against itself: when an artist comes back, it is mostly the queue</span></a></li>
+<li><a href="kuramoto.html"><img src="thumbs/kuramoto.jpg" width="640" height="400" alt="coupled sittings: each sitting on a 24-hour ring: my sittings bunch tighter in the day" loading="lazy" decoding="async"><span class="n">17</span><span class="t">coupled sittings</span><span class="c">each sitting on a 24-hour ring: my sittings bunch tighter in the day</span></a></li>
+<li><a href="chladni.html"><img src="thumbs/chladni.jpg" width="640" height="400" alt="chladni plate: a plate of sand that re-tunes when the genre changes; the queue holds one longest" loading="lazy" decoding="async"><span class="n">18</span><span class="t">chladni plate</span><span class="c">a plate of sand that re-tunes when the genre changes; the queue holds one longest</span></a></li>
+<li><a href="hilbert.html"><img src="thumbs/hilbert.jpg" width="640" height="400" alt="the hilbert fold: every play folded onto one square: my presses land in clumps a random deal lacks" loading="lazy" decoding="async"><span class="n">19</span><span class="t">the hilbert fold</span><span class="c">every play folded onto one square: my presses land in clumps a random deal lacks</span></a></li>
+<li><a href="percolation.html"><img src="thumbs/percolation.jpg" width="640" height="400" alt="percolation: artists heard back to back: the queue pulls them in, my presses cross rooms" loading="lazy" decoding="async"><span class="n">21</span><span class="t">percolation</span><span class="c">artists heard back to back: the queue pulls them in, my presses cross rooms</span></a></li>
+<li><a href="karyotype.html"><img src="thumbs/karyotype.jpg" width="640" height="400" alt="the karyotype: my 23 most-played artists as banded bars, one 28-day block at a time" loading="lazy" decoding="async"><span class="n">30</span><span class="t">the karyotype</span><span class="c">my 23 most-played artists as banded bars, one 28-day block at a time</span></a></li>
+<li><a href="spectrogram.html"><img src="thumbs/spectrogram.jpg" width="640" height="400" alt="spectrogram of the week: the week as a spectrogram: the queue runs the night, my hand comes in with the day" loading="lazy" decoding="async"><span class="n">35</span><span class="t">spectrogram of the week</span><span class="c">the week as a spectrogram: the queue runs the night, my hand comes in with the day</span></a></li>
+</ol>
+<p class="how"><b>how:</b> one play log (plays of 30 s or more), eight instruments borrowed from physics, biology and sound; each page carries its own how and why line.</p>
+</main>
+</body>
+</html>

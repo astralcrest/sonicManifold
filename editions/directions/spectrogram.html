@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>sonic manifold · spectrogram of the week</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--night:#06010f;--ice:#bcd3ff;--ice2:rgba(188,211,255,.62);--ice3:rgba(188,211,255,.32);--line:rgba(188,211,255,.16);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--gold:#ffd36b}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--night);color:var(--ice);font-family:'Instrument Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 28px 10px;display:flex;flex-direction:column;gap:10px}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+.kick{font-size:11px;letter-spacing:.08em;color:var(--ice2)}
+h1{font-weight:500;font-size:32px;line-height:1.12;letter-spacing:-.01em;color:#eef3ff}
+.cap{font-size:15px;line-height:1.4;color:var(--ice2);max-width:900px}
+.cap b{font-weight:500;color:var(--ice)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 296px;gap:22px;align-items:start}
+.spec{position:relative}
+#cv{display:block;width:100%;touch-action:manipulation;cursor:crosshair}
+.side{display:flex;flex-direction:column;gap:12px;padding-top:2px}
+.side h2{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--ice2);font-family:'IBM Plex Mono',monospace}
+.band{display:grid;grid-template-columns:1fr auto;grid-template-areas:"nm nums" "mt mt" "bar bar";gap:2px 8px;padding:5px 6px 6px;border:1px solid transparent;cursor:default}
+.band:hover,.band.on{border-color:var(--line)}
+.band .nm{grid-area:nm;font-size:13px;color:#e6edff;white-space:nowrap}
+.band .mt{grid-area:mt;color:var(--ice3);font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
+.band .nums{grid-area:nums;font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right;white-space:nowrap}
+.band .bar{grid-area:bar;height:9px;display:flex;margin-top:2px}
+.band .bar span{display:block;height:100%}
+.q{color:var(--violet)} .m{color:var(--mint)} .s{color:var(--amber)}
+#c24{display:block;width:100%}
+.key{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--ice2)}
+.key span{display:inline-flex;align-items:center;gap:5px}
+.key i{display:inline-block;width:10px;height:10px}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+button{font:inherit;font-size:13px;color:var(--ice);background:transparent;border:1px solid var(--line);padding:6px 11px;cursor:pointer;line-height:1.1}
+button:hover{border-color:var(--ice3)}
+button[aria-pressed="true"]{background:var(--ice);color:var(--night);border-color:var(--ice)}
+.seg{display:inline-flex}
+.seg button+button{border-left:none}
+#pp{width:74px} #sp{width:52px;font-family:'IBM Plex Mono',monospace}
+.scrub{position:relative;flex:1 1 220px;min-width:150px;height:40px}
+#cs{position:absolute;inset:0;width:100%;height:100%}
+#rg{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.now{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 12px;align-items:center;margin-top:8px;padding:8px 12px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ice2)}
+.now .hd{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:4px 14px;flex-wrap:wrap}
+.now .hd b{font-weight:500}
+.now{grid-auto-flow:row dense}
+.now .lb{grid-column:1;color:#e6edff;font-family:'Instrument Sans',sans-serif;font-size:13px;white-space:nowrap}
+.now .br{grid-column:2;height:12px;display:flex;min-width:60px}
+.now .br span{display:block;height:100%}
+.now .nu{grid-column:3;white-space:nowrap;text-align:right}
+.now .vd{font-family:'Instrument Sans',sans-serif;font-size:14px;color:#eef3ff}
+.now .mt2{color:var(--ice2);white-space:nowrap}
+.foot{font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.5;color:var(--ice2);display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--line);padding-top:9px}
+.foot b{font-weight:500;color:var(--ice)}
+@media (max-width:760px){
+ .wrap{padding:10px 16px 8px;gap:9px}
+ h1{font-size:22px}
+ .side h2 .lg{display:none}
+ .cap{font-size:13px}
+ .main{grid-template-columns:minmax(0,1fr);gap:10px}
+ .side{gap:5px}
+ .band{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"nm mt nums" "bar bar bar";gap:1px 8px;padding:2px 3px 3px}
+ .band .nm{font-size:12px}
+ .band .mt{font-size:11px;align-self:center;overflow:hidden;text-overflow:ellipsis}
+ .band .nums{font-size:11px}
+ .band .bar{height:6px;margin-top:1px}
+ .key{font-size:11px;gap:3px 9px}
+ .key i{width:8px;height:8px}
+ #c24wrap{display:none}
+ button{font-size:12px;padding:6px 8px}
+ #pp{width:62px}
+ .ctl{gap:7px}
+ .scrub{flex-basis:150px;height:34px}
+ .foot{font-size:11px}
+ .now{font-size:11px;gap:5px 8px;padding:8px 9px}
+ .now{grid-template-columns:minmax(0,1fr) auto;gap:3px 8px}
+ .now .lb{font-size:12px}
+ .now .nu{grid-column:2}
+ .now .br{grid-column:1/-1;height:9px;margin-bottom:4px}
+ .now .vd{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kick mono"><a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 35 · THE SPECTROGRAM OF THE WEEK</div>
+  <h1 id="hl">the queue runs the night; my hand comes in with the day</h1>
+  <p class="cap" id="cap">&nbsp;</p>
+  <div class="main">
+    <div class="spec"><canvas id="cv" aria-label="spectrogram: hour of the week across, music family down, brightness is plays"></canvas><div class="now" id="now" aria-live="polite"></div></div>
+    <div class="side">
+      <h2>WHO STARTED THE PLAYS<span class="lg">, BY PART OF THE DAY</span> · WHOLE LOG</h2>
+      <div id="bands"></div>
+      <div class="key">
+        <span><i style="background:var(--mint)"></i>i pressed play</span>
+        <span><i style="background:var(--mint);opacity:.5"></i>skip or back</span>
+        <span><i style="background:var(--amber)"></i>shuffle</span>
+        <span><i style="background:var(--violet)"></i>the queue</span>
+      </div>
+      <div id="c24wrap"><h2 style="margin:8px 0 6px">EVERY HOUR OF THE DAY · WHOLE LOG · GRAY = PLAYS</h2><canvas id="c24"></canvas></div>
+    </div>
+  </div>
+  <div class="ctl">
+    <button id="pp" aria-pressed="false">pause</button>
+    <button id="sp" title="speed">1×</button>
+    <div class="seg" id="arm" role="group" aria-label="whose plays">
+      <button data-k="all" aria-pressed="true">all</button><button data-k="hand" aria-pressed="false">mine</button><button data-k="shuf" aria-pressed="false">shuffle</button><button data-k="queue" aria-pressed="false">queue</button>
+    </div>
+    <button id="wl" aria-pressed="true">whole log</button>
+    <div class="scrub"><canvas id="cs"></canvas><input id="rg" type="range" min="0" max="0" value="0" aria-label="move the window across the 28-day blocks"></div>
+  </div>
+  <div class="foot">
+    <div id="how"><b>how:</b> &nbsp;</div>
+    <div id="why"><b>why:</b> &nbsp;</div>
+  </div>
+</div>
+<script>
+(function(){
+var FAMC={'ambient/lofi':'#5fb8ff','classical':'#e9dcae','electronic':'#ff4fa3','experimental':'#b8ec4a','folk/country':'#d9a066','funk/disco':'#ffb3c6','hip-hop · r&b':'#ff5c7a','jazz':'#ffd36b','other':'#9a90b8','pop':'#ff8fd6','rock/metal':'#c9c2ff','soundtrack':'#8fd3b6','world/desi':'#f5a623','untagged':'#6f6790','not on the map':'#bcd3ff'};
+var NIGHT='#06010f',ICE='#bcd3ff',MINT='#21f6bc',AMBER='#f5a623',VIOLET='#8b6fd6';
+var ARMC=[MINT,'rgba(33,246,188,.5)',AMBER,VIOLET];
+var DAYS=['mon','tue','wed','thu','fri','sat','sun'];
+var W=6,LV=6,ALPHA=[0,.17,.3,.45,.62,.8,1];
+var D,NF,NB,P,order,winCount=[],winNight=[],blkN;
+var cv=document.getElementById('cv'),g=cv.getContext('2d');
+var c24=document.getElementById('c24'),g24=c24.getContext('2d');
+var cs=document.getElementById('cs'),gs=cs.getContext('2d');
+var rg=document.getElementById('rg');
+var S={intro:true,play:true,spd:1,arm:'all',whole:true,win:0,sx:0,hov:null,band:null};
+var prev,next,prevL,nextL,last=0,L={};
+function fmt(n){return Math.round(n).toLocaleString('en-US')}
+function pc(x){return Math.round(x*100)}
+function armSet(k){return k==='hand'?[0,1]:k==='shuf'?[2]:k==='queue'?[3]:[0,1,2,3]}
+// P: prefix sums over blocks, layout [(b*168+h)*NF+f]*4+a
+function idx(h,f,a){return ((h*NF+f)<<2)+a}
+var CELL;
+function windowRange(){return S.whole?[0,NB]:[S.win,Math.min(NB,S.win+W)]}
+function compute(){
+  var r=windowRange(),lo=r[0]*CELL,hi=r[1]*CELL,arms=armSet(S.arm);
+  var cell=new Float32Array(168*NF),strip=new Float32Array(168*4),tot=0;
+  for(var h=0;h<168;h++)for(var f=0;f<NF;f++)for(var a=0;a<4;a++){
+    var i=idx(h,f,a),v=P[hi+i]-P[lo+i];
+    if(!v)continue;strip[h*4+a]+=v;tot+=v;
+    if(arms.indexOf(a)>=0)cell[h*NF+f]+=v;}
+  var nz=[];for(var j=0;j<cell.length;j++)if(cell[j]>0)nz.push(cell[j]);
+  nz.sort(function(x,y){return x-y});
+  var q=nz.length?nz[Math.min(nz.length-1,Math.floor(nz.length*.985))]:1;
+  var lev=new Float32Array(cell.length),lq=Math.log1p(Math.max(q,1));
+  for(j=0;j<cell.length;j++)lev[j]=cell[j]>0?Math.max(1,Math.min(LV,Math.ceil(LV*Math.log1p(cell[j])/lq))):0;
+  return {cell:cell,strip:strip,lev:lev,tot:tot,r:r};
+}
+function load(d){
+  D=d;NF=d.fam.length;NB=d.nblk;CELL=168*NF*4;order=d.order;
+  var B=new Float64Array((NB+1)*CELL),cu=d.cube;blkN=new Float64Array(NB);
+  for(var i=0;i<cu.length;i+=5){B[(cu[i]+1)*CELL+idx(cu[i+1],cu[i+2],cu[i+3])]+=cu[i+4];blkN[cu[i]]+=cu[i+4];}
+  for(var b=1;b<=NB;b++){var o=b*CELL,p=(b-1)*CELL;for(var k=0;k<CELL;k++)B[o+k]+=B[p+k];}
+  P=B;
+  for(b=0;b+W<=NB;b++){var s=0;for(var k2=b;k2<b+W;k2++)s+=blkN[k2];winCount.push(s);var na=bandSum([b,b+W],BANDS[0][2]);winNight.push(na[0]+na[1]+na[2]+na[3]);}
+  rg.max=winCount.length-1;
+  S.win=0;while(S.win<winCount.length-1&&winNight[S.win]<20)S.win++;
+  rg.value=S.win;
+  prev={cell:new Float32Array(168*NF),strip:new Float32Array(672),lev:new Float32Array(168*NF),tot:0,r:[0,0]};
+  next=compute();S.sx=0;
+  text();nowPanel();bands();layout();requestAnimationFrame(tick);
+}
+// ---------- text, all numbers from the sidecar ----------
+function text(){
+  var N=D.S.night,Wk=D.S.work,bt=D.boot;
+  document.getElementById('cap').innerHTML='from midnight to 5 the queue served <b class="q">'+pc(N.served)+'</b> of every 100 plays and i pressed <b class="m">'+pc(N.hand)+'</b>; in weekday working hours, <b class="q">'+pc(Wk.served)+'</b> and <b class="m">'+pc(Wk.hand)+'</b>.';
+  document.getElementById('how').innerHTML='<b>how:</b> '+fmt(D.n)+' plays of 30 s or more, one home clock; across = the 168 hours of the week; down = family, ordered by how often i pressed play for it; brightness = plays in a '+W+'-block window (28-day blocks) that slides one block per sweep; strip = who started each hour\'s plays; it opens on the whole log, then slides, skipping windows with fewer than 20 night plays (drag to see them).';
+  var sd=bt.served_diff;
+  document.getElementById('why').innerHTML='<b>why:</b> every cell is a raw count, nothing smoothed; resampling whole 28-day blocks '+fmt(bt.B)+' times keeps the night gap (queue +'+pc(sd[0])+' points, 95% range +'+pc(sd[1])+' to +'+pc(sd[2])+'), and '+bt.blocks_queue_higher_at_night+' of '+bt.blocks_used+' blocks with 20+ night plays agree.';
+}
+var BANDS=[['night','00 to 05',function(h){return h%24<5}],['weekday morning','06 to 09',function(h){return h<120&&h%24>=6&&h%24<9}],['weekday work','09 to 17',function(h){return h<120&&h%24>=9&&h%24<17}],['weekday evening','17 to 22',function(h){return h<120&&h%24>=17&&h%24<22}],['late','22 to 24',function(h){return h%24>=22}]];
+function bands(){
+  var lo=0,hi=NB*CELL,el=document.getElementById('bands'),html='';
+  BANDS.forEach(function(bd,bi){
+    var a=[0,0,0,0];
+    for(var h=0;h<168;h++)if(bd[2](h))for(var f=0;f<NF;f++)for(var k=0;k<4;k++){var i=idx(h,f,k);a[k]+=P[hi+i]-P[lo+i];}
+    var n=a[0]+a[1]+a[2]+a[3];
+    html+='<div class="band" data-b="'+bi+'"><div class="nm">'+bd[0]+'</div><div class="mt">'+bd[1]+' · '+fmt(n)+'</div><div class="nums"><span class="q">queue '+pc(a[3]/n)+'</span> · <span class="m">mine '+pc((a[0]+a[1])/n)+'</span></div><div class="bar">'+
+      a.map(function(v,k){return '<span style="width:'+(v/n*100)+'%;background:'+ARMC[k]+'"></span>';}).join('')+'</div></div>';
+  });
+  el.innerHTML=html;
+  [].forEach.call(el.querySelectorAll('.band'),function(b){
+    b.addEventListener('mouseenter',function(){S.band=+b.dataset.b;b.classList.add('on');});
+    b.addEventListener('mouseleave',function(){S.band=null;b.classList.remove('on');});
+  });
+}
+// ---------- layout ----------
+function size(c,w,h){var r=window.devicePixelRatio||1;c.style.height=h+'px';c.width=Math.round(w*r);c.height=Math.round(h*r);return r;}
+function layout(){
+  var w=cv.parentNode.clientWidth,ph=w<560;
+  L.ph=ph;L.w=w;L.lab=ph?96:150;L.top=ph?50:34;L.rh=ph?15:18;L.gap=ph?8:14;L.sh=ph?60:74;L.bot=ph?16:18;
+  L.gw=w-L.lab-4;L.gh=NF*L.rh;
+  L.h=L.top+L.gh+L.gap+L.sh+L.bot;
+  L.dpr=size(cv,w,L.h);
+  var w24=c24.parentNode.clientWidth||296;size(c24,w24,96);L.w24=w24;
+  var wsc=cs.parentNode.clientWidth;size(cs,wsc,cs.parentNode.clientHeight);L.wsc=wsc;L.hsc=cs.parentNode.clientHeight;
+  draw24();
+}
+// ---------- draw ----------
+function px(v){return Math.round(v*L.dpr)}
+function rect(c,x,y,w,h){c.fillRect(px(x),px(y),px(x+w)-px(x),px(y+h)-px(y))}
+function draw(){
+  var r=L.dpr;g.setTransform(1,0,0,1,0,0);g.fillStyle=NIGHT;g.fillRect(0,0,cv.width,cv.height);
+  var x0=L.lab,y0=L.top,cw=L.gw/168,rh=L.rh,sx=S.sx;
+  // empty-cell lattice so a silent hour reads as silence, not as missing
+  g.fillStyle='rgba(188,211,255,.035)';
+  for(var row=0;row<NF;row++)rect(g,x0,y0+row*rh,L.gw,rh-1);
+  for(var h=0;h<168;h++){
+    var t=Math.max(0,Math.min(1,(sx-h)/8)),cx=x0+h*cw;
+    for(row=0;row<NF;row++){
+      var f=order[row],j=h*NF+f,lv=Math.round(prev.lev[j]+(next.lev[j]-prev.lev[j])*t);
+      if(!lv)continue;g.globalAlpha=ALPHA[lv];g.fillStyle=FAMC[D.fam[f]]||ICE;
+      rect(g,cx,y0+row*rh,cw,rh-1);
+    }
+  }
+  g.globalAlpha=1;
+  // band highlight (outline only)
+  if(S.band!==null){g.fillStyle=ICE;var bf=BANDS[S.band][2];for(h=0;h<168;h++)if(bf(h)){var bx=x0+h*cw;rect(g,bx,y0-3,cw,1);rect(g,bx,y0+L.gh+L.gap+L.sh+2,cw,1);}}
+  // day separators + ticks
+  g.fillStyle='rgba(188,211,255,.28)';
+  for(var dd=0;dd<=7;dd++)rect(g,x0+dd*24*cw-(dd===7?1:0),y0-6,1,L.gh+L.gap+L.sh+12);
+  g.fillStyle='rgba(188,211,255,.18)';
+  for(dd=0;dd<7;dd++)for(var hh=6;hh<24;hh+=6)rect(g,x0+(dd*24+hh)*cw,y0-4,1,3);
+  // band markers on the top axis: night = solid, weekday 9 to 17 = dotted
+  for(dd=0;dd<7;dd++){g.fillStyle=ICE;rect(g,x0+dd*24*cw+1,y0-10,5*cw-1,2);
+    if(dd<5){for(hh=9;hh<17;hh++)rect(g,x0+(dd*24+hh)*cw+cw*.3,y0-10,Math.max(1,cw*.4),2);}}
+  g.setTransform(r,0,0,r,0,0);
+  g.font=(L.ph?'500 11px':'500 11px')+" 'IBM Plex Mono',monospace";g.textBaseline='alphabetic';g.fillStyle='rgba(188,211,255,.75)';
+  for(dd=0;dd<7;dd++){g.textAlign='left';g.fillText(DAYS[dd],x0+dd*24*cw+3,y0-14);}
+  // family labels
+  g.textBaseline='middle';
+  for(row=0;row<NF;row++){f=order[row];var yy=y0+row*rh+(rh-1)/2;
+    g.fillStyle=FAMC[D.fam[f]]||ICE;rect2(g,2,yy-3.5,7,7);
+    g.fillStyle='rgba(230,237,255,.86)';g.textAlign='left';g.font=(L.ph?'11.5px':'12px')+" 'Instrument Sans',sans-serif";
+    g.fillText(D.fam[f],13,yy+.5);
+    if(!L.ph){g.textAlign='right';g.font="11px 'IBM Plex Mono',monospace";g.fillStyle='rgba(33,246,188,.85)';g.fillText(D.fam_n[f]<100?'few':pc(D.fam_hand[f])+'%',x0-8,yy+.5);}
+  }
+  if(!L.ph){g.textAlign='right';g.textBaseline='alphabetic';g.font="11px 'IBM Plex Mono',monospace";g.fillStyle='rgba(33,246,188,.7)';g.fillText('mine',x0-8,y0-24);}
+  // key for the axis marks
+  g.textAlign='left';g.textBaseline='alphabetic';g.font=(L.ph?'11px':'11px')+" 'IBM Plex Mono',monospace";g.fillStyle='rgba(188,211,255,.7)';
+  var ky1=L.ph?12:y0-24,ky2=L.ph?12:y0-10,kx2=L.ph?116:2;
+  g.fillStyle=ICE;g.fillRect(2,ky1-4,12,2);for(var dk=0;dk<4;dk++)g.fillRect(kx2+dk*3.5,ky2-4,1.5,2);
+  g.fillStyle='rgba(188,211,255,.7)';g.fillText('night 00 to 05',18,ky1);g.fillText('weekday 09 to 17',kx2+16,ky2);
+  // strip: who started each hour's plays (share), queue from the top, my hand from the floor
+  var sy=y0+L.gh+L.gap,sh=L.sh;
+  g.setTransform(1,0,0,1,0,0);
+  for(h=0;h<168;h++){
+    var t2=Math.max(0,Math.min(1,(sx-h)/8));
+    var a=[0,0,0,0],n=0;for(var k=0;k<4;k++){a[k]=prev.strip[h*4+k]+(next.strip[h*4+k]-prev.strip[h*4+k])*t2;n+=a[k];}
+    if(n<=0)continue;
+    var cx2=x0+h*cw,yb=sy+sh;g.globalAlpha=n<4?.35:1;
+    for(k=0;k<4;k++){var hh2=sh*a[k]/n;g.fillStyle=ARMC[k];rect(g,cx2,yb-hh2,cw,hh2);yb-=hh2;}
+  }
+  g.globalAlpha=1;
+  // 50% line on the strip
+  g.fillStyle='rgba(6,1,15,.9)';rect(g,x0,sy+sh/2,L.gw,1);
+  // sweep line
+  if(sx>0&&sx<168){g.fillStyle=ICE;rect(g,x0+sx*cw,y0-6,1,L.gh+L.gap+L.sh+8);}
+  g.setTransform(r,0,0,r,0,0);
+  g.font=(L.ph?'11px':'11px')+" 'IBM Plex Mono',monospace";g.textBaseline='alphabetic';
+  // window line + hover readout
+  var rr=next.r,info=S.whole?'whole log · '+fmt(next.tot)+' plays':'blocks '+(rr[0]+1)+' to '+rr[1]+' of '+NB+' · '+fmt(next.tot)+' plays';
+  g.fillStyle='rgba(188,211,255,.8)';g.textAlign='left';
+  g.fillText(L.ph?(S.whole?'whole log':'blocks '+(rr[0]+1)+' to '+rr[1]+' of '+NB):'who started each hour\'s plays',L.ph?2:13,sy+sh+L.bot-4);
+  g.textAlign='right';g.fillStyle='rgba(188,211,255,.8)';
+  var ro=S.hov?hover(S.hov):(L.ph?fmt(next.tot)+' plays':info);
+  g.fillText(ro,x0+L.gw,sy+sh+L.bot-4);
+  {g.textAlign='left';g.fillStyle=VIOLET;g.font=(L.ph?'11px':'11px')+" 'IBM Plex Mono',monospace";g.fillText('\u2191 the queue',13,sy+10);g.fillStyle=AMBER;g.fillText('shuffle',13,sy+sh/2+4);g.fillStyle=MINT;g.fillText('\u2193 i pressed',13,sy+sh-2);}
+}
+function bandSum(r,fn){var lo=r[0]*CELL,hi=r[1]*CELL,a=[0,0,0,0];for(var h=0;h<168;h++)if(fn(h))for(var f=0;f<NF;f++)for(var k=0;k<4;k++){var i=idx(h,f,k);a[k]+=P[hi+i]-P[lo+i];}return a;}
+function nowPanel(){
+  var r=windowRange(),rows=[[BANDS[0][0],BANDS[0][1],bandSum(r,BANDS[0][2])],[BANDS[2][0],BANDS[2][1],bandSum(r,BANDS[2][2])]],h='',q=[];
+  var head=(S.whole?'whole log':'blocks '+(r[0]+1)+' to '+r[1]+' of '+NB)+' · '+fmt(next.tot)+' plays';
+  rows.forEach(function(o){var a=o[2],n=a[0]+a[1]+a[2]+a[3];q.push(n?a[3]/n:0);
+    h+='<div class="lb">'+o[0]+' <span style="color:var(--ice3);font-family:IBM Plex Mono,monospace;font-size:11px">'+o[1]+'</span></div><div class="nu">'+(n?'<span class="q">queue '+pc(a[3]/n)+'</span> · <span class="m">mine '+pc((a[0]+a[1])/n)+'</span> · '+fmt(n):'no plays')+'</div><div class="br">'+(n?a.map(function(v,k){return '<span style="width:'+(v/n*100)+'%;background:'+ARMC[k]+'"></span>'}).join(''):'')+'</div>';});
+  var nn=rows[0][2].reduce(function(x,y){return x+y},0),d=pc(q[0]-q[1]),v;
+  if(nn<20)v='too few night plays here ('+nn+') to compare.';
+  else if(d>0)v='here the queue starts '+d+' more of every 100 plays at night than in working hours.';
+  else v='here the night lead does not show: the queue starts '+(-d)+' fewer of every 100 at night.';
+  h+='<div class="hd"><span class="vd">'+(S.whole?'the whole log: ':'this window: ')+(S.whole?v.replace(/^here /,''):v)+'</span><span class="mt2">'+head+'</span></div>';
+  document.getElementById('now').innerHTML=h;
+}
+function rect2(c,x,y,w,h){c.fillRect(Math.round(x),Math.round(y),w,h)}
+function hover(o){
+  var h=o.h,f=o.f,hr=h%24,lab=DAYS[Math.floor(h/24)]+' '+(hr<10?'0':'')+hr+':00';
+  var a=[0,1,2,3].map(function(k){return next.strip[h*4+k]}),n=a[0]+a[1]+a[2]+a[3];
+  var s=lab+' · '+fmt(n)+' plays';
+  if(n)s+=' · queue '+pc(a[3]/n)+' · mine '+pc((a[0]+a[1])/n);
+  if(f!=null)s+=' · '+D.fam[f]+' '+fmt(next.cell[h*NF+f]);
+  return s;
+}
+function draw24(){
+  var r=size(c24,L.w24,96),w=L.w24,h=96,top=22,bh=56;g24.setTransform(1,0,0,1,0,0);g24.fillStyle=NIGHT;g24.fillRect(0,0,c24.width,c24.height);
+  var a=D.h24,mx=0;a.forEach(function(v){mx=Math.max(mx,v[0]+v[1]+v[2]+v[3])});
+  var cw=w/24;function R(x,y,ww,hh){g24.fillRect(Math.round(x*r),Math.round(y*r),Math.round((x+ww)*r)-Math.round(x*r),Math.round((y+hh)*r)-Math.round(y*r))}
+  for(var i=0;i<24;i++){var n=a[i][0]+a[i][1]+a[i][2]+a[i][3];if(!n)continue;
+    g24.fillStyle='rgba(188,211,255,.45)';var vh=18*n/mx;R(i*cw+1,top-4-vh,cw-2,vh);
+    var yb=top+bh;for(var k=0;k<4;k++){var hh=bh*a[i][k]/n;g24.fillStyle=ARMC[k];R(i*cw+1,yb-hh,cw-2,hh);yb-=hh;}}
+  g24.setTransform(r,0,0,r,0,0);g24.font="11px 'IBM Plex Mono',monospace";g24.fillStyle='rgba(188,211,255,.7)';g24.textBaseline='alphabetic';
+  [0,6,12,18].forEach(function(x){g24.textAlign='left';g24.fillText((x<10?'0':'')+x,x*cw+1,h-6)});
+}
+function drawScrub(){
+  var r=size(cs,L.wsc,L.hsc),w=L.wsc,h=L.hsc;gs.setTransform(1,0,0,1,0,0);gs.fillStyle=NIGHT;gs.fillRect(0,0,cs.width,cs.height);
+  var mx=0;for(var b=0;b<NB;b++)mx=Math.max(mx,blkN[b]);
+  var rr=windowRange(),bw=w/NB,base=h-15;
+  for(b=0;b<NB;b++){var on=b>=rr[0]&&b<rr[1],bh=(base-3)*Math.sqrt(blkN[b]/mx);
+    gs.fillStyle=on?ICE:'rgba(188,211,255,.28)';
+    var x=Math.round(b*bw*r),x2=Math.round((b+1)*bw*r)-Math.max(1,Math.round(r*.6));gs.fillRect(x,Math.round((base-bh)*r),Math.max(1,x2-x),Math.round(bh*r));}
+  gs.fillStyle=ICE;gs.fillRect(Math.round(rr[0]*bw*r),Math.round((base+2)*r),Math.round((rr[1]-rr[0])*bw*r),Math.max(1,Math.round(1.5*r)));
+  gs.setTransform(r,0,0,r,0,0);gs.font="11px 'IBM Plex Mono',monospace";gs.fillStyle='rgba(188,211,255,.55)';gs.textAlign='left';gs.textBaseline='alphabetic';
+  gs.fillText('28-day blocks · drag',0,h-2);
+}
+// ---------- loop ----------
+function advance(){
+  prev=next;
+  if(!S.whole){var k=0;do{S.win=(S.win+1)%winCount.length;k++;}while(winNight[S.win]<20&&k<winCount.length);rg.value=S.win;}
+  next=compute();S.sx=0;nowPanel();
+}
+function tick(t){
+  var dt=last?Math.min(64,t-last):16;last=t;
+  if(S.play){S.sx+=168*dt/(2600/S.spd);if(S.sx>=168+8){if(S.whole&&S.intro){if(S.sx>=168+8+110){S.intro=false;S.whole=false;document.getElementById('wl').setAttribute('aria-pressed','false');prev=next;next=compute();S.sx=0;nowPanel();}}else if(S.whole){S.sx=168+8;}else advance();}}
+  draw();drawScrub();requestAnimationFrame(tick);
+}
+// a change of filter or window repaints with a fresh sweep over the same hours
+function repaint(){S.intro=false;prev=next;next=compute();S.sx=0;if(!S.play)S.sx=176,prev=next;nowPanel();}
+document.getElementById('sp').onclick=function(){S.spd=S.spd===1?2:S.spd===2?4:1;this.textContent=S.spd+'×';};
+function setPlay(v){S.play=v;var b=document.getElementById('pp');b.textContent=v?'pause':'play';b.setAttribute('aria-pressed',String(!v));}
+document.getElementById('pp').onclick=function(){setPlay(!S.play);};
+[].forEach.call(document.querySelectorAll('#arm button'),function(b){b.onclick=function(){S.arm=b.dataset.k;[].forEach.call(document.querySelectorAll('#arm button'),function(o){o.setAttribute('aria-pressed',String(o===b))});repaint();};});
+document.getElementById('wl').onclick=function(){S.whole=!S.whole;this.setAttribute('aria-pressed',String(S.whole));repaint();};
+rg.oninput=function(){S.win=+rg.value;if(S.whole){S.whole=false;document.getElementById('wl').setAttribute('aria-pressed','false');}S.intro=false;setPlay(false);prev=next=compute();S.sx=176;nowPanel();};
+function pick(e){var b=cv.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top,h=Math.floor((x-L.lab)/(L.gw/168));
+  if(h<0||h>=168||y<L.top-8||y>L.top+L.gh+L.gap+L.sh){S.hov=null;return;}
+  var row=Math.floor((y-L.top)/L.rh);S.hov={h:h,f:(row>=0&&row<NF)?order[row]:null};}
+cv.addEventListener('mousemove',pick);cv.addEventListener('mouseleave',function(){S.hov=null});
+cv.addEventListener('click',pick);
+window.addEventListener('resize',function(){if(D)layout();});
+fetch('data/spectrogram.json').then(function(r){return r.json()}).then(load);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>sonic manifold · the karyotype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#06010f;--ink:#efe9ff;--mute:#9a90b8;--line:#2a2140;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--ice:#bcd3ff;--rose:#ff5c7a;--gold:#ffd36b}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink)}
+body{font-family:'Instrument Sans',system-ui,sans-serif;display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr);height:100dvh;overflow:hidden;padding:18px 32px 14px}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+header .eye{font-size:11px;letter-spacing:.08em;color:var(--mute);text-transform:lowercase}
+h1{font-size:28px;font-weight:600;letter-spacing:-.01em;line-height:1.15;margin:4px 0 4px}
+.cap{font-size:14px;color:#cfc6ea;line-height:1.35}
+#stage{position:relative;min-height:0;margin-top:10px}
+canvas{display:block;width:100%;height:100%}
+#tip{position:absolute;pointer-events:none;background:var(--bg);border:1px solid var(--line);padding:7px 9px;font-size:12px;line-height:1.4;min-width:150px;display:none;z-index:2}
+#tip b{font-weight:600}
+#tip .mono{font-size:11px;color:var(--mute)}
+footer{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.25fr) auto;gap:8px 28px;border-top:1px solid var(--line);padding-top:10px;margin-top:6px}
+.key{display:grid;gap:3px;font-size:12.5px}
+.key div{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.sw{display:inline-block;width:11px;height:11px;flex:none;transform:translateY(1px)}
+.key .n{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink)}
+.key .c{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mute)}
+.key .lab{min-width:104px}
+.read{font-size:12.5px;line-height:1.4;color:#d9d1f2;display:grid;gap:5px}
+.read .w{color:var(--mute)}
+.read b{font-weight:600;color:var(--ink)}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;align-content:start;max-width:300px}
+button{font:500 12px 'IBM Plex Mono',monospace;color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:6px 10px;cursor:pointer;border-radius:0}
+button:hover{border-color:var(--mute)}
+button.on{border-color:var(--mint);color:var(--mint)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--line)}
+input[type=range]::-moz-range-track{height:2px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:16px;background:var(--ice);border:0;margin-top:-7px}
+input[type=range]::-moz-range-thumb{width:10px;height:16px;background:var(--ice);border:0;border-radius:0}
+.lines{grid-column:1/-1;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mute);line-height:1.45}
+.lines span{color:var(--ink)}
+@media (max-width:700px){
+  body{padding:12px 16px 10px}
+  h1{font-size:21px}
+  .cap{font-size:12px;line-height:1.3}
+  footer{grid-template-columns:minmax(0,1fr);gap:6px;padding-top:7px}
+  .key{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2px 10px;font-size:11px}
+  .key div{white-space:nowrap;flex-wrap:nowrap;gap:0 5px;font-size:11px}
+  .key .bw{display:none}
+  .key .c{font-size:11px}
+  header .eye{display:none}
+  h1{margin-top:0}
+  .key .lab{min-width:0}
+  .key .rng{display:none}
+  .read{font-size:11px;gap:3px;line-height:1.32}
+  .ctl{max-width:none;gap:5px}
+  .ctl{flex-wrap:nowrap;gap:4px}
+  .ctl input{display:none}
+  button{padding:5px 6px;font-size:11px;white-space:nowrap}
+  .lines{font-size:11px;line-height:1.3}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="eye mono"><a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 30 · the karyotype</div>
+  <h1 id="hl">reading the play log</h1>
+  <p class="cap" id="cap"></p>
+</header>
+<div id="stage"><canvas id="cv"></canvas><div id="tip"></div></div>
+<footer>
+  <div class="key" id="key"></div>
+  <div class="read" id="read"></div>
+  <div class="ctl">
+    <button id="play" class="on" aria-label="play or pause">pause</button>
+    <button id="spd" aria-label="speed">speed 1×</button>
+    <button id="skip" title="a skip is my thumb on the button, but the next song is the queue's pick">skips: their own</button>
+    <button id="foc">see: every hand</button>
+    <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="block">
+  </div>
+  <div class="lines"><div id="how"></div><div id="why"></div></div>
+</footer>
+<script>
+(function(){
+var BG='#06010f',INK='#efe9ff',MUTE='#9a90b8',LINE='#2a2140',ICE='#bcd3ff';
+var HC=['#21f6bc','#bcd3ff','#f5a623','#8b6fd6'];
+var HN=['i pressed play','a skip landed','shuffle','the queue'];
+function mix(a,b,t){var p=function(h,i){return parseInt(h.substr(1+2*i,2),16)};var o='#';for(var i=0;i<3;i++){var v=Math.round(p(a,i)*t+p(b,i)*(1-t));o+=(v<16?'0':'')+v.toString(16)}return o}
+var HD=HC.map(function(c){return mix(c,BG,.2)});
+var cv=document.getElementById('cv'),g=cv.getContext('2d'),stage=document.getElementById('stage'),tip=document.getElementById('tip');
+var D,A=[],N,NB,loose=false,focus=-1,userFocus=false,playing=true,speeds=[1,2,.5,.25],si=0,t=0,last=0,hold=0,W=0,H=0,dpr=1,L={},hover=-1,ST;
+var SEC=0.065;
+function fmt(x){return x>=1000?x.toLocaleString('en-US'):String(x)}
+function r1(x){return Math.round(x*10)/10}
+function nr(x){return Math.abs(x-Math.round(x))<.05?String(Math.round(x)):r1(x).toFixed(1)}
+function cnt(b){return loose?[b[1]+b[2],0,b[3],b[4]]:[b[1],b[2],b[3],b[4]]}
+function win(c){var w=0,m=-1;for(var j=0;j<4;j++)if(c[j]>=m){m=c[j];w=j}return w}
+
+function stats(){
+  var wins=[0,0,0,0],one=0,pure=0,T=0,adj=0;
+  A.forEach(function(a){var s={},pw=-1;a.b.forEach(function(b){var c=cnt(b),w=win(c),tot=c[0]+c[1]+c[2]+c[3];wins[w]++;T++;s[w]=1;if(Math.max.apply(null,c)===tot)pure++;if(w===0&&pw===0)adj++;pw=w});if(Object.keys(s).length===1)one++});
+  var pre=A.map(function(a){return a.pre[loose?1:0]});
+  var later=pre.filter(function(p){return p!==null&&p>0}).sort(function(x,y){return x-y});
+  var never=pre.filter(function(p){return p===null}).length;
+  var med=later.length?(later.length%2?later[(later.length-1)/2]:(later[later.length/2-1]+later[later.length/2])/2):0;
+  return {wins:wins,one:one,pure:pure/T,T:T,adj:adj,first:pre.filter(function(p){return p===0}).length,later:later.length,med:med,never:never};
+}
+function ratioWord(r){var h=Math.round(r*2)/2;if(Math.abs(r-h)<.15){if(h===2)return 'twice';if(h===3)return 'three times';}return nr(r)+'×'}
+function render(){
+  var S=stats(),Z=D.null[loose?'loose':'strict'],w=S.wins,q=w[3],T=S.T,mn=Z.wins.m[0],ok=w[0]>Z.wins.hi[0],low=w[0]<Z.wins.lo[0];
+  var h1=(q>T/2?'the queue plays most of my favorites. ':(w.indexOf(Math.max.apply(null,w))===3?'the queue plays more of my favorites than any hand. ':'the queue does not run my favorites. '))+
+    (ok?'my hand takes '+ratioWord(w[0]/mn)+' the blocks chance would give it.':(low?'my hand takes fewer blocks than chance would give it.':'my hand takes about what chance would give it.'));
+  document.getElementById('hl').textContent=h1;
+  document.getElementById('cap').textContent='each pair of bars is one of my '+N+' most-played artists, in the order i first heard them, growing down one '+D.blkdays+'-day block at a time. left bar: the hand that played that block most. right bar: how its plays split.';
+  var keyOrder=loose?[0,2,3]:[0,2,3,1];
+  document.getElementById('key').innerHTML=keyOrder.map(function(j){return '<div><span class="sw" style="background:'+HC[j]+'"></span><span class="lab">'+(j===0&&loose?'i pressed (or skipped)':HN[j])+'</span><span class="n">'+fmt(w[j])+'<span class="bw"> bands</span></span><span class="c">chance '+fmt(Math.round(Z.wins.m[j]))+'<span class="rng"> ('+fmt(Math.round(Z.wins.lo[j]))+' to '+fmt(Math.round(Z.wins.hi[j]))+')</span></span></div>'}).join('');
+  var sh=w[2]/Z.wins.m[2],qr=q/Z.wins.m[3];
+  var R=[];
+  R.push('<div><b>mostly violet:</b> the queue won '+fmt(q)+' of '+fmt(T)+' blocks. <span class="w">why it is still a surprise: it plays so much of everything that chance would hand it '+fmt(Math.round(Z.wins.m[3]))+'; my hand and shuffle took the difference ('+ratioWord(w[0]/mn)+' and '+ratioWord(sh)+' their chance share).</span></div>');
+  R.push('<div><b>mixed stripes:</b> only '+S.one+' of '+N+' artists has one color all the way down (chance '+nr(Z.one.m)+'). <span class="w">why: '+(S.one>Z.one.hi?'more than chance, so some artists really belong to one hand.':'that is what chance gives, so no artist belongs to one hand; every one is shared.')+'</span></div>');
+  R.push('<div><b>mint in pairs:</b> my blocks sit back to back '+S.adj+' times (chance '+nr(Z.adj.m)+', at most '+nr(Z.adj.hi)+'). <span class="w">why: '+(S.adj>Z.adj.hi?'just past chance, so when my hand takes an artist it tends to keep it the next block.':'no more than chance, so my blocks do not cluster.')+'</span></div>');
+  R.push('<div><b>white notches:</b> my first press. '+S.first+' of '+N+' i pressed on their very first play; '+S.later+' reached me another way first, then i pressed after a median of '+nr(S.med)+' plays'+(S.never?'; '+S.never+' never':'')+'. <span class="w">why: it shows whether i went looking or was handed them.</span></div>');
+  document.getElementById('read').innerHTML=R.join('');
+  document.getElementById('how').innerHTML='<span>how:</span> plays of '+D.minsec+' s or more, 2019 to 2026, '+fmt(D.top_plays)+' of them on these '+N+'; the hand = how the play started; band = one '+D.blkdays+'-day block, height by plays; length grows with the square root of plays; ties go to the queue; the right twin splits the vote; chance = hands reshuffled inside each block, '+D.B+' times.';
+  document.getElementById('why').innerHTML='<span>why:</span> every color is a count of plays and how they started, and chance keeps each block\'s mix and each artist\'s plays, so a hand only stands out where it truly gathered.';
+  return h1;
+}
+
+function layout(){
+  dpr=window.devicePixelRatio||1;W=stage.clientWidth;H=stage.clientHeight;
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+  var phone=W<700,per=phone?Math.ceil(N/2):N,rows=Math.ceil(N/per);
+  var pitch=W/per,cw=Math.max(5,Math.min(15,Math.floor(pitch*.3))),gap=Math.max(2,Math.round(pitch*.06));
+  var strip=phone?40:48,lab=phone?18:38,rowH=(H-strip-rows*lab-(rows-1)*12)/rows;
+  L={phone:phone,per:per,rows:rows,pitch:pitch,cw:cw,gap:gap,strip:strip,lab:lab,rowH:rowH};
+}
+function px(v){return Math.round(v*dpr)}
+function rr(x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);g.arcTo(x+w,y,x+w,y+r,r);g.lineTo(x+w,y+h-r);g.arcTo(x+w,y+h,x+w-r,y+h,r);g.lineTo(x+r,y+h);g.arcTo(x,y+h,x,y+h-r,r);g.lineTo(x,y+r);g.arcTo(x,y,x+r,y,r);g.closePath()}
+function col(j){return focus<0||focus===j?HC[j]:HD[j]}
+function pos(i){var row=Math.floor(i/L.per),k=i%L.per,inRow=Math.min(L.per,N-row*L.per),off=(W-inRow*L.pitch)/2;return {x:off+(k+.5)*L.pitch,y:L.strip+row*(L.rowH+L.lab+12)}}
+
+function draw(){
+  g.setTransform(1,0,0,1,0,0);g.fillStyle=BG;g.fillRect(0,0,cv.width,cv.height);
+  var ti=Math.floor(t),fr=t-ti;
+  // the time strip: everything i played, block by block
+  var sw=W/NB,sy=4,sh=L.strip-(L.phone?19:22),MX=0;
+  for(var b=0;b<NB;b++){var m0=D.mix[b];MX=Math.max(MX,m0[0]+m0[1]+m0[2]+m0[3])}
+  g.fillStyle=LINE;g.fillRect(0,px(sy+sh),cv.width,Math.max(1,px(1)));
+  for(var b=0;b<NB;b++){var m=D.mix[b],c=loose?[m[0]+m[1],0,m[2],m[3]]:m,tot=c[0]+c[1]+c[2]+c[3],x0=px(b*sw),x1=px((b+1)*sw)-Math.max(1,px(.6));
+    if(!tot)continue;var bh=sh*Math.sqrt(tot/MX),yy=sy+sh-bh;
+    var past=b<=ti;for(var j=0;j<4;j++){if(!c[j])continue;var hh=bh*c[j]/tot;g.fillStyle=past?col(j):HD[j];var a0=px(yy),a1=px(yy+hh);g.fillRect(x0,a0,x1-x0,a1-a0);yy+=hh}}
+  g.fillStyle=ICE;g.fillRect(px(Math.min(t+1,NB)*sw)-px(1),px(sy-4),px(1.5),px(sh+8));
+  g.font='500 11px'+' "IBM Plex Mono",monospace';g.fillStyle=MUTE;g.textBaseline='top';
+  var bt='block '+(ti+1)+' of '+NB;g.textAlign=t<NB*.8?'left':'right';var tx=Math.min(t+1,NB)*sw;g.setTransform(dpr,0,0,dpr,0,0);g.fillText(bt,t<NB*.8?tx+6:tx-6,sy+sh+2);
+  var sl=L.phone?'all plays per block, height = how many':'all my plays, one bar per block, height = how many';g.textAlign=t<NB*.5?'right':'left';var slw=g.measureText(sl).width,btw=g.measureText(bt).width;
+  if(t<NB*.5?(W-slw>tx+btw+16):(slw<tx-btw-16))g.fillText(sl,t<NB*.5?W:0,sy+sh+2);g.setTransform(1,0,0,1,0,0);
+  var Pmax=0;A.forEach(function(a){if(a.tot>Pmax)Pmax=a.tot});
+  A.forEach(function(a,i){
+    var p=pos(i),cum=0,bs=[];
+    for(var k=0;k<a.b.length;k++){var b=a.b[k];if(b[0]>ti)break;var s=b[0]===ti?fr:1,c=cnt(b),tt=(c[0]+c[1]+c[2]+c[3])*s;bs.push([c,tt,b[0]]);cum+=tt}
+    var len=L.rowH*Math.sqrt(cum/Pmax),cw=L.cw,gp=L.gap,xl=p.x-cw-gp/2,xr=p.x+gp/2,y0=p.y;
+    // number + name
+    g.setTransform(dpr,0,0,dpr,0,0);g.textAlign='center';g.textBaseline='top';
+    var arrived=cum>0,lbY=p.y+L.rowH+5;
+    g.fillStyle=arrived?(hover===i?INK:MUTE):LINE;g.font='500 '+11+'px "IBM Plex Mono",monospace';g.fillText(String(i+1),p.x,lbY);
+    if(!L.phone){g.fillStyle=arrived?(hover===i?INK:'#cfc6ea'):LINE;g.font='500 11px "Instrument Sans",sans-serif';var nm=a.n,mw=L.pitch-4;while(g.measureText(nm).width>mw&&nm.length>2)nm=nm.slice(0,-2)+'…';if(nm!==a.n&&nm.slice(-1)!=='…')nm+='…';g.fillText(nm,p.x,lbY+14)}
+    g.setTransform(1,0,0,1,0,0);
+    if(!arrived)return;
+    var r=Math.min(px(cw/2),px(4));
+    // left twin: the stain, the winner of each block
+    g.save();rr(px(xl),px(y0),px(cw),Math.max(px(len),2),r);g.clip();
+    var y=y0;bs.forEach(function(e){var hh=len*e[1]/cum,a0=px(y),a1=px(y+hh);g.fillStyle=col(win(e[0]));g.fillRect(px(xl),a0,px(cw),Math.max(0,a1-a0));y+=hh});
+    g.restore();
+    // right twin: the split of the vote inside each block
+    g.save();rr(px(xr),px(y0),px(cw),Math.max(px(len),2),r);g.clip();
+    y=y0;bs.forEach(function(e){var hh=len*e[1]/cum,a0=px(y),a1=px(y+hh),c=e[0],tot=c[0]+c[1]+c[2]+c[3],xx=xr;for(var j=0;j<4;j++){if(!c[j])continue;var ww=cw*c[j]/tot,b0=px(xx),b1=px(xx+ww);g.fillStyle=col(j);g.fillRect(b0,a0,b1-b0,Math.max(0,a1-a0));xx+=ww}y+=hh});
+    g.restore();
+    // the newest band, outlined while it grows
+    if(bs.length&&bs[bs.length-1][2]===ti&&playing){var e=bs[bs.length-1],hh=len*e[1]/cum;if(hh>.5){g.fillStyle=ICE;g.fillRect(px(xl)-px(2),px(y0+len-hh),px(1),Math.max(px(hh),1));g.fillRect(px(xr+cw)+px(1),px(y0+len-hh),px(1),Math.max(px(hh),1))}}
+    // the notch: my first press, in plays from the top
+    var pr=a.pre[loose?1:0];
+    if(pr!==null&&cum>pr){var ny=y0+len*pr/cum,nyp=px(ny);g.fillStyle=BG;var d=Math.max(px(2.5),2);
+      g.beginPath();g.moveTo(px(xl)-1,nyp-d*1.3);g.lineTo(px(xl)+d,nyp);g.lineTo(px(xl)-1,nyp+d*1.3);g.fill();
+      g.beginPath();g.moveTo(px(xr+cw)+1,nyp-d*1.3);g.lineTo(px(xr+cw)-d,nyp);g.lineTo(px(xr+cw)+1,nyp+d*1.3);g.fill();
+      var tk=px(4),th=Math.max(2,px(1.5));g.fillStyle=INK;g.fillRect(px(xl)-tk-px(2),nyp-th/2,tk,th)}
+    if(hover===i){g.strokeStyle=INK;g.lineWidth=Math.max(1,px(1));g.strokeRect(px(xl-4)+.5,px(y0-4)+.5,px(2*cw+gp+8),px(len+8))}
+  });
+}
+
+function tick(now){
+  var dt=last?Math.min(.1,(now-last)/1000):0;last=now;
+  if(playing){
+    if(t<NB-1){t=Math.min(NB-1+.999,t+dt/SEC*speeds[si]);if(t>=NB-1+.999){t=NB-1+.999;hold=0}}
+    else{hold+=dt;if(!userFocus){var ph=[-1,0,2,3,-1],k=Math.min(4,Math.floor(Math.max(0,hold-2.5)/2));setFocus(ph[k],false)}
+      if(hold>12.5){t=0;hold=0;if(!userFocus)setFocus(-1,false)}}
+    document.getElementById('scrub').value=Math.round(t/(NB-.001)*1000);
+  }
+  draw();requestAnimationFrame(tick);
+}
+function setFocus(f,user){if(f===focus)return;focus=f;var lab=f<0?'every hand':(f===0?'my hand':f===2?'shuffle':f===3?'the queue':'a skip');document.getElementById('foc').textContent='see: '+lab;document.getElementById('foc').classList.toggle('on',f>=0);if(user)userFocus=f>=0}
+
+function hit(ev){var r=cv.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top,best=-1;
+  for(var i=0;i<N;i++){var p=pos(i);if(Math.abs(x-p.x)<L.pitch/2&&y>=p.y-6&&y<=p.y+L.rowH+L.lab)best=i}
+  hover=best;if(best<0){tip.style.display='none';return}
+  var a=A[best],fam=D.fam[a.f]||'untagged',pr=a.pre[loose?1:0];
+  tip.innerHTML='<b>'+a.n+'</b><div class="mono">'+fam+'</div><div class="mono">'+fmt(a.tot)+' plays in '+a.b.length+' blocks</div><div class="mono">arrived '+(best+1)+' of '+N+'</div><div class="mono">'+(pr===null?'never pressed by my hand':pr===0?'my press on the first play':'my first press after '+pr+' plays')+'</div>';
+  tip.style.display='block';var tw=tip.offsetWidth,p=pos(best);tip.style.left=Math.max(0,Math.min(W-tw,p.x-tw/2))+'px';tip.style.top=Math.min(H-tip.offsetHeight,p.y+L.rowH*.35)+'px'}
+
+fetch('data/karyotype.json').then(function(r){return r.json()}).then(function(d){
+  D=d;N=d.N;NB=d.nblk;A=d.a;A.forEach(function(a){a.tot=a.b.reduce(function(s,b){return s+b[1]+b[2]+b[3]+b[4]},0)});
+  ST=render();window.__k={stats:stats,headline:ST,obs:d.obs};
+  layout();
+  document.getElementById('play').onclick=function(){playing=!playing;this.textContent=playing?'pause':'play';this.classList.toggle('on',playing);if(playing&&t>=NB-1+.99){t=0;hold=0}};
+  document.getElementById('spd').onclick=function(){si=(si+1)%speeds.length;this.textContent='speed '+(speeds[si]===.25?'¼':speeds[si]===.5?'½':speeds[si])+'×'};
+  document.getElementById('skip').onclick=function(){loose=!loose;this.textContent=loose?'skips: my hand':'skips: their own';this.classList.toggle('on',loose);if(loose&&focus===1)setFocus(-1,true);ST=render();window.__k.headline=ST};
+  document.getElementById('foc').onclick=function(){var seq=loose?[-1,0,2,3]:[-1,0,2,3,1],k=(seq.indexOf(focus)+1)%seq.length;setFocus(seq[k],true)};
+  var sc=document.getElementById('scrub');sc.oninput=function(){t=Math.min(NB-1+.999,sc.value/1000*(NB-.001));hold=0;if(playing){playing=false;var b=document.getElementById('play');b.textContent='play';b.classList.remove('on')}};
+  cv.addEventListener('pointermove',hit);cv.addEventListener('pointerdown',hit);cv.addEventListener('pointerleave',function(){hover=-1;tip.style.display='none'});
+  window.addEventListener('resize',layout);
+  (document.fonts?document.fonts.ready:Promise.resolve()).then(function(){layout();requestAnimationFrame(tick)});
+});
+})();
+</script>
+</body>
+</html>

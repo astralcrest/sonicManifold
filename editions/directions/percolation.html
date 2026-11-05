@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>sonic manifold · percolation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #06010f; --ink: #e9e6f5; --mute: #8b84a6; --faint: #3a3352; --line: #1c1630;
+  --mint: #21f6bc; --amber: #f5a623; --violet: #8b6fd6; --rose: #ff5c7a; --ice: #bcd3ff; --gold: #ffd36b;
+  --sans: 'Instrument Sans', system-ui, sans-serif; --mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--night); color: var(--ink); font-family: var(--sans); }
+body { min-height: 100vh; overflow-x: hidden; }
+.wrap { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto auto auto 1fr auto;
+  grid-template-areas: "art head" "art live" "art ctrl" "art chart" "art tbl" "art end" "art foot";
+  column-gap: 32px; padding: 14px 28px 12px 20px; height: 100vh; }
+.art { grid-area: art; width: min(calc(100vh - 26px), calc(100vw - 500px)); aspect-ratio: 1 / 1; position: relative; align-self: start; }
+.art canvas { width: 100%; height: 100%; display: block; }
+.head { grid-area: head; padding-top: 2px; }
+.kick { font: 400 11px/1.4 var(--mono); color: var(--mute); letter-spacing: .06em; text-transform: lowercase; }
+h1 { font: 600 25px/1.12 var(--sans); letter-spacing: -.01em; margin: 6px 0 6px; max-width: 30ch; }
+.cap { font: 400 13.5px/1.42 var(--sans); color: #bdb6d6; max-width: 46ch; }
+.live { grid-area: live; margin-top: 10px; }
+.big { font: 500 14px/1.35 var(--mono); color: var(--ink); }
+.big b { font-weight: 500; color: var(--ice); font-size: 22px; letter-spacing: -.01em; }
+.sub { font: 400 11.5px/1.5 var(--mono); color: var(--mute); }
+.key { font: 400 11px/1.5 var(--mono); color: var(--mute); margin-top: 3px; }
+.key i { display: inline-block; width: 7px; height: 7px; margin: 0 5px 0 0; vertical-align: 0; }
+.evt { font: 400 11px/1.45 var(--mono); color: #cfc9e6; min-height: 16px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: clip; }
+.ctrl { grid-area: ctrl; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+.ctrl button { font: 500 11.5px/1 var(--mono); color: var(--ink); background: transparent; border: 1px solid var(--faint);
+  padding: 7px 9px; cursor: pointer; border-radius: 0; }
+.ctrl button:hover { border-color: var(--mute); }
+.ctrl button[aria-pressed="true"] { border-color: var(--ice); color: var(--night); background: var(--ice); }
+.seg { display: inline-flex; }
+.seg button + button { border-left: 0; }
+.ctrl input[type=range] { flex: 1 1 120px; min-width: 0; accent-color: #bcd3ff; height: 22px; }
+.chart { grid-area: chart; margin-top: 10px; }
+.chart canvas { width: 100%; height: 96px; display: block; }
+.mile { font: 400 11px/1.45 var(--mono); color: var(--mute); margin-top: 4px; }
+.tbl { grid-area: tbl; margin-top: 7px; width: 100%; font: 400 11px/1.3 var(--mono); }
+.hk { color: var(--mute); margin-bottom: 7px; }
+.hk span { margin-right: 12px; white-space: nowrap; }
+.hk i { display: inline-block; width: 8px; height: 8px; margin-right: 5px; }
+.br { display: grid; grid-template-columns: 14ch 1fr; align-items: center; column-gap: 10px; margin-top: 5px; }
+.bl { color: #cfc9e6; }
+.bb { display: flex; height: 16px; background: #120c22; }
+.bb i { display: block; height: 100%; font: 500 11px/16px var(--mono); color: var(--night); font-style: normal; overflow: hidden; padding-left: 4px; white-space: nowrap; }
+.bb i + i { margin-left: 1px; }
+.bn { color: var(--mute); margin-top: 6px; }
+.end { grid-area: end; margin-top: 8px; font: 400 12.5px/1.42 var(--sans); color: #d6d1ea; max-width: 52ch; }
+.end em { font-style: normal; font-family: var(--mono); font-size: 12px; color: var(--ice); }
+.foot { grid-area: foot; margin-top: 6px; font: 400 11px/1.5 var(--mono); color: var(--mute); max-width: 72ch; }
+.foot p + p { margin-top: 4px; }
+.foot b { font-weight: 500; color: #b8b1d4; }
+@media (max-width: 899px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; height: auto; padding: 14px 16px 28px;
+    grid-template-areas: "head" "art" "tbl" "live" "ctrl" "chart" "end" "foot"; }
+  .tbl { margin-top: 12px; }
+  .art { width: 100%; margin-top: 10px; }
+  h1 { font-size: 21px; margin: 4px 0 4px; }
+  .cap { font-size: 12.5px; }
+  .live { margin-top: 8px; }
+  .big b { font-size: 19px; }
+  .ctrl { margin-top: 8px; }
+  .ctrl button { padding: 8px 8px; font-size: 11px; }
+  .chart canvas { height: 92px; }
+  .evt { white-space: normal; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="art"><canvas id="net" aria-label="the followed-by graph growing one link at a time"></canvas></div>
+  <header class="head">
+    <div class="kick"><a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 21 · percolation · the largest piece</div>
+    <h1 id="hl">&nbsp;</h1>
+    <p class="cap">each line: two artists i heard back to back, drawn the first time it happened, colored by the hand that started the second song.</p>
+  </header>
+  <section class="live">
+    <div class="big">largest piece <b id="gN">0</b> of <span id="nA"></span> artists · <span id="gP">0%</span></div>
+    <div class="sub">link <span id="kN">0</span> of <span id="kT"></span> · sitting <span id="sN">0</span> of <span id="sT"></span></div>
+    <div class="key"><i style="background:#bcd3ff"></i>in the largest piece &nbsp;<i style="background:#4a4366"></i>a smaller piece &nbsp;<i style="background:#221c36"></i>no link</div>
+    <div class="evt" id="evt">&nbsp;</div>
+  </section>
+  <nav class="ctrl" aria-label="controls">
+    <button id="bPlay" type="button">pause</button>
+    <input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="links drawn">
+    <span class="seg" role="group" aria-label="which links are bright">
+      <button type="button" data-m="0" aria-pressed="true">every link</button><button type="button" data-m="1" aria-pressed="false">between rooms</button>
+    </span>
+    <span class="seg" role="group" aria-label="which hands draw">
+      <button type="button" data-h="all" aria-pressed="true">all hands</button><button type="button" data-h="q" aria-pressed="false">queue only</button><button type="button" data-h="me" aria-pressed="false">mine only</button>
+    </span>
+  </nav>
+  <section class="chart">
+    <canvas id="crv" aria-label="largest piece share against links drawn"></canvas>
+    <div class="mile" id="mile">&nbsp;</div>
+  </section>
+  <section class="tbl" id="tbl" aria-label="each hand's share of the links so far">
+    <div class="hk" id="hk"></div>
+    <div class="br"><div class="bl">every link</div><div class="bb" data-r="0"><i></i><i></i><i></i></div></div>
+    <div class="br"><div class="bl">between rooms</div><div class="bb" data-r="1"><i></i><i></i><i></i></div></div>
+    <div class="br"><div class="bl">first links</div><div class="bb" data-r="2"><i></i><i></i><i></i></div></div>
+  </section>
+  <p class="end" id="end">&nbsp;</p>
+  <footer class="foot">
+    <p id="how"><b>how:</b> </p>
+    <p id="why"><b>why:</b> </p>
+  </footer>
+</main>
+<script>
+(function () {
+'use strict';
+var HC = ['#21f6bc', '#bcd3ff', '#8b6fd6'];
+// one line = one link whatever its hue: violet is much darker than mint or ice on night, so it is drawn stronger
+// and they fainter, until a press line and a queue line weigh about the same
+var HW = [0.85, 0.85, 1.25];
+var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#ffd36b', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#f5a623', 'untagged': '#6f6790' };
+var ICE = '#bcd3ff', DIMP = '#4a4366', NONE = '#221c36';
+var $ = function (id) { return document.getElementById(id); };
+var fmt = function (n) { return Math.round(n).toLocaleString('en-US'); };
+var pct = function (a, b) { return b ? Math.round(100 * a / b) + '%' : '0%'; };
+
+fetch('data/percolation.json').then(function (r) { return r.json(); }).then(start).catch(function (e) { $('hl').textContent = 'the data did not load'; console.error(e); });
+
+function start(D) {
+  var N = D.n, NL = D.L.length / 4, A = new Int32Array(NL), B = new Int32Array(NL), Hd = new Int8Array(NL), S = new Int32Array(NL), X = new Int8Array(NL);
+  var room = D.room, xy = D.xy, isl = D.isl;
+  for (var k = 0; k < NL; k++) {
+    A[k] = D.L[4 * k]; B[k] = D.L[4 * k + 1]; Hd[k] = D.L[4 * k + 2]; S[k] = D.L[4 * k + 3];
+    X[k] = room[A[k]] >= 0 && room[B[k]] >= 0 ? (room[A[k]] !== room[B[k]] ? 1 : 0) : -1;
+  }
+  var maxPlays = 1; for (var i = 0; i < N; i++) if (D.plays[i] > maxPlays) maxPlays = D.plays[i];
+  var lsz = new Float32Array(N); for (i = 0; i < N; i++) lsz[i] = Math.log(1 + D.plays[i]) / Math.log(1 + maxPlays);
+  var outside = 0; for (i = 0; i < N; i++) if (room[i] < 0) outside++;
+
+  // the three link sets: every hand, the queue alone, my two press hands alone
+  var SETS = {};
+  function mk(test) { var o = []; for (var k = 0; k < NL; k++) if (test(Hd[k])) o.push(k); return Int32Array.from(o); }
+  SETS.all = mk(function () { return true; }); SETS.q = mk(function (h) { return h === 2; }); SETS.me = mk(function (h) { return h !== 2; });
+
+  // union-find percolation run over a set; returns the largest-piece size after each link
+  function curve(idx) {
+    var p = new Int32Array(N), z = new Int32Array(N), g = 1, out = new Int32Array(idx.length + 1);
+    for (var i = 0; i < N; i++) { p[i] = i; z[i] = 1; }
+    function f(x) { while (p[x] !== x) { p[x] = p[p[x]]; x = p[x]; } return x; }
+    out[0] = 1;
+    for (var j = 0; j < idx.length; j++) {
+      var a = f(A[idx[j]]), b = f(B[idx[j]]);
+      if (a !== b) { if (z[a] < z[b]) { var t = a; a = b; b = t; } p[b] = a; z[a] += z[b]; if (z[a] > g) g = z[a]; }
+      out[j + 1] = g;
+    }
+    return out;
+  }
+  var CURVE = { all: curve(SETS.all), q: curve(SETS.q), me: curve(SETS.me) };
+
+  // whole-log tallies per hand (for the headline test and the closing line)
+  function tally(idx) {
+    var t = { n: [0, 0, 0], x: [0, 0, 0], r: [0, 0, 0], br: [0, 0, 0] }, seen = new Uint8Array(N);
+    for (var j = 0; j < idx.length; j++) {
+      var k = idx[j], h = Hd[k];
+      t.n[h]++; if (X[k] >= 0) { t.r[h]++; if (X[k] === 1) t.x[h]++; }
+      if (!seen[A[k]]) { seen[A[k]] = 1; t.br[h]++; } if (!seen[B[k]]) { seen[B[k]] = 1; t.br[h]++; }
+    }
+    return t;
+  }
+  var T = tally(SETS.all);
+  var xr = function (h) { return T.r[h] ? T.x[h] / T.r[h] : 0; };
+  var brTot = T.br[0] + T.br[1] + T.br[2], xTot = T.x[0] + T.x[1] + T.x[2];
+  var claimA = T.br[2] / brTot > 0.5 && xr(0) > xr(2) && xr(1) > xr(2);
+  var claimB = T.x[2] / xTot > 0.5;
+  $('hl').textContent = claimA ? 'the queue pulls artists in; my presses cross rooms more often' : 'who drew the links that hold my listening together';
+  var sh = T.x[2] / xTot < T.n[2] / NL, gr = T.br[2] / brTot > T.n[2] / NL;
+  $('end').innerHTML = 'by the last link the queue drew ' + pct(T.n[2], NL) + ' of every link but ' + pct(T.x[2], xTot) + ' of links between rooms (<em>' + fmt(T.x[2]) + '</em> of <em>' + fmt(xTot) +
+    '</em>): per link, ' + pct(T.x[0], T.r[0]) + ' of my play presses cross a room wall, ' + pct(T.x[2], T.r[2]) + ' of the queue\u2019s. it drew the first link for ' + pct(T.br[2], brTot) +
+    ' of artists (<em>' + fmt(T.br[2]) + '</em> of <em>' + fmt(brTot) + '</em>)' + (sh && gr ? ', so in the bars its violet shrinks where rooms meet and grows where artists come in.' : '.');
+  $('nA').textContent = fmt(N); $('sT').textContent = fmt(D.nsit);
+  $('how').innerHTML = '<b>how:</b> ' + fmt(NL) + ' artist pairs heard back to back inside a sitting (shuffle arrivals left out, as in the followed-by map), each added at its first time in log order; a union-find keeps the largest connected piece; the ' +
+    isl.length + ' rooms are the followed-by map’s Louvain neighborhoods, one island each; square size = plays, log scale.';
+  $('why').innerHTML = '<b>why:</b> every line is a real first meeting from the log, placed in the order it happened, and every count here is recounted from those same lines as they draw.';
+
+  // ---- state
+  var mode = 0, hset = 'all', idx = SETS.all, cur = 0, playing = true, spd = 1, acc = 0, holdT = 0;
+  var par = new Int32Array(N), sz = new Int32Array(N), seen = new Int32Array(N), by = new Int8Array(N), gRoot = 0, gSize = 1, ev = null;
+  var tn = [0, 0, 0], tx = [0, 0, 0], tr = [0, 0, 0], tb = [0, 0, 0], inG = new Uint8Array(N), rt = new Int32Array(N);
+  function find(x) { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; }
+  function reset() {
+    for (var i = 0; i < N; i++) { par[i] = i; sz[i] = 1; seen[i] = -1; by[i] = -1; }
+    gRoot = 0; gSize = 1; cur = 0; ev = null; tn = [0, 0, 0]; tx = [0, 0, 0]; tr = [0, 0, 0]; tb = [0, 0, 0];
+  }
+  function add(j) {
+    var k = idx[j], a = A[k], b = B[k], h = Hd[k];
+    tn[h]++; if (X[k] >= 0) { tr[h]++; if (X[k] === 1) tx[h]++; }
+    if (seen[a] < 0) { seen[a] = j; by[a] = h; tb[h]++; } if (seen[b] < 0) { seen[b] = j; by[b] = h; tb[h]++; }
+    var ra = find(a), rb = find(b);
+    if (ra !== rb) {
+      if (sz[ra] < sz[rb]) { var t = ra; ra = rb; rb = t; }
+      if (sz[rb] >= 3) ev = { j: j, h: h, small: sz[rb], big: sz[ra], g: ra === find(gRoot) };
+      par[rb] = ra; sz[ra] += sz[rb];
+      if (sz[ra] >= gSize) { gSize = sz[ra]; gRoot = ra; }
+    }
+  }
+  function seek(n) { n = Math.max(0, Math.min(idx.length, n | 0)); if (n < cur) reset(); while (cur < n) add(cur++); }
+
+  // ---- canvas
+  var cv = $('net'), cx = cv.getContext('2d'), W = 0, dpr = 1, sc = 1, off = 0, phone = false;
+  var cc = $('crv'), c2 = cc.getContext('2d'), CW = 0, CH = 0;
+  function size() {
+    dpr = window.devicePixelRatio || 1; phone = window.innerWidth < 900;
+    var r = cv.getBoundingClientRect(); W = r.width; cv.width = Math.round(W * dpr); cv.height = Math.round(W * dpr);
+    var pad = W * 0.035; sc = (W - 2 * pad) / 1000; off = pad;
+    var q = cc.getBoundingClientRect(); CW = q.width; CH = q.height; cc.width = Math.round(CW * dpr); cc.height = Math.round(CH * dpr);
+    dirty = true;
+  }
+  var dirty = true;
+  function px(i) { return off + xy[i][0] * sc; } function py(i) { return off + xy[i][1] * sc; }
+
+  function drawNet() {
+    var g = cx; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#06010f'; g.fillRect(0, 0, W, W);
+    var gr = find(gRoot), k, j, i, h;
+    for (i = 0; i < N; i++) { rt[i] = find(i); inG[i] = rt[i] === gr && sz[gr] > 1 ? 1 : 0; }
+    // islands: one hairline ring per room in its loudest family's color, a label outside
+    g.lineWidth = 1;
+    for (k = 0; k < isl.length; k++) {
+      var il = isl[k], fc = FAMC[D.fam[il[5]]] || '#9a90b8';
+      g.strokeStyle = fc; g.globalAlpha = 0.32; g.beginPath(); g.arc(off + il[1] * sc, off + il[2] * sc, il[3] * sc + 4, 0, 6.2832); g.stroke();
+    }
+    g.globalAlpha = 1;
+    var lw = phone ? 0.5 : 0.6, base = phone ? 0.2 : 0.17, n = cur, CH_ = 240;
+    // links outside the largest piece: dim
+    g.lineWidth = lw;
+    for (h = 0; h < 3; h++) {
+      g.strokeStyle = HC[h]; g.globalAlpha = 0.16; g.beginPath();
+      for (j = 0; j < n; j++) { k = idx[j]; if (Hd[k] !== h || inG[A[k]]) continue; g.moveTo(px(A[k]), py(A[k])); g.lineTo(px(B[k]), py(B[k])); }
+      g.stroke();
+    }
+    // in "between rooms": links inside one room fade to a trace
+    if (mode === 1) {
+      for (h = 0; h < 3; h++) {
+        g.strokeStyle = HC[h]; g.globalAlpha = 0.035; g.beginPath();
+        for (j = 0; j < n; j++) { k = idx[j]; if (Hd[k] !== h || !inG[A[k]] || X[k] === 1) continue; g.moveTo(px(A[k]), py(A[k])); g.lineTo(px(B[k]), py(B[k])); }
+        g.stroke();
+      }
+    }
+    // the largest piece: hands interleaved in short runs of log order so no hand is always painted on top
+    var al = (mode === 1 ? base * 1.25 : base) * Math.min(1, Math.sqrt(2500 / Math.max(1, n)));
+    for (var s0 = 0; s0 < n; s0 += CH_) {
+      var s1 = Math.min(n, s0 + CH_);
+      for (h = 2; h >= 0; h--) {
+        g.strokeStyle = HC[h]; g.globalAlpha = al * HW[h]; g.beginPath(); var any = false;
+        for (j = s0; j < s1; j++) { k = idx[j]; if (Hd[k] !== h || !inG[A[k]] || (mode === 1 && X[k] !== 1)) continue; g.moveTo(px(A[k]), py(A[k])); g.lineTo(px(B[k]), py(B[k])); any = true; }
+        if (any) g.stroke();
+      }
+    }
+    // the newest links, bright and a little thicker, fading over about a second of play
+    var recent = Math.max(10, Math.round(rate() * 0.9));
+    for (j = Math.max(0, n - recent); j < n; j++) {
+      k = idx[j]; if (mode === 1 && X[k] !== 1) continue;
+      g.globalAlpha = 0.25 + 0.75 * (1 - (n - 1 - j) / recent); g.strokeStyle = HC[Hd[k]]; g.lineWidth = phone ? 1.1 : 1.4;
+      g.beginPath(); g.moveTo(px(A[k]), py(A[k])); g.lineTo(px(B[k]), py(B[k])); g.stroke();
+    }
+    // artists: squares; ice in the largest piece, dim in a smaller piece, darker with no link yet;
+    // an artist just tied in shows the color of the hand that tied it for a moment
+    g.globalAlpha = 1;
+    var u = phone ? 0.75 : 1, flash = Math.max(8, Math.round(rate() * 0.7));
+    for (i = 0; i < N; i++) {
+      var s = (1.3 + 3.4 * lsz[i]) * u, c;
+      if (seen[i] < 0 || seen[i] >= n) c = NONE;
+      else if (n - seen[i] < flash) { c = HC[by[i]]; s += 1.2; }
+      else c = inG[i] ? ICE : DIMP;
+      g.fillStyle = c; var x = Math.round((px(i) - s / 2) * dpr) / dpr, y = Math.round((py(i) - s / 2) * dpr) / dpr; g.fillRect(x, y, s, s);
+    }
+    // room labels: biggest rooms first; each tries the outer side, then outward, then the inner side, and takes the first spot
+    // that stays on the canvas and clear of the labels already placed; a flat night plate keeps the text off the lines
+    var fs = 11; g.font = '500 ' + fs + "px 'IBM Plex Mono', monospace"; g.textBaseline = 'middle'; g.textAlign = 'left';
+    var placed = [], ord = isl.slice().sort(function (p, q) { return q[4] - p[4]; });
+    for (k = 0; k < ord.length; k++) {
+      var L = ord[k], cxl = off + L[1] * sc, cyl = off + L[2] * sc, rr = L[3] * sc + (phone ? 7 : 9);
+      var txt = (phone && L[4] < 100) ? fmt(L[4]) : D.fam[L[5]] + ' \u00b7 ' + fmt(L[4]), tw = g.measureText(txt).width, th = fs + 4;
+      var ang = Math.atan2(L[2] - 500, L[1] - 500), ca = Math.cos(ang), sa = Math.sin(ang), up = L[2] < 500 ? -1 : 1;
+      var cand = [[cxl - tw / 2, cyl + up * (rr + th / 2)], [cxl + ca * rr + (ca > 0 ? 0 : -tw) * (Math.abs(ca) > 0.4 ? 1 : 0.5), cyl + sa * rr],
+                  [cxl - tw / 2, cyl - up * (rr + th / 2)], [cxl + rr, cyl], [cxl - rr - tw, cyl]], pick = null;
+      for (var q = 0; q < cand.length && !pick; q++) {
+        var bx = cand[q][0] - 3, by_ = cand[q][1] - th / 2, bw = tw + 6;
+        if (bx < 2 || bx + bw > W - 2 || by_ < 2 || by_ + th > W - 18) continue;
+        var hit = placed.some(function (o) { return bx < o[0] + o[2] && o[0] < bx + bw && by_ < o[1] + o[3] && o[1] < by_ + th; });
+        if (!hit) pick = [bx, by_, bw, th];
+      }
+      if (!pick) pick = [cand[0][0] - 3, cand[0][1] - th / 2, tw + 6, th];
+      placed.push(pick);
+      g.globalAlpha = 0.86; g.fillStyle = '#06010f'; g.fillRect(pick[0], pick[1], pick[2], pick[3]);
+      g.globalAlpha = 1; g.fillStyle = FAMC[D.fam[L[5]]] || '#9a90b8'; g.fillText(txt, pick[0] + 3, pick[1] + th / 2 + 0.5);
+    }
+    g.globalAlpha = 1; g.textAlign = 'center'; g.fillStyle = '#8b84a6';
+    g.fillText(fmt(outside) + ' artists in no room ring the edge', W / 2, W - (phone ? 4 : 6));
+  }
+
+  function drawCurve() {
+    var g = c2; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, CW, CH);
+    var l = 30, r = 8, t = 8, b = 18, w = CW - l - r, hh = CH - t - b, xmax = NL;
+    var X_ = function (v) { return l + w * v / xmax; }, Y_ = function (v) { return t + hh * (1 - v / N); };
+    g.font = "400 11px 'IBM Plex Mono', monospace"; g.fillStyle = '#8b84a6'; g.textBaseline = 'middle'; g.textAlign = 'right';
+    g.strokeStyle = '#1c1630'; g.lineWidth = 1;
+    [0, 0.5, 1].forEach(function (f) { var y = Math.round(Y_(f * N)) + 0.5; g.beginPath(); g.moveTo(l, y); g.lineTo(l + w, y); g.stroke(); g.fillText(Math.round(f * 100) + '%', l - 5, y); });
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    for (var v = 0; v <= xmax; v += 5000) g.fillText(v === 0 ? '0 links' : fmt(v), Math.min(X_(v), l + w - 12), t + hh + 5);
+    var draw = function (key, col, lw, a) {
+      var arr = CURVE[key], st = Math.max(1, Math.floor(arr.length / 600));
+      g.strokeStyle = col; g.globalAlpha = a; g.lineWidth = lw; g.beginPath(); g.moveTo(X_(0), Y_(arr[0]));
+      for (var j = st; j < arr.length; j += st) g.lineTo(X_(j), Y_(arr[j]));
+      g.lineTo(X_(arr.length - 1), Y_(arr[arr.length - 1])); g.stroke(); g.globalAlpha = 1;
+    };
+    draw('all', ICE, 1.5, hset === 'all' ? 1 : 0.55); draw('q', HC[2], 1.4, hset === 'q' ? 1 : 0.6); g.setLineDash([4, 3]); draw('me', HC[0], 1.4, hset === 'me' ? 1 : 0.7); g.setLineDash([]);
+    var arr = CURVE[hset], cxp = X_(cur), cyp = Y_(arr[cur]);
+    g.strokeStyle = '#e9e6f5'; g.globalAlpha = 0.35; g.lineWidth = 1; g.beginPath(); g.moveTo(Math.round(cxp) + 0.5, t); g.lineTo(Math.round(cxp) + 0.5, t + hh); g.stroke(); g.globalAlpha = 1;
+    g.fillStyle = hset === 'all' ? ICE : HC[hset === 'q' ? 2 : 0]; g.fillRect(cxp - 3, cyp - 3, 6, 6);
+    g.textAlign = 'right'; g.textBaseline = 'top'; g.font = "400 11px 'IBM Plex Mono', monospace";
+    var lab = [['all hands', ICE], ['queue only', HC[2]], ['mine only', HC[0]]], yy = t + hh - 40;
+    lab.forEach(function (p, q) { g.fillStyle = p[1]; g.fillText(p[0], l + w, yy + q * 12); });
+  }
+
+  function milestones() {
+    var arr = CURVE[hset], marks = [[0.1, 'a tenth'], [0.5, 'half'], [0.9, 'nine tenths']], out = [];
+    marks.forEach(function (m) { for (var j = 0; j < arr.length; j++) if (arr[j] >= m[0] * N) { out.push(m[1] + ' by link ' + fmt(j)); return; } out.push(m[1] + ' never'); });
+    var who = hset === 'all' ? 'with every hand' : hset === 'q' ? 'with the queue’s links alone' : 'with my presses alone';
+    var eq = Math.floor(Math.min(SETS.q.length, SETS.me.length) / 1000) * 1000;
+    $('mile').textContent = who + ', the largest piece holds ' + out.join(', ') + '. at ' + fmt(eq) + ' links each, the queue alone joins ' + fmt(CURVE.q[eq]) + ' artists, my presses alone ' + fmt(CURVE.me[eq]) + '.';
+  }
+
+  $('hk').innerHTML = D.hand.map(function (t, h) { return '<span><i style="background:' + HC[h] + '"></i>' + t + '</span>'; }).join('');
+  var bars = Array.prototype.map.call(document.querySelectorAll('.bb'), function (b) { return b.children; });
+  function setBar(seg, v) {
+    var tot = v[0] + v[1] + v[2];
+    for (var h = 0; h < 3; h++) {
+      var f = tot ? v[h] / tot : 0; seg[h].style.width = (100 * f).toFixed(2) + '%'; seg[h].style.background = HC[h];
+      seg[h].style.paddingLeft = f > 0.004 ? '11px' : '0'; seg[h].textContent = f >= 0.09 ? Math.round(100 * f) + '%' : '';
+    }
+  }
+  function texts() {
+    var gs = sz[find(gRoot)]; if (cur === 0) gs = 0;
+    $('gN').textContent = fmt(gs); $('gP').textContent = pct(gs, N);
+    $('kN').textContent = fmt(cur); $('kT').textContent = fmt(idx.length);
+    $('sN').textContent = cur ? fmt(S[idx[cur - 1]] + 1) : '0';
+    setBar(bars[0], tn); setBar(bars[1], tx); setBar(bars[2], tb);
+
+    var e = $('evt');
+    if (ev) e.innerHTML = 'link ' + fmt(ev.j + 1) + ': <span style="color:' + HC[ev.h] + '">' + (ev.h === 2 ? 'the queue' : ev.h === 0 ? 'my play press' : 'my next/back press') + '</span> joined ' + fmt(ev.small) + ' artists ' + (ev.g ? 'to the largest (now ' + fmt(ev.small + ev.big) + ')' : 'to a piece of ' + fmt(ev.big));
+    else e.innerHTML = '&nbsp;';
+  }
+
+  function rate() { return idx.length / 40 * spd; }
+  var bPlay = $('bPlay'), scrub = $('scrub');
+  function setPlay(p) { playing = p; bPlay.textContent = p ? 'pause' : 'play'; }
+  bPlay.onclick = function () { if (!playing && cur >= idx.length) { seek(0); holdT = 0; } setPlay(!playing); };
+  scrub.oninput = function () { setPlay(false); seek(+scrub.value); acc = 0; dirty = true; };
+  document.querySelectorAll('[data-m]').forEach(function (b) { b.onclick = function () { mode = +b.dataset.m; document.querySelectorAll('[data-m]').forEach(function (o) { o.setAttribute('aria-pressed', o === b); }); dirty = true; }; });
+  document.querySelectorAll('[data-h]').forEach(function (b) { b.onclick = function () {
+    hset = b.dataset.h; idx = SETS[hset]; document.querySelectorAll('[data-h]').forEach(function (o) { o.setAttribute('aria-pressed', o === b); });
+    reset(); scrub.max = idx.length; seek(0); holdT = 0; setPlay(true); milestones(); dirty = true; }; });
+  window.addEventListener('keydown', function (e) { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); bPlay.click(); } });
+  window.addEventListener('resize', size);
+  reset(); scrub.max = idx.length; milestones(); size();
+
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (playing) {
+      if (cur < idx.length) { acc += dt * rate(); var stp = Math.floor(acc); if (stp > 0) { acc -= stp; seek(cur + stp); scrub.value = cur; dirty = true; } }
+      else { holdT += dt; if (holdT > 5) { holdT = 0; seek(0); scrub.value = 0; dirty = true; } }
+    }
+    if (dirty || playing) { drawNet(); drawCurve(); texts(); dirty = false; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  window.__perc = { T: T, N: N, NL: NL, CURVE: CURVE, claimA: claimA, claimB: claimB, seek: function (n) { seek(n); scrub.value = cur; dirty = true; } };
+}
+})();
+</script>
+</body>
+</html>

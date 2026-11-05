@@ -32,7 +32,7 @@ DATA = os.path.join(HERE, 'data')
 EXH = os.path.join(ROOT, 'exhibit', 'data')
 LAZY_BUDGET = 120 * 1024
 INLINE_BUDGET = int(1.5 * 1024 * 1024)
-NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear', 'sky', 'years', 'radio', 'pv', 'field', 'maps', 'ring']
+NAMES = ['taste', 'genre', 'nodes', 'pairs', 'graveyard', 'tracks', 'hear', 'sky', 'years', 'radio', 'pv', 'field', 'maps', 'ring', 'ghost', 'gloss']
 TASTE_KEYS = ('t', 'a', 'h', 'w', 'p', 'n', 'pt', 'pa', 'pe', 'pm', 'arm')
 TID = re.compile(r'^[0-9A-Za-z]{22}$')
 SCRIPT = re.compile(r'(front/[a-z0-9_]+\.js)\?v=@HASH@')
@@ -44,6 +44,12 @@ G10_VERDICT = ('narrowed 2026-07-19: whatever drives a next press isn\u2019t in 
                '0.815 held-out, and two features (my last press + the session\u2019s next-press rate so far) give 0.80. '
                'the spiral predicts; the song doesn\u2019t.')
 G15_FROM, G15_TO = 'across the october 2023 logger change', 'across the 2023-10 era boundary'
+# grave 1 after lane PSPLITS (2026-11-04, refereed): the verdict sentence and the revised line, in ice under it on every surface
+G1_VERDICT_FROM = 'across the full catalog the gap is noise; the sliver that survives on my most-played artists is memorization, not intent.'
+G1_VERDICT_TO = 'tested years ahead, the gap is noise across the full catalog; the sliver on my most-played artists looked like memorization.'
+G1_REVISED = 'tested years ahead the gap is gone; retrained every four weeks it is not.'
+GLOSS_MAX = 120
+DFN = re.compile(r'<dfn data-g="([a-z0-9_]+)">')
 
 
 def dump(obj):
@@ -88,6 +94,9 @@ def cut_pack(pack):
             x['verdict'] = G10_VERDICT
         if x['n'] == 15:
             x['result'] = x['result'].replace(G15_FROM, G15_TO)
+        if x['n'] == 1:
+            x['verdict'] = x['verdict'].replace(G1_VERDICT_FROM, G1_VERDICT_TO)
+            x['revised'] = G1_REVISED
     write_if_changed('graveyard', dump({'v': 1, 'graves': graves}))
 
 
@@ -149,6 +158,16 @@ def validate():
             errs.append('graveyard %d: verdict cut short' % x['n'])
     if G15_TO not in g[14]['result'] or G15_FROM in json.dumps(g, ensure_ascii=False):
         errs.append('graveyard 15: month wording is not the paper\'s')
+    if g[0].get('revised') != G1_REVISED or G1_VERDICT_TO not in g[0]['verdict'] or G1_VERDICT_FROM in g[0]['verdict']:
+        errs.append('graveyard 1: the PSPLITS verdict and revised line')
+    if any('revised' in x for x in g[1:]):
+        errs.append('graveyard: only grave 1 carries a revised line')
+    gh = d['ghost']
+    if set(gh) != {'v', 'src', 'r', 'g'} or any(not (2 <= len(gh[k]) <= 40) or any(len(q) != 3 or any(not isinstance(c, int) for c in q) for q in gh[k]) for k in ('r', 'g')) or gh['r'][0] != gh['g'][0]:
+        errs.append('ghost: two paths of 2 to 40 integer 3D positions from the same start, nothing else')
+    gl = d['gloss']
+    if set(gl) != {'v', 'g'} or not gl['g'] or any(not isinstance(v, str) or not v.strip() or len(v) > GLOSS_MAX or '\u2014' in v for v in gl['g'].values()):
+        errs.append('gloss: one plain definition per term, %d characters at most, no em-dash' % GLOSS_MAX)
     if len(d['tracks']['tracks']) != 23:
         errs.append('tracks: 23 tracks')
     r = d['radio']
@@ -263,6 +282,9 @@ def main():
     if lazy:
         if '\u2014' in out:
             errs.append('output: an em-dash')
+        miss = sorted(set(DFN.findall(out)) - set(d['gloss']['g']))
+        if miss:
+            errs.append('gloss: the page marks terms with no definition: ' + ', '.join(miss))
     for e in errs:
         print('FAIL ' + e)
     if errs:

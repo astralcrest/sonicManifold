@@ -311,6 +311,7 @@
   }
   .graveyard li .claim { color: var(--text); }
   .graveyard li .why { color: var(--text-faint); }
+  .graveyard li .rev { display: block; margin-top: 0.3rem; color: var(--ice); font-family: var(--mono); font-size: 0.8rem; }
 
   .limits dt {
     font-family: var(--sans);
@@ -713,7 +714,7 @@
     <li><span class="claim">Bridge Index topology (&ldquo;agency is topological&rdquo; framing) and its H&#8321; persistent-homology loop</span>: <span class="why">killed by a first-order Markov corpus surrogate: the naive Bridge Index observed (1.613, the withdrawn 1.61) falls below the surrogate&rsquo;s 95th percentile (1.774, mean 1.731); the H&#8321; loop statistic likewise sits below its own Markov-null 95th percentile in both point-set variants; session first-order locality, not emergent topology, explains the signal.</span></li>
     <li><span class="claim">Tap-only Markov floor for the Bridge Index (a sequencing-agency reading)</span>: <span class="why">killed: a first-order Markov floor fit to the tap arm alone (0.5785 [0.5722, 0.5846]) exceeds the observed tap crossing rate (0.4665 [0.4524, 0.4813], p=1.0 against the floor): the listener&rsquo;s own one-step habit predicts the crossing rate at least as well as any claim of deliberate sequencing does; a follow-up &alpha;-sweep on the same-artist-controlled stream holds the kill at every smoothing level on the balanced arm and at &alpha;&ge;1 on the higher-coverage partition (&alpha;=0.5 is an effective tie). &ldquo;Deliberate&rdquo; here names tap provenance, not agency.</span></li>
     <li><span class="claim">Multi-year &ldquo;rising deliberate choice&rdquo; trend</span>: <span class="why">retracted: a 2023 logging-code addition (<code>backbtn</code>) plus an iOS device-mix shift account for the entire apparent rise.</span></li>
-    <li><span class="claim">In-sample next-track predictability gap</span>: <span class="why">retracted: full-vocabulary Cohen&rsquo;s d falls from 0.49 in-sample to &minus;0.02 under temporal held-out evaluation, a null; over the 600 most frequent artists it falls from 0.62 to +0.11, a heavy-rotation memorization residual.</span></li>
+    <li><span class="claim">In-sample next-track predictability gap</span>: <span class="why">retracted: full-vocabulary Cohen&rsquo;s d falls from 0.49 in-sample to &minus;0.02 under temporal held-out evaluation, a null; over the 600 most frequent artists it falls from 0.62 to +0.11, a heavy-rotation memorization residual.</span><span class="rev">tested years ahead the gap is gone; retrained every four weeks it is not.</span></li>
     <li><span class="claim">PAD contamination diagnostic</span>: <span class="why">killed by its own audit: algebraically a restatement of the two cross-rates whose ratio is the Bridge Index it was meant to guard.</span></li>
     <li><span class="claim">Acoustic energy/brightness predicting heart-rate change</span>: <span class="why">does not survive once selection and regression-to-mean are controlled.</span></li>
     <li><span class="claim">&ldquo;Effort&rdquo; (skipping through tracks) predicting future replay</span>: <span class="why">does not survive once skipping is recognized as itself active listening.</span></li>

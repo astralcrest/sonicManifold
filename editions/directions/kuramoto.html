@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>sonic manifold · coupled sittings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--night:#06010f;--ice:#bcd3ff;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--gold:#ffd36b;--dim:#7d7896;--line:#1d1830;--panel:#0b0517;--sans:'Instrument Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--night);color:var(--ice);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 488px;height:100vh;min-height:640px}
+.stage{position:relative;min-width:0;min-height:0}
+#ring{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.rd{position:absolute;left:28px;top:22px;right:28px;max-width:600px;pointer-events:none;display:flex;flex-direction:column;gap:7px}
+.act{display:flex;gap:6px;font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.act span{color:#4a4368;border-top:2px solid #241e3a;padding-top:6px;min-width:110px}
+.act span.on{color:#fff;border-top-color:var(--ice)}
+.act span.done{color:var(--dim);border-top-color:#3a3358}
+.rd b{font:600 19px/1.15 var(--sans);color:#fff}
+.rd p{font:400 13px/1.42 var(--sans);color:var(--ice);min-height:37px}
+.rd p .num{font:500 12px/1 var(--mono);color:#fff}.foot{position:absolute;left:24px;bottom:14px;font:400 11px/1.4 var(--mono);color:#5a5378;pointer-events:none}
+.tip{position:absolute;pointer-events:none;font:400 11px/1.45 var(--mono);color:var(--ice);background:var(--night);border:1px solid var(--line);padding:6px 8px;display:none;white-space:nowrap}
+.panel{border-left:1px solid var(--line);padding:20px 28px 6px;display:flex;flex-direction:column;gap:10px;overflow:auto;min-height:0}
+.kick{font:500 11px/1 var(--mono);letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+h1{font:600 24px/1.16 var(--sans);letter-spacing:-.01em;color:#fff}
+.cap{font:400 13px/1.4 var(--sans);color:var(--ice)}
+.meters{display:grid;gap:5px}
+.m{display:grid;grid-template-columns:10px 1fr 46px 108px;align-items:center;gap:9px;font:400 12.5px/1 var(--sans)}
+.m i{width:9px;height:9px;display:block}
+.m .n{font:400 11px/1 var(--mono);color:var(--dim);margin-left:4px}
+.m b{font:500 12.5px/1 var(--mono);text-align:right;color:#fff}
+.m .bar{height:6px;background:var(--line);position:relative}
+.m .bar span{position:absolute;left:0;top:0;bottom:0;display:block}
+.m .bar em{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--ice)}
+.lbl{font:400 11px/1.3 var(--mono);color:var(--dim)}
+canvas.ch{width:100%;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+button,.seg button{font:500 12px/1 var(--sans);color:var(--ice);background:transparent;border:1px solid #2c2545;padding:7px 10px;cursor:pointer;border-radius:0}
+button:hover{border-color:var(--ice)}
+button[aria-pressed="true"]{background:var(--ice);color:var(--night);border-color:var(--ice)}
+.seg{display:inline-flex}
+.seg button+button{border-left:none}
+.kk{display:flex;align-items:center;gap:8px;font:400 11px/1 var(--mono);color:var(--dim)}
+.kk b{color:#fff;font-weight:500;min-width:26px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:116px;height:18px;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:#2c2545}
+input[type=range]::-moz-range-track{height:2px;background:#2c2545}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--ice);margin-top:-5px;border:none;border-radius:0}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--ice);border:none;border-radius:0}
+.find{font:400 12px/1.4 var(--sans);color:var(--ice);display:flex;flex-direction:column;gap:5px}.find .row{display:block}.find .row b{color:#fff;font-weight:600}
+.find .num{font-family:var(--mono);font-size:11px;color:#fff}
+.find .tag{font:500 11px/1 var(--mono);color:var(--night);background:var(--rose);padding:2px 5px;margin-right:6px;letter-spacing:.04em}
+.how,.why{font:400 11px/1.4 var(--mono);color:var(--dim)}
+.how sub,.why sub{font-size:11px;line-height:0}
+.how b,.why b{color:var(--ice);font-weight:500}
+@media (max-width:760px){
+  .wrap{grid-template-columns:1fr;height:auto;min-height:0}
+  .stage{order:2}
+  .panel{display:contents}
+  .top{order:1;padding:14px 16px 2px}
+  .rest{order:3;padding:4px 16px 18px;display:flex;flex-direction:column;gap:8px}
+  .meters{grid-template-columns:auto auto auto;justify-content:space-between;gap:6px}
+  .m{display:flex;gap:5px;font-size:10.5px;white-space:nowrap}.m .n,.m .bar{display:none}.m b{font-size:11.5px}
+  .meters .lbl{grid-column:1/-1}
+  .meters{order:1}.find{order:2}.ctrl{order:3}.r-tr{order:4}.r-sw{order:5}.how{order:6}.why{order:7}
+  .stage{height:auto}
+  .rd{position:static;padding:6px 16px 4px;gap:6px;max-width:none}.rd b{font-size:16px}.rd p{font-size:12.5px;min-height:54px}.act span{min-width:0;flex:1;font-size:11px;letter-spacing:.02em}.foot{display:none}
+  #ring{position:relative;inset:auto;height:min(calc(100vw - 20px),338px)}
+  h1{font-size:19.5px}
+  .kick{font-size:11px;margin-bottom:6px}
+  .cap{font-size:12.5px;margin-top:6px}
+  .m{grid-template-columns:10px 1fr 42px 84px;font-size:12px}
+  .find{font-size:11.5px}
+  .find .num{font-size:11px}
+  button,.seg button{padding:7px 9px;font-size:11.5px}
+  input[type=range]{width:96px}
+}
+@media (min-width:761px){#ring{top:var(--rdh,160px);bottom:auto;height:calc(100% - var(--rdh,160px) - 40px)}.rd p{min-height:56px}.top{display:flex;flex-direction:column;gap:9px}.rest{display:flex;flex-direction:column;gap:9px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="stage" aria-label="ring of sittings"><canvas id="ring"></canvas><div class="rd"><div class="act" aria-hidden="true"><span id="a0">1 · the clock</span><span id="a1">2 · the pull</span><span id="a2">3 · settled</span></div><b id="rd1">the real clock</b><p id="rd2">&nbsp;</p></div><div class="foot" id="foot"></div><div class="tip" id="tip"></div></section>
+  <aside class="panel">
+    <div class="top">
+      <div class="kick"><a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 17 · coupled oscillators · kuramoto</div>
+      <h1 id="hl">&nbsp;</h1>
+      <p class="cap" id="cap">&nbsp;</p>
+    </div>
+    <div class="rest">
+      <div class="meters" id="meters"></div>
+      <div class="r-tr"><div class="lbl" id="trlbl">bunching over the run</div><canvas class="ch" id="trace"></canvas></div>
+      <div class="ctrl">
+        <button id="play" aria-pressed="false">pause</button>
+        <span class="seg" id="speed"><button data-v="1">1×</button><button data-v="3">3×</button><button data-v="10">10×</button></span>
+        <label class="kk">pull K <input id="k" type="range" min="0" max="5" step="0.1"><b id="kv"></b></label>
+        <button id="reset">back to the clock</button>
+        <span class="seg" id="hand"><button data-v="-1">all</button><button data-v="0">mine</button><button data-v="2">queue</button><button data-v="1">shuffle</button></span>
+      </div>
+      <div class="r-sw"><div class="lbl">after it settles: share locked to neighbors' tempo, by pull K</div><canvas class="ch" id="sweep"></canvas></div>
+      <p class="find" id="find"></p>
+      <p class="how" id="how"></p>
+      <p class="why" id="why"></p>
+    </div>
+  </aside>
+</main>
+<script>
+(function(){
+'use strict';
+var COL=['#21f6bc','#f5a623','#8b6fd6'], DIMC='#2a2440', ICE='#bcd3ff', LINE='#1d1830', NIGHT='#06010f', MUTE='#7d7896';
+var NAME=['i pressed play','shuffle','the queue'], SHORT=['mine','shuffle','the queue'];
+var ORDER=[0,2,1];
+var D, N, th, om, deg, E, EW, adj, perm, cs, sn, Fx, Fy;
+var KVIEW=4, HOLD=5500, SETTLE=6500, REWIND=1500, CAP=1200;
+var st={run:true,speed:3,K:KVIEW,hand:-1,step:0,hover:-1,phase:'clock',tp:0};
+var from=null, capKey='';
+var tr=[[],[],[]], dpr=1, mob=false;
+var cv=document.getElementById('ring'), cx=cv.getContext('2d');
+var tcv=document.getElementById('trace'), tcx=tcv.getContext('2d');
+var scv=document.getElementById('sweep'), scx=scv.getContext('2d');
+var tip=document.getElementById('tip');
+function f2(x){var s=Math.abs(x).toFixed(2);return (x<-0.0049?'−':'')+s;}
+function f3(x){var s=Math.abs(x).toFixed(3);return (x<-0.00049?'−':'')+s;}
+function nf(x){return x.toLocaleString('en-US');}
+function ci(a){return '<span class="num">'+f2(a[0])+' ['+f2(a[1])+', '+f2(a[2])+']</span>';}
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+fetch('data/kuramoto.json').then(function(r){return r.json();}).then(init);
+
+function init(d){
+  D=d; N=d.n;
+  th=new Float64Array(N); om=new Float64Array(N); deg=new Float64Array(N);
+  cs=new Float64Array(N); sn=new Float64Array(N); Fx=new Float64Array(N); Fy=new Float64Array(N);
+  for(var i=0;i<N;i++){om[i]=d.om[i];}
+  var m=d.e.length/3; E=new Int32Array(m*2); EW=new Float64Array(m); adj=[]; for(i=0;i<N;i++)adj.push([]);
+  for(var k=0;k<m;k++){var a=d.e[3*k],b=d.e[3*k+1],w=d.e[3*k+2]/100;E[2*k]=a;E[2*k+1]=b;EW[k]=w;deg[a]+=w;deg[b]+=w;adj[a].push(b);adj[b].push(a);}
+  var rnd=mulberry(17); perm=new Int32Array(N); for(i=0;i<N;i++)perm[i]=i;
+  for(i=N-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),t=perm[i];perm[i]=perm[j];perm[j]=t;}
+  text(); meters(); controls(); reset(); size();
+  window.addEventListener('resize',size);
+  requestAnimationFrame(loop);
+}
+
+function clockTh(i){return 2*Math.PI*(D.ph[i]+0.5)/D.slot;}
+function snapClock(){
+  for(var i=0;i<N;i++)th[i]=clockTh(i);
+  st.step=0; tr=[[],[],[]]; sample(); st.phase='clock'; st.tp=performance.now();
+}
+// rewind = every dot glides back along the short way round to the hour it began, so a restart reads as a rewind, not a jump
+function reset(animated){
+  if(!animated||st.step===0){snapClock();return;}
+  from=new Float64Array(th); st.phase='rewind'; st.tp=performance.now();
+}
+function rewindTo(u){
+  var e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2, TAU=2*Math.PI;
+  for(var i=0;i<N;i++){var d=(clockTh(i)-from[i])%TAU;if(d>Math.PI)d-=TAU;if(d<-Math.PI)d+=TAU;th[i]=from[i]+d*e;}
+  measure();
+}
+
+function stepOnce(){
+  var i,k,a,b,w,K=st.K,dt=D.dt;
+  for(i=0;i<N;i++){cs[i]=Math.cos(th[i]);sn[i]=Math.sin(th[i]);Fx[i]=0;Fy[i]=0;}
+  for(k=0;k<EW.length;k++){a=E[2*k];b=E[2*k+1];w=EW[k];Fx[a]+=w*cs[b];Fy[a]+=w*sn[b];Fx[b]+=w*cs[a];Fy[b]+=w*sn[a];}
+  for(i=0;i<N;i++){th[i]+=dt*(om[i]+(deg[i]>0?K*(Fy[i]*cs[i]-Fx[i]*sn[i])/deg[i]:0));}
+  st.step++;
+}
+
+var live=[0,0,0], mang=[0,0,0];
+function measure(){
+  var x=[0,0,0],y=[0,0,0],c=[0,0,0];
+  for(var i=0;i<N;i++){var h=D.hd[i];x[h]+=Math.cos(th[i]);y[h]+=Math.sin(th[i]);c[h]++;}
+  for(var g=0;g<3;g++){live[g]=Math.sqrt(x[g]*x[g]+y[g]*y[g])/c[g];mang[g]=Math.atan2(y[g],x[g]);}
+}
+function sample(){measure();for(var g=0;g<3;g++)tr[g].push(live[g]);}
+
+function text(){
+  var c=D.clock, s=D.sim;
+  var clockPart = c.dR[2]<0 ? 'my sittings bunch tighter in the day' : (c.dR[1]>0 ? "the queue's sittings bunch tighter in the day" : "in the day, mine and the queue's bunch alike");
+  var inside = s.dlock>=s.null95[0] && s.dlock<=s.null95[1];
+  var simPart = inside ? 'pulled together, every hand syncs alike' : (s.dlock>0 ? "pulled together, the queue's lock first" : 'pulled together, mine lock first');
+  document.getElementById('hl').textContent=clockPart+'; '+simPart;
+  document.getElementById('foot').textContent='center = first sitting · edge = sitting '+nf(N);
+  document.getElementById('cap').textContent=nf(N)+' sittings on a 24-hour ring. first the real clock; then each sitting is pulled toward the sittings whose artists are most like its own.';
+  var R=c.R, lk=s.lock;
+  var exp = (c.dR[1]>0 && !inside && s.dlock>0) ? '' : '<span class="tag">expected story not shown</span>';
+  var gapC = c.dR[2]<0 ? 'mine bunch tighter. why it holds: the whole bracket is below zero, so resampling luck does not explain it' : (c.dR[1]>0 ? "the queue's bunch tighter. why it holds: the whole bracket is above zero" : 'no clear gap. why: the bracket crosses zero');
+  document.getElementById('find').innerHTML =
+    '<span class="row">'+exp+'<b>what i expected:</b> the queue\'s sittings bunch at one time of day, mine spread out.</span>'+
+    '<span class="row"><b>1 · the clock shows</b> how bunched each hand is in the day (0 = spread over the day, 1 = all at one moment): mine '+ci(R[0])+', the queue '+ci(R[2])+', shuffle '+ci(R[1])+'. the queue minus mine '+ci(c.dR)+': '+gapC+'.</span>'+
+    '<span class="row"><b>3 · settled shows</b>, at pull K '+s.K+', how many of 100 sittings lock to their neighbors\' tempo: mine <span class="num">'+Math.round(lk[0]*100)+'</span>, the queue <span class="num">'+Math.round(lk[2]*100)+'</span>, shuffle <span class="num">'+Math.round(lk[1]*100)+'</span>. the queue minus mine <span class="num">'+f3(s.dlock)+'</span> is '+(inside?'inside':'outside')+' the gaps that shuffled hand labels give <span class="num">['+f3(s.null95[0])+', '+f3(s.null95[1])+']</span>'+(inside?'. why that means no difference: a random relabeling of who started each sitting does just as well':'')+'; other random tempos move it <span class="num">'+f3(s.dlock_seeds[0])+'</span> to <span class="num">'+f3(s.dlock_seeds[1])+'</span>.</span>'+
+    '<span class="row lbl">[ ] = middle 95 of 100 resamples of 28-day blocks; K '+s.K+' = the steepest point of the curve below, where a gap between hands would show most.</span>';
+  document.getElementById('how').innerHTML='<b>how:</b> angle starts at the hour each sitting began, radius = sitting order (first in the middle); each sitting links to its '+D.kNN+' most artist-alike sittings; each step dθ/dt = ω + K · mean sin(θ<sub>j</sub> − θ<sub>i</sub>); needles = each hand\'s average direction, length = how bunched.';
+  document.getElementById('why').innerHTML='<b>why:</b> start hours and links are the real log; the random tempos ω come from one bell curve for every hand, so any gap between hands is the data, not the model.';
+}
+
+function meters(){
+  var h=''; ORDER.forEach(function(g){h+='<div class="m"><i style="background:'+COL[g]+'"></i><span>'+NAME[g]+'<span class="n">'+nf(D.cnt[g])+'</span></span><b id="mv'+g+'">0.00</b><span class="bar"><span id="mb'+g+'" style="background:'+COL[g]+'"></span><em style="left:'+(D.clock.R[g][0]*100)+'%"></em></span></div>';});
+  h+='<div class="lbl" id="mlbl">how bunched (0 = spread over the day, 1 = one moment); tick = the real clock</div>';
+  document.getElementById('meters').innerHTML=h;
+}
+function updMeters(){for(var g=0;g<3;g++){document.getElementById('mv'+g).textContent=live[g].toFixed(2);document.getElementById('mb'+g).style.width=(live[g]*100)+'%';}}
+
+function controls(){
+  var pb=document.getElementById('play');
+  pb.onclick=function(){st.run=!st.run;pb.textContent=st.run?'pause':'play';pb.setAttribute('aria-pressed',String(!st.run));};
+  function seg(id,key){var el=document.getElementById(id),bs=el.querySelectorAll('button');
+    function paint(){bs.forEach(function(b){b.setAttribute('aria-pressed',String(+b.dataset.v===st[key]));});}
+    bs.forEach(function(b){b.onclick=function(){st[key]=+b.dataset.v;paint();drawSweep();};});paint();}
+  seg('speed','speed'); seg('hand','hand');
+  var k=document.getElementById('k'),kv=document.getElementById('kv');k.value=st.K;kv.textContent=st.K.toFixed(1);
+  k.oninput=function(){st.K=+k.value;kv.textContent=st.K.toFixed(1);drawSweep();};
+  k.onchange=function(){reset(true);};
+  document.getElementById('reset').onclick=function(){reset(true);};
+  cv.addEventListener('pointermove',hover); cv.addEventListener('pointerdown',hover);
+  cv.addEventListener('pointerleave',function(){st.hover=-1;tip.style.display='none';});
+}
+
+var G={};
+function size(){
+  dpr=Math.max(1,window.devicePixelRatio||1); mob=window.innerWidth<=760;
+  var rdEl=document.querySelector('.rd'); if(!mob) cv.parentNode.style.setProperty('--rdh',(rdEl.offsetTop+rdEl.offsetHeight+6)+'px');
+  var r=cv.getBoundingClientRect(); cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+  var W=r.width,H=r.height,top=0;
+  G.cx=W/2; G.cy=top+(H-top)/2; G.R=Math.min(W,H-top)/2-(mob?30:40); G.r0=G.R*0.3; G.W=W; G.H=H;
+  [[tcv,mob?54:64],[scv,mob?76:74]].forEach(function(p){var c=p[0],w=c.parentNode.getBoundingClientRect().width;c.style.height=p[1]+'px';c.width=Math.round(w*dpr);c.height=Math.round(p[1]*dpr);});
+  drawSweep();
+}
+function rad(i){return G.r0+(G.R-G.r0)*(i+0.5)/N;}
+function pos(i){var r=rad(i),a=th[i];return [G.cx+r*Math.sin(a),G.cy-r*Math.cos(a)];}
+
+function drawRing(){
+  var g=cx; g.setTransform(1,0,0,1,0,0); g.fillStyle=NIGHT; g.fillRect(0,0,cv.width,cv.height);
+  g.setTransform(dpr,0,0,dpr,0,0);
+  var i,k,p;
+  g.lineWidth=1/dpr; g.strokeStyle=LINE;
+  [0,2000,4000,6000].forEach(function(n){if(n>N)return;var r=n===0?G.r0:rad(Math.min(n,N-1));g.beginPath();g.arc(G.cx,G.cy,r,0,2*Math.PI);g.stroke();});
+  g.beginPath();g.arc(G.cx,G.cy,G.R+4,0,2*Math.PI);g.stroke();
+  var clock=st.phase==='clock'||st.phase==='rewind';
+  g.font='400 11px "IBM Plex Mono", monospace'; g.textAlign='center'; g.textBaseline='middle';
+  for(var h=0;h<24;h++){var a=h/24*2*Math.PI,s=Math.sin(a),c=Math.cos(a),r1=G.R+6,r2=G.R+(h%6===0?14:9);
+    g.strokeStyle=clock?'#3a3358':LINE;g.beginPath();g.moveTo(G.cx+r1*s,G.cy-r1*c);g.lineTo(G.cx+r2*s,G.cy-r2*c);g.stroke();
+    if(h%6===0){var rl=G.R+(mob?22:26);g.fillStyle=clock?MUTE:'#3a3358';g.fillText((h<10?'0':'')+h+'h',G.cx+rl*s,G.cy-rl*c);}}
+  // hovered sitting's links
+  if(st.hover>=0){var q=pos(st.hover);g.strokeStyle=ICE;g.lineWidth=1;
+    adj[st.hover].forEach(function(j){var t=pos(j);g.beginPath();g.moveTo(Math.round(q[0]*dpr)/dpr+0.5/dpr,Math.round(q[1]*dpr)/dpr);g.lineTo(t[0],t[1]);g.stroke();});}
+  // dots: device-pixel snapped squares, fixed shuffled draw order so no hand is always on top
+  g.setTransform(1,0,0,1,0,0);
+  var sz=Math.max(2,Math.round((mob?1.9:2.4)*dpr)), half=sz/2, cur='';
+  for(k=0;k<N;k++){i=perm[k];var hd=D.hd[i],col=(st.hand<0||st.hand===hd)?COL[hd]:DIMC;
+    if(st.hand>=0&&st.hand===hd)continue;
+    if(col!==cur){g.fillStyle=col;cur=col;}
+    p=pos(i);g.fillRect(Math.round(p[0]*dpr-half),Math.round(p[1]*dpr-half),sz,sz);}
+  if(st.hand>=0){g.fillStyle=COL[st.hand];for(k=0;k<N;k++){i=perm[k];if(D.hd[i]!==st.hand)continue;p=pos(i);g.fillRect(Math.round(p[0]*dpr-half),Math.round(p[1]*dpr-half),sz,sz);}}
+  if(st.hover>=0){p=pos(st.hover);var b=sz+Math.round(2*dpr);g.strokeStyle='#ffffff';g.lineWidth=Math.max(1,Math.round(dpr));g.strokeRect(Math.round(p[0]*dpr-b/2)+0.5,Math.round(p[1]*dpr-b/2)+0.5,b,b);}
+  g.setTransform(dpr,0,0,dpr,0,0);
+  // needles: each hand's mean direction on the ring, length = how bunched it is (full length = one moment)
+  var rn=G.r0*0.86; g.strokeStyle=LINE; g.lineWidth=1; g.beginPath(); g.arc(G.cx,G.cy,rn,0,2*Math.PI); g.stroke();
+  ORDER.forEach(function(h){if(st.hand>=0&&st.hand!==h)return;var L=rn*live[h],a=mang[h],x=G.cx+L*Math.sin(a),y=G.cy-L*Math.cos(a);
+    g.strokeStyle=COL[h];g.lineWidth=2;g.beginPath();g.moveTo(G.cx,G.cy);g.lineTo(x,y);g.stroke();g.fillStyle=COL[h];g.fillRect(Math.round(x)-3,Math.round(y)-3,6,6);});
+  g.fillStyle=ICE; g.fillRect(Math.round(G.cx)-2,Math.round(G.cy)-2,4,4);
+  caption();
+}
+
+function nearestSweep(){var b=D.sweep[0];D.sweep.forEach(function(s){if(Math.abs(s.K-st.K)<Math.abs(b.K-st.K))b=s;});return b;}
+function caption(){
+  var ph=st.phase, key=ph+'|'+(ph==='pull'?Math.floor(st.step/20):'')+'|'+st.K;
+  if(key===capKey)return; capKey=key;
+  var idx={clock:0,rewind:0,pull:1,settled:2}[ph];
+  for(var a=0;a<3;a++)document.getElementById('a'+a).className=a===idx?'on':(a<idx?'done':'');
+  var t,h, c=D.clock.R, top=0; for(var g=1;g<3;g++)if(c[g][0]>c[top][0])top=g;
+  var others=ORDER.filter(function(g){return g!==top;}).map(function(g){return SHORT[g]+' '+f2(c[g][0]);}).join(', ');
+  if(ph==='clock'||ph==='rewind'){
+    t=ph==='rewind'?'back to the real clock':'the real clock';
+    h='each dot is one sitting, placed at the hour it began. each needle points to a hand\'s busiest hour; longer = more bunched. longest: <span style="color:'+COL[top]+'">'+SHORT[top]+'</span> <span class="num">'+f2(c[top][0])+'</span> ('+others+').';
+  }else if(ph==='pull'){
+    t='the pull';
+    h='each sitting is tugged toward its '+D.kNN+' most artist-alike sittings, at pull K <span class="num">'+st.K.toFixed(1)+'</span>. watch whether one hand\'s needle pulls ahead. step <span class="num">'+nf(st.step)+'</span> of <span class="num">'+nf(CAP)+'</span>.';
+  }else{
+    var sw=nearestSweep(), s=D.sim, inside=s.dlock>=s.null95[0]&&s.dlock<=s.null95[1];
+    t=inside?'settled: no hand pulls ahead':'settled';
+    h='in the full run at pull K <span class="num">'+sw.K+'</span>, sittings locked to their neighbors\' tempo, of 100: '+ORDER.map(function(g){return '<span style="color:'+COL[g]+'">'+SHORT[g]+'</span> <span class="num">'+Math.round(sw.lock[g]*100)+'</span>';}).join(' · ')+'.'+(inside?' who started a sitting does not change how it falls in step.':'');
+  }
+  document.getElementById('rd1').textContent=t; document.getElementById('rd2').innerHTML=h;
+  document.getElementById('mlbl').textContent=(ph==='clock'||ph==='rewind')?'how bunched in the day (0 = spread over the day, 1 = one moment); tick = the real clock':'how bunched right now, while pulled (0 to 1); tick = the real clock';
+}
+
+function drawTrace(){
+  var g=tcx,W=tcv.width/dpr,H=tcv.height/dpr; g.setTransform(dpr,0,0,dpr,0,0); g.fillStyle=NIGHT; g.fillRect(0,0,W,H);
+  var L=28,T=6,B=H-16,R=W-4, n=Math.max(CAP,tr[0].length-1), y=function(v){return B-(B-T)*v;};
+  g.strokeStyle=LINE; g.lineWidth=1; [0,0.5,1].forEach(function(v){g.beginPath();g.moveTo(L,Math.round(y(v))+0.5);g.lineTo(R,Math.round(y(v))+0.5);g.stroke();});
+  g.fillStyle=MUTE; g.font='400 11px "IBM Plex Mono", monospace'; g.textAlign='right'; g.textBaseline='middle';
+  [0,0.5,1].forEach(function(v){g.fillText(v===0.5?'.5':String(v),L-5,y(v));});
+  g.textAlign='left'; g.textBaseline='alphabetic'; g.fillText('step 0',L,H-2); g.textAlign='right'; g.fillText('step '+nf(n),R,H-2);
+  ORDER.forEach(function(h){if(st.hand>=0&&st.hand!==h)return;g.strokeStyle=COL[h];g.lineWidth=1.5;g.beginPath();var a=tr[h];
+    for(var i=0;i<a.length;i++){var x=L+(R-L)*i/n;if(i)g.lineTo(x,y(a[i]));else g.moveTo(x,y(a[i]));}g.stroke();});
+}
+
+function drawSweep(){
+  if(!D)return; var g=scx,W=scv.width/dpr,H=scv.height/dpr; g.setTransform(dpr,0,0,dpr,0,0); g.fillStyle=NIGHT; g.fillRect(0,0,W,H);
+  var L=28,T=6,B=H-16,R=W-4, sw=D.sweep, k0=0, k1=5, x=function(k){return L+(R-L)*(k-k0)/(k1-k0);}, y=function(v){return B-(B-T)*v;};
+  g.strokeStyle=LINE; g.lineWidth=1; [0,0.5,1].forEach(function(v){g.beginPath();g.moveTo(L,Math.round(y(v))+0.5);g.lineTo(R,Math.round(y(v))+0.5);g.stroke();});
+  g.strokeStyle=ICE; g.beginPath(); g.moveTo(Math.round(x(st.K))+0.5,T); g.lineTo(Math.round(x(st.K))+0.5,B); g.stroke();
+  g.fillStyle=MUTE; g.font='400 11px "IBM Plex Mono", monospace'; g.textAlign='right'; g.textBaseline='middle';
+  [0,0.5,1].forEach(function(v){g.fillText(v===0.5?'.5':String(v),L-5,y(v));});
+  g.textAlign='center'; g.textBaseline='alphabetic'; [0,1,2,3,4,5].forEach(function(k){g.fillText('K '+k,Math.min(Math.max(x(k),L+10),R-10),H-2);});
+  ORDER.forEach(function(h){if(st.hand>=0&&st.hand!==h)return;g.strokeStyle=COL[h];g.fillStyle=COL[h];g.lineWidth=1.5;g.beginPath();
+    sw.forEach(function(s,i){var px=x(s.K),py=y(s.lock[h]);if(i)g.lineTo(px,py);else g.moveTo(px,py);});g.stroke();
+    sw.forEach(function(s){g.fillRect(Math.round(x(s.K))-2,Math.round(y(s.lock[h]))-2,4,4);});});
+}
+
+function hover(ev){
+  var r=cv.getBoundingClientRect(),mx=ev.clientX-r.left,my=ev.clientY-r.top,best=-1,bd=(mob?14:9)*(mob?14:9);
+  for(var i=0;i<N;i++){if(st.hand>=0&&D.hd[i]!==st.hand)continue;var p=pos(i),dx=p[0]-mx,dy=p[1]-my,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;best=i;}}
+  st.hover=best;
+  if(best<0){tip.style.display='none';return;}
+  var s=D.ph[best]*5, hh=Math.floor(s/60), mm=s%60;
+  tip.innerHTML='sitting '+nf(best+1)+' of '+nf(N)+'<br>started by <span style="color:'+COL[D.hd[best]]+'">'+NAME[D.hd[best]]+'</span><br>began '+(hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm+' · '+adj[best].length+' artist-alike links';
+  tip.style.display='block'; var tx=Math.min(mx+14,r.width-tip.offsetWidth-6), ty=Math.max(6,my-tip.offsetHeight-10);
+  tip.style.left=(tx+cv.offsetLeft)+'px'; tip.style.top=(ty+cv.offsetTop)+'px';
+}
+
+var last=0, acc=0;
+function loop(now){
+  var el=last?Math.min(100,now-last):16; last=now;
+  if(!st.run&&(st.phase==='clock'||st.phase==='settled'))st.tp+=el;
+  if(st.phase==='rewind'){var u=Math.min(1,(now-st.tp)/REWIND);rewindTo(u);if(u>=1)snapClock();}
+  else if(st.phase==='clock'){if(now-st.tp>HOLD){st.phase='pull';acc=0;}}
+  else if(st.phase==='pull'){if(st.run){acc+=el*st.speed*60/1000;var n=Math.min(30,Math.floor(acc),CAP-st.step);acc-=n;for(var s=0;s<n;s++){stepOnce();sample();}if(st.step>=CAP){st.phase='settled';st.tp=now;}}}
+  else if(st.phase==='settled'){if(now-st.tp>SETTLE)reset(true);}
+  drawRing(); drawTrace(); updMeters();
+  requestAnimationFrame(loop);
+}
+})();
+</script>
+</body>
+</html>
