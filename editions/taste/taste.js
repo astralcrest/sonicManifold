@@ -61,6 +61,7 @@
   function showRound() {
     const s = S[R], p = D.pairs[s.pi];
     body.className = "r";
+    if (!/kiosk=1/.test(location.search)) try { history.replaceState(null, "", location.pathname + location.search + "#n=" + (R + 1)); } catch (e) {}
     $("rk").textContent = `round ${R + 1} of ${ROUNDS}`;
     heard = [false, false];
     ["A", "B"].forEach((L, side) => {
@@ -143,7 +144,47 @@
     });
     $("next").disabled = false; $("next").textContent = "again";
     drawMap();
+    try { history.replaceState(null, "", "#r=" + encodeS()); } catch (e) {}
     window.scrollTo(0, 0);
+  }
+
+  const encodeS = () => S.map(s => (((s.pi << 3) | (s.primed ? 4 : 0) | (s.target << 1) | s.pick) & 255).toString(16).padStart(2, "0")).join("");
+  function decodeS(h) {
+    if (!/^[0-9a-f]{24}$/.test(h)) return null;
+    const out = [];
+    for (let i = 0; i < 24; i += 2) {
+      const b = parseInt(h.substr(i, 2), 16), pi = b >> 3;
+      if (pi >= D.pairs.length) return null;
+      out.push({ pi, primed: !!(b & 4), target: (b >> 1) & 1, targetOnA: true, pick: b & 1 });
+    }
+    return out;
+  }
+  const dist = (a, b) => Math.hypot(D.xy[a][0] - D.xy[b][0], D.xy[a][1] - D.xy[b][1]) / 1414.2 * 100;
+  function slipFields() {
+    let k = 0, m = 0, span = 0;
+    S.forEach(s => { if (s.pick === s.target) s.primed ? k++ : m++; const p = D.pairs[s.pi]; span += dist(p.o[s.pick].i, p.o[1 - s.pick].i); });
+    const pts = S.map(s => D.xy[D.pairs[s.pi].o[s.pick].i]);
+    const cx = pts.reduce((a, q) => a + q[0], 0) / pts.length, cy = pts.reduce((a, q) => a + q[1], 0) / pts.length;
+    const spread = pts.reduce((a, q) => a + Math.hypot(q[0] - cx, q[1] - cy), 0) / pts.length / 1414.2 * 100;
+    const d = k - m;
+    return {
+      wall: "taste", title: "the taste test", sub: "twelve rounds, a toy",
+      lines: [["with a first song", k + " of 6"], ["with none", m + " of 6"], ["gap (a toy: picks toward the first song, minus without)", (d > 0 ? "+" : "") + d], ["picked vs passed: how far apart", Math.round(span / S.length) + "% of map"], ["how scattered your picks are", Math.round(spread) + "% of map"]],
+      next: "your picks are lit on the sound map at the link below. a toy.",
+      url: "https://astralcrest.github.io/sonicManifold/editions/taste/#r=" + encodeS(),
+      foot: "descriptive, not a finding"
+    };
+  }
+  $("slip").onclick = () => { if (S && window.smReceipt) window.smReceipt(slipFields()); };
+
+  function reset() {
+    stopClip(); S = null; R = 0;
+    if (window.smReceipt && window.smReceipt.close) window.smReceipt.close(true);
+    body.className = "";
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    $("next").textContent = "start"; $("next").disabled = !D;
+    drawPreview(); window.scrollTo(0, 0);
+    if (D) { newSession(); showRound(); }
   }
 
   function drawMap() {
@@ -197,5 +238,9 @@
   window.addEventListener("resize", () => { if (body.classList.contains("done")) drawMap(); else drawPreview(); });
 
   $("next").disabled = true;
-  fetch("pairs.json").then(r => r.json()).then(d => { D = d; $("next").disabled = false; drawPreview(); });
+  fetch("pairs.json").then(r => r.json()).then(d => { D = d; $("next").disabled = false; drawPreview();
+    const m = /[#&]r=([0-9a-f]{24})/.exec(location.hash), ss = m && decodeS(m[1]);
+    if (ss) { S = ss; showResult(); if (window.smReceipt) window.smReceipt(slipFields()); }
+    else { newSession(); showRound(); }
+  });
 })();

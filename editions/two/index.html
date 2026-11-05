@@ -35,7 +35,7 @@ h1{font-size:clamp(30px,4.2vw,52px);line-height:1.02;font-weight:600;letter-spac
 .side h2{font-size:15px;font-weight:600;letter-spacing:.01em;display:flex;justify-content:space-between;gap:12px;align-items:baseline}
 .side h2 small{font:12px var(--mono);color:var(--mute);font-weight:400;text-align:right}
 .row{display:flex;gap:8px;flex-wrap:wrap}
-button,.filebtn{font:500 13px/1 var(--sans);color:var(--ink);background:transparent;border:1px solid var(--hairline,#4a3f66);padding:10px 12px;cursor:pointer;min-height:40px;display:inline-flex;align-items:center}
+button,.filebtn{font:500 13px/1 var(--sans);color:var(--ink);background:transparent;border:1px solid var(--hairline,#4a3f66);padding:10px 12px;cursor:pointer;min-height:44px;display:inline-flex;align-items:center}
 button:hover,.filebtn:hover{border-color:var(--ink)}
 button:focus-visible,.filebtn:focus-within,textarea:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
 .filebtn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
@@ -48,6 +48,7 @@ textarea::placeholder{color:#6f6690}
 #privacy{font:12px/1.5 var(--mono);color:var(--mute);margin-top:12px}
 #tryrow{display:flex;gap:14px;align-items:center;margin-top:14px;flex-wrap:wrap}
 #tryrow span{font:12px var(--mono);color:var(--mute)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 section.pic{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;margin-top:40px;padding-top:28px;border-top:1px solid var(--line);align-items:start}
 .cv{position:relative;width:100%;aspect-ratio:1/1;background:var(--night);border:1px solid var(--line)}
 .cv canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
@@ -70,7 +71,13 @@ ul.names.cols{grid-template-columns:1fr 1fr;column-gap:16px}
 .split{display:inline-flex;width:10px;height:10px}.split i{flex:1;background:var(--ice)}.split i+i{background:var(--gold)}
 footer{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font:12px/1.5 var(--mono);color:var(--mute)}
 footer a{color:var(--ink)}
+button#again6,button#again{min-height:44px}
+.knob input[type=range]{min-height:44px;height:44px;margin:0}
+.leg6{font:12px/1.5 var(--mono);color:var(--mute);margin-top:10px}
+.leg6 b{color:var(--ink);font-weight:500}
+#c6a,#c6b{cursor:pointer}
 @media (max-width:820px){
+  .duo{grid-template-columns:1fr}
   main{padding:20px 16px 48px}
   header{grid-template-columns:1fr auto}
   #qr img{width:84px;height:84px}
@@ -86,14 +93,14 @@ footer a{color:var(--ink)}
   ul.names.cols{grid-template-columns:1fr}
 }
 </style>
-<style>nav.walls{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.04em;margin:0 0 10px}nav.walls a{color:#bcd3ff;text-decoration:none;border-bottom:1px solid #2a2140;padding-bottom:3px}nav.walls a[aria-current]{color:#21f6bc;border-color:#21f6bc}</style>
+<style>nav.walls{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.04em;margin:0 0 10px}nav.walls a{color:#bcd3ff;text-decoration:none;border-bottom:1px solid #2a2140;display:inline-flex;align-items:center;min-height:44px;padding:0 2px}nav.walls a[aria-current]{color:#21f6bc;border-color:#21f6bc}</style>
 </head>
 <body>
 <main>
 <header>
   <div>
-    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/" aria-current="page">the two of you</a><a href="../taste/">the taste test</a></nav>
-    <p class="k">sonic manifold · the two of you</p>
+    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/" aria-current="page">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a></nav>
+    <p class="k">sonic manifold · the two of you · a toy</p>
     <h1>the two of you, on my sound map</h1>
     <p id="lead">two people, one sound map: where each of you sits, what you share, who ranges wider, and where my queue would carry you. no score.</p>
     <p class="how" id="showing"></p>
@@ -177,7 +184,7 @@ footer a{color:var(--ink)}
     <p class="n">five · where the queue leans</p>
     <h3>where my queue would take you</h3>
     <p class="find" id="f5"></p>
-    <span class="lab">descriptive · my queue, not yours</span>
+    <span class="lab">a toy · descriptive · my queue, not yours</span>
     <div class="knob"><label class="how" for="habit">how hard the queue leans on pairs that already ran</label><input type="range" id="habit" min="0" max="4" step="0.5" value="1" aria-label="habit weight"> <button type="button" id="again">walk again</button></div>
     <p class="how"><b>how:</b> 0 = every drawn pair equally likely; 4 = the habits that already ran win.</p>
     <p class="find" id="spread"></p>
@@ -187,8 +194,27 @@ footer a{color:var(--ink)}
   </div>
 </section>
 
+<section class="pic" id="p6">
+  <div>
+    <div class="duo"><div class="cv"><canvas id="c6a" aria-label="my fitted queue walking your list"></canvas></div><div class="cv"><canvas id="c6b" aria-label="a fit of your habits walking my list"></canvas></div></div>
+    <p class="leg6" id="g6"></p>
+    <p class="tap" id="l6a"></p><p class="tap" id="l6b"></p><p class="tap" id="t6"></p><p class="tap" id="m6note"></p>
+  </div>
+  <div class="room">
+    <p class="n">six · the mirror</p>
+    <h3>my machine on your list, your habits on mine</h3>
+    <p class="find"><b>same machine, different habits, different drift.</b> turn the knob and watch both paths change.</p>
+    <p class="find" id="f6">loads when you scroll here.</p>
+    <span class="lab">a toy, descriptive</span>
+    <p class="cap">the fit is a coarse search over a few settings, so short lists fit poorly. a tap on a square names the artist.</p>
+    <div class="knob"><label class="how" for="habit6">the same habit knob as panel five</label><input type="range" id="habit6" min="0" max="4" step="0.5" value="1" aria-label="habit weight, mirror"> <button type="button" id="again6">walk again</button></div>
+    <p class="how"><b>how:</b> the loop machine runs 40 steps twice. mine uses the knobs fitted to my queue, started from your top artist. yours is fitted to your list: an export uses the artists you played back to back; a pasted list uses neighbors in your ranking. the habit knob scales the repeat-the-run weight in both. one walk each, so another seed can differ.</p>
+  </div>
+</section>
+
 <footer>no compatibility score: these are places on one listener's map, not a verdict on two people.</footer>
 </main>
+<script src="../kiosk.js"></script>
 <script src="two.js"></script>
 </body>
 </html>

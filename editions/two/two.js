@@ -36,14 +36,19 @@
   }
   function fromPlays(rows) {
     // rows: slim {a, ms}; plays over 30 s only
-    var by = new Map(), off = new Set(), n = 0;
+    var by = new Map(), off = new Set(), n = 0, seq = [];
     rows.forEach(function (r) {
       if (!r.a || r.ms < 30000) return; n++;
       var i = IDX.get(norm(r.a));
       if (i === undefined) { off.add(norm(r.a)); return; }
-      by.set(i, (by.get(i) || 0) + 1);
+      by.set(i, (by.get(i) || 0) + 1); seq.push([r.ts, i]);
     });
     var s = sideFromWeights('file', 'a Spotify export', by, off.size);
+    seq.sort(function (x, y) { return x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0; });
+    var pr = [], q;
+    for (q = 1; q < seq.length; q++) if (seq[q][1] !== seq[q - 1][1]) pr.push([seq[q - 1][1], seq[q][1]]);
+    var stp = Math.max(1, Math.floor(pr.length / 1600)); s.pairs = [];
+    for (q = 0; q < pr.length && s.pairs.length < 1600; q += stp) s.pairs.push(pr[q]);
     s.plays = n; return s;
   }
   function fromOwner() {
@@ -299,11 +304,116 @@
     var sp = function (x) { return '<span style="color:' + col(x) + '">' + nm(x) + '</span>'; };
     $('lead').innerHTML = (both.length ? sp('a') + ' and ' + sp('b') + ' share <b>' + fmt(both.length) + '</b> artist' + (both.length > 1 ? 's' : '') + '. ' : sp('a') + ' and ' + sp('b') + ' share no artist. ') +
       (CA && CB ? sp(CA.r >= CB.r ? 'a' : 'b') + ' ranges wider. ' : '') +
-      ((rAB.n && rBA.n) ? 'my queue carries ' + sp('a') + ' toward ' + sp('b') + ' ' + (xAB < 0.95 ? 'less often than chance would, ' + xAB.toFixed(1) + ' times chance' : xAB < 1.05 ? 'about as often as chance would' : xAB.toFixed(1) + ' times as often as chance') + ' (descriptive).' : '');
+      ((rAB.n && rBA.n) ? 'my queue carries ' + sp('a') + ' toward ' + sp('b') + ' ' + (xAB < 0.95 ? 'less often than chance would, ' + xAB.toFixed(1) + ' times chance' : xAB < 1.05 ? 'about as often as chance would' : xAB.toFixed(1) + ' times as often as chance') + ' (a toy, descriptive).' : '');
     $('showing').innerHTML = '<b>showing:</b> a = ' + esc(A.label) + ', b = ' + esc(B.label) + '.';
     var c1f = function (v) { return v < 0.05 ? 'under 0.1' : v.toFixed(1); };
     $('cap5').textContent = (rAB.n && rBA.n) ? 'chance, by where the queue spends its time: ' + c1f(chance(B)) + ' and ' + c1f(chance(A)) + ' in 20.' : '';
     $('spread').innerHTML = (rAB.n && rBA.n) ? 'at this setting the ' + (2 * WALKS) + ' walks touch <b>' + fmt(touched.size) + '</b> different artists.' : '';
+    mirror();
+  }
+
+
+  // ---- six: the mirror (a toy, descriptive) ----
+  var MR = { st: 0, L: null, D: null, FIT: null, M: null, OWN: null, fits: {}, tok: 0 };
+  var TRY = [0, 0.5, 1];
+  function mrLoad() {
+    if (MR.st) return; MR.st = 1;
+    var sc = document.createElement('script'); sc.src = 'machine.js';
+    sc.onload = function () {
+      Promise.all([fetch('../loop/data/loop.json').then(function (r) { return r.json(); }), fetch('../loop/data/fit.json').then(function (r) { return r.json(); })]).then(function (d) {
+        MR.L = window.LOOP; MR.D = d[0]; MR.FIT = d[1]; MR.M = MR.L.model(d[0]); MR.OWN = fromOwner(); MR.st = 2; mirror();
+      }).catch(function () { MR.st = -1; mirror(); });
+    };
+    sc.onerror = function () { MR.st = -1; mirror(); };
+    document.head.appendChild(sc);
+  }
+  function mrPairs(s) {
+    if (s.pairs && s.pairs.length >= 8) return s.pairs;
+    var o = s.order.slice(0, 60), p = [];
+    for (var k = 1; k < o.length; k++) p.push([o[k - 1], o[k]]);
+    return p;
+  }
+  function mrSig(s) { return s.kind + ':' + s.order.length + ':' + s.order.slice(0, 12).join(',') + ':' + (s.pairs ? s.pairs.length : 0); }
+  function mrFit(s, done) {
+    var sig = mrSig(s); if (MR.fits[sig]) return done(MR.fits[sig]);
+    var L = MR.L, m = MR.M, pairs = mrPairs(s), tok = ++MR.tok;
+    if (pairs.length < 2) { MR.fits[sig] = { K: null }; return done(MR.fits[sig]); }
+    var tgt = L.pairStats(m, pairs), starts = L.fitStarts(pairs, 6, L.FIT_SEED), grid = [], f, p, n, r;
+    [0, 1].forEach(function (f) { TRY.forEach(function (p) { TRY.forEach(function (n) { TRY.forEach(function (r) { grid.push([0.55, f, p, n, r, 0]); }); }); }); });
+    var best = null, bg = 1e9, at = 0, note = $('m6note');
+    (function chunk() {
+      if (tok !== MR.tok) return;
+      var end = Math.min(grid.length, at + 6);
+      for (; at < end; at++) { var g = L.gap(L.ruleStats(m, grid[at], starts, L.FIT_SEED), tgt); if (g < bg) { bg = g; best = grid[at]; } }
+      if (at < grid.length) { if (note) note.textContent = 'fitting your habits: ' + Math.round(100 * at / grid.length) + '%'; setTimeout(chunk, 0); return; }
+      MR.fits[sig] = { K: best, gap: bg, n: pairs.length }; if (note) note.textContent = ''; done(MR.fits[sig]);
+    })();
+  }
+  var MA = {};
+  function mrCanvas(id, set, path, color, setColor) {
+    var c = ctxOf(id), tok = MA[id] = (MA[id] || 0) + 1; base(c);
+    set.order.forEach(function (i) { sq(c, i, 4, setColor); });
+    var still = path.length < 2 || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var step = function (k) {
+      if (k > 0) line(c, path[k - 1], path[k], color, 1.5);
+      sq(c, path[k], k === 0 ? 11 : set.set.has(path[k]) ? 8 : 5, k === 0 ? '#efe9ff' : color);
+    };
+    c.path = path; c.set = set; MC[id] = { path: path, set: set };
+    if (still) { path.forEach(function (_, k) { step(k); }); return; }
+    var k = 0, t0 = performance.now();
+    (function tick(now) {
+      if (tok !== MA[id]) return;
+      var to = Math.min(path.length - 1, Math.floor((now - t0) / 30));
+      for (; k <= to; k++) step(k);
+      if (k < path.length) requestAnimationFrame(tick);
+    })(t0);
+  }
+  var MC = {};
+  function mrTap(id) {
+    return function (e) {
+      var m = MC[id]; if (!m) return;
+      var r = $(id).getBoundingClientRect(), pad = 14, sc = (Math.min(r.width, r.height) - 2 * pad) / 1000;
+      var x = e.clientX - r.left, y = e.clientY - r.top, best = -1, bd = 24 * 24;
+      m.path.concat(m.set.order).forEach(function (i) { var dx = pad + F.xy[i][0] * sc - x, dy = pad + F.xy[i][1] * sc - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } });
+      var el = $('t6');
+      if (best < 0) { el.textContent = 'no square there. tap closer to one.'; return; }
+      var st = m.path.indexOf(best);
+      el.innerHTML = '<b>' + esc(F.n[best]) + '</b>' + (st >= 0 ? ' · step ' + st + ' of the walk' : ' · on the list, not visited');
+    };
+  }
+  function mrLine(el, who, w, set, whose) {
+    var t = new Set(w.path.filter(function (i) { return set.set.has(i); }));
+    var dist = new Set(w.path).size;
+    el.innerHTML = who + ': ' + (w.loopAt ? 'loops at step <b>' + w.loopAt + '</b>' : 'no loop in <b>40</b> steps') + ', visits <b>' + dist + '</b> distinct artists, <b>' + t.size + '</b> on ' + whose + ' list.';
+  }
+  function mirror() {
+    var A = S.a; if (!F || !A || !$('c6a')) return;
+    var f = $('f6'), note = $('m6note');
+    if (MR.st === 0) { return; }
+    if (MR.st < 0) { f.textContent = 'the loop machine did not load. reload to try again.'; return; }
+    if (MR.st === 1) { f.textContent = 'loading the loop machine.'; return; }
+    var L = MR.L, m = MR.M, mine = MR.FIT.queue.K.slice(), tok = MR.tok;
+    mine[4] = Math.min(1, 0.5 * HABIT);
+    var topA = A.order[0], topMe = MR.OWN.order[0];
+    if (topA === undefined) { f.textContent = 'a has no placed artist, so there is nothing to start from.'; return; }
+    var go = function (fit) {
+      if (A !== S.a) return;
+      var w1 = L.walk(m, topA, mine, 20261105 + SEED);
+      mrCanvas('c6a', A, w1.path, COL.o, '#4b5a78');
+      mrLine($('l6a'), 'my machine on your list', w1, A, 'your');
+      if (!fit) { $('l6b').textContent = 'fitting your habits from your list.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
+      if (!fit.K) { $('l6b').textContent = 'your list is too short to fit your habits.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
+      var K = fit.K.slice(); K[4] = Math.min(1, K[4] * HABIT);
+      var w2 = L.walk(m, topMe, K, 20261106 + SEED);
+      mrCanvas('c6b', MR.OWN, w2.path, COL.a, '#4b5a78');
+      mrLine($('l6b'), 'your habits on my list', w2, MR.OWN, 'my top 200');
+      if (fit.gap > 0.5 || fit.n < 20) $('l6b').innerHTML += ' <b>weak fit</b> (' + fit.n + ' pairs, gap ' + fit.gap.toFixed(2) + ').';
+    };
+    f.textContent = 'the knob scales how hard each machine repeats pairs that already ran. higher: tighter loops, fewer distinct artists. lower: wider drift.';
+    $('g6').innerHTML = '<span style="color:' + COL.o + '">violet</span> = my queue\'s knobs on side a\'s list. <span style="color:' + COL.a + '">ice</span> = habits fitted to side a, walking my list. white square = the start.';
+    var sig = mrSig(A);
+    if (MR.fits[sig]) go(MR.fits[sig]);
+    else { go(null); mrFit(A, function (fit) { if (A === S.a) go(fit); }); }
   }
 
   // ---- tap to name (panel one) ----
@@ -382,20 +492,32 @@
   var rz = null;
   window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(draw, 120); });
 
+  $('t4').textContent = 'loading my map';
   Promise.all([
     fetch('../../front/data/field.json').then(function (r) { return r.json(); }),
     fetch('../../front/data/maps.json').then(function (r) { return r.json(); }),
     fetch('data/samples.json').then(function (r) { return r.json(); })
   ]).then(function (d) {
+    if ($('t4').textContent === 'loading my map') $('t4').textContent = '';
     F = d[0]; M = d[1]; SAMPLES = d[2];
     F.n.forEach(function (name, i) { var k = norm(name); if (!IDX.has(k)) IDX.set(k, i); });
-    buildGraph();
     bind('a'); bind('b');
     $('try').addEventListener('click', samples);
     $('c1').addEventListener('click', tap);
+    $('c6a').addEventListener('click', mrTap('c6a')); $('c6b').addEventListener('click', mrTap('c6b'));
     $('hear').addEventListener('click', hear);
-    $('habit').addEventListener('input', function (e) { HABIT = +e.target.value; buildGraph(); draw(); });
-    $('again').addEventListener('click', function () { SEED++; draw(); });
+    var Q = new URLSearchParams((location.hash || '').slice(1)), KIOSK = /[?&]kiosk=1/.test(location.search);
+    var setHabit = function (v) { HABIT = v; $('habit').value = v; $('habit6').value = v; };
+    var keep = function () { try { history.replaceState(null, '', '#habit=' + HABIT + '&seed=' + SEED); } catch (e) {} };
+    if (Q.has('habit') && isFinite(+Q.get('habit'))) setHabit(Math.max(0, Math.min(4, +Q.get('habit'))));
+    if (Q.has('seed') && isFinite(+Q.get('seed'))) SEED = Math.max(0, +Q.get('seed') | 0);
+    buildGraph();
+    var idle = null, poke = function () { if (!KIOSK) return; clearTimeout(idle); idle = setTimeout(function () { setHabit(1); SEED = 0; buildGraph(); samples(); keep(); }, 120000); };
+    ['habit', 'habit6'].forEach(function (id) { $(id).addEventListener('input', function (e) { setHabit(+e.target.value); buildGraph(); draw(); keep(); poke(); }); });
+    ['again', 'again6'].forEach(function (id) { $(id).addEventListener('click', function () { SEED++; draw(); keep(); poke(); }); });
+    $('try').addEventListener('click', poke); document.addEventListener('pointerdown', poke); poke();
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (es, ob) { if (es[0].isIntersecting) { ob.disconnect(); mrLoad(); } }, { rootMargin: '800px' }).observe($('p6'));
+    else mrLoad();
     samples();
   }).catch(function () {
     $('lead').textContent = 'the map did not load. reload the page to try again.';

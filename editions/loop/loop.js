@@ -158,13 +158,14 @@ root.LOOP = LOOP;
 if (typeof document === 'undefined') return;
 
 /* ---------- the wall ---------- */
-var BG = '#06010f', INK = '#efe9ff', MUTE = '#9a90b8', MINT = '#21f6bc', AMBER = '#f5a623', VIOLET = '#8b6fd6', ICE = '#bcd3ff';
+var NIGHT = [6, 1, 15], WARM = [26, 18, 6], INK = '#efe9ff', MUTE = '#9a90b8', MINT = '#21f6bc', AMBER = '#f5a623', VIOLET = '#8b6fd6', ICE = '#bcd3ff';
 var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#ffd36b', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#f5a623', 'untagged': '#6f6790' };
-var PCOL = { queue: VIOLET, hand: MINT, feed: ICE };
+var PCOL = { queue: VIOLET, hand: MINT, feed: ICE, siren: AMBER };
 // the three knobs that move time to loop most from the three rules (full 0 to 1 swing, 30 starts): the rest are set by the rule
 var LIVE = [1, 2, 3], FIXED = [0, 4, 5];
 var $ = function (id) { return document.getElementById(id); };
-var D, M, FIT, S = { K: [0.5, 0.2, 0.3, 0.1, 0.5, 0.2], start: 0, seed: 1, preset: null, path: null, ghost: null, drag: false, anim: 41, play: -1 };
+var KIOSK = /[?&]kiosk=1/.test(location.search), IDLE = 120000, SB = [0.55, 0, 0.1, 1, 0.5, 0];
+var D, M, FIT, S = { siren: null, K: [0.5, 0.2, 0.3, 0.1, 0.5, 0.2], start: 0, seed: 1, preset: null, path: null, ghost: null, drag: false, anim: 41, play: -1 };
 var cv = $('cv'), g = cv.getContext('2d'), W = 0, H = 0, DPR = 1, OX = 0, OY = 0, SCL = 1, base = null;
 var Q = new URLSearchParams(location.search);
 var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -173,17 +174,26 @@ function name(i) { return D.n[i] || 'an artist'; }
 function fmt(x, d) { return x.toFixed(d); }
 function pct(x) { return Math.round(100 * x) + '%'; }
 
+$('now').textContent = 'loading my map';
 Promise.all([fetch('data/loop.json').then(function (r) { return r.json(); }), fetch('data/fit.json').then(function (r) { return r.json(); })]).then(function (a) {
+  if ($('now').textContent === 'loading my map') $('now').textContent = '';
   D = a[0]; FIT = a[1]; M = model(D);
   S.real = { queue: pairStats(M, D.q), hand: pairStats(M, D.r) };
   S.startsQ = fitStarts(D.q, LOOP.FIT_N, LOOP.FIT_SEED); S.startsH = fitStarts(D.r, LOOP.FIT_N, LOOP.FIT_SEED);
   buildUI();
-  var st = parseInt(Q.get('start'), 10), sd = parseInt(Q.get('seed'), 10);
+  var H0 = new URLSearchParams(location.hash.slice(1));
+  var get = function (k) { return H0.has(k) ? H0.get(k) : Q.get(k); };
+  var st = parseInt(get('start'), 10), sd = parseInt(get('seed'), 10);
   S.seed = isFinite(sd) ? sd : (Math.random() * 1e9) | 0;
   S.start = isFinite(st) && st >= 0 && st < M.N ? st : pickStart(rng(S.seed));
-  setPreset(Q.get('preset') || 'queue', true);
+  var p0 = get('p') || get('preset') || 'queue', kk = (get('k') || '').split(',').map(Number);
+  if (p0 === 'siren') setPreset('siren', true, parseFloat(get('s')));
+  else if (p0 === 'free' && kk.length === 6 && kk.every(isFinite)) { setPreset('queue', true); S.K = kk.map(function (x) { return Math.max(0, Math.min(1, x)); }); S.preset = null; LIVE.forEach(function (k) { $('k' + k).value = S.K[k]; }); syncChips(); }
+  else setPreset(p0, true);
+  if (innerWidth >= 700) $('tabd').open = true;
   resize(); newPath(true);
   window.addEventListener('resize', function () { resize(); draw(); });
+  if (KIOSK) ['pointerdown', 'keydown', 'input'].forEach(function (ev) { window.addEventListener(ev, arm, true); });
 });
 
 function pickStart(r) {
@@ -195,7 +205,7 @@ function pickStart(r) {
 function buildUI() {
   var box = $('knobs');
   LIVE.forEach(function (k) {
-    var nm = KNOBS[k], d = document.createElement('div'); d.className = 'knob';
+    var nm = KNOBS[k], d = document.createElement('div'); d.className = 'knob'; d.id = 'kn' + k;
     d.innerHTML = '<div class="kh"><label for="k' + k + '">' + nm + '</label><output id="o' + k + '"></output></div>' +
       '<input type="range" id="k' + k + '" min="0" max="1" step="0.05">' +
       '<div class="kg">' + GLOSS[k] + '</div><div class="kb"><i id="b' + k + '"></i></div>';
@@ -203,20 +213,34 @@ function buildUI() {
     var inp = d.querySelector('input');
     inp.addEventListener('input', function () {
       if (!S.drag) { S.ghost = S.path ? S.path.slice() : null; S.drag = true; }
-      S.K[k] = +inp.value; S.preset = null; syncChips(); newPath(false);
+      S.K[k] = +inp.value;
+      if (S.siren != null) S.K = sirenK(S.siren); else S.preset = null;
+      syncChips(); newPath(false);
     });
     inp.addEventListener('change', function () { S.drag = false; });
   });
+  var sd0 = document.createElement('div'); sd0.className = 'knob'; sd0.id = 'kns'; sd0.hidden = true;
+  sd0.innerHTML = '<div class="kh"><label for="ks">keep them listening</label><output id="os"></output></div>' +
+    '<input type="range" id="ks" min="0" max="1" step="0.05" value="0.5">' +
+    '<div class="kg">0 never closes the loop; 1 plays the artists i play most and loops back within five steps</div><div class="kb"><i id="bs"></i></div>' +
+    '<div class="mh"><span>how closed the loop is</span><output id="mv"></output></div><div class="m1"><i id="mf"></i></div>';
+  box.appendChild(sd0);
+  $('ks').addEventListener('input', function () {
+    if (!S.drag) { S.ghost = S.path ? S.path.slice() : null; S.drag = true; }
+    S.siren = +$('ks').value; S.K = sirenK(S.siren); syncChips(); newPath(false);
+  });
+  $('ks').addEventListener('change', function () { S.drag = false; });
   $('chips').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    S.ghost = S.path ? S.path.slice() : null; setPreset(b.getAttribute('data-p')); newPath(false);
+    pushH(); S.ghost = S.path ? S.path.slice() : null; setPreset(b.getAttribute('data-p')); newPath(false);
   });
+  $('reset').addEventListener('click', function () { pushH(); reset(); });
   var lg = $('legend');
   D.fam.forEach(function (nm, f) {
     if (!D.f.some(function (x) { return x === f; })) return;
     var s = document.createElement('span'); s.innerHTML = '<i></i>' + nm; s.firstChild.style.background = FAMC[nm] || MUTE; lg.appendChild(s);
   });
-  $('fitnote').textContent = 'the queue and my hand: knobs fitted to ' + D.q.length.toLocaleString('en-US') + ' sampled pairs each of my log. descriptive.\na feed is hand-set, not fitted.';
+  $('fitnote').textContent = 'the queue and my hand: knobs fitted to ' + D.q.length.toLocaleString('en-US') + ' sampled pairs each of my log. descriptive.\na feed is hand-set, not fitted. the siren is a toy, hand-set, not fitted.';
   $('fixed').innerHTML = 'set by the rule: ' + FIXED.map(function (k) { return KNOBS[k] + ' <output id="o' + k + '"></output>'; }).join(' · ');
   $('nart').textContent = M.N.toLocaleString('en-US');
   cv.addEventListener('pointerdown', tap);
@@ -227,17 +251,62 @@ var GLOSS = ['artists near this one in sound score higher', 'artists played earl
   'artists i play most score higher', 'artists far from every stop so far score higher',
   'where my log usually went next from here scores higher', '0 takes the top score; 1 lands near shuffle'];
 
-function setPreset(p, quiet) {
-  var K = p === 'feed' ? [0.4, 0.8, 1, 0, 0.6, 0.15] : FIT[p] ? FIT[p].K.slice() : null;
-  if (!K) return;
-  S.K = K; S.preset = p; syncChips();
-  LIVE.forEach(function (k) { $('k' + k).value = K[k]; });
+function sirenK(s) { var K = SB.slice(); K[1] = s; K[2] = s; K[3] = S.K[3]; return K; }
+function nice(x) { return String(+x.toFixed(2)); }
+function mix(s) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(NIGHT[i] + (WARM[i] - NIGHT[i]) * s); }).join(',') + ')'; }
+
+var H1 = document.getElementById('h1').textContent;
+function setPreset(p, quiet, sv) {
+  var on = p === 'siren';
+  if (on) {
+    S.siren = isFinite(sv) ? Math.max(0, Math.min(1, Math.round(sv * 20) / 20)) : 0.5;
+    S.K = SB.slice(); S.K = sirenK(S.siren); $('ks').value = S.siren;
+  } else {
+    var K = p === 'feed' ? [0.4, 0.8, 1, 0, 0.6, 0.15] : FIT[p] ? FIT[p].K.slice() : null;
+    if (!K) return;
+    S.siren = null; S.K = K;
+    LIVE.forEach(function (k) { $('k' + k).value = K[k]; });
+  }
+  S.preset = p;
+  $('kn1').hidden = $('kn2').hidden = $('kn3').hidden = on; $('kns').hidden = !on;
+  $('kh2').textContent = on ? 'one knob: how closed the loop is' : 'three knobs: the ones that change time to loop most';
+  document.documentElement.style.setProperty('--night', mix(on ? S.siren : 0));
+  $('h1').textContent = on ? 'the siren: one knob, keep them listening, closes the loop.' : H1;
+  syncChips();
 }
 
 function syncChips() {
   [].forEach.call($('chips').children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-p') === S.preset ? 'true' : 'false'); });
   for (var k = 0; k < 6; k++) $('o' + k).textContent = fmt(S.K[k], 2);
+  if (S.siren != null) { $('os').textContent = nice(S.siren); document.documentElement.style.setProperty('--night', mix(S.siren)); }
 }
+
+function pushH() {
+  if (KIOSK) return;
+  try { history.pushState(null, '', location.pathname + location.search + location.hash); } catch (e) {}
+}
+window.addEventListener('popstate', function () {
+  if (!D) return;
+  var H = new URLSearchParams(location.hash.slice(1)), p = H.get('p') || 'queue', sd = parseInt(H.get('seed'), 10), st = parseInt(H.get('start'), 10);
+  if (isFinite(sd)) S.seed = sd;
+  if (isFinite(st) && st >= 0 && st < M.N) S.start = st;
+  S.ghost = null; setPreset(p === 'free' ? 'queue' : p, true, parseFloat(H.get('s'))); newPath(false);
+});
+function saveHash() {
+  if (KIOSK || !S.start && S.start !== 0) return;
+  var h = '#p=' + (S.preset || 'free') + '&k=' + S.K.map(function (x) { return nice(x); }).join(',') + (S.siren != null ? '&s=' + nice(S.siren) : '') + '&start=' + S.start + '&seed=' + S.seed;
+  try { history.replaceState(null, '', location.pathname + location.search + h); } catch (e) {}
+}
+
+function reset() {
+  stopHear(); S.ghost = null;
+  S.seed = 1; S.start = pickStart(rng(S.seed));
+  setPreset('queue');
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  newPath(true);
+}
+var idleT = 0;
+function arm() { clearTimeout(idleT); idleT = setTimeout(function () { reset(); }, IDLE); }
 
 function newPath(animate) {
   stopHear();
@@ -249,6 +318,7 @@ function newPath(animate) {
   metrics(); pathList();
   if (S.anim < S.path.length) tick(); else draw();
   clearTimeout(S.t); S.t = setTimeout(slow, 140);
+  saveHash();
 }
 
 function tick() {
@@ -262,6 +332,12 @@ function metrics() {
   $('m-fam').textContent = s.fams + ' of ' + D.fam.length;
   $('m-loop').textContent = s.loop > STEPS ? 'none' : 'step ' + s.loop;
   $('m-top').textContent = pct(s.top);
+  if (S.siren != null) {
+    var cl = s.loop > STEPS ? 0 : Math.max(0, Math.min(1, (STEPS - s.loop) / 35));
+    $('mf').style.width = Math.round(100 * cl) + '%'; $('mv').textContent = nice(cl) + ' this path';
+    $('say').textContent = 'one path at ' + nice(S.siren) + ': ' + (s.loop > STEPS ? 'never loops in 40 steps' : 'loops back at step ' + s.loop) + '. a toy, hand-set, not fitted.';
+    return;
+  }
   $('say').textContent = s.loop > STEPS ? 'this rule never loops in 40 steps; ' + pct(s.top) + ' of picks sit in my top 50.' : 'this rule loops back at step ' + s.loop + '; ' + pct(s.top) + ' of picks sit in my top 50.';
 }
 
@@ -269,27 +345,35 @@ function pathList() {
   var o = $('path'), h = '';
   S.path.forEach(function (i, k) { h += '<span data-k="' + k + '"><b>' + k + '</b> ' + esc(name(i)) + '</span> '; });
   o.innerHTML = h;
-  $('now').textContent = 'stop 0, ' + name(S.path[0]) + ', is where the listener starts. tap any dot to start there.';
+  $('now').textContent = 'stop 0, ' + name(S.path[0]) + ', is where the listener starts.';
 }
 function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
 // the slow part: the knob that moves the picture most, and the real-vs-rule table
 function slow() {
-  var m0 = sens(S.K), dl = {}, k, best = -1, bv = 0;
-  LIVE.forEach(function (k) {
-    var K2 = S.K.slice(); K2[k] = S.K[k] <= 0.9 ? S.K[k] + 0.1 : S.K[k] - 0.1;
+  var m0 = sens(S.K), dl = {}, k, best = -1, bv = 0, VIS = S.siren != null ? ['s'] : LIVE;
+  VIS.forEach(function (k) {
+    var K2;
+    if (k === 's') K2 = sirenK(S.siren <= 0.9 ? S.siren + 0.1 : S.siren - 0.1);
+    else { K2 = S.K.slice(); K2[k] = S.K[k] <= 0.9 ? S.K[k] + 0.1 : S.K[k] - 0.1; }
     var m = sens(K2);
     var v = Math.abs(m[0] - m0[0]) + Math.abs(m[1] - m0[1]) + Math.abs(m[2] - m0[2]) + Math.abs(m[3] - m0[3]);
     dl[k] = v; if (v > bv) { bv = v; best = k; }
   });
-  LIVE.forEach(function (k) {
+  VIS.forEach(function (k) {
     var lab = document.querySelector('label[for="k' + k + '"]');
     lab.classList.toggle('hot', k === best && bv > 0.01);
     $('b' + k).style.width = (bv > 0 ? Math.round(100 * dl[k] / bv) : 0) + '%';
     $('b' + k).classList.toggle('hot', k === best && bv > 0.01);
   });
   var hl = $('hotline');
-  if (best >= 0 && bv > 0.01) { $('k' + best).parentNode.appendChild(hl); hl.hidden = false; } else hl.hidden = true;
+  if (best >= 0 && bv > 0.01) { $('k' + best).parentNode.insertBefore(hl, $('k' + best).parentNode.querySelector('.kb').nextSibling); hl.hidden = false; } else hl.hidden = true;
+  if (S.siren != null) {
+    var ls = [], i;
+    for (i = 0; i < 30; i++) { var q = pathStats(M, walk(M, S.start, S.K, 1000 + i)); ls.push(q.loop > STEPS ? STEPS + 1 : q.loop); }
+    ls.sort(function (a, b) { return a - b; }); var md = (ls[14] + ls[15]) / 2, nl = ls.filter(function (x) { return x > STEPS; }).length;
+    $('say').textContent += ' across 30 paths: median loop-back at step ' + Math.round(md) + (md > STEPS ? ' (none)' : '') + (nl ? ', ' + nl + ' never loop' : '') + '.';
+  }
   var rq = ruleStats(M, S.K, S.startsQ, LOOP.FIT_SEED), rh = ruleStats(M, S.K, S.startsH, LOOP.FIT_SEED);
   var rule = { hop: (rq.hop + rh.hop) / 2, same: (rq.same + rh.same) / 2, top: (rq.top + rh.top) / 2, inn: (rq.inn + rh.inn) / 2 };
   var rows = [['hop in sound', 'hop', 2], ['same family as last', 'same'], ['inside my top 50', 'top'], ['one of the six nearest', 'inn']];
@@ -325,7 +409,6 @@ function Y(i) { return Math.round(OY + D.xy[i][1] * SCL) + 0.5; }
 function drawBase() {
   base = document.createElement('canvas'); base.width = cv.width; base.height = cv.height;
   var b = base.getContext('2d'); b.setTransform(DPR, 0, 0, DPR, 0, 0);
-  b.fillStyle = BG; b.fillRect(0, 0, W, H);
   b.globalAlpha = 0.6;
   for (var i = 0; i < M.N; i++) { b.fillStyle = FAMC[D.fam[D.f[i]]] || MUTE; b.fillRect(X(i) - 1.5, Y(i) - 1.5, W < 500 ? 2 : 3, W < 500 ? 2 : 3); }
   b.globalAlpha = 1;
@@ -340,7 +423,7 @@ function line(p, n, col, alpha) {
 function draw() {
   if (!M) return;
   if (!base) drawBase();
-  g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(base, 0, 0); g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = mix(S.siren != null ? S.siren : 0); g.fillRect(0, 0, cv.width, cv.height); g.drawImage(base, 0, 0); g.setTransform(DPR, 0, 0, DPR, 0, 0);
   var col = PCOL[S.preset] || ICE, p = S.path, n = Math.min(S.anim, p.length), k;
   if (S.ghost) line(S.ghost, S.ghost.length, MUTE, 0.55);
   line(p, n, col, 1);

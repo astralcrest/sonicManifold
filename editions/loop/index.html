@@ -29,11 +29,19 @@ p { margin: 0 0 8px; }
 section { border-top: 1px solid var(--line); padding: 12px 0; }
 section > h2 { font: 500 11px/1.3 'IBM Plex Mono', monospace; letter-spacing: .08em; color: var(--mute); margin: 0 0 8px; text-transform: none; }
 #chips { display: flex; flex-wrap: wrap; gap: 6px; }
-#chips button { font: 500 13px 'Instrument Sans', sans-serif; color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 6px 11px; border-radius: 0; cursor: pointer; }
+#chips button { font: 500 13px 'Instrument Sans', sans-serif; color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 6px 11px; min-height: 44px; min-width: 44px; border-radius: 0; cursor: pointer; }
 #chips button[aria-pressed="true"] { border-color: currentColor; }
 #chips button[data-p="queue"][aria-pressed="true"] { color: var(--violet); }
 #chips button[data-p="hand"][aria-pressed="true"] { color: var(--mint); }
 #chips button[data-p="feed"][aria-pressed="true"] { color: var(--ice); }
+#chips button[data-p="siren"][aria-pressed="true"] { color: var(--amber); }
+#reset { font: 500 13px 'Instrument Sans', sans-serif; color: var(--mute); background: transparent; border: 1px dashed var(--line); padding: 6px 11px; min-height: 44px; min-width: 44px; margin-top: 8px; cursor: pointer; }
+#tabd summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--mute); font-size: 13px; }
+@media (min-width: 700px) { #tabd summary { display: none; } }
+.knob[hidden], #hotline[hidden] { display: none; }
+.mh { display: flex; justify-content: space-between; font: 11px 'IBM Plex Mono', monospace; color: var(--mute); margin-top: 8px; }
+.m1 { height: 1px; background: var(--line); margin-top: 3px; }
+.m1 i { display: block; height: 1px; width: 0; background: var(--amber); }
 .note { font-size: 11px; color: var(--mute); margin: 8px 0 0; }
 .knob { padding: 4px 0 5px; }
 .kh { display: flex; justify-content: space-between; align-items: baseline; }
@@ -46,7 +54,7 @@ output { font-size: 12px; color: var(--mute); }
 #say { color: var(--ink); margin: 10px 0 0; }
 .kb i.hot { background: var(--ink); }
 #hotline { font: 11px 'IBM Plex Mono', monospace; color: var(--ink); margin-top: 4px; }
-input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 20px; background: transparent; margin: 2px 0 0; cursor: pointer; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; margin: 0; cursor: pointer; }
 input[type=range]::-webkit-slider-runnable-track { height: 1px; background: var(--mute); }
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; margin-top: -6px; background: var(--ink); border: 0; border-radius: 0; }
 input[type=range]::-moz-range-track { height: 1px; background: var(--mute); }
@@ -57,7 +65,7 @@ input[type=range]:focus-visible { outline: 1px solid var(--ice); outline-offset:
 .met dt { font-size: 11px; color: var(--mute); }
 .met dd { margin: 0; font-size: 18px; font-weight: 500; white-space: nowrap; }
 .met small { display: block; font: 11px 'IBM Plex Mono', monospace; color: var(--mute); }
-#hear { font: 500 13px 'Instrument Sans', sans-serif; color: var(--night); background: var(--ice); border: 0; padding: 7px 14px; border-radius: 0; cursor: pointer; }
+#hear { min-height: 44px; font: 500 13px 'Instrument Sans', sans-serif; color: var(--night); background: var(--ice); border: 0; padding: 7px 14px; border-radius: 0; cursor: pointer; }
 #hear[aria-pressed="true"] { background: var(--ink); }
 #now { font-size: 11px; color: var(--mute); margin: 8px 0; }
 #path { font-size: 11px; color: #cfc6e8; line-height: 1.6; max-height: 7.2em; overflow-y: auto; }
@@ -83,18 +91,17 @@ a { color: var(--ice); }
   .met { grid-template-columns: 1fr 1fr; }
 }
 </style>
-<style>nav.walls{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.04em;margin:0 0 10px}nav.walls a{color:#bcd3ff;text-decoration:none;border-bottom:1px solid #2a2140;padding-bottom:3px}nav.walls a[aria-current]{color:#21f6bc;border-color:#21f6bc}</style>
+<style>nav.walls{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.04em;margin:0 0 10px}nav.walls a{color:#bcd3ff;text-decoration:none;border-bottom:1px solid #2a2140;display:inline-flex;align-items:center;min-height:44px;padding:0 2px}nav.walls a[aria-current]{color:#21f6bc;border-color:#21f6bc}details.hw summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--mute);font:12px "IBM Plex Mono",monospace}
+</style>
 </head>
 <body>
 <div class="wrap">
   <header id="head">
-    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/" aria-current="page">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a></nav>
-    <p class="eyebrow">the loop · one wall of the machine</p>
-    <h1>turn one weight and the same machine folds 40 picks into a short loop.</h1>
+    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/" aria-current="page">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a></nav>
+    <p class="eyebrow">the loop · one wall of the machine · a toy</p>
+    <h1 id="h1">turn one weight and the same machine folds 40 picks into a short loop.</h1>
     <p class="lead">from my log: the queue's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
-    <p>here a machine picks 40 artists in a row from my map. turn a knob, watch where it sends you.</p>
-    <p class="hw"><b>how:</b> each step scores <span id="nc">the</span> nearby, linked and random artists on five weighted features, then picks one.</p>
-    <p class="hw"><b>why:</b> a feed is a rule like this: each pick shapes the next. raise familiar and watch.</p>
+    <details class="hw"><summary>how it works</summary><p class="hw">a machine picks 40 artists in a row from my map. <b>how:</b> each step scores <span id="nc">the</span> nearby, linked and random artists on five weighted features, then picks one. <b>why:</b> a feed is a rule like this: each pick shapes the next.</p></details>
   </header>
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map: every artist as a dot colored by family, with the machine's 40-step path drawn as a numbered line"></canvas></div>
   <main id="ctrl">
@@ -104,7 +111,9 @@ a { color: var(--ice); }
         <button type="button" data-p="queue">the queue</button>
         <button type="button" data-p="hand">my hand</button>
         <button type="button" data-p="feed">a feed</button>
+        <button type="button" data-p="siren">the siren</button>
       </div>
+      <button type="button" id="reset" aria-label="reset to the queue and its standard start">reset</button>
       <p class="note" id="fitnote" style="white-space:pre-line"></p>
     </section>
     <section>
@@ -118,7 +127,7 @@ a { color: var(--ice); }
       <p id="say" class="hw" aria-live="polite"></p>
     </section>
     <section>
-      <h2>three knobs: the ones that change time to loop most</h2>
+      <h2 id="kh2">three knobs: the ones that change time to loop most</h2>
       <div id="knobs"></div>
       <p class="note" id="fixed"></p>
       <div id="hotline" hidden>right now, this knob moves the picture most</div>
@@ -131,17 +140,19 @@ a { color: var(--ice); }
     </section>
     <section>
       <h2>per step: real pairs vs this rule (descriptive)</h2>
+      <details id="tabd"><summary>the table</summary>
       <table id="tab"></table>
       <p id="gap"></p>
-      <p class="note">many settings fit about as well. read a preset as one good fit, not the real weights.</p>
+      <p class="note">many settings fit about as well. read a preset as one good fit, not the real weights.</p></details>
     </section>
     <section>
       <h2>the map</h2>
-      <p class="note" id="mapnote" style="margin:0 0 8px">dots: <span id="nart"></span> artists placed by how they sound, colored by family. tap one to start there.</p>
+      <p class="note" id="mapnote" style="margin:0 0 8px">dots: <span id="nart"></span> artists placed by how they sound, colored by family.</p>
       <div id="legend"></div>
     </section>
   </main>
 </div>
+<script src="../kiosk.js"></script>
 <script src="loop.js"></script>
 </body>
 </html>

@@ -48,6 +48,7 @@ button.pick:not(:disabled){border-color:var(--mint);color:var(--mint)}
 button.playing{border-color:var(--ice);background:var(--ice);color:var(--night)}
 button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
 #next{margin:18px 0 0;border-color:var(--ink)}
+#slip{display:none;margin:18px 0 0;border-color:var(--mint);color:var(--mint)}body.done #slip{display:block}
 #next:disabled{border-color:var(--line)}
 #round,#result{display:none}
 body.r #intro{display:none}body.r #round{display:block}
@@ -79,26 +80,24 @@ body:not(.r):not(.done) header,body:not(.r):not(.done) #consent{grid-column:1/-1
 body:not(.r):not(.done) #intro{display:contents}
 body:not(.r):not(.done) #intro>.k{grid-column:1;grid-row:3}
 body:not(.r):not(.done) #intro>h1{grid-column:1;grid-row:4}
-body:not(.r):not(.done) #intro>.lede{grid-column:1;grid-row:5}
 body:not(.r):not(.done) #intro>.how{grid-column:1;grid-row:6}
 body:not(.r):not(.done) #next{grid-column:1;grid-row:7;align-self:start}
 body:not(.r):not(.done) #pvbox{display:block;grid-column:2;grid-row:3/9;margin-top:22px}
 #pv{display:block;width:100%;aspect-ratio:1/1;border:1px solid var(--line)}
 .pvcap{font:12px/1.3 var(--mono);color:var(--mute);margin-top:8px}}
 </style>
-<style>nav.walls{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.04em;margin:0 0 10px}nav.walls a{color:#bcd3ff;text-decoration:none;border-bottom:1px solid #2a2140;padding-bottom:3px}nav.walls a[aria-current]{color:#21f6bc;border-color:#21f6bc}</style>
+<style>nav.walls{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.04em;margin:0 0 10px}nav.walls a{color:#bcd3ff;text-decoration:none;border-bottom:1px solid #2a2140;display:inline-flex;align-items:center;min-height:44px;padding:0 2px}nav.walls a[aria-current]{color:#21f6bc;border-color:#21f6bc}</style>
 </head>
 <body>
 <main>
 <header><a href="../../"><b>sonic manifold</b></a><span>the taste test</span></header>
-<nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/" aria-current="page">the taste test</a></nav>
+<nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/" aria-current="page">the taste test</a><a href="../haunted/">the haunted queue</a></nav>
 <p id="consent">nothing is stored; this runs in your browser.</p>
 
 <section id="intro">
   <div class="k">twelve rounds · about four minutes</div>
   <h1>two songs, far apart in sound. you pick the one you like more.</h1>
-  <p class="lede">in six rounds a third song plays first. the end shows if it pulled you toward its side.</p>
-  <p class="how"><b>how:</b> 12 of 24 far-apart pairs, 8 s each; in 6, a song near one side plays first.</p>
+  <p class="how"><b>how:</b> in six of twelve rounds a third song plays first; the end shows if it pulled you toward its side.</p>
   <div id="pvbox" aria-hidden="true"><canvas id="pv" width="440" height="440"></canvas><p class="pvcap">the map your picks land on, at the end</p></div>
 </section>
 
@@ -110,12 +109,12 @@ body:not(.r):not(.done) #pvbox{display:block;grid-column:2;grid-row:3/9;margin-t
     <div class="card" id="cA"><div class="L">a</div><div class="nm" id="nA"></div><div class="meter"><i id="mA"></i></div><button id="playA" type="button">play a</button><button id="pickA" class="pick" type="button" disabled>pick a</button></div>
     <div class="card" id="cB"><div class="L">b</div><div class="nm" id="nB"></div><div class="meter"><i id="mB"></i></div><button id="playB" type="button">play b</button><button id="pickB" class="pick" type="button" disabled>pick b</button></div>
   </div>
-  <p class="how"><b>how:</b> 12 of 24 far-apart pairs, 8 s each; in 6, a song near one side plays first.</p>
 </section>
 
 <section id="result">
   <div class="k">your twelve rounds</div>
   <h2 id="sent"></h2>
+  <button id="slip" type="button">take a receipt</button>
   <div class="bars">
     <div class="bar p"><div class="t"><span>after a first song, picks toward it</span><b id="bk">0 of 6</b></div><div class="track"><i id="ik"></i><u></u></div></div>
     <div class="bar u"><div class="t"><span>with no first song, picks toward a side drawn the same way</span><b id="bm">0 of 6</b></div><div class="track"><i id="im"></i><u></u></div></div>
@@ -134,6 +133,8 @@ body:not(.r):not(.done) #pvbox{display:block;grid-column:2;grid-row:3/9;margin-t
 
 <button id="next" type="button">start</button>
 </main>
+<script src="../kiosk.js"></script>
+<script src="../receipt.js"></script>
 <script src="taste.js"></script>
 </body>
 </html>
