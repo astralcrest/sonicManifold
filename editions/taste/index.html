@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>sonic manifold · the taste test</title>
+<meta name="description" content="twelve rounds of two songs far apart in sound. in six, a third song plays first. see where your picks fell.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--night:#06010f;--panel:#0d0719;--ink:#efe9ff;--mute:#9a90b8;--line:#2a2140;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--night);color-scheme:dark}
+body{background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;padding:0 16px calc(24px + env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:18px 0 10px;font:12px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+header a{color:var(--mute);text-decoration:none}header b{color:var(--ink);font-weight:500}
+#consent{font:12px/1.4 var(--mono);color:var(--mute);padding:0 0 18px;border-bottom:1px solid var(--line)}
+.k{font:11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:22px 0 12px}
+h1,h2{font-weight:500;letter-spacing:-.01em;line-height:1.2}
+h1{font-size:clamp(24px,6.4vw,34px)}
+h2{font-size:clamp(20px,5.2vw,26px)}
+p.lede{font-size:17px;line-height:1.4;margin:14px 0 0;color:var(--ink)}
+.how{font:12px/1.45 var(--mono);color:var(--mute);margin:16px 0 0}
+.how b{color:var(--ink);font-weight:500}
+.honest{font-size:15px;line-height:1.45;margin:16px 0 0;color:var(--ink)}
+#status{font-size:16px;line-height:1.35;min-height:44px;margin:0 0 14px}
+#status .a{color:var(--amber)}
+#primer{border:1px solid var(--line);padding:12px;margin:0 0 14px;display:none}
+#primer.on{display:block}
+#primer .lab{font:11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.meter{height:3px;background:var(--line);margin-top:10px;position:relative;overflow:hidden}
+.meter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ice);display:block}
+#primer .meter i{background:var(--amber)}
+#cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{border:1px solid var(--line);padding:14px 12px;display:flex;flex-direction:column;gap:10px;min-height:208px}
+.card.won{border-color:var(--mint)}
+.card .L{font:500 44px/1 var(--mono);color:var(--ink)}
+.card.won .L{color:var(--mint)}
+.card .nm{font-size:13px;line-height:1.3;color:var(--mute);min-height:34px}
+.card .nm b{color:var(--ink);font-weight:500;display:block}
+button{appearance:none;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:11px 14px;font:13px/1 var(--mono);cursor:pointer;min-height:44px;width:100%}
+button:hover:not(:disabled){border-color:var(--ice)}
+button:disabled{color:#4a4066;cursor:default}
+button.pick:not(:disabled){border-color:var(--mint);color:var(--mint)}
+button.playing{border-color:var(--ice);background:var(--ice);color:var(--night)}
+button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+#next{margin:18px 0 0;border-color:var(--ink)}
+#next:disabled{border-color:var(--line)}
+#round,#result{display:none}
+body.r #intro{display:none}body.r #round{display:block}
+body.done #intro,body.done #round{display:none}body.done #result{display:block}
+.bars{margin:20px 0 0;display:grid;gap:14px}
+.bar .t{display:flex;justify-content:space-between;font:12px/1.2 var(--mono);color:var(--mute);margin-bottom:6px}
+.bar .t{gap:12px;align-items:flex-end}.bar .t span{flex:1;min-width:0}.bar .t b{color:var(--ink);font-weight:500;white-space:nowrap}
+.track{height:22px;border:1px solid var(--line);position:relative}
+.track i{position:absolute;left:0;top:0;bottom:0;display:block}
+.track u{position:absolute;top:-4px;bottom:-4px;left:50%;border-left:1px dashed var(--mute)}
+.bar.p .track i{background:var(--amber)}
+.bar.u .track i{background:var(--ice)}
+.chance{font:11px/1.2 var(--mono);color:var(--mute);margin-top:6px}
+#mapbox{margin:26px 0 0;border-top:1px solid var(--line);padding-top:4px}
+#map{display:block;width:100%;aspect-ratio:1/1;background:var(--night);border:1px solid var(--line);margin-top:10px}
+.cap{font-size:14px;line-height:1.35;margin-top:4px}
+.leg{display:flex;flex-wrap:wrap;gap:8px 16px;font:12px/1.2 var(--mono);color:var(--mute);margin-top:10px}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.leg i{width:9px;height:9px;display:inline-block}
+.leg .m{background:var(--mint)}.leg .o{border:1px solid var(--ice)}.leg .a{background:var(--amber)}
+.leg i.ln,.leg i.lp{width:16px;height:0;border-top:1px solid var(--amber)}.leg i.ln{border-top-style:dashed}.leg i.lp{border-top-color:#4a4066}
+#pvbox{display:none}
+ol#log{list-style:none;margin:16px 0 0;font:12px/1.5 var(--mono);color:var(--mute)}
+ol#log li{padding:4px 0;border-top:1px solid var(--line)}
+ol#log b{color:var(--mint);font-weight:500}ol#log em{color:var(--amber);font-style:normal}
+@media (min-width:900px){body{padding-top:24px}#cards{gap:16px}
+body:not(.r):not(.done) main{max-width:1040px;display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);grid-template-rows:auto auto auto auto auto auto auto 1fr;column-gap:56px}
+body:not(.r):not(.done) header,body:not(.r):not(.done) #consent{grid-column:1/-1}
+body:not(.r):not(.done) #intro{display:contents}
+body:not(.r):not(.done) #intro>.k{grid-column:1;grid-row:3}
+body:not(.r):not(.done) #intro>h1{grid-column:1;grid-row:4}
+body:not(.r):not(.done) #intro>.lede{grid-column:1;grid-row:5}
+body:not(.r):not(.done) #intro>.how{grid-column:1;grid-row:6}
+body:not(.r):not(.done) #next{grid-column:1;grid-row:7;align-self:start}
+body:not(.r):not(.done) #pvbox{display:block;grid-column:2;grid-row:3/9;margin-top:22px}
+#pv{display:block;width:100%;aspect-ratio:1/1;border:1px solid var(--line)}
+.pvcap{font:12px/1.3 var(--mono);color:var(--mute);margin-top:8px}}
+</style>
+<style>nav.walls{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.04em;margin:0 0 10px}nav.walls a{color:#bcd3ff;text-decoration:none;border-bottom:1px solid #2a2140;padding-bottom:3px}nav.walls a[aria-current]{color:#21f6bc;border-color:#21f6bc}</style>
+</head>
+<body>
+<main>
+<header><a href="../../"><b>sonic manifold</b></a><span>the taste test</span></header>
+<nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/" aria-current="page">the taste test</a></nav>
+<p id="consent">nothing is stored; this runs in your browser.</p>
+
+<section id="intro">
+  <div class="k">twelve rounds · about four minutes</div>
+  <h1>two songs, far apart in sound. you pick the one you like more.</h1>
+  <p class="lede">in six rounds a third song plays first. the end shows if it pulled you toward its side.</p>
+  <p class="how"><b>how:</b> 12 of 24 far-apart pairs, 8 s each; in 6, a song near one side plays first.</p>
+  <div id="pvbox" aria-hidden="true"><canvas id="pv" width="440" height="440"></canvas><p class="pvcap">the map your picks land on, at the end</p></div>
+</section>
+
+<section id="round" aria-live="polite">
+  <div class="k" id="rk">round 1 of 12</div>
+  <p id="status"></p>
+  <div id="primer"><div class="lab">first, a third song</div><div class="meter"><i id="pm"></i></div></div>
+  <div id="cards">
+    <div class="card" id="cA"><div class="L">a</div><div class="nm" id="nA"></div><div class="meter"><i id="mA"></i></div><button id="playA" type="button">play a</button><button id="pickA" class="pick" type="button" disabled>pick a</button></div>
+    <div class="card" id="cB"><div class="L">b</div><div class="nm" id="nB"></div><div class="meter"><i id="mB"></i></div><button id="playB" type="button">play b</button><button id="pickB" class="pick" type="button" disabled>pick b</button></div>
+  </div>
+  <p class="how"><b>how:</b> 12 of 24 far-apart pairs, 8 s each; in 6, a song near one side plays first.</p>
+</section>
+
+<section id="result">
+  <div class="k">your twelve rounds</div>
+  <h2 id="sent"></h2>
+  <div class="bars">
+    <div class="bar p"><div class="t"><span>after a first song, picks toward it</span><b id="bk">0 of 6</b></div><div class="track"><i id="ik"></i><u></u></div></div>
+    <div class="bar u"><div class="t"><span>with no first song, picks toward a side drawn the same way</span><b id="bm">0 of 6</b></div><div class="track"><i id="im"></i><u></u></div></div>
+    <div class="chance">dashed line: 3 of 6, what a coin would give on average</div>
+  </div>
+  <p class="honest">a demonstration, not a finding: twelve rounds cannot separate a pull from chance; psychologists call the pull of a just-heard sound priming.</p>
+  <p class="how"><b>how:</b> each first song sits near one side; with none, a side is drawn the same way.</p>
+  <div id="mapbox">
+    <div class="k">your picks on my sound map</div>
+    <p class="cap">1,871 artists i have heard, laid flat by how they sound. nearer means more alike.</p>
+    <canvas id="map" width="560" height="560" aria-label="the sound map with your twelve picks lit"></canvas>
+    <div class="leg"><span><i class="m"></i>you picked</span><span><i class="o"></i>you passed</span><span><i class="a"></i>the first song</span><span><i class="ln"></i>a pair with a first song</span><span><i class="lp"></i>a pair</span></div>
+    <ol id="log"></ol>
+  </div>
+</section>
+
+<button id="next" type="button">start</button>
+</main>
+<script src="taste.js"></script>
+</body>
+</html>
