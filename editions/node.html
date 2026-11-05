@@ -44,11 +44,14 @@ body.fam #leg{display:flex}
 #home{position:fixed;right:24px;top:12px;display:flex;gap:14px;font:12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;z-index:5}#home a{color:var(--mute);text-decoration:none;padding:6px 0;min-height:24px}#home a:hover,#home a:focus-visible{color:var(--ink,#efe9ff)}#home{background:var(--night,#06010f);padding:0 10px}#home a{min-height:44px;display:inline-flex;align-items:center}@media (max-width:640px){#home{right:auto;left:14px;top:40px;gap:12px;font-size:11px}}
 #wm{position:fixed;left:24px;top:18px;font:12px/1 var(--mono);letter-spacing:.14em;color:var(--mute);text-transform:uppercase;pointer-events:none}
 #wm b{color:var(--ink);font-weight:500}
+#look{position:fixed;left:24px;top:40px;font:11px/1 var(--mono);letter-spacing:.12em;color:var(--mute);pointer-events:none;display:none;transition:opacity .3s linear}
+body.net #look{display:block}
+@media (max-width:640px){#look{top:84px;left:14px}}
 </style>
 </head>
 <body>
 <canvas id="gl"></canvas><canvas id="lab"></canvas>
-<div id="wm"><b>sonic manifold</b> &nbsp;by astralcrest</div><nav id="home" aria-label="the other rooms"><a href="../">the radio</a><a href="index.html">the editions</a><a href="../lab.html">the lab</a></nav>
+<div id="wm"><b>sonic manifold</b> &nbsp;by astralcrest</div><div id="look" aria-live="polite"></div><nav id="home" aria-label="the other rooms"><a href="../">the radio</a><a href="index.html">the editions</a><a href="../lab.html">the lab</a></nav>
 <div id="band" role="region" aria-label="caption and controls">
   <div id="k">scene 1 of 6 · one listener's log · 97,427 plays · 2019 to 2026</div>
   <p id="cap">loading the log.</p>
@@ -88,7 +91,7 @@ var HOW = [
   'how: counts of that start reason over the log. the strict count drops my back and skip presses, 7.6 of the 19, and keeps 11.5.',
   'how: word2vec over my listening sittings, so artists that share evenings sit close; then umap to 3-d. <b>near means shared evenings, not similar sound.</b> square size is one play.',
   'how: each artist\'s family from its spotify tags, folded to 14. under my hand, ambient/lofi comes out at <b>0.71 [0.63, 0.79]</b> of its share under the app; hip-hop/r&b at <b>1.24 [1.19, 1.29]</b>, the less firm of the two (completed family map).',
-  'how: a line when one artist\'s play followed the other\'s, 3 or more times by my press or a matched 17 by the queue, compared per 1,000 steps of each hand; shuffle steps left out. spring layout; artists with no line sit on the outer ring, where position means nothing. the next track crosses to another family <b>69.9 vs 66.3</b> of 100 times when i press play: 1.05, a direction, not a size.',
+  'how: a line when one artist\'s play followed the other\'s, 3 or more times by my press or a matched 17 by the queue, compared per 1,000 steps of each hand; shuffle steps left out. drawn six ways, one look a minute: radial, bundled, constellations, arcs, ink, threads; artists with no line sit apart, where position means nothing. the next track crosses to another family <b>69.9 vs 66.3</b> of 100 times when i press play: 1.05, a direction, not a size.',
   'how: up to three 30 second apple previews per artist, 3,902 clips, through the clap audio model; then umap to 3-d. <b>near means sounds alike.</b> my songs sit beside the artists they sound like.'
 ];
 var VS = 'attribute vec4 aF;attribute vec4 aT;attribute vec3 aCF;attribute vec3 aCT;attribute float aD;attribute float aS;uniform float uT;uniform vec2 uRes;uniform vec2 uRot;uniform vec2 uPtr;uniform float uPtrOn;uniform float uTime;uniform float uFlow;varying vec3 vC;varying float vA;' +
@@ -96,11 +99,50 @@ var VS = 'attribute vec4 aF;attribute vec4 aT;attribute vec3 aCF;attribute vec3 
 'void main(){ float k=clamp((uT*1.35-aD*0.35),0.0,1.0); k=k*k*(3.0-2.0*k); vec2 a=proj(aF), b=proj(aT); vec2 p=mix(a,b,k); if(aT.w<0.5&&uFlow>0.5){ p.x=mod(p.x+uTime*uFlow*34.0, uRes.x+40.0)-20.0; p.y+=sin(uTime*0.7+aD*6.28)*3.0; }' +
 ' vec2 dp=p-uPtr; float r=length(dp); float R2=min(uRes.x,uRes.y)*0.16; if(uPtrOn>0.0&&r<R2){ float s=(1.0-r/R2); float an=s*s*1.6*uPtrOn; float c=cos(an),sn=sin(an); dp=vec2(dp.x*c-dp.y*sn,dp.x*sn+dp.y*c)*(1.0+s*0.35); p=uPtr+dp; }' +
 ' vec2 nd=vec2(p.x/uRes.x*2.0-1.0, 1.0-p.y/uRes.y*2.0); gl_Position=vec4(nd,0.0,1.0); gl_PointSize=aS; vC=mix(aCF,aCT,k); vA=1.0; }';
-var FS = 'precision mediump float;varying vec3 vC;varying float vA;void main(){ gl_FragColor=vec4(vC,1.0); }';
+var FS = 'precision mediump float;uniform float uA;varying vec3 vC;varying float vA;void main(){ gl_FragColor=vec4(vC,uA); }';
 function sh(t, s) { var o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; }
 var prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog); gl.useProgram(prog);
-var U = {}; ['uT', 'uRes', 'uRot', 'uPtr', 'uPtrOn', 'uTime', 'uFlow'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+var U = {}; ['uT', 'uRes', 'uRot', 'uPtr', 'uPtrOn', 'uTime', 'uFlow', 'uA'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
 var AT = {}; ['aF', 'aT', 'aCF', 'aCT', 'aD', 'aS'].forEach(function (n) { AT[n] = gl.getAttribLocation(prog, n); });
+gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+// who led to whom, six looks, one a minute, a 600 ms opacity crossfade between them (positions never move during it)
+var LOOKS = null, LK = 0, LKP = -1, LKt0 = 0, LKat = 0, LKMS = 60000, XFMS = 600, OLDTO = null, bufOld = null, EMAX = 1, ECACHE = {}, ECKEY = '';
+var LKS = { R: 0.4, F: 0.5, C: 0.55, T: 0.36, A: 0.55, B: 1 };
+var qp = function (k) { var m = new RegExp('[?&]' + k + '=([^&]+)').exec(location.search); return m ? decodeURIComponent(m[1]) : null; };
+if (qp('lookms')) LKMS = Math.max(1500, +qp('lookms') || LKMS);
+function lookId(lk) { return LOOKS ? LOOKS.order[lk] : 'B'; }
+function lookK() { if (LKP < 0) return 1; var k = (performance.now() - LKt0) / XFMS; if (k >= 1) { LKP = -1; return 1; } return Math.max(0, k); }
+function lbox(ar) { var mx = W * 0.04, my = H * 0.07, aw = W - 2 * mx, ah = H - 2 * my, bw = Math.min(aw, ah * ar), bh = bw / ar; return [(W - bw) / 2, (H - bh) / 2, bw, bh]; }
+function lookXY(a, lk) { var L = lookId(lk); if (L === 'B') return [(0.06 + 0.88 * a.net[0]) * W, (0.09 + 0.82 * a.net[1]) * H]; var o = LOOKS.looks[L], b = lbox(o.ar), p = o.p[a.ni]; return [b[0] + p[0] / 9999 * b[2], b[1] + p[1] / 9999 * b[3]]; }
+function lookLabel() { var el = $('look'); if (!LOOKS) { el.textContent = ''; return; } el.textContent = 'look ' + (LK + 1) + ' of ' + LOOKS.order.length + ' \u00b7 ' + LOOKS.looks[lookId(LK)].name; }
+function setLook(n, now) {
+  if (!LOOKS || n === LK) return; OLDTO.set(TO); gl.bindBuffer(gl.ARRAY_BUFFER, bufOld); gl.bufferSubData(gl.ARRAY_BUFFER, 0, OLDTO);
+  LKP = LK; LK = n; LKt0 = now; LKat = now; layout(4, true); lookLabel();
+}
+function edgeLayer(lk) {
+  var key = lk + '|' + cv.width + 'x' + cv.height + '|' + selA, sz = cv.width + 'x' + cv.height;
+  if (ECKEY !== sz) { ECACHE = {}; ECKEY = sz; }
+  if (ECACHE[key]) return ECACHE[key];
+  var c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; var g = c.getContext('2d'); g.setTransform(DPR, 0, 0, DPR, 0, 0); g.lineCap = 'round';
+  var L = lookId(lk), o = LOOKS && LOOKS.looks[L], b = o && o.ar ? lbox(o.ar) : null, tk = 1;
+  if (L === 'T') { var rmax = 1; EDGES.forEach(function (e) { rmax = Math.max(rmax, Math.abs(lookXY(e.a, lk)[0] - lookXY(e.b, lk)[0]) / 2); }); tk = Math.min(0.9, H * 0.42 / rmax); }
+  var dim = Object.keys(ECACHE).length > 24; if (dim) ECACHE = {};
+  EDGES.forEach(function (e, k) {
+    var on = selA < 0 || e.a.i === selA || e.b.i === selA, q = Math.sqrt(e.n / EMAX);
+    var base = L === 'B' ? 0.72 : e.mine ? 0.85 * (0.5 + 0.5 * q) : 0.55 * (0.45 + 0.55 * q);
+    if (L === 'C' && o.cl[e.a.ni] !== o.cl[e.b.ni]) base *= 0.35; // islands read first; links across them stay, quieter
+    g.strokeStyle = (e.mine ? 'rgba(33,246,188,' : 'rgba(139,111,214,') + (selA < 0 ? base : on ? 1 : 0.1) + ')';
+    var lw = L === 'B' ? 1 : L === 'A' ? 0.4 + 3.2 * q : L === 'F' ? 0.4 + 2 * q : 0.5 + 2.2 * q; if (on && selA >= 0) lw = Math.max(lw, 2); g.lineWidth = lw;
+    var p = lookXY(e.a, lk), r = lookXY(e.b, lk); g.beginPath();
+    if ((L === 'R' || L === 'F') && o.e[k]) { var pl = o.e[k]; g.moveTo(b[0] + pl[0] / 9999 * b[2], b[1] + pl[1] / 9999 * b[3]); for (var i = 2; i < pl.length; i += 2) g.lineTo(b[0] + pl[i] / 9999 * b[2], b[1] + pl[i + 1] / 9999 * b[3]); }
+    else if (L === 'T') { var xa = Math.min(p[0], r[0]), xb = Math.max(p[0], r[0]), rr = Math.max(0.5, (xb - xa) / 2); if (e.mine) g.ellipse((xa + xb) / 2, p[1], rr, rr * tk, 0, Math.PI, 2 * Math.PI); else g.ellipse((xa + xb) / 2, p[1], rr, rr * tk, 0, 0, Math.PI); }
+    else if (L === 'A' || L === 'C') { var bow = L === 'A' ? 0.12 : 0.08, mx = (p[0] + r[0]) / 2, my = (p[1] + r[1]) / 2; g.moveTo(p[0], p[1]); g.quadraticCurveTo(mx - (r[1] - p[1]) * bow, my + (r[0] - p[0]) * bow, r[0], r[1]); }
+    else { g.moveTo(p[0], p[1]); g.lineTo(r[0], r[1]); }
+    g.stroke();
+  });
+  if (L === 'T') { g.strokeStyle = '#2a2140'; g.lineWidth = 1; g.beginPath(); g.moveTo(b[0], b[1] + b[3] / 2); g.lineTo(b[0] + b[2], b[1] + b[3] / 2); g.stroke(); }
+  ECACHE[key] = c; return c;
+}
 function mkbuf(arr, loc, size) { var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, arr, gl.DYNAMIC_DRAW); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0); return b; }
 function fit() { var bh = $('band').offsetHeight, h = Math.max(200, window.innerHeight - bh) + 'px'; if (cv.style.height !== h) { cv.style.height = h; lab.style.height = h; return true; } return false; }
 function resize() { fit(); W = cv.clientWidth; H = cv.clientHeight; phone = W < 720; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); lab.width = cv.width; lab.height = cv.height; gl.viewport(0, 0, cv.width, cv.height); if (D) { layout(scene, true); } }
@@ -109,8 +151,9 @@ function build(j) {
   D = j; var A = j.a; N = 0; A.forEach(function (a) { N += a[2] + a[3] + a[4]; });
   ART = A.map(function (a, i) { return { n: a[0], f: a[1], t: a[2], s: a[3], v: a[4], p: a[2] + a[3] + a[4], xyz: a[5], sx: a[6], i: i, net: null, deg: 0 }; });
   SONG = j.s.map(function (s) { return { t: s[0], f: s[1], xyz: s[2] }; });
-  NET = j.net; NODEART = NET.nodes.map(function (nd) { var a = ART[nd[0]]; a.net = [nd[1], nd[2]]; return a; });
+  NET = j.net; NODEART = NET.nodes.map(function (nd, k) { var a = ART[nd[0]]; a.net = [nd[1], nd[2]]; a.ni = k; return a; });
   EDGES = NET.edges.map(function (e) { var a = NODEART[e[0]], b = NODEART[e[1]]; a.deg++; b.deg++; var tr = e[2] / NET.tap_total, ar = e[3] / NET.auto_total; return { a: a, b: b, n: e[2] + e[3], mine: tr > ar }; });
+  EDGES.forEach(function (e) { EMAX = Math.max(EMAX, e.n); });
   var NS = SONG.length, NT = N + NS;
   pArt = new Int32Array(NT); pHand = new Uint8Array(NT); pJit = new Float32Array(NT * 3);
   var k = 0;
@@ -120,6 +163,7 @@ function build(j) {
   for (var i = 0; i < NT; i++) { DEL[i] = mul(i, 3); SIZ[i] = (i >= N ? 7 : 2) * DPR; }
   // scale the two maps the way the front does (median, 4 to 96 pct, clamp)
   ['xyz', 'sx'].forEach(function (key) { for (var ax = 0; ax < 3; ax++) { var v = ART.filter(function (a) { return a[key]; }).map(function (a) { return a[key][ax]; }).sort(function (p, q) { return p - q; }); var n = v.length, med = v[n >> 1], lo = v[Math.floor(n * .04)], hi = v[Math.floor(n * .96)], sc = Math.max(hi - med, med - lo) || 1; ART.forEach(function (a) { if (a[key]) a[key][ax] = Math.max(-1.6, Math.min(1.6, (a[key][ax] - med) / sc * 0.95)); }); } });
+  OLDTO = new Float32Array(NT * 4); bufOld = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bufOld); gl.bufferData(gl.ARRAY_BUFFER, OLDTO, gl.DYNAMIC_DRAW);
   bufFrom = mkbuf(FROM, AT.aF, 4); bufTo = mkbuf(TO, AT.aT, 4); bufCF = mkbuf(CF, AT.aCF, 3); bufCT = mkbuf(CT, AT.aCT, 3); bufDelay = mkbuf(DEL, AT.aD, 1); bufSize = mkbuf(SIZ, AT.aS, 1);
   // day order for the river: particle k of hand h takes the day where hand h's cumulative count passes k
   var days = j.days, cum = [[], [], []], tot = [0, 0, 0];
@@ -131,11 +175,12 @@ function build(j) {
   legend(); setCap(0);
   var ff = document.fonts && document.fonts.load ? document.fonts.load('500 14px "Instrument Sans"') : Promise.resolve();
   ff.then(function () { loop(0); }, function () { loop(0); });
+  fetch('data/node_looks.json').then(function (r) { return r.json(); }).then(function (lj) { LOOKS = lj; var st = qp('look'), ix = st ? LOOKS.order.indexOf(st) : -1; if (ix >= 0) LK = ix; lookLabel(); if (scene === 4) { layout(4, true); LKat = performance.now(); } }).catch(function () { LOOKS = null; });
 }
 var DAY = null;
 function up(b, arr) { gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferSubData(gl.ARRAY_BUFFER, 0, arr); }
 function col(i, mode) { var a = ART[pArt[i]]; if (pArt[i] < 0) return hx('#ffd36b'); if (mode === 'fam') return hx(FAMC[a.f] || FAMC.other); return HAND[pHand[i]]; }
-function netXY(a) { return [(0.06 + 0.88 * a.net[0]) * W, (0.09 + 0.82 * a.net[1]) * H]; }
+function netXY(a) { return lookXY(a, LK); }
 function layout(s, immediate) {
   var NT = N + SONG.length, Wd = W * DPR, Hd = H * DPR, i, a;
   var mode = (s === 3 || s === 4) ? 'fam' : 'hand';
@@ -151,7 +196,7 @@ function layout(s, immediate) {
     if (s === 0) { var lane = pHand[i]; TO[o] = DAY ? DAY[i] * (Wd + 40) - 20 : mul(i, 5) * Wd; TO[o + 1] = Hd * (0.2 + lane * 0.3) + (pJit[i * 3 + 1]) * Hd * 0.22; TO[o + 2] = 0; }
     else if (s === 1) { TO[o + 3] = 0; }
     else if (s === 2 || s === 3) { var r = 0.012 + 0.03 * Math.sqrt(a.p / 5300); TO[o] = a.xyz[0] + pJit[i * 3] * r * 2; TO[o + 1] = a.xyz[1] + pJit[i * 3 + 1] * r * 2; TO[o + 2] = a.xyz[2] + pJit[i * 3 + 2] * r * 2; TO[o + 3] = 1; }
-    else if (s === 4) { if (a.net) { var xy = netXY(a), side = (6 + 30 * Math.sqrt(a.p / 5300)) * DPR, nc = Math.ceil(Math.sqrt(a.p)), cs = side / nc, q = a.q++; TO[o] = xy[0] * DPR - side / 2 + (q % nc + 0.5) * cs; TO[o + 1] = xy[1] * DPR - side / 2 + (Math.floor(q / nc) + 0.5) * cs; TO[o + 2] = 0; } else { TO[o] = -50; TO[o + 1] = -50; TO[o + 2] = 0; } }
+    else if (s === 4) { if (a.net) { var xy = netXY(a), side = (6 + 30 * Math.sqrt(a.p / 5300)) * DPR * (LKS[lookId(LK)] || 1), nc = Math.ceil(Math.sqrt(a.p)), cs = side / nc, q = a.q++; TO[o] = xy[0] * DPR - side / 2 + (q % nc + 0.5) * cs; TO[o + 1] = xy[1] * DPR - side / 2 + (Math.floor(q / nc) + 0.5) * cs; TO[o + 2] = 0; } else { TO[o] = -50; TO[o + 1] = -50; TO[o + 2] = 0; } }
     else if (s === 5) { if (a.sx) { var r2 = 0.012 + 0.03 * Math.sqrt(a.p / 5300); TO[o] = a.sx[0] + pJit[i * 3] * r2 * 2; TO[o + 1] = a.sx[1] + pJit[i * 3 + 1] * r2 * 2; TO[o + 2] = a.sx[2] + pJit[i * 3 + 2] * r2 * 2; TO[o + 3] = 1; } else { TO[o] = -50; TO[o + 1] = -50; TO[o + 2] = 0; } }
   }
   if (s === 1) { // pack: each hand a column; squares in a grid, bottom aligned
@@ -169,6 +214,7 @@ function go(s) {
   var NT = N + SONG.length;
   if (scene === 0) { var fx = performance.now() / 1000 * 34, span = cv.width + 40; for (var f0 = 0; f0 < N; f0++) { var fo = f0 * 4; if (TO[fo + 3] < 0.5) { TO[fo] = (((TO[fo] + 20 + fx) % span) + span) % span - 20; } } } for (var i = 0; i < NT; i++) { var k = Math.max(0, Math.min(1, T * 1.35 - DEL[i] * 0.35)); k = k * k * (3 - 2 * k); var o = i * 4; if (FROM[o + 3] === TO[o + 3]) { FROM[o] += (TO[o] - FROM[o]) * k; FROM[o + 1] += (TO[o + 1] - FROM[o + 1]) * k; FROM[o + 2] += (TO[o + 2] - FROM[o + 2]) * k; } else if (k > 0.5) { FROM[o] = TO[o]; FROM[o + 1] = TO[o + 1]; FROM[o + 2] = TO[o + 2]; FROM[o + 3] = TO[o + 3]; } CF[i * 3] += (CT[i * 3] - CF[i * 3]) * k; CF[i * 3 + 1] += (CT[i * 3 + 1] - CF[i * 3 + 1]) * k; CF[i * 3 + 2] += (CT[i * 3 + 2] - CF[i * 3 + 2]) * k; }
   up(bufFrom, FROM); up(bufCF, CF);
+  LKP = -1; LKat = performance.now();
   scene = s; layout(s, false); T = 0; t0 = performance.now(); sel = -1; selA = -1; setCap(s); autoAt = performance.now();
 }
 function legend() {
@@ -178,16 +224,40 @@ function legend() {
 }
 function setCap(s) { $('k').textContent = CAPS[s][0]; $('cap').innerHTML = CAPS[s][1]; $('how').innerHTML = HOW[s]; document.body.classList.toggle('fam', s === 3 || s === 4); document.body.classList.toggle('net', s === 4); var ds = $('dots').children; for (var i = 0; i < NSC; i++) ds[i].className = i === s ? 'on' : ''; if (fit() && D) layout(scene, true); }
 function proj3(p) { var cx = Math.cos(rotX), sx = Math.sin(rotX), cy = Math.cos(rotY), sy = Math.sin(rotY); var x = p[0] * cy - p[2] * sy, z = p[0] * sy + p[2] * cy, y = p[1] * cx - z * sx; z = p[1] * sx + z * cx; var d = 1 / (1.9 + z), R = Math.min(W, H) * 0.46; return [W * 0.5 + x * R * d * 1.9, H * 0.5 + y * R * d * 1.9, d]; }
-function apos(a) { if (scene === 4) { var q = netXY(a); return [q[0], q[1], 0.5]; } return proj3(scene === 5 ? a.sx : a.xyz); }
 function labels() {
-  g2.setTransform(DPR, 0, 0, DPR, 0, 0); g2.clearRect(0, 0, W, H); LAB = [];
+  g2.setTransform(DPR, 0, 0, DPR, 0, 0); g2.clearRect(0, 0, W, H); LAB = []; g2.globalAlpha = 1;
   if (scene < 2 || T < 0.6) return;
-  var key = scene === 5 ? 'sx' : scene === 4 ? 'net' : 'xyz', items = [], cap = phone ? 10 : 26;
-  var fs0 = phone ? 12 : 14; g2.textBaseline = 'middle';
-  if (scene === 4) { // 1px lines, crisp; a chosen artist lights its own lines and dims the rest
-    var al = Math.min(1, (T - 0.6) / 0.4); g2.lineWidth = 1;
-    EDGES.forEach(function (e) { var on = selA < 0 || e.a.i === selA || e.b.i === selA; var p = netXY(e.a), q = netXY(e.b); g2.strokeStyle = (e.mine ? 'rgba(33,246,188,' : 'rgba(139,111,214,') + (al * (selA < 0 ? 0.72 : on ? 1 : 0.12)) + ')'; g2.lineWidth = on && selA >= 0 ? 2 : 1; g2.beginPath(); g2.moveTo(p[0], p[1]); g2.lineTo(q[0], q[1]); g2.stroke(); });
+  if (scene === 4) {
+    var al = Math.min(1, (T - 0.6) / 0.4), xk = lookK(), lp = LKP;
+    if (lp >= 0 && xk < 1) { g2.globalAlpha = al * (1 - xk); g2.drawImage(edgeLayer(lp), 0, 0, W, H); names(lp, false); }
+    g2.globalAlpha = al * xk; g2.drawImage(edgeLayer(LK), 0, 0, W, H); names(LK, true); g2.globalAlpha = 1; return;
   }
+  names(-1, true);
+}
+function names(lk, live) {
+  var L = scene === 4 ? lookId(lk) : '', o = LOOKS && L && L !== 'B' ? LOOKS.looks[L] : null;
+  var apos = function (a) { if (scene === 4) { var q = lookXY(a, lk); return [q[0], q[1], 0.5]; } return proj3(scene === 5 ? a.sx : a.xyz); };
+  if (L === 'R' || L === 'T') { // names on the rim, or slanted under the line
+    var b = lbox(o.ar), done = [], top = NODEART.slice().sort(function (p, q) { return q.p - p.p; });
+    if (selA >= 0 && ART[selA].net) top.unshift(ART[selA]);
+    var lim = phone ? 24 : 70, n2 = 0, seen = {};
+    for (var t = 0; t < top.length && n2 < lim; t++) {
+      var a = top[t]; if (seen[a.i]) continue; seen[a.i] = 1;
+      var big = t < 12, isSel = a.i === selA, p = apos(a), th, x, y, ok = true, gap;
+      if (L === 'R') { th = o.ang[a.ni]; gap = big ? 0.07 : 0.04; for (var k = 0; k < done.length; k++) { var dd = Math.abs(th - done[k]); dd = Math.min(dd, 2 * Math.PI - dd); if (dd < gap) { ok = false; break; } } }
+      else { th = p[0]; gap = big ? 16 : 11; for (var k2 = 0; k2 < done.length; k2++) if (Math.abs(th - done[k2]) < gap) { ok = false; break; } }
+      if (!ok && !isSel) continue; done.push(th); n2++;
+      g2.save(); g2.font = big ? '600 ' + (phone ? 11 : 13) + 'px "Instrument Sans", -apple-system, "Helvetica Neue", Arial, sans-serif' : '400 ' + (phone ? 9 : 10) + 'px "IBM Plex Mono", ui-monospace, Menlo, monospace';
+      g2.fillStyle = isSel ? '#ffffff' : big ? '#efe9ff' : '#9a90b8'; g2.textBaseline = 'middle';
+      if (L === 'R') { var rr = (o.r0 + 0.012) * b[2], cx = b[0] + b[2] / 2, cy = b[1] + b[3] / 2, flip = Math.cos(th) < 0; g2.translate(cx + rr * Math.cos(th), cy + rr * Math.sin(th)); g2.rotate(flip ? th + Math.PI : th); g2.textAlign = flip ? 'right' : 'left'; g2.fillText(a.n.toLowerCase(), 0, 0); }
+      else { g2.translate(p[0] + 2, p[1] + 9); g2.rotate(Math.PI / 3); g2.textAlign = 'left'; g2.fillText(a.n.toLowerCase(), 0, 0); }
+      g2.restore();
+      if (live) LAB.push({ a: a, x: p[0] - 4, y: p[1] - 4, w: 8, h: 8, px: p[0], py: p[1] });
+    }
+    return;
+  }
+  var key = scene === 5 ? 'sx' : scene === 4 ? 'net' : 'xyz', items = [], cap = phone ? 10 : 26;
+  var fs0 = phone ? 12 : 14; g2.textBaseline = 'middle'; g2.textAlign = 'left';
   var pool = scene === 4 ? NODEART : ART;
   pool.slice().sort(function (p, q) { return q.p - p.p; }).slice(0, 120).forEach(function (a) { if (!a[key]) return; items.push({ a: a, p: apos(a) }); });
   if (selA >= 0 && ART[selA][key]) { items = items.filter(function (it) { return it.a.i !== selA; }); items.unshift({ a: ART[selA], p: apos(ART[selA]) }); }
@@ -205,7 +275,7 @@ function labels() {
     g2.fillStyle = it.s ? (isSel ? '#ffffff' : '#ffd36b') : isSel ? '#ffffff' : 'rgba(239,233,255,' + Math.min(1, 0.55 + it.p[2]) + ')';
     g2.fillText(txt, x, y);
     if (it.s) { g2.fillStyle = '#ffd36b'; g2.fillRect(it.p[0] - 4, it.p[1] - 4, 8, 8); }
-    if (!it.s) LAB.push({ a: it.a, x: x, y: y - fs * 0.6, w: w, h: fs * 1.2, px: it.p[0], py: it.p[1] });
+    if (!it.s && live) LAB.push({ a: it.a, x: x, y: y - fs * 0.6, w: w, h: fs * 1.2, px: it.p[0], py: it.p[1] });
   }
 }
 function loop(now) {
@@ -213,8 +283,13 @@ function loop(now) {
   if (is3d(scene) && !drag) rotY += 0.0009;
   gl.useProgram(prog); gl.clearColor(6 / 255, 1 / 255, 15 / 255, 1); gl.clear(gl.COLOR_BUFFER_BIT);
   gl.uniform1f(U.uT, T); gl.uniform2f(U.uRes, cv.width, cv.height); gl.uniform2f(U.uRot, rotX, rotY); gl.uniform2f(U.uPtr, ptr[0] * DPR, ptr[1] * DPR); gl.uniform1f(U.uPtrOn, ptrOn); gl.uniform1f(U.uTime, now / 1000); gl.uniform1f(U.uFlow, scene === 0 ? 1 : 0);
-  gl.drawArrays(gl.POINTS, 0, N + SONG.length);
+  var xk = scene === 4 ? lookK() : 1;
+  if (xk < 1) {
+    gl.uniform1f(U.uT, 1); gl.bindBuffer(gl.ARRAY_BUFFER, bufOld); gl.vertexAttribPointer(AT.aT, 4, gl.FLOAT, false, 0, 0); gl.uniform1f(U.uA, 1 - xk); gl.drawArrays(gl.POINTS, 0, N + SONG.length);
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufTo); gl.vertexAttribPointer(AT.aT, 4, gl.FLOAT, false, 0, 0); gl.uniform1f(U.uA, xk); gl.drawArrays(gl.POINTS, 0, N + SONG.length);
+  } else { gl.uniform1f(U.uA, 1); gl.drawArrays(gl.POINTS, 0, N + SONG.length); }
   labels();
+  if (scene === 4 && T >= 1 && LOOKS && now - LKat > LKMS) setLook((LK + 1) % LOOKS.order.length, now);
   if (auto && now - autoAt > 14000) go(scene + 1);
   requestAnimationFrame(loop);
 }
