@@ -231,7 +231,7 @@
   }
 
   /* ---------- the top strip, identical on every wall: what this shows, the key, sound, where this wall sits; then the sticky nav ---------- */
-  var WALLS = [['loop', 'walk the loop'], ['two', 'the two of you'], ['taste', 'the taste test'], ['haunted', 'the haunted night'], ['seeds', 'the two seeds'], ['undo', 'undo a year'], ['blind', 'blind or named'], ['booth', 'the graveyard booth'], ['slow', 'the slow room']];
+  var WALLS = [['loop', 'walk the loop'], ['two', 'the two of you'], ['taste', 'the taste test'], ['haunted', 'the haunted night'], ['seeds', 'the two seeds'], ['undo', 'undo a year'], ['blind', 'blind or named'], ['booth', 'the graveyard booth'], ['slow', 'the slow room'], ['tug', 'tug of two hands'], ['telephone', 'telephone'], ['stutter', 'the stutter']];
   var KEYS = {
     press: ['my press', 'a play i chose by hand', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/></svg>', '#21f6bc'],
     auto: ['auto-play', 'the app\'s own next pick', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="#8b6fd6" stroke-width="2.4"/></svg>', '#8b6fd6'],
@@ -266,10 +266,10 @@
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     var s = document.createElement('div'); s.id = 'wk-strip';
     s.innerHTML = '<p class="wk-line">' + esca(line) + '</p>' + (keys.length ? '<ul class="wk-keys" aria-label="key">' : '') + keys.map(function (k) { var d = KEYS[k]; return d ? '<li style="--c:' + d[3] + '" title="' + esca(d[1]) + '">' + d[2] + d[0] + '</li>' : ''; }).join('') + (keys.length ? '</ul>' : '') +
-      '<button type="button" id="wk-snd" aria-pressed="false"></button><p class="wk-pos">wall ' + n + ' of 9 &middot; <a href="../walls/">all walls</a></p>';
-    var pv_ = WALLS[(n + 7) % 9], nx_ = WALLS[n % 9];
-    var nav = document.createElement('nav'); nav.id = 'wk-nav'; nav.setAttribute('aria-label', 'the nine walls');
-    nav.innerHTML = '<a href="../walls/">all walls</a><a class="sp" href="../' + pv_[0] + '/" rel="prev">&lsaquo; ' + ((n + 7) % 9 + 1) + '<span class="nm">&nbsp;' + pv_[1] + '</span></a><a href="../' + nx_[0] + '/" rel="next">' + (n % 9 + 1) + '<span class="nm">&nbsp;' + nx_[1] + '</span> &rsaquo;</a>';
+      '<button type="button" id="wk-snd" aria-pressed="false"></button><p class="wk-pos">wall ' + n + ' of ' + WALLS.length + ' &middot; <a href="../walls/">all walls</a></p>';
+    var L = WALLS.length, pv_ = WALLS[(n + L - 2) % L], nx_ = WALLS[n % L];
+    var nav = document.createElement('nav'); nav.id = 'wk-nav'; nav.setAttribute('aria-label', 'the walls');
+    nav.innerHTML = '<a href="../walls/">all walls</a><a class="sp" href="../' + pv_[0] + '/" rel="prev">&lsaquo; ' + ((n + L - 2) % L + 1) + '<span class="nm">&nbsp;' + pv_[1] + '</span></a><a href="../' + nx_[0] + '/" rel="next">' + (n % L + 1) + '<span class="nm">&nbsp;' + nx_[1] + '</span> &rsaquo;</a>';
     b.insertBefore(nav, b.firstChild); b.insertBefore(s, b.firstChild);
     chip = document.getElementById('wk-snd'); chipLabel();
     chip.addEventListener('click', function () { setSound(!SND); });

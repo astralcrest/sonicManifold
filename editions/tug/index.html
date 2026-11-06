@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>two hands pull one point</title>
+<meta name="description" content="two handles on one map: one pulls toward what sounds alike, one toward what i played most. a toy.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.big span.a { color: #a48cf0; } .big span.b { color: var(--mint); } .big span.c { color: var(--mute); }
+.lab2 { display: flex; gap: 18px; font: 500 12px var(--mono); margin: 8px 0 0; }
+.lab2 .a { color: #a48cf0; } .lab2 .b { color: var(--mint); }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+#reset { --acc: var(--ice); }
+</style>
+</head>
+<body data-wall="10 of 12" data-line="two pulls on one point: toward what sounds alike, toward what i played most." data-keys="auto,press,alike" style="--act: var(--rose); --acc: var(--ice)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>tug of two hands</span><span class="tl">a toy</span></p>
+    <h1>two hands pull <em>one</em> point.</h1>
+  </header>
+  <div id="map"><canvas id="cv" tabindex="0" role="img" aria-label="my sound map with a point on it. a violet ring handle on the left edge pulls the point toward what sounds alike. a mint star handle on the right edge pulls it toward the most played. the path draws as a ribbon colored by which handle was winning. keyboard: hold left arrow or right arrow."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big" id="num"><span class="c">-</span></div>
+      <span class="keylab" id="numlab">the pull ended</span>
+      <div class="lab2"><span class="a">auto-play's lean</span><span class="b">my press</span></div>
+      <p class="say" id="say">pull a handle to start. two fingers or two people.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>if you pull together you go nowhere new. a loop is two pulls that rarely disagree.</p>
+      <p class="ask"><b>open question:</b>when the pulls agree, who is steering?</p>
+    </div>
+    <section>
+      <div class="row" style="margin-top:0"><button type="button" id="reset">reset</button></div>
+      <p class="note" id="now">sound: a short preview plays when the point reaches a new artist.</p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>drag the violet ring in from the left edge, the mint star in from the right.</p>
+      <p>farther in = a harder pull. with a mouse, the left half of the map holds the ring, the right half the star.</p>
+      <p>the ribbon is violet where the ring was winning, mint where the star was.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>a toy rule on this screen, not my data. the ring pulls toward the nearest artist in sound; the star pulls toward the most played artist within reach.</p>
+      <p>the share is how far each handle moved the point. it is not a measurement of me.</p>
+      <p id="meta"></p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="tug.js"></script>
+</body>
+</html>

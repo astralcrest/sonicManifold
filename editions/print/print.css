@@ -1,0 +1,35 @@
+/* printable kiosk pages: one sheet per page, a strip of chips above it that never prints. crisp flat color, no blur, no shadow. */
+:root { --night: #06010f; --panel: #0a0517; --ink: #efe9ff; --mute: #9a90b8; --line: #241b3a; --mint: #21f6bc; --violet: #8b6fd6; --amber: #f5a623; --ice: #bcd3ff; --rose: #ff5c7a; --gold: #ffd36b; --acc: var(--ice); --stagebg: #0a0517; --edge: #241b3a; }
+body.paper { --stagebg: #e6e2ef; --edge: #b9b1cf; }
+* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html, body { margin: 0; background: var(--night); color: var(--ink); }
+body { font-family: var(--sans); font-size: 17px; line-height: 1.5; min-height: 100vh; }
+body.paper { background: var(--stagebg); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; padding: 16px 48px; background: var(--night); color: var(--ink); border-bottom: 1px solid var(--line); }
+.bar .line { flex: 1 1 300px; max-width: 560px; margin: 0; font: 500 17px/1.4 var(--sans); color: var(--ink); }
+.bar .keys { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; }
+.bar .keys li { display: inline-flex; align-items: center; gap: 7px; font: 500 13px/1.2 var(--sans); color: var(--c); }
+.bar .keys li svg { flex: none; }
+.bar .ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
+.bar .ctl a.btn, .bar .ctl button { --acc: var(--ice); }
+.bar .ctl button.go { --acc: var(--mint); }
+.bar .where { flex-basis: 100%; margin: 0; font: 500 12px var(--mono); color: var(--mute); }
+.bar .where a { color: var(--ice); }
+
+.stage { display: flex; justify-content: center; padding: 40px 24px 64px; background: var(--stagebg); }
+.sheet { width: min(var(--w, 148mm), 100%); border: 1px solid var(--edge); background: var(--night); }
+body.paper .sheet { background: #fff; }
+.sheet canvas { display: block; width: 100%; height: auto; }
+
+@media (max-width: 700px) { .bar { padding: 16px 24px; } .bar .ctl { margin-left: 0; } .stage { padding: 24px 16px 48px; } }
+
+@media print {
+  html, body { background: #fff !important; min-height: 0; }
+  body:not(.paper) { background: var(--night) !important; }
+  .bar, .sr { display: none !important; }
+  .stage { display: block; padding: 0; background: transparent; }
+  .sheet { width: var(--w) !important; border: 0; margin: 0; page-break-inside: avoid; break-inside: avoid; }
+  .sheet canvas { width: 100%; height: auto; }
+}

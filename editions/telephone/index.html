@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>telephone</title>
+<meta name="description" content="a chain of songs on my sound map, one hand per link. nobody chose the whole path. a toy.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: manipulation; cursor: pointer; }
+.lastsong { font: 600 clamp(26px, 8cqi, 40px)/1.05 var(--sans); letter-spacing: -.02em; color: var(--ice); overflow-wrap: anywhere; margin: 0 0 6px; }
+#cands { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+#cands button { --acc: var(--ice); }
+#cands button .n { font: 500 11px var(--mono); color: var(--mute); margin-right: 8px; }
+#cands button.on .n { color: var(--night); }
+#after { display: none; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+#after.show { display: flex; }
+#nw { --acc: var(--line); color: var(--mute); }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+</style>
+</head>
+<body data-wall="11 of 12" data-line="a chain of songs, one hand per link. each hand saw only the last song." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>telephone</span><span class="tl">a toy</span></p>
+    <h1>who made <em>this</em> path?</h1>
+  </header>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. a ribbon shows a chain of songs, one link per visitor. six pebbles around the last song are its nearest in sound; tap one to add the next link."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big ice" id="num">-</div>
+      <span class="keylab" id="numlab">steps from the start</span>
+      <p class="say" id="say"></p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>nobody chose the whole path, and nobody can say whose it is.</p>
+      <p class="ask"><b>open question:</b>is a night of listening any different?</p>
+    </div>
+    <section>
+      <p class="lastsong" id="last"></p>
+      <p class="note" id="now">the last song is ringed. pick one of the six that sound closest to it.</p>
+      <div id="cands" role="group" aria-label="six nearest in sound; press a number key or tap one"></div>
+      <div id="after"><button type="button" id="pc">play the chain</button><button type="button" id="kg">keep going</button></div>
+      <div class="row"><button type="button" id="nw">new chain</button></div>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>each visitor sees only the last song and its six nearest in sound.</p>
+      <p>tap one and the chain grows a link. the next visitor starts from it.</p>
+      <p>at ten hands the chain can play through, a few seconds each.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>a toy rule on this screen, not my data. the six are the nearest artists on my sound map, not what anyone would pick next.</p>
+      <p>steps are counted in the neighbor graph: each artist joined to its six nearest. the toy rule alone always takes the nearest one it has not visited.</p>
+      <p>the chain is kept in this browser until someone taps new chain. previews are 30 s clips and only play with sound on.</p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="telephone.js"></script>
+</body>
+</html>

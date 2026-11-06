@@ -1,0 +1,97 @@
+(function () {
+'use strict';
+var $ = WK.$, P = WK.P, PAL = P.PAL;
+var CLIP = 1500, N = 100;
+var KIND = { press: { col: PAL.mint, gly: 'star', lab: 'my press' }, queue: { col: PAL.violet, gly: 'ring', lab: 'auto-play' }, shuffle: { col: PAL.amber, gly: 'diamond', lab: 'shuffle' } };
+var cv = $('cv'), g = cv.getContext('2d'), box = $('map');
+var plays = [], names = null, PV = null, AU = new Audio(), PRE = new Audio(), idx = 0, held = false, timer = null, W = 0, Ht = 0, dpr = 1;
+AU.preload = 'auto'; AU.volume = 0.3; PRE.preload = 'auto'; PRE.volume = 0;
+
+function resize() {
+  dpr = Math.min(3, window.devicePixelRatio || 1); W = Math.max(200, box.clientWidth); Ht = Math.max(200, box.clientHeight);
+  cv.width = Math.round(W * dpr); cv.height = Math.round(Ht * dpr); cv.style.width = W + 'px'; cv.style.height = Ht + 'px';
+  draw();
+}
+function draw() {
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.globalAlpha = 1; g.fillStyle = PAL.night; g.fillRect(0, 0, W, Ht);
+  if (!plays.length) return;
+  var fin = idx >= N && !held, cx = W / 2, cy = Ht / 2, R = Math.min(W, Ht) / 2 - (W < 500 ? 30 : 46), r0 = Math.max(5, R * 0.052), k, a, x, y, p, kd, on;
+  for (k = 0; k < plays.length; k++) {
+    p = plays[k]; kd = KIND[p.src]; a = -Math.PI / 2 + k * 6.2832 / plays.length; x = cx + Math.cos(a) * R; y = cy + Math.sin(a) * R;
+    on = !fin && (held || idx > 0) && k === idx;
+    if (k < idx) { g.globalAlpha = 0.82; P.peb(g, p.i, x, y, r0, kd.col); g.globalAlpha = 1; }
+    else if (on) { P.peb(g, p.i, x, y, r0 * 1.7, kd.col); P.glyph(g, kd.gly, x, y, r0 * 2.2, PAL.night); g.save(); g.strokeStyle = kd.col; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, r0 * 2.5, 0, 6.2832); g.stroke(); g.restore(); }
+    else { g.globalAlpha = 0.5; P.peb(g, p.i, x, y, r0 * 0.85, '#3a3158'); g.globalAlpha = 1; }
+  }
+  var cur = plays[Math.min(plays.length - 1, idx)];
+  g.textAlign = 'center';
+  if (!fin && (idx > 0 || held)) {
+    var kd2 = KIND[cur.src];
+    P.glyph(g, kd2.gly, cx, cy - 18, Math.min(34, R * 0.2), kd2.col);
+    g.fillStyle = PAL.ink; g.font = '600 ' + (W < 500 ? 17 : 22) + 'px "Instrument Sans", sans-serif'; g.fillText(trim(names[cur.i] || '', 22), cx, cy + R * 0.2);
+    g.fillStyle = kd2.col; g.font = '500 12px "IBM Plex Mono", monospace'; g.fillText(kd2.lab, cx, cy + R * 0.2 + 22);
+    g.fillStyle = PAL.mute || '#9a90b8'; g.fillText((idx + 1) + ' of ' + N, cx, cy + R * 0.2 + 42);
+  } else {
+    g.fillStyle = PAL.ink; g.font = '500 ' + (W < 500 ? 15 : 18) + 'px "Instrument Sans", sans-serif'; g.fillText('hold to hear a night', cx, cy);
+  }
+}
+function trim(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+function clipOf(i) { return PV && PV[i] ? PV[i][1] : null; }
+function preload(k) { var p = plays[k]; if (p && clipOf(p.i)) { try { PRE.src = clipOf(p.i); } catch (e) {} } }
+
+function playAt() {
+  clearTimeout(timer);
+  if (!held) return;
+  if (idx >= N) { held = false; end(); return; }
+  var p = plays[idx], u = clipOf(p.i);
+  if (u) { AU.src = u; var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {}); }
+  else AU.pause();
+  $('now').textContent = (u ? 'hearing ' + (PV[p.i][0] || '') + ' by ' : 'no clip for ') + (names[p.i] || '');
+  preload(idx + 1); draw(); counts();
+  timer = setTimeout(function () { idx++; playAt(); }, CLIP);
+}
+function end() {
+  AU.pause(); $('hold').classList.remove('go'); $('hold').setAttribute('aria-pressed', 'false'); $('hold').textContent = 'hold to hear again';
+  $('now').textContent = 'that was a night. hold again to hear it again.'; draw();
+}
+function press() {
+  if (held || !plays.length) return;
+  if (idx >= N) idx = 0;
+  held = true; $('hold').classList.add('go'); $('hold').setAttribute('aria-pressed', 'true'); $('hold').textContent = 'hearing...'; playAt();
+}
+function release() {
+  if (!held) return;
+  held = false; clearTimeout(timer); AU.pause();
+  $('hold').classList.remove('go'); $('hold').setAttribute('aria-pressed', 'false'); $('hold').textContent = 'hold to hear';
+  if (idx > 0) idx = Math.min(idx, N); draw();
+}
+function counts() {
+  var c = { press: 0, queue: 0, shuffle: 0 }; plays.forEach(function (p) { c[p.src]++; });
+  $('c-press').textContent = c.press; $('c-auto').textContent = c.queue; $('c-shuf').textContent = c.shuffle;
+  $('numlab').textContent = 'of these ' + plays.length + ' plays';
+}
+
+var hb = $('hold');
+hb.addEventListener('pointerdown', function (e) { try { hb.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); press(); });
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (ev) { hb.addEventListener(ev, release); });
+cv.addEventListener('pointerdown', function (e) { try { cv.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); press(); });
+['pointerup', 'pointercancel'].forEach(function (ev) { cv.addEventListener(ev, release); });
+hb.addEventListener('keydown', function (e) { if (e.key === ' ' || e.key === 'Enter') e.preventDefault(); });
+addEventListener('keydown', function (e) { if (e.code === 'Space' && !e.repeat && !e.metaKey && !e.ctrlKey) { e.preventDefault(); press(); } });
+addEventListener('keyup', function (e) { if (e.code === 'Space') { e.preventDefault(); release(); } });
+$('again').addEventListener('click', function () { release(); idx = 0; hb.textContent = 'hold to hear'; $('now').textContent = ''; draw(); });
+var rt;
+addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 80); });
+
+Promise.all([WK.j('../haunted/data/haunted.json'), WK.j('../loop/data/loop.json'), WK.pv()]).then(function (a) {
+  var ev = a[0].ev, k, used = 0;
+  names = a[1].n; PV = a[2];
+  for (k = 0; k < ev.length && plays.length < N; k++) {
+    used++;
+    ev[k].p.forEach(function (p) { if (plays.length < N && KIND[p[2]]) plays.push({ i: p[0], src: p[2] }); });
+  }
+  $('fp1').textContent = 'this ring is ' + plays.length + ' plays from ' + used + ' evenings in my log, in the order they happened.';
+  counts(); resize();
+}).catch(function () { $('say').textContent = 'the data did not load. reload the page.'; });
+})();
