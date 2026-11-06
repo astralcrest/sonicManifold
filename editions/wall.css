@@ -1,0 +1,44 @@
+:root { --night: #06010f; --ink: #efe9ff; --mute: #9a90b8; --line: #2a2140; --mint: #21f6bc; --amber: #f5a623; --violet: #8b6fd6; --ice: #bcd3ff; --rose: #ff5c7a; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--night); color: var(--ink); }
+body { font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.45; }
+.mono, output, .eyebrow, .note, #now, nav.walls, label.k, .sw { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+.wrap { display: grid; grid-template-columns: minmax(0, 1fr) 420px; height: 100vh; height: 100dvh; }
+#map { position: relative; min-height: 0; overflow: hidden; }
+#map canvas { display: block; }
+#side { overflow-y: auto; padding: 18px 24px 28px; border-left: 1px solid var(--line); }
+.eyebrow { font-size: 11px; letter-spacing: .08em; color: var(--mute); margin: 0 0 8px; }
+h1 { font-size: 21px; line-height: 1.2; font-weight: 600; margin: 0 0 8px; }
+p { margin: 0 0 8px; }
+.lead { color: #d8d0ee; }
+.note { font-size: 11px; color: var(--mute); margin: 8px 0 0; line-height: 1.5; }
+section { border-top: 1px solid var(--line); padding: 12px 0; }
+.big { font: 600 40px/1 'Instrument Sans', sans-serif; margin: 4px 0 6px; }
+.big.mint { color: var(--mint); } .big.amber { color: var(--amber); } .big.ink { color: var(--ink); }
+.k { font-size: 11px; color: var(--mute); letter-spacing: .06em; display: block; margin-bottom: 4px; }
+input[type=text] { width: 100%; min-height: 44px; background: transparent; color: var(--ink); border: 1px solid var(--line); padding: 8px 10px; font: 500 15px 'Instrument Sans', sans-serif; border-radius: 0; }
+input[type=text]:focus-visible, button:focus-visible, a:focus-visible, input[type=range]:focus-visible { outline: 1px solid var(--ice); outline-offset: 2px; }
+.sw { display: inline-block; width: 9px; height: 9px; margin-right: 6px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+button, a.btn { font: 500 14px 'Instrument Sans', sans-serif; color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 6px 14px; min-height: 44px; min-width: 44px; border-radius: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+button.go { background: var(--ice); color: var(--night); border-color: var(--ice); }
+button[aria-pressed="true"] { background: var(--ink); color: var(--night); }
+.msg { font-size: 12px; color: var(--mute); margin: 4px 0 0; min-height: 18px; }
+.msg button { min-height: 44px; margin: 4px 6px 0 0; font-size: 13px; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; margin: 0; cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { height: 1px; background: var(--mute); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; margin-top: -6px; background: var(--ink); border: 0; border-radius: 0; }
+input[type=range]::-moz-range-track { height: 1px; background: var(--mute); }
+input[type=range]::-moz-range-thumb { width: 12px; height: 12px; background: var(--ink); border: 0; border-radius: 0; }
+#now { font-size: 11px; color: var(--mute); margin: 8px 0 0; min-height: 16px; }
+.tl { display: inline-block; font: 600 11px 'IBM Plex Mono', monospace; letter-spacing: .06em; border: 1px solid var(--amber); color: var(--amber); padding: 2px 8px; margin-bottom: 8px; }
+a { color: var(--ice); }
+nav.walls { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 500 12px/1 'IBM Plex Mono', monospace; letter-spacing: .04em; margin: 0 0 10px; }
+nav.walls a { color: #bcd3ff; text-decoration: none; border-bottom: 1px solid #2a2140; display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; }
+nav.walls a[aria-current] { color: #21f6bc; border-color: #21f6bc; }
+@media (max-width: 900px) {
+  .wrap { display: block; height: auto; }
+  #map { position: sticky; top: 0; z-index: 1; height: min(100vw, 46vh); background: var(--night); border-bottom: 1px solid var(--line); }
+  #side { border: 0; padding: 14px 16px 32px; overflow: visible; }
+  .big { font-size: 34px; }
+}

@@ -265,9 +265,9 @@ h1 { margin: 0; font-weight: 600; font-size: 21px; line-height: 1.16; letter-spa
         var grp = LK[k], col = FAMC[D.fam[grp.f]] || '#6f6790';
         g.beginPath();
         for (i = 0; i < grp.L.length; i++) { var l = grp.L[i]; curve(l[0], l[1], 0.16, CB); g.moveTo(CB[0], CB[1]); g.quadraticCurveTo(CB[2], CB[3], CB[4], CB[5]); }
-        var lw = [0.6, 1.1, 1.9][grp.t] * (phone ? 0.85 : 1);
-        g.lineWidth = lw; g.strokeStyle = col; g.setLineDash([]); g.globalAlpha = [0.06, 0.1, 0.17][grp.t]; g.stroke();
-        g.setLineDash([2.5, 11]); g.lineDashOffset = off; g.globalAlpha = [0.24, 0.45, 0.75][grp.t]; g.stroke();
+        var lw = [1.2, 1.9, 3][grp.t] * (phone ? 0.85 : 1);
+        g.lineWidth = lw; g.strokeStyle = col; g.setLineDash([]); g.globalAlpha = [0.16, 0.26, 0.4][grp.t]; g.stroke();
+        g.setLineDash([2.5, 11]); g.lineDashOffset = off; g.globalAlpha = [0.45, 0.7, 0.95][grp.t]; g.stroke();
       }
       g.setLineDash([]); g.globalAlpha = 1;
     }

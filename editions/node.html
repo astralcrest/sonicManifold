@@ -38,7 +38,7 @@ button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
 #dots i.on{background:var(--ink);border-color:var(--ink)}
 #leg{display:none;gap:8px 14px;flex-wrap:wrap;font:12px/1.2 var(--mono);color:var(--mute);grid-column:1/-1}
 #leg span{display:inline-flex;align-items:center;gap:6px}#leg i{width:8px;height:8px;display:inline-block}#leg i.l{width:18px;height:0;border-top:2px solid}
-#leg span.e{display:none}body.net #leg span.e{display:inline-flex}
+#leg span.e{display:none}body.net #leg span.e{display:inline-flex}#leg i.gs{width:12px;height:12px;background:#ffd36b;outline:1.5px solid #ffd36b;outline-offset:2px;margin-right:3px}#leg span.g6{display:none;color:#ffd36b}body.sg #leg span.g6{display:inline-flex}body.sg #leg{display:flex}body.sg #leg span:not(.g6){display:none}
 body.fam #leg{display:flex}
 @media (max-width:720px){#band{grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;padding:10px 16px calc(8px + env(safe-area-inset-bottom));gap:6px}#ctl{justify-content:flex-start}#cap{font-size:15px;max-width:none}#how{font-size:11px;line-height:1.35}#leg{font-size:11px;gap:4px 10px}#pv{font-size:12px}}
 #home{position:fixed;right:24px;top:12px;display:flex;gap:14px;font:12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;z-index:5}#home a{color:var(--mute);text-decoration:none;padding:6px 0;min-height:24px}#home a:hover,#home a:focus-visible{color:var(--ink,#efe9ff)}#home{background:var(--night,#06010f);padding:0 10px}#home a{min-height:44px;display:inline-flex;align-items:center}@media (max-width:640px){#home{right:auto;left:14px;top:40px;gap:12px;font-size:11px}}
@@ -83,7 +83,7 @@ var CAPS = [
   ['scene 2 of 6 · who pressed play', 'sorted by hand. <b class="m">i pressed play on 19 of every 100.</b> <b class="a">shuffle picked 17.</b> <b class="v">the app chose 64.</b> by the strictest count, my own presses are 11.5.'],
   ['scene 3 of 6 · the shape of a taste', 'the plays land on their artists: <b>1,986 of them</b>, placed near the ones they shared evenings with. the app pools in one corner. drag to turn. tap a name to hear it.'],
   ['scene 4 of 6 · the families', 'the same map by genre family. <b>ambient and lo-fi reach me through the app.</b> <b>hip-hop and r&amp;b i reach for.</b> everything else, both hands alike.'],
-  ['scene 5 of 6 · who led to whom', 'the 388 artists i played 50 times or more, joined when one play followed the other. <b class="m">mint line: my presses make that step more often than the app does.</b> <b class="v">violet: the app does.</b> tap a name: its lines light and it plays.'],
+  ['scene 5 of 6 · who led to whom', 'the 388 artists i played 50 times or more, joined when one play followed the other. <b class="m">mint line: my presses make that step more often than the app does.</b> <b class="v">violet: the app does.</b> <b class="a">amber: both about alike.</b> a thicker line is a step taken more often. tap a name: its lines light and it plays.'],
   ['scene 6 of 6 · what sounds alike', 'placed by sound instead, a map made from the audio itself. <b class="g">the gold squares are my own 23 songs.</b> tap one and it plays.']
 ];
 var HOW = [
@@ -129,10 +129,10 @@ function edgeLayer(lk) {
   var dim = Object.keys(ECACHE).length > 24; if (dim) ECACHE = {};
   EDGES.forEach(function (e, k) {
     var on = selA < 0 || e.a.i === selA || e.b.i === selA, q = Math.sqrt(e.n / EMAX);
-    var base = L === 'B' ? 0.72 : e.mine ? 0.85 * (0.5 + 0.5 * q) : 0.55 * (0.45 + 0.55 * q);
+    var base = L === 'B' ? 0.9 : 0.72 + 0.28 * q;
     if (L === 'C' && o.cl[e.a.ni] !== o.cl[e.b.ni]) base *= 0.35; // islands read first; links across them stay, quieter
-    g.strokeStyle = (e.mine ? 'rgba(33,246,188,' : 'rgba(139,111,214,') + (selA < 0 ? base : on ? 1 : 0.1) + ')';
-    var lw = L === 'B' ? 1 : L === 'A' ? 0.4 + 3.2 * q : L === 'F' ? 0.4 + 2 * q : 0.5 + 2.2 * q; if (on && selA >= 0) lw = Math.max(lw, 2); g.lineWidth = lw;
+    g.strokeStyle = ['rgba(33,246,188,', 'rgba(245,166,35,', 'rgba(139,111,214,'][e.cls] + (selA < 0 ? base : on ? 1 : 0.1) + ')';
+    var lw = L === 'B' ? 1.2 + 2.4 * q : L === 'A' ? 1 + 3.4 * q : L === 'F' ? 1 + 2.4 * q : 1 + 2.6 * q; if (on && selA >= 0) lw = Math.max(lw, 2); g.lineWidth = lw;
     var p = lookXY(e.a, lk), r = lookXY(e.b, lk); g.beginPath();
     if ((L === 'R' || L === 'F') && o.e[k]) { var pl = o.e[k]; g.moveTo(b[0] + pl[0] / 9999 * b[2], b[1] + pl[1] / 9999 * b[3]); for (var i = 2; i < pl.length; i += 2) g.lineTo(b[0] + pl[i] / 9999 * b[2], b[1] + pl[i + 1] / 9999 * b[3]); }
     else if (L === 'T') { var xa = Math.min(p[0], r[0]), xb = Math.max(p[0], r[0]), rr = Math.max(0.5, (xb - xa) / 2); if (e.mine) g.ellipse((xa + xb) / 2, p[1], rr, rr * tk, 0, Math.PI, 2 * Math.PI); else g.ellipse((xa + xb) / 2, p[1], rr, rr * tk, 0, 0, Math.PI); }
@@ -152,7 +152,7 @@ function build(j) {
   ART = A.map(function (a, i) { return { n: a[0], f: a[1], t: a[2], s: a[3], v: a[4], p: a[2] + a[3] + a[4], xyz: a[5], sx: a[6], i: i, net: null, deg: 0 }; });
   SONG = j.s.map(function (s) { return { t: s[0], f: s[1], xyz: s[2] }; });
   NET = j.net; NODEART = NET.nodes.map(function (nd, k) { var a = ART[nd[0]]; a.net = [nd[1], nd[2]]; a.ni = k; return a; });
-  EDGES = NET.edges.map(function (e) { var a = NODEART[e[0]], b = NODEART[e[1]]; a.deg++; b.deg++; var tr = e[2] / NET.tap_total, ar = e[3] / NET.auto_total; return { a: a, b: b, n: e[2] + e[3], mine: tr > ar }; });
+  EDGES = NET.edges.map(function (e) { var a = NODEART[e[0]], b = NODEART[e[1]]; a.deg++; b.deg++; var tr = e[2] / NET.tap_total, ar = e[3] / NET.auto_total; var rt = tr / Math.max(ar, 1e-9); return { a: a, b: b, n: e[2] + e[3], mine: tr > ar, cls: rt > 1.5 ? 0 : rt < 0.67 ? 2 : 1 }; });
   EDGES.forEach(function (e) { EMAX = Math.max(EMAX, e.n); });
   var NS = SONG.length, NT = N + NS;
   pArt = new Int32Array(NT); pHand = new Uint8Array(NT); pJit = new Float32Array(NT * 3);
@@ -160,7 +160,7 @@ function build(j) {
   ART.forEach(function (a, i) { [a.t, a.s, a.v].forEach(function (c, h) { for (var q = 0; q < c; q++) { pArt[k] = i; pHand[k] = h; pJit[k * 3] = mul(k, 7) - 0.5; pJit[k * 3 + 1] = mul(k, 13) - 0.5; pJit[k * 3 + 2] = mul(k, 29) - 0.5; k++; } }); });
   for (var s = 0; s < NS; s++) { pArt[N + s] = -1 - s; pHand[N + s] = 3; }
   FROM = new Float32Array(NT * 4); TO = new Float32Array(NT * 4); CF = new Float32Array(NT * 3); CT = new Float32Array(NT * 3); DEL = new Float32Array(NT); SIZ = new Float32Array(NT);
-  for (var i = 0; i < NT; i++) { DEL[i] = mul(i, 3); SIZ[i] = (i >= N ? 7 : 2) * DPR; }
+  for (var i = 0; i < NT; i++) { DEL[i] = mul(i, 3); SIZ[i] = (i >= N ? 12 : 2) * DPR; }
   // scale the two maps the way the front does (median, 4 to 96 pct, clamp)
   ['xyz', 'sx'].forEach(function (key) { for (var ax = 0; ax < 3; ax++) { var v = ART.filter(function (a) { return a[key]; }).map(function (a) { return a[key][ax]; }).sort(function (p, q) { return p - q; }); var n = v.length, med = v[n >> 1], lo = v[Math.floor(n * .04)], hi = v[Math.floor(n * .96)], sc = Math.max(hi - med, med - lo) || 1; ART.forEach(function (a) { if (a[key]) a[key][ax] = Math.max(-1.6, Math.min(1.6, (a[key][ax] - med) / sc * 0.95)); }); } });
   OLDTO = new Float32Array(NT * 4); bufOld = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bufOld); gl.bufferData(gl.ARRAY_BUFFER, OLDTO, gl.DYNAMIC_DRAW);
@@ -220,9 +220,12 @@ function go(s) {
 function legend() {
   var fams = ART.reduce(function (m, a) { m[a.f] = (m[a.f] || 0) + a.p; return m; }, {}), L = $('leg');
   Object.keys(fams).filter(function (f) { return FAMC[f] && f !== 'untagged' && f !== 'other'; }).sort(function (p, q) { return fams[q] - fams[p]; }).slice(0, 12).forEach(function (f) { var sp = document.createElement('span'); sp.innerHTML = '<i style="background:' + FAMC[f] + '"></i>' + f; L.appendChild(sp); });
-  [['#21f6bc', 'line: my press, more often'], ['#8b6fd6', 'line: the app, more often']].forEach(function (e) { var sp = document.createElement('span'); sp.className = 'e'; sp.innerHTML = '<i class="l" style="border-color:' + e[0] + '"></i>' + e[1]; L.appendChild(sp); });
+  var ln = function (c, w, t) { return '<i class="l" style="border-top-width:' + w + 'px;border-color:' + c + '"></i>' + t; };
+  var e1 = document.createElement('span'); e1.className = 'e'; e1.innerHTML = ln('#21f6bc', 3, 'my press') + ' ' + ln('#8b6fd6', 3, 'the queue') + ' ' + ln('#f5a623', 3, 'both'); L.appendChild(e1);
+  var e2 = document.createElement('span'); e2.className = 'e'; e2.innerHTML = ln('#bcd3ff', 1, 'rare') + ' ' + ln('#bcd3ff', 4, 'often') + ' <i style="width:4px;height:4px;background:#efe9ff"></i><i style="width:8px;height:8px;background:#efe9ff"></i><i style="width:12px;height:12px;background:#efe9ff"></i>plays'; L.appendChild(e2);
+  var gs = document.createElement('span'); gs.className = 'g6'; gs.innerHTML = '<i class="gs"></i>my songs'; L.appendChild(gs);
 }
-function setCap(s) { $('k').textContent = CAPS[s][0]; $('cap').innerHTML = CAPS[s][1]; $('how').innerHTML = HOW[s]; document.body.classList.toggle('fam', s === 3 || s === 4); document.body.classList.toggle('net', s === 4); var ds = $('dots').children; for (var i = 0; i < NSC; i++) ds[i].className = i === s ? 'on' : ''; if (fit() && D) layout(scene, true); }
+function setCap(s) { $('k').textContent = CAPS[s][0]; $('cap').innerHTML = CAPS[s][1]; $('how').innerHTML = HOW[s]; document.body.classList.toggle('fam', s === 3 || s === 4); document.body.classList.toggle('net', s === 4); document.body.classList.toggle('sg', s === 5); var ds = $('dots').children; for (var i = 0; i < NSC; i++) ds[i].className = i === s ? 'on' : ''; if (fit() && D) layout(scene, true); }
 function proj3(p) { var cx = Math.cos(rotX), sx = Math.sin(rotX), cy = Math.cos(rotY), sy = Math.sin(rotY); var x = p[0] * cy - p[2] * sy, z = p[0] * sy + p[2] * cy, y = p[1] * cx - z * sx; z = p[1] * sx + z * cx; var d = 1 / (1.9 + z), R = Math.min(W, H) * 0.46; return [W * 0.5 + x * R * d * 1.9, H * 0.5 + y * R * d * 1.9, d]; }
 function labels() {
   g2.setTransform(DPR, 0, 0, DPR, 0, 0); g2.clearRect(0, 0, W, H); LAB = []; g2.globalAlpha = 1;
@@ -274,7 +277,7 @@ function names(lk, live) {
     var isSel = it.s ? sel === SONG.indexOf(it.s) : it.a.i === selA;
     g2.fillStyle = it.s ? (isSel ? '#ffffff' : '#ffd36b') : isSel ? '#ffffff' : 'rgba(239,233,255,' + Math.min(1, 0.55 + it.p[2]) + ')';
     g2.fillText(txt, x, y);
-    if (it.s) { g2.fillStyle = '#ffd36b'; g2.fillRect(it.p[0] - 4, it.p[1] - 4, 8, 8); }
+    if (it.s) { g2.fillStyle = '#ffd36b'; g2.fillRect(it.p[0] - 6, it.p[1] - 6, 12, 12); g2.strokeStyle = '#ffd36b'; g2.lineWidth = 1.5; g2.strokeRect(it.p[0] - 10, it.p[1] - 10, 20, 20); }
     if (!it.s && live) LAB.push({ a: it.a, x: x, y: y - fs * 0.6, w: w, h: fs * 1.2, px: it.p[0], py: it.p[1] });
   }
 }

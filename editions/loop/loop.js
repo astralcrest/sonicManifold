@@ -49,7 +49,8 @@ function dist(M, a, b) {
 
 var C = [], SIM = [], RUN = [], SC = [];
 function add(M, j, st) {
-  if (j < 0 || M.mark[j] === st) return j < 0 ? -1 : M.idx[j];
+  if (j < 0 || (M.skip && M.skip[j])) return -1;
+  if (M.mark[j] === st) return M.idx[j];
   M.mark[j] = st; M.idx[j] = C.length; C.push(j); SIM.push(-1); RUN.push(0);
   return C.length - 1;
 }

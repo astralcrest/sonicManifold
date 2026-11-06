@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>undo the year</title>
+<meta name="description" content="take one year of artists out of the fitted rule and rerun it: which rooms of the map does the path stop entering. a toy, labeled.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+#years { display: flex; flex-wrap: wrap; gap: 6px; }
+#years button { min-width: 62px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+#years button[aria-checked="true"] { background: var(--amber); color: var(--night); border-color: var(--amber); }
+.key { font: 11px/1.7 'IBM Plex Mono', monospace; color: var(--mute); }
+.key i { display: inline-block; width: 18px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 6px; }
+.key i.d { border-top-style: dashed; } .key b { display: inline-block; width: 5px; height: 5px; background: var(--rose); margin: 0 8px 1px 6px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map with the machine's 40-step path in mint and the same rule rerun with one year of first-heard artists removed in dashed amber"></canvas></div>
+  <main id="side">
+    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/" aria-current="page">undo the year</a></nav>
+    <p class="eyebrow">undo the year · one wall of the machine</p>
+    <span class="tl">a toy, labeled</span>
+    <h1>take one year out. what would the same rule have grown instead?</h1>
+    <section>
+      <span class="k" id="yl">tap a year to remove</span>
+      <div id="years" role="radiogroup" aria-labelledby="yl"></div>
+      <p class="key" style="margin:10px 0 0"><i style="border-color:var(--mint)"></i>as it grew &nbsp; <i class="d" style="border-color:var(--amber)"></i>with that year removed<br><b></b>the artists taken out</p>
+    </section>
+    <section aria-live="polite">
+      <span class="k">rooms the field loses</span>
+      <div class="big amber" id="big">-</div>
+      <p id="say">loading my map</p>
+      <p class="note" id="more"></p>
+    </section>
+    <section>
+      <div class="row" style="margin-top:0">
+        <button type="button" id="again">another start</button>
+        <button type="button" id="hear" aria-pressed="false">hear the first difference</button>
+        <a class="btn" href="../../" id="back">back</a>
+      </div>
+      <p id="now"></p>
+      <p class="note" id="how"></p>
+      <p class="note">previews are Apple's 30 seconds, only after a tap, one at a time. nothing is stored.</p>
+    </section>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="undo.js"></script>
+</body>
+</html>

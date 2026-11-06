@@ -42,7 +42,8 @@ if(!own[base])location.replace('lab.html'+h);
 <link rel="preload" as="fetch" crossorigin href="front/data/field.json?v=24ef332630">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preload" as="script" href="front/field.js?v=9900b21068">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
 <style>
 :root{--bg:#06010f;--panel:#0d0719;--card:#120a22;--ink:#efe9ff;--dim:#9a90b8;--mute:#9a90b8;--line:#2a2140;--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;--sans:"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--col:clamp(380px,34vw,560px);--top:52dvh}
 *{box-sizing:border-box}
@@ -56,7 +57,16 @@ canvas#field{display:block;width:100%;height:100%;touch-action:none;-webkit-touc
 .top .brand{color:var(--ink);text-decoration:none;font-weight:500;min-height:40px;display:inline-flex;align-items:center;white-space:nowrap;background:var(--bg);padding:0 8px;margin-left:-8px}
 .top .brand small{font-weight:400;color:var(--dim);margin-left:.6em}
 @media (max-width:419px){.top .brand small{display:none}}
-#zc{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:96px;z-index:5;display:flex;gap:6px}#zc[hidden]{display:none}@media (max-width:899px){#zc{right:max(46px,env(safe-area-inset-right))}}
+#zc{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:96px;z-index:5;display:flex;gap:6px;align-items:flex-end}#zc[hidden]{display:none}@media (max-width:899px){#zc{right:max(46px,env(safe-area-inset-right));bottom:84px}}
+#zc .chip{min-width:44px;min-height:44px;padding:0;justify-content:center;gap:0}
+#zc .chip svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;display:block}
+#zc .chip.on{background:var(--mint);color:var(--bg)}
+#zc .zf{position:absolute;right:0;bottom:50px;display:flex}#zc .zf[hidden]{display:none}
+#zc .zf input{width:min(240px,calc(100vw - 100px));min-height:44px;padding:0 12px;border:1px solid var(--mint);border-radius:3px;background:var(--bg);color:var(--ink);font:400 14px/1 var(--sans)}
+#now:empty{display:none}.game .row,#album .row{margin-bottom:0}
+#kw{margin:12px 0 0}#kw canvas{display:block;max-width:100%}#kw .chip{min-height:40px;margin:0 0 6px}#kw{margin:6px 0 0}#kw[hidden],#kw canvas[hidden]{display:none}
+#gk{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:146px;z-index:5;max-width:min(380px,calc(100vw - 60px));padding:8px 12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);font:500 11px/1.5 var(--mono);letter-spacing:.03em;opacity:0;transition:opacity .5s;pointer-events:none}#gk.on{opacity:1}
+@media (max-width:899px){#gk{right:max(46px,env(safe-area-inset-right));bottom:136px}}
 #hint{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:10px;z-index:4;font:500 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--mint);background:var(--bg);padding:4px 8px 4px 0;pointer-events:none}
 #hint:empty{display:none}
 @media (max-width:899px){#hint{display:none}}
@@ -122,6 +132,17 @@ ul.dead li small{display:block;color:var(--dim);font:400 11.5px/1.4 var(--mono)}
 .plate ul.dead small{display:none}
 html:not([data-scene=hoods]) #key2{display:none}
 .plate .r:empty{display:none}
+/* the two pills: the act's own color, no box, a crisp chevron on the drawer one */
+html[data-scene=count]{--dac:var(--ice)}html[data-scene=hand]{--dac:var(--mint)}html[data-scene=maps]{--dac:var(--ice)}html[data-scene=hoods]{--dac:var(--violet)}html[data-scene=keep]{--dac:var(--mint)}html[data-scene=coda]{--dac:var(--amber)}html[data-scene=record]{--dac:var(--gold)}
+#b-deep,.chip.tm{-webkit-appearance:none;appearance:none;border:0;border-radius:22px;min-height:44px;padding:0 18px;font:500 12px/1 'IBM Plex Mono',ui-monospace,Menlo,monospace;letter-spacing:.06em;outline:0;background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);--c:var(--dac,var(--ice));transition:background .2s ease,color .2s ease}
+.chip.tm{--c:var(--ac,var(--mint))}
+#b-deep:hover,.chip.tm:hover{background:color-mix(in srgb,var(--c) 28%,transparent)}
+#b-deep.on,.chip.tm.on{background:var(--c);color:var(--bg);border:0}
+#b-deep:focus-visible,.chip.tm:focus-visible{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--c)}
+#b-deep::after{content:"";width:6px;height:6px;margin-left:2px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s ease}
+#b-deep.on::after{transform:translateY(2px) rotate(-135deg)}
+@keyframes dr-in{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+.dr{animation:dr-in .2s ease-out}
 #whose #w-q{display:none}#whose:has(#w-ans:not([hidden])) #w-q,#whose:has(#w-start[hidden]) #w-q{display:block}
 /* the drawer: one act's deeper layer at a time, never over the field on a phone */
 .dr{display:none;position:fixed;z-index:10;overflow-y:auto;overscroll-behavior:contain;background:var(--panel);pointer-events:auto;left:0;right:0;top:var(--top);bottom:0;border-top:2px solid var(--ac,var(--mint));padding:14px max(16px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
@@ -129,7 +150,8 @@ html.drawer[data-scene=count] #a-count .dr,html.drawer[data-scene=hand] #a-hand 
 .dh{display:flex;align-items:center;gap:12px;margin:0 0 18px;font:600 20px/1.1 var(--sans);letter-spacing:-.01em}
 .dh b{font:500 12px/1 var(--mono);letter-spacing:.1em;color:var(--ac,var(--mint))}
 .dh .x{margin-left:auto;min-height:36px;padding:0 12px;font-size:11px;color:var(--dim)}
-.dr .led{background:transparent;border:0;border-left:1px solid var(--line);padding:2px 0 2px 14px;margin:0 0 22px}
+.dr .led{background:transparent;border:0;border-left:1px solid var(--line);padding:2px 0 2px 14px;margin:0 0 28px}
+.led .w,.led .w+span,.led .s,.led .s+span{display:none}
 .dr .so{margin:0 0 16px}
 .dr .how{margin:20px 0 0;line-height:1.6}
 .dr .key{margin:0 0 18px}
@@ -140,22 +162,26 @@ html.drawer[data-scene=count] #a-count .dr,html.drawer[data-scene=hand] #a-hand 
 ol.steps{margin:20px 0 0;padding:0;list-style:none;counter-reset:st;display:grid;gap:10px}
 ol.steps li{counter-increment:st;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;font:400 13px/1.45 var(--sans);color:var(--ink);opacity:.9}
 ol.steps li::before{content:counter(st);font:500 11px/1.6 var(--mono);color:var(--ac,var(--mint))}
-/* the deep cards: one big line, one plain reading, at most three rows */
-details.deep{margin:0 0 14px;border:0;border-left:3px solid var(--ac,var(--mint));background:var(--bg)}
-details.deep summary{display:block;cursor:pointer;list-style:none;padding:18px 20px 14px}
+/* decorative frames are soft hand-drawn outlines; text boxes stay rectangular inside them */
+.plate,.game,details.deep{--org:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M2 1C30 .2 70 1.6 98 .6C99.4 30 98.6 70 99.4 99C70 99.8 30 98.4 1.2 99.4C.4 70 1.6 30 2 1Z' fill='none' stroke='%23524486' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")}
+.game{border:0;background:var(--org) center/100% 100% no-repeat,var(--bg);padding:16px 18px}
+/* the deep cards: one number, one line, one caveat */
+details.deep{margin:0 0 22px;border:0;border-left:3px solid var(--ac,var(--mint));background:var(--org) center/100% 100% no-repeat,var(--bg)}
+details.deep summary{display:block;cursor:pointer;list-style:none;padding:26px 26px 18px}
 details.deep summary::-webkit-details-marker{display:none}
 details.deep summary::before{content:none}
 details.deep summary:focus-visible{outline:2px solid var(--ice);outline-offset:-2px}
-.big{display:block;font:600 34px/1.02 var(--sans);letter-spacing:-.025em;color:var(--ac,var(--mint))}
+.big{display:block;font:600 52px/1 var(--sans);letter-spacing:-.025em;color:var(--ac,var(--mint))}
 .big small{font:500 12px/1 var(--mono);letter-spacing:.06em;color:var(--dim);margin:0 .25em}
 .big s{text-decoration-thickness:2px}
-.rd{display:block;margin:10px 0 0;font:400 14px/1.5 var(--sans);color:var(--ink)}
-dl.rows{display:grid;grid-template-columns:4.4em minmax(0,1fr);gap:8px 14px;margin:0;padding:2px 20px 18px}
+.rd{display:block;margin:14px 0 0;font:400 14px/1.55 var(--sans);color:var(--ink)}
+dl.rows{display:grid;grid-template-columns:4.4em minmax(0,1fr);gap:10px 14px;margin:0;padding:4px 26px 26px}
 dl.rows dt{font:500 10.5px/1.65 var(--mono);letter-spacing:.08em;color:var(--ac,var(--mint))}
 dl.rows dd{margin:0;font:400 11.5px/1.6 var(--mono);color:var(--dim)}
 .bars{padding:0 20px 8px}
 .bars .br{grid-template-columns:8.6em minmax(0,1fr) 5.6em}
-#songs{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+#songs{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:0 14px}
+#songs .sg{width:auto;min-height:24px;padding:0}#songs .sg b{font-size:12.5px}#songs .sg span{display:none}
 .sg{appearance:none;-webkit-appearance:none;display:flex;flex-direction:column;align-items:flex-start;width:100%;min-height:40px;padding:4px 0;border:0;background:transparent;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .sg b{font:500 13px/1.2 var(--sans);color:var(--gold)}.sg span{font:400 10.5px/1.3 var(--mono);color:var(--dim)}
 .sg:hover b,.sg.on b{color:var(--ink)}
@@ -177,11 +203,12 @@ dl.rows dd{margin:0;font:400 11.5px/1.6 var(--mono);color:var(--dim)}
 .key button i{display:block;width:10px;height:10px}
 .key[hidden]{display:none}.key .ks{display:inline-flex;align-items:center;gap:6px;min-height:20px;color:var(--ink);font:500 11px/1 var(--mono);letter-spacing:.04em}.key .ks i{display:block;width:10px;height:10px}
 .key button.on{color:var(--mint)}.key button.off{opacity:.35}
-#hl-list{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:2px}
-#hl-list button{appearance:none;-webkit-appearance:none;display:grid;grid-template-columns:12px minmax(0,1fr);grid-template-rows:auto auto;column-gap:10px;align-items:center;width:100%;min-height:40px;padding:5px 0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
-#hl-list button i{grid-row:1/3;width:12px;height:12px}
-#hl-list button b{font:600 13px/1.25 var(--sans)}#hl-list button span{font:400 10.5px/1.35 var(--mono);color:var(--dim)}
-#hl-list button.on b{color:var(--mint)}#hl-list button:hover b{color:var(--mint)}
+#hl-list{list-style:none;margin:0 0 8px;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
+#hl-list button{appearance:none;-webkit-appearance:none;display:grid;grid-template-columns:14px 2.2em minmax(0,1fr);align-items:center;column-gap:8px;width:100%;min-height:44px;padding:4px 8px 4px 0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#hl-list button i{width:14px;height:14px}
+#hl-list button b{font:500 11px/1.2 var(--mono);color:var(--dim)}#hl-list button span{font:600 13px/1.25 var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hl-d{min-height:2.9em;margin:0 0 22px;font:400 11.5px/1.5 var(--mono);color:var(--dim)}
+#hl-list button.on span,#hl-list button.on b{color:var(--mint)}#hl-list button:hover span{color:var(--mint)}
 .find{display:flex;gap:8px;align-items:center;margin:8px 0 0}
 .find input{flex:1;min-width:0;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--ink);font:400 13px/1 var(--sans)}
 .find input:focus{outline:2px solid var(--ice);outline-offset:1px}
@@ -205,7 +232,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
  #np .fine{display:none}
  #np-n{font-size:22px}
  .act{min-height:100dvh;padding:0 0 24px 24px;border:0;display:flex;flex-direction:column;justify-content:flex-end;scroll-margin-top:0}
- .plate{pointer-events:auto;position:sticky;bottom:24px;width:34vw;max-height:40dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--ac,var(--mint));padding:18px 22px 16px}
+ .plate{pointer-events:auto;position:sticky;bottom:24px;width:min(320px,34vw);max-height:none;overflow:visible;background:var(--org) center/100% 100% no-repeat,var(--panel);border:0;border-left:3px solid var(--ac,var(--mint));padding:18px 20px 16px}
  .plate .kick{margin:0 0 8px}
  .plate h1,.plate h2{font-size:clamp(20px,1.85vw,30px);line-height:1.08;margin:0 0 8px}
  .plate .so{font-size:13.5px;line-height:1.42;margin:0 0 6px}
@@ -217,7 +244,10 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
  .plate .game p{font-size:13px}
  .plate .how{margin:8px 0 0}
  .plate ul.dead{margin:4px 0 0}.plate ul.dead li{margin:0 0 4px;padding:2px 0 2px 12px}
- .plate #songs{max-height:7.6em;overflow-y:auto;margin:8px 0 0}
+ .plate #songs{margin:8px 0 0;display:flex;flex-wrap:wrap;gap:0 12px}
+ .plate .sg{width:auto;min-height:26px;padding:2px 0}.plate .sg b{font-size:12px}.plate .sg span{display:none}
+ .plate .h-hide{display:none}
+ @media (max-height:780px){.plate .how,.plate .lz{display:none}.plate .kick{margin-bottom:4px}.plate h1,.plate h2{font-size:clamp(18px,1.6vw,24px)}}
  .plate .lz{margin:0}
  html.aside .plate{padding-top:11px;padding-bottom:11px;animation:sm-aside .22s ease-out}
  html.aside .plate>*{display:none}
@@ -231,7 +261,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
  #hint{left:50%;transform:translateX(-50%);top:18px;bottom:auto;font-size:12px;padding:4px 8px}
  .dots{right:auto;left:max(16px,env(safe-area-inset-left));top:64px;transform:none;gap:4px}
  .dots a{min-height:30px}
- #b-deep{position:fixed;left:max(16px,env(safe-area-inset-left));top:316px;min-height:34px;color:var(--ice)}
+ #b-deep{position:fixed;left:max(16px,env(safe-area-inset-left));top:316px;min-height:44px}
  html.drawer #b-deep{visibility:hidden}
  .dots a span{display:inline;background:var(--bg);padding:2px 4px}
  .foot{margin:0;padding:18px 0 0;pointer-events:auto;position:relative;border-top:2px solid var(--line)}
@@ -282,7 +312,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <div class="dr" role="region" aria-label="deeper: the count">
 <p class="dh"><b>i</b>the count<button type="button" class="chip x" data-close>close</button></p>
 <p class="so">my spotify log, 2019 to 2026, in seven acts you can play. <b><dfn data-g="queue">the queue</dfn> fills my hours. <dfn data-g="press">my hand</dfn> fills my library.</b> of every 100 plays, i pressed play on <b>19</b>. <dfn data-g="shuffle">shuffle</dfn> took 17. the queue took 64.</p>
-<div class="led"><b class="t">takeaway</b><span>most of my hours were chosen by the app. most of my library was chosen by me.</span><b class="w">why</b><span>a listening log is two hands writing one diary. the first job is to tell them apart.</span><b class="s">in the story</b><span>every act below holds the two hands side by side: <dfn data-g="soundmap">by sound</dfn>, <dfn data-g="playmap">by what followed</dfn>, by what stayed.</span></div>
+<div class="led"><b class="t">takeaway</b><span>most of my hours were chosen by the app. most of my library was chosen by me.</span></div>
 <details class="deep" open><summary><span class="big">1.05</span><span class="rd">when i press play, the next song sits a little farther away: <dfn data-g="direction">a direction, not a size</dfn>.</span></summary><dl class="rows"><dt>what</dt><dd>a press crosses to another <dfn data-g="family">family</dfn> a little more often than the queue does: 69.9 against 66.3 of 100</dd><dt>how</dt><dd><dfn data-g="bridge">bridge index</dfn> 1.05 <dfn data-g="bracket">[1.03, 1.08]</dfn>, <dfn data-g="prereg">pre-registered</dfn>, same-artist steps dropped</dd><dt>caveat</dt><dd>conditional, with three stated <dfn data-g="failcond">failure conditions</dfn></dd></dl></details>
 <details class="deep" open style="--ac:var(--mint)"><summary><span class="big">42 <small>vs</small> 16</span><span class="rd">and i keep it: on the first hearing, i kept 42 of 100 songs i pressed, against the queue&rsquo;s 16 (<dfn data-g="insample">in-sample</dfn>, awaiting replication).</span></summary><dl class="rows"><dt>what</dt><dd>kept = in my library today; only songs not yet in it</dd><dt>how</dt><dd><dfn data-g="account">the account data</dfn>, 3,529 liked tracks</dd><dt>caveat</dt><dd>in-sample, awaiting replication</dd></dl></details>
 <details class="deep" open><summary><span class="big">19 <small>of 100</small></span><span class="rd">plays i started. 7.6 of the 19 were my back and skip presses, so 11.5 by <dfn data-g="strict">the strictest count</dfn>.</span></summary><dl class="rows"><dt>what</dt><dd>97,427 plays of 30 seconds or more</dd><dt>caveat</dt><dd>october 2023: the app changed how it records a start.</dd></dl></details>
@@ -306,8 +336,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 </div>
 <div class="dr" role="region" aria-label="deeper: the hand">
 <p class="dh"><b>ii</b>the hand<button type="button" class="chip x" data-close>close</button></p>
-<p class="so">a press crosses to another <dfn data-g="family">family</dfn> a little more often than <dfn data-g="queue">the queue</dfn> does: 69.9 against 66.3 of 100. <span class="mint"><dfn data-g="direction">a direction, not a size</dfn>.</span></p>
-<div class="led"><b class="t">takeaway</b><span><dfn data-g="press">my press</dfn> jumps a little farther in sound than the queue's next pick, and what i bring in comes back sooner.</span><b class="w">why</b><span>if the queue only walks to the nearest sound, every press of mine is a measured step off its path.</span><b class="s">in the story</b><span>this is the headline's mechanism: the hand is the part of the log that moves.</span></div>
+<div class="led"><b class="t">takeaway</b><span><dfn data-g="press">my press</dfn> jumps a little farther in sound than the queue's next pick, and what i bring in comes back sooner.</span></div>
 <details class="deep" open><summary><span class="big">+0.034</span><span class="rd">the queue's own <dfn data-g="run">run of songs</dfn> stays close in sound. when i broke the run the next song sat farther away, and when <dfn data-g="shuffle">shuffle</dfn> broke it, farther still. <dfn data-g="direction">a direction, not a size</dfn>.</span></summary>
 <div class="bars"><div class="br"><b>after my press</b><i style="background:var(--mint);width:100%"></i><span>85 of 100</span></div><div class="br"><b>after the queue</b><i style="background:var(--violet);width:95%"></i><span>81 of 100</span></div><div class="br"><b>after shuffle</b><i style="background:var(--amber);width:75%"></i><span>64 of 100</span></div></div>
 <dl class="rows"><dt>how</dt><dd>the run: +0.034 <dfn data-g="bracket">[+0.025, +0.044]</dfn> <dfn data-g="apart">apart</dfn> after my press, <dfn data-g="ledger">ledger</dfn> 341</dd><dt>caveat</dt><dd>it says the queue's run was broken, not that the model knows taste.</dd></dl></details>
@@ -336,9 +365,8 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 </div>
 <div class="dr" role="region" aria-label="deeper: the two maps">
 <p class="dh"><b>iii</b>the two maps<button type="button" class="chip x" data-close>close</button></p>
-<p class="so">every point is an artist. <dfn data-g="soundmap">the first map places them by sound</dfn>; the second by the log, each artist pulled toward the ones that played next to it. <span class="mint">mint: two artists <dfn data-g="press">my hand</dfn> pressed one after the other.</span> <span style="color:var(--violet)">violet: two <dfn data-g="queue">the queue</dfn> played in a row.</span></p>
 <div class="key" id="key" aria-label="the families"></div>
-<div class="led"><b class="t">takeaway</b><span>a model shown <dfn data-g="heldout">months it never saw</dfn> told my link from the queue&rsquo;s about 69 times in 100; about 78 once it knew the queue had played that pair before. the gain is the queue repeating itself, not the shape of the network.</span><b class="w">why</b><span>two geometries of the same artists: one a model hears, one the log walked. where they disagree is where a hand was.</span><b class="s">in the story</b><span>the sound map is act one's field, flattened. <dfn data-g="playmap">the second map</dfn> is where the <dfn data-g="rooms">neighborhoods</dfn> come from.</span></div>
+<div class="led"><b class="t">takeaway</b><span>a model shown <dfn data-g="heldout">months it never saw</dfn> told my link from the queue&rsquo;s about 69 times in 100; about 78 once it knew the queue had played that pair before. the gain is the queue repeating itself, not the shape of the network.</span></div>
 <details class="deep" id="m-deep" open><summary><span class="big">69 <small>then</small> 78</span><span class="rd">on <dfn data-g="heldout">months the analysis never saw</dfn>, a model told my link from the queue&rsquo;s; <dfn data-g="chance">chance</dfn> is 50, and the gain comes from the queue repeating itself, not from the shape of the network around them.</span></summary><dl class="rows"><dt>what</dt><dd>one link that followed my press, one the queue made</dd><dt>how</dt><dd>first how connected the two artists were, how familiar the second one was and who chose the song before; then whether the queue had already played that pair</dd><dt>caveat</dt><dd>seven <dfn data-g="prereg">pre-registered</dfn> <dfn data-g="lane">lanes</dfn>, each re-run by an <dfn data-g="referee">adversarial referee</dfn>. nothing in this act is a size.</dd></dl></details>
 <details class="deep" open><summary><span class="big">a shade</span><span class="rd">the links my hand made at both ends follow sound too, far closer than random pairs; the queue&rsquo;s own links sit a shade closer in sound, a difference too small to <dfn data-g="certified">certify</dfn>.</span></summary><dl class="rows"><dt>caveat</dt><dd><dfn data-g="descriptive">descriptive</dfn></dd></dl></details>
 <details class="deep" open style="--ac:var(--rose)"><summary><span class="big">5 <small>of 7</small></span><span class="rd">fell under their bars or ran the other way and get no sentence.</span></summary><dl class="rows"><dt>what</dt><dd>who walked a pair first, where new artists enter, whether my press share clusters on either map, the flow between <dfn data-g="family">families</dfn>, a per-hand model of the next artist</dd><dt>caveat</dt><dd>they live in the lab and the paper</dd></dl></details>
@@ -361,14 +389,14 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 </div>
 <div class="dr" role="region" aria-label="deeper: the neighborhoods">
 <p class="dh"><b>iv</b>the neighborhoods<button type="button" class="chip x" data-close>close</button></p>
-<p class="so">no sound, no label, no hand went in: only which artist followed which. tap a <dfn data-g="rooms">room</dfn> in the list below, or a point, to hear it.</p>
 <p class="so">the 8 largest hold 1758 artists of the 1823 on the map. each takes its name from the <dfn data-g="family">family</dfn> that fills it most (<dfn data-g="lastfm">Last.fm</dfn> knew 1,421 of the 1,871 artists, Apple's label fills 449 of the other 450, 1 has none), and its numeral from its size. tap a room to light it and hear its most played artist.</p>
 <ol id="hl-list" aria-label="the eight largest neighborhoods"></ol>
+<p id="hl-d" aria-live="polite"></p>
 <details class="deep" open><summary><span class="big">21 <small>vs</small> 15</span><span class="rd"><dfn data-g="queue">the queue</dfn>’s new links landed inside a room that earlier links had already drawn 21 of 100 times, mine 15 of 100; the queue had drawn most of those rooms itself.</span></summary><dl class="rows"><dt>what</dt><dd>each new link, checked against the rooms the log had drawn before it</dd><dt>caveat</dt><dd><dfn data-g="firstorder">first-order</dfn> communities, mis-specified for the queue; counts, never dates</dd></dl></details>
 <details class="deep" id="n-deep" open><summary><span class="big">a picture</span><span class="rd">the <dfn data-g="partition">partition</dfn> is one of many a different <dfn data-g="seed">seed</dfn> or resolution would draw, so no number on this act is <dfn data-g="certified">certified</dfn>.</span></summary><dl class="rows"><dt>what</dt><dd>six <dfn data-g="prereg">pre-registered</dfn> <dfn data-g="lane">lanes</dfn>, each re-run by an <dfn data-g="referee">adversarial referee</dfn></dd><dt>how</dt><dd><dfn data-g="louvain">Louvain</dfn> on the <dfn data-g="tgraph">transition graph</dfn>, edges unweighted, resolution 1, one fixed seed</dd><dt>caveat</dt><dd>none of the community lanes earned a sentence</dd></dl></details>
 <details class="deep" open><summary><span class="big">the last two</span><span class="rd">the queue's next artist depends on the last two, not one; mine does not clearly depend on more than the last one.</span></summary><dl class="rows"><dt>also</dt><dd>the same run-break shows in a hand-crafted <dfn data-g="timbre">timbre measure</dfn>, at artist level.</dd><dt>caveat</dt><dd><dfn data-g="descriptive">descriptive</dfn></dd></dl></details>
 <details class="deep" open style="--ac:var(--rose)"><summary><span class="big">held still? <small>no</small></span><span class="rd">the communities of my own press graph would not hold still across seeds, so their agreement with sound or with the families is listed, not read.</span></summary><dl class="rows"><dt>how</dt><dd>stability under the <dfn data-g="stable">0.80 bar</dfn> at every resolution</dd><dt>also</dt><dd>whether <dfn data-g="press">my press</dfn> lands inside its neighborhood more often than the queue's step: <dfn data-g="undetermined">undetermined</dfn></dd><dt>caveat</dt><dd>persistence across periods had no <dfn data-g="ceiling">same-size ceiling</dfn> to read against</dd></dl></details>
-<div class="led"><b class="t">takeaway</b><span>the log sorts itself into rooms without being told a family or a hand. each room's label is a reading of what fills it, not a finding about me.</span><b class="w">why</b><span>a room the queue walks alone would be a playlist; a room my hand walks would be a taste. the share of inside steps the queue took, 64 to 95 of 100 across the rooms, is that reading.</span><b class="s">in the story</b><span>the rooms are <dfn data-g="playmap">the second map</dfn>'s structure made visible. this act is a picture.</span></div>
+<div class="led"><b class="t">takeaway</b><span>the log sorts itself into rooms without being told a family or a hand. each room's label is a reading of what fills it, not a finding about me.</span></div>
 <ol class="steps"><li>every time one artist played right after another inside a <dfn data-g="sitting">sitting</dfn>, that is one followed-by line (<dfn data-g="shuffle">shuffle</dfn> steps dropped).</li><li>a <dfn data-g="forcelayout">force layout</dfn> pulls linked artists together and pushes the rest apart, which places every dot.</li><li><dfn data-g="louvain">Louvain</dfn> finds the groups with more lines inside than <dfn data-g="chance">chance</dfn> would give: those are the rooms.</li><li>only then are colors added, so color never moved a dot.</li></ol>
 <p class="how">how: <dfn data-g="giant">giant component</dfn> only, 48 artists outside it sit on the rim. <dfn data-g="firstorder">first-order</dfn> communities, mis-specified for the queue: its next artist depends on the last two, not one. lines = the graph's own edges, 2,400 drawn at random, colored when both ends share the color key. the act builds itself once, in the order i first heard the artists.</p>
 <p class="full">the full record: <a href="lab.html#gauntlet">lab.html#gauntlet</a></p>
@@ -390,7 +418,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <div class="dr" role="region" aria-label="deeper: what stays">
 <p class="dh"><b>v</b>what stays<button type="button" class="chip x" data-close>close</button></p>
 <p class="so">of songs not yet in my library, i kept <b>42 of 100</b> that i pressed and <b>16 of 100</b> <dfn data-g="queue">the queue</dfn> chose. 84 of 100 of those likes landed on the first hearing, 47 seconds in. <dfn data-g="insample">in-sample</dfn>, awaiting replication.</p>
-<div class="led"><b class="t">takeaway</b><span>i keep what i press: 42 of 100 against the queue's 16. the like lands on the first hearing, 47 seconds in.</span><b class="w">why</b><span>a kept song is the one trace of taste the app did not write.</span><b class="s">in the story</b><span>the two rows on the field are the headline's second half: and i keep it.</span></div>
+<div class="led"><b class="t">takeaway</b><span>i keep what i press: 42 of 100 against the queue's 16. the like lands on the first hearing, 47 seconds in.</span></div>
 <details class="deep" open><summary><span class="big">first hearing</span><span class="rd">on the first hearing of a song, i kept the ones i pressed more often than the ones the queue chose, even against artists i knew as well (<dfn data-g="insample">in-sample</dfn>, awaiting replication).</span></summary><dl class="rows"><dt>what</dt><dd>42 of 100 that i pressed, 16 of 100 the queue chose</dd><dt>caveat</dt><dd>in-sample, awaiting replication</dd></dl></details>
 <details class="deep" open><summary><span class="big">47 <small>seconds</small></span><span class="rd">when i keep a song on first hearing, i usually decide within the first minute.</span></summary><dl class="rows"><dt>what</dt><dd>84 of 100 of those likes landed on the first hearing</dd><dt>how</dt><dd>the ruler is the first minute of a first hearing; the mark is where the like lands (<dfn data-g="median">median</dfn>)</dd></dl></details>
 <details class="deep" open><summary><span class="big">68 <small>vs</small> 30</span><span class="rd">artists <dfn data-g="press">my hand</dfn> introduced are in the library 68 of 100 times, the queue's 30.</span></summary><dl class="rows"><dt>how</dt><dd><dfn data-g="rr">RR</dfn> 2.27 <dfn data-g="bracket">[1.88, 2.78]</dfn></dd><dt>also</dt><dd>liked artists are still playing a year later 0.84 against 0.57</dd></dl></details>
@@ -413,7 +441,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <div class="dr" role="region" aria-label="deeper: the coda">
 <p class="dh"><b>vi</b>the coda<button type="button" class="chip x" data-close>close</button></p>
 <p class="so">five months of new <dfn data-g="heldout">plays the analysis never saw</dfn> were too few to judge the headline on their own; the return-time result held. in those months <dfn data-g="shuffle">shuffle</dfn> fell from 17 to 1.5 of every 100 plays and <dfn data-g="queue">the queue</dfn> rose from 64 to 75.</p>
-<div class="led"><b class="t">takeaway</b><span>the newest months could not re-judge the headline. shuffle fell from 17 to 1.5 of 100 and the queue rose to 75.</span><b class="w">why</b><span>a result that cannot be re-judged is not wrong. it is waiting.</span><b class="s">in the story</b><span>three claims did not survive; the graveyard holds every one that fell, with what killed it.</span></div>
+<div class="led"><b class="t">takeaway</b><span>the newest months could not re-judge the headline. shuffle fell from 17 to 1.5 of 100 and the queue rose to 75.</span></div>
 <details class="deep" open><summary><span class="big">17 <small>to</small> 1.5</span><span class="rd">shuffle, of every 100 plays, from the <dfn data-g="frozen">frozen export</dfn> to the months after it. not the same picture; the frozen export stays the analysis set.</span></summary><dl class="rows"><dt>what</dt><dd>the frozen export, 96,740 plays: 11.6 of 100 pressed, 7.7 reached by the skip or back button, 16.8 shuffle, 64.0 the queue</dd><dt>how</dt><dd>the months after it, 20,425 plays: 12.0, 11.8, 1.5, 74.6</dd><dt>caveat</dt><dd>the newest months are six clusters of 28 days, so their <dfn data-g="interval">intervals</dfn> are wide. the headline numbers stay those of the frozen export.</dd></dl></details>
 <details class="deep" open style="--ac:var(--rose)"><summary><span class="big"><s>skipped more</s></span><span class="rd">withdrawn: the queue&rsquo;s picks were skipped more. the skipped flag follows the hand: 52 of 100 of my presses, 16 of the queue's. it is me scanning, not the queue failing.</span></summary></details>
 <details class="deep" open style="--ac:var(--rose)"><summary><span class="big"><s>exploration</s></span><span class="rd">withdrawn: a search is exploration. 19 in 20 search-led plays were artists i had already played. i search to go home.</span></summary></details>
@@ -434,12 +462,10 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
   <p class="lzfail" hidden>the album did not load here.</p>
 </div>
 <ol id="songs" aria-label="the songs"></ol>
-<p class="how">how: each song heard by <dfn data-g="clap">the same model</dfn>, set beside its nearest artist.</p>
 <ol class="cl sr" aria-label="what the picture shows"><li data-at="gold">gold: my 23 songs, placed by the same ears.</li><li data-at="gline">each one joined to its nearest artist in sound.</li><li data-at="gsong">the album is the last word; the data came first.</li></ol>
 </div>
 <div class="dr" role="region" aria-label="deeper: the record">
 <p class="dh"><b>vii</b>the record<button type="button" class="chip x" data-close>close</button></p>
-<p class="so">each gold point is one of my songs, heard by <dfn data-g="clap">the same model</dfn> and set beside its nearest artist. tap one to hear it.</p>
 <details class="deep" open><summary><span class="big">23</span><span class="rd">my songs, <dfn data-g="soundmap">placed by sound</dfn> beside the artists they sound like. the album is the last word; the data came first.</span></summary><dl class="rows"><dt>how</dt><dd>each song heard by <dfn data-g="clap">the same model</dfn> as every artist, set beside its nearest one</dd><dt>also</dt><dd>one sound at a time: the album waits while a preview plays</dd></dl></details>
 <p class="how">how: the album is the last word; the data came first. one sound at a time.</p>
 <p class="full">the full record: <a href="lab.html#creation-loop">lab.html#creation-loop</a></p>
@@ -467,7 +493,7 @@ cv.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)aside();},{passi
 })();
 </script>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"f866beb3af","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"c81287ac4c","pv":"381d21eeee","field":"24ef332630","maps":"8fc6260095","ring":"5c3aa07b40","ghost":"eccb19b1ac","gloss":"da3f4523b1"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,field:true};})();</script>
-<script src="front/field.js?v=65b5d83ec5" defer></script>
+<script src="front/field.js?v=9900b21068" defer></script>
 <script src="front/music.js?v=39372afec0" defer></script>
 </body>
 </html>

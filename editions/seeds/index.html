@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the two seeds</title>
+<meta name="description" content="two seeds, one fitted rule, forty steps each: do the two paths ever share a neighborhood. a toy about the rule.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+</head>
+<body>
+<div class="wrap">
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map: every artist as a dot colored by family, with two 40-step paths, one mint, one amber, and a white square where they first touch"></canvas></div>
+  <main id="side">
+    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/" aria-current="page">the two seeds</a><a href="../undo/">undo the year</a></nav>
+    <p class="eyebrow">the two seeds · one wall of the machine · a toy</p>
+    <h1>two seeds, one machine, forty steps each. do the paths ever meet?</h1>
+    <p class="lead">type one artist or song in each box. the same fitted rule as the loop wall walks forty steps from each. a toy about the rule, not a guess about anyone.</p>
+    <section>
+      <label class="k" for="sa"><i class="sw" style="background:var(--mint)"></i>seed one</label>
+      <input type="text" id="sa" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="an artist or a song">
+      <p class="msg" id="ma" aria-live="polite"></p>
+      <label class="k" for="sb" style="margin-top:8px"><i class="sw" style="background:var(--amber)"></i>seed two</label>
+      <input type="text" id="sb" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="an artist or a song">
+      <p class="msg" id="mb" aria-live="polite"></p>
+      <div class="row">
+        <button type="button" id="run" class="go">run</button>
+        <button type="button" id="swap">swap seeds</button>
+      </div>
+    </section>
+    <section aria-live="polite">
+      <span class="k">first touch</span>
+      <div class="big ink" id="big">-</div>
+      <p id="say">loading my map</p>
+      <p class="note" id="def"></p>
+    </section>
+    <section>
+      <span class="k">hear a step</span>
+      <input type="range" id="sn" min="0" max="40" step="1" value="0" aria-label="step to hear">
+      <div class="row" style="margin-top:0">
+        <button type="button" id="hear" aria-pressed="false">hear step 0</button>
+        <a class="btn" href="../../" id="back">back</a>
+      </div>
+      <p id="now"></p>
+      <p class="note">previews are Apple's 30 seconds, only after a tap, one at a time. nothing is stored: no account, no cookie, no saved seeds.</p>
+    </section>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="seeds.js"></script>
+</body>
+</html>
