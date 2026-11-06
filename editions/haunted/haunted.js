@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  var COL = { press: '#21f6bc', shuffle: '#bcd3ff', queue: '#8b6fd6' }, ROSE = '#ff5c7a', STEP = 2200;
+  var COL = { press: '#21f6bc', shuffle: '#f5a623', queue: '#8b6fd6' }, GLY = { press: 'star', shuffle: 'diamond', queue: 'ring' }, ROSE = '#ff5c7a', STEP = 2200;
   var $ = function (id) { return document.getElementById(id); };
   var cv = $('cv'), ctx = cv.getContext('2d'), mapEl = $('map');
   var M, H, PV = null, adj = [], ev = 0, step = 0, presses = [], bent = [], playing = true, listening = false, timer = null, resumeT = null;
@@ -55,24 +55,24 @@
   }
 
   function size() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
     W = mapEl.clientWidth; Ht = mapEl.clientHeight;
     cv.width = Math.round(W * dpr); cv.height = Math.round(Ht * dpr); cv.style.width = W + 'px'; cv.style.height = Ht + 'px';
     var pad = 22, s = Math.min(W - 2 * pad, Ht - 2 * pad);
     SC = s / 1000; OX = (W - s) / 2; OY = (Ht - s) / 2;
     dots = null; draw();
   }
-  function px(i) { return [Math.round(OX + M.xy[i][0] * SC) + 0.5, Math.round(OY + M.xy[i][1] * SC) + 0.5]; }
+  function px(i) { return [OX + M.xy[i][0] * SC, OY + M.xy[i][1] * SC]; }
   var PK = window.WK && window.WK.P;
   function buildDots() {
     dots = document.createElement('canvas'); dots.width = cv.width; dots.height = cv.height;
     var g = dots.getContext('2d'); g.scale(dpr, dpr);
     var X = function (i) { return px(i)[0]; }, Y = function (i) { return px(i)[1]; }, small = W < 500;
-    if (PK) PK.field(g, M.xy, X, Y, { lo: small ? 1 : 1.5, hi: small ? 3 : 4.5, core: 0.55, halo: 0.07, col: function () { return '#4a4280'; } });
+    if (PK) PK.field(g, M.xy, X, Y, { lo: small ? 1.6 : 2.2, hi: small ? 4.5 : 7, core: 0.6, col: function () { return '#4a4280'; } });
     else { g.fillStyle = '#3a2f5c'; for (var i = 0; i < M.xy.length; i++) { var p = px(i); g.fillRect(p[0] - 1, p[1] - 1, 2, 2); } }
   }
-  function sqr(c, x, y, s, fill) {
-    if (fill && PK) { PK.stops(ctx, [[x, y]], c, c, s); return; }
+  function sqr(c, x, y, s, fill, kind) {
+    if (PK) { ctx.save(); ctx.globalAlpha = fill ? 1 : 0.4; PK.glyph(ctx, kind || 'dot', x, y, s * 0.9, c); ctx.restore(); return; }
     if (fill) { ctx.fillStyle = c; ctx.fillRect(Math.round(x - s / 2), Math.round(y - s / 2), s, s); return; }
     ctx.strokeStyle = c; ctx.lineWidth = 1; ctx.strokeRect(Math.round(x - s / 2) + .5, Math.round(y - s / 2) + .5, s - 1, s - 1);
   }
@@ -92,8 +92,8 @@
     }
     for (i = 0; i < n; i++) {
       p = pts[i]; var lit = i <= step, c = COL[r[i][2]];
-      sqr(c, p[0], p[1], sq, lit);
-      if (any && bent[i] !== r[i][0]) { q = bp[i]; sqr(ROSE, q[0], q[1], sq, i <= step); }
+      sqr(c, p[0], p[1], sq, lit, GLY[r[i][2]]);
+      if (any && bent[i] !== r[i][0]) { q = bp[i]; sqr(ROSE, q[0], q[1], sq, i <= step, 'dot'); }
     }
     var cur = px(any ? bent[step] : r[step][0]);
     if (PK) PK.rings(ctx, cur[0], cur[1], '#efe9ff', sq + 8);
@@ -103,7 +103,7 @@
   function curArtist() { return presses.length ? bent[step] : real()[step][0]; }
   function text() {
     var r = real(), a = curArtist(), t = r[step], title = presses.length && bent[step] !== t[0] ? '' : t[1];
-    var arm = bent[step] !== t[0] ? 'bent by you' : ({ press: 'i pressed', shuffle: 'shuffle dealt', queue: 'the queue poured' })[t[2]];
+    var arm = bent[step] !== t[0] ? 'bent by you' : ({ press: 'i pressed', shuffle: 'shuffle picked', queue: 'auto-play picked' })[t[2]];
     $('now').innerHTML = '';
     var s = document.createElement('span'); s.textContent = (M.n[a] || '') + (title ? ' · ' + title : ''); $('now').appendChild(s);
     var sm = document.createElement('small'); sm.textContent = 'song ' + (step + 1) + ' of ' + r.length + ' · ' + arm; $('now').appendChild(sm);
@@ -113,7 +113,7 @@
     line('your bend', y === null ? 'none yet' : y.n ? y.m.toFixed(2) + ' of the map, over the ' + y.n + ' songs you changed' : 'none, no song changed');
     line('my presses that evening', m === null ? 'none' : m.toFixed(2) + ' of the map, a different measure');
     var cnt = { press: 0, shuffle: 0, queue: 0 }; r.forEach(function (x) { cnt[x[2]]++; });
-    $('ev').textContent = 'an evening in ' + H.ev[ev].s + ' · evening ' + (ev + 1) + ' of ' + H.ev.length + ' · of these ' + r.length + ' plays: i pressed ' + cnt.press + ', shuffle dealt ' + cnt.shuffle + ', the queue poured ' + cnt.queue + '.';
+    $('ev').textContent = 'an evening in ' + H.ev[ev].s + ' · evening ' + (ev + 1) + ' of ' + H.ev.length + ' · of these ' + r.length + ' plays: i pressed ' + cnt.press + ', shuffle picked ' + cnt.shuffle + ', auto-play picked ' + cnt.queue + '.';
     $('back').disabled = step === 0; var last = step >= r.length - 1; $('skip').textContent = last ? 'another evening' : 'skip'; if (last) $('now').lastChild.textContent += ' · end of evening';
   }
 

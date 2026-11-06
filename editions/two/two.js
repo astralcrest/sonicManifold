@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var COL = { a: '#bcd3ff', b: '#efe9ff', o: '#8b6fd6', base: '#5a4a92', line: '#2a2140', night: '#06010f', ink: '#efe9ff' };
+  var COL = { a: '#ff6fae', b: '#efe9ff', o: '#8b6fd6', base: '#5a4a92', line: '#2a2140', night: '#06010f', ink: '#efe9ff' };
   var OWNER_TOP = 200, STEPS = 20, STARTS = 10;
   var F = null, M = null, SAMPLES = null, IDX = new Map(), ADJ = null, STRENGTH = null;
   var HABIT = 1, SEED = 0, WALKS = 8;
@@ -184,7 +184,7 @@
 
   // ---- canvases ----
   function ctxOf(id) {
-    var c = $(id), r = c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    var c = $(id), r = c.getBoundingClientRect(), d = Math.min(3, window.devicePixelRatio || 1);
     var W = Math.max(1, Math.round(r.width * d)), H = Math.max(1, Math.round(r.height * d));
     if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
     var g = c.getContext('2d');
@@ -212,16 +212,14 @@
     for (var i = 0; i < F.xy.length; i++) g.fillRect(Math.round(c.X(F.xy[i][0]) - s / 2), Math.round(c.Y(F.xy[i][1]) - s / 2), s, s);
   }
   function sq(c, i, size, color) {
-    var s = Math.max(2, Math.round(size * c.d)), x = c.X(F.xy[i][0]), y = c.Y(F.xy[i][1]);
-    if (PK) { PK.stops(c.g, [[x, y]], color, color, s); return; }
+    var s = Math.max(2, size * c.d), x = c.X(F.xy[i][0]), y = c.Y(F.xy[i][1]);
+    if (PK) { PK.peb(c.g, i, x, y, s * 0.62, color); return; }
     c.g.fillStyle = color;
     c.g.fillRect(Math.round(x - s / 2), Math.round(y - s / 2), s, s);
   }
   function splitSq(c, i, size, ca, cb) {
-    var s = Math.max(4, Math.round(size * c.d)); s += s % 2;
-    var x = Math.round(c.X(F.xy[i][0]) - s / 2), y = Math.round(c.Y(F.xy[i][1]) - s / 2);
-    c.g.fillStyle = ca; c.g.fillRect(x, y, s / 2, s);
-    c.g.fillStyle = cb; c.g.fillRect(x + s / 2, y, s / 2, s);
+    var r = Math.max(3, size * c.d) * 0.62, x = c.X(F.xy[i][0]), y = c.Y(F.xy[i][1]), g = c.g;
+    [[ca, x - r * 2, x], [cb, x, x + r * 2]].forEach(function (h) { g.save(); g.beginPath(); g.rect(h[1], y - r * 2, h[2] - h[1], r * 4); g.clip(); PK.peb(g, i, x, y, r, h[0]); g.restore(); });
   }
   function sizeOf(s, i, lo, hi) { return lo + (hi - lo) * Math.sqrt(s.w.get(i) / s.max); }
   function line(c, i, j, color, wd) {
@@ -245,7 +243,7 @@
     var c1 = ctxOf('c1'); base(c1);
     dots(c1, A, ca, 3, 11); dots(c1, B, cb, 3, 11);
     both.forEach(function (i) { splitSq(c1, i, Math.max(sizeOf(A, i, 3, 11), sizeOf(B, i, 3, 11)), ca, cb); });
-    if (HOT >= 0) { var hs = 18 * c1.d; c1.g.strokeStyle = COL.ink; c1.g.lineWidth = 1.5 * c1.d; c1.g.strokeRect(Math.round(c1.X(F.xy[HOT][0]) - hs / 2), Math.round(c1.Y(F.xy[HOT][1]) - hs / 2), Math.round(hs), Math.round(hs)); }
+    if (HOT >= 0) { c1.g.strokeStyle = COL.ink; c1.g.lineWidth = 1.5 * c1.d; c1.g.beginPath(); c1.g.arc(c1.X(F.xy[HOT][0]), c1.Y(F.xy[HOT][1]), 10 * c1.d, 0, 6.2832); c1.g.stroke(); }
     $('f1').innerHTML = '<span style="color:' + ca + '">' + na + '</span>: <b>' + fmt(A.order.length) + '</b> artists placed, off this map: <b>' + fmt(A.off) + '</b>. ' +
       '<span style="color:' + cb + '">' + nb + '</span>: <b>' + fmt(B.order.length) + '</b> placed, off this map: <b>' + fmt(B.off) + '</b>.';
 
@@ -265,7 +263,7 @@
     [[CA, ca], [CB, cb]].forEach(function (z) {
       if (!z[0]) return; var g = c3.g, x = c3.X(z[0].x), y = c3.Y(z[0].y), d = c3.d;
       g.strokeStyle = z[1]; g.lineWidth = 2 * d; g.beginPath(); g.arc(x, y, z[0].r * c3.sc, 0, Math.PI * 2); g.stroke();
-      g.fillStyle = z[1]; g.fillRect(Math.round(x - 8 * d), Math.round(y - d), Math.round(16 * d), Math.round(2 * d)); g.fillRect(Math.round(x - d), Math.round(y - 8 * d), Math.round(2 * d), Math.round(16 * d));
+      PK.glyph(g, 'star', x, y, 8 * d, z[1]);
     });
     if (CA && CB) {
       var dist = Math.hypot(CA.x - CB.x, CA.y - CB.y), wide = CA.r >= CB.r ? 'a' : 'b';
@@ -301,7 +299,7 @@
       for (var w = 1; w < WALKS; w++) {
         var q = oneWalk(z[0], z[1] + SEED + 1000 * w);
         q.forEach(function (i) { touched.add(i); });
-        for (var k = 1; k < q.length; k++) line(c5, q[k - 1], q[k], z[2], 1);
+        PK.ribbon(c5.g, q.map(function (i) { return [c5.X(F.xy[i][0]), c5.Y(F.xy[i][1])]; }), z[2], z[2], 1 * c5.d, 0.6);
       }
     });
     [[oneWalk(A, 20261105 + SEED), ca], [oneWalk(B, 20261106 + SEED), cb]].forEach(function (z) {
@@ -315,21 +313,21 @@
     var xAB = rAB.n ? rAB.k / chance(B) : 0, xBA = rBA.n ? rBA.k / chance(A) : 0;
     var vs = function (x) { return x < 0.95 ? ', less often than chance would (' + x.toFixed(1) + ' times chance)' : x < 1.05 ? ', about what chance gives' : ', ' + x.toFixed(1) + ' times chance'; };
     $('f5').innerHTML = (rAB.n && rBA.n) ?
-      'from <span style="color:' + ca + '">' + na + '</span>\u2019s artists, the queue reaches <span style="color:' + cb + '">' + nb + '</span>\u2019s <b>' + r1(rAB.k) + '</b> in 20' + vs(xAB) + '. from <span style="color:' + cb + '">' + nb + '</span>\u2019s, <span style="color:' + ca + '">' + na + '</span>\u2019s <b>' + r1(rBA.k) + '</b>' + vs(xBA) + '.' :
-      'one side has no artist on the queue\u2019s drawn pairs, so there is no walk to run.';
+      'from <span style="color:' + ca + '">' + na + '</span>\u2019s artists, auto-play reaches <span style="color:' + cb + '">' + nb + '</span>\u2019s <b>' + r1(rAB.k) + '</b> in 20' + vs(xAB) + '. from <span style="color:' + cb + '">' + nb + '</span>\u2019s, <span style="color:' + ca + '">' + na + '</span>\u2019s <b>' + r1(rBA.k) + '</b>' + vs(xBA) + '.' :
+      'one side has no artist on auto-play\u2019s drawn pairs, so there is no walk to run.';
     var sp = function (x) { return '<span style="color:' + col(x) + '">' + nm(x) + '</span>'; };
     $('lead').innerHTML = (both.length ? sp('a') + ' and ' + sp('b') + ' share <b>' + fmt(both.length) + '</b> artist' + (both.length > 1 ? 's' : '') + '. ' : sp('a') + ' and ' + sp('b') + ' share no artist. ') +
       (CA && CB ? sp(CA.r >= CB.r ? 'a' : 'b') + ' ranges wider. ' : '') +
-      ((rAB.n && rBA.n) ? 'my queue carries ' + sp('a') + ' toward ' + sp('b') + ' ' + (xAB < 0.95 ? 'less often than chance would, ' + xAB.toFixed(1) + ' times chance' : xAB < 1.05 ? 'about as often as chance would' : xAB.toFixed(1) + ' times as often as chance') + ' (a toy, descriptive).' : '');
+      ((rAB.n && rBA.n) ? 'auto-play carries ' + sp('a') + ' toward ' + sp('b') + ' ' + (xAB < 0.95 ? 'less often than chance would, ' + xAB.toFixed(1) + ' times chance' : xAB < 1.05 ? 'about as often as chance would' : xAB.toFixed(1) + ' times as often as chance') + ' (a toy).' : '');
     $('showing').innerHTML = '<b>showing:</b> a = ' + esc(A.label) + ', b = ' + esc(B.label) + '.';
     var c1f = function (v) { return v < 0.05 ? 'under 0.1' : v.toFixed(1); };
-    $('cap5').textContent = (rAB.n && rBA.n) ? 'chance, by where the queue spends its time: ' + c1f(chance(B)) + ' and ' + c1f(chance(A)) + ' in 20.' : '';
+    $('cap5').textContent = (rAB.n && rBA.n) ? 'chance, by where auto-play spends its time: ' + c1f(chance(B)) + ' and ' + c1f(chance(A)) + ' in 20.' : '';
     $('spread').innerHTML = (rAB.n && rBA.n) ? 'at this setting the ' + (2 * WALKS) + ' walks touch <b>' + fmt(touched.size) + '</b> different artists.' : '';
     mirror();
   }
 
 
-  // ---- six: the mirror (a toy, descriptive) ----
+  // ---- six: the mirror (a toy) ----
   var MR = { st: 0, L: null, D: null, FIT: null, M: null, OWN: null, fits: {}, tok: 0 };
   var TRY = [0, 0.5, 1];
   function mrLoad() {
@@ -371,8 +369,9 @@
     set.order.forEach(function (i) { sq(c, i, 4, setColor); });
     var still = path.length < 2 || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
     var step = function (k) {
-      if (k > 0) line(c, path[k - 1], path[k], color, 1.5);
+      if (k > 0) { var pp = function (q) { return [c.X(F.xy[q][0]), c.Y(F.xy[q][1])]; }, a = pp(path[k - 1]), b = pp(path[k]), s0 = k > 1 ? pp(path[k - 2]) : a, g = c.g; g.save(); g.strokeStyle = color; g.lineWidth = 1.6 * c.d; g.lineCap = 'round'; g.beginPath(); g.moveTo((s0[0] + a[0]) / 2, (s0[1] + a[1]) / 2); g.quadraticCurveTo(a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); g.stroke(); g.restore(); }
       sq(c, path[k], k === 0 ? 11 : set.set.has(path[k]) ? 8 : 5, k === 0 ? '#efe9ff' : color);
+      if (k === 0) PK.glyph(c.g, 'star', c.X(F.xy[path[0]][0]), c.Y(F.xy[path[0]][1]), 9 * c.d, '#efe9ff');
     };
     c.path = path; c.set = set; MC[id] = { path: path, set: set };
     if (still) { path.forEach(function (_, k) { step(k); }); return; }
@@ -392,7 +391,7 @@
       var x = e.clientX - r.left, y = e.clientY - r.top, best = -1, bd = 24 * 24;
       m.path.concat(m.set.order).forEach(function (i) { var dx = pad + F.xy[i][0] * sc - x, dy = pad + F.xy[i][1] * sc - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } });
       var el = $('t6');
-      if (best < 0) { el.textContent = 'no square there. tap closer to one.'; return; }
+      if (best < 0) { el.textContent = 'nothing there. tap closer to a shape.'; return; }
       var st = m.path.indexOf(best);
       el.innerHTML = '<b>' + esc(F.n[best]) + '</b>' + (st >= 0 ? ' · step ' + st + ' of the walk' : ' · on the list, not visited');
     };
@@ -406,8 +405,8 @@
     var A = S.a; if (!F || !A || !$('c6a')) return;
     var f = $('f6'), note = $('m6note');
     if (MR.st === 0) { return; }
-    if (MR.st < 0) { f.textContent = 'the loop machine did not load. reload to try again.'; return; }
-    if (MR.st === 1) { f.textContent = 'loading the loop machine.'; return; }
+    if (MR.st < 0) { f.textContent = 'the walk rule did not load. reload to try again.'; return; }
+    if (MR.st === 1) { f.textContent = 'loading the walk rule.'; return; }
     var L = MR.L, m = MR.M, mine = MR.FIT.queue.K.slice(), tok = MR.tok;
     mine[4] = Math.min(1, 0.5 * HABIT);
     var topA = A.order[0], topMe = MR.OWN.order[0];
@@ -416,7 +415,7 @@
       if (A !== S.a) return;
       var w1 = L.walk(m, topA, mine, 20261105 + SEED);
       mrCanvas('c6a', A, w1.path, COL.o, '#4b5a78');
-      mrLine($('l6a'), 'my machine on your list', w1, A, 'your');
+      mrLine($('l6a'), 'auto-play on your list', w1, A, 'your');
       if (!fit) { $('l6b').textContent = 'fitting your habits from your list.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
       if (!fit.K) { $('l6b').textContent = 'your list is too short to fit your habits.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
       var K = fit.K.slice(); K[4] = Math.min(1, K[4] * HABIT);
@@ -425,8 +424,8 @@
       mrLine($('l6b'), 'your habits on my list', w2, MR.OWN, 'my top 200');
       if (fit.gap > 0.5 || fit.n < 20) $('l6b').innerHTML += ' <b>weak fit</b> (' + fit.n + ' pairs, gap ' + fit.gap.toFixed(2) + ').';
     };
-    f.textContent = 'the knob scales how hard each machine repeats pairs that already ran. higher: tighter loops, fewer distinct artists. lower: wider drift.';
-    $('g6').innerHTML = '<span style="color:' + COL.o + '">violet</span> = my queue\'s knobs on side a\'s list. <span style="color:' + COL.a + '">ice</span> = habits fitted to side a, walking my list. white square = the start.';
+    f.textContent = 'the dial scales how hard each rule repeats pairs that already ran. higher: tighter loops, fewer distinct artists. lower: wider drift.';
+    $('g6').innerHTML = '<span style="color:' + COL.o + '">violet</span> = auto-play\'s dials on side a\'s list. <span style="color:' + COL.a + '">ice</span> = habits fitted to side a, walking my list. white star = the start.';
     var sig = mrSig(A);
     if (MR.fits[sig]) go(MR.fits[sig]);
     else { go(null); mrFit(A, function (fit) { if (A === S.a) go(fit); }); }
@@ -443,7 +442,7 @@
     });
     HOT = best;
     var t1 = $('t1');
-    if (best < 0) { t1.textContent = 'no square of yours there. tap closer to one.'; draw(); return; }
+    if (best < 0) { t1.textContent = 'nothing of yours there. tap closer to a shape.'; draw(); return; }
     var ra = rankIn(S.a, best), rb = rankIn(S.b, best), bits = [];
     if (ra) bits.push('<span style="color:' + col('a') + '">' + nm('a') + '</span> #' + ra);
     if (rb) bits.push('<span style="color:' + col('b') + '">' + nm('b') + '</span> #' + rb);

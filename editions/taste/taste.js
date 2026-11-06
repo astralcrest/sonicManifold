@@ -192,33 +192,33 @@
   const PK = window.WK && window.WK.P;
   function field(g, X, Y, w, col) {
     const small = w < 420;
-    if (PK) PK.field(g, D.xy, X, Y, { lo: small ? 1 : 1.5, hi: small ? 3 : 4.5, core: 0.75, halo: 0.09, col: () => col });
+    if (PK) PK.field(g, D.xy, X, Y, { lo: small ? 1.6 : 2.2, hi: small ? 4.5 : 7, core: 0.75, col: () => col });
     else { g.fillStyle = col; for (let i = 0; i < D.xy.length; i++) g.fillRect(X(i) - 1, Y(i) - 1, 2, 2); }
   }
   function drawMap() {
-    const cv = $("map"), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const cv = $("map"), dpr = Math.min(3, window.devicePixelRatio || 1);
     const w = Math.round(cv.getBoundingClientRect().width) || 560;
     cv.width = cv.height = w * dpr;
     const g = cv.getContext("2d");
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.fillStyle = "#06010f"; g.fillRect(0, 0, w, w);
     const pad = 14, sc = (w - 2 * pad) / 1000;
-    const X = i => Math.round(pad + D.xy[i][0] * sc) + .5, Y = i => Math.round(pad + (1000 - D.xy[i][1]) * sc) + .5;
+    const X = i => pad + D.xy[i][0] * sc, Y = i => pad + (1000 - D.xy[i][1]) * sc;
     field(g, X, Y, w, "#4f4282");
     const P = (i) => [X(i), Y(i)];
     const ln = (i, j, a, b, wd, al, dash) => { if (PK) PK.ribbon(g, [P(i), P(j)], a, b, wd, al, dash); else { g.strokeStyle = a; g.lineWidth = 1; g.setLineDash(dash || []); g.beginPath(); g.moveTo(X(i), Y(i)); g.lineTo(X(j), Y(j)); g.stroke(); g.setLineDash([]); } };
     S.forEach(s => { if (!s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#3a3058", "#3a3058", 1, 1); } });
     S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#f5a623", "#f5a623", 1, 0.8, [3, 4]); } });
     S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.pr[s.target].i, p.o[s.target].i, "#f5a623", "#ffd8a0", 2, 1); } });
-    const sq = (i, s, fill, col) => {
-      if (fill && PK) { PK.stops(g, [P(i)], col, col, s); return; }
+    const sq = (i, s, fill, col, kind) => {
+      if (PK) { PK.glyph(g, kind || (fill ? "dot" : "ring"), X(i), Y(i), s * 0.9, col); return; }
       const x = Math.round(X(i) - s / 2), y = Math.round(Y(i) - s / 2);
       if (fill) { g.fillStyle = col; g.fillRect(x, y, s, s); }
       else { g.strokeStyle = col; g.lineWidth = 1.5; g.strokeRect(x + .75, y + .75, s - 1.5, s - 1.5); }
     };
-    S.forEach(s => { const p = D.pairs[s.pi]; sq(p.o[1 - s.pick].i, 10, false, "#bcd3ff"); });
-    S.forEach(s => sq(D.pairs[s.pi].o[s.pick].i, 8, true, "#21f6bc"));
-    S.forEach(s => { if (s.primed) sq(D.pairs[s.pi].pr[s.target].i, 6, true, "#f5a623"); });
+    S.forEach(s => { const p = D.pairs[s.pi]; sq(p.o[1 - s.pick].i, 10, false, "#efe9ff", "ring"); });
+    S.forEach(s => sq(D.pairs[s.pi].o[s.pick].i, 10, true, "#21f6bc", "star"));
+    S.forEach(s => { if (s.primed) sq(D.pairs[s.pi].pr[s.target].i, 7, true, "#f5a623", "dot"); });
   }
 
   $("playA").onclick = () => play(0);
@@ -235,13 +235,13 @@
   function drawPreview() {
     const cv = $("pv"), w = Math.round(cv.getBoundingClientRect().width);
     if (!w || !D) return;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const dpr = Math.min(3, window.devicePixelRatio || 1);
     cv.width = cv.height = w * dpr;
     const g = cv.getContext("2d");
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.fillStyle = "#06010f"; g.fillRect(0, 0, w, w);
     const pad = 14, sc = (w - 2 * pad) / 1000;
-    field(g, i => Math.round(pad + D.xy[i][0] * sc) + .5, i => Math.round(pad + (1000 - D.xy[i][1]) * sc) + .5, w, "#7a66c8");
+    field(g, i => pad + D.xy[i][0] * sc, i => pad + (1000 - D.xy[i][1]) * sc, w, "#7a66c8");
   }
   window.addEventListener("resize", () => { if (body.classList.contains("done")) drawMap(); else drawPreview(); });
 

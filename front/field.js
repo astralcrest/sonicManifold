@@ -181,6 +181,7 @@ function setScene(k) {
   html.setAttribute('data-scene', SCENES[k]);
   if (k !== C_KEEP && S.game) endGame(true);
   if (k === C_MAPS || k === C_HOODS) loadMaps();
+  whatFor(k);
   clStart(500);
   if (k === C_HOODS && !S.hoodSeen) { S.hoodSeen = true; loadMaps().then(function () { if (MAPS && scene === C_HOODS && !S.grow) { S.grow = { t0: performance.now() + 700, c: 0, done: false, dur: 6500, hood: true }; wake(); } }); }
   tick();
@@ -407,6 +408,20 @@ function hull(pts) {
 var pathsDirty = true;
 function dot(g, x, y, r, fill) { g.fillStyle = fill; g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill(); }
 /* a point is two crisp discs: a wide dim one of the same hue (additive, so crowds brighten) and a sharp core */
+/* organic crisp pebbles: one irregular rounded outline per artist, seeded by its index, cached at unit radius */
+var PEB = [];
+function pebPath(i) {
+  var r = rng(i * 7919 + 17), n = 7 + Math.floor(r() * 3), k, a, rr, pts = [], p = new Path2D(), mx, my;
+  for (k = 0; k < n; k++) { a = k / n * 6.2832 + r() * 0.5; rr = 0.78 + r() * 0.3; pts.push([Math.cos(a) * rr, Math.sin(a) * rr]); }
+  mx = (pts[n - 1][0] + pts[0][0]) / 2; my = (pts[n - 1][1] + pts[0][1]) / 2; p.moveTo(mx, my);
+  for (k = 0; k < n; k++) { var q = pts[(k + 1) % n]; p.quadraticCurveTo(pts[k][0], pts[k][1], (pts[k][0] + q[0]) / 2, (pts[k][1] + q[1]) / 2); }
+  p.closePath(); return p;
+}
+function peb(g, i, x, y, r, fill) {
+  if (r < 1.6 || typeof Path2D === 'undefined') return dot(g, x, y, r, fill);
+  var p = PEB[i] || (PEB[i] = pebPath(i)); r *= 1.12;
+  g.fillStyle = fill; g.translate(x, y); g.scale(r, r); g.fill(p); g.scale(1 / r, 1 / r); g.translate(-x, -y);
+}
 function halo(g, x, y, r, col, a) { g.fillStyle = col; g.globalAlpha = 0.13 * a; g.beginPath(); g.arc(x, y, r * (phone ? 1.9 : 2.4) + 1, 0, 6.2832); g.fill(); }
 function cuts3(a) { var b = a.slice().sort(function (p, q) { return p - q; }), n = b.length; return n ? [b[Math.floor(n * 0.6)], b[Math.floor(n * 0.88)]] : [0, 0]; }
 function step3(w, T) { return w >= T[1] ? 2 : w >= T[0] ? 1 : 0; }
@@ -642,7 +657,7 @@ function paint(now) {
       if (cmap && S.fam >= 0 && F.f[i] !== S.fam) a *= 0.18;
       if (cmap && S.hoodHi >= 0 && MAPS && MAPS.c[i] !== S.hoodHi) a *= 0.22;
       if (pass2 === 0) halo(g, SX[i], SY[i], SR[i], col, a);
-      else dot(g, SX[i], SY[i], SR[i], a >= 0.99 ? col : dim(col, a));
+      else peb(g, i, SX[i], SY[i], SR[i], a >= 0.99 ? col : dim(col, a));
     }
     if (pass2 === 0) { g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
   }
@@ -1356,9 +1371,26 @@ function hoodList() {
   });
 }
 /* the sound pill: one press starts my album; previews still take their turn (one sound at a time) */
+/* the what strip: one plain line per act and the fixed key (mint star = my press, violet ring = auto-play, amber diamond = shuffle, ice dot = sounds alike, gold = my songs) */
+var KG = { press: ['my press', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#21f6bc"/>'], auto: ['auto-play', '<circle cx="6" cy="6" r="4" fill="none" stroke="#8b6fd6" stroke-width="2"/>'], shuffle: ['shuffle', '<path d="M6 1 11 6 6 11 1 6Z" fill="#f5a623"/>'], alike: ['sounds alike', '<circle cx="6" cy="6" r="2.4" fill="#bcd3ff"/>'], mine: ['my songs', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#ffd36b"/>'] };
+var WHAT = [
+  ['every shape is an artist i played. close together = sounds alike. gold stars = my own songs.', ['mine', 'alike']],
+  ['the 245 artists i played most, on a ring. a line = one play, then the next.', ['press', 'auto']],
+  ['the same artists twice: by sound, and by what followed what. a line = two plays in a row.', ['press', 'auto']],
+  ['11 neighborhoods, drawn only from what followed what. one color per neighborhood.', []],
+  ['did the song stay in my library? split by who picked it.', ['press', 'auto']],
+  ['the frozen export, then the months after it. did the habit hold?', ['press', 'auto']],
+  ['my 23 songs as gold stars, among the artists they sound like. tap one to play it.', ['mine', 'alike']]
+];
+function whatFor(k) {
+  var w = WHAT[k] || WHAT[0], el = $('#what-k'), b = $('#b-hear'); if (!el) return; text('#what-l', w[0]);
+  $$('#what-k .kc').forEach(function (e) { e.parentNode.removeChild(e); });
+  w[1].forEach(function (key) { var c = doc.createElement('span'); c.className = 'kc'; c.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true">' + KG[key][1] + '</svg>' + KG[key][0]; el.insertBefore(c, b); });
+}
+on('#b-hear', function () { var i = TOP[Math.floor(Math.random() * Math.min(12, TOP.length))]; if (i === undefined) return; play(i, 'tap'); var b = $('#b-hear'); b.classList.add('on'); text('#b-hear', 'sound on. tap any shape'); });
 on('#b-sound', function () {
   var M = window.__smMusic; if (!M || !M.toggle) return; M.toggle();
-  var lab = function () { var a = M.A && M.A.el, on = a && !a.paused; text('#b-sound', on ? 'sound: on' : 'sound'); html.classList.toggle('sm-album', !!on); };
+  var lab = function () { var a = M.A && M.A.el, on = a && !a.paused; text('#b-sound', on ? 'album: on' : 'my album'); html.classList.toggle('sm-album', !!on); };
   if (M.A && M.A.el && !M.A.el.__pill) { M.A.el.__pill = 1; ['play', 'pause', 'ended'].forEach(function (t) { M.A.el.addEventListener(t, lab); }); }
   setTimeout(lab, 400);
 });
@@ -1428,6 +1460,7 @@ fetchJ('field').then(function (j) {
   zcBuild(); songs(); key(); datalist(); chips(); acts(); if (ro) ro.observe(stage); else addEventListener('resize', function () { fit(); wake(); });
   $$('.lz').forEach(function (e) { e.hidden = true; });
   var R = (window.__ledger && window.__ledger.READY) || {}; R.field = true;
+  whatFor(scene);
   window.__field = { S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; }, reveal: function () { return reveal; }, grow: function () { reveal = 8; wake(); }, hoods: function () { return MAPS ? MAPS.cm.length : 0; }, ring: function () { return { look: S.look, b: S.lookB, rl: !!RL, x: Array.prototype.slice.call(RPX), y: Array.prototype.slice.call(RPY) }; }, cl: function () { return { k: CL.k, n: CL.list ? CL.list.length : 0, one: CL.one ? CL.one.t : '', box: CLB }; }, tell: function () { clStart(0); }, view: function () { return { z: view.z, px: view.px, py: view.py }; }, line: function () { var L = S.line; if (!L) return null; var o = [0, 0], pts = [], k; for (k = 0; k < L.c.length; k++) { lineXY(L, L.c[k], o); pts.push([o[0], o[1]]); } return { pts: pts, field: L.c.slice(0, 3).map(function (p) { return [p[0], p[1]]; }), stops: L.stops.map(function (i) { return [SX[i], SY[i]]; }) }; } };
   wake(); clStart(400);
   if (!lite()) { if (window.requestIdleCallback) requestIdleCallback(prefetchPV, { timeout: 4000 }); else setTimeout(prefetchPV, 2500); }

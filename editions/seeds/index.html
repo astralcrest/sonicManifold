@@ -12,29 +12,29 @@
 <link rel="stylesheet" href="../wall.css">
 <style>.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; max-width: 40ch; }</style>
 </head>
-<body style="--act: var(--mint); --acc: var(--mint)">
+<body data-wall="5" data-line="two 40-pick walks from two seeds. close together = sounds alike." data-keys="auto,alike" style="--act: var(--violet); --acc: var(--violet)">
 <div class="wrap">
   <header id="head">
-    <p class="eyebrow"><a href="../../">sonic manifold</a><span>the two seeds</span><span>one wall of the machine</span><span class="tl">a toy</span></p>
-    <h1>two seeds, one machine, forty steps each. do the paths ever <em>meet</em>?</h1>
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>the two seeds</span><span class="tl">a toy</span></p>
+    <h1>two seeds, two walks. do they ever <em>meet</em>?</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map: every artist as a dot colored by family, with two 40-step paths, one mint, one amber, and a white square where they first touch"></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map: every artist as a dot colored by family, with two 40-step walks, one violet, one rose, and white stars where they first meet"></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big mint" id="big">-</div>
-      <span class="keylab">the paths first touch at</span>
+      <div class="big violet" id="big">-</div>
+      <span class="keylab">the walks first meet at</span>
       <p id="say" class="say">loading my map</p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>a toy about the rule, not anyone: two seeds, forty steps each.</p>
-      <p class="ask"><b>open question:</b>if two strangers start far apart, does one machine walk them together?</p>
+      <p class="ask"><b>open question:</b>if two strangers start far apart, does one rule walk them together?</p>
     </div>
     <section>
-      <label class="k" for="sa"><i class="sw" style="background:var(--mint)"></i>seed one</label>
-      <input type="text" id="sa" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="an artist or a song" style="--acc: var(--mint)">
+      <label class="k" for="sa"><i class="sw" style="background:var(--violet)"></i>seed one</label>
+      <input type="text" id="sa" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="an artist or a song" style="--acc: var(--violet)">
       <p class="msg" id="ma" aria-live="polite"></p>
-      <label class="k" for="sb" style="margin-top:10px"><i class="sw" style="background:var(--amber)"></i>seed two</label>
-      <input type="text" id="sb" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="an artist or a song" style="--acc: var(--amber)">
+      <label class="k" for="sb" style="margin-top:10px"><i class="sw" style="background:var(--rose)"></i>seed two</label>
+      <input type="text" id="sb" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="an artist or a song" style="--acc: var(--rose)">
       <p class="msg" id="mb" aria-live="polite"></p>
       <div class="row">
         <button type="button" id="run" class="go">run</button>
@@ -51,11 +51,15 @@
       <p id="now"></p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>type one artist or song in each box. the same fitted rule as the loop wall walks forty steps from each. a toy about the rule, not a guess about anyone.</p>
-      <p id="def"></p>
-      <p>previews are Apple's 30 seconds, only after a tap, one at a time. nothing is stored: no account, no cookie, no saved seeds.</p>
+      <p>type an artist or a song in each box.</p>
+      <p>the same auto-play rule walks 40 steps from each.</p>
+      <p>previews play only after a tap, one at a time.</p>
     </details>
-    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/" aria-current="page">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
+    <details class="fine"><summary>the fine print</summary>
+      <p>a toy about the rule, not a guess about anyone. the rule is the fitted one from the first wall.</p>
+      <p id="def"></p>
+      <p>previews are Apple's 30 seconds. nothing is stored: no account, no cookie, no saved seeds.</p>
+    </details>
   </main>
 </div>
 <script src="../kiosk.js"></script>

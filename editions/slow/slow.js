@@ -39,15 +39,15 @@ function name(i) { return D.n[i]; }
 function draw() {
   MAP.begin();
   var g = MAP.g, P = WK.P, PAL = P.PAL, j;
-  g.save(); g.globalCompositeOperation = 'lighter';
-  for (j = 0; j < VIS.length; j++) { var x = MAP.X(VIS[j]), y = MAP.Y(VIS[j]); g.globalAlpha = 0.1; g.fillStyle = PAL.violet; g.fillRect(Math.round(x) - 4, Math.round(y) - 4, 8, 8); g.globalAlpha = 0.6; g.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3); }
+  g.save(); g.globalAlpha = 0.55;
+  for (j = 0; j < VIS.length; j++) P.peb(g, VIS[j], MAP.X(VIS[j]), MAP.Y(VIS[j]), 3.4, PAL.violet);
   g.restore();
   var cur = S.on ? SONGS[S.k] : null;
-  SONGS.forEach(function (s) { var on = cur && cur.i === s.i; P.stops(g, [[MAP.X(s.i), MAP.Y(s.i)]], PAL.ice, PAL.ice, on ? 12 : 9); if (!on) MAP.ring(s.i, PAL.ice, 17); });
+  SONGS.forEach(function (s) { var on = cur && cur.i === s.i; P.peb(g, s.i, MAP.X(s.i), MAP.Y(s.i), on ? 9 : 7, PAL.ink); if (!on) MAP.ring(s.i, PAL.ink, 17); });
   if (cur) {
-    P.ribbon(g, [[MAP.X(cur.i), MAP.Y(cur.i)], [MAP.X(cur.near), MAP.Y(cur.near)]], PAL.ice, PAL.violet, 2, 0.95);
-    P.stops(g, [[MAP.X(cur.near), MAP.Y(cur.near)]], PAL.violet, PAL.violet, 6);
-    P.rings(g, MAP.X(cur.i), MAP.Y(cur.i), PAL.ice, 20);
+    P.ribbon(g, [[MAP.X(cur.i), MAP.Y(cur.i)], [MAP.X(cur.near), MAP.Y(cur.near)]], PAL.ink, PAL.violet, 2, 0.95);
+    P.glyph(g, 'ring', MAP.X(cur.near), MAP.Y(cur.near), 6, PAL.violet);
+    P.rings(g, MAP.X(cur.i), MAP.Y(cur.i), PAL.ink, 20);
     MAP.tag(cur.i, name(cur.i), C.ink, C.night);
   }
 }
@@ -66,7 +66,7 @@ function show() {
   $('play').classList.toggle('go', !S.on);
   $('play').setAttribute('aria-pressed', S.on ? 'true' : 'false');
   $('who').textContent = s ? name(s.i) : '';
-  $('dline').innerHTML = s ? 'nearest run artist is <b>' + Math.round(s.d) + '</b> away on a map 1000 wide' : '';
+  $('dline').innerHTML = s ? 'the nearest artist auto-play reached is <b>' + Math.round(s.d) + '</b> away on a map 1000 wide' : '';
   $('slot').textContent = s ? 'song ' + (S.k + 1) + ' of ' + SONGS.length : '';
   if (!s) $('bar').style.width = '0';
   draw();
@@ -118,8 +118,8 @@ Promise.all([WK.boot(), WK.pv()]).then(function (a) {
   MAP = new WK.Map($('map'), $('cv'), D, M, { dim: 0.32 }); MAP.resize();
   choose();
   var dm = SONGS.map(function (s) { return s.d; });
-  $('what').textContent = 'what plays: 30 s preview clips from the public catalog, one at a time, only after a tap, from the ' + SONGS.length + ' artists farthest from anything the fitted queue reached in ' + RUNS + ' runs. never my own album here.';
-  $('toy').textContent = 'a toy. data: ' + RUNS + ' runs of ' + STEPSN + ' steps of the fitted queue on my sound map (' + D.n.length + ' artists, ' + S.N.visited + ' reached, ' + S.N.never + ' never); the ' + SONGS.length + ' songs are the unreached artists with a preview, farthest first (' + Math.round(Math.min.apply(null, dm)) + ' to ' + Math.round(Math.max.apply(null, dm)) + ' on a map 1000 wide).';
+  $('what').textContent = 'what plays: 30 s preview clips from the public catalog, one at a time, only after a tap, from the ' + SONGS.length + ' artists farthest from anything the fitted auto-play rule reached in ' + RUNS + ' runs. never my own album here.';
+  $('toy').textContent = 'a toy. data: ' + RUNS + ' runs of ' + STEPSN + ' steps of the fitted auto-play rule on my sound map (' + D.n.length + ' artists, ' + S.N.visited + ' reached, ' + S.N.never + ' never); the ' + SONGS.length + ' songs are the unreached artists with a preview, farthest first (' + Math.round(Math.min.apply(null, dm)) + ' to ' + Math.round(Math.max.apply(null, dm)) + ' on a map 1000 wide).';
   drawStays(); show(); bump();
   window.__slow = { songs: SONGS.map(function (s) { return [name(s.i), Math.round(s.d)]; }), N: S.N };
 }).catch(function () { $('msg').textContent = 'the data did not load. reload the page.'; });

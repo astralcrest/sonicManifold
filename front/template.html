@@ -54,6 +54,7 @@ a{color:var(--ice)}
 canvas#field{display:block;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none;cursor:crosshair;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 .top{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left));font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:lowercase;color:var(--dim);pointer-events:none}
 .top>*{pointer-events:auto}
+#what{position:absolute;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:44px;z-index:5;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:flex-start}#what p{margin:0;font:500 13px/1.45 var(--sans);color:var(--ink);max-width:560px;background:rgba(6,1,15,.78);padding:6px 9px;border-radius:4px}#what .ks{display:flex;flex-wrap:wrap;gap:6px;align-items:center}#what .kc{display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);letter-spacing:.06em;color:var(--ink);background:rgba(6,1,15,.78);padding:6px 9px;border-radius:999px}#what .kc svg{width:12px;height:12px;display:block;flex:none}#what .chip{pointer-events:auto;min-height:36px;border-radius:999px;background:rgba(6,1,15,.9)}#what .chip.on{color:var(--ink);border-color:var(--mint)}
 .top .brand{color:var(--ink);text-decoration:none;font-weight:500;min-height:40px;display:inline-flex;align-items:center;white-space:nowrap;background:var(--bg);padding:0 8px;margin-left:-8px}
 .top .brand small{font-weight:400;color:var(--dim);margin-left:.6em}
 @media (max-width:419px){.top .brand small{display:none}}
@@ -259,6 +260,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
  html[data-scene=hand] #hint,html[data-scene=maps] #hint,html[data-scene=hoods] #hint{display:block}
  .top{padding:12px 20px}
  #hint{left:50%;transform:translateX(-50%);top:18px;bottom:auto;font-size:12px;padding:4px 8px}
+ #what{left:50%;right:auto;transform:translateX(-50%);top:54px;align-items:center;width:min(720px,70vw)}#what p{text-align:center;font-size:14px}#what .ks{justify-content:center}
  .dots{right:auto;left:max(16px,env(safe-area-inset-left));top:64px;transform:none;gap:4px}
  .dots a{min-height:30px}
  #b-deep{position:fixed;left:max(16px,env(safe-area-inset-left));top:316px;min-height:44px}
@@ -276,9 +278,10 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <body>
 <div id="stage">
 <canvas id="field" aria-label="every artist i have heard as a crisp point in a three-dimensional sound map, sized by plays, colored by the hand that played it most; the scroll turns the field into a ring of who led to whom, the same artists drawn by what followed what, two rows of kept songs, the newest months, and my own songs in gold. tap a point to hear 30 seconds of it, or drag a line for a radio of stops along it"></canvas>
-<header class="top" id="top"><a class="brand" href="./">sonic manifold<small>by astralcrest</small></a><span class="tr"><button type="button" class="chip pill" id="b-deep" aria-expanded="false" aria-controls="col">deeper</button><button type="button" class="chip pill" id="b-sound" aria-label="play or pause my album">sound</button></span></header>
+<header class="top" id="top"><a class="brand" href="./">sonic manifold<small>by astralcrest</small></a><span class="tr"><button type="button" class="chip pill" id="b-deep" aria-expanded="false" aria-controls="col">deeper</button><a class="chip pill" href="editions/walls/">the nine walls</a><button type="button" class="chip pill" id="b-sound" aria-label="play or pause my album">my album</button></span></header>
 <nav class="dots" aria-label="the seven acts"><a href="#a-count"><i></i><span>the count</span></a><a href="#a-hand"><i></i><span>the hand</span></a><a href="#a-maps"><i></i><span>the two maps</span></a><a href="#a-hoods"><i></i><span>the neighborhoods</span></a><a href="#a-keep"><i></i><span>what stays</span></a><a href="#a-coda"><i></i><span>the coda</span></a><a href="#a-record"><i></i><span>the record</span></a></nav>
-<div id="hint" aria-hidden="true">tap a point to hear it. draw a curve for a radio. pinch to zoom.</div>
+<div id="hint" aria-hidden="true">tap a shape to hear it. drag to draw a radio. pinch to zoom.</div>
+<div id="what"><p id="what-l">every shape is an artist i played. close together = sounds alike. gold stars = my own songs.</p><div class="ks" id="what-k"><button type="button" class="chip" id="b-hear">sound: tap to hear</button></div></div>
 </div>
 <main id="col">
 <div id="np" aria-live="polite" hidden>
@@ -327,8 +330,8 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <p class="kick">the hand</p>
 <h2 id="h-hand">when my hand moves, it moves <span>a little farther.</span></h2>
 <div class="game">
-  <div class="row"><button type="button" class="chip" id="b-queue">be the queue</button><button type="button" class="chip" id="b-hand">be my hand</button><button type="button" class="chip" id="b-look">look: radial</button><button type="button" class="chip tm" data-tm>tell me</button></div>
-  <p class="r sr" id="h-mode" aria-live="polite">the queue walks to the nearest sound, again and again. my hand breaks the run.</p>
+  <div class="row"><button type="button" class="chip" id="b-queue">be auto-play</button><button type="button" class="chip" id="b-hand">be my press</button><button type="button" class="chip" id="b-look">look: radial</button><button type="button" class="chip tm" data-tm>tell me</button></div>
+  <p class="r sr" id="h-mode" aria-live="polite">auto-play walks to the nearest sound, again and again. my press breaks the run.</p>
   <p class="r sr" id="h-look">radial: names on the rim, grouped by family; every line bends through the hubs of its two families, so the bundles show which families lead to which.</p>
 </div>
 <p class="how">how: the 245 artists i played most, by <dfn data-g="family">family</dfn>; a line inside = one play followed the other.</p>
@@ -360,7 +363,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
   <div class="find"><input id="f-q" list="f-names" type="search" placeholder="find an artist, zoom to it" aria-label="find an artist" autocomplete="off"><datalist id="f-names"></datalist></div>
   <p id="f-r"></p>
 </div>
-<p class="how">how: <dfn data-g="soundmap">map one by sound</dfn> (<dfn data-g="clap">CLAP</dfn>, <dfn data-g="umap">UMAP</dfn>); <dfn data-g="playmap">map two</dfn>, a <dfn data-g="forcelayout">force layout</dfn> of what followed what.</p>
+<p class="how">how: map one by sound, <dfn data-g="soundmap">a model’s ear</dfn>; map two by what followed what, <dfn data-g="playmap">the log’s own order</dfn>.</p>
 <ol class="cl sr" aria-label="what the picture shows"><li data-v="0" data-at="dense">placed by sound: near = alike to a model's ear.</li><li data-v="0" data-at="thread">faint threads: each artist to its 3 nearest in sound.</li><li data-v="1" data-at="dense">by what followed: the same dots, placed by the log.</li><li data-v="1" data-at="lp">mint: two artists my hand pressed one after the other.</li><li data-v="1" data-at="lq">violet: two the queue played in a row.</li></ol>
 </div>
 <div class="dr" role="region" aria-label="deeper: the two maps">
@@ -384,7 +387,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
   <div class="key" id="key2" aria-label="the family colors" hidden></div>
   <p class="r sr" id="n-mode" aria-live="polite">colored by neighborhood: eleven rooms the log drew from what followed what alone; the outline is the room.</p>
 </div>
-<p class="how">how: <dfn data-g="louvain">Louvain</dfn> on the <dfn data-g="playmap">followed-by graph</dfn>; the colors came after.</p>
+<p class="how">how: neighborhoods found by <dfn data-g="louvain">a community algorithm</dfn> on what followed what; the colors came after.</p>
 <ol class="cl sr" aria-label="what the picture shows"><li data-at="room0">the largest room, drawn from what followed what alone.</li><li data-at="room1">no sound, no label, no hand went in.</li><li data-at="roomq">here the queue took {n} of 100 steps inside.</li></ol>
 </div>
 <div class="dr" role="region" aria-label="deeper: the neighborhoods">
@@ -466,7 +469,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 </div>
 <div class="dr" role="region" aria-label="deeper: the record">
 <p class="dh"><b>vii</b>the record<button type="button" class="chip x" data-close>close</button></p>
-<details class="deep" open><summary><span class="big">23</span><span class="rd">my songs, <dfn data-g="soundmap">placed by sound</dfn> beside the artists they sound like. the album is the last word; the data came first.</span></summary><dl class="rows"><dt>how</dt><dd>each song heard by <dfn data-g="clap">the same model</dfn> as every artist, set beside its nearest one</dd><dt>also</dt><dd>one sound at a time: the album waits while a preview plays</dd></dl></details>
+<details class="deep" open><summary><span class="big">23</span><span class="rd">my songs, <dfn data-g="soundmap">placed by sound</dfn> beside the artists they sound like. the album is the last word; the data came first.</span></summary><dl class="rows"><dt>how</dt><dd>each song heard by <dfn data-g="clap">the same model</dfn> as every artist, set beside its nearest one</dd><dt>also</dt><dd>one sound at a time: the album waits while a preview plays</dd><dt>my songs vs my listening</dt><dd>on the sound map my 23 songs land together in one corner, each one between rooms and not inside any, near the same handful of artists. they sound closer to my listening from this year than from a year earlier, and just as close whichever date in this stretch i give them, so this cannot say my listening came first. a direction at 23 songs, not a size.</dd></dl></details>
 <p class="how">how: the album is the last word; the data came first. one sound at a time.</p>
 <p class="full">the full record: <a href="lab.html#creation-loop">lab.html#creation-loop</a></p>
 </div>

@@ -38,8 +38,8 @@ function render() {
   $('big').textContent = l.n + ' of ' + ROOMS;
   $('say').textContent = S.diff < 0
     ? 'with ' + yr + ' removed this start and seed grow the same path. the rule never reached for those artists here.'
-    : 'with ' + yr + ' removed the path first goes elsewhere at step ' + S.diff + '. ' + (l.n ? 'it enters ' + l.rb + ' rooms, not ' + l.ra + ', so it loses ' + l.n + '.' : 'it still enters every one of the ' + l.ra + ' rooms the first path did, so it loses none.');
-  $('more').textContent = S.skip.n + ' of ' + M.N.toLocaleString('en-US') + ' artists taken out. across 20 other starts: a median of ' + (Math.round(S.med * 2) / 2) + ' rooms lost, at most ' + S.max + '. one path is luck; read the median.';
+    : 'with ' + yr + ' removed the path first goes elsewhere at step ' + S.diff + '. ' + (l.n ? 'it enters ' + l.rb + ' neighborhoods, not ' + l.ra + ', so it loses ' + l.n + '.' : 'it still enters every one of the ' + l.ra + ' neighborhoods the first path did, so it loses none.');
+  $('more').textContent = S.skip.n + ' of ' + M.N.toLocaleString('en-US') + ' artists taken out. across 20 other starts: a median of ' + (Math.round(S.med * 2) / 2) + ' neighborhoods lost, at most ' + S.max + '. one path is luck; read the median.';
   [].forEach.call($('years').children, function (b) { b.setAttribute('aria-checked', +b.getAttribute('data-c') === S.cut ? 'true' : 'false'); });
   $('hear').disabled = S.diff < 0; stopHear(); draw();
 }
@@ -47,13 +47,13 @@ function render() {
 function draw() {
   if (!MAP) return;
   MAP.begin(); var g = MAP.g, i, P = WK.P.PAL;
-  g.save(); g.globalCompositeOperation = 'lighter';
-  for (i = 0; i < M.N; i++) if (S.skip[i]) { g.globalAlpha = 0.2; g.fillStyle = P.rose; g.fillRect(MAP.X(i) - 4, MAP.Y(i) - 4, 8, 8); g.globalAlpha = 0.9; g.fillRect(MAP.X(i) - 1.5, MAP.Y(i) - 1.5, 3, 3); }
+  g.save(); g.strokeStyle = P.rose; g.lineWidth = 1.2; g.globalAlpha = 0.75;
+  for (i = 0; i < M.N; i++) if (S.skip[i]) { g.beginPath(); g.arc(MAP.X(i), MAP.Y(i), 4, 0, 6.2832); g.stroke(); }
   g.restore();
-  MAP.ribbon(S.A, S.A.length, P.mint, P.ice); MAP.ribbon(S.B, S.B.length, P.amber, P.rose, null, [7, 5]);
-  MAP.stops(S.A, S.A.length, P.mint, P.ice); MAP.stops(S.B, S.B.length, P.amber, P.rose);
-  MAP.ring(S.A[0], C.ink, 12);
-  if (S.diff > 0) { MAP.stop(S.A[S.diff], P.mint, 14); MAP.stop(S.B[S.diff], P.amber, 14); MAP.tag(S.B[S.diff], 'step ' + S.diff, C.ink); }
+  MAP.ribbon(S.A, S.A.length, P.violet, P.ink); MAP.ribbon(S.B, S.B.length, P.rose, P.ink, null, [7, 5]);
+  MAP.stops(S.A, S.A.length, P.violet, P.ink, 0, 'ring'); MAP.stops(S.B, S.B.length, P.rose, P.ink, 0, 'dot');
+  WK.P.glyph(g, 'star', MAP.X(S.A[0]), MAP.Y(S.A[0]), 8, C.ink);
+  if (S.diff > 0) { MAP.stop(S.A[S.diff], P.violet, 14); MAP.stop(S.B[S.diff], P.rose, 14); MAP.tag(S.B[S.diff], 'step ' + S.diff, C.ink); }
 }
 
 function stopHear() { WK.stop(); hearLabel(); }
@@ -62,7 +62,7 @@ $('hear').addEventListener('click', function () {
   if (WK.playing()) { stopHear(); return; }
   if (S.diff < 0) return;
   $('now').textContent = 'loading previews';
-  WK.play([{ i: S.A[S.diff], tag: 'mint, as it grew' }, { i: S.B[S.diff], tag: 'amber, year removed' }], function (k, info) {
+  WK.play([{ i: S.A[S.diff], tag: 'as it grew' }, { i: S.B[S.diff], tag: 'year removed' }], function (k, info) {
     $('now').textContent = info ? 'playing ' + info.tag + ', step ' + S.diff + ': ' + info.title + ', by ' + D.n[info.i] + '.' : '';
     hearLabel();
   }).then(function () { if (!WK.playing()) $('now').textContent = 'no preview for these two stops.'; });
@@ -81,7 +81,7 @@ WK.boot([WK.j('../../front/data/field.json'), WK.j('../../front/data/maps.json')
   YEARS.forEach(function (y, c) {
     var el = document.createElement('button'); el.type = 'button'; el.setAttribute('role', 'radio'); el.setAttribute('data-c', c); el.textContent = y; $('years').appendChild(el);
   });
-  $('how').textContent = 'method: the loop wall’s fitted queue rule, rerun from the same start and seed with every artist first heard in that slice taken out of its choices. the log is cut into eight slices, labeled 2019 to 2026; a slice is near a calendar year, not exact. the shipped data has no per-year presses, so this drops artists by when i first heard them, not presses one by one. a toy about the rule, never a finding about me. rooms: the eleven neighborhoods of the transition graph.';
+  $('how').textContent = 'method: the loop wall’s fitted auto-play rule, rerun from the same start and seed with every artist first heard in that slice taken out of its choices. the log is cut into eight slices, labeled 2019 to 2026; a slice is near a calendar year, not exact. the shipped data has no per-year presses, so this drops artists by when i first heard them, not presses one by one. a toy about the rule, never a finding about me. rooms: the eleven neighborhoods of the transition graph.';
   MAP = new WK.Map($('map'), $('cv'), D, M); MAP.resize();
   window.addEventListener('resize', function () { MAP.resize(); draw(); });
   S.start = weighted(LOOP.rng(1)()); S.seed = 1; compute(); render();

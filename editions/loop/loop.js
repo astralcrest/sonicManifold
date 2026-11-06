@@ -161,7 +161,10 @@ if (typeof document === 'undefined') return;
 /* ---------- the wall ---------- */
 var NIGHT = [6, 1, 15], WARM = [26, 18, 6], INK = '#efe9ff', MUTE = '#9a90b8', MINT = '#21f6bc', AMBER = '#f5a623', VIOLET = '#8b6fd6', ICE = '#bcd3ff';
 var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#ffd36b', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#f5a623', 'untagged': '#6f6790' };
-var PCOL = { queue: VIOLET, hand: MINT, feed: ICE, siren: AMBER };
+var PCOL = { queue: VIOLET, hand: MINT, feed: INK, siren: '#ff5c7a' };
+var PGLY = { queue: 'ring', hand: 'star', feed: 'dot', siren: 'dot' };
+var PDESC = { queue: 'auto-play: dials set to match the app\'s own next picks in my log.', hand: 'my press: dials set to match the plays i chose by hand.', feed: 'a feed: a rule that leans on popular, familiar artists.', siren: 'the pull: a rule that drags every walk to one corner, to show what a feed can do.' };
+var DIALN = ['sounds alike', 'come back', 'popular', 'new ground', 'follow my habit', 'random hop'];
 // the three knobs that move time to loop most from the three rules (full 0 to 1 swing, 30 starts): the rest are set by the rule
 var LIVE = [1, 2, 3], FIXED = [0, 4, 5];
 var $ = function (id) { return document.getElementById(id); };
@@ -206,7 +209,7 @@ function pickStart(r) {
 function buildUI() {
   var box = $('knobs');
   LIVE.forEach(function (k) {
-    var nm = KNOBS[k], d = document.createElement('div'); d.className = 'knob'; d.id = 'kn' + k;
+    var nm = DIALN[k], d = document.createElement('div'); d.className = 'knob'; d.id = 'kn' + k;
     d.innerHTML = '<div class="kh"><label for="k' + k + '">' + nm + '</label><output id="o' + k + '"></output></div>' +
       '<input type="range" id="k' + k + '" min="0" max="1" step="0.05">' +
       '<div class="kg">' + GLOSS[k] + '</div><div class="kb"><i id="b' + k + '"></i></div>';
@@ -221,10 +224,10 @@ function buildUI() {
     inp.addEventListener('change', function () { S.drag = false; });
   });
   var sd0 = document.createElement('div'); sd0.className = 'knob'; sd0.id = 'kns'; sd0.hidden = true;
-  sd0.innerHTML = '<div class="kh"><label for="ks">keep them listening</label><output id="os"></output></div>' +
+  sd0.innerHTML = '<div class="kh"><label for="ks">the pull</label><output id="os"></output></div>' +
     '<input type="range" id="ks" min="0" max="1" step="0.05" value="0.5">' +
-    '<div class="kg">0 never closes the loop; 1 plays the artists i play most and loops back within five steps</div><div class="kb"><i id="bs"></i></div>' +
-    '<div class="mh"><span>how closed the loop is</span><output id="mv"></output></div><div class="m1"><i id="mf"></i></div>';
+    '<div class="kg">higher: the walk sticks to the artists i play most and starts repeating within five steps.</div><div class="kb"><i id="bs"></i></div>' +
+    '<div class="mh"><span>how tightly it repeats</span><output id="mv"></output></div><div class="m1"><i id="mf"></i></div>';
   box.appendChild(sd0);
   $('ks').addEventListener('input', function () {
     if (!S.drag) { S.ghost = S.path ? S.path.slice() : null; S.drag = true; }
@@ -241,16 +244,16 @@ function buildUI() {
     if (!D.f.some(function (x) { return x === f; })) return;
     var s = document.createElement('span'); s.innerHTML = '<i></i>' + nm; s.firstChild.style.background = FAMC[nm] || MUTE; lg.appendChild(s);
   });
-  $('fitnote').textContent = 'the queue and my hand: knobs fitted to ' + D.q.length.toLocaleString('en-US') + ' sampled pairs each of my log. descriptive.\na feed is hand-set, not fitted. the siren is a toy, hand-set, not fitted.';
-  $('fixed').innerHTML = 'set by the rule: ' + FIXED.map(function (k) { return KNOBS[k] + ' <output id="o' + k + '"></output>'; }).join(' · ');
+  $('fitnote').textContent = 'auto-play and my press: dials fitted to ' + D.q.length.toLocaleString('en-US') + ' sampled pairs each of my log. descriptive.\na feed is hand-set, not fitted. the pull is a toy, hand-set, not fitted.';
+  $('fixed').innerHTML = 'fixed by this rule: ' + FIXED.map(function (k) { return DIALN[k] + ' <output id="o' + k + '"></output>'; }).join(' · ');
   $('nart').textContent = M.N.toLocaleString('en-US');
   cv.addEventListener('pointerdown', tap);
   $('hear').addEventListener('click', hear);
 }
 
-var GLOSS = ['artists near this one in sound score higher', 'artists played earlier in this run score higher',
-  'artists i play most score higher', 'artists far from every stop so far score higher',
-  'where my log usually went next from here scores higher', '0 takes the top score; 1 lands near shuffle'];
+var GLOSS = ['higher: it hops to artists that sound near the last one.', 'higher: it goes back to artists it already visited.',
+  'higher: it picks the artists i play most.', 'higher: it heads for artists far from every stop so far.',
+  'higher: it goes where my log usually went next.', 'higher: more random hops, like shuffle.'];
 
 function sirenK(s) { var K = SB.slice(); K[1] = s; K[2] = s; K[3] = S.K[3]; return K; }
 function nice(x) { return String(+x.toFixed(2)); }
@@ -270,15 +273,16 @@ function setPreset(p, quiet, sv) {
   }
   S.preset = p;
   $('kn1').hidden = $('kn2').hidden = $('kn3').hidden = on; $('kns').hidden = !on;
-  $('kh2').textContent = on ? 'one knob: how closed the loop is' : 'three knobs: the ones that change time to loop most';
+  $('kh2').textContent = on ? 'one dial: the pull' : 'three dials: the ones that change the walk most';
   document.documentElement.style.setProperty('--night', mix(on ? S.siren : 0));
-  $('h1').textContent = on ? 'the siren: one knob, keep them listening, closes the loop.' : H1;
+  $('h1').textContent = on ? 'the pull: one dial drags every walk closed.' : H1;
   syncChips();
 }
 
 function syncChips() {
   var pc = PCOL[S.preset] || ICE; document.body.style.setProperty('--act', pc); document.body.style.setProperty('--acc', pc);
   [].forEach.call($('chips').children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-p') === S.preset ? 'true' : 'false'); });
+  if ($('pdesc')) $('pdesc').textContent = PDESC[S.preset] || 'your own dial settings.';
   for (var k = 0; k < 6; k++) $('o' + k).textContent = fmt(S.K[k], 2);
   if (S.siren != null) { $('os').textContent = nice(S.siren); document.documentElement.style.setProperty('--night', mix(S.siren)); }
 }
@@ -332,22 +336,22 @@ function metrics() {
   var s = S.stats;
   $('m-len').textContent = fmt(s.len, 1);
   $('m-fam').textContent = s.fams + ' of ' + D.fam.length;
-  $('m-loop').textContent = s.loop > STEPS ? 'none' : 'step ' + s.loop;
+  $('m-loop').textContent = s.loop > STEPS ? 'never' : 'step ' + s.loop;
   $('m-top').textContent = pct(s.top);
   if (S.siren != null) {
     var cl = s.loop > STEPS ? 0 : Math.max(0, Math.min(1, (STEPS - s.loop) / 35));
     $('mf').style.width = Math.round(100 * cl) + '%'; $('mv').textContent = nice(cl) + ' this path';
-    $('say').textContent = 'one path at ' + nice(S.siren) + ': ' + (s.loop > STEPS ? 'never loops in 40 steps' : 'loops back at step ' + s.loop) + '. a toy, hand-set, not fitted.';
+    $('say').textContent = 'one walk at ' + nice(S.siren) + ': ' + (s.loop > STEPS ? 'never repeats in 40 steps' : 'starts repeating at step ' + s.loop) + '. a toy rule.';
     return;
   }
-  $('say').textContent = s.loop > STEPS ? 'this rule never loops in 40 steps; ' + pct(s.top) + ' of picks sit in my top 50.' : 'this rule loops back at step ' + s.loop + '; ' + pct(s.top) + ' of picks sit in my top 50.';
+  $('say').textContent = s.loop > STEPS ? 'this rule never repeats in 40 steps; ' + pct(s.top) + ' of its picks are artists i play most.' : 'this rule starts repeating at step ' + s.loop + '; ' + pct(s.top) + ' of its picks are artists i play most.';
 }
 
 function pathList() {
   var o = $('path'), h = '';
   S.path.forEach(function (i, k) { h += '<span data-k="' + k + '"><b>' + k + '</b> ' + esc(name(i)) + '</span> '; });
   o.innerHTML = h;
-  $('now').textContent = 'stop 0, ' + name(S.path[0]) + ', is where the listener starts.';
+  $('now').textContent = 'stop 0, ' + name(S.path[0]) + ', is where the walk starts. tap the map to start somewhere else.';
 }
 function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
@@ -374,18 +378,18 @@ function slow() {
     var ls = [], i;
     for (i = 0; i < 30; i++) { var q = pathStats(M, walk(M, S.start, S.K, 1000 + i)); ls.push(q.loop > STEPS ? STEPS + 1 : q.loop); }
     ls.sort(function (a, b) { return a - b; }); var md = (ls[14] + ls[15]) / 2, nl = ls.filter(function (x) { return x > STEPS; }).length;
-    $('say').textContent += ' across 30 paths: median loop-back at step ' + Math.round(md) + (md > STEPS ? ' (none)' : '') + (nl ? ', ' + nl + ' never loop' : '') + '.';
+    $('say').textContent += ' across 30 walks: median repeat at step ' + Math.round(md) + (md > STEPS ? ' (none)' : '') + (nl ? ', ' + nl + ' never repeat' : '') + '.';
   }
   var rq = ruleStats(M, S.K, S.startsQ, LOOP.FIT_SEED), rh = ruleStats(M, S.K, S.startsH, LOOP.FIT_SEED);
   var rule = { hop: (rq.hop + rh.hop) / 2, same: (rq.same + rh.same) / 2, top: (rq.top + rh.top) / 2, inn: (rq.inn + rh.inn) / 2 };
   var rows = [['hop in sound', 'hop', 2], ['same family as last', 'same'], ['inside my top 50', 'top'], ['one of the six nearest', 'inn']];
-  var h = '<tr><th></th><th class="q">the queue</th><th class="h">my hand</th><th>this rule</th></tr>';
+  var h = '<tr><th></th><th class="q">auto-play</th><th class="h">my press</th><th>this rule</th></tr>';
   rows.forEach(function (r) {
     var f = r[2] ? function (x) { return fmt(x, 2); } : pct;
     h += '<tr><td>' + r[0] + '</td><td>' + f(S.real.queue[r[1]]) + '</td><td>' + f(S.real.hand[r[1]]) + '</td><td>' + f(rule[r[1]]) + '</td></tr>';
   });
   $('tab').innerHTML = h;
-  $('gap').textContent = 'gap from this rule to the queue ' + fmt(gap(rq, S.real.queue), 3) + ', to my hand ' + fmt(gap(rh, S.real.hand), 3) + ' (root mean square).';
+  $('gap').textContent = 'gap from this rule to auto-play ' + fmt(gap(rq, S.real.queue), 3) + ', to my press ' + fmt(gap(rh, S.real.hand), 3) + ' (root mean square).';
 }
 
 function sens(K) {
@@ -400,20 +404,20 @@ function sens(K) {
 /* ---------- canvas ---------- */
 function resize() {
   var box = $('map');
-  DPR = Math.min(2, window.devicePixelRatio || 1); W = Math.max(200, box.clientWidth); H = Math.max(200, box.clientHeight);
+  DPR = Math.min(3, window.devicePixelRatio || 1); W = Math.max(200, box.clientWidth); H = Math.max(200, box.clientHeight);
   cv.width = W * DPR; cv.height = H * DPR; cv.style.width = W + 'px'; cv.style.height = H + 'px';
   var pad = W < 500 ? 14 : 28; SCL = Math.min(W - 2 * pad, H - 2 * pad) / 1000; OX = (W - 1000 * SCL) / 2; OY = (H - 1000 * SCL) / 2;
   base = null;
 }
-function X(i) { return Math.round(OX + D.xy[i][0] * SCL) + 0.5; }
-function Y(i) { return Math.round(OY + D.xy[i][1] * SCL) + 0.5; }
+function X(i) { return OX + D.xy[i][0] * SCL; }
+function Y(i) { return OY + D.xy[i][1] * SCL; }
 
-var PK = root.WK && root.WK.P, PEND = { queue: ICE, hand: ICE, feed: INK, siren: '#ff5c7a' };
+var PK = root.WK && root.WK.P, PEND = { queue: INK, hand: INK, feed: INK, siren: INK };
 function drawBase() {
   base = document.createElement('canvas'); base.width = cv.width; base.height = cv.height;
   var b = base.getContext('2d'); b.setTransform(DPR, 0, 0, DPR, 0, 0);
   var small = W < 500;
-  if (PK) PK.field(b, D.xy, X, Y, { pl: D.pl, lo: small ? 1 : 1.5, hi: small ? 3.5 : 5.5, col: function (i) { return FAMC[D.fam[D.f[i]]] || MUTE; } });
+  if (PK) PK.field(b, D.xy, X, Y, { pl: D.pl, lo: small ? 1.6 : 2.4, hi: small ? 5 : 8, col: function (i) { return FAMC[D.fam[D.f[i]]] || MUTE; } });
   else { b.globalAlpha = 0.6; for (var i = 0; i < M.N; i++) { b.fillStyle = FAMC[D.fam[D.f[i]]] || MUTE; b.fillRect(X(i) - 1.5, Y(i) - 1.5, small ? 2 : 3, small ? 2 : 3); } }
 }
 
@@ -430,9 +434,9 @@ function draw() {
   var col = PCOL[S.preset] || ICE, end = PEND[S.preset] || INK, p = S.path, n = Math.min(S.anim, p.length), k, pts = [];
   for (k = 0; k < n; k++) pts.push([X(p[k]), Y(p[k])]);
   if (S.ghost) line(S.ghost, S.ghost.length, MUTE, 0.45);
-  if (PK) { PK.ribbon(g, pts, col, end, W < 500 ? 2 : 2.5, 0.92); PK.stops(g, pts, col, end, W < 500 ? 4 : 5); }
+  if (PK) { PK.ribbon(g, pts, col, end, W < 500 ? 2 : 2.5, 0.92, null, p.slice(0, n).map(function (i) { return Math.log(1 + D.pl[i]) / 11; })); PK.stops(g, pts, col, end, W < 500 ? 5 : 6, PGLY[S.preset] || 'dot'); }
   else line(p, n, col, 1);
-  if (n) { g.strokeStyle = INK; g.lineWidth = 1.5; g.strokeRect(Math.round(pts[0][0]) - 6.5, Math.round(pts[0][1]) - 6.5, 13, 13); }
+  if (n && PK) PK.glyph(g, 'star', pts[0][0], pts[0][1], 8, INK);
   g.font = '500 11px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
   var boxes = [];
   // a number goes in the first of four spots that clears every number already placed; a stop with no clear spot keeps its square only
@@ -447,7 +451,7 @@ function draw() {
       boxes.push([bx, by, lw]); g.fillStyle = k === 0 ? INK : PK ? PK.mix(col, end, n > 1 ? k / (n - 1) : 0) : col; g.fillText(lt, bx, by); break;
     }
   }
-  if (S.play >= 0 && S.play < n) { if (PK) PK.rings(g, X(p[S.play]), Y(p[S.play]), INK, 14); else { g.strokeStyle = INK; g.lineWidth = 1; g.strokeRect(X(p[S.play]) - 6, Y(p[S.play]) - 6, 12, 12); } }
+  if (S.play >= 0 && S.play < n) { if (PK) PK.rings(g, X(p[S.play]), Y(p[S.play]), INK, 14); }
 }
 
 function tap(e) {

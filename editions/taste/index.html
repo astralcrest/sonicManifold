@@ -13,17 +13,18 @@
 :root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--act:var(--amber);--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--night);color-scheme:dark}
-body{background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
-#head{padding:22px 32px 20px;border-bottom:1px solid var(--line)}
+body{font-size:17px;line-height:1.5;background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+#head{padding:24px 48px 22px;border-bottom:1px solid var(--line)}
 .eyebrow{font:11px var(--mono);letter-spacing:.14em;color:var(--mute);margin:0 0 10px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
 .eyebrow a{color:var(--mute);text-decoration:none;border-bottom:1px solid var(--line)}
 .tl{display:inline-block;font:600 10px/1.6 var(--mono);letter-spacing:.14em;border:1px solid var(--amber);color:var(--amber);padding:1px 8px}
-h1{font:600 clamp(28px,4vw,56px)/1.02 var(--sans);letter-spacing:-.025em;text-wrap:balance}
+h1{font:600 clamp(28px,3.6vw,48px)/1.08 var(--sans);letter-spacing:-.025em;text-wrap:balance}
 h1 em{font-style:normal;color:var(--act)}
-.tw{display:grid;grid-template-columns:minmax(0,1fr) 440px;min-height:calc(100vh - 160px)}
-#stage{padding:24px 32px 40px;display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:40px;align-items:start;min-width:0}
+.tw{display:grid;grid-template-columns:minmax(0,1fr) clamp(380px,32vw,480px);min-height:calc(100vh - var(--sh,0px) - 140px)}
+@media(max-width:700px){#head{padding:20px 24px 16px}#stage{padding:24px}#side{padding:24px 24px 48px}}
+#stage{padding:32px 48px 48px;display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:40px;align-items:start;min-width:0}
 .play{min-width:0}
-#side{background:var(--panel);border-left:1px solid var(--line);padding:24px 30px 36px;container-type:inline-size;min-width:0}
+#side{background:var(--panel);border-left:1px solid var(--line);padding:32px 40px 48px;container-type:inline-size;min-width:0}
 .k{font:11px/1 var(--mono);letter-spacing:.14em;color:var(--mute);margin:0 0 14px}
 h2{font:600 clamp(22px,2.4vw,30px)/1.15 var(--sans);letter-spacing:-.015em}
 .how{font:12px/1.55 var(--mono);color:var(--mute);margin:14px 0 0}
@@ -111,10 +112,10 @@ nav.walls a[aria-current]{color:var(--act);text-decoration:underline;text-underl
 }
 </style>
 </head>
-<body>
+<body data-wall="3" data-line="pick the song you like more. at the end, see where your picks landed." data-keys="press,alike">
 <header id="head">
-  <p class="eyebrow"><a href="../../">sonic manifold</a><span>the taste test</span><span class="opt">twelve rounds · about four minutes</span><span class="tl">a toy</span></p>
-  <h1>two songs, far apart in sound. you pick the one you <em>like</em> more.</h1>
+  <p class="eyebrow"><a href="../../">sonic manifold</a><span>the taste test</span><span class="tl">a toy</span></p>
+  <h1>two songs, far apart. which do you <em>like</em>?</h1>
 </header>
 <div class="tw">
 <main id="stage">
@@ -142,13 +143,12 @@ nav.walls a[aria-current]{color:var(--act);text-decoration:underline;text-underl
     <div class="bar u"><div class="t"><span>with no first song, picks toward a side drawn the same way</span><b id="bm">0 of 6</b></div><div class="track"><i id="im"></i><u></u></div></div>
     <div class="chance">dashed line: 3 of 6, what a coin would give on average</div>
   </div>
-  <p class="honest">a demonstration, not a finding: twelve rounds cannot separate a pull from chance; psychologists call the pull of a just-heard sound priming.</p>
-  <p class="how"><b>how:</b> each first song sits near one side; with none, a side is drawn the same way.</p>
+  <details class="fine"><summary>the fine print</summary><p>a demonstration, not a finding: twelve rounds cannot separate a pull from chance.</p><p>each first song sits near one side; with none, a side is drawn the same way.</p></details>
   <div id="mapbox">
     <div class="k">your picks on my sound map</div>
-    <p class="cap">1,871 artists i have heard, laid flat by how they sound. nearer means more alike.</p>
+    <p class="cap">each shape is an artist i have heard. close together = sounds alike.</p>
     <canvas id="map" width="560" height="560" aria-label="the sound map with your twelve picks lit"></canvas>
-    <div class="leg"><span><i class="m"></i>you picked</span><span><i class="o"></i>you passed</span><span><i class="a"></i>the first song</span><span><i class="ln"></i>a pair with a first song</span><span><i class="lp"></i>a pair</span></div>
+    <div class="leg"><span><svg viewBox="0 0 20 20" width="16" height="16"><path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/></svg>you picked</span><span><svg viewBox="0 0 20 20" width="16" height="16"><circle cx="10" cy="10" r="7" fill="none" stroke="#efe9ff" stroke-width="2"/></svg>you passed</span><span><svg viewBox="0 0 20 20" width="16" height="16"><circle cx="10" cy="10" r="6" fill="#f5a623"/></svg>the first song</span><span><i class="ln"></i>a pair with a first song</span><span><i class="lp"></i>a pair</span></div>
     <ol id="log"></ol>
   </div>
 </section>
@@ -162,11 +162,12 @@ nav.walls a[aria-current]{color:var(--act);text-decoration:underline;text-underl
   <span class="keylab" id="tkl">rounds, about four minutes</span>
   <p class="take"><b>takeaway:</b>a song heard first may pull your pick; twelve rounds cannot tell.</p>
   <p class="ask"><b>open question:</b>how much of a choice was already chosen by the song before it?</p>
-  <p class="note">in six of twelve rounds a third song plays first; the end shows if it pulled you toward its side.</p>
+  <p class="note">in six rounds a third song plays first. the end shows if it pulled you.</p>
   <details class="how"><summary>how</summary>
-    <p id="consent">nothing is stored; this runs in your browser. what plays: 15 s previews of two artists that sit far apart on my sound map; the third song first sits next to one of them. that is the primer.</p>
+    <p>12 rounds of two 15 s previews, far apart in sound.</p>
+    <p>in six, a third song plays first, near one of the two.</p>
+    <p id="consent">nothing is stored; it all runs in your browser.</p>
   </details>
-  <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/" aria-current="page">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
 </aside>
 </div>
 <script src="../kiosk.js"></script>

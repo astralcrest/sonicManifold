@@ -37,7 +37,7 @@ function drawMap(lit) {
   if (lit.length > 1) P.ribbon(g, [[MAP.X(lit[0].i), MAP.Y(lit[0].i)], [MAP.X(lit[1].i), MAP.Y(lit[1].i)]], P.PAL.ice, P.PAL.ink, 1.5, 0.7, [4, 4]);
   lit.forEach(function (x) {
     var i = x.i, col = WK.FAMC[D.fam[D.f[i]]] || C.mute;
-    P.stops(g, [[MAP.X(i), MAP.Y(i)]], col, col, 10);
+    P.peb(g, i, MAP.X(i), MAP.Y(i), 7, col);
     P.rings(g, MAP.X(i), MAP.Y(i), x.ring || C.ink, x.rs || 18);
     MAP.tag(i, x.tag, C.ink, C.night);
   });
@@ -45,8 +45,8 @@ function drawMap(lit) {
 
 function resLit() {
   var a = opt(S.p1), b = opt(S.p2), same = S.p1 === S.p2, o = opt(1 - S.p1);
-  if (same) return [{ i: a.i, tag: 'both: ' + a.n, ring: C.mint, rs: 24 }, { i: o.i, tag: o.n }];
-  return [{ i: a.i, tag: 'dark: ' + a.n, ring: C.mint, rs: 24 }, { i: b.i, tag: 'seen: ' + b.n, ring: C.amber, rs: 24 }];
+  if (same) return [{ i: a.i, tag: 'both: ' + a.n, ring: C.ink, rs: 24 }, { i: o.i, tag: o.n }];
+  return [{ i: a.i, tag: 'dark: ' + a.n, ring: C.ink, rs: 24 }, { i: b.i, tag: 'seen: ' + b.n, ring: C.rose, rs: 24 }];
 }
 
 function tally() {
@@ -62,8 +62,8 @@ function showPair() {
   S.pair = PAIRS[order[oi % order.length]]; S.flip = Math.random() < 0.5; S.phase = 'dark'; S.p1 = S.p2 = -1;
   document.body.className = 'dark';
   ['a', 'b'].forEach(function (id) { var sq = $('sq' + id); sq.style.removeProperty('--c'); sq.style.background = ''; $('nm' + id).classList.add('hide'); });
-  $('ph').textContent = 'round 1 of 2. dark.';
-  $('hint').textContent = 'tap a square to hear it. tap again to stop. then tap this one under your pick.';
+  $('ph').textContent = 'round 1 of 2: names hidden.';
+  $('hint').textContent = 'tap a card to hear it. tap again to stop. then tap "this one" under your pick.';
   $('hint').classList.remove('hide');
   $('resbox').classList.add('hide');
   $('pka').classList.remove('on'); $('pkb').classList.remove('on');
@@ -80,7 +80,7 @@ function showSeen() {
     $('nm' + id).textContent = o.n; $('nm' + id).classList.remove('hide');
     sq.setAttribute('aria-label', 'clip ' + (k ? 'B' : 'A') + ', ' + o.n + ', ' + o.f + ', tap to hear');
   });
-  $('ph').textContent = 'round 2 of 2. seen. same two clips, now with names.';
+  $('ph').textContent = 'round 2 of 2: names shown. same two clips.';
   $('hint').textContent = 'pick again. a different pick is fine.';
   $('pka').classList.remove('on'); $('pkb').classList.remove('on');
   var lit = [0, 1].map(function (k) { return { i: opt(k).i, tag: opt(k).n }; });

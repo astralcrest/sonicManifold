@@ -22,7 +22,7 @@ function type(el, text, speed, done) {
   (function step() { n++; el.textContent = text.slice(0, n); if (n < text.length) timers.push(setTimeout(step, speed)); else done && done(); })();
 }
 function say(txt) {
-  if (!voiceOn || !synth) return;
+  if (!synth || !(window.WK && WK.sound())) return;
   synth.cancel(); var u = new SpeechSynthesisUtterance(txt); u.rate = .95; synth.speak(u);
 }
 function bump() { clearTimeout(idle); idle = setTimeout(reset, 120000); }

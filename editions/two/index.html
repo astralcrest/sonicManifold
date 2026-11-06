@@ -4,18 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>sonic manifold · the two of you</title>
-<meta name="description" content="two people place their music on one listener's sound map: where each of you sits, what you share, who has the wider map, and where her queue would take you.">
+<meta name="description" content="two people place their music on one listener's sound map: where each of you sits, what you share, who has the wider map, and where auto-play would take you.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--bside:#efe9ff;--act:var(--ice);--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--bside:#efe9ff;--aside:#ff6fae;--act:var(--ice);--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--night);color-scheme:dark}
 body{background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.45}
-main{max-width:1320px;margin:0 auto;padding:22px 32px 64px}
+main{max-width:1320px;margin:0 auto;padding:32px 48px 72px}
+@media(max-width:700px){main{padding:24px 24px 56px}}
+body{font-size:17px}
 header{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px 48px;align-items:start;border-bottom:1px solid var(--line);padding-bottom:26px}
 .eyebrow{font:11px var(--mono);letter-spacing:.14em;color:var(--mute);margin:0 0 12px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
 .eyebrow a{color:var(--mute);text-decoration:none;border-bottom:1px solid var(--line)}
@@ -37,10 +39,10 @@ h1 em{font-style:normal;color:var(--ice)}
 #qr{display:flex;gap:12px;align-items:center;margin-top:16px}
 #qr img{width:84px;height:84px;display:block;image-rendering:pixelated}
 #qr span{font:11px/1.3 var(--mono);color:var(--mute);max-width:140px}
-.a{color:var(--ice)}.b{color:var(--bside)}.o{color:var(--violet)}
+.a{color:var(--aside)}.b{color:var(--bside)}.o{color:var(--violet)}
 .sw{display:inline-block;width:10px;height:10px;vertical-align:baseline;margin-right:5px}
 #sides{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:26px}
-.side{border:1px solid var(--line);background:var(--panel);padding:18px;display:grid;gap:12px;border-top:3px solid var(--ice)}
+.side{border:1px solid var(--line);background:var(--panel);padding:18px;display:grid;gap:12px;border-top:3px solid var(--aside)}
 .side[data-s="b"]{border-top-color:var(--bside)}
 .side.owner{border-top-color:var(--violet)}
 .side.over{border-color:var(--ice)}
@@ -85,7 +87,7 @@ ul.names{list-style:none;margin-top:14px;display:grid;gap:5px;font-size:14px}
 ul.names li{display:flex;gap:8px;align-items:baseline;line-height:1.3}
 ul.names li .m{font:11px var(--mono);color:var(--mute)}
 ul.names.cols{grid-template-columns:1fr 1fr;column-gap:16px}
-.split{display:inline-flex;width:10px;height:10px}.split i{flex:1;background:var(--ice)}.split i+i{background:var(--bside)}
+.split{display:inline-flex;width:10px;height:10px}.split i{flex:1;background:var(--aside)}.split i+i{background:var(--bside)}
 footer{margin-top:52px;border-top:1px solid var(--line);padding-top:16px;font:12px/1.5 var(--mono);color:var(--mute)}
 footer a{color:var(--ink)}
 details.how{border-top:1px solid var(--line);margin:18px 0 0;max-width:none}
@@ -120,13 +122,13 @@ button#again6,button#again{min-height:44px}
 }
 </style>
 </head>
-<body>
+<body data-wall="2" data-line="two lists as places on my sound map. close together = sounds alike." data-keys="alike,auto">
 <main>
 <header>
   <div>
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the two of you</span><span class="tl">a toy</span></p>
     <h1>the <em>two</em> of you, on my sound map</h1>
-    <p id="lead">two people, one sound map: where each of you sits, what you share, who ranges wider, and where my queue would carry you. no score.</p>
+    <p id="lead">two people, one sound map: where each of you sits, what you share, who ranges wider, and where auto-play would carry you. no score.</p>
     <p class="how" id="showing"></p>
     <div id="qr"><img src="data/qr.svg" alt="QR code linking to this page"><span>scan to open this page on your phone</span></div>
   </div>
@@ -162,13 +164,13 @@ button#again6,button#again{min-height:44px}
 <div id="tryrow"><button type="button" id="try">try two made-up lists</button><span>no real person listened to them</span></div>
 
 <section class="pic" id="p1">
-  <div><div class="cv"><canvas id="c1" aria-label="sound map with both sides placed; tap a square to name it"></canvas></div><p class="tap" id="t1">tap a square to name it.</p></div>
+  <div><div class="cv"><canvas id="c1" aria-label="sound map with both sides placed; tap a shape to name it"></canvas></div><p class="tap" id="t1">tap a shape to name it.</p></div>
   <div class="room">
     <p class="n">one · where you sit</p>
     <h3>both of you on my sound map</h3>
     <p class="find" id="f1"></p>
-    <p class="cap"><span class="sw" style="background:var(--ice)"></span>a &nbsp; <span class="sw" style="background:var(--bside)"></span>b &nbsp; <span class="sw" style="background:#5a4a92"></span>everyone else i heard</p>
-    <p class="how"><b>how:</b> square size = plays over 30 seconds (an export) or list rank (a pasted list).</p>
+    <p class="cap"><span class="sw" style="background:var(--aside)"></span>a &nbsp; <span class="sw" style="background:var(--bside)"></span>b &nbsp; <span class="sw" style="background:#5a4a92"></span>everyone else i heard</p>
+    <details class="fine"><summary>the fine print</summary><p>shape size = plays over 30 seconds (an export) or list rank (a pasted list).</p></details>
   </div>
 </section>
 
@@ -179,7 +181,7 @@ button#again6,button#again{min-height:44px}
     <h3>the artists you both have</h3>
     <p class="find" id="f2"></p>
     <ul class="names cols" id="l2"></ul>
-    <p class="how"><b>how:</b> an artist counts once it is in both sets; split squares are the shared ones.</p>
+    <details class="fine"><summary>the fine print</summary><p>an artist counts once it is in both sets; split shapes are the shared ones.</p></details>
   </div>
 </section>
 
@@ -190,7 +192,7 @@ button#again6,button#again{min-height:44px}
     <h3>who has the wider map</h3>
     <p class="find" id="f3"></p>
     <p class="cap">each circle: centered on the weighted middle, radius = the typical distance from it.</p>
-    <p class="how"><b>how:</b> weighted mean and root mean square distance on this flat map, which is 1,000 across.</p>
+    <details class="fine"><summary>the fine print</summary><p>weighted mean and root mean square distance on this flat map, which is 1,000 across.</p></details>
   </div>
 </section>
 
@@ -203,50 +205,49 @@ button#again6,button#again{min-height:44px}
     <ul class="names" id="l4"></ul>
     <button type="button" id="hear">hear the closest crossing</button>
     <p class="tap" id="t4"></p>
-    <p class="how"><b>how:</b> for each artist only one of you has, the nearest artist only the other has, in the 3D sound map.</p>
+    <details class="fine"><summary>the fine print</summary><p>for each artist only one of you has, the nearest artist only the other has, in the 3D sound map.</p></details>
   </div>
 </section>
 
 <section class="pic" id="p5">
   <div class="cv"><canvas id="c5"></canvas></div>
   <div class="room">
-    <p class="n">five · where the queue leans</p>
-    <h3>where my queue would take you</h3>
+    <p class="n">five · where auto-play leans</p>
+    <h3>where auto-play would take you</h3>
     <p class="find" id="f5"></p>
-    <span class="lab">a toy · descriptive · my queue, not yours</span>
-    <div class="knob"><label class="how" for="habit">how hard the queue leans on pairs that already ran</label><input type="range" id="habit" min="0" max="4" step="0.5" value="1" aria-label="habit weight"> <button type="button" id="again">walk again</button></div>
-    <p class="how"><b>how:</b> 0 = every drawn pair equally likely; 4 = the habits that already ran win.</p>
+    <span class="lab">a toy · about auto-play, not you</span>
+    <div class="knob"><label class="how" for="habit">how hard auto-play repeats its own pairs</label><input type="range" id="habit" min="0" max="4" step="0.5" value="1" aria-label="habit weight"> <button type="button" id="again">walk again</button></div>
+    <details class="fine"><summary>the fine print</summary><p>0 = every drawn pair equally likely; 4 = the habits that already ran win.</p></details>
     <p class="find" id="spread"></p>
     <p class="cap" id="cap5"></p>
-    <p class="cap">narrow lines: 8 walks per side. wide line: the first walk. squares: its stops.</p>
-    <p class="how"><b>how:</b> a 20-step walk from each side's top 10 placed artists, on 1,600 of my queue's 11,688 artist pairs (a random draw), either direction, each step chosen by how often that pair ran (log scale). numbers are the expected stops, averaged over the 10 starts.</p>
+    <p class="cap">thin lines: 8 walks per side. thick line: the first walk. dots: its stops.</p>
+    <details class="fine"><summary>the fine print</summary><p>a 20-step walk from each side's top 10 placed artists, on 1,600 of my queue's 11,688 artist pairs (a random draw), either direction, each step chosen by how often that pair ran (log scale). numbers are the expected stops, averaged over the 10 starts.</p></details>
   </div>
 </section>
 
 <section class="pic" id="p6">
   <div>
-    <div class="duo"><div class="cv"><canvas id="c6a" aria-label="my fitted queue walking your list"></canvas></div><div class="cv"><canvas id="c6b" aria-label="a fit of your habits walking my list"></canvas></div></div>
+    <div class="duo"><div class="cv"><canvas id="c6a" aria-label="auto-play walking your list"></canvas></div><div class="cv"><canvas id="c6b" aria-label="a fit of your habits walking my list"></canvas></div></div>
     <p class="leg6" id="g6"></p>
     <p class="tap" id="l6a"></p><p class="tap" id="l6b"></p><p class="tap" id="t6"></p><p class="tap" id="m6note"></p>
   </div>
   <div class="room">
     <p class="n">six · the mirror</p>
-    <h3>my machine on your list, your habits on mine</h3>
-    <p class="find"><b>same machine, different habits, different drift.</b> turn the knob and watch both paths change.</p>
+    <h3>auto-play on your list, your habits on mine</h3>
+    <p class="find"><b>same rule, different habits, different drift.</b> turn the dial and watch both paths change.</p>
     <p class="find" id="f6">loads when you scroll here.</p>
-    <span class="lab">a toy, descriptive</span>
-    <p class="cap">the fit is a coarse search over a few settings, so short lists fit poorly. a tap on a square names the artist.</p>
-    <div class="knob"><label class="how" for="habit6">the same habit knob as panel five</label><input type="range" id="habit6" min="0" max="4" step="0.5" value="1" aria-label="habit weight, mirror"> <button type="button" id="again6">walk again</button></div>
-    <p class="how"><b>how:</b> the loop machine runs 40 steps twice. mine uses the knobs fitted to my queue, started from your top artist. yours is fitted to your list: an export uses the artists you played back to back; a pasted list uses neighbors in your ranking. the habit knob scales the repeat-the-run weight in both. one walk each, so another seed can differ.</p>
+    <span class="lab">a toy</span>
+    <p class="cap">short lists fit poorly. tap a shape to name the artist.</p>
+    <div class="knob"><label class="how" for="habit6">the same habit dial as panel five</label><input type="range" id="habit6" min="0" max="4" step="0.5" value="1" aria-label="habit weight, mirror"> <button type="button" id="again6">walk again</button></div>
+    <details class="fine"><summary>the fine print</summary><p>the loop machine runs 40 steps twice. mine uses the knobs fitted to my queue, started from your top artist. yours is fitted to your list: an export uses the artists you played back to back; a pasted list uses neighbors in your ranking. the habit knob scales the repeat-the-run weight in both. one walk each, so another seed can differ.</p></details>
   </div>
 </section>
 
 <footer>no compatibility score: these are places on one listener's map, not a verdict on two people.
-<details class="how"><summary>how</summary>
-<p class="how"><b>how:</b> each name you give is looked up among the 1,871 artists i have heard, placed by how they sound. names i never heard are counted, not placed.</p>
-<p class="how">the faint violet lattice joins each artist to its three nearest on the map, so the map reads as one surface.</p>
+<details class="fine"><summary>the fine print</summary>
+<p>each name you give is looked up among the 1,871 artists i have heard, placed by how they sound. names i never heard are counted, not placed.</p>
+<p>the faint ice lines join each artist to its three nearest on the map, so the map reads as one surface.</p>
 </details>
-<nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/" aria-current="page">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
 </footer>
 </main>
 <script src="../kiosk.js"></script>

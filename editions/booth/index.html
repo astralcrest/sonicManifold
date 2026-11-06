@@ -11,29 +11,29 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../wall.css">
 <style>
-#room { min-height: 100vh; min-height: 100dvh; border: 6px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) 440px; grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "head head" "stage side"; transition: border-color .4s; }
+#room { min-height: calc(100vh - var(--sh, 0px)); min-height: calc(100dvh - var(--sh, 0px)); border: 6px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) clamp(400px, 34vw, 520px); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "head head" "stage side"; transition: border-color .4s; }
 #room[data-lit="1"] { border-color: #3a2a22; } #room[data-lit="2"] { border-color: #6b4a1c; } #room[data-lit="3"] { border-color: var(--amber); }
 #room > #head { grid-area: head; }
-#stagebox { grid-area: stage; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 30px; padding: 32px 40px 40px; min-width: 0; }
+#stagebox { grid-area: stage; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 30px; padding: 48px 48px 48px; min-width: 0; }
 #room > #side { grid-area: side; }
 #stage { width: 100%; min-height: 230px; max-width: 900px; }
 #claim { font: 600 clamp(26px, 3.6vw, 52px)/1.12 var(--sans); letter-spacing: -.02em; margin: 0; }
 #claim::before { content: "\201C"; color: var(--amber); } #claim::after { content: "\201D"; color: var(--amber); }
 #claim:empty, #claim:empty::before, #claim:empty::after { content: ""; }
 #ref { font: 400 clamp(14px, 1.5vw, 18px)/1.55 var(--mono); color: var(--rose); margin: 22px 0 0; display: flex; gap: 14px; max-width: 70ch; }
-#ref i { flex: none; width: 10px; height: 10px; background: var(--rose); margin-top: .5em; visibility: hidden; }
+#ref i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--rose); margin-top: .5em; visibility: hidden; }
 #ref.on i { visibility: visible; }
 .goline { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
-button#go { width: 180px; height: 180px; font: 600 28px/1 var(--sans); letter-spacing: -.01em; color: var(--night); background: var(--amber); border: 0; border-radius: 0; flex: none; }
+button#go { width: 180px; height: 180px; font: 600 28px/1 var(--sans); letter-spacing: -.01em; color: var(--night); background: var(--amber); border: 0; border-radius: 46% 54% 50% 50% / 56% 44% 56% 44%; flex: none; }
 button#go:hover { background: #ffb940; }
 #row { display: flex; gap: 6px; flex-wrap: wrap; max-width: 220px; }
-#row i { width: 16px; height: 16px; background: var(--line); display: block; }
+#row i { width: 16px; height: 16px; background: var(--line); display: block; border-radius: 52% 48% 55% 45% / 50% 55% 45% 50%; }
 #row i.dead { background: #5a2a3a; } #row i.now { background: var(--rose); }
 .toy { font: 11px/1.5 var(--mono); color: var(--mute); margin: 14px 0 0; }
 .chip[hidden] { display: none; }
 @media (max-width: 900px) {
   #room { display: block; border-width: 4px; }
-  #stagebox { padding: 22px 16px 26px; gap: 22px; }
+  #stagebox { padding: 24px 24px 32px; gap: 22px; }
   #stage { min-height: 250px; }
   button#go { width: 150px; height: 150px; font-size: 24px; }
   #room > #side { padding-top: 22px; border-top: 1px solid var(--line); }
@@ -41,11 +41,11 @@ button#go:hover { background: #ffb940; }
 @media (prefers-reduced-motion: reduce) { #room { transition: none; } }
 </style>
 </head>
-<body style="--act: var(--rose); --acc: var(--amber)">
+<body data-wall="8" data-line="each press shows a claim i wanted true, then the check that killed it." data-keys="" style="--act: var(--rose); --acc: var(--amber)">
 <div id="room" data-lit="0">
   <header id="head">
-    <p class="eyebrow"><a href="../../">sonic manifold</a><span>the graveyard booth</span><span class="tl">a toy, labeled</span></p>
-    <h1>press confess. one claim i wanted true, and the line that <em>killed</em> it.</h1>
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>the graveyard booth</span><span class="tl">a toy</span></p>
+    <h1>a claim i wanted true, and what <em>killed</em> it.</h1>
   </header>
   <main id="stagebox">
     <div id="stage" aria-live="polite"><p id="claim"></p><p id="ref"><i></i><span id="reft"></span></p></div>
@@ -57,17 +57,24 @@ button#go:hover { background: #ffb940; }
   <aside id="side">
     <div class="key">
       <div class="big rose" id="cnt"></div>
-      <span class="keylab">claims the referee buried</span>
+      <span class="keylab">claims a check killed</span>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>each claim here is one i wanted true; a referee killed it.</p>
       <p class="ask"><b>open question:</b>how many claims feel true only because no one tried to kill them?</p>
     </div>
-    <div class="row bar"><button type="button" class="chip" id="voice" aria-pressed="false">voice off</button><button type="button" class="chip" id="reset">reset</button></div>
-    <p class="toy">a booth. data: the graveyard of claims the referee killed, public since 2026. nothing is stored.</p>
-    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/" aria-current="page">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
+    <div class="row bar"><button type="button" class="chip" id="voice" aria-pressed="false" hidden>voice off</button><button type="button" class="chip" id="reset">reset</button></div>
+    <details class="how"><summary>how</summary>
+      <p>press confess: a claim types out.</p>
+      <p>then the check that killed it appears.</p>
+      <p>turn sound on at the top to hear it read.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>a booth. data: the graveyard of claims the referee killed, public since 2026. nothing is stored.</p>
+    </details>
   </aside>
 </div>
+<script src="../wallkit.js"></script>
 <script src="booth.js"></script>
 </body>
 </html>

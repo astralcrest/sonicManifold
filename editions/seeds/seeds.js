@@ -72,10 +72,10 @@ function run(again) {
   S.pa = LOOP.walk(M, S.a, K, S.seed).path; S.pb = LOOP.walk(M, S.b, K, S.seed + 7).path;
   S.hit = touchOf(S.pa, S.pb);
   var h = S.hit, big = $('big');
-  if (h.never) { big.textContent = 'never'; big.className = 'big ink'; $('say').textContent = 'in 40 steps the two paths never share a neighborhood. the closest they get is ' + h.gap.toFixed(2) + ' of one random hop in sound, mint step ' + h.a + ' to amber step ' + h.b + '.'; $('sn').value = Math.max(h.a, h.b); }
+  if (h.never) { big.textContent = 'never'; big.className = 'big ink'; $('say').textContent = 'in 40 steps the two paths never share a neighborhood. the closest they get is ' + h.gap.toFixed(2) + ' of one random hop in sound, seed one step ' + h.a + ' to seed two step ' + h.b + '.'; $('sn').value = Math.max(h.a, h.b); }
   else {
     big.textContent = h.step === 0 && h.a === 0 && h.b === 0 ? 'step 0' : 'step ' + h.step; big.className = 'big mint';
-    $('say').textContent = h.step === 0 ? 'the two seeds already sit in one neighborhood.' : 'the paths first share a neighborhood at step ' + h.step + ': mint step ' + h.a + ' and amber step ' + h.b + ' are close in sound.';
+    $('say').textContent = h.step === 0 ? 'the two seeds already sit in one neighborhood.' : 'the paths first share a neighborhood at step ' + h.step + ': seed one step ' + h.a + ' and seed two step ' + h.b + ' are close in sound.';
     $('sn').value = h.step;
   }
   $('run').textContent = 'run again'; WK.stop(); hearLabel(); draw();
@@ -84,19 +84,18 @@ function run(again) {
 function draw() {
   if (!MAP || S.a < 0) return;
   MAP.begin(); var g = MAP.g, h = S.hit, n = S.pa.length, P = WK.P.PAL;
-  MAP.ribbon(S.pa, n, P.mint, P.ice); MAP.ribbon(S.pb, n, P.amber, P.rose);
-  MAP.stops(S.pa, n, P.mint, P.ice); MAP.stops(S.pb, n, P.amber, P.rose);
+  MAP.ribbon(S.pa, n, P.violet, P.ink); MAP.ribbon(S.pb, n, P.rose, P.ink);
+  MAP.stops(S.pa, n, P.violet, P.ink, 0, 'ring'); MAP.stops(S.pb, n, P.rose, P.ink, 0, 'dot');
   var s = +$('sn').value;
   if (h) {
     var xa = MAP.X(S.pa[h.a]), ya = MAP.Y(S.pa[h.a]), xb = MAP.X(S.pb[h.b]), yb = MAP.Y(S.pb[h.b]);
     g.save(); g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.setLineDash(h.never ? [4, 4] : []); g.beginPath(); g.moveTo(xa, ya); g.lineTo(xb, yb); g.stroke(); g.restore();
     g.fillStyle = '#fff';
-    if (h.never) { g.fillRect(Math.round(xa) - 4, Math.round(ya) - 4, 8, 8); g.fillRect(Math.round(xb) - 4, Math.round(yb) - 4, 8, 8); }
-    else { g.fillRect(Math.round(xa) - 6, Math.round(ya) - 6, 12, 12); g.fillRect(Math.round(xb) - 6, Math.round(yb) - 6, 12, 12); }
+    var gr = h.never ? 6 : 9; WK.P.glyph(g, 'star', xa, ya, gr, '#fff'); WK.P.glyph(g, 'star', xb, yb, gr, '#fff');
   }
-  MAP.stop(S.pa[s], P.mint, 14); MAP.stop(S.pb[s], P.amber, 14);
+  MAP.stop(S.pa[s], P.violet, 14); MAP.stop(S.pb[s], P.rose, 14);
   if (h) { if (h.never) MAP.tag(S.pa[h.a], 'closest', '#fff'); else MAP.tag(h.step === h.a ? S.pa[h.a] : S.pb[h.b], 'step ' + h.step, '#fff'); }
-  MAP.tag(S.pa[0], 'one', P.mint); MAP.tag(S.pb[0], 'two', P.amber);
+  MAP.tag(S.pa[0], 'one', P.violet); MAP.tag(S.pb[0], 'two', P.rose);
 }
 
 function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop' : 'hear step ' + $('sn').value; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); }
@@ -105,7 +104,7 @@ $('hear').addEventListener('click', function () {
   if (WK.playing()) { WK.stop(); return; }
   if (S.a < 0) return;
   var s = +$('sn').value, now = $('now'); now.textContent = 'loading previews';
-  WK.play([{ i: S.pa[s], tag: 'mint' }, { i: S.pb[s], tag: 'amber' }], function (k, info) {
+  WK.play([{ i: S.pa[s], tag: 'seed one' }, { i: S.pb[s], tag: 'seed two' }], function (k, info) {
     $('now').textContent = info ? 'playing ' + info.tag + ' step ' + s + ': ' + info.title + ', by ' + D.n[info.i] + '. the other plays next.' : '';
     hearLabel();
   }).then(function () { if (!WK.playing()) $('now').textContent = 'no preview for these two stops.'; });
@@ -121,7 +120,7 @@ WK.boot([]).then(function (b) {
   // same neighborhood = within the median distance from an artist to its own sixth-nearest neighbor
   var ds = [], i; for (i = 0; i < M.N; i++) { var j = D.nn[i][5]; if (j >= 0) ds.push(LOOP.dist(M, i, j)); }
   ds.sort(function (x, y) { return x - y; }); R = ds[ds.length >> 1];
-  $('def').textContent = 'same neighborhood: two stops within ' + (R / M.RH).toFixed(2) + ' of one random hop in sound, the median distance from an artist to its sixth-nearest. rule: the loop wall’s fitted queue rule, ' + M.N.toLocaleString('en-US') + ' artists, 40 steps. a toy, not a prediction.';
+  $('def').textContent = 'same neighborhood: two stops within ' + (R / M.RH).toFixed(2) + ' of one random hop in sound, the median distance from an artist to its sixth-nearest. rule: the loop wall’s fitted auto-play rule, ' + M.N.toLocaleString('en-US') + ' artists, 40 steps. a toy, not a prediction.';
   MAP = new WK.Map($('map'), $('cv'), D, M); MAP.resize();
   window.addEventListener('resize', sizeUp);
   WK.pv().catch(function () {});

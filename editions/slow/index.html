@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../wall.css">
 <style>
 @media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
-.store { font: 500 11px/1.5 var(--mono); color: var(--mint); letter-spacing: .04em; margin: 14px 0 0; }
+.store { font: 500 13px/1.5 var(--mono); color: var(--mint); letter-spacing: .04em; margin: 14px 0 0; }
 .nowbox { min-height: 112px; margin: 14px 0 0; }
 .who { font: 600 clamp(26px, 8cqi, 40px)/1.05 var(--sans); letter-spacing: -.02em; color: var(--ice); overflow-wrap: anywhere; margin: 0 0 6px; min-height: 36px; }
 .dline { font: 500 12px var(--mono); color: var(--mute); margin: 0 0 10px; min-height: 18px; }
@@ -21,18 +21,18 @@
 .prog i { display: block; height: 100%; width: 0; background: var(--ice); }
 .slot { font: 500 11px var(--mono); letter-spacing: .08em; color: var(--mute); margin: 8px 0 0; }
 .stays { display: flex; flex-wrap: wrap; gap: 5px; min-height: 18px; margin: 12px 0 0; }
-.stays i { display: block; width: 18px; height: 18px; background: var(--ice); }
+.stays i { display: block; width: 18px; height: 18px; background: var(--ink); border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%; }
 .stays i.cur { background: transparent; border: 1px solid var(--ice); }
 .hide { display: none !important; }
 </style>
 </head>
-<body style="--act: var(--ice); --acc: var(--ice)">
+<body data-wall="9" data-line="faint shapes: where auto-play walked. bright shapes: songs it never reached." data-keys="auto,alike" style="--act: var(--ink); --acc: var(--ink)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the slow room</span><span class="tl">a toy</span></p>
-    <h1>the slow room. songs the queue <em>never</em> would have served me.</h1>
+    <h1>songs auto-play <em>never</em> would have played.</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map, dimmed. faint violet dots are artists the fitted queue reached in 40 runs. ice squares are the twelve it never reached, farthest from any run. the one playing is ringed."></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map, dimmed. faint violet shapes are artists auto-play reached in 40 runs. bright white shapes are the twelve it never reached. the one playing is ringed."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big ice" id="n">0</div>
@@ -50,15 +50,19 @@
       <p class="note" id="msg"></p>
     </section>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>the fitted queue never reached these twelve in 40 runs; here they play.</p>
+      <p class="take"><b>takeaway:</b>auto-play never reached these twelve in 40 runs; here they play.</p>
       <p class="ask"><b>open question:</b>what does it cost a song to never be reached?</p>
     </div>
     <p class="store">nothing is stored. the count lives in this tab tonight and is gone after.</p>
     <details class="how"><summary>how</summary>
+      <p>twelve artists auto-play never reached, in random order.</p>
+      <p>30 s previews, one at a time, only after a tap.</p>
+      <p>stay past 30 s and the count goes up.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
       <p id="what">what plays: </p>
       <p id="toy">a toy. </p>
     </details>
-    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/" aria-current="page">the slow room</a></nav>
   </main>
 </div>
 <script src="../kiosk.js"></script>

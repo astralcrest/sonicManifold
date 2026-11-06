@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>the loop</title>
-<meta name="description" content="a playable recommender over my sound map: turn one weight and 40 picks fold into a short loop.">
+<title>walk the loop</title>
+<meta name="description" content="pick who walks, turn a dial, and watch 40 picks cross my sound map.">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,8 +16,8 @@
 #chips { display: flex; flex-wrap: wrap; gap: 8px; }
 #chips button[data-p="queue"] { --acc: var(--violet); }
 #chips button[data-p="hand"] { --acc: var(--mint); }
-#chips button[data-p="feed"] { --acc: var(--ice); }
-#chips button[data-p="siren"] { --acc: var(--amber); }
+#chips button[data-p="feed"] { --acc: var(--ink); }
+#chips button[data-p="siren"] { --acc: var(--rose); }
 #reset { margin-top: 8px; --acc: var(--line); color: var(--mute); }
 #tabd summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--mute); font: 12px var(--mono); }
 @media (min-width: 700px) { #tabd summary { display: none; } }
@@ -59,70 +59,70 @@ output { font-size: 12px; color: var(--mute); }
 @media (max-width: 900px) { .met dd { font-size: 22px; } }
 </style>
 </head>
-<body style="--act: var(--violet); --acc: var(--violet)">
+<body data-wall="1" data-line="a rule's 40-pick walk across my sound map. close together = sounds alike." data-keys="auto,press,alike" style="--act: var(--violet); --acc: var(--violet)">
 <div class="wrap">
   <header id="head">
-    <p class="eyebrow"><a href="../../">sonic manifold</a><span>the loop</span><span class="opt">one wall of the machine</span><span class="tl">a toy</span></p>
-    <h1 id="h1">turn one weight and the same machine folds 40 picks into a short loop.</h1>
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>walk the loop</span><span class="tl">a toy</span></p>
+    <h1 id="h1">does auto-play follow sound more than i do?</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map: every artist as a dot colored by family, with the machine's 40-step path drawn as a numbered line"></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map: every artist as a shape colored by genre family, with a rule's 40-step walk drawn as a numbered ribbon"></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="m-loop">-</div>
-      <span class="keylab">the path loops back at</span>
+      <span class="keylab">the walk starts repeating at</span>
       <p id="say" class="say"></p>
     </div>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>the queue leans on closeness in sound more than my presses do.</p>
-      <p class="ask"><b>open question:</b>if the queue leans on sound more than my hand, who taught whom?</p>
+      <p class="take"><b>takeaway:</b>auto-play stays closer in sound than my own presses do.</p>
+      <p class="ask"><b>open question:</b>if auto-play follows sound more than i do, who taught whom?</p>
     </div>
     <section>
-      <h2>start from a rule</h2>
+      <h2>pick who walks</h2>
       <div id="chips" role="group" aria-label="presets">
-        <button type="button" data-p="queue">the queue</button>
-        <button type="button" data-p="hand">my hand</button>
+        <button type="button" data-p="queue">auto-play</button>
+        <button type="button" data-p="hand">my press</button>
         <button type="button" data-p="feed">a feed</button>
-        <button type="button" data-p="siren">the siren</button>
+        <button type="button" data-p="siren">the pull</button>
       </div>
-      <button type="button" id="reset" aria-label="reset to the queue and its standard start">reset</button>
-      <p class="note" id="qfit"><b>fitted on my log, the queue leans on closeness in sound more than my presses do. a direction, not a size.</b> "the queue" includes my own playlists in order, not only the app's picks.</p>
+      <button type="button" id="reset" aria-label="reset to auto-play and its standard start">reset</button>
+      <p class="note" id="pdesc"></p>
     </section>
     <section>
-      <h2>what this path did</h2>
+      <h2>what this walk did</h2>
       <dl class="met">
-        <div><dt>sound length</dt><dd id="m-len">-</dd><small>in random hops</small></div>
-        <div><dt>families</dt><dd id="m-fam">-</dd><small>colors visited</small></div>
+        <div><dt>distance walked</dt><dd id="m-len">-</dd><small>in random-hop units</small></div>
+        <div><dt>genre families</dt><dd id="m-fam">-</dd><small>colors visited</small></div>
         <div><dt>my top 50</dt><dd id="m-top">-</dd><small>share of picks</small></div>
       </dl>
     </section>
     <section>
-      <h2 id="kh2">three knobs: the ones that change time to loop most</h2>
+      <h2 id="kh2">three dials: the ones that change the walk most</h2>
       <div id="knobs"></div>
       <p class="note" id="fixed"></p>
-      <div id="hotline" hidden>right now, this knob moves the picture most</div>
+      <div id="hotline" hidden>right now, this dial changes the walk most</div>
     </section>
     <section>
-      <h2>the path</h2>
+      <h2>the walk, stop by stop</h2>
       <button type="button" id="hear" aria-pressed="false">hear it</button>
       <p id="now"></p>
       <div id="path"></div>
-      <p class="note" id="what">what plays: a 40 step walk the rule above takes across my map, one artist per stop. not my history; the rule's path. the haunted wall plays my history.</p>
-    </section>
-    <section>
-      <h2>per step: real pairs vs this rule (descriptive)</h2>
-      <details id="tabd"><summary>the table</summary>
-      <table id="tab"></table>
-      <p id="gap"></p>
-      <p class="note">many settings fit about as well. read a preset as one good fit, not the real weights.</p></details>
+      <p class="note" id="what">what plays: one 30-second preview per stop. it is the rule's walk, not my history.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>from my log: the queue's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
-      <p>a machine picks 40 artists in a row from my map. <b>how:</b> each step scores <span id="nc">the</span> nearby, linked and random artists on five weighted features, then picks one. <b>why:</b> a feed is a rule like this: each pick shapes the next.</p>
-      <p id="fitnote" style="white-space:pre-line"></p>
-      <p id="mapnote">dots: <span id="nart"></span> artists placed by how they sound, colored by family. squares sized by plays; faint violet lines join each artist to its three nearest on the map.</p>
+      <p>each shape is an artist, colored by genre family.</p>
+      <p>a rule walks 40 picks across them; the ribbon is its path.</p>
+      <p>each step weighs <span id="nc">the</span> nearby, popular and random artists.</p>
       <div id="legend"></div>
     </details>
-    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/" aria-current="page">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
+    <details class="fine"><summary>the fine print</summary>
+      <p>from my log: auto-play's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
+      <p id="qfit"><b>fitted on my log, auto-play leans on closeness in sound more than my presses do. a direction, not a size.</b> "auto-play" here includes my own playlists in order, not only the app's picks.</p>
+      <p id="fitnote" style="white-space:pre-line"></p>
+      <p id="mapnote"><span id="nart"></span> artists placed by how they sound. pebbles are sized by plays; faint ice lines join each artist to its three nearest.</p>
+      <p><b>per step: real picks vs this rule (descriptive)</b></p>
+      <div id="tabd"><table id="tab"></table><p id="gap"></p></div>
+      <p>many settings fit about as well. read a preset as one good fit, not the real weights.</p>
+    </details>
   </main>
 </div>
 <script src="../kiosk.js"></script>
