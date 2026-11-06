@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>scrub the map by ear</title>
+<meta name="description" content="drag across the map. each artist you pass plays a short clip and lights up.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+.big span.a { color: var(--ice); } .big span.c { color: var(--mute); }
+#clear { --acc: var(--mint); } #all { --acc: var(--ice); } #hear { --acc: var(--ice); }
+</style>
+</head>
+<body data-wall="20 of 21" data-line="drag across the dim map. each artist you pass plays and lights up." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>scrub the map by ear</span><span class="tl">a toy</span></p>
+    <h1>light the map with your <em>ears</em>.</h1>
+  </header>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map, drawn dim. dragging a finger across it plays a short clip of the nearest artist under the finger and lights the artists you have passed over in their family colors."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big" id="num"><span class="c">0</span></div>
+      <span class="keylab" id="keylab">artists heard of 1,871</span>
+      <p class="say" id="say">turn sound on, then drag across the map.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>the map has neighborhoods you can hear. a slow drag stays in one sound.</p>
+      <p class="ask"><b>open question:</b>how many sounds does it take to cross the whole map?</p>
+    </div>
+    <section>
+      <div class="row" style="margin-top:0">
+        <button type="button" id="clear">clear</button>
+        <button type="button" id="all">reveal all</button>
+        <button type="button" id="hear" aria-pressed="false">hear where i am</button>
+      </div>
+      <p class="note" id="now">sound: clips play only when sound is on.</p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>drag a finger or the mouse across the dim map.</p>
+      <p>the nearest artist plays a short clip and lights up.</p>
+      <p>only artists you passed over stay lit.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>clips are 30 second previews from Apple, only where one exists. where none exists the artist lights silent and the tag says no clip.</p>
+      <p>moving to a new artist stops the clip before it. nothing is stored.</p>
+      <p id="meta"></p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="scrub.js"></script>
+</body>
+</html>

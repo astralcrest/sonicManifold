@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the long hold</title>
+<meta name="description" content="press and hold on the map for a minute. the map slowly settles around your finger.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+.big span.m { color: var(--mint); } .big span.c { color: var(--mute); }
+#rel { --acc: var(--mint); } #reset { --acc: var(--ice); }
+</style>
+</head>
+<body data-wall="21 of 21" data-line="press and hold on the map. a star grows and the map slowly settles." data-keys="press,alike" style="--act: var(--mint); --acc: var(--mint)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>the long hold</span><span class="tl">a toy</span></p>
+    <h1>what happens if you <em>wait</em>?</h1>
+  </header>
+  <div id="map"><canvas id="cv" tabindex="0" role="img" aria-label="my sound map. press and hold anywhere: a mint four-point star grows at your finger over sixty seconds while the artists slowly drift toward the middle of their nearest neighbors. a ring counts the seconds. let go and everything springs back."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big" id="num"><span class="c">0</span></div>
+      <span class="keylab">seconds held of 60</span>
+      <p class="say" id="say">press and hold on the map. keyboard: focus the map and press space.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>wait long enough and neighbors pull together. the map tightens around where you stand.</p>
+      <p class="ask"><b>open question:</b>would you still be curious about a song after a minute of the same sound?</p>
+    </div>
+    <section>
+      <div class="row" style="margin-top:0">
+        <button type="button" id="rel">release</button>
+        <button type="button" id="reset">reset</button>
+      </div>
+      <p class="note" id="now">sound: at 60 seconds the nearest artist plays, only when sound is on.</p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>press and keep holding anywhere on the map.</p>
+      <p>a mint star grows and the artists drift toward their neighbors.</p>
+      <p>let go and they spring back in two seconds.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>the settle is a toy on the map's layout: each dot moves toward the mean of its six nearest neighbors.</p>
+      <p>nothing is learned from you and nothing is stored.</p>
+      <p id="meta"></p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="longhold.js"></script>
+</body>
+</html>

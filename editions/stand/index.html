@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>stand where it puts you</title>
+<meta name="description" content="type up to five artists you like. a white ring marks where they sit on my sound map.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+.ins { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.ins legend { font: 500 12px var(--mono); color: var(--mute); padding: 0; margin-bottom: 8px; }
+.near { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; font: 500 14px/1.3 var(--sans); }
+.near li { display: flex; align-items: center; min-width: 0; } .near li span.nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.near .sw { flex: none; border-radius: 50%; }
+#go { --acc: var(--ice); } #clear { --acc: var(--mint); } #hear { --acc: var(--ice); }
+</style>
+</head>
+<body data-wall="19 of 21" data-line="type artists you like. a white ring marks where they sit on my map." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>stand where it puts you</span><span class="tl">a toy</span></p>
+    <h1>where do <em>you</em> stand on my map?</h1>
+  </header>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. each artist you type lights as an ice dot with a name tag. a big white ring with a crosshair marks the average of their positions, and the ten nearest artists to the ring light up in their family colors."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big" id="num"><span>-</span></div>
+      <span class="keylab">of 14 families sit within the nearest ten</span>
+      <p class="say" id="say">type one to five artists you like, then press place me.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>artists you like can sit far apart. your floor mark lands between them.</p>
+      <p class="ask"><b>open question:</b>is the spot between your favorites a place you ever play from?</p>
+    </div>
+    <section>
+      <fieldset class="ins"><legend>up to five artists you like</legend>
+        <input type="text" id="a0" list="dl" autocomplete="off" aria-label="artist 1" placeholder="artist 1">
+        <input type="text" id="a1" list="dl" autocomplete="off" aria-label="artist 2" placeholder="artist 2">
+        <input type="text" id="a2" list="dl" autocomplete="off" aria-label="artist 3" placeholder="artist 3">
+        <input type="text" id="a3" list="dl" autocomplete="off" aria-label="artist 4" placeholder="artist 4">
+        <input type="text" id="a4" list="dl" autocomplete="off" aria-label="artist 5" placeholder="artist 5">
+      </fieldset>
+      <datalist id="dl"></datalist>
+      <div class="row">
+        <button type="button" id="go">place me</button>
+        <button type="button" id="clear">clear</button>
+        <button type="button" id="hear" aria-pressed="false">hear the nearest</button>
+      </div>
+      <ul class="near" id="near" aria-label="the ten nearest artists to your mark"></ul>
+      <p class="note" id="now">sound: the nearest artist plays a preview only after you tap hear, and only when sound is on.</p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>type artists you like. pick from the list so the name matches.</p>
+      <p>press place me. each one lights as an ice dot on the map.</p>
+      <p>the white ring is their middle. the ten nearest to it are listed.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>the mark is the plain mean of the positions you typed, on my sound map.</p>
+      <p>it is a map of me: the mark says where you sit in my listening, not in all music.</p>
+      <p>nothing you type is stored or sent anywhere.</p>
+      <p id="meta"></p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="stand.js"></script>
+</body>
+</html>
