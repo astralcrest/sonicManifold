@@ -33,11 +33,12 @@ AU.addEventListener('timeupdate', function () {
 function drawMap(lit) {
   MAP.begin();
   if (!lit) return;
+  var g = MAP.g, P = WK.P;
+  if (lit.length > 1) P.ribbon(g, [[MAP.X(lit[0].i), MAP.Y(lit[0].i)], [MAP.X(lit[1].i), MAP.Y(lit[1].i)]], P.PAL.ice, P.PAL.ink, 1.5, 0.7, [4, 4]);
   lit.forEach(function (x) {
-    var g = MAP.g, i = x.i, col = WK.FAMC[D.fam[D.f[i]]] || C.mute;
-    g.fillStyle = col; g.fillRect(MAP.X(i) - 5, MAP.Y(i) - 5, 10, 10);
-    g.strokeStyle = C.ink; g.lineWidth = 1.5; g.strokeRect(MAP.X(i) - 8, MAP.Y(i) - 8, 16, 16);
-    if (x.ring) MAP.ring(i, x.ring, x.rs || 22);
+    var i = x.i, col = WK.FAMC[D.fam[D.f[i]]] || C.mute;
+    P.stops(g, [[MAP.X(i), MAP.Y(i)]], col, col, 10);
+    P.rings(g, MAP.X(i), MAP.Y(i), x.ring || C.ink, x.rs || 18);
     MAP.tag(i, x.tag, C.ink, C.night);
   });
 }

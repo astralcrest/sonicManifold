@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var COL = { a: '#bcd3ff', b: '#ffd36b', o: '#8b6fd6', base: '#3a3058', line: '#2a2140', night: '#06010f', ink: '#efe9ff' };
+  var COL = { a: '#bcd3ff', b: '#efe9ff', o: '#8b6fd6', base: '#5a4a92', line: '#2a2140', night: '#06010f', ink: '#efe9ff' };
   var OWNER_TOP = 200, STEPS = 20, STARTS = 10;
   var F = null, M = null, SAMPLES = null, IDX = new Map(), ADJ = null, STRENGTH = null;
   var HABIT = 1, SEED = 0, WALKS = 8;
@@ -193,15 +193,29 @@
     g.imageSmoothingEnabled = false;
     return { g: g, d: d, X: function (v) { return pad + v * sc; }, Y: function (v) { return pad + v * sc; }, sc: sc };
   }
+  // the map under every panel: a faint lattice and two-layer squares, additive, cached per canvas size
+  var PK = window.WK && window.WK.P, BASES = {};
   function base(c, color) {
-    var g = c.g, s = Math.max(1, Math.round(1.5 * c.d));
+    var g = c.g, key = g.canvas.width + 'x' + g.canvas.height + ':' + (color || '');
+    if (PK) {
+      var b = BASES[key];
+      if (!b) {
+        b = BASES[key] = document.createElement('canvas'); b.width = g.canvas.width; b.height = g.canvas.height;
+        var bg = b.getContext('2d'), d = c.d, small = g.canvas.width / d < 420;
+        PK.field(bg, F.xy, function (i) { return c.X(F.xy[i][0]); }, function (i) { return c.Y(F.xy[i][1]); },
+          { lo: (small ? 1 : 1.5) * d, hi: (small ? 3 : 4.5) * d, core: 0.6, halo: 0.07, latW: 0.5 * d, col: function () { return color || COL.base; } });
+      }
+      g.drawImage(b, 0, 0); return;
+    }
+    var s = Math.max(1, Math.round(1.5 * c.d));
     g.fillStyle = color || COL.base;
     for (var i = 0; i < F.xy.length; i++) g.fillRect(Math.round(c.X(F.xy[i][0]) - s / 2), Math.round(c.Y(F.xy[i][1]) - s / 2), s, s);
   }
   function sq(c, i, size, color) {
-    var s = Math.max(2, Math.round(size * c.d));
+    var s = Math.max(2, Math.round(size * c.d)), x = c.X(F.xy[i][0]), y = c.Y(F.xy[i][1]);
+    if (PK) { PK.stops(c.g, [[x, y]], color, color, s); return; }
     c.g.fillStyle = color;
-    c.g.fillRect(Math.round(c.X(F.xy[i][0]) - s / 2), Math.round(c.Y(F.xy[i][1]) - s / 2), s, s);
+    c.g.fillRect(Math.round(x - s / 2), Math.round(y - s / 2), s, s);
   }
   function splitSq(c, i, size, ca, cb) {
     var s = Math.max(4, Math.round(size * c.d)); s += s % 2;
@@ -237,9 +251,10 @@
 
     // two
     var c2 = ctxOf('c2'); base(c2);
-    dots(c2, A, '#5d6f94', 3, 5); dots(c2, B, '#86733f', 3, 5);
+    dots(c2, A, '#5d6f94', 3, 5); dots(c2, B, '#8d8a9c', 3, 5);
     both.forEach(function (i) { splitSq(c2, i, 12, ca, cb); });
     var shared = both.slice().sort(function (x, y) { return (B.w.get(y) / B.max + A.w.get(y) / A.max) - (B.w.get(x) / B.max + A.w.get(x) / A.max); });
+    $('nshared').textContent = fmt(both.length);
     $('f2').innerHTML = both.length ? 'you share <b>' + fmt(both.length) + '</b> artist' + (both.length > 1 ? 's' : '') + ' of the ' + fmt(new Set(A.order.concat(B.order)).size) + ' placed between you.' : 'you share no artist on this map.';
     $('l2').innerHTML = shared.slice(0, 14).map(function (i) { return li('<span class="split"><i style="background:' + ca + '"></i><i style="background:' + cb + '"></i></span>' + esc(F.n[i])); }).join('') +
       (shared.length > 14 ? li('<span class="m">and ' + fmt(shared.length - 14) + ' more</span>') : '');
@@ -266,7 +281,7 @@
     CROSS = ab.length ? ab[0] : null;
     var seenP = new Set(ab.map(function (p) { return p[0] + ':' + p[1]; }));
     var ba = bridge(B, A, 10).filter(function (p) { return !seenP.has(p[1] + ':' + p[0]); }).slice(0, 5);
-    dots(c4, A, '#4b5a78', 2, 4); dots(c4, B, '#6e5e35', 2, 4);
+    dots(c4, A, '#4b5a78', 2, 4); dots(c4, B, '#6b6878', 2, 4);
     ab.forEach(function (p) { line(c4, p[0], p[1], ca, 1.5); });
     ba.forEach(function (p) { line(c4, p[0], p[1], cb, 1.5); });
     ab.forEach(function (p) { sq(c4, p[0], 8, ca); sq(c4, p[1], 8, cb); });
@@ -280,7 +295,7 @@
     var g5 = c5.g; g5.strokeStyle = '#211a3d'; g5.lineWidth = Math.max(1, 0.6 * c5.d); g5.beginPath();
     M.lq.forEach(function (e) { g5.moveTo(c5.X(F.xy[e[0]][0]), c5.Y(F.xy[e[0]][1])); g5.lineTo(c5.X(F.xy[e[1]][0]), c5.Y(F.xy[e[1]][1])); });
     g5.stroke();
-    dots(c5, A, '#4b5a78', 2, 4); dots(c5, B, '#6e5e35', 2, 4);
+    dots(c5, A, '#4b5a78', 2, 4); dots(c5, B, '#6b6878', 2, 4);
     var touched = new Set();
     [[A, 20261105, ca], [B, 20261106, cb]].forEach(function (z) {
       for (var w = 1; w < WALKS; w++) {
@@ -291,7 +306,8 @@
     });
     [[oneWalk(A, 20261105 + SEED), ca], [oneWalk(B, 20261106 + SEED), cb]].forEach(function (z) {
       var p = z[0]; p.forEach(function (i) { touched.add(i); });
-      for (var k = 1; k < p.length; k++) line(c5, p[k - 1], p[k], z[1], 2.5);
+      if (PK) PK.ribbon(c5.g, p.map(function (i) { return [c5.X(F.xy[i][0]), c5.Y(F.xy[i][1])]; }), z[1], z[1] === COL.b ? '#9a90b8' : '#7f9cff', 2.5 * c5.d, 0.95);
+      else for (var k = 1; k < p.length; k++) line(c5, p[k - 1], p[k], z[1], 2.5);
       p.forEach(function (i, k) { sq(c5, i, k === 0 ? 11 : 6, z[1]); });
     });
     var rAB = walkReach(A, B), rBA = walkReach(B, A);

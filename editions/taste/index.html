@@ -8,61 +8,66 @@
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{--night:#06010f;--panel:#0d0719;--ink:#efe9ff;--mute:#9a90b8;--line:#2a2140;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace}
+:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--act:var(--amber);--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--night);color-scheme:dark}
-body{background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;padding:0 16px calc(24px + env(safe-area-inset-bottom))}
-main{max-width:560px;margin:0 auto}
-header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:18px 0 10px;font:12px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
-header a{color:var(--mute);text-decoration:none}header b{color:var(--ink);font-weight:500}
-#consent{font:12px/1.4 var(--mono);color:var(--mute);padding:0 0 18px;border-bottom:1px solid var(--line)}
-.k{font:11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:22px 0 12px}
-h1,h2{font-weight:500;letter-spacing:-.01em;line-height:1.2}
-h1{font-size:clamp(24px,6.4vw,34px)}
-h2{font-size:clamp(20px,5.2vw,26px)}
-p.lede{font-size:17px;line-height:1.4;margin:14px 0 0;color:var(--ink)}
-.how{font:12px/1.45 var(--mono);color:var(--mute);margin:16px 0 0}
+body{background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+#head{padding:22px 32px 20px;border-bottom:1px solid var(--line)}
+.eyebrow{font:11px var(--mono);letter-spacing:.14em;color:var(--mute);margin:0 0 10px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
+.eyebrow a{color:var(--mute);text-decoration:none;border-bottom:1px solid var(--line)}
+.tl{display:inline-block;font:600 10px/1.6 var(--mono);letter-spacing:.14em;border:1px solid var(--amber);color:var(--amber);padding:1px 8px}
+h1{font:600 clamp(28px,4vw,56px)/1.02 var(--sans);letter-spacing:-.025em;text-wrap:balance}
+h1 em{font-style:normal;color:var(--act)}
+.tw{display:grid;grid-template-columns:minmax(0,1fr) 440px;min-height:calc(100vh - 160px)}
+#stage{padding:24px 32px 40px;display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:40px;align-items:start;min-width:0}
+.play{min-width:0}
+#side{background:var(--panel);border-left:1px solid var(--line);padding:24px 30px 36px;container-type:inline-size;min-width:0}
+.k{font:11px/1 var(--mono);letter-spacing:.14em;color:var(--mute);margin:0 0 14px}
+h2{font:600 clamp(22px,2.4vw,30px)/1.15 var(--sans);letter-spacing:-.015em}
+.how{font:12px/1.55 var(--mono);color:var(--mute);margin:14px 0 0}
 .how b{color:var(--ink);font-weight:500}
 .honest{font-size:15px;line-height:1.45;margin:16px 0 0;color:var(--ink)}
-#status{font-size:16px;line-height:1.35;min-height:44px;margin:0 0 14px}
+#status{font:500 18px/1.35 var(--sans);min-height:50px;margin:0 0 16px}
 #status .a{color:var(--amber)}
-#primer{border:1px solid var(--line);padding:12px;margin:0 0 14px;display:none}
+#primer{border:1px solid var(--amber);padding:14px;margin:0 0 16px;display:none}
 #primer.on{display:block}
-#primer .lab{font:11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
-.meter{height:3px;background:var(--line);margin-top:10px;position:relative;overflow:hidden}
+#primer .lab{font:11px/1 var(--mono);letter-spacing:.14em;color:var(--amber)}
+.meter{height:6px;background:var(--line);margin-top:10px;position:relative;overflow:hidden}
 .meter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ice);display:block}
 #primer .meter i{background:var(--amber)}
-#cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.card{border:1px solid var(--line);padding:14px 12px;display:flex;flex-direction:column;gap:10px;min-height:208px}
+#cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{border:1px solid var(--line);background:#0d0720;padding:16px 14px;display:flex;flex-direction:column;gap:12px;min-height:250px}
 .card.won{border-color:var(--mint)}
-.card .L{font:500 44px/1 var(--mono);color:var(--ink)}
+.card .L{font:600 clamp(64px,7vw,104px)/.85 var(--sans);letter-spacing:-.04em;color:var(--ink)}
 .card.won .L{color:var(--mint)}
 .card .nm{font-size:13px;line-height:1.3;color:var(--mute);min-height:34px}
-.card .nm b{color:var(--ink);font-weight:500;display:block}
-button{appearance:none;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:11px 14px;font:13px/1 var(--mono);cursor:pointer;min-height:44px;width:100%}
-button:hover:not(:disabled){border-color:var(--ice)}
-button:disabled{color:#4a4066;cursor:default}
-button.pick:not(:disabled){border-color:var(--mint);color:var(--mint)}
+.card .nm b{color:var(--ink);font-weight:600;display:block;font-size:16px}
+button{appearance:none;background:transparent;color:var(--ink);border:1px solid var(--ice);border-radius:22px;padding:0 16px;font:500 13px/1 var(--mono);cursor:pointer;min-height:44px;width:100%}
+button:hover:not(:disabled){background:rgba(188,211,255,.12)}
+button:disabled{color:#4a4066;border-color:var(--line);cursor:default}
+button.pick:not(:disabled){border-color:var(--mint);color:var(--night);background:var(--mint)}
 button.playing{border-color:var(--ice);background:var(--ice);color:var(--night)}
-button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
-#next{margin:18px 0 0;border-color:var(--ink)}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+#next{margin:20px 0 0;border-color:var(--amber);background:var(--amber);color:var(--night);max-width:560px}
+#next:disabled{background:transparent;color:#4a4066;border-color:var(--line)}
 #slip{display:none;margin:18px 0 0;border-color:var(--mint);color:var(--mint)}body.done #slip{display:block}
-#next:disabled{border-color:var(--line)}
 #round,#result{display:none}
 body.r #intro{display:none}body.r #round{display:block}
 body.done #intro,body.done #round{display:none}body.done #result{display:block}
+body.done #pvbox{display:none}body.done #stage{grid-template-columns:minmax(0,640px)}
 .bars{margin:20px 0 0;display:grid;gap:14px}
-.bar .t{display:flex;justify-content:space-between;font:12px/1.2 var(--mono);color:var(--mute);margin-bottom:6px}
-.bar .t{gap:12px;align-items:flex-end}.bar .t span{flex:1;min-width:0}.bar .t b{color:var(--ink);font-weight:500;white-space:nowrap}
-.track{height:22px;border:1px solid var(--line);position:relative}
+.bar .t{display:flex;justify-content:space-between;font:12px/1.2 var(--mono);color:var(--mute);margin-bottom:6px;gap:12px;align-items:flex-end}
+.bar .t span{flex:1;min-width:0}.bar .t b{color:var(--ink);font-weight:500;white-space:nowrap}
+.track{height:22px;background:var(--line);position:relative}
 .track i{position:absolute;left:0;top:0;bottom:0;display:block}
 .track u{position:absolute;top:-4px;bottom:-4px;left:50%;border-left:1px dashed var(--mute)}
 .bar.p .track i{background:var(--amber)}
 .bar.u .track i{background:var(--ice)}
 .chance{font:11px/1.2 var(--mono);color:var(--mute);margin-top:6px}
 #mapbox{margin:26px 0 0;border-top:1px solid var(--line);padding-top:4px}
+#mapbox .k{margin-top:20px}
 #map{display:block;width:100%;aspect-ratio:1/1;background:var(--night);border:1px solid var(--line);margin-top:10px}
 .cap{font-size:14px;line-height:1.35;margin-top:4px}
 .leg{display:flex;flex-wrap:wrap;gap:8px 16px;font:12px/1.2 var(--mono);color:var(--mute);margin-top:10px}
@@ -70,35 +75,52 @@ body.done #intro,body.done #round{display:none}body.done #result{display:block}
 .leg i{width:9px;height:9px;display:inline-block}
 .leg .m{background:var(--mint)}.leg .o{border:1px solid var(--ice)}.leg .a{background:var(--amber)}
 .leg i.ln,.leg i.lp{width:16px;height:0;border-top:1px solid var(--amber)}.leg i.ln{border-top-style:dashed}.leg i.lp{border-top-color:#4a4066}
-#pvbox{display:none}
+#pvbox{position:sticky;top:24px}
+#pv{display:block;width:100%;aspect-ratio:1/1;border:1px solid var(--line);background:var(--night)}
+.pvcap{font:11px/1.3 var(--mono);letter-spacing:.08em;color:var(--mute);margin-top:8px}
 ol#log{list-style:none;margin:16px 0 0;font:12px/1.5 var(--mono);color:var(--mute)}
 ol#log li{padding:4px 0;border-top:1px solid var(--line)}
 ol#log b{color:var(--mint);font-weight:500}ol#log em{color:var(--amber);font-style:normal}
-@media (min-width:900px){body{padding-top:24px}#cards{gap:16px}
-body:not(.r):not(.done) main{max-width:1040px;display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);grid-template-rows:auto auto auto auto auto auto auto 1fr;column-gap:56px}
-body:not(.r):not(.done) header,body:not(.r):not(.done) #consent{grid-column:1/-1}
-body:not(.r):not(.done) #intro{display:contents}
-body:not(.r):not(.done) #intro>.k{grid-column:1;grid-row:3}
-body:not(.r):not(.done) #intro>h1{grid-column:1;grid-row:4}
-body:not(.r):not(.done) #intro>.how{grid-column:1;grid-row:6}
-body:not(.r):not(.done) #next{grid-column:1;grid-row:7;align-self:start}
-body:not(.r):not(.done) #pvbox{display:block;grid-column:2;grid-row:3/9;margin-top:22px}
-#pv{display:block;width:100%;aspect-ratio:1/1;border:1px solid var(--line)}
-.pvcap{font:12px/1.3 var(--mono);color:var(--mute);margin-top:8px}}
+.big{font:600 clamp(56px,min(10vw,25cqi),128px)/.9 var(--sans);letter-spacing:-.045em;color:var(--act);font-variant-numeric:tabular-nums}
+.keylab{display:block;font:11px var(--mono);letter-spacing:.14em;color:var(--mute);margin:8px 0 18px}
+.take,.ask{margin:0 0 12px;padding:2px 0 2px 14px;font:500 18px/1.3 var(--sans);letter-spacing:-.005em}
+.take{border-left:3px solid var(--mint);color:var(--mint)}
+.ask{border-left:3px solid var(--violet);color:#b7a3f2}
+.take b,.ask b{display:block;font:500 10px/1.6 var(--mono);letter-spacing:.16em;color:var(--mute)}
+.note{font:11px/1.55 var(--mono);color:var(--mute);margin:12px 0 0}
+details.how{border-top:1px solid var(--line);margin:16px 0 0}
+details.how summary{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;font:500 12px var(--mono);letter-spacing:.14em;color:var(--mute);list-style:none}
+details.how summary::-webkit-details-marker{display:none}
+details.how summary::before{content:"+";display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border:1px solid var(--line);color:var(--ice)}
+details.how[open] summary::before{content:"\2212"}
+details.how p{font:12px/1.6 var(--mono);color:var(--mute);margin:0 0 10px}
+nav.walls{display:flex;flex-wrap:wrap;gap:0 14px;font:500 11px/1 var(--mono);letter-spacing:.06em;margin:18px 0 0;padding-top:10px;border-top:1px solid var(--line)}
+nav.walls a{color:var(--mute);text-decoration:none;display:inline-flex;align-items:center;min-height:44px;padding:0 2px}
+nav.walls a:hover{color:var(--ice)}
+nav.walls a[aria-current]{color:var(--act);text-decoration:underline;text-underline-offset:6px}
+@media (max-width:900px){
+  #head{padding:18px 16px 16px}
+  .eyebrow .opt{display:none}
+  .tw{display:block}
+  #stage{display:block;padding:18px 16px 26px}
+  #pvbox{display:none}
+  #side{border-left:0;border-top:1px solid var(--line);padding:22px 16px 36px}
+  .big{font-size:clamp(56px,18vw,96px)}
+  .take,.ask{font-size:17px}
+  .card{min-height:220px}
+}
 </style>
-<style>nav.walls{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.04em;margin:0 0 10px}nav.walls a{color:#bcd3ff;text-decoration:none;border-bottom:1px solid #2a2140;display:inline-flex;align-items:center;min-height:44px;padding:0 2px}nav.walls a[aria-current]{color:#21f6bc;border-color:#21f6bc}</style>
 </head>
 <body>
-<main>
-<header><a href="../../"><b>sonic manifold</b></a><span>the taste test</span></header>
-<nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/" aria-current="page">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
-<p id="consent">nothing is stored; this runs in your browser. what plays: 15 s previews of two artists that sit far apart on my sound map; the third song first sits next to one of them. that is the primer.</p>
-
+<header id="head">
+  <p class="eyebrow"><a href="../../">sonic manifold</a><span>the taste test</span><span class="opt">twelve rounds · about four minutes</span><span class="tl">a toy</span></p>
+  <h1>two songs, far apart in sound. you pick the one you <em>like</em> more.</h1>
+</header>
+<div class="tw">
+<main id="stage">
+<div class="play">
 <section id="intro">
   <div class="k">twelve rounds · about four minutes</div>
-  <h1>two songs, far apart in sound. you pick the one you like more.</h1>
-  <p class="how"><b>how:</b> in six of twelve rounds a third song plays first; the end shows if it pulled you toward its side.</p>
-  <div id="pvbox" aria-hidden="true"><canvas id="pv" width="440" height="440"></canvas><p class="pvcap">the map your picks land on, at the end</p></div>
 </section>
 
 <section id="round" aria-live="polite">
@@ -132,9 +154,24 @@ body:not(.r):not(.done) #pvbox{display:block;grid-column:2;grid-row:3/9;margin-t
 </section>
 
 <button id="next" type="button">start</button>
+</div>
+<div id="pvbox" aria-hidden="true"><canvas id="pv" width="440" height="440"></canvas><p class="pvcap">the map your picks land on, at the end</p></div>
 </main>
+<aside id="side">
+  <div class="big" id="tk">12</div>
+  <span class="keylab" id="tkl">rounds, about four minutes</span>
+  <p class="take"><b>takeaway:</b>a song heard first may pull your pick; twelve rounds cannot tell.</p>
+  <p class="ask"><b>open question:</b>how much of a choice was already chosen by the song before it?</p>
+  <p class="note">in six of twelve rounds a third song plays first; the end shows if it pulled you toward its side.</p>
+  <details class="how"><summary>how</summary>
+    <p id="consent">nothing is stored; this runs in your browser. what plays: 15 s previews of two artists that sit far apart on my sound map; the third song first sits next to one of them. that is the primer.</p>
+  </details>
+  <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/" aria-current="page">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
+</aside>
+</div>
 <script src="../kiosk.js"></script>
 <script src="../receipt.js"></script>
+<script src="../wallkit.js"></script>
 <script src="taste.js"></script>
 </body>
 </html>

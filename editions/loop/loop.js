@@ -277,6 +277,7 @@ function setPreset(p, quiet, sv) {
 }
 
 function syncChips() {
+  var pc = PCOL[S.preset] || ICE; document.body.style.setProperty('--act', pc); document.body.style.setProperty('--acc', pc);
   [].forEach.call($('chips').children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-p') === S.preset ? 'true' : 'false'); });
   for (var k = 0; k < 6; k++) $('o' + k).textContent = fmt(S.K[k], 2);
   if (S.siren != null) { $('os').textContent = nice(S.siren); document.documentElement.style.setProperty('--night', mix(S.siren)); }
@@ -407,12 +408,13 @@ function resize() {
 function X(i) { return Math.round(OX + D.xy[i][0] * SCL) + 0.5; }
 function Y(i) { return Math.round(OY + D.xy[i][1] * SCL) + 0.5; }
 
+var PK = root.WK && root.WK.P, PEND = { queue: ICE, hand: ICE, feed: INK, siren: '#ff5c7a' };
 function drawBase() {
   base = document.createElement('canvas'); base.width = cv.width; base.height = cv.height;
   var b = base.getContext('2d'); b.setTransform(DPR, 0, 0, DPR, 0, 0);
-  b.globalAlpha = 0.6;
-  for (var i = 0; i < M.N; i++) { b.fillStyle = FAMC[D.fam[D.f[i]]] || MUTE; b.fillRect(X(i) - 1.5, Y(i) - 1.5, W < 500 ? 2 : 3, W < 500 ? 2 : 3); }
-  b.globalAlpha = 1;
+  var small = W < 500;
+  if (PK) PK.field(b, D.xy, X, Y, { pl: D.pl, lo: small ? 1 : 1.5, hi: small ? 3.5 : 5.5, col: function (i) { return FAMC[D.fam[D.f[i]]] || MUTE; } });
+  else { b.globalAlpha = 0.6; for (var i = 0; i < M.N; i++) { b.fillStyle = FAMC[D.fam[D.f[i]]] || MUTE; b.fillRect(X(i) - 1.5, Y(i) - 1.5, small ? 2 : 3, small ? 2 : 3); } }
 }
 
 function line(p, n, col, alpha) {
@@ -425,30 +427,27 @@ function draw() {
   if (!M) return;
   if (!base) drawBase();
   g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = mix(S.siren != null ? S.siren : 0); g.fillRect(0, 0, cv.width, cv.height); g.drawImage(base, 0, 0); g.setTransform(DPR, 0, 0, DPR, 0, 0);
-  var col = PCOL[S.preset] || ICE, p = S.path, n = Math.min(S.anim, p.length), k;
-  if (S.ghost) line(S.ghost, S.ghost.length, MUTE, 0.55);
-  line(p, n, col, 1);
-  g.font = '11px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
+  var col = PCOL[S.preset] || ICE, end = PEND[S.preset] || INK, p = S.path, n = Math.min(S.anim, p.length), k, pts = [];
+  for (k = 0; k < n; k++) pts.push([X(p[k]), Y(p[k])]);
+  if (S.ghost) line(S.ghost, S.ghost.length, MUTE, 0.45);
+  if (PK) { PK.ribbon(g, pts, col, end, W < 500 ? 2 : 2.5, 0.92); PK.stops(g, pts, col, end, W < 500 ? 4 : 5); }
+  else line(p, n, col, 1);
+  if (n) { g.strokeStyle = INK; g.lineWidth = 1.5; g.strokeRect(Math.round(pts[0][0]) - 6.5, Math.round(pts[0][1]) - 6.5, 13, 13); }
+  g.font = '500 11px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
   var boxes = [];
-  for (k = 0; k < n; k++) {
-    var x = X(p[k]), y = Y(p[k]);
-    g.fillStyle = col;
-    if (k === 0) { g.strokeStyle = INK; g.strokeRect(x - 4, y - 4, 8, 8); }
-    else g.fillRect(x - 2.5, y - 2.5, 4, 4);
-  }
   // a number goes in the first of four spots that clears every number already placed; a stop with no clear spot keeps its square only
   for (k = 0; k < n; k++) {
-    var lx = X(p[k]), ly = Y(p[k]), lt = String(k), lw = g.measureText(lt).width, spots = [[6, -7], [6, 7], [-6 - lw, -7], [-6 - lw, 7]];
+    var lx = X(p[k]), ly = Y(p[k]), lt = String(k), lw = g.measureText(lt).width, spots = [[7, -8], [7, 8], [-7 - lw, -8], [-7 - lw, 8]];
     for (var q = 0; q < 4; q++) {
       var bx = lx + spots[q][0], by = ly + spots[q][1];
       if (bx < 2 || bx + lw > W - 2 || by < 7 || by > H - 7) continue;
       var hit = false;
-      for (var b = 0; b < boxes.length && !hit; b++) hit = bx < boxes[b][0] + boxes[b][2] + 2 && boxes[b][0] < bx + lw + 2 && Math.abs(by - boxes[b][1]) < 12;
+      for (var bb = 0; bb < boxes.length && !hit; bb++) hit = bx < boxes[bb][0] + boxes[bb][2] + 2 && boxes[bb][0] < bx + lw + 2 && Math.abs(by - boxes[bb][1]) < 12;
       if (hit) continue;
-      boxes.push([bx, by, lw]); g.fillStyle = k === 0 ? INK : col; g.fillText(lt, bx, by); break;
+      boxes.push([bx, by, lw]); g.fillStyle = k === 0 ? INK : PK ? PK.mix(col, end, n > 1 ? k / (n - 1) : 0) : col; g.fillText(lt, bx, by); break;
     }
   }
-  if (S.play >= 0 && S.play < n) { g.strokeStyle = INK; g.lineWidth = 1; var px = X(p[S.play]), py = Y(p[S.play]); g.strokeRect(px - 6, py - 6, 12, 12); }
+  if (S.play >= 0 && S.play < n) { if (PK) PK.rings(g, X(p[S.play]), Y(p[S.play]), INK, 14); else { g.strokeStyle = INK; g.lineWidth = 1; g.strokeRect(X(p[S.play]) - 6, Y(p[S.play]) - 6, 12, 12); } }
 }
 
 function tap(e) {

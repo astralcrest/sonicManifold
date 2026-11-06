@@ -46,13 +46,14 @@ function render() {
 
 function draw() {
   if (!MAP) return;
-  MAP.begin(); var g = MAP.g, i;
-  g.fillStyle = 'rgba(255,92,122,.75)';
-  for (i = 0; i < M.N; i++) if (S.skip[i]) g.fillRect(MAP.X(i) - 1.5, MAP.Y(i) - 1.5, 3, 3);
-  MAP.line(S.A, S.A.length, C.mint, null, 1.5); MAP.line(S.B, S.B.length, C.amber, [6, 5], 1.5);
-  MAP.squares(S.A, S.A.length, C.mint, 4); MAP.squares(S.B, S.B.length, C.amber, 4);
-  MAP.ring(S.A[0], C.ink, 10);
-  if (S.diff > 0) { MAP.ring(S.A[S.diff], C.ink, 12); MAP.ring(S.B[S.diff], C.ink, 12); MAP.tag(S.B[S.diff], 'step ' + S.diff, C.ink); }
+  MAP.begin(); var g = MAP.g, i, P = WK.P.PAL;
+  g.save(); g.globalCompositeOperation = 'lighter';
+  for (i = 0; i < M.N; i++) if (S.skip[i]) { g.globalAlpha = 0.2; g.fillStyle = P.rose; g.fillRect(MAP.X(i) - 4, MAP.Y(i) - 4, 8, 8); g.globalAlpha = 0.9; g.fillRect(MAP.X(i) - 1.5, MAP.Y(i) - 1.5, 3, 3); }
+  g.restore();
+  MAP.ribbon(S.A, S.A.length, P.mint, P.ice); MAP.ribbon(S.B, S.B.length, P.amber, P.rose, null, [7, 5]);
+  MAP.stops(S.A, S.A.length, P.mint, P.ice); MAP.stops(S.B, S.B.length, P.amber, P.rose);
+  MAP.ring(S.A[0], C.ink, 12);
+  if (S.diff > 0) { MAP.stop(S.A[S.diff], P.mint, 14); MAP.stop(S.B[S.diff], P.amber, 14); MAP.tag(S.B[S.diff], 'step ' + S.diff, C.ink); }
 }
 
 function stopHear() { WK.stop(); hearLabel(); }

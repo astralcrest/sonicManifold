@@ -25,7 +25,7 @@ var pendT = 0, pendF = null, VA = null, lastIn = -1e9, lastPaint = 0, ZMAX = 24,
 var scene = 0, blend = 0, from = 0, tStart = 0, yaw = 0.62, pitch = 0.36, last = 0, raf = 0, dirty = true;
 var S = { now: -1, line: null, drag: null, played: {}, playing: false, pend: -1, errs: 0, user: false, hover: -1, mine: -1, mode: '', trail: [], rim: -1, game: null, wh: null, pips: null, mt: 0, mb: 0, mFrom: 0, mT0: 0, color: '', fam: -1, hoodHi: -1, grow: null, keepT0: 0, sn: 0, tn: [], hoodSeen: false, look: 0, lookFrom: 0, lookT0: 0, lookB: 1, like: { on: false, seq: null, k: 0 }, zb: 0 };
 /* the curve radio's camera: a glide on top of the view, eased toward the stop that is playing (field acts only) */
-var GL = { x: 0, y: 0, z: 1 }, gliding = false;
+var GL = { x: 0, y: 0, z: 1 }, gliding = false, glT = 0;
 /* first heard: eight cuts of the log by sitting count (never a date), deep violet first to gold last */
 var FIRSTC = ['#3a2d5c', '#5a46a0', '#8b6fd6', '#9fa6ff', '#bcd3ff', '#9df0e0', '#21f6bc', '#eafff7'];
 function rgba(h, a) { var c = hex(h); return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')'; }
@@ -114,7 +114,7 @@ function fit() {
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   if (ov) { ov.width = cv.width; ov.height = cv.height; }
   domStale = true;
-  var i, smin = phone ? 1.3 : 1.6, smax = phone ? 4 : 5.5; SZ = [];
+  var i, smin = phone ? 1.5 : 1.8, smax = phone ? 4.6 : 6.6; SZ = [];
   for (i = 0; i < N; i++) SZ.push(smin + (smax - smin) * Math.sqrt(PL[i] / PMAX));
   pathsDirty = true; dirty = true;
 }
@@ -248,10 +248,12 @@ function layout(now) {
   /* the camera eases along the curve: the stop that plays drifts to the middle, a little closer */
   var L = S.line; gliding = false;
   if (L && L.follow && scene === L.scene && blend >= 1 && L.k < L.stops.length) {
-    var si = L.stops[L.k], ex = cam0.cx - SX[si], ey = cam0.cy - SY[si], zt = phone ? 1.5 : 1.7, kk = reduce ? 1 : 0.06;
+    /* the ease is per millisecond, not per frame, so a heavy frame does not slow the glide */
+    var si = L.stops[L.k], ex = cam0.cx - SX[si], ey = cam0.cy - SY[si], zt = phone ? 1.5 : 1.7, gdt = glT ? Math.min(100, now - glT) : 16.7, kk = reduce ? 1 : 1 - Math.pow(0.94, gdt / 16.7);
     GL.x += ex * kk; GL.y += ey * kk; GL.z += (zt - GL.z) * kk;
     gliding = Math.abs(ex) > 0.6 || Math.abs(ey) > 0.6 || Math.abs(zt - GL.z) > 0.004;
   }
+  glT = L && L.follow ? now : 0;
 }
 /* ---------- the ring's four looks: R radial, F bundled, C constellations, T arcs ---------- */
 var LOOKN = ['radial', 'bundled', 'islands', 'arcs'];
@@ -404,11 +406,13 @@ function hull(pts) {
 /* ---------- drawing ---------- */
 var pathsDirty = true;
 function dot(g, x, y, r, fill) { g.fillStyle = fill; g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill(); }
+/* a point is two crisp discs: a wide dim one of the same hue (additive, so crowds brighten) and a sharp core */
+function halo(g, x, y, r, col, a) { g.fillStyle = col; g.globalAlpha = 0.13 * a; g.beginPath(); g.arc(x, y, r * (phone ? 1.9 : 2.4) + 1, 0, 6.2832); g.fill(); }
 function cuts3(a) { var b = a.slice().sort(function (p, q) { return p - q; }), n = b.length; return n ? [b[Math.floor(n * 0.6)], b[Math.floor(n * 0.88)]] : [0, 0]; }
 function step3(w, T) { return w >= T[1] ? 2 : w >= T[0] ? 1 : 0; }
 var LW3 = [0.8, 1.9, 3.4];
 function star(g, x, y, r, fill) { var k, a, rr; g.fillStyle = fill; g.beginPath(); for (k = 0; k < 8; k++) { a = -1.5708 + k * 0.7854; rr = k % 2 ? r * 0.38 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); }
-function mark(g, x, y, r) { star(g, x, y, r, GOLD); ring(g, x, y, r + 3.5, 'rgba(255,211,107,.75)', 1); }
+function mark(g, x, y, r) { if (!phone) ring(g, x, y, r + 8, 'rgba(255,211,107,.22)', 1); star(g, x, y, r, GOLD); ring(g, x, y, r + 3.5, 'rgba(255,211,107,.8)', 1); }
 function ring(g, x, y, r, stroke, lw) { g.strokeStyle = stroke; g.lineWidth = lw; g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.stroke(); }
 
 /* ---------- the key: a solid plate on the canvas that says what a point, its size, its color and its lines mean in THIS act ---------- */
@@ -556,11 +560,12 @@ function domWords(now) {
 function paint(now) {
   var g = ctx, i, k;
   g.setTransform(DPR, 0, 0, DPR, 0, 0); g.fillStyle = BG; g.fillRect(0, 0, W, H);
+  if (scene !== 1) { var gx, gy, gs = phone ? 24 : 30; g.fillStyle = 'rgba(188,211,255,.05)'; for (gy = gs; gy < H; gy += gs) for (gx = gs; gx < W; gx += gs) g.fillRect(gx, gy, 1, 1); }
   layout(now); words = domWords(now); DW = words.slice(); KB = null; keySync();
   var inRing = scene === 1 && blend >= 1, field = scene !== 1, grown = reveal >= 8;
   /* threads in the field (desk): the skeleton of the map, three nearest each */
-  if (field && !phone && (scene === C_COUNT || scene === C_RECORD) && blend >= 1 && grown) {
-    g.lineWidth = 0.6; g.strokeStyle = 'rgba(189,211,255,' + (scene === C_RECORD ? 0.05 : 0.09) + ')'; g.beginPath();
+  if (field && isField(scene) && blend >= 1 && grown) {
+    g.lineWidth = phone ? 0.5 : 0.6; g.strokeStyle = 'rgba(189,211,255,' + (scene === C_RECORD ? 0.06 : 0.11) + ')'; g.beginPath();
     for (k = 0; k < KNN.length; k += 2) { i = KNN[k]; var j = KNN[k + 1]; g.moveTo(SX[i], SY[i]); g.lineTo(SX[j], SY[j]); }
     g.stroke();
   }
@@ -626,22 +631,28 @@ function paint(now) {
   if (LKs) { for (k = 0; k < LKs.length; k++) LKo[LKs[k]] = 1; g.strokeStyle = rgba(ICE, 0.85); g.lineWidth = 1; g.beginPath(); for (k = 1; k < LKs.length; k++) { g.moveTo(SX[LKs[0]], SY[LKs[0]]); g.lineTo(SX[LKs[k]], SY[LKs[k]]); } g.stroke(); }
   /* the artists */
   var tint = scene === 0 || (from === 0 && blend < 1 && scene !== 1), cmap = (scene === C_MAPS || scene === C_HOODS) ? (S.color || (scene === C_HOODS ? 'hood' : 'family')) : '';
-  for (k = 0; k < N; k++) {
-    i = TOP[N - 1 - k]; var a = SA[i]; if (a <= 0.01 || SX[i] < -24 || SX[i] > W + 24 || SY[i] < -24 || SY[i] > H + 24) continue;
-    var col = cmap ? colorOf(i, cmap) : scene === 1 && blend >= 1 ? FC[i] : tint ? HC[i] : FC[i];
-    if (LKs && !LKo[i]) a *= 0.4;
-    if (scene === C_RECORD && !isNb(i)) a *= 0.5;
-    if (cmap && S.fam >= 0 && F.f[i] !== S.fam) a *= 0.18;
-    if (cmap && S.hoodHi >= 0 && MAPS && MAPS.c[i] !== S.hoodHi) a *= 0.22;
-    dot(g, SX[i], SY[i], SR[i], a >= 0.99 ? col : dim(col, a));
+  var pass2, inR = scene === 1 && blend >= 1;
+  for (pass2 = 0; pass2 < 2; pass2++) {
+    if (pass2 === 0) { if (inR) continue; g.globalCompositeOperation = 'lighter'; }
+    for (k = 0; k < N; k++) {
+      i = TOP[N - 1 - k]; var a = SA[i]; if (a <= 0.01 || SX[i] < -24 || SX[i] > W + 24 || SY[i] < -24 || SY[i] > H + 24) continue;
+      var col = cmap ? colorOf(i, cmap) : inR ? FC[i] : tint ? HC[i] : FC[i];
+      if (LKs && !LKo[i]) a *= 0.4;
+      if (scene === C_RECORD && !isNb(i)) a *= 0.5;
+      if (cmap && S.fam >= 0 && F.f[i] !== S.fam) a *= 0.18;
+      if (cmap && S.hoodHi >= 0 && MAPS && MAPS.c[i] !== S.hoodHi) a *= 0.22;
+      if (pass2 === 0) halo(g, SX[i], SY[i], SR[i], col, a);
+      else dot(g, SX[i], SY[i], SR[i], a >= 0.99 ? col : dim(col, a));
+    }
+    if (pass2 === 0) { g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
   }
   /* the songs: gold in the field */
   if (field && (scene === C_COUNT || scene === C_RECORD)) {
     var sp = [0, 0, 0], SPX = [], SPY = [];
     for (k = 0; k < SONG.length; k++) {
       var s = SONG[k].p; proj3(s[0] / 1000, s[1] / 1000, s[2] / 1000, sp); SPX.push(sp[0]); SPY.push(sp[1]);
-      if (scene === C_RECORD) { var nb = SNB[k]; g.strokeStyle = S.mine === k ? GOLD : 'rgba(255,211,107,.35)'; g.lineWidth = S.mine === k ? 1.5 : 0.8; g.beginPath(); g.moveTo(sp[0], sp[1]); g.lineTo(SX[nb], SY[nb]); g.stroke(); }
-      mark(g, sp[0], sp[1], scene === C_RECORD ? 6.5 : 5.5);
+      var nb = SNB[k]; g.strokeStyle = S.mine === k ? GOLD : scene === C_RECORD ? 'rgba(255,211,107,.4)' : 'rgba(255,211,107,.16)'; g.lineWidth = S.mine === k ? 1.6 : 0.8; g.beginPath(); g.moveTo(sp[0], sp[1]); g.lineTo(SX[nb], SY[nb]); g.stroke();
+      mark(g, sp[0], sp[1], phone ? (scene === C_RECORD ? 6 : 5) : scene === C_RECORD ? 7.5 : 6.5);
       if (S.mine === k) ring(g, sp[0], sp[1], 13, GOLD, 1.5);
     }
     /* labels after every gold dot is down, and never on top of another gold dot */
@@ -696,10 +707,10 @@ function paint(now) {
   /* the overture's count, then the big names, sized by rank */
   if (scene === 0 && blend >= 1 && !grown) {
     var heard = 0; for (k = 0; k < N; k++) if (F.y0[k] < reveal) heard++;
-    g.font = '600 ' + (phone ? 30 : 46) + 'px ' + SANS; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = INK;
-    g.fillText(String(heard).replace(/\B(?=(\d{3})+(?!\d))/g, ','), phone ? 14 : 220, phone ? 90 : 96);
+    g.font = '600 ' + (phone ? 36 : 68) + 'px ' + SANS; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = INK;
+    g.fillText(String(heard).replace(/\B(?=(\d{3})+(?!\d))/g, ','), phone ? 14 : 220, phone ? 94 : 110);
     g.font = '500 ' + (phone ? 10 : 11.5) + 'px ' + MONO; g.fillStyle = MUTE;
-    g.fillText('artists, in the order i first heard them', phone ? 14 : 222, phone ? 108 : 118);
+    g.fillText('artists, in the order i first heard them', phone ? 14 : 222, phone ? 112 : 132);
   }
   if (scene === 0 && blend >= 1 && grown) for (k = 0; k < (phone ? 4 : 10); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 5, SY[i], names[i], phone ? 12 - k * 0.3 : 17 - k * 0.65, k < 3 ? 600 : 500, false, INK); }
   /* the neighborhoods: a numeral and the family that fills each, at its center; the color is the neighborhood */
@@ -1367,6 +1378,7 @@ function acts() {
     if (best) { var k = secs.indexOf(best.target); if (k >= 0) setScene(k); }
   }, { rootMargin: phone ? '-62% 0px -18% 0px' : '-45% 0px -45% 0px', threshold: [0, 0.2, 0.5, 1] });
   secs.forEach(function (s) { obs.observe(s); });
+  /* the scroll itself also names the act (the one under the reading line), so a jump or a late observer never leaves a stale act */
   var dots = $$('.dots a'); dots.forEach(function (a, k) { a.addEventListener('click', function (e) { e.preventDefault(); secs[k].scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }); });
   secs.forEach(function (s, k) { new IntersectionObserver(function (es) { if (dots[k]) dots[k].classList.toggle('on', es[0].isIntersecting); }, { rootMargin: phone ? '-62% 0px -18% 0px' : '-45% 0px -45% 0px' }).observe(s); });
 }

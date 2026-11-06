@@ -14,7 +14,7 @@ function clear() { timers.forEach(clearTimeout); timers = []; if (synth) synth.c
 function draw(cur) {
   row.innerHTML = '';
   claims.forEach(function (_, i) { var s = document.createElement('i'); if (i === cur) s.className = 'now'; else if (shown.indexOf(i) >= 0) s.className = 'dead'; row.appendChild(s); });
-  cnt.textContent = claims.length + ' claims buried';
+  cnt.textContent = claims.length;
 }
 function type(el, text, speed, done) {
   if (reduce) { el.textContent = text; done && done(); return; }

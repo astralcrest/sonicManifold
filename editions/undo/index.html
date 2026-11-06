@@ -11,43 +11,48 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../wall.css">
 <style>
-#years { display: flex; flex-wrap: wrap; gap: 6px; }
-#years button { min-width: 62px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
-#years button[aria-checked="true"] { background: var(--amber); color: var(--night); border-color: var(--amber); }
-.key { font: 11px/1.7 'IBM Plex Mono', monospace; color: var(--mute); }
-.key i { display: inline-block; width: 18px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 6px; }
-.key i.d { border-top-style: dashed; } .key b { display: inline-block; width: 5px; height: 5px; background: var(--rose); margin: 0 8px 1px 6px; vertical-align: middle; }
+#years { display: flex; flex-wrap: wrap; gap: 8px; }
+#years button { min-width: 74px; }
+.key2 { font: 11px/1.9 var(--mono); color: var(--mute); margin: 12px 0 0; }
+.key2 i { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 8px; }
+.key2 i.d { border-top-style: dashed; } .key2 b { display: inline-block; width: 6px; height: 6px; background: var(--rose); margin: 0 10px 1px 8px; vertical-align: middle; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; }
 </style>
 </head>
-<body>
+<body style="--act: var(--amber); --acc: var(--amber)">
 <div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>undo the year</span><span class="opt">one wall of the machine</span><span class="tl">a toy, labeled</span></p>
+    <h1>take one year out. what would the same rule have <em>grown</em> instead?</h1>
+  </header>
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map with the machine's 40-step path in mint and the same rule rerun with one year of first-heard artists removed in dashed amber"></canvas></div>
   <main id="side">
-    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/" aria-current="page">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
-    <p class="eyebrow">undo the year · one wall of the machine</p>
-    <span class="tl">a toy, labeled</span>
-    <h1>take one year out. what would the same rule have grown instead?</h1>
+    <div class="key" aria-live="polite">
+      <div class="big amber" id="big">-</div>
+      <span class="keylab">rooms the field loses</span>
+      <p id="say" class="say">loading my map</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>take one year out and the rule can lose rooms; read the median.</p>
+      <p class="ask"><b>open question:</b>which of my years still steer the rule that grows the rest?</p>
+    </div>
     <section>
       <span class="k" id="yl">tap a year to remove</span>
       <div id="years" role="radiogroup" aria-labelledby="yl"></div>
-      <p class="key" style="margin:10px 0 0"><i style="border-color:var(--mint)"></i>as it grew &nbsp; <i class="d" style="border-color:var(--amber)"></i>with that year removed<br><b></b>the artists taken out</p>
-    </section>
-    <section aria-live="polite">
-      <span class="k">rooms the field loses</span>
-      <div class="big amber" id="big">-</div>
-      <p id="say">loading my map</p>
-      <p class="note" id="more"></p>
-    </section>
-    <section>
-      <div class="row" style="margin-top:0">
+      <p class="key2"><i style="border-color:var(--mint)"></i>as it grew &nbsp; <i class="d" style="border-color:var(--amber)"></i>with that year removed<br><b></b>the artists taken out</p>
+      <div class="row">
         <button type="button" id="again">another start</button>
         <button type="button" id="hear" aria-pressed="false">hear the first difference</button>
         <a class="btn" href="../../" id="back">back</a>
       </div>
       <p id="now"></p>
-      <p class="note" id="how"></p>
-      <p class="note">previews are Apple's 30 seconds, only after a tap, one at a time. nothing is stored.</p>
+      <p class="note" id="more"></p>
     </section>
+    <details class="how"><summary>how</summary>
+      <p id="how"></p>
+      <p>previews are Apple's 30 seconds, only after a tap, one at a time. nothing is stored.</p>
+    </details>
+    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/" aria-current="page">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
   </main>
 </div>
 <script src="../kiosk.js"></script>

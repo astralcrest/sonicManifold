@@ -38,21 +38,16 @@ function name(i) { return D.n[i]; }
 
 function draw() {
   MAP.begin();
-  var g = MAP.g;
-  g.fillStyle = 'rgba(6,1,15,0.62)'; g.fillRect(0, 0, MAP.W, MAP.H);
-  g.fillStyle = C.violet || '#8b6fd6'; g.globalAlpha = 0.5;
-  for (var j = 0; j < VIS.length; j++) g.fillRect(MAP.X(VIS[j]) - 1.5, MAP.Y(VIS[j]) - 1.5, 3, 3);
-  g.globalAlpha = 1;
+  var g = MAP.g, P = WK.P, PAL = P.PAL, j;
+  g.save(); g.globalCompositeOperation = 'lighter';
+  for (j = 0; j < VIS.length; j++) { var x = MAP.X(VIS[j]), y = MAP.Y(VIS[j]); g.globalAlpha = 0.1; g.fillStyle = PAL.violet; g.fillRect(Math.round(x) - 4, Math.round(y) - 4, 8, 8); g.globalAlpha = 0.6; g.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3); }
+  g.restore();
   var cur = S.on ? SONGS[S.k] : null;
-  SONGS.forEach(function (s) {
-    var on = cur && cur.i === s.i;
-    g.fillStyle = '#bcd3ff'; var z = on ? 11 : 8;
-    g.fillRect(MAP.X(s.i) - z / 2, MAP.Y(s.i) - z / 2, z, z);
-  });
+  SONGS.forEach(function (s) { var on = cur && cur.i === s.i; P.stops(g, [[MAP.X(s.i), MAP.Y(s.i)]], PAL.ice, PAL.ice, on ? 12 : 9); if (!on) MAP.ring(s.i, PAL.ice, 17); });
   if (cur) {
-    g.strokeStyle = '#bcd3ff'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(MAP.X(cur.i), MAP.Y(cur.i)); g.lineTo(MAP.X(cur.near), MAP.Y(cur.near)); g.stroke();
-    g.fillStyle = C.violet || '#8b6fd6'; g.fillRect(MAP.X(cur.near) - 3, MAP.Y(cur.near) - 3, 6, 6);
-    MAP.ring(cur.i, '#bcd3ff', 24);
+    P.ribbon(g, [[MAP.X(cur.i), MAP.Y(cur.i)], [MAP.X(cur.near), MAP.Y(cur.near)]], PAL.ice, PAL.violet, 2, 0.95);
+    P.stops(g, [[MAP.X(cur.near), MAP.Y(cur.near)]], PAL.violet, PAL.violet, 6);
+    P.rings(g, MAP.X(cur.i), MAP.Y(cur.i), PAL.ice, 20);
     MAP.tag(cur.i, name(cur.i), C.ink, C.night);
   }
 }
@@ -120,7 +115,7 @@ addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(funct
 
 Promise.all([WK.boot(), WK.pv()]).then(function (a) {
   D = a[0].D; M = a[0].M; FIT = a[0].FIT; LOOP = a[0].LOOP; PV = a[1];
-  MAP = new WK.Map($('map'), $('cv'), D, M); MAP.resize();
+  MAP = new WK.Map($('map'), $('cv'), D, M, { dim: 0.32 }); MAP.resize();
   choose();
   var dm = SONGS.map(function (s) { return s.d; });
   $('what').textContent = 'what plays: 30 s preview clips from the public catalog, one at a time, only after a tap, from the ' + SONGS.length + ' artists farthest from anything the fitted queue reached in ' + RUNS + ' runs. never my own album here.';

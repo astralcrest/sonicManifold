@@ -63,38 +63,41 @@
     dots = null; draw();
   }
   function px(i) { return [Math.round(OX + M.xy[i][0] * SC) + 0.5, Math.round(OY + M.xy[i][1] * SC) + 0.5]; }
+  var PK = window.WK && window.WK.P;
   function buildDots() {
     dots = document.createElement('canvas'); dots.width = cv.width; dots.height = cv.height;
-    var g = dots.getContext('2d'); g.scale(dpr, dpr); g.fillStyle = '#3a2f5c';
-    for (var i = 0; i < M.xy.length; i++) { var p = px(i); g.fillRect(p[0] - 1, p[1] - 1, 2, 2); }
+    var g = dots.getContext('2d'); g.scale(dpr, dpr);
+    var X = function (i) { return px(i)[0]; }, Y = function (i) { return px(i)[1]; }, small = W < 500;
+    if (PK) PK.field(g, M.xy, X, Y, { lo: small ? 1 : 1.5, hi: small ? 3 : 4.5, core: 0.55, halo: 0.07, col: function () { return '#4a4280'; } });
+    else { g.fillStyle = '#3a2f5c'; for (var i = 0; i < M.xy.length; i++) { var p = px(i); g.fillRect(p[0] - 1, p[1] - 1, 2, 2); } }
+  }
+  function sqr(c, x, y, s, fill) {
+    if (fill && PK) { PK.stops(ctx, [[x, y]], c, c, s); return; }
+    if (fill) { ctx.fillStyle = c; ctx.fillRect(Math.round(x - s / 2), Math.round(y - s / 2), s, s); return; }
+    ctx.strokeStyle = c; ctx.lineWidth = 1; ctx.strokeRect(Math.round(x - s / 2) + .5, Math.round(y - s / 2) + .5, s - 1, s - 1);
   }
   function draw() {
     if (!M || !H) return;
     if (!dots) buildDots();
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(dots, 0, 0);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var r = real(), n = r.length, sq = W < 500 ? 9 : 13, i, p, q;
-    ctx.lineWidth = 1; ctx.strokeStyle = '#4a3d72'; ctx.beginPath();
-    for (i = 0; i < n; i++) { p = px(r[i][0]); if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }
-    ctx.stroke();
-    var any = presses.length > 0;
+    var r = real(), n = r.length, sq = W < 500 ? 8 : 11, i, p, q, pts = [], bp = [];
+    var any = presses.length > 0 && bent.length === n;
+    for (i = 0; i < n; i++) { pts.push(px(r[i][0])); if (any) bp.push(px(bent[i])); }
+    if (PK) PK.ribbon(ctx, pts, '#8b6fd6', '#bcd3ff', any ? 1.5 : (W < 500 ? 2 : 2.5), any ? 0.45 : 0.9);
+    else { ctx.lineWidth = 1; ctx.strokeStyle = '#4a3d72'; ctx.beginPath(); pts.forEach(function (p, k) { if (k) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.stroke(); }
     if (any) {
-      ctx.strokeStyle = ROSE; ctx.lineWidth = 1; ctx.beginPath();
-      for (i = 0; i < n; i++) { p = px(bent[i]); if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }
-      ctx.stroke();
+      if (PK) PK.ribbon(ctx, bp, ROSE, '#ffb3c6', W < 500 ? 2 : 2.5, 0.95);
+      else { ctx.strokeStyle = ROSE; ctx.lineWidth = 1; ctx.beginPath(); bp.forEach(function (p, k) { if (k) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.stroke(); }
     }
     for (i = 0; i < n; i++) {
-      p = px(r[i][0]); var lit = i <= step, c = COL[r[i][2]];
-      if (lit) { ctx.fillStyle = c; ctx.fillRect(p[0] - sq / 2, p[1] - sq / 2, sq, sq); }
-      else { ctx.strokeStyle = c; ctx.lineWidth = 1; ctx.strokeRect(p[0] - sq / 2 + .5, p[1] - sq / 2 + .5, sq - 1, sq - 1); }
-      if (any && bent[i] !== r[i][0]) {
-        q = px(bent[i]); ctx.lineWidth = 2; ctx.strokeStyle = ROSE;
-        if (i <= step) { ctx.fillStyle = ROSE; ctx.fillRect(q[0] - sq / 2, q[1] - sq / 2, sq, sq); }
-        else ctx.strokeRect(q[0] - sq / 2 + 1, q[1] - sq / 2 + 1, sq - 2, sq - 2);
-      }
+      p = pts[i]; var lit = i <= step, c = COL[r[i][2]];
+      sqr(c, p[0], p[1], sq, lit);
+      if (any && bent[i] !== r[i][0]) { q = bp[i]; sqr(ROSE, q[0], q[1], sq, i <= step); }
     }
     var cur = px(any ? bent[step] : r[step][0]);
-    ctx.strokeStyle = '#efe9ff'; ctx.lineWidth = 2; ctx.strokeRect(cur[0] - sq, cur[1] - sq, sq * 2, sq * 2);
+    if (PK) PK.rings(ctx, cur[0], cur[1], '#efe9ff', sq + 8);
+    else { ctx.strokeStyle = '#efe9ff'; ctx.lineWidth = 2; ctx.strokeRect(cur[0] - sq, cur[1] - sq, sq * 2, sq * 2); }
   }
 
   function curArtist() { return presses.length ? bent[step] : real()[step][0]; }
@@ -105,6 +108,7 @@
     var s = document.createElement('span'); s.textContent = (M.n[a] || '') + (title ? ' · ' + title : ''); $('now').appendChild(s);
     var sm = document.createElement('small'); sm.textContent = 'song ' + (step + 1) + ' of ' + r.length + ' · ' + arm; $('now').appendChild(sm);
     var y = yourBend(), m = myBend(), v = $('verdict'); v.innerHTML = '';
+    $('bend').textContent = y === null ? 'none yet' : y.n ? y.m.toFixed(2) : 'none';
     function line(lab, val) { var d = document.createElement('div'); d.textContent = lab + ': ' + val; v.appendChild(d); }
     line('your bend', y === null ? 'none yet' : y.n ? y.m.toFixed(2) + ' of the map, over the ' + y.n + ' songs you changed' : 'none, no song changed');
     line('my presses that evening', m === null ? 'none' : m.toFixed(2) + ' of the map, a different measure');

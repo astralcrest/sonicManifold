@@ -63,6 +63,7 @@
     body.className = "r";
     if (!/kiosk=1/.test(location.search)) try { history.replaceState(null, "", location.pathname + location.search + "#n=" + (R + 1)); } catch (e) {}
     $("rk").textContent = `round ${R + 1} of ${ROUNDS}`;
+    $("tk").textContent = R + 1; $("tkl").textContent = `of ${ROUNDS} rounds`;
     heard = [false, false];
     ["A", "B"].forEach((L, side) => {
       $("c" + L).classList.remove("won");
@@ -133,6 +134,7 @@
     S.forEach(s => { if (s.pick === s.target) s.primed ? k++ : m++; });
     $("sent").textContent = `after a first song, you went toward it ${k} of 6 times. with none, ${m} of 6.`;
     $("bk").textContent = `${k} of 6`; $("bm").textContent = `${m} of 6`;
+    $("tk").textContent = `${k} of 6`; $("tkl").textContent = "toward the first song";
     $("ik").style.width = (k / 6 * 100) + "%"; $("im").style.width = (m / 6 * 100) + "%";
     const log = $("log"); log.textContent = "";
     S.forEach((s, r) => {
@@ -187,6 +189,12 @@
     if (D) { newSession(); showRound(); }
   }
 
+  const PK = window.WK && window.WK.P;
+  function field(g, X, Y, w, col) {
+    const small = w < 420;
+    if (PK) PK.field(g, D.xy, X, Y, { lo: small ? 1 : 1.5, hi: small ? 3 : 4.5, core: 0.75, halo: 0.09, col: () => col });
+    else { g.fillStyle = col; for (let i = 0; i < D.xy.length; i++) g.fillRect(X(i) - 1, Y(i) - 1, 2, 2); }
+  }
   function drawMap() {
     const cv = $("map"), dpr = Math.min(2, window.devicePixelRatio || 1);
     const w = Math.round(cv.getBoundingClientRect().width) || 560;
@@ -195,20 +203,21 @@
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.fillStyle = "#06010f"; g.fillRect(0, 0, w, w);
     const pad = 14, sc = (w - 2 * pad) / 1000;
-    const X = i => Math.round(pad + D.xy[i][0] * sc), Y = i => Math.round(pad + (1000 - D.xy[i][1]) * sc);
-    g.fillStyle = "#3a3358";
-    for (let i = 0; i < D.xy.length; i++) g.fillRect(X(i) - 1, Y(i) - 1, 2, 2);
-    const ln = (i, j, col, dash) => { g.strokeStyle = col; g.lineWidth = 1; g.setLineDash(dash || []); g.beginPath(); g.moveTo(X(i) + .5, Y(i) + .5); g.lineTo(X(j) + .5, Y(j) + .5); g.stroke(); g.setLineDash([]); };
-    S.forEach(s => { if (!s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#2a2140"); } });
-    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#f5a623", [3, 4]); } });
-    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.pr[s.target].i, p.o[s.target].i, "#f5a623"); } });
+    const X = i => Math.round(pad + D.xy[i][0] * sc) + .5, Y = i => Math.round(pad + (1000 - D.xy[i][1]) * sc) + .5;
+    field(g, X, Y, w, "#4f4282");
+    const P = (i) => [X(i), Y(i)];
+    const ln = (i, j, a, b, wd, al, dash) => { if (PK) PK.ribbon(g, [P(i), P(j)], a, b, wd, al, dash); else { g.strokeStyle = a; g.lineWidth = 1; g.setLineDash(dash || []); g.beginPath(); g.moveTo(X(i), Y(i)); g.lineTo(X(j), Y(j)); g.stroke(); g.setLineDash([]); } };
+    S.forEach(s => { if (!s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#3a3058", "#3a3058", 1, 1); } });
+    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#f5a623", "#f5a623", 1, 0.8, [3, 4]); } });
+    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.pr[s.target].i, p.o[s.target].i, "#f5a623", "#ffd8a0", 2, 1); } });
     const sq = (i, s, fill, col) => {
-      const x = X(i) - s / 2, y = Y(i) - s / 2;
+      if (fill && PK) { PK.stops(g, [P(i)], col, col, s); return; }
+      const x = Math.round(X(i) - s / 2), y = Math.round(Y(i) - s / 2);
       if (fill) { g.fillStyle = col; g.fillRect(x, y, s, s); }
       else { g.strokeStyle = col; g.lineWidth = 1.5; g.strokeRect(x + .75, y + .75, s - 1.5, s - 1.5); }
     };
-    S.forEach(s => { const p = D.pairs[s.pi]; sq(p.o[1 - s.pick].i, 9, false, "#bcd3ff"); });
-    S.forEach(s => sq(D.pairs[s.pi].o[s.pick].i, 9, true, "#21f6bc"));
+    S.forEach(s => { const p = D.pairs[s.pi]; sq(p.o[1 - s.pick].i, 10, false, "#bcd3ff"); });
+    S.forEach(s => sq(D.pairs[s.pi].o[s.pick].i, 8, true, "#21f6bc"));
     S.forEach(s => { if (s.primed) sq(D.pairs[s.pi].pr[s.target].i, 6, true, "#f5a623"); });
   }
 
@@ -232,8 +241,7 @@
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.fillStyle = "#06010f"; g.fillRect(0, 0, w, w);
     const pad = 14, sc = (w - 2 * pad) / 1000;
-    g.fillStyle = "#2c2645";
-    for (let i = 0; i < D.xy.length; i++) g.fillRect(Math.round(pad + D.xy[i][0] * sc) - 1, Math.round(pad + (1000 - D.xy[i][1]) * sc) - 1, 2, 2);
+    field(g, i => Math.round(pad + D.xy[i][0] * sc) + .5, i => Math.round(pad + (1000 - D.xy[i][1]) * sc) + .5, w, "#7a66c8");
   }
   window.addEventListener("resize", () => { if (body.classList.contains("done")) drawMap(); else drawPreview(); });
 

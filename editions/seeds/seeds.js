@@ -83,20 +83,20 @@ function run(again) {
 
 function draw() {
   if (!MAP || S.a < 0) return;
-  MAP.begin(); var g = MAP.g, h = S.hit, n = S.pa.length;
-  MAP.line(S.pa, n, C.mint); MAP.line(S.pb, n, C.amber);
-  MAP.squares(S.pa, n, C.mint, 4); MAP.squares(S.pb, n, C.amber, 4);
-  MAP.ring(S.pa[0], C.ink, 10); MAP.ring(S.pb[0], C.ink, 10);
+  MAP.begin(); var g = MAP.g, h = S.hit, n = S.pa.length, P = WK.P.PAL;
+  MAP.ribbon(S.pa, n, P.mint, P.ice); MAP.ribbon(S.pb, n, P.amber, P.rose);
+  MAP.stops(S.pa, n, P.mint, P.ice); MAP.stops(S.pb, n, P.amber, P.rose);
   var s = +$('sn').value;
-  g.strokeStyle = C.ink; g.lineWidth = 1; g.strokeRect(MAP.X(S.pa[s]) - 6, MAP.Y(S.pa[s]) - 6, 12, 12); g.strokeRect(MAP.X(S.pb[s]) - 6, MAP.Y(S.pb[s]) - 6, 12, 12);
   if (h) {
     var xa = MAP.X(S.pa[h.a]), ya = MAP.Y(S.pa[h.a]), xb = MAP.X(S.pb[h.b]), yb = MAP.Y(S.pb[h.b]);
-    g.strokeStyle = '#fff'; g.lineWidth = 1; g.setLineDash(h.never ? [3, 3] : []); g.beginPath(); g.moveTo(xa, ya); g.lineTo(xb, yb); g.stroke(); g.setLineDash([]);
+    g.save(); g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.setLineDash(h.never ? [4, 4] : []); g.beginPath(); g.moveTo(xa, ya); g.lineTo(xb, yb); g.stroke(); g.restore();
     g.fillStyle = '#fff';
-    if (h.never) { g.fillRect(xa - 4, ya - 4, 8, 8); g.fillRect(xb - 4, yb - 4, 8, 8); MAP.tag(S.pa[h.a], 'closest', '#fff'); }
-    else { var q = h.step === h.a ? S.pa[h.a] : S.pb[h.b]; g.fillRect(xa - 7, ya - 7, 14, 14); g.fillRect(xb - 7, yb - 7, 14, 14); MAP.tag(q, 'step ' + h.step, '#fff'); }
+    if (h.never) { g.fillRect(Math.round(xa) - 4, Math.round(ya) - 4, 8, 8); g.fillRect(Math.round(xb) - 4, Math.round(yb) - 4, 8, 8); }
+    else { g.fillRect(Math.round(xa) - 6, Math.round(ya) - 6, 12, 12); g.fillRect(Math.round(xb) - 6, Math.round(yb) - 6, 12, 12); }
   }
-  MAP.tag(S.pa[0], 'one', C.mint); MAP.tag(S.pb[0], 'two', C.amber);
+  MAP.stop(S.pa[s], P.mint, 14); MAP.stop(S.pb[s], P.amber, 14);
+  if (h) { if (h.never) MAP.tag(S.pa[h.a], 'closest', '#fff'); else MAP.tag(h.step === h.a ? S.pa[h.a] : S.pb[h.b], 'step ' + h.step, '#fff'); }
+  MAP.tag(S.pa[0], 'one', P.mint); MAP.tag(S.pb[0], 'two', P.amber);
 }
 
 function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop' : 'hear step ' + $('sn').value; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); }
