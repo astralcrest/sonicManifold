@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hold to keep</title>
+<meta name="description" content="twelve songs in a row. hold to keep one, let go to skip. a toy.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+#hold { width: 100%; min-height: 88px; border-radius: 44px; font: 600 20px var(--sans); letter-spacing: .01em; --acc: var(--mint); touch-action: none; user-select: none; -webkit-user-select: none; }
+#hold.go { background: var(--mint); color: var(--night); }
+#bar { height: 8px; border: 1px solid var(--mint); border-radius: 4px; margin: 10px 2px 0; overflow: hidden; }
+#bar i { display: block; height: 100%; width: 0; background: var(--mint); }
+#again, #sk { --acc: var(--line); color: var(--mute); }
+.song { font: 600 clamp(26px, 8cqi, 40px)/1.05 var(--sans); letter-spacing: -.02em; color: var(--ink); overflow-wrap: anywhere; margin: 0 0 6px; }
+</style>
+</head>
+<body data-wall="14" data-line="hold to keep the song, let go to skip. kept songs stay lit." data-keys="press" style="--act: var(--ice); --acc: var(--ice)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>hold to keep</span><span class="tl">a toy</span></p>
+    <h1>what do you <em>keep</em>?</h1>
+  </header>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. twelve songs sit as faint rings. the current one is ringed in white. kept songs light as mint stars, skipped ones go dark."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big mint" id="num">-</div>
+      <span class="keylab" id="numlab">kept of 12</span>
+      <p class="say" id="say">hold the button on the first song.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>keeping is a small act; the wall counts the small acts.</p>
+      <p class="ask"><b>open question:</b>what would you keep, if keeping cost a held breath?</p>
+    </div>
+    <section>
+      <p class="song" id="song">&nbsp;</p>
+      <button type="button" id="hold" aria-pressed="false">hold to keep</button>
+      <div id="bar" aria-hidden="true"><i></i></div>
+      <div class="row"><button type="button" id="again">start over</button><button type="button" id="sk">skip</button></div>
+      <p class="note" id="now"></p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>hold the big button, or the space bar. the bar fills in two seconds and the song is kept.</p>
+      <p>let go early and the song is skipped.</p>
+      <p>turn sound on to hear a clip while you hold.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>the twelve songs are drawn at random from my most played artists that have a clip. what you hold is a toy, not a measure of you.</p>
+      <p>in my log (my numbers, not yours): of songs i started myself (my press) 42 of 100 stayed, of auto-play songs 16 of 100 stayed.</p>
+      <p>clips are 30 s public previews of the artist, not always the song that played, and only play with sound on.</p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="hold.js"></script>
+</body>
+</html>

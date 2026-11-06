@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>applause as skip</title>
+<meta name="description" content="clap to skip the song. the screen reads one loudness number and never records audio.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+.big span.r { color: var(--rose); } .big span.g { color: var(--mint); } .big span.c { color: var(--mute); }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+#listen { --acc: var(--mint); } #clap { --acc: var(--rose); } #zero { --acc: var(--ice); }
+</style>
+</head>
+<body data-wall="17 of 18" data-line="clap to skip the song. quiet keeps it. the screen reads loudness only." data-keys="auto,alike" style="--act: var(--rose); --acc: var(--rose)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>applause as skip</span><span class="tl">a toy</span></p>
+    <h1>whose hand skips when the room is the <em>hand</em>?</h1>
+  </header>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map with the songs played so far as a violet ribbon with a ring on the current one. a level meter along the bottom fills with the loudness of the room; a mark shows the clap threshold. a clap above the mark flashes a rose ring and moves to the next song."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big" id="num"><span class="r">0</span> <span class="c">/</span> <span class="g">0</span></div>
+      <span class="keylab">claps tonight / songs advanced</span>
+      <p class="say" id="say">tap listen, allow the mic, then clap.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>the room can press next, but it cannot tell which song it wanted gone.</p>
+      <p class="ask"><b>open question:</b>whose hand skips when the room is the hand?</p>
+    </div>
+    <section>
+      <label class="k" for="thr">how loud counts as a clap</label>
+      <input type="range" id="thr" min="10" max="90" step="1" value="50" aria-label="how loud a sound must be to count as a clap">
+      <div class="row">
+        <button type="button" id="listen" aria-pressed="false">listen</button>
+        <button type="button" id="clap">tap = clap</button>
+        <button type="button" id="zero">reset tonight</button>
+      </div>
+      <p class="note" id="now">sound: the song plays only when sound is on. claps work either way.</p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>tap listen, allow the mic. a loud clap plays the next song.</p>
+      <p>quiet keeps the song. after a skip it waits 3 seconds.</p>
+      <p>no mic? use tap = clap. the counts stay on this tablet.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>nothing is recorded; only a loudness number is read, never audio. the mic is read about 60 times a second as one number and the sound is thrown away at once.</p>
+      <p>a loud room will skip itself. the threshold is high, a skip needs a sharp jump over the room's usual level, and there is a 3 s cooldown. test it in the room.</p>
+      <p>the songs are a toy auto-play walk through my map. the two counts are saved on this tablet only, under tonight's date, and nowhere else.</p>
+      <p id="meta"></p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="applause.js"></script>
+</body>
+</html>

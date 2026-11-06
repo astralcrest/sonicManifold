@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>meet in the middle</title>
+<meta name="description" content="two fingers on my sound map. the artist halfway between you lights and plays. a toy.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+
+</style>
+</head>
+<body data-wall="13" data-line="two fingers on the map. the star halfway between you lights and plays." data-keys="alike,auto" style="--act: var(--ice); --acc: var(--ice)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>meet in the middle</span><span class="tl">a toy</span></p>
+    <h1>where do you <em>meet</em>?</h1>
+  </header>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. two ringed points are your fingers. an ice line joins them. the artist nearest the halfway point is ringed in violet and its preview plays."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big ice" id="num">-</div>
+      <span class="keylab" id="numlab">steps from each of you</span>
+      <p class="say" id="say">put two fingers on the map. or click twice, then drag either one.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>a recommender is a meeting point it picked for you both.</p>
+      <p class="ask"><b>open question:</b>where would you two actually meet?</p>
+    </div>
+    <section>
+      <div class="row"><button type="button" id="rs">reset</button></div>
+      <p class="note" id="now"></p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>two fingers on the map, or click twice and drag either point.</p>
+      <p>the artist nearest the halfway point is ringed and plays a short clip.</p>
+      <p>the number counts hops through the neighbor graph to each of you.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>a toy on this screen, not my data. the halfway point is the plain midpoint of your two spots on my sound map; the artist is the nearest one with a clip.</p>
+      <p>steps are counted in the neighbor graph: each artist joined to its six nearest on the map, from the meeting artist to the artist nearest each finger.</p>
+      <p>clips are 30 s public previews and only play with sound on. nothing you touch is stored.</p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="meet.js"></script>
+</body>
+</html>

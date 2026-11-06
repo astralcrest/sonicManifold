@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the pour</title>
+<meta name="description" content="tilt to pour: your picks on one side, auto-play's on the other. a toy.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+.big span.a { color: #a48cf0; } .big span.c { color: var(--mute); }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+.ends { display: flex; justify-content: space-between; font: 500 12px var(--mono); margin: 0; }
+.ends .m { color: var(--mint); } .ends .a { color: #a48cf0; }
+.tickrow { position: relative; height: 18px; margin: -6px 11px 4px; font: 500 11px var(--mono); color: var(--ice); }
+.tickrow i { position: absolute; top: 0; width: 1px; height: 8px; background: var(--ice); }
+.tickrow span { position: absolute; top: 8px; transform: translateX(-50%); white-space: nowrap; }
+#tilt, #pl { --acc: var(--violet); } #mylog { --acc: var(--mint); } #hear, #again { --acc: var(--ice); }
+</style>
+</head>
+<body data-wall="16 of 18" data-line="tilt to pour: your picks on one side, auto-play's on the other." data-keys="press,auto,alike" style="--act: var(--violet); --acc: var(--violet)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>the pour</span><span class="tl">a toy</span></p>
+    <h1>how much of your night is <em>yours</em>?</h1>
+  </header>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map with a hundred-step path. a column on the left shows each step: wide mint bars are picks by hand, narrow violet bars are auto-play picks. the path draws as a ribbon with a mint star for each hand pick and a violet ring for each auto-play pick."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big" id="num"><span class="a">64</span></div>
+      <span class="keylab">poured of 100 (your setting, a toy)</span>
+      <p class="say" id="say">tilt your phone, or slide below.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>pour more auto-play and each step stays near the last. pour more of mine and it jumps.</p>
+      <p class="ask"><b>open question:</b>how much of your night do you let pour in?</p>
+    </div>
+    <section>
+      <div class="ends"><span class="m">mine</span><span class="a">auto-play</span></div>
+      <input type="range" id="pl" min="0" max="100" step="1" value="64" aria-label="how much of the hundred steps auto-play pours, from none (all mine) to all">
+      <div class="tickrow" aria-hidden="true"><i style="left:64%"></i><span style="left:64%">64 = my log</span></div>
+      <div class="row" style="margin-top:0">
+        <button type="button" id="tilt" hidden>allow tilt</button>
+        <button type="button" id="mylog">set to 64</button>
+        <button type="button" id="again">pour again</button>
+        <button type="button" id="hear" aria-pressed="false">hear the first 8</button>
+      </div>
+      <p class="note" id="now">sound: previews play only after you tap hear, and only when sound is on.</p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>tilt right to pour auto-play, left to pour your own.</p>
+      <p>no tilt sensor? slide the line. the column shows 100 steps.</p>
+      <p>wide mint bar = my press. narrow violet bar = auto-play.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>a toy rule on this screen. a pick of mine is a jump to one of my 60 most played artists; an auto-play pick is the nearest artist in sound that the path has not just visited.</p>
+      <p>64 of 100 is the setting that matches my log. yours is a toy setting, not a measurement of you.</p>
+      <p>nothing is stored. the tilt reading stays on the phone and is never sent anywhere.</p>
+      <p id="meta"></p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="pour.js"></script>
+</body>
+</html>

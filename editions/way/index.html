@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>draw the long way</title>
+<meta name="description" content="drag one finger from one star to another. your line lands on real artists; the shortest way draws beside it.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.big span.m { color: var(--mint); } .big span.i { color: var(--ice); } .big span.c { color: var(--mute); }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+#pair { --acc: var(--ice); } #clear { --acc: var(--mint); } #hear { --acc: var(--ice); }
+</style>
+</head>
+<body data-wall="18 of 18" data-line="drag a finger from one star to another. the shortest way draws beside yours." data-keys="press,alike" style="--act: var(--mint); --acc: var(--mint)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>draw the long way</span><span class="tl">a toy</span></p>
+    <h1>nobody takes the <em>short</em> way.</h1>
+  </header>
+  <div id="map"><canvas id="cv" tabindex="0" role="img" aria-label="my sound map. drag a finger from one artist to another and the line lands on the artists you cross, drawn as a mint ribbon with stars. the shortest path through the nearest-neighbor links draws beside it in ice blue."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big" id="num"><span class="c">-</span></div>
+      <span class="keylab">your steps / the shortest</span>
+      <p class="say" id="say">drag from one star to another.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>a line drawn by hand wanders. the shortest way is usually a few hops.</p>
+      <p class="ask"><b>open question:</b>why does nobody take the short way to a song they care about?</p>
+    </div>
+    <section>
+      <div class="row" style="margin-top:0">
+        <button type="button" id="pair">give me two stars</button>
+        <button type="button" id="clear">clear</button>
+        <button type="button" id="hear" aria-pressed="false">hear the end</button>
+      </div>
+      <p class="note" id="now">sound: the end star plays a preview only after you tap hear, and only when sound is on.</p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>press on a star and drag across the map to another.</p>
+      <p>your line lands on each star you cross, in order.</p>
+      <p>let go: the shortest way draws beside it in ice blue.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>a toy on the sound map. a step is one hop from one artist to the next you crossed; a link joins each artist to the six that sound nearest.</p>
+      <p>the shortest way counts links in that graph, one hop each, not distance. nothing is stored.</p>
+      <p id="meta"></p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="way.js"></script>
+</body>
+</html>
