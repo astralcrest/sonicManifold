@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the slow room</title>
+<meta name="description" content="twelve songs the fitted queue never reached in 40 runs. the wall counts how many people stay past thirty seconds, in this room, tonight.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 560px; } }
+.store { font: 600 12px 'IBM Plex Mono', monospace; color: var(--mint); letter-spacing: .04em; margin: 0 0 6px; }
+.nowbox { min-height: 118px; margin: 6px 0 0; }
+.who { font: 600 34px/1.1 'Instrument Sans', sans-serif; color: var(--ice); overflow-wrap: anywhere; margin: 0 0 4px; min-height: 38px; }
+.dline { font: 500 12px 'IBM Plex Mono', monospace; color: var(--mute); margin: 0 0 8px; min-height: 18px; }
+.dline b { color: var(--ice); font-weight: 600; }
+.prog { height: 6px; background: #1a1230; border: 1px solid var(--line); }
+.prog i { display: block; height: 100%; width: 0; background: var(--ice); }
+.slot { font: 500 11px 'IBM Plex Mono', monospace; color: var(--mute); margin: 6px 0 0; }
+.stays { display: flex; flex-wrap: wrap; gap: 4px; min-height: 18px; margin: 8px 0 8px; }
+.stays i { display: block; width: 16px; height: 16px; background: var(--ice); }
+.stays i.cur { background: transparent; border: 1px solid var(--ice); }
+.led { font: 600 18px/1.25 'Instrument Sans', sans-serif; margin: 0; }
+.led b { color: var(--ice); }
+.hide { display: none !important; }
+@media (max-width: 900px) { #map { height: 38vh; min-height: 220px; } .wrap { display: block; height: auto; } #side { border-left: 0; } .who { font-size: 28px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map, dimmed. faint violet dots are artists the fitted queue reached in 40 runs. ice squares are the twelve it never reached, farthest from any run. the one playing is ringed."></canvas></div>
+  <main id="side">
+    <p class="store">nothing is stored. the count lives in this tab tonight and is gone after.</p>
+    <h1>the slow room. songs the queue never would have served me.</h1>
+    <section>
+      <div class="row" style="margin-top:0"><button type="button" class="go" id="play">play</button><button type="button" id="leave">i am leaving</button><button type="button" id="reset">reset the night</button></div>
+      <div class="nowbox" aria-live="polite">
+        <p class="who" id="who"></p>
+        <p class="dline" id="dline"></p>
+        <div class="prog" role="img" aria-label="seconds into this clip, out of 30" id="progbox"><i id="bar"></i></div>
+        <p class="slot" id="slot"></p>
+      </div>
+    </section>
+    <section aria-live="polite">
+      <span class="k">stays past thirty seconds</span>
+      <div class="stays" id="stays" role="img" aria-label="no stays yet"></div>
+      <p class="led">stayed past thirty seconds: <b id="n">0</b> tonight</p>
+      <p class="note" id="msg"></p>
+    </section>
+    <section>
+      <p class="note" id="what">what plays: </p>
+      <p class="note" id="toy">a toy. </p>
+    </section>
+    <nav class="walls" aria-label="the walls"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/">the graveyard booth</a><a href="../slow/" aria-current="page">the slow room</a></nav>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="slow.js"></script>
+</body>
+</html>

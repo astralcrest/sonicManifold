@@ -57,7 +57,7 @@
     this.tag = function (i, text, fg, bg) {
       g.font = '600 12px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
       var w = g.measureText(text).width + 8, x = self.X(i) + 9, y = self.Y(i) - 11;
-      if (x + w > self.W - 2) x = self.X(i) - 9 - w; if (y < 9) y = self.Y(i) + 12;
+      if (x + w > self.W - 2) x = self.X(i) - 9 - w; if (y < 9) y = self.Y(i) + 12; if (x < 2) x = 2;
       g.fillStyle = bg || C.night; g.fillRect(x, y - 9, w, 18); g.fillStyle = fg || C.ink; g.fillText(text, x + 4, y);
     };
   }

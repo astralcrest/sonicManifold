@@ -180,8 +180,8 @@ dl.rows dt{font:500 10.5px/1.65 var(--mono);letter-spacing:.08em;color:var(--ac,
 dl.rows dd{margin:0;font:400 11.5px/1.6 var(--mono);color:var(--dim)}
 .bars{padding:0 20px 8px}
 .bars .br{grid-template-columns:8.6em minmax(0,1fr) 5.6em}
-#songs{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:0 14px}
-#songs .sg{width:auto;min-height:24px;padding:0}#songs .sg b{font-size:12.5px}#songs .sg span{display:none}
+#songs{list-style:none;margin:6px 0 0;padding:0 0 2px;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}#songs::-webkit-scrollbar{display:none}
+#songs .sg{flex:0 0 auto;width:auto;min-height:44px;padding:0 12px;justify-content:center;border:1px solid var(--line);border-radius:22px;scroll-snap-align:start}#songs .sg b{font-size:12.5px}#songs .sg span{display:none}#songs .sg.on{border-color:var(--gold)}
 .sg{appearance:none;-webkit-appearance:none;display:flex;flex-direction:column;align-items:flex-start;width:100%;min-height:40px;padding:4px 0;border:0;background:transparent;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .sg b{font:500 13px/1.2 var(--sans);color:var(--gold)}.sg span{font:400 10.5px/1.3 var(--mono);color:var(--dim)}
 .sg:hover b,.sg.on b{color:var(--ink)}
@@ -244,8 +244,8 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
  .plate .game p{font-size:13px}
  .plate .how{margin:8px 0 0}
  .plate ul.dead{margin:4px 0 0}.plate ul.dead li{margin:0 0 4px;padding:2px 0 2px 12px}
- .plate #songs{margin:8px 0 0;display:flex;flex-wrap:wrap;gap:0 12px}
- .plate .sg{width:auto;min-height:26px;padding:2px 0}.plate .sg b{font-size:12px}.plate .sg span{display:none}
+ .plate #songs{margin:8px 0 0;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none}.plate #songs::-webkit-scrollbar{display:none}
+ .plate .sg{flex:0 0 auto;width:auto;min-height:44px;padding:0 12px;justify-content:center;border:1px solid var(--line);border-radius:22px;scroll-snap-align:start}.plate .sg b{font-size:12px}.plate .sg span{display:none}.plate .sg.on{border-color:var(--gold)}
  .plate .h-hide{display:none}
  @media (max-height:780px){.plate .how,.plate .lz{display:none}.plate .kick{margin-bottom:4px}.plate h1,.plate h2{font-size:clamp(18px,1.6vw,24px)}}
  .plate .lz{margin:0}

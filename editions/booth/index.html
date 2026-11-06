@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the graveyard booth</title>
+<meta name="description" content="a confessional booth of killed claims. press a button, read one sentence i wanted to be true and the line that killed it. a toy, labeled.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root { --night:#06010f; --ink:#efe9ff; --mute:#9a90b8; --line:#2a2140; --mint:#21f6bc; --amber:#f5a623; --violet:#8b6fd6; --ice:#bcd3ff; --rose:#ff5c7a; }
+* { box-sizing: border-box; }
+html, body { margin:0; height:100%; background:var(--night); color:var(--ink); }
+body { font-family:'Instrument Sans',system-ui,sans-serif; }
+#room { min-height:100vh; min-height:100dvh; border:6px solid var(--line); display:flex; flex-direction:column; align-items:center; padding:20px 20px 24px; transition:border-color .4s; }
+#room[data-lit="1"] { border-color:#3a2a22; } #room[data-lit="2"] { border-color:#6b4a1c; } #room[data-lit="3"] { border-color:var(--amber); }
+.tl { font:600 11px 'IBM Plex Mono',monospace; letter-spacing:.06em; border:1px solid var(--amber); color:var(--amber); padding:2px 8px; align-self:flex-start; }
+.toy { font:11px/1.5 'IBM Plex Mono',monospace; color:var(--mute); margin:8px 0 0; align-self:flex-start; }
+main { flex:1; width:100%; max-width:760px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:26px; padding:18px 0; }
+#go { width:200px; height:200px; font:600 28px 'Instrument Sans',sans-serif; color:var(--night); background:var(--amber); border:0; border-radius:0; cursor:pointer; flex:none; }
+#go:focus-visible, .chip:focus-visible { outline:2px solid var(--ice); outline-offset:3px; }
+#stage { width:100%; min-height:210px; }
+#claim { font:500 clamp(24px,4.4vw,40px)/1.2 'Instrument Sans',sans-serif; margin:0; }
+#claim::before { content:"\201C"; color:var(--amber); } #claim::after { content:"\201D"; color:var(--amber); }
+#claim:empty, #claim:empty::before, #claim:empty::after { content:""; }
+#ref { font:400 clamp(14px,2vw,17px)/1.55 'IBM Plex Mono',monospace; color:var(--rose); margin:18px 0 0; display:flex; gap:12px; }
+#ref i { flex:none; width:9px; height:9px; background:var(--rose); margin-top:.5em; visibility:hidden; }
+#ref.on i { visibility:visible; }
+#row { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; max-width:360px; }
+#row i { width:12px; height:12px; background:var(--line); display:block; }
+#row i.dead { background:#5a2a3a; } #row i.now { background:var(--rose); }
+#cnt { font:11px 'IBM Plex Mono',monospace; color:var(--mute); }
+.bar { display:flex; gap:8px; }
+.chip { font:500 13px 'IBM Plex Mono',monospace; color:var(--ink); background:transparent; border:1px solid var(--line); min-height:44px; min-width:44px; padding:6px 14px; border-radius:0; cursor:pointer; }
+.chip[aria-pressed="true"] { background:var(--ink); color:var(--night); }
+.chip[hidden] { display:none; }
+@media (max-width:600px) { #stage { min-height:260px; } #go { width:160px; height:160px; } }
+@media (prefers-reduced-motion: reduce) { #room { transition:none; } }
+</style>
+</head>
+<body>
+<div id="room" data-lit="0">
+  <div style="width:100%"><span class="tl">a toy, labeled</span>
+  <p class="toy">a booth. data: the graveyard of claims the referee killed, public since 2026. nothing is stored.</p></div>
+  <main>
+    <div id="stage" aria-live="polite"><p id="claim"></p><p id="ref"><i></i><span id="reft"></span></p></div>
+    <button type="button" id="go">confess</button>
+    <div id="row" aria-hidden="true"></div>
+    <div id="cnt"></div>
+  </main>
+  <div class="bar"><button type="button" class="chip" id="voice" aria-pressed="false">voice off</button><button type="button" class="chip" id="reset">reset</button></div>
+  <nav class="walls" aria-label="the walls" style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:.04em;margin:14px 0 0;padding:0 16px"><a href="../../">the front</a><a href="../loop/">the loop</a><a href="../two/">the two of you</a><a href="../taste/">the taste test</a><a href="../haunted/">the haunted queue</a><a href="../seeds/">the two seeds</a><a href="../undo/">undo the year</a><a href="../blind/">blind taste, seen taste</a><a href="../booth/" aria-current="page">the graveyard booth</a><a href="../slow/">the slow room</a></nav>
+  <style>nav.walls a{color:#bcd3ff;text-decoration:none;border-bottom:1px solid #2a2140;display:inline-flex;align-items:center;min-height:44px;padding:0 2px}nav.walls a[aria-current]{color:#21f6bc;border-color:#21f6bc}</style>
+</div>
+<script src="booth.js"></script>
+</body>
+</html>

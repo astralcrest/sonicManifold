@@ -1,0 +1,86 @@
+{
+ "v": 1,
+ "src": "front/data/graveyard.json",
+ "claims": [
+  {
+   "n": 1,
+   "claim": "my deliberate plays are less predictable to the algorithm.",
+   "referee": "a chronological holdout: train on the past, test on the future. the gap fell from d=0.62 to d=-0.02, and the interval brackets zero."
+  },
+  {
+   "n": 2,
+   "claim": "my body steers what i play.",
+   "referee": "partial out the 24-hour cycle and run phase-randomized surrogates. rho fell from 0.36 to 0.07. a shared daily clock made it."
+  },
+  {
+   "n": 3,
+   "claim": "world listening primes jazz three weeks later.",
+   "referee": "split the series by how each play started. the whole effect lives in autoplay auto-advance and is null under shuffle."
+  },
+  {
+   "n": 4,
+   "claim": "i am choosing more over time.",
+   "referee": "the logger gained a new back-button code and the device mix flipped. the instrument changed, not me."
+  },
+  {
+   "n": 5,
+   "claim": "changepoint detection found 5 of 5 known dates.",
+   "referee": "score the hits against shuffled dates. it also finds events that never happened."
+  },
+  {
+   "n": 6,
+   "claim": "one known date shifted listening across eleven metrics.",
+   "referee": "a pre/post window on all eleven. kept anyway: hiding the nulls is how honest analysis turns into selection bias."
+  },
+  {
+   "n": 7,
+   "claim": "my physiology narrows my listening, even with activity controlled.",
+   "referee": "remove the annual cycle. a shared season, not a cause."
+  },
+  {
+   "n": 8,
+   "claim": "genre drives my heart rate.",
+   "referee": "use shuffle as the instrument, so the choice is not mine. the effect is gone. it was the activity, not the music."
+  },
+  {
+   "n": 9,
+   "claim": "my genre mix drifted on its own.",
+   "referee": "moving-block bootstrap plus intent stratification. mostly the platform's surfacing, not my drift. one exception stays: electronic climbing is mine."
+  },
+  {
+   "n": 10,
+   "claim": "i can predict my own next presses from audio and history.",
+   "referee": "an out-of-time split: train through 2024, test on 2025 and later. whatever drives a next press is not in the audio."
+  },
+  {
+   "n": 11,
+   "claim": "a model that sees my body and my listening beats either alone.",
+   "referee": "a block bootstrap on the held-out gain. it survived the circadian partial-out, then died in the bootstrap."
+  },
+  {
+   "n": 12,
+   "claim": "an artist's bridge role in my taste graph predicts whether i drop it.",
+   "referee": "retrain with the future hidden. the map had been trained on the whole timeline, so it already knew who i would abandon. blind it and the edge is gone."
+  },
+  {
+   "n": 13,
+   "claim": "my timing-only intent proxy ports to a public log of 992 listeners.",
+   "referee": "its own pre-declared gate, plus the same readout run back on my log. the intervals were valid. the construct was not."
+  },
+  {
+   "n": 14,
+   "claim": "the deeper autoplay wanders, the closer plays get to preference-free.",
+   "referee": "hold the track fixed with a matched conditional logit. the curves were real, but depth was not the cause."
+  },
+  {
+   "n": 15,
+   "claim": "19% of my plays were a deliberate tap, one stable number.",
+   "referee": "an era-stability audit against the logger's own changepoints. the instrument moved. the strict number is lower."
+  },
+  {
+   "n": 16,
+   "claim": "my top artist topping the chart four straight years is wildly improbable.",
+   "referee": "a null that keeps persistence. the old null re-rolled my taste every january. with persistence, a four-year reign is just a plateau."
+  }
+ ]
+}
