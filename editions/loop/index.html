@@ -90,9 +90,9 @@ output { font-size: 12px; color: var(--mute); }
     <section>
       <h2>what this walk did</h2>
       <dl class="met">
-        <div><dt>distance walked</dt><dd id="m-len">-</dd><small>in random-hop units</small></div>
-        <div><dt>genre families</dt><dd id="m-fam">-</dd><small>colors visited</small></div>
-        <div><dt>my top 50</dt><dd id="m-top">-</dd><small>share of picks</small></div>
+        <div><dt>distance walked</dt><dd><span id="m-len">-</span><small>in random-hop units</small></dd></div>
+        <div><dt>genre families</dt><dd><span id="m-fam">-</span><small>colors visited</small></dd></div>
+        <div><dt>my top 50</dt><dd><span id="m-top">-</span><small>share of picks</small></dd></div>
       </dl>
     </section>
     <section>
@@ -105,7 +105,7 @@ output { font-size: 12px; color: var(--mute); }
       <h2>the walk, stop by stop</h2>
       <button type="button" id="hear" aria-pressed="false">hear it</button>
       <p id="now"></p>
-      <div id="path"></div>
+      <div id="path" tabindex="0" aria-label="the walk so far, scrolls"></div>
       <p class="note" id="what">what plays: one 30-second preview per stop. it is the rule's walk, not my history.</p>
     </section>
     <details class="how"><summary>how</summary>
