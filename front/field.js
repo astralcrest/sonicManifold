@@ -723,9 +723,10 @@ function paint(now) {
   if (scene === 0 && blend >= 1 && !grown) {
     var heard = 0; for (k = 0; k < N; k++) if (F.y0[k] < reveal) heard++;
     g.font = '600 ' + (phone ? 36 : 68) + 'px ' + SANS; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = INK;
-    g.fillText(String(heard).replace(/\B(?=(\d{3})+(?!\d))/g, ','), phone ? 14 : 220, phone ? 94 : 110);
+    var we = phone ? document.getElementById('what') : null, wy = phone ? Math.max(94, (we ? we.offsetTop + we.offsetHeight : 0) + 40) : 110;
+    g.fillText(String(heard).replace(/\B(?=(\d{3})+(?!\d))/g, ','), phone ? 14 : 220, wy);
     g.font = '500 ' + (phone ? 10 : 11.5) + 'px ' + MONO; g.fillStyle = MUTE;
-    g.fillText('artists, in the order i first heard them', phone ? 14 : 222, phone ? 112 : 132);
+    g.fillText('artists, in the order i first heard them', phone ? 14 : 222, phone ? wy + 18 : 132);
   }
   if (scene === 0 && blend >= 1 && grown) for (k = 0; k < (phone ? 4 : 10); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 5, SY[i], names[i], phone ? 12 - k * 0.3 : 17 - k * 0.65, k < 3 ? 600 : 500, false, INK); }
   /* the neighborhoods: a numeral and the family that fills each, at its center; the color is the neighborhood */
@@ -770,8 +771,9 @@ function wbox(x0, y0, x1, y1) { words.push([x0 - 3, y0 - 3, x1 + 3, y1 + 3]); }
 function pips(g) {
   var rows = scene === C_KEEP ? [['i pressed play', 42, MINT], ['the queue chose', 16, VIOLET]] : [['the frozen export, of 100 plays', [19, 17, 64]], ['the newest months, of 100 plays', [0, 1.5, 75]]];
   var lit = 1; if (scene === C_KEEP) { if (!S.keepT0) S.keepT0 = performance.now(); lit = reduce ? 1 : ease((performance.now() - S.keepT0) / 1800); }
-  var cols = phone ? 20 : 25, cell = Math.min((W - 60) / cols, phone ? 11 : 16), rowsN = 100 / cols, bh = rowsN * cell, gap = phone ? 54 : 56;
+  var cols = phone ? 20 : 25, cell = Math.min((W - 60) / cols, phone ? 10 : 16), rowsN = 100 / cols, bh = rowsN * cell, gap = phone ? 44 : 56;
   var x0 = Math.round((W - cols * cell) / 2), y0 = Math.round(cam.cy - (rows.length * bh + gap) / 2 - (phone ? 30 : 0)), r = cell * 0.3, k, i, c, rr, fs = phone ? 10.5 : 12, tw;
+  if (phone) { var we = document.getElementById('what'); if (we) y0 = Math.max(y0, we.offsetTop + we.offsetHeight + 26); }
   PG = { x0: x0, y0: y0, cell: cell, bh: bh, gap: gap, cols: cols, rx: 0, ry: 0 };
   for (k = 0; k < rows.length; k++) {
     var y = y0 + k * (bh + gap);
