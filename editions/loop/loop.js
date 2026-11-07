@@ -3,7 +3,7 @@
 
 /* ---------- the machine (shared with the build-time fit) ---------- */
 var STEPS = 40, POP_DRAWS = 16, UNI_DRAWS = 16, COOL = 4;
-var KNOBS = ['sound alike', 'familiar', 'popular', 'novel', 'repeat the run', 'explore'];
+var KNOBS = ['sound alike', 'familiar', 'popular', 'novel', 'repeat itself', 'explore'];
 
 function rng(seed) {
   var a = seed >>> 0;

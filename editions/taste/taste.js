@@ -174,7 +174,7 @@
       lines: [["with a first song", k + " of 6"], ["with none", m + " of 6"], ["gap (a toy: picks toward the first song, minus without)", (d > 0 ? "+" : "") + d], ["picked vs passed: how far apart", Math.round(span / S.length) + "% of map"], ["how scattered your picks are", Math.round(spread) + "% of map"]],
       next: "your picks are lit on the sound map at the link below. a toy.",
       url: "https://astralcrest.github.io/sonicManifold/editions/taste/#r=" + encodeS(),
-      foot: "descriptive, not a finding"
+      foot: "a toy, not a finding"
     };
   }
   $("slip").onclick = () => { if (S && window.smReceipt) window.smReceipt(slipFields()); };

@@ -65,7 +65,7 @@ function touchOf(a, b) {
 function run(again) {
   var ra = resolve($('sa').value), rb = resolve($('sb').value);
   setMsg('ma', ra, 'sa'); setMsg('mb', rb, 'sb');
-  if (ra.none || rb.none) { $('say').textContent = 'one of the seeds is not in my field, so there is nothing to run yet.'; return; }
+  if (ra.none || rb.none) { $('say').textContent = 'one of the seeds is not in my field, so there is nothing to walk yet.'; return; }
   var key = ra.i + '|' + rb.i;
   if (again) S.seed = (Math.random() * 1e9) | 0;
   S.ran = key; S.a = ra.i; S.b = rb.i;
@@ -78,7 +78,7 @@ function run(again) {
     $('say').textContent = h.step === 0 ? 'the two seeds already sit in one neighborhood.' : 'the paths first share a neighborhood at step ' + h.step + ': seed one step ' + h.a + ' and seed two step ' + h.b + ' are close in sound.';
     $('sn').value = h.step;
   }
-  $('run').textContent = 'run again'; WK.stop(); hearLabel(); draw();
+  $('run').textContent = 'walk again'; WK.stop(); hearLabel(); draw();
 }
 
 function draw() {

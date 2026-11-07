@@ -55,7 +55,7 @@
     var tot = F.h.map(function (h) { return h[0] + h[1] + h[2]; });
     var o = tot.map(function (_, i) { return i; }).sort(function (x, y) { return tot[y] - tot[x]; }).slice(0, OWNER_TOP);
     var c = new Map(); o.forEach(function (i) { c.set(i, tot[i]); });
-    return sideFromWeights('owner', 'the owner: my 200 most played', c, 0);
+    return sideFromWeights('owner', 'my 200 most played', c, 0);
   }
 
   // ---- export reading (nothing leaves the tab) ----
@@ -99,7 +99,7 @@
   }
 
   function set(side, s) {
-    S[side] = s; HOT = -1; if ($('t1')) $('t1').textContent = 'tap a square to name it.';
+    S[side] = s; HOT = -1; if ($('t1')) $('t1').textContent = 'tap a shape to name it.';
     if (PLAYING && $('hear').textContent === 'stop') stopHear();
     var card = document.querySelector('.side[data-s="' + side + '"]');
     card.classList.toggle('owner', s.kind === 'owner');
@@ -314,7 +314,7 @@
     var vs = function (x) { return x < 0.95 ? ', less often than chance would (' + x.toFixed(1) + ' times chance)' : x < 1.05 ? ', about what chance gives' : ', ' + x.toFixed(1) + ' times chance'; };
     $('f5').innerHTML = (rAB.n && rBA.n) ?
       'from <span style="color:' + ca + '">' + na + '</span>\u2019s artists, auto-play reaches <span style="color:' + cb + '">' + nb + '</span>\u2019s <b>' + r1(rAB.k) + '</b> in 20' + vs(xAB) + '. from <span style="color:' + cb + '">' + nb + '</span>\u2019s, <span style="color:' + ca + '">' + na + '</span>\u2019s <b>' + r1(rBA.k) + '</b>' + vs(xBA) + '.' :
-      'one side has no artist on auto-play\u2019s drawn pairs, so there is no walk to run.';
+      'one side has no artist on auto-play\u2019s drawn pairs, so there is no walk to take.';
     var sp = function (x) { return '<span style="color:' + col(x) + '">' + nm(x) + '</span>'; };
     $('lead').innerHTML = (both.length ? sp('a') + ' and ' + sp('b') + ' share <b>' + fmt(both.length) + '</b> artist' + (both.length > 1 ? 's' : '') + '. ' : sp('a') + ' and ' + sp('b') + ' share no artist. ') +
       (CA && CB ? sp(CA.r >= CB.r ? 'a' : 'b') + ' ranges wider. ' : '') +
@@ -425,7 +425,7 @@
       if (fit.gap > 0.5 || fit.n < 20) $('l6b').innerHTML += ' <b>weak fit</b> (' + fit.n + ' pairs, gap ' + fit.gap.toFixed(2) + ').';
     };
     f.textContent = 'the dial scales how hard each rule repeats pairs that already ran. higher: tighter loops, fewer distinct artists. lower: wider drift.';
-    $('g6').innerHTML = '<span style="color:' + COL.o + '">violet</span> = auto-play\'s dials on side a\'s list. <span style="color:' + COL.a + '">ice</span> = habits fitted to side a, walking my list. white star = the start.';
+    $('g6').innerHTML = '<span style="color:' + COL.o + '">violet</span> = auto-play\'s dials on side a\'s list. <span style="color:' + COL.a + '">ice</span> = habits learned from side a, walking my list. white star = the start.';
     var sig = mrSig(A);
     if (MR.fits[sig]) go(MR.fits[sig]);
     else { go(null); mrFit(A, function (fit) { if (A === S.a) go(fit); }); }

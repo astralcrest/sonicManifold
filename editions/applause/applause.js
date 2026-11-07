@@ -72,14 +72,14 @@ function draw(now) {
 
 function listen() {
   if (A.st) { stopMic(); return; }
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { out('no mic here. use tap = clap.'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { out('no mic here. use tap to clap.'); return; }
   navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } }).then(function (st) {
     var AC = window.AudioContext || window.webkitAudioContext;
     A.ctx = new AC(); A.st = st; A.an = A.ctx.createAnalyser(); A.an.fftSize = 1024; A.buf = new Float32Array(A.an.fftSize);
     A.ctx.createMediaStreamSource(st).connect(A.an);
     S.active = true; S.base = 0.02; $('listen').setAttribute('aria-pressed', 'true'); $('listen').textContent = 'stop listening';
     out('listening. clap to skip.'); playCur();
-  }, function () { out('the mic was not allowed. use tap = clap.'); S.active = true; playCur(); });
+  }, function () { out('the mic was not allowed. use tap to clap.'); S.active = true; playCur(); });
 }
 function stopMic() {
   if (A.st) A.st.getTracks().forEach(function (t) { t.stop(); });
