@@ -539,7 +539,7 @@ function keyLines() {
     } else if (w) L.push(w);
     else { L.push(THK); if (m === 'hood') L.push([['dash', ICE], 'across rooms']); }
   } else if (scene === C_KEEP) {
-    L.push(['one dot = one song']); L.push([sq(MINT), 'i pressed ', sq(VIOLET), 'auto-play · bright = kept']);
+    L.push(['one dot = one song']); L.push([sq(MINT), 'my press ', sq(VIOLET), 'auto-play · bright = kept']);
   } else if (scene === C_CODA) {
     L.push(['one dot = 1 of 100 plays']); L.push([sq(MINT), 'my press ', sq(AMBER), 'shuffle ', sq(VIOLET), 'auto-play']); L.push(['top: frozen · bottom: newest']);
   } else if (scene === C_RECORD) {
@@ -852,7 +852,7 @@ function isNb(i) { for (var k = 0; k < SNB.length; k++) if (SNB[k] === i) return
 function pipXY(row, i) { var c = i % PG.cols, r = (i / PG.cols) | 0; return [PG.x0 + c * PG.cell + PG.cell / 2, PG.y0 + row * (PG.bh + PG.gap) + r * PG.cell + PG.cell / 2, PG.cell * 0.6]; }
 function wbox(x0, y0, x1, y1) { words.push([x0 - 3, y0 - 3, x1 + 3, y1 + 3]); }
 function pips(g) {
-  var rows = scene === C_KEEP ? [['i pressed play', 42, MINT], ['auto-play chose', 16, VIOLET]] : [['the frozen export, of 100 plays', [19, 17, 64]], ['the newest months, of 100 plays', [0, 1.5, 75]]];
+  var rows = scene === C_KEEP ? [['my press', 42, MINT], ['auto-play', 16, VIOLET]] : [['the frozen export, of 100 plays', [19, 17, 64]], ['the newest months, of 100 plays', [0, 1.5, 75]]];
   var lit = 1; if (scene === C_KEEP) { if (!S.keepT0) S.keepT0 = performance.now(); lit = reduce ? 1 : ease((performance.now() - S.keepT0) / 1800); }
   var xl = phone || !html.classList.contains('drawer') ? 0 : leftCol(), cols = phone ? 20 : 25, cell = Math.min((W - xl - 60) / cols, phone ? 10 : 16), rowsN = 100 / cols, bh = rowsN * cell, gap = phone ? 44 : 56;
   var x0 = Math.round(xl + (W - xl - cols * cell) / 2), y0 = Math.round(cam.cy - (rows.length * bh + gap) / 2 - (phone ? 30 : 0)), r = cell * 0.3, k, i, c, rr, fs = phone ? 10.5 : 12, tw;
