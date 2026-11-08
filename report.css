@@ -1,7 +1,7 @@
 /* the report: a monograph read on a gallery wall. loaded after the inline sheet, so it only re-points tokens and adds parts. */
 :root{
   --bg:#0e1013;--bg-raised:#100a1f;--border:#2a2340;--text:#dcdad4;--text-dim:#a6a69f;--text-faint:#8f9096;
-  --accent:#c4a06a;--mono-num:#d4b684;--mint:#5ee0b8;--rose:#ff7ea5;--ice:#86cbfe;--wash:#1a1d22;
+  --accent:#c4a06a;--mono-num:#d4b684;--mint:#5ee0b8;--rose:#ff7ea5;--ice:#cfc7e8;--wash:#1a1d22;
   --kill:#ff7ea5;--held:#5ee0b8;--brick:#86cbfe;--dnf:#d4b684;
   --serif:"Instrument Sans",system-ui,sans-serif;
   --sans:"Instrument Sans",system-ui,sans-serif;

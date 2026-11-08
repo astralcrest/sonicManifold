@@ -92,3 +92,5 @@ details.fine > p { font: 13px/1.5 var(--mono); color: var(--mute); max-width: 56
 .big .c:only-child { font: 500 15px/1.5 var(--mono); letter-spacing: .04em; color: var(--mute); }
 #side button, .row button { max-width: 100%; white-space: normal; line-height: 1.25; padding-top: 8px; padding-bottom: 8px; }
 @media (max-width: 900px) { #side { padding: 28px 24px 56px; } .row { gap: 10px; } .key { padding: 4px 0; } }
+
+h1 em{color:var(--ink)}
