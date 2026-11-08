@@ -157,7 +157,7 @@
   </div>
 
   <p class="foot">
-    this is the opening move of a bigger study: <a href="./">sonic manifold</a>, one listener&rsquo;s log from 2019 to 2026, audited. eighteen claims withdrawn. sixteen are graves you can visit. 0 of 11 new candidates survived unqualified. <a href="researcher.html#graveyard">visit the graves &rarr;</a> this page runs only the first, portable cut on your data; <a href="bridge-index.html">the probe</a> computes your bridge index.
+    this is the opening move of a bigger study: <a href="./">sonic manifold</a>, one listener&rsquo;s log from 2019 to 2026, audited. eighteen claims withdrawn. sixteen are graves you can visit. 0 of 11 new candidates survived unqualified. <a href="researcher.html#graveyard">visit the graves &rarr;</a> this page runs only the first, portable cut on your data; <a href="bridge-index.html">the probe</a> goes one step deeper: it measures how often your own presses jump between genres.
     <br><br>built by astralcrest, one listener, on my own data. nothing here is stored or sent.
   </p>
 </main>
@@ -209,7 +209,7 @@
     var hasExtFields = plays.some(function(p){ return p && ('ms_played' in p); });
     if(!hasExtFields){
       status.className='status err';
-      status.textContent='this looks like the short “account data” export (no reason_start). request the extended streaming history instead: that’s the one that says who pressed play.';
+      status.textContent='this looks like the short “account data” export (it does not say who pressed play). request the extended streaming history instead: that’s the one that says who pressed play.';
       return;
     }
     status.textContent='analyzing '+fmt(plays.length)+' rows…';
@@ -309,7 +309,7 @@
       $('means').innerHTML='request the extended export to see the tapped-or-served split.';
     }
 
-    $('foot').innerHTML='this is a first cut: the same who-pressed-play split the full study starts from. it does <b>not</b> compute your genre served-or-tapped ratio or your listening network; those need reference data i haven’t shipped to your browser. <a href="bridge-index.html">the probe</a> computes your bridge index. if you’d share an anonymized export to help test the method on more than one listener, the contact is on <a href="./">the landing</a>.';
+    $('foot').innerHTML='this is a first cut: the same who-pressed-play split the full study starts from. it does <b>not</b> compute your genre served-or-tapped ratio or your listening network; those need reference data i haven’t shipped to your browser. <a href="bridge-index.html">the probe</a> goes one step deeper: it measures how often your own presses jump between genres. if you’d share an anonymized export to help test the method on more than one listener, the contact is on <a href="./">the landing</a>.';
     $('out').scrollIntoView({behavior:'smooth', block:'start'});
   }
 
