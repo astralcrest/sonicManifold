@@ -1,8 +1,8 @@
 /* the report: a monograph read on a gallery wall. loaded after the inline sheet, so it only re-points tokens and adds parts. */
 :root{
   --bg:#0e1013;--bg-raised:#100a1f;--border:#2a2340;--text:#dcdad4;--text-dim:#a6a69f;--text-faint:#8f9096;
-  --accent:#c4a06a;--mono-num:#d4b684;--mint:#5ee0b8;--rose:#ff7ea5;--ice:#cfc7e8;--wash:#1a1d22;
-  --kill:#ff7ea5;--held:#5ee0b8;--brick:#86cbfe;--dnf:#d4b684;
+  --accent:#c4a06a;--mono-num:#d4b684;--mint:#5ee0b8;--rose:#ff5c7a;--ice:#cfc7e8;--wash:#1a1d22;
+  --kill:#ff5c7a;--held:#5ee0b8;--brick:#cfc7e8;--dnf:#d4b684;
   --serif:"Instrument Sans",system-ui,sans-serif;
   --sans:"Instrument Sans",system-ui,sans-serif;
   --rail:15rem;
@@ -259,13 +259,13 @@ button.readall[aria-pressed=true]{background:var(--wash)}
 @media print{.hero{grid-template-columns:1fr 2.2in}button.readall{display:none!important}}
 
 /* R13 coherence: the house code. numbers in ink, the interface in ice, one rose, the three hands, a night tint for the condition band */
-@media screen{:root{--accent:#86cbfe;--mono-num:var(--text);--rose:#ff6e9c;--kill:#ff6e9c;--held:var(--text);--brick:var(--text-faint);--dnf:var(--text-faint);--ht:#21f6bc;--hs:#f5a623;--hq:#8b6fd6;--nv:#4a3a86;--sl-fog:#a6a69f;--sl-on:#86cbfe;--sl-line:var(--border)}}
+@media screen{:root{--accent:#cfc7e8;--mono-num:var(--text);--rose:#ff5c7a;--kill:#ff5c7a;--held:var(--text);--brick:var(--text-faint);--dnf:var(--text-faint);--ht:#21f6bc;--hs:#f5a623;--hq:#8b6fd6;--nv:#4a3a86;--sl-fog:#a6a69f;--sl-on:#cfc7e8;--sl-line:var(--border)}}
 @media screen and (prefers-color-scheme:dark){:root{--bg:#06010f;--bg-raised:#0d0719;--border:#2a2140;--wash:#0b0516}}
 @media print{:root{--accent:#1f5f86;--rose:#b02a58;--kill:#b02a58;--ht:#0a7d5f;--hs:#9a5c00;--hq:#5b41ad;--nv:#7562bb;--sl-fog:#5c5446;--sl-on:#1f5f86}}
 .g-held .stamp{background:none}
 .xp .dot{fill:var(--hq)}.xp .dot.t{fill:var(--ht)}.xp .dot.s{fill:var(--hs)}.xp .dot.n{fill:var(--mark-n,var(--border))}
 .xp .band.up{fill:var(--nv)}.xp .band.br{fill:var(--text-faint);opacity:.45}
-.pipe .pp-n,.pipe .pp-big{fill:#ecebf2}.pipe .pp-k{fill:#86cbfe}
+.pipe .pp-n,.pipe .pp-big{fill:#ecebf2}.pipe .pp-k{fill:#cfc7e8}
 p.kill,.claim-card p.kill{font:italic 600 1.08rem/1.35 var(--disp);color:var(--text);letter-spacing:-.005em}
 p.plain.kill{font-size:1.2rem;margin-bottom:.4rem}
 html:not(.js) figure.rec canvas{background:radial-gradient(circle,#0a0118 0 29%,transparent 29.5%),repeating-radial-gradient(circle,rgba(134,203,254,.5) 0 1px,#0d0718 1px 4px);border:1px solid rgba(134,203,254,.3)}
@@ -289,11 +289,11 @@ html:not(.js) figure.rec canvas{background:radial-gradient(circle,#0a0118 0 29%,
   .pipe [stroke="#8b9099"]{stroke:#6e6556}.pipe [fill="#8b9099"]{fill:#8a8070}
   .pipe [stroke="#5a5f68"]{stroke:#b3a78f}.pipe [stroke="#3a3f47"]{stroke:#cbbfa6}
   .pipe [fill="#15181c"]{fill:#efe8da}.pipe [fill="#23272d"]{fill:#e2d8c4}
-  .pipe [stroke="#86cbfe"]{stroke:#1f5f86}
+  .pipe [stroke="#cfc7e8"]{stroke:#1f5f86}
   .pipe [fill="#21f6bc"]{fill:#0a7d5f}.pipe [stroke="#21f6bc"]{stroke:#0a7d5f}
   .pipe [fill="#8b6fd6"]{fill:#5b41ad}.pipe [stroke="#8b6fd6"]{stroke:#5b41ad}
   .pipe [fill="#f5a623"]{fill:#9a5c00}
-  .pipe [fill="#ff6e9c"],.pipe [style*="fill:#ff6e9c"]{fill:#b02a58!important}.pipe [stroke="#ff6e9c"]{stroke:#b02a58}
+  .pipe [fill="#ff5c7a"],.pipe [style*="fill:#ff5c7a"]{fill:#b02a58!important}.pipe [stroke="#ff5c7a"]{stroke:#b02a58}
   .method-cmp{--bg-raised:#efe8da;--text-dim:#4a4337;--text-faint:#5c5446;--accent:#1f5f86;color-scheme:light}
   .method-cmp tbody td{color:#3a342b}
 }

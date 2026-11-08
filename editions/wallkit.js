@@ -337,29 +337,29 @@
     press: ['my press', 'a play i chose by hand', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/></svg>', '#21f6bc'],
     auto: ['auto-play', 'the app\'s own next pick', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="#8b6fd6" stroke-width="2.4"/></svg>', '#8b6fd6'],
     shuffle: ['shuffle', 'a random next pick', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 1.5L17 10L10 18.5L3 10Z" fill="#f5a623"/></svg>', '#f5a623'],
-    alike: ['sounds alike', 'nearest neighbors on the sound map', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M2 14L10 8L18 12" fill="none" stroke="#bcd3ff" stroke-width="1.2"/><circle cx="10" cy="8" r="2.4" fill="#bcd3ff"/></svg>', '#bcd3ff'],
+    alike: ['sounds alike', 'nearest neighbors on the sound map', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M2 14L10 8L18 12" fill="none" stroke="#efe9ff" stroke-width="1.2"/><circle cx="10" cy="8" r="2.4" fill="#efe9ff"/></svg>', '#efe9ff'],
     own: ['my songs', 'songs i made', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="8.4" fill="none" stroke="#ffd36b" stroke-width="1.3"/><path d="M10 3.5Q10 10 16.5 10Q10 10 10 16.5Q10 10 3.5 10Q10 10 10 3.5Z" fill="#ffd36b"/></svg>', '#ffd36b']
   };
   var CSS = '#wk-strip,#wk-nav{font-family:"Instrument Sans",system-ui,sans-serif;background:#06010f;color:#efe9ff;box-sizing:border-box}' +
-    '#wk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;padding:16px 48px;border-bottom:1px solid #241b3a}' +
+    '#wk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;padding:16px 48px;border-bottom:1px solid #2a2140}' +
     '#wk-strip .wk-txt{flex:1 1 300px;max-width:560px}#wk-strip .wk-do{margin:6px 0 0;font:500 14px/1.4 "IBM Plex Mono",ui-monospace,monospace;color:#efe9ff}#wk-strip .wk-do b{font-weight:600;color:#06010f;background:#efe9ff;padding:1px 6px;border-radius:4px 7px 4px 6px;margin-right:4px}#wk-strip .wk-line{margin:0;font:500 17px/1.4 "Instrument Sans",system-ui,sans-serif;color:#efe9ff}' +
     '#wk-strip .wk-keys{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0;padding:0;list-style:none}' +
     '#wk-strip .wk-keys li{display:inline-flex;align-items:center;gap:7px;font:500 13px/1.2 "Instrument Sans",system-ui,sans-serif;color:var(--c)}' +
     '#wk-strip .wk-keys li svg{flex:none}' +
-    '#wk-snd{font:500 14px/1.1 "IBM Plex Mono",ui-monospace,monospace;min-height:44px;min-width:44px;padding:0 18px;border-radius:22px;border:1.5px solid #bcd3ff;background:transparent;color:#efe9ff;cursor:pointer}' +
+    '#wk-snd{font:500 14px/1.1 "IBM Plex Mono",ui-monospace,monospace;min-height:44px;min-width:44px;padding:0 18px;border-radius:22px;border:1.5px solid #efe9ff;background:transparent;color:#efe9ff;cursor:pointer}' +
     '#wk-snd.on{background:#efe9ff;border-color:#efe9ff;color:#06010f}' +
     '#wk-strip #wk-go{font:600 15px/1 "IBM Plex Mono",ui-monospace,monospace;min-height:48px;padding:0 22px;border-radius:24px;border:0;background:#efe9ff;color:#06010f;cursor:pointer;display:inline-flex;align-items:center;gap:8px}#wk-strip #wk-go[hidden]{display:none}#wk-strip #wk-go:hover{background:#fff}' +
     '#wk-snd.nudge{background:#efe9ff;border-color:#efe9ff;color:#06010f}' +
     '#wk-strip .wk-pos{margin:0;font:500 13px/1.2 "IBM Plex Mono",ui-monospace,monospace;color:#9a90b8;margin-left:auto;white-space:nowrap}' +
-    '#wk-strip .wk-pos a{color:#bcd3ff}' +
-    '#wk-nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:6px;padding:0 48px;border-bottom:1px solid #241b3a;overflow:hidden}' +
-    '#wk-nav #wk-snd{min-height:36px;padding:0 14px;font-size:12.5px;margin-right:4px}#wk-nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;color:#bcd3ff;text-decoration:none;font:500 13px/1 "IBM Plex Mono",ui-monospace,monospace;white-space:nowrap;border-radius:22px}' +
+    '#wk-strip .wk-pos a{color:#efe9ff}' +
+    '#wk-nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:6px;padding:0 48px;border-bottom:1px solid #2a2140;overflow:hidden}' +
+    '#wk-nav #wk-snd{flex:none;min-height:44px;padding:0 14px;font-size:12.5px;margin-right:4px}#wk-nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;color:#efe9ff;text-decoration:none;font:500 13px/1 "IBM Plex Mono",ui-monospace,monospace;white-space:nowrap;border-radius:22px}' +
     '.wk-tip{position:absolute;z-index:3;pointer-events:none;font:500 11px/1.4 "IBM Plex Mono",monospace;color:#f2eefa;background:#06010f;border:1px solid #2a2140;padding:4px 8px;border-radius:6px 9px 6px 8px;white-space:nowrap}.wk-tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0 2px;vertical-align:-1px}#wk-nav a:hover{background:#1a1230}#wk-nav a.sp{margin-left:auto}#wk-nav a[aria-disabled]{opacity:.35;pointer-events:none}' +
-    '#wk-nav a:focus-visible,#wk-strip a:focus-visible,#wk-strip button:focus-visible{outline:2px solid #bcd3ff;outline-offset:2px}' +
+    '#wk-nav a:focus-visible,#wk-strip a:focus-visible,#wk-strip button:focus-visible{outline:2px solid #efe9ff;outline-offset:2px}' +
     'html.wk-framed #wk-strip .wk-pos,html.wk-framed .eyebrow,html.wk-framed #wk-nav a,html.wk-framed #wk-snd:not(.on){display:none}html.wk-framed #wk-nav{position:static;border:0;background:none;padding:0 24px}' +
     '@media(max-width:700px){#wk-strip{padding:10px 16px;gap:8px 16px}#wk-strip .wk-pos,.eyebrow{display:none}#wk-strip .wk-line{font-size:15px}#wk-strip .wk-do{font-size:12.5px;margin-top:4px}#wk-snd{white-space:nowrap;padding:0 12px;font-size:12.5px}#wk-nav{padding:0 12px}#wk-nav a{padding:0 10px}#wk-nav a .nm{display:none}}' +
-    'details.fine{border-top:1px solid #241b3a;margin:8px 0 0}details.fine summary{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.14em;color:#9a90b8;list-style:none}' +
-    'details.fine summary::-webkit-details-marker{display:none}details.fine summary::before{content:"+";display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border:1px solid #241b3a;color:#bcd3ff}details.fine[open] summary::before{content:"\\2212"}' +
+    'details.fine{border-top:1px solid #2a2140;margin:8px 0 0}details.fine summary{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.14em;color:#9a90b8;list-style:none}' +
+    'details.fine summary::-webkit-details-marker{display:none}details.fine summary::before{content:"+";display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border:1px solid #2a2140;color:#efe9ff}details.fine[open] summary::before{content:"\\2212"}' +
     'details.fine p{font:13px/1.6 "IBM Plex Mono",monospace;color:#9a90b8;margin:0 0 10px;max-width:560px}';
   function esca(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
   // the one button a wall plays from: the wall names it (WK.primary = el or selector) or the first play-shaped button on the page

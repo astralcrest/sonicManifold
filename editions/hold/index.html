@@ -16,16 +16,16 @@
 #map canvas { touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
 #hold { width: 100%; min-height: 88px; border-radius: 44px; font: 600 20px var(--sans); letter-spacing: .01em; --acc: var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; }
-#hold.go { background: var(--mint); color: var(--night); }
-#bar { height: 8px; border: 1px solid var(--mint); border-radius: 4px; margin: 10px 2px 0; overflow: hidden; }
-#bar i { display: block; height: 100%; width: 0; background: var(--mint); }
+#hold.go { background: var(--ink); color: var(--night); }
+#bar { height: 8px; border: 1px solid var(--line); border-radius: 4px; margin: 10px 2px 0; overflow: hidden; }
+#bar i { display: block; height: 100%; width: 0; background: var(--ink); }
 #again, #sk { --acc: var(--line); color: var(--mute); }
 .song { font: 600 clamp(26px, 8cqi, 40px)/1.05 var(--sans); letter-spacing: -.02em; color: var(--ink); overflow-wrap: anywhere; margin: 0 0 6px; }
 .take-home[hidden] { display: none; }
 .take-home { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; color: var(--ice); font: 500 15px var(--sans); }
 </style>
 </head>
-<body data-wall="14" data-line="listen to twelve songs. hold to keep one, let go to skip." data-do="press play, listen, then hold to keep or let go to skip. tap any mark to jump there." data-keys="press" style="--act: var(--ice); --acc: var(--ice)">
+<body data-wall="14" data-line="listen to twelve songs. hold to keep one, let go to skip." data-do="press play, listen, then hold to keep or let go to skip. tap any shape to jump there." data-keys="press" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>hold to keep</span><span class="tl">a toy</span></p>
@@ -52,8 +52,8 @@
     </section>
     <details class="how"><summary>how</summary>
       <p>turn sound on, then press play to hear a 30 s clip. you hear it before you decide.</p>
-      <p>hold the button (or the space bar) 2 seconds to keep it. let go early to skip. skip this song or tap a mark on the map to move on faster.</p>
-      <p>the line on the map is your order of twelve: bright so far, faint ahead. a lit mark is kept, a dark dot is skipped, colors are sound families, bigger shapes are played more.</p>
+      <p>hold the button (or the space bar) 2 seconds to keep it. let go early to skip. skip this song or tap a shape on the map to move on faster.</p>
+      <p>the line on the map is your order of twelve: bright so far, faint ahead. a lit shape is kept, a dark shape is skipped, colors are sound families, bigger shapes are played more.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>the twelve songs are drawn at random from my most played artists that have a clip. what you hold is a toy, not a measure of you.</p>
