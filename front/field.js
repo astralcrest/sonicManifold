@@ -133,6 +133,7 @@ function frame() {
   var x0 = phone ? 0 : Math.min(360, W * 0.3), Wc = W - x0, cx0 = x0 + Wc / 2;
   /* on a phone the what strip owns the top of the stage: the drawing is centered in the room below it, so the rim names never run under the chips */
   var we = document.getElementById('what'), wb = we && (phone || scene === 1) ? we.offsetTop + we.offsetHeight + 6 : 0, Hp = H - wb, cyp = wb + Hp * 0.5;
+  var sb = document.getElementById('showbig'); if (sb) sb.style.top = phone && we ? (we.offsetTop + we.offsetHeight + 8) + 'px' : '';
   if (scene === 1) { cam.r = Math.min(Wc, Hp) * (phone ? 0.36 : 0.41); cam.cx = phone ? W * 0.5 : cx0; cam.cy = cyp; }
   else if (scene === C_MAPS) { cam.r = Math.min(Wc, phone ? Hp : H) * (phone ? 0.43 : 0.44); cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
   else { cam.r = phone ? Math.min(W * 0.62, Hp * 0.9) * 0.78 : Math.min(Wc * 0.6, H * 0.96) * 0.84; cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
@@ -168,8 +169,8 @@ function clampView() { if (view.z <= 1) { view.z = 1; view.px = 0; view.py = 0; 
 function resetView() { if (isField(scene) && (GL.x || GL.y || GL.z !== 1)) unglide(); GL.x = 0; GL.y = 0; GL.z = 1; if (S.line) S.line.follow = false; S.drawArm = false; animView(1, cam0.cx, cam0.cy, 220); }
 
 /* ---------- scenes ---------- */
-var SCENES = ['count', 'hand', 'maps', 'hoods', 'keep', 'coda', 'record'];
-var C_COUNT = 0, C_HAND = 1, C_MAPS = 2, C_HOODS = 3, C_KEEP = 4, C_CODA = 5, C_RECORD = 6;
+var SCENES = ['count', 'hand', 'maps', 'hoods', 'keep', 'coda', 'show', 'record'];
+var C_COUNT = 0, C_HAND = 1, C_MAPS = 2, C_HOODS = 3, C_KEEP = 4, C_CODA = 5, C_SHOW = 6, C_RECORD = 7;
 /* the neighborhoods: eight crisp hues for the eight largest, the rest muted; the color is the neighborhood, never the hand */
 var HOODC = ['#5fb8ff', '#ff5c7a', '#ff9f6b', '#b8ec4a', '#ff8fd6', '#f5a623', '#c9c2ff', '#8fd3b6'];
 var ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii'];
@@ -225,7 +226,7 @@ function place(k, i, out) {
   }
   proj3(P3[i * 3], P3[i * 3 + 1], P3[i * 3 + 2], tmp); out[0] = tmp[0]; out[1] = tmp[1];
   var depth = 1 - Math.min(1, Math.max(0, (tmp[2] - 1.9) / 2.6));
-  out[2] = (k === C_KEEP || k === C_CODA) ? 0.22 : k === C_RECORD ? 0.35 : 0.55 + 0.45 * depth;
+  out[2] = (k === C_KEEP || k === C_CODA || k === C_SHOW) ? 0.22 : k === C_RECORD ? 0.35 : 0.55 + 0.45 * depth;
   out[3] = 0.75 + 0.5 * depth; out[4] = 1 - depth;
 }
 var pa = [0, 0, 0, 1, 0.5], pb = [0, 0, 0, 1, 0.5];
@@ -1442,6 +1443,7 @@ var WHAT = [
   ['11 neighborhoods, drawn only from what followed what. one color per neighborhood. a line = two plays in a row.', []],
   ['did the song stay in my library? split by who picked it.', ['press', 'auto']],
   ['the frozen export, then the months after it. did the habit hold?', ['press', 'auto']],
+  ['the room, as it would stand: four walls, a floor, the record. tap a small picture to see it big.', []],
   ['my 23 songs as gold stars, each tied to the artist it sounds most like. tap one to play it.', ['mine', 'alike']]
 ];
 function whatFor(k) {
@@ -1469,6 +1471,11 @@ $$('[data-tm]').forEach(function (b) { b.addEventListener('click', function () {
 function songs() {
   var ol = $('#songs'); if (!ol) return;
   SONG.forEach(function (s, k) { var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.className = 'sg'; b.innerHTML = '<b></b><span></span>'; b.firstChild.textContent = s.t.toLowerCase(); b.lastChild.textContent = 'beside ' + names[SNB[k]]; b.addEventListener('click', function () { mine(k); }); li.appendChild(b); ol.appendChild(li); });
+}
+/* the show act: eight small pictures of the room; the pressed one fills the stage */
+function thumbs() {
+  var img = $('#sb-img'), cap = $('#sb-cap'), bs = $$('#a-show .th'); if (!img || !bs.length) return;
+  bs.forEach(function (b) { b.addEventListener('click', function () { bs.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); }); img.src = b.getAttribute('data-big'); img.alt = b.getAttribute('data-cap'); if (cap) cap.textContent = b.getAttribute('data-cap'); text('#sb-pcap', b.getAttribute('data-cap')); if (scene !== C_SHOW) setScene(C_SHOW); }); });
 }
 /* the acts drive the scene */
 function acts() {
@@ -1526,7 +1533,7 @@ fetchJ('field').then(function (j) {
   ghDraw();
   rimOrder = RING.map(function (r, k) { return k; }).sort(function (a, b) { var pa2 = RING[a][0] >= 0 ? PL[RING[a][0]] : 0, pb2 = RING[b][0] >= 0 ? PL[RING[b][0]] : 0; return pb2 - pa2; });
   html.setAttribute('data-scene', 'count');
-  zcBuild(); songs(); key(); datalist(); chips(); acts(); if (ro) ro.observe(stage); else addEventListener('resize', function () { fit(); wake(); });
+  zcBuild(); songs(); key(); datalist(); chips(); acts(); thumbs(); if (ro) ro.observe(stage); else addEventListener('resize', function () { fit(); wake(); });
   $$('.lz').forEach(function (e) { e.hidden = true; });
   var R = (window.__ledger && window.__ledger.READY) || {}; R.field = true;
   whatFor(scene);
