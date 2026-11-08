@@ -43,7 +43,7 @@ if(!own[base])location.replace('lab.html'+h);
 <link rel="preload" as="fetch" crossorigin href="front/data/field.json?v=24ef332630">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="script" href="front/field.js?v=85fc6eec1f">
+<link rel="preload" as="script" href="front/field.js?v=b3f82f7ad2">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
 <style>
 :root{--bg:#06010f;--panel:#0d0719;--card:#120a22;--ink:#efe9ff;--dim:#9a90b8;--mute:#9a90b8;--line:#2a2140;--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;--sans:"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--col:clamp(380px,34vw,560px);--top:52svh}
@@ -100,7 +100,7 @@ html[data-scene=hand] #hint,html[data-scene=maps] #hint,html[data-scene=hoods] #
 .act:last-of-type{border-bottom:0}
 .kick{margin:0 0 8px;font:500 11px/1.45 var(--mono);letter-spacing:.06em;color:var(--mint)}
 .kick::before{content:counter(act,upper-roman) "  ";counter-increment:act;color:var(--dim);font:400 12px/1 var(--mono);letter-spacing:.1em}
-#col{counter-reset:act}
+#col{counter-reset:act;overflow-anchor:none}
 .top .pill{min-height:32px;padding:0 10px;font-size:10.5px;color:var(--gold);border-color:var(--line)}
 .top .pill:hover{border-color:var(--gold)}
 html.sm-album #b-sound{color:var(--bg);background:var(--gold);border-color:var(--gold)}.pill.go{color:var(--ink);background:var(--bg);border-color:var(--line)}.pill.go::after{content:"\2197";margin-left:5px;color:var(--mint)}.pill.go:hover,.pill.go:focus-visible{border-color:var(--mint)}#b-sound::before{content:"\25B6";font-size:8px;margin-right:3px}.chip.vi{color:var(--violet);border-color:var(--violet)}@media(max-width:600px){.pill.go{display:none}#b-play.pill.go{display:inline-flex;padding:0 10px}#b-play span{display:none}}
@@ -384,7 +384,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <p class="kick">the neighborhoods</p>
 <h2 id="h-hoods">the log sorts itself into <span>11 neighborhoods.</span></h2>
 <div class="game" id="hoods">
-  <div class="row"><button type="button" class="chip on" data-c="hood">by neighborhood</button><button type="button" class="chip" data-c="family">by family</button><button type="button" class="chip" data-c="first">by first heard</button><button type="button" class="chip" id="n-walk">the log walks</button><button type="button" class="chip tm" data-tm>next finding</button></div>
+  <div class="row"><button type="button" class="chip on" data-c="hood">by neighborhood</button><button type="button" class="chip" data-c="family">by family</button><button type="button" class="chip" data-c="first">by first heard</button><button type="button" class="chip" id="n-walk">the log walks</button><button type="button" class="chip" id="n-jump">next room</button><button type="button" class="chip tm" data-tm>next finding</button></div>
   <div class="key" id="key2" aria-label="the family colors" hidden></div>
   <p class="r sr" id="n-mode" aria-live="polite">colored by neighborhood: eleven rooms the log drew from what followed what alone; the outline is the room.</p>
 </div>
@@ -393,7 +393,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 </div>
 <div class="dr" role="region" aria-label="deeper: the neighborhoods">
 <p class="dh"><b>iv</b>the neighborhoods<button type="button" class="chip x" data-close>close</button></p>
-<p class="so">the 8 largest hold 1758 artists of the 1823 on the map. each takes its name from the <dfn data-g="family">family</dfn> that fills it most (<dfn data-g="lastfm">Last.fm</dfn> knew 1,421 of the 1,871 artists, Apple's label fills 449 of the other 450, 1 has none), and its numeral from its size. tap a room to light it and hear its most played artist.</p>
+<p class="so">the 8 largest hold 1758 artists of the 1823 on the map. each takes its name from the <dfn data-g="family">family</dfn> that fills it most (<dfn data-g="lastfm">Last.fm</dfn> knew 1,421 of the 1,871 artists, Apple's label fills 449 of the other 450, 1 has none), and its numeral from its size. tap a room to glide to it and hear its most played artist; tap it again to let go.</p>
 <ol id="hl-list" aria-label="the eight largest neighborhoods"></ol>
 <p id="hl-d" aria-live="polite"></p>
 <details class="deep"><summary><span class="big">21 <small>vs</small> 15</span><span class="rd"><dfn data-g="queue">the queue</dfn>’s new links landed inside a room that earlier links had already drawn 21 of 100 times, mine 15 of 100; the queue had drawn most of those rooms itself.</span></summary><dl class="rows"><dt>what</dt><dd>each new link, checked against the rooms the log had drawn before it</dd><dt>caveat</dt><dd><dfn data-g="firstorder">first-order</dfn> communities, mis-specified for the queue; counts, never dates</dd></dl></details>
@@ -512,7 +512,7 @@ cv.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)aside();},{passi
 })();
 </script>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"f866beb3af","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"c81287ac4c","pv":"381d21eeee","field":"24ef332630","maps":"8fc6260095","ring":"5c3aa07b40","ghost":"eccb19b1ac","gloss":"da3f4523b1"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,field:true};})();</script>
-<script src="front/field.js?v=85fc6eec1f" defer></script>
+<script src="front/field.js?v=b3f82f7ad2" defer></script>
 <script src="front/music.js?v=39372afec0" defer></script>
 <div id="wallroom" hidden aria-label="a wall, playing inside the manifold"><div class="wr-rail"><button type="button" class="chip" id="wr-prev" aria-label="previous wall">&lsaquo;</button><p class="wr-t"><b id="wr-n"></b><span id="wr-name"></span><i id="wr-done" hidden>done</i></p><button type="button" class="chip" id="wr-next" aria-label="next wall">&rsaquo;</button><button type="button" class="chip" id="wr-deal">deal me one</button><span class="wr-p" id="wr-p" aria-live="polite"></span><a class="chip" id="wr-full" href="editions/walls/" target="_blank" rel="noopener">open on its own &nearr;</a><button type="button" class="chip x" id="wr-x">close</button></div><iframe id="wr-f" title="the wall" allow="autoplay; microphone; accelerometer; gyroscope; magnetometer" referrerpolicy="same-origin"></iframe></div>
 </body>

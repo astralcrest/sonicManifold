@@ -38,6 +38,19 @@ function dim(h, k) { var c = hex(h); return 'rgb(' + c.map(function (v, i) { ret
 function fetchJ(n) { return fetch('front/data/' + n + '.json?v=' + (ST[n] || '0'), { credentials: 'same-origin' }).then(function (r) { if (!r.ok) throw new Error(n + ' ' + r.status); return r.json(); }); }
 function text(sel, t) { var e = $(sel); if (e && e.textContent !== t) e.textContent = t; }
 function show(sel, on) { var e = $(sel); if (e) e.hidden = !on; }
+/* on a phone the card sits in the column's flow above the acts, and the plates take a shorter shape once it shows: that would move the act under the reader and flip the scene (camera reset). so whenever the column reflows, the page scrolls by exactly what the current act moved, before the scene observer measures; a scroll of our own does not move the reference */
+var NPR = { el: null, top: 0, on: false, exp: -1 };
+function npRef() { var e = $('#a-' + SCENES[scene]); NPR.el = e; NPR.top = e ? e.getBoundingClientRect().top : 0; }
+function npShow() {
+  var e = $('#np'); if (!e) return;
+  if (phone && !NPR.on && 'ResizeObserver' in window) {
+    NPR.on = true; npRef();
+    addEventListener('scroll', function () { if (Math.abs(scrollY - NPR.exp) > 1) npRef(); }, { passive: true });
+    var ro = new ResizeObserver(function () { if (!NPR.el) return; var d = NPR.el.getBoundingClientRect().top - NPR.top; if (Math.abs(d) > 1) { scrollBy({ top: d, left: 0, behavior: 'instant' }); NPR.exp = scrollY; } });
+    ro.observe(e); var col = $('#col'); if (col) ro.observe(col);
+  }
+  e.hidden = false;
+}
 function rng(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 var rnd = rng((Date.now() / 1000) | 0);
 
@@ -168,6 +181,10 @@ function stepView(now) {
   if (e >= 1) { view.z = VA.z1; VA = null; } clampView(); pathsDirty = true;
 }
 function clampView() { if (view.z <= 1) { view.z = 1; view.px = 0; view.py = 0; return; } var lim = cam0.r * view.z; view.px = Math.max(-lim, Math.min(lim, view.px)); view.py = Math.max(-lim, Math.min(lim, view.py)); }
+/* a room's center on screen: the mean of its artists as they sit now */
+function hoodCenter(h) { var sx = 0, sy = 0, n = 0, k, o = [0, 0, 0, 0]; if (!MAPS) return null; for (k = 0; k < N; k++) if (MAPS.c[k] === h) { place(scene, k, o); sx += o[0]; sy += o[1]; n++; } return n ? [sx / n, sy / n] : null; }
+/* jump to a room: the camera glides until the room sits in the middle, closer (her "neighborhood jump") */
+function jumpHood(h) { var c = hoodCenter(h); if (!c) return; var zt = Math.min(ZMAX, Math.max(2.2, view.z)), f = zt / view.z; animView(zt, cam0.cx - (c[0] - cam.cx) * f, cam0.cy - (c[1] - cam.cy) * f, 380); }
 function resetView() { if (isField(scene) && (GL.x || GL.y || GL.z !== 1)) unglide(); GL.x = 0; GL.y = 0; GL.z = 1; if (S.line) S.line.follow = false; S.drawArm = false; animView(1, cam0.cx, cam0.cy, 220); }
 
 /* ---------- scenes ---------- */
@@ -185,6 +202,7 @@ function setScene(k) {
   S.color = k === C_HOODS ? 'hood' : 'family'; chips();
   if (k === C_KEEP) S.keepT0 = 0;
   html.setAttribute('data-scene', SCENES[k]);
+  if (NPR.on) npRef();
   if (k !== C_KEEP && S.game) endGame(true);
   if (k === C_MAPS || k === C_HOODS) loadMaps();
   whatFor(k);
@@ -201,7 +219,7 @@ function colorOf(i, m) {
 }
 function keyOf(i, m) { return m === 'hood' ? (MAPS && MAPS.c[i] < 8 ? MAPS.c[i] : -1) : m === 'hand' ? HC[i] : m === 'first' ? F.y0[i] : F.f[i]; }
 function chips() {
-  $$('#hoods .row .chip:not([data-tm]), #maps .row .chip:not([data-tm])').forEach(function (b) { var c = b.getAttribute('data-c'); b.classList.toggle('on', c ? c === S.color : b.id === 'm-grow' ? !!S.grow : b.id === 'n-walk' ? S.mode === 'log' : b.id === 'm-like' ? S.like.on : false); });
+  $$('#hoods .row .chip:not([data-tm]), #maps .row .chip:not([data-tm])').forEach(function (b) { var c = b.getAttribute('data-c'); b.classList.toggle('on', c ? c === S.color : b.id === 'm-grow' ? !!S.grow : b.id === 'n-walk' ? S.mode === 'log' : b.id === 'n-jump' ? S.hoodHi >= 0 : b.id === 'm-like' ? S.like.on : false); });
   var ms = $('#m-sound'), mg = $('#m-graph'); if (ms && mg) { ms.hidden = S.mt === 0; mg.hidden = S.mt === 1; }
   $$('.key button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-f') === S.fam); b.classList.toggle('off', S.fam >= 0 && +b.getAttribute('data-f') !== S.fam); });
   var k2 = $('#key2'); if (k2) k2.hidden = S.color !== 'family';
@@ -769,9 +787,11 @@ function paint(now) {
     for (k = 0; k < N; k++) { ci = MAPS.c[k]; if (ci >= 0 && ci < nh && SA[k] > 0.01) { cx[ci] += SX[k]; cy2[ci] += SY[k]; cn[ci]++; } }
     var cm2 = S.color || 'hood';
     for (ci = 0; ci < nh; ci++) if (cn[ci] && !(S.grow && !S.grow.done) && (S.hoodHi < 0 || S.hoodHi === ci)) {
-      var lab = ROMAN[ci] + ' · mostly ' + F.fam[MAPS.cm[ci][1]], hx = cx[ci] / cn[ci] - (phone ? 10 : 34), hy = cy2[ci] / cn[ci];
+      var lab = ROMAN[ci] + ' · mostly ' + F.fam[MAPS.cm[ci][1]], hx = cx[ci] / cn[ci] - (phone ? 10 : 34), hy = cy2[ci] / cn[ci], sub = MAPS.cm[ci][0] + ' artists · auto-play took ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps inside';
+      /* a lit room on a phone: the two lines sit at the bottom left of the stage, clear of the dots and inside the screen */
+      if (phone && S.hoodHi === ci) { sub = MAPS.cm[ci][0] + ' artists · auto-play ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps'; hx = 12; hy = H - 96; }
       word(g, hx, hy, lab, phone ? 10 : 13, 600, true, HOODC[ci], S.hoodHi === ci);
-      if (S.hoodHi === ci) word(g, hx, hy + (phone ? 15 : 17), MAPS.cm[ci][0] + ' artists · auto-play took ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps inside', phone ? 10 : 10.5, 500, true, MUTE, S.hoodHi === ci);
+      if (S.hoodHi === ci) word(g, hx, hy + (phone ? 15 : 17), sub, phone ? 10 : 10.5, 500, true, MUTE, S.hoodHi === ci);
     }
     if (!phone) for (k = 0; k < 8; k++) { i = TOP[k]; if (i !== S.now && i !== S.hover && SA[i] > 0.5) word(g, SX[i] + SR[i] + 4, SY[i], names[i], 11, 500, false, ICE); }
   }
@@ -1323,13 +1343,13 @@ function room(i, why) {
   text('#np-h', p + ' plays · mostly ' + hand + ' · ' + F.fam[F.f[i]] + (apple(i) ? ' (Apple\u2019s label)' : '') + (scene === C_HOODS && MAPS && MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? ' · neighborhood ' + ROMAN[MAPS.c[i]] : ''));
   text('#np-x', why === 'ringwalk' ? 'the walk so far: ' + S.trail.map(function (n) { return names[n]; }).join(', then ') + '. each step takes the strongest line out of the last stop; mint = my press, violet = auto-play.' : why === 'like' ? 'lit in ice: the six artists nearest to it in sound, on whichever map is showing.' : scene === C_MAPS ? (S.mb < 0.5 ? 'the ice threads: its six nearest in sound. next walks there.' : 'mint lines: my press before or after it. violet: the queue\u2019s run through it. faint gray: every other followed-by.') : scene === C_HOODS ? 'lit: its steps in the graph, in its room\u2019s color when both ends share the room.' : scene === C_HAND ? 'lit on the ring: who it followed and who followed it.' : 'the ice threads: its six nearest in sound. next walks there.');
   var a = $('#a-sp'); if (a) a.href = 'https://open.spotify.com/search/' + encodeURIComponent(names[i]);
-  show('#np', true);
+  npShow();
 }
 function mine(k) {
   var M = window.__smMusic; if (!M || !M.tracks) return;
   if (pv && !pv.paused) { S.user = true; pv.pause(); }
   S.now = -1; S.line = null; S.mine = k; var f = SONG[k].f; html.classList.add('sm-mine');
-  text('#np-k', 'one of mine, placed by its sound'); text('#np-n', SONG[k].t.toLowerCase()); text('#np-h', 'nearest artist in sound: ' + names[SNB[k]]); text('#np-t', ''); show('#np', true);
+  text('#np-k', 'one of mine, placed by its sound'); text('#np-n', SONG[k].t.toLowerCase()); text('#np-h', 'nearest artist in sound: ' + names[SNB[k]]); text('#np-t', ''); npShow();
   M.tracks().then(function (tr) { for (var j = 0; j < tr.length; j++) if (tr[j].f === f) { M.go(j, 0, true); break; } }, function () { /* the album did not load */ });
   $$('#songs button').forEach(function (b, j) { b.classList.toggle('on', j === k); });
   wake();
@@ -1429,12 +1449,24 @@ function key() {
   if (k2) { k2.innerHTML = ''; F.fam.forEach(function (nm) { var b = doc.createElement('span'); b.className = 'ks'; b.innerHTML = '<i></i><span></span>'; b.firstChild.style.background = FAMC[nm] || MUTE; b.lastChild.textContent = nm; k2.appendChild(b); }); }
 }
 var HD = [];
+/* light a room, glide to it and hear its most played artist; a second tap on the same room (list only) lets go */
+function pickHood(h, keep) {
+  if (!MAPS) return;
+  S.hoodHi = (S.hoodHi === h && !keep) ? -1 : h;
+  if (S.hoodHi >= 0) {
+    var best = -1, k2; for (k2 = 0; k2 < N; k2++) { var i2 = TOP[k2]; if (MAPS.c[i2] === h && (!PV || PV[names[i2]])) { best = i2; break; } }
+    if (best >= 0) play(best, 'hood');
+    jumpHood(h); text('#n-mode', 'room ' + ROMAN[h] + ' of ' + ROMAN[Math.min(8, MAPS.cm.length) - 1] + ' · ' + (HD[h] || ''));
+  } else { resetView(); text('#n-mode', NMODE[S.color] || NMODE.hood); }
+  chips(); wake();
+}
+on('#n-jump', function () { loadMaps().then(function () { if (!MAPS) return; if (S.grow && !S.grow.done) { S.grow.done = true; S.grow.c = 8; } pickHood(S.hoodHi >= 0 ? (S.hoodHi + 1) % Math.min(8, MAPS.cm.length) : 0, true); }); });
 function hoodList() {
   var ol = $('#hl-list'); if (!ol || !MAPS || ol.childElementCount) return;
   MAPS.cm.slice(0, 8).forEach(function (c, h) {
     var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.setAttribute('data-h', h);
     b.innerHTML = '<i></i><b></b><span></span>'; b.firstChild.style.background = HOODC[h]; b.children[1].textContent = ROMAN[h]; b.lastChild.textContent = F.fam[c[1]]; HD[h] = c[0] + ' artists · ' + Math.round(c[3] / 10) + ' of 100 plays in ' + F.fam[c[1]] + (c[5] ? ', ' + Math.round(c[5] / 10) + ' in ' + F.fam[c[4]] : '') + ' · the queue took ' + Math.round(c[2] / 10) + ' of 100 steps inside';
-    b.addEventListener('click', function () { S.hoodHi = S.hoodHi === h ? -1 : h; if (S.hoodHi >= 0) { var best = -1, k2; for (k2 = 0; k2 < N; k2++) { var i2 = TOP[k2]; if (MAPS.c[i2] === h && (!PV || PV[names[i2]])) { best = i2; break; } } if (best >= 0) play(best, 'hood'); } chips(); wake(); });
+    b.addEventListener('click', function () { pickHood(h, false); });
     li.appendChild(b); ol.appendChild(li);
   });
 }
