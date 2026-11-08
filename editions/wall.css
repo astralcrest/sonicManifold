@@ -88,3 +88,7 @@ section > h2, #side section h2 { border-left: 3px solid var(--act); padding-left
 details.fine { max-width: 560px; margin: 8px 0; }
 details.fine > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font: 12px var(--mono); color: var(--mute); }
 details.fine > p { font: 13px/1.5 var(--mono); color: var(--mute); max-width: 560px; margin: 0 0 8px; }
+
+.big .c:only-child { font: 500 15px/1.5 var(--mono); letter-spacing: .04em; color: var(--mute); }
+#side button, .row button { max-width: 100%; white-space: normal; line-height: 1.25; padding-top: 8px; padding-bottom: 8px; }
+@media (max-width: 900px) { #side { padding: 28px 24px 56px; } .row { gap: 10px; } .key { padding: 4px 0; } }

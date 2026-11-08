@@ -149,6 +149,23 @@
     };
     this.X = function (i) { return self.ox + D.xy[i][0] * self.scl; };
     this.Y = function (i) { return self.oy + D.xy[i][1] * self.scl; };
+    // the name under the pointer: a small chip beside the nearest artist, on every wall that draws a map
+    if (opt.hover !== false && box && box.appendChild) {
+      var tip = document.createElement('div'); tip.className = 'wk-tip'; tip.hidden = true; tip.setAttribute('aria-hidden', 'true');
+      if (getComputedStyle(box).position === 'static') box.style.position = 'relative';
+      box.appendChild(tip);
+      var onMove = function (e) {
+        var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, best = -1, bd = 14 * 14, i, dx, dy, d;
+        for (i = 0; i < D.xy.length; i++) { dx = self.X(i) - x; dy = self.Y(i) - y; d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
+        if (best < 0) { tip.hidden = true; return; }
+        if (e.type === 'pointerdown' && opt.tap) { opt.tap(best, e); }
+        var fam = D.fam && D.f ? D.fam[D.f[best]] : '';
+        tip.innerHTML = '<b>' + esc(D.n ? D.n[best] : '') + '</b>' + (fam ? ' <i style="background:' + (FAMC[fam] || C.mute) + '"></i>' + esc(fam) : '') + (D.pl ? ' · ' + D.pl[best] + ' plays' : '');
+        tip.style.left = Math.max(0, Math.min(self.W - 200, x + 12)) + 'px'; tip.style.top = Math.max(0, y - 34) + 'px'; tip.hidden = false;
+      };
+      cv.addEventListener('pointermove', onMove); cv.addEventListener('pointerdown', onMove);
+      cv.addEventListener('pointerleave', function () { tip.hidden = true; });
+    }
     this.pts = function (p, n) { var o = []; for (var k = 0; k < (n == null ? p.length : n); k++) o.push([self.X(p[k]), self.Y(p[k])]); return o; };
     this.lattice = function (ctx, alpha) { lattice(ctx || g, D.xy, self.X, self.Y, { alpha: alpha }); };
     this.begin = function () {
@@ -196,13 +213,21 @@
     while (k < plist.length && !(PV && PV[plist[k].i])) k++;
     if (k >= plist.length) { stop(); return; }
     if (!AU) { AU = new Audio(); AU.volume = 0.25; AU.addEventListener('ended', function () { if (pk >= 0) next(pk + 1); }); }
-    var t = PV[plist[k].i]; pk = k; AU.src = t[1];
+    var t = PV[plist[k].i]; pk = k; AU.src = t[1]; beat0 = performance.now();
     var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {});
     if (onstate) onstate(k, { title: t[0], tag: plist[k].tag, i: plist[k].i });
   }
   // list = [{i: artist index, tag: 'a' | 'b'}]; one preview at a time, only after a tap; onst(k, info) is told every change, k = -1 when stopped
   function play(list, onst) { onstate = onst; plist = list; return pv().then(function () { next(0); }, function () { if (onst) onst(-1, null); }); }
 
+  var liveT = null;
+  var beat0 = 0;
+  // a pulse on a 120 beats-a-minute grid from the moment a clip starts: a sharp hit, then a decay
+  function beat() { var u = ((performance.now() - beat0) % 500) / 500; return Math.pow(1 - u, 2.2); }
+  function live(fn) { still(); if (matchMedia('(prefers-reduced-motion: reduce)').matches) { fn(); return; } liveT = setInterval(fn, 33); }
+  function still() { if (liveT) clearInterval(liveT); liveT = null; }
+  // the pulse around the stop that is playing now: rings that breathe
+  function pulse(g, x, y, col, r) { r = r || 16; var b = beat(); g.save(); g.strokeStyle = col; g.lineWidth = 2; g.globalAlpha = 0.95 - 0.5 * b; g.beginPath(); g.arc(x, y, r + 7 * b, 0, 6.2832); g.stroke(); g.globalAlpha = 0.45 - 0.3 * b; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, r + 7 * b + 9, 0, 6.2832); g.stroke(); g.restore(); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   /* ---------- sound: off until the chip is on; every preview and voice on every wall respects it ---------- */
@@ -241,7 +266,7 @@
   };
   var CSS = '#wk-strip,#wk-nav{font-family:"Instrument Sans",system-ui,sans-serif;background:#06010f;color:#efe9ff;box-sizing:border-box}' +
     '#wk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;padding:16px 48px;border-bottom:1px solid #241b3a}' +
-    '#wk-strip .wk-line{flex:1 1 300px;max-width:560px;margin:0;font:500 17px/1.4 "Instrument Sans",system-ui,sans-serif;color:#efe9ff}' +
+    '#wk-strip .wk-txt{flex:1 1 300px;max-width:560px}#wk-strip .wk-do{margin:6px 0 0;font:500 14px/1.4 "IBM Plex Mono",ui-monospace,monospace;color:#21f6bc}#wk-strip .wk-do b{font-weight:600;color:#06010f;background:#21f6bc;padding:1px 6px;border-radius:4px 7px 4px 6px;margin-right:4px}#wk-strip .wk-line{margin:0;font:500 17px/1.4 "Instrument Sans",system-ui,sans-serif;color:#efe9ff}' +
     '#wk-strip .wk-keys{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0;padding:0;list-style:none}' +
     '#wk-strip .wk-keys li{display:inline-flex;align-items:center;gap:7px;font:500 13px/1.2 "Instrument Sans",system-ui,sans-serif;color:var(--c)}' +
     '#wk-strip .wk-keys li svg{flex:none}' +
@@ -252,7 +277,7 @@
     '#wk-strip .wk-pos a{color:#bcd3ff}' +
     '#wk-nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:6px;padding:0 48px;border-bottom:1px solid #241b3a;overflow:hidden}' +
     '#wk-nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;color:#bcd3ff;text-decoration:none;font:500 13px/1 "IBM Plex Mono",ui-monospace,monospace;white-space:nowrap;border-radius:22px}' +
-    '#wk-nav a:hover{background:#1a1230}#wk-nav a.sp{margin-left:auto}#wk-nav a[aria-disabled]{opacity:.35;pointer-events:none}' +
+    '.wk-tip{position:absolute;z-index:3;pointer-events:none;font:500 11px/1.4 "IBM Plex Mono",monospace;color:#f2eefa;background:#06010f;border:1px solid #2a2140;padding:4px 8px;border-radius:6px 9px 6px 8px;white-space:nowrap}.wk-tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0 2px;vertical-align:-1px}#wk-nav a:hover{background:#1a1230}#wk-nav a.sp{margin-left:auto}#wk-nav a[aria-disabled]{opacity:.35;pointer-events:none}' +
     '#wk-nav a:focus-visible,#wk-strip a:focus-visible,#wk-strip button:focus-visible{outline:2px solid #bcd3ff;outline-offset:2px}' +
     '@media(max-width:700px){#wk-strip{padding:16px 24px;gap:12px}#wk-strip .wk-pos{margin-left:0;white-space:normal}#wk-nav{padding:0 12px}#wk-nav a{padding:0 10px}#wk-nav a .nm{display:none}}' +
     'details.fine{border-top:1px solid #241b3a;margin:8px 0 0}details.fine summary{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.14em;color:#9a90b8;list-style:none}' +
@@ -262,10 +287,10 @@
   function strip() {
     var b = document.body; if (!b || document.getElementById('wk-strip')) return;
     var n = parseInt(b.getAttribute('data-wall'), 10); if (!n) return;
-    var line = b.getAttribute('data-line') || '', keys = (b.getAttribute('data-keys') || '').split(',').filter(Boolean);
+    var line = b.getAttribute('data-line') || '', dol = b.getAttribute('data-do') || '', keys = (b.getAttribute('data-keys') || '').split(',').filter(Boolean);
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     var s = document.createElement('div'); s.id = 'wk-strip';
-    s.innerHTML = '<p class="wk-line">' + esca(line) + '</p>' + (keys.length ? '<ul class="wk-keys" aria-label="key">' : '') + keys.map(function (k) { var d = KEYS[k]; return d ? '<li style="--c:' + d[3] + '" title="' + esca(d[1]) + '">' + d[2] + d[0] + '</li>' : ''; }).join('') + (keys.length ? '</ul>' : '') +
+    s.innerHTML = '<div class="wk-txt"><p class="wk-line">' + esca(line) + '</p>' + (dol ? '<p class="wk-do"><b>you:</b> ' + esca(dol) + '</p>' : '') + '</div>' + (keys.length ? '<ul class="wk-keys" aria-label="key">' : '') + keys.map(function (k) { var d = KEYS[k]; return d ? '<li style="--c:' + d[3] + '" title="' + esca(d[1]) + '">' + d[2] + d[0] + '</li>' : ''; }).join('') + (keys.length ? '</ul>' : '') +
       '<button type="button" id="wk-snd" aria-pressed="false"></button><p class="wk-pos">wall ' + n + ' of ' + WALLS.length + ' &middot; <a href="../walls/">all walls</a></p>';
     var L = WALLS.length, pv_ = WALLS[(n + L - 2) % L], nx_ = WALLS[n % L];
     var nav = document.createElement('nav'); nav.id = 'wk-nav'; nav.setAttribute('aria-label', 'the walls');
@@ -278,5 +303,5 @@
   }
   strip();
 
-  root.WK = { sound: function () { return SND; }, setSound: setSound, P: P, j: j, FAMC: FAMC, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, stop: stop, playing: playing, esc: esc };
+  root.WK = { sound: function () { return SND; }, setSound: setSound, P: P, j: j, FAMC: FAMC, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, stop: stop, playing: playing, esc: esc, beat: beat, live: live, still: still, pulse: pulse };
 })(window);

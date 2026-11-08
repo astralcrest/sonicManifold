@@ -1,7 +1,7 @@
 (function () {
 'use strict';
 var $ = WK.$, C = WK.C, D, M, FIT, LOOP, F, MP, MAP, K, ROOMS = 11;
-var S = { cut: 4, start: 0, seed: 1, A: null, B: null, diff: -1 };
+var S = { cut: 4, start: 0, seed: 1, A: null, B: null, diff: -1, pk: -1 };
 var YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 
 function weighted(u0) {
@@ -41,7 +41,9 @@ function render() {
     : 'with ' + yr + ' removed the path first goes elsewhere at step ' + S.diff + '. ' + (l.n ? 'it enters ' + l.rb + ' neighborhoods, not ' + l.ra + ', so it loses ' + l.n + '.' : 'it still enters every one of the ' + l.ra + ' neighborhoods the first path did, so it loses none.');
   $('more').textContent = S.skip.n + ' of ' + M.N.toLocaleString('en-US') + ' artists taken out. across 20 other starts: a median of ' + (Math.round(S.med * 2) / 2) + ' neighborhoods lost, at most ' + S.max + '. one path is luck; read the median.';
   [].forEach.call($('years').children, function (b) { b.setAttribute('aria-checked', +b.getAttribute('data-c') === S.cut ? 'true' : 'false'); });
-  $('hear').disabled = S.diff < 0; stopHear(); draw();
+  $('hear').disabled = S.diff < 0; stopHear();
+  $('now').textContent = S.diff < 0 ? 'nothing to hear for ' + yr + ' from this start: both walks are the same. tap another start, or another year.' : 'hear it: step ' + S.diff + ' both ways, 30 s each. first as it grew (violet), then with ' + yr + ' removed (rose).';
+  draw();
 }
 
 function draw() {
@@ -53,18 +55,18 @@ function draw() {
   MAP.ribbon(S.A, S.A.length, P.violet, P.ink); MAP.ribbon(S.B, S.B.length, P.rose, P.ink, null, [7, 5]);
   MAP.stops(S.A, S.A.length, P.violet, P.ink, 0, 'ring'); MAP.stops(S.B, S.B.length, P.rose, P.ink, 0, 'dot');
   WK.P.glyph(g, 'star', MAP.X(S.A[0]), MAP.Y(S.A[0]), 8, C.ink);
-  if (S.diff > 0) { MAP.stop(S.A[S.diff], P.violet, 14); MAP.stop(S.B[S.diff], P.rose, 14); MAP.tag(S.B[S.diff], 'step ' + S.diff, C.ink); }
+  if (S.diff > 0) { MAP.stop(S.A[S.diff], P.violet, 14); MAP.stop(S.B[S.diff], P.rose, 14); MAP.tag(S.A[S.diff], (S.pk === 0 ? 'playing: ' : '') + 'as it grew, step ' + S.diff, P.violet); MAP.tag(S.B[S.diff], (S.pk === 1 ? 'playing: ' : '') + 'year removed, step ' + S.diff, P.rose); if (S.pk >= 0) MAP.stop(S.pk ? S.B[S.diff] : S.A[S.diff], S.pk ? P.rose : P.violet, 22); }
 }
 
-function stopHear() { WK.stop(); hearLabel(); }
-function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop' : 'hear the first difference'; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); }
+function stopHear() { WK.stop(); S.pk = -1; hearLabel(); }
+function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop' : S.diff < 0 ? 'nothing to hear here' : 'hear step ' + S.diff + ' both ways'; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); }
 $('hear').addEventListener('click', function () {
   if (WK.playing()) { stopHear(); return; }
   if (S.diff < 0) return;
   $('now').textContent = 'loading previews';
   WK.play([{ i: S.A[S.diff], tag: 'as it grew' }, { i: S.B[S.diff], tag: 'year removed' }], function (k, info) {
-    $('now').textContent = info ? 'playing ' + info.tag + ', step ' + S.diff + ': ' + info.title + ', by ' + D.n[info.i] + '.' : '';
-    hearLabel();
+    S.pk = info ? k : -1; $('now').textContent = info ? 'playing ' + info.tag + ', step ' + S.diff + ': ' + info.title + ', by ' + D.n[info.i] + '.' : 'done: that was the fork, both ways.';
+    hearLabel(); draw();
   }).then(function () { if (!WK.playing()) $('now').textContent = 'no preview for these two stops.'; });
 });
 $('again').addEventListener('click', function () {

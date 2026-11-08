@@ -1,7 +1,7 @@
 (function () {
 'use strict';
 var $ = WK.$, C = WK.C, D, M, FIT, LOOP, MAP, K, R;
-var S = { a: -1, b: -1, seed: 1, pa: null, pb: null, hit: null, ran: '' };
+var S = { a: -1, b: -1, seed: 1, pa: null, pb: null, hit: null, ran: '', cur: null };
 
 function norm(s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
 function bigrams(s) { var o = {}, n = 0; s = ' ' + s + ' '; for (var i = 0; i < s.length - 1; i++) { o[s.substr(i, 2)] = (o[s.substr(i, 2)] || 0) + 1; n++; } return { o: o, n: n }; }
@@ -78,12 +78,33 @@ function run(again) {
     $('say').textContent = h.step === 0 ? 'the two seeds already sit in one neighborhood.' : 'the paths first share a neighborhood at step ' + h.step + ': seed one step ' + h.a + ' and seed two step ' + h.b + ' are close in sound.';
     $('sn').value = h.step;
   }
-  $('run').textContent = 'walk again'; WK.stop(); hearLabel(); draw();
+  $('run').textContent = 'walk again, new seed'; WK.stop(); hearLabel(); where(); draw();
+}
+
+function where() {
+  if (S.a < 0 || WK.playing()) return;
+  var s = +$('sn').value, last = S.pa.length - 1;
+  $('now').textContent = 'step ' + s + ' of ' + last + ': seed one is at ' + D.n[S.pa[s]] + (s < last ? ', then ' + D.n[S.pa[s + 1]] : '') + '. seed two is at ' + D.n[S.pb[s]] + (s < last ? ', then ' + D.n[S.pb[s + 1]] : '') + '.';
+}
+function onst(k, info) {
+  var s = +$('sn').value, last = S.pa ? S.pa.length - 1 : 40;
+  if (info) {
+    var tap = info.tag === 'tap';
+    S.cur = { i: info.i, col: tap ? WK.C.mint : info.tag === 'seed one' ? WK.C.violet : WK.C.rose };
+    $('now').textContent = tap ? 'hearing ' + info.title + ' by ' + D.n[info.i] + '.' : 'step ' + s + ' of ' + last + ', playing ' + info.tag + ': ' + info.title + ', by ' + D.n[info.i] + (info.tag === 'seed one' ? '. seed two plays next.' : '.');
+    WK.live(draw);
+  } else { S.cur = null; WK.still(); where(); draw(); }
+  hearLabel();
 }
 
 function draw() {
-  if (!MAP || S.a < 0) return;
-  MAP.begin(); var g = MAP.g, h = S.hit, n = S.pa.length, P = WK.P.PAL;
+  if (!MAP) return;
+  MAP.begin(); var g = MAP.g, h = S.hit, P = WK.P.PAL, n;
+  if (S.a >= 0) drawWalks();
+  if (S.cur) { WK.pulse(g, MAP.X(S.cur.i), MAP.Y(S.cur.i), S.cur.col, 14); MAP.tag(S.cur.i, D.n[S.cur.i], S.cur.col); }
+}
+function drawWalks() {
+  var g = MAP.g, h = S.hit, n = S.pa.length, P = WK.P.PAL;
   MAP.ribbon(S.pa, n, P.violet, P.ink); MAP.ribbon(S.pb, n, P.rose, P.ink);
   MAP.stops(S.pa, n, P.violet, P.ink, 0, 'ring'); MAP.stops(S.pb, n, P.rose, P.ink, 0, 'dot');
   var s = +$('sn').value;
@@ -98,20 +119,17 @@ function draw() {
   MAP.tag(S.pa[0], 'one', P.violet); MAP.tag(S.pb[0], 'two', P.rose);
 }
 
-function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop' : 'hear step ' + $('sn').value; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); }
-$('sn').addEventListener('input', function () { if (WK.playing()) WK.stop(); hearLabel(); draw(); });
+function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop the preview' : 'hear step ' + $('sn').value + ', both walks'; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); }
+$('sn').addEventListener('input', function () { if (WK.playing()) WK.stop(); hearLabel(); where(); draw(); });
 $('hear').addEventListener('click', function () {
   if (WK.playing()) { WK.stop(); return; }
   if (S.a < 0) return;
   var s = +$('sn').value, now = $('now'); now.textContent = 'loading previews';
-  WK.play([{ i: S.pa[s], tag: 'seed one' }, { i: S.pb[s], tag: 'seed two' }], function (k, info) {
-    $('now').textContent = info ? 'playing ' + info.tag + ' step ' + s + ': ' + info.title + ', by ' + D.n[info.i] + '. the other plays next.' : '';
-    hearLabel();
-  }).then(function () { if (!WK.playing()) $('now').textContent = 'no preview for these two stops.'; });
+  WK.play([{ i: S.pa[s], tag: 'seed one' }, { i: S.pb[s], tag: 'seed two' }], onst).then(function () { if (!WK.playing()) $('now').textContent = 'no preview for these two stops.'; });
 });
 $('run').addEventListener('click', function () { run(true); });
 $('swap').addEventListener('click', function () { var t = $('sa').value; $('sa').value = $('sb').value; $('sb').value = t; run(false); });
-['sa', 'sb'].forEach(function (id) { $(id).addEventListener('keydown', function (e) { if (e.key === 'Enter') run(true); }); $(id).addEventListener('input', function () { $('run').textContent = 'run'; }); });
+['sa', 'sb'].forEach(function (id) { $(id).addEventListener('keydown', function (e) { if (e.key === 'Enter') run(true); }); $(id).addEventListener('input', function () { $('run').textContent = 'walk both seeds'; }); });
 $('back').addEventListener('click', function (e) { if (history.length > 1 && document.referrer && !/kiosk=1/.test(location.search)) { e.preventDefault(); history.back(); } });
 
 function sizeUp() { MAP.resize(); draw(); }
@@ -120,8 +138,8 @@ WK.boot([]).then(function (b) {
   // same neighborhood = within the median distance from an artist to its own sixth-nearest neighbor
   var ds = [], i; for (i = 0; i < M.N; i++) { var j = D.nn[i][5]; if (j >= 0) ds.push(LOOP.dist(M, i, j)); }
   ds.sort(function (x, y) { return x - y; }); R = ds[ds.length >> 1];
-  $('def').textContent = 'same neighborhood: two stops within ' + (R / M.RH).toFixed(2) + ' of one random hop in sound, the median distance from an artist to its sixth-nearest. rule: the loop wall’s fitted auto-play rule, ' + M.N.toLocaleString('en-US') + ' artists, 40 steps. a toy, not a prediction.';
-  MAP = new WK.Map($('map'), $('cv'), D, M); MAP.resize();
+  $('def').textContent = 'same neighborhood: two stops within ' + (R / M.RH).toFixed(2) + ' of one random hop in sound, the median distance from an artist to its sixth-nearest. rule: the auto-play rule matched to my log, ' + M.N.toLocaleString('en-US') + ' artists, 40 steps. a toy, not a prediction.';
+  MAP = new WK.Map($('map'), $('cv'), D, M, { tap: function (i) { WK.play([{ i: i, tag: 'tap' }], onst); } }); MAP.resize();
   window.addEventListener('resize', sizeUp);
   WK.pv().catch(function () {});
   var top = []; for (i = 0; i < 150; i++) if (D.n[M.order ? M.order[i] : i]) top.push(M.order[i]);

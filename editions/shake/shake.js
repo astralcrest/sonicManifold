@@ -2,7 +2,7 @@
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, MAP, LOOP, PV = null, ADJ = null;
 var cv = $('cv'), TH = 16, COOL = 900;
-var S = { cur: 0, deals: [], last: 0, listening: false };
+var S = { cur: 0, deals: [], last: 0, listening: false, hear: null, got: false };
 
 function adj() {
   if (ADJ) return ADJ;
@@ -19,7 +19,15 @@ function bfs(a, b) {
 function srt(c) { return D.nn[c].slice().sort(function (a, b) { return LOOP.dist(M, c, a) - LOOP.dist(M, c, b); }); }
 function startAt() { var p = M.order.slice(0, 300).filter(function (i) { return PV && PV[i]; }); return p[Math.floor(Math.random() * p.length)]; }
 
-function dealOne() {
+function hearOf(i, col) {
+  S.hear = { i: i, col: col };
+  WK.play([{ i: i, tag: 'tap' }], function (k, info) {
+    if (info) { $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[i]; WK.live(draw); }
+    else { S.hear = null; WK.still(); draw(); }
+  });
+  draw();
+}
+function shakeNow() {
   var now = Date.now(); if (now - S.last < COOL) return; S.last = now;
   var c = S.cur, t, tries = 0, press;
   do { t = Math.floor(Math.random() * M.N); tries++; } while ((t === c || (PV && !PV[t])) && tries < 400);
@@ -27,16 +35,16 @@ function dealOne() {
   var J = bfs(c, t), j = bfs(c, press);
   S.deals.push({ c: c, t: t, p: press, J: J, j: j });
   if (S.deals.length > 40) S.deals.shift();
-  WK.play([{ i: t, tag: 'a' }], function (k, info) { $('now').textContent = info ? 'shuffle landed on ' + D.n[t] + ': ' + info.title : ''; });
   S.cur = press;
   render();
+  hearOf(t, PAL.amber);
 }
 function render() {
   var d = S.deals[S.deals.length - 1];
-  if (!d) { $('num').textContent = '-'; $('say').textContent = 'shake the phone, or tap deal.'; draw(); return; }
+  if (!d) { $('num').textContent = '-'; $('say').textContent = 'shake the phone, or tap shake.'; draw(); return; }
   var sj = 0, sp = 0; S.deals.forEach(function (x) { sj += Math.max(0, x.J); sp += Math.max(0, x.j); });
   $('num').textContent = d.J < 0 ? '?' : d.J;
-  $('say').textContent = 'shuffle\'s jump was ' + d.J + (d.J === 1 ? ' step' : ' steps') + ', a press\'s was ' + d.j + '. over ' + S.deals.length + (S.deals.length === 1 ? ' deal' : ' deals') + ' the averages are ' + (sj / S.deals.length).toFixed(1) + ' and ' + (sp / S.deals.length).toFixed(1) + '. a toy rule, not my data.';
+  $('say').textContent = 'shake ' + S.deals.length + ': from ' + D.n[d.c] + ' shuffle leaped to ' + D.n[d.t] + ', then a press hops to ' + D.n[d.p] + '. shuffle\'s jump was ' + d.J + (d.J === 1 ? ' step' : ' steps') + ', a press\'s was ' + d.j + '. over ' + S.deals.length + (S.deals.length === 1 ? ' shake' : ' shakes') + ' the averages are ' + (sj / S.deals.length).toFixed(1) + ' and ' + (sp / S.deals.length).toFixed(1) + '. a toy rule, not my data.';
   draw();
 }
 function draw() {
@@ -56,35 +64,37 @@ function draw() {
     P.peb(g, d.c, X(d.c), Y(d.c), 9, PAL.ink); P.rings(g, X(d.c), Y(d.c), PAL.ink, 18);
   } else {
     P.peb(g, S.cur, X(S.cur), Y(S.cur), 9, PAL.ink); P.rings(g, X(S.cur), Y(S.cur), PAL.ink, 18);
-    g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText('shake the phone, or tap deal.', MAP.W / 2, MAP.H - 16); g.restore();
+    g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText('shake the phone, or tap shake.', MAP.W / 2, MAP.H - 16); g.restore();
   }
+  if (S.hear) WK.pulse(g, X(S.hear.i), Y(S.hear.i), S.hear.col, 16);
 }
 
 var lx = 0, ly = 0, lz = 0, have = false;
 function onMotion(e) {
   var a = e.accelerationIncludingGravity; if (!a) return;
   var x = a.x || 0, y = a.y || 0, z = a.z || 0;
-  if (have) { var m = Math.abs(x - lx) + Math.abs(y - ly) + Math.abs(z - lz); if (m > TH * 2) dealOne(); }
-  lx = x; ly = y; lz = z; have = true;
+  if (have) { var m = Math.abs(x - lx) + Math.abs(y - ly) + Math.abs(z - lz); if (m > TH * 2) shakeNow(); }
+  lx = x; ly = y; lz = z; have = true; S.got = true; $('nophone').hidden = true;
 }
-function listen() { if (S.listening) return; S.listening = true; addEventListener('devicemotion', onMotion); $('alw').hidden = true; $('say').textContent = 'shake is on. shake the phone, or tap deal.'; }
+function listen() { if (S.listening) return; S.listening = true; addEventListener('devicemotion', onMotion); $('alw').hidden = true; $('say').textContent = 'shake is on. shake the phone, or tap shake.'; }
 var DM = window.DeviceMotionEvent;
 if (DM) {
   if (typeof DM.requestPermission === 'function') {
     $('alw').hidden = false;
     $('alw').addEventListener('click', function () {
-      DM.requestPermission().then(function (r) { if (r === 'granted') listen(); else $('say').textContent = 'motion was not allowed. tap deal instead.'; }).catch(function () { $('say').textContent = 'motion is not available here. tap deal instead.'; });
+      DM.requestPermission().then(function (r) { if (r === 'granted') listen(); else $('say').textContent = 'motion was not allowed. tap shake instead.'; }).catch(function () { $('say').textContent = 'motion is not available here. tap shake instead.'; });
     });
   } else if ('ontouchstart' in window) listen();
 }
-$('dl').addEventListener('click', function () { S.last = 0; dealOne(); });
-$('sr').addEventListener('click', function () { WK.stop(); S.deals = []; S.cur = startAt(); $('now').textContent = ''; render(); });
-addEventListener('keydown', function (e) { if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey) { S.last = 0; dealOne(); } });
+setTimeout(function () { if (!S.got) $('nophone').hidden = false; }, 1500);
+$('dl').addEventListener('click', function () { S.last = 0; shakeNow(); });
+$('sr').addEventListener('click', function () { WK.stop(); WK.still(); S.hear = null; S.deals = []; S.cur = startAt(); $('now').textContent = 'tap any shape on the map to hear it.'; render(); });
+addEventListener('keydown', function (e) { if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey) { S.last = 0; shakeNow(); } });
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); draw(); }, 80); });
 
 Promise.all([WK.boot(), WK.pv()]).then(function (a) {
   D = a[0].D; M = a[0].M; LOOP = a[0].LOOP; PV = a[1];
-  MAP = new WK.Map($('map'), cv, D, M, { dim: 0.6 }); MAP.resize(); S.cur = startAt(); render();
+  MAP = new WK.Map($('map'), cv, D, M, { dim: 0.6, tap: function (i) { hearOf(i, WK.FAMC[D.fam[D.f[i]]] || PAL.ice); } }); MAP.resize(); S.cur = startAt(); render();
 }).catch(function () { $('say').textContent = 'the data did not load. reload the page.'; });
 })();

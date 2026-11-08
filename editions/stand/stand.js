@@ -1,7 +1,7 @@
 (function () {
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, MAP, cv = $('cv'), IDX = {};
-var S = { picks: [], mark: null, near: [] };
+var S = { picks: [], mark: null, near: [], cur: null };
 
 function find(q) {
   q = q.trim().toLowerCase(); if (!q) return -1;
@@ -30,8 +30,20 @@ function place() {
 }
 function draw() {
   MAP.begin();
+  if (S.mark) drawMark();
+  if (S.cur) { P.glyph(MAP.g, 'dot', MAP.X(S.cur.i), MAP.Y(S.cur.i), 6, S.cur.col); WK.pulse(MAP.g, MAP.X(S.cur.i), MAP.Y(S.cur.i), S.cur.col, 14); MAP.tag(S.cur.i, D.n[S.cur.i], S.cur.col); }
+}
+function onst(k, info) {
+  if (info) {
+    var tap = info.tag === 'tap', tot = S.near.length;
+    S.cur = { i: info.i, col: tap ? PAL.mint : PAL.ice };
+    $('now').textContent = tap ? 'hearing ' + info.title + ' by ' + D.n[info.i] + '.' : 'step ' + (k + 1) + ' of ' + tot + ': ' + D.n[info.i] + (k + 1 < tot ? ', then ' + D.n[S.near[k + 1]] : '') + '. hearing ' + info.title + '.';
+    WK.live(draw);
+  } else { S.cur = null; WK.still(); draw(); $('now').textContent = 'sound: a preview plays only after you tap, and only when sound is on.'; }
+  hearLabel();
+}
+function drawMark() {
   var g = MAP.g, small = MAP.W < 500, k, i, mx, my, r = small ? 13 : 17;
-  if (!S.mark) return;
   mx = MAP.ox + S.mark[0] * MAP.scl; my = MAP.oy + S.mark[1] * MAP.scl;
   g.save(); g.lineWidth = 0.7; g.strokeStyle = PAL.ice; g.globalAlpha = 0.5;
   g.beginPath();
@@ -51,7 +63,7 @@ function draw() {
 function out() {
   var ul = $('near'), fam = {}, html = '';
   if (!S.mark) {
-    $('num').innerHTML = '<span>-</span>'; ul.innerHTML = '';
+    $('num').innerHTML = '<span class="c">not placed yet</span>'; ul.innerHTML = '';
     $('say').textContent = S.miss ? 'no match yet. pick a name from the list as you type.' : 'type one to five artists you like, then press place me.';
     return;
   }
@@ -62,9 +74,9 @@ function out() {
   ul.innerHTML = html;
   var nf = Object.keys(fam).length;
   $('num').innerHTML = '<span>' + nf + '</span>';
-  $('say').textContent = S.picks.length + ' placed' + (S.miss ? ', ' + S.miss + ' with no match' : '') + '. the white ring is their middle on my map. the ten nearest to it are listed, nearest first.';
+  $('say').textContent = S.picks.length + ' placed' + (S.miss ? ', ' + S.miss + ' with no match' : '') + '. the white ring is the middle of your artists on my map: where you stand. the ten nearest to it are listed, nearest first; tap one to hear it.';
 }
-function hearLabel() { var p = WK.playing(); $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); $('hear').textContent = p ? 'stop' : 'hear the nearest'; }
+function hearLabel() { var p = WK.playing(); $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); $('hear').textContent = p ? 'stop the preview' : 'hear the ten nearest, one by one'; }
 
 $('go').addEventListener('click', place);
 document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.tagName === 'INPUT') place(); });
@@ -75,17 +87,14 @@ $('clear').addEventListener('click', function () {
 $('hear').addEventListener('click', function () {
   if (WK.playing()) { WK.stop(); hearLabel(); return; }
   if (!S.near.length) { $('now').textContent = 'place yourself first.'; return; }
-  WK.play([{ i: S.near[0], tag: 'a' }], function (k, info) {
-    $('now').textContent = info ? 'hearing ' + info.title + ' (' + D.n[info.i] + ')' : 'sound: the nearest artist plays a preview only after you tap hear, and only when sound is on.';
-    hearLabel();
-  }).then(function () { if (!WK.playing()) $('now').textContent = 'no clip for ' + D.n[S.near[0]] + '.'; hearLabel(); });
+  WK.play(S.near.map(function (i) { return { i: i, tag: 'near' }; }), onst).then(function () { if (!WK.playing()) $('now').textContent = 'no clips for these ten.'; hearLabel(); });
 });
 
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); draw(); }, 80); });
 
 WK.boot().then(function (b) {
-  D = b.D; MAP = new WK.Map($('map'), cv, D, b.M, { dim: 0.5 }); MAP.resize();
+  D = b.D; MAP = new WK.Map($('map'), cv, D, b.M, { dim: 0.5, tap: function (i) { WK.play([{ i: i, tag: 'tap' }], onst); } }); MAP.resize();
   var dl = $('dl'), html = '';
   D.n.forEach(function (n, i) { IDX[n.toLowerCase()] = i; html += '<option value="' + WK.esc(n) + '">'; });
   dl.innerHTML = html;

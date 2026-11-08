@@ -65,6 +65,14 @@ addEventListener('keydown', function (e) {
 addEventListener('keyup', function (e) { if (e.key === 'ArrowLeft') H.a.key = 0; else if (e.key === 'ArrowRight') H.b.key = 0; });
 
 function strength(h) { return h.key ? 1 : h.s; }
+[['pa', H.a], ['pb', H.b]].forEach(function (d) {
+  var b = $(d[0]), h = d[1]; if (!b) return;
+  var on = function (e) { h.key = 1; b.classList.add('go'); b.setAttribute('aria-pressed', 'true'); S.dirty = true; try { b.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); };
+  var off = function () { h.key = 0; b.classList.remove('go'); b.setAttribute('aria-pressed', 'false'); S.dirty = true; };
+  b.addEventListener('pointerdown', on); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (ev) { b.addEventListener(ev, off); });
+  b.addEventListener('keydown', function (e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); h.key = 1; b.classList.add('go'); } });
+  b.addEventListener('keyup', function (e) { if (e.key === ' ' || e.key === 'Enter') off(); });
+});
 function unit(tx, ty) { var dx = tx - S.x, dy = ty - S.y, L = Math.hypot(dx, dy); return L < 1 ? [0, 0] : [dx / L, dy / L]; }
 
 function step(dt) {
@@ -84,14 +92,14 @@ function step(dt) {
 function arrive(i) {
   S.cur = i; remember(i); retarget();
   var now = Date.now();
-  if (now - S.lastPlay > 7000) { S.lastPlay = now; WK.play([{ i: i, tag: 'a' }], function (k, info) { $('now').textContent = info ? 'hearing ' + info.title + ' (' + D.n[i] + ')' : 'sound: a short preview plays when the point reaches a new artist.'; }); }
+  if (now - S.lastPlay > 2500) { S.lastPlay = now; S.hear = i; WK.play([{ i: i, tag: 'a' }], function (k, info) { $('now').textContent = info ? 'reached ' + D.n[i] + ': hearing ' + info.title + '. keep pulling for the next.' : 'the point plays each artist it reaches. keep pulling.'; }); }
 }
 
 function out() {
   var t = S.la + S.lb, a = t ? Math.round(100 * S.la / t) : 0;
   $('num').innerHTML = t ? '<span class="a">' + a + '</span><span class="c">:</span><span class="b">' + (100 - a) + '</span>' : '<span class="c">-</span>';
-  $('numlab').textContent = S.active ? 'the pull so far' : 'the pull ended';
-  $('say').textContent = t ? 'auto-play\'s lean made ' + a + ' of the walk, my press made ' + (100 - a) + '. ' + (Math.abs(a - 50) < 8 ? 'close to even: they cancel and the point barely goes anywhere.' : a > 50 ? 'the lean toward sound won.' : 'the lean toward plays won.') : 'pull a handle to start. two fingers or two people.';
+  $('numlab').textContent = t ? 'of the path so far: auto-play\'s pull : my press' : 'who moved the point, out of 100';
+  $('say').textContent = t ? 'auto-play\'s pull (violet, toward what sounds alike) moved it ' + a + '. my press (mint, toward what i played most) moved it ' + (100 - a) + '. ' + (Math.abs(a - 50) < 8 ? 'close to even: the two pulls cancel and the point barely moves.' : a > 50 ? 'the pull toward sound is winning.' : 'the pull toward my plays is winning.') + ' now at ' + D.n[S.cur] + '.' : 'hold a button below (or drag a handle on the map). the point moves toward that pull and plays what it reaches.';
 }
 
 function runs() {
@@ -116,7 +124,8 @@ function draw() {
   if (strength(H.a) > 0) MAP.tag(S.ta, D.n[S.ta], PAL.violet, PAL.night);
   if (strength(H.b) > 0) MAP.tag(S.tb, D.n[S.tb], PAL.mint, PAL.night);
   P.peb(g, S.cur, X, Y, 8, PAL.ink);
-  P.rings(g, X, Y, PAL.ink, 18);
+  P.rings(g, X, Y, PAL.ink, 18); WK.pulse(g, X, Y, S.active ? (strength(H.a) > strength(H.b) ? PAL.violet : PAL.mint) : PAL.ink, 18);
+  MAP.tag(S.cur, 'here: ' + D.n[S.cur], PAL.ink, PAL.night);
   // handles
   [[H.a, G.ax, PAL.violet, 'ring', "auto-play's lean"], [H.b, G.bx, PAL.mint, 'star', 'my press']].forEach(function (d) {
     var h = d[0], hx = d[1] + h.dx, hy = G.y + h.dy;
@@ -125,14 +134,14 @@ function draw() {
     P.glyph(g, d[3], hx, hy, 17, d[2]);
     g.save(); g.font = '500 12px "IBM Plex Mono", monospace'; g.fillStyle = d[2]; g.textAlign = d[1] < G.bx ? 'left' : 'right'; g.fillText(d[4], d[1] < G.bx ? 12 : MAP.W - 12, G.y + 52); g.restore();
   });
-  if (S.trail.length < 2) { g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText('two fingers or two people. drag each handle inward.', MAP.W / 2, MAP.H - 16); g.restore(); }
+  if (S.trail.length < 2) { g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText('hold a pull button below, or drag a handle inward.', MAP.W / 2, MAP.H - 16); g.restore(); }
 }
 
 var lastT = 0;
 function frame(t) {
   var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016); lastT = t;
-  var moved = step(dt);
-  if (moved || S.dirty) { draw(); out(); S.dirty = false; }
+  var moved = step(dt); S.fr = (S.fr || 0) + 1;
+  if (moved || S.dirty || S.fr % 2 === 0) { draw(); if (moved || S.dirty) out(); S.dirty = false; }
   requestAnimationFrame(frame);
 }
 $('reset').addEventListener('click', function () { reset(); });

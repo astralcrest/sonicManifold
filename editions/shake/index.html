@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>shake the shuffle</title>
-<meta name="description" content="shake your phone: a shuffle deal leaps across my sound map, a press hops one step. a toy.">
-<meta property="og:title" content="wall 15 of 21: shake the shuffle"><meta property="og:description" content="shake your phone: a shuffle deal leaps across my sound map, a press hops one step. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/shake.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="shake your phone: a shuffle pick leaps across my sound map, a press hops one step. a toy.">
+<meta property="og:title" content="wall 15 of 21: shake the shuffle"><meta property="og:description" content="shake your phone: a shuffle pick leaps across my sound map, a press hops one step. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/shake.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,35 +15,37 @@
 @media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
 #map canvas { touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
-#alw[hidden] { display: none; }
+#alw[hidden], #nophone[hidden] { display: none; }
 #alw { --acc: var(--amber); } #dl { --acc: var(--amber); } #sr { --acc: var(--line); color: var(--mute); }
 </style>
 </head>
-<body data-wall="15" data-line="shake the phone: shuffle leaps far. a press hops one step." data-keys="shuffle,press" style="--act: var(--ice); --acc: var(--ice)">
+<body data-wall="15" data-line="shuffle leaps far across my map. a press hops one step."
+ data-do="shake the phone or tap shake. tap any shape to hear it." data-keys="shuffle,press" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>shake the shuffle</span><span class="tl">a toy</span></p>
     <h1>how far does <em>shuffle</em> leap?</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. from one artist an amber ribbon leaps to a far artist, a shuffle deal. a short mint ribbon hops to a near neighbor, a press."></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. from one artist an amber ribbon leaps to a far artist, a shuffle pick. a short mint ribbon hops to a near neighbor, a press."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big amber" id="num">-</div>
-      <span class="keylab" id="numlab">steps in the shuffle jump</span>
-      <p class="say" id="say">shake the phone, or tap deal.</p>
+      <span class="keylab" id="numlab">steps between the old artist and where shuffle landed</span>
+      <p class="say" id="say">shake the phone, or tap shake.</p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>shuffle is the farthest hand in the room, the only one that does not care what you were doing.</p>
       <p class="ask"><b>open question:</b>how far does your own night leap?</p>
     </div>
     <section>
-      <div class="row"><button type="button" id="alw" hidden>allow shake</button><button type="button" id="dl">deal</button><button type="button" id="sr">start over</button></div>
-      <p class="note" id="now"></p>
+      <div class="row"><button type="button" id="alw" hidden>allow shake</button><button type="button" id="dl">shake</button><button type="button" id="sr">start over</button></div>
+      <p class="note" id="nophone" hidden>no phone to shake? tap shake.</p>
+      <p class="note" id="now">tap any shape on the map to hear it.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>shake the phone: shuffle deals a song from anywhere. tap allow shake first.</p>
-      <p>amber diamond: where shuffle landed. mint star: a press, one step.</p>
-      <p>no phone? tap deal, or press the d key.</p>
+      <p>shake the phone, or tap shake on a laptop.</p>
+      <p>amber leaps far (shuffle). mint hops one step (my press).</p>
+      <p>read the big number as steps from the old artist.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>a toy rule on this phone, not my data. shuffle here is a random artist with a clip; a press here is the nearest artist on the map. the press is one step by construction.</p>

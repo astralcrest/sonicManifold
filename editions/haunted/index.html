@@ -16,6 +16,7 @@
 #bar { display: flex; gap: 8px; padding: 0 0 16px; }
 #bar button { min-height: 52px; font-size: 15px; }
 #skip { flex: 2; --acc: var(--rose); background: var(--rose); color: var(--night); font-weight: 600; font-size: 18px !important; }
+#cv { cursor: pointer; }
 #back { flex: 1; --acc: var(--ice); color: var(--ice); }
 #hear { flex: 1; --acc: var(--ice); }
 #hear[aria-pressed="false"] { background: var(--ice); color: var(--night); }
@@ -34,7 +35,7 @@
 }
 </style>
 </head>
-<body data-wall="4" data-line="one real evening of my plays, in order. skip a song and watch." data-keys="press,auto,shuffle" style="--act: var(--rose); --acc: var(--ice)">
+<body data-wall="4" data-line="one real evening of my plays, in order. swap a song and watch." data-do="press swap to replace the next song. tap a dot to jump there." data-keys="press,auto,shuffle" style="--act: var(--rose); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the haunted night</span><span class="tl">a toy</span></p>
@@ -43,13 +44,13 @@
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map as dim dots, with one real evening drawn as a ribbon of glyphs; your skips draw the bent night in rose"></canvas></div>
   <main id="side">
     <div id="bar" role="group" aria-label="play controls">
-      <button type="button" id="back">back</button>
-      <button type="button" id="skip">skip</button>
-      <button type="button" id="hear" aria-pressed="false">listen</button>
+      <button type="button" id="back">back one song</button>
+      <button type="button" id="skip">swap next song</button>
+      <button type="button" id="hear" aria-pressed="false">hear this song</button>
     </div>
     <div class="key" aria-live="polite">
       <div class="big rose" id="bend">none yet</div>
-      <span class="keylab">how far you bent the night</span>
+      <span class="keylab">map distance of your swaps from the real songs</span>
     </div>
     <p id="now" aria-live="polite"></p>
     <div class="lines">
@@ -64,16 +65,16 @@
     <section>
       <h2>evening</h2>
       <p id="ev"></p>
-      <div class="chips"><button type="button" id="next">another evening</button><button type="button" id="reset">start over</button></div>
+      <div class="chips"><button type="button" id="next">next evening</button><button type="button" id="reset">random evening</button></div>
     </section>
     <details class="how"><summary>how</summary>
-      <p>a real evening plays across my sound map, in order.</p>
-      <p>skip swaps the next song for a near-sounding one.</p>
-      <p>each play after it follows from there. nothing is stored.</p>
+      <p>press swap to replace the next song with a near one.</p>
+      <p>watch the rose line bend away from the real purple one.</p>
+      <p>read the number: bigger means your swaps landed farther.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>from my log: auto-play's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
-      <p>bend = average distance on the map, as a share of its width. yours: song by song against the evening as it happened. mine: my own presses against auto-play's most common next song. descriptive, a toy.</p>
+      <p>from my log: auto-play's own streak of songs stays close in sound. when i broke the streak the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
+      <p>bend = average distance on the map, as a share of its width. yours: song by song against the evening as it happened. mine: my own presses against auto-play's most common next song. a toy, not a test.</p>
       <p>the page keeps your place in the link only.</p>
     </details>
   </main>

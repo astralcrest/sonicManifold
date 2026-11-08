@@ -19,18 +19,18 @@
 #rel { --acc: var(--mint); } #reset { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="21 of 21" data-line="press and hold on the map. a star grows and the map slowly settles." data-keys="press,alike" style="--act: var(--mint); --acc: var(--mint)">
+<body data-wall="21 of 21" data-line="hold one spot: it plays. keep holding, and the map slowly bunches toward your finger." data-do="press and hold anywhere. the nearest artist plays. hold a minute to see the pull." data-keys="press,alike" style="--act: var(--mint); --acc: var(--mint)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the long hold</span><span class="tl">a toy</span></p>
-    <h1>what happens if you <em>wait</em>?</h1>
+    <h1>what happens if you <em>stay</em> in one place?</h1>
   </header>
   <div id="map"><canvas id="cv" tabindex="0" role="img" aria-label="my sound map. press and hold anywhere: a mint four-point star grows at your finger over sixty seconds while the artists slowly drift toward the middle of their nearest neighbors. a ring counts the seconds. let go and everything springs back."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span class="c">0</span></div>
-      <span class="keylab">seconds held of 60</span>
-      <p class="say" id="say">press and hold on the map. keyboard: focus the map and press space.</p>
+      <span class="keylab">seconds you have held, of 60</span>
+      <p class="say" id="say">press and hold anywhere on the map. keyboard: focus it, press space.</p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>wait long enough and neighbors pull together. the map tightens around where you stand.</p>
@@ -38,15 +38,15 @@
     </div>
     <section>
       <div class="row" style="margin-top:0">
-        <button type="button" id="rel">release</button>
-        <button type="button" id="reset">reset</button>
+        <button type="button" id="rel">let go and spring back</button>
+        <button type="button" id="reset">reset the map</button>
       </div>
       <p class="note" id="now">sound: at 60 seconds the nearest artist plays, only when sound is on.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>press and keep holding anywhere on the map.</p>
-      <p>a mint star grows and artists drift toward neighbors.</p>
-      <p>let go and they spring back in two seconds.</p>
+      <p>press and hold anywhere. the nearest artist plays at once.</p>
+      <p>keep holding: the ring counts seconds while artists creep toward you.</p>
+      <p>let go and they spring back. the point: a feed that stays put pulls everything to it.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>the settle is a toy on the map's layout: each dot moves toward the mean of its six nearest neighbors.</p>

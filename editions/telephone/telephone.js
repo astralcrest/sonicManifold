@@ -2,7 +2,7 @@
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, MAP, LOOP, PV = null, ADJ = null;
 var KEY = 'sm_tel_v1', LIMIT = 10;
-var S = { chain: [], more: false, cands: [] };
+var S = { hear: -1, chain: [], more: false, cands: [] };
 
 function load() {
   try { var j = JSON.parse(localStorage.getItem(KEY)); if (j && j.c && j.c.length && j.c.every(function (i) { return i >= 0 && i < M.N; })) return j.c; } catch (e) {}
@@ -41,8 +41,20 @@ function cands() {
 function pick(i) {
   if (S.chain.length - 1 >= LIMIT && !S.more) return;
   S.chain.push(i); save();
-  WK.play([{ i: i, tag: 'a' }], function (k, info) { $('now').textContent = info ? 'hearing ' + info.title + ' (' + D.n[i] + ')' : 'the last song is ringed. pick one of the six that sound closest to it.'; });
+  var st = S.chain.length;
+  WK.play([{ i: i, tag: 'a' }], function (k, info) { state(info, 'step ' + st + total() + ': hearing ' + (info ? info.title : '') + ' by ' + D.n[i]); });
   render();
+}
+
+function total() { return S.more ? '' : ' of ' + (LIMIT + 1); }
+function idle() {
+  var n = S.chain.length, cur = S.chain[n - 1];
+  return 'step ' + n + total() + ': ' + D.n[cur] + (n - 1 >= LIMIT && !S.more ? ', the chain is full.' : ', now pick the next song.');
+}
+function state(info, text) {
+  S.hear = info ? info.i : -1;
+  $('now').textContent = info ? text : idle();
+  if (info) WK.live(draw); else { WK.still(); draw(); }
 }
 
 function render() {
@@ -60,11 +72,12 @@ function render() {
     box.appendChild(b);
   });
   $('after').classList.toggle('show', done);
+  if (!WK.playing()) $('now').textContent = idle();
   if (n < 1) { $('num').textContent = '-'; $('say').textContent = 'no hands yet. the chain starts at one song. pick the next.'; }
   else {
     var R = bfs(S.chain[0], cur), r = bfs(S.chain[0], toyEnd(S.chain[0], n));
     $('num').textContent = R < 0 ? '?' : R;
-    $('numlab').textContent = 'steps from the start, after ' + n + (n === 1 ? ' hand' : ' hands');
+    $('numlab').textContent = 'hops from the first song to the last, after ' + n + (n === 1 ? ' hand' : ' hands');
     $('say').textContent = 'after ' + n + (n === 1 ? ' hand' : ' hands') + ' the chain ended ' + (R < 0 ? 'out of reach' : R + (R === 1 ? ' step' : ' steps')) + ' from its start; the toy rule alone ended ' + (r < 0 ? 'out of reach' : r) + '.';
   }
   draw();
@@ -92,6 +105,7 @@ function draw() {
   S.cands.forEach(function (i, k) { P.peb(g, i, X(i), Y(i), 9, WK.FAMC[D.fam[D.f[i]]] || PAL.ice); tag(i, String(k + 1), PAL.ice); });
   P.peb(g, ch[0], X(ch[0]), Y(ch[0]), 8, PAL.ink); tag(ch[0], 'start', '#9a90b8');
   P.peb(g, cur, X(cur), Y(cur), 9, PAL.ink); P.rings(g, X(cur), Y(cur), PAL.ink, 20);
+  if (S.hear >= 0 && WK.playing()) WK.pulse(g, X(S.hear), Y(S.hear), PAL.ice, 18);
 }
 
 function fresh() { S.chain = [newStart()]; S.more = false; save(); render(); }
@@ -99,7 +113,7 @@ function fresh() { S.chain = [newStart()]; S.more = false; save(); render(); }
 $('nw').addEventListener('click', fresh);
 $('kg').addEventListener('click', function () { S.more = true; render(); });
 $('pc').addEventListener('click', function () {
-  WK.play(S.chain.map(function (i) { return { i: i, tag: 'a' }; }), function (k, info) { $('now').textContent = info ? 'link ' + (k + 1) + ': ' + info.title + ' (' + D.n[info.i] + ')' : 'the last song is ringed. pick one of the six that sound closest to it.'; });
+  WK.play(S.chain.map(function (i) { return { i: i, tag: 'a' }; }), function (k, info) { state(info, info ? 'step ' + (k + 1) + ' of ' + S.chain.length + ': ' + info.title + ' by ' + D.n[info.i] + (S.chain[k + 1] !== undefined ? ', then ' + D.n[S.chain[k + 1]] : ', the last link') : ''); });
 });
 addEventListener('keydown', function (e) {
   var k = parseInt(e.key, 10); if (!(k >= 1 && k <= 6) || e.metaKey || e.ctrlKey || e.altKey) return;

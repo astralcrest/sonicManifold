@@ -18,18 +18,18 @@
 #listen { --acc: var(--mint); } #clap { --acc: var(--rose); } #zero { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="17 of 18" data-line="clap to skip the song. quiet keeps it. the screen reads loudness only." data-keys="auto,alike" style="--act: var(--rose); --acc: var(--rose)">
+<body data-wall="17 of 18" data-line="clap and the violet walk moves to the next song. quiet keeps it." data-do="tap listen, allow the mic, clap once sharply. the bar at the bottom must jump over the line; drag the line down if claps do not count." data-keys="auto,alike" style="--act: var(--rose); --acc: var(--rose)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>applause as skip</span><span class="tl">a toy</span></p>
-    <h1>whose hand skips when the room is the <em>hand</em>?</h1>
+    <h1>can a room full of claps <em>skip</em> for you?</h1>
   </header>
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map with the songs played so far as a violet ribbon with a ring on the current one. a level meter along the bottom fills with the loudness of the room; a mark shows the clap threshold. a clap above the mark flashes a rose ring and moves to the next song."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span class="r">0</span> <span class="c">/</span> <span class="g">0</span></div>
-      <span class="keylab">claps tonight / songs advanced</span>
-      <p class="say" id="say">tap listen, allow the mic, then clap.</p>
+      <span class="keylab">claps heard tonight / songs skipped by claps</span>
+      <p class="say" id="say">tap listen for claps, allow the mic, then clap.</p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>the room can press next, but it cannot tell which song it wanted gone.</p>
@@ -39,16 +39,16 @@
       <label class="k" for="thr">how loud counts as a clap</label>
       <input type="range" id="thr" min="10" max="90" step="1" value="50" aria-label="how loud a sound must be to count as a clap">
       <div class="row">
-        <button type="button" id="listen" aria-pressed="false">listen</button>
-        <button type="button" id="clap">tap to clap</button>
-        <button type="button" id="zero">start over</button>
+        <button type="button" id="listen" aria-pressed="false">listen for claps</button>
+        <button type="button" id="clap">clap for me, no mic needed</button>
+        <button type="button" id="zero">zero the counts</button>
       </div>
       <p class="note" id="now">sound: the song plays only when sound is on. claps work either way.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>tap listen, allow the mic. a loud clap plays the next song.</p>
-      <p>quiet keeps the song. after a skip it waits 3 seconds.</p>
-      <p>no mic? use tap to clap. the counts stay on this tablet.</p>
+      <p>tap listen for claps and allow the mic.</p>
+      <p>clap to skip. quiet keeps the song. a skip waits 3 s.</p>
+      <p>read the bar as room loudness. past the amber line = clap.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>nothing is recorded; only a loudness number is read, never audio. the mic is read about 60 times a second as one number and the sound is thrown away at once.</p>

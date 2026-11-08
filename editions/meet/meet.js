@@ -2,7 +2,7 @@
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, MAP, LOOP, PV = null, ADJ = null;
 var cv = $('cv');
-var S = { a: null, b: null, drag: null, mid: -1, lastPlay: 0, steps: null };
+var S = { hear: -1, a: null, b: null, drag: null, mid: -1, lastPlay: 0, steps: null };
 
 function adj() {
   if (ADJ) return ADJ;
@@ -60,14 +60,14 @@ function update() {
     if (m !== S.mid) {
       S.mid = m;
       var now = Date.now();
-      if (now - S.lastPlay > 2500) { S.lastPlay = now; WK.play([{ i: m, tag: 'a' }], function (k, info) { $('now').textContent = info ? 'hearing ' + info.title + ' (' + D.n[m] + ')' : ''; }); }
+      if (now - S.lastPlay > 2500) { S.lastPlay = now; WK.play([{ i: m, tag: 'a' }], function (k, info) { S.hear = info ? m : -1; $('now').textContent = info ? 'hearing ' + info.title + ' by ' + D.n[m] : ''; if (info) WK.live(draw); else { WK.still(); draw(); } }); }
     }
     var mxs = Math.max(sa, sb);
     $('num').textContent = sa < 0 || sb < 0 ? '?' : mxs;
     $('say').textContent = sa < 0 || sb < 0 ? 'out of reach in the graph.' : D.n[m] + ' is ' + sa + (sa === 1 ? ' step' : ' steps') + ' from one of you and ' + sb + (sb === 1 ? ' step' : ' steps') + ' from the other. nearest in sound to the point halfway between you.';
   } else {
     $('num').textContent = '-';
-    $('say').textContent = S.a ? 'one finger down. put the second one on the map.' : 'put two fingers on the map. or click twice, then drag either point.';
+    $('say').textContent = S.a ? 'one spot down. tap a second spot on the map.' : 'tap two spots on the map, then drag either one.';
   }
   draw();
 }
@@ -94,6 +94,7 @@ function draw() {
       P.peb(g, m, MAP.X(m), MAP.Y(m), 10, WK.FAMC[D.fam[D.f[m]]] || PAL.violet);
       P.glyph(g, 'ring', MAP.X(m), MAP.Y(m), 16, PAL.violet);
       tagAt(g, MAP.X(m), MAP.Y(m), D.n[m], PAL.violet);
+      if (S.hear === m && WK.playing()) WK.pulse(g, MAP.X(m), MAP.Y(m), PAL.ice, 16);
     }
     P.glyph(g, 'dot', mp[0], mp[1], 5, PAL.ice);
   }
@@ -101,11 +102,11 @@ function draw() {
   if (pb) { P.glyph(g, 'ring', pb[0], pb[1], 18, PAL.ink); P.glyph(g, 'dot', pb[0], pb[1], 4, PAL.ink); }
   if (!S.a || !S.b) {
     g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center';
-    g.fillText(S.a ? 'now the second point.' : 'two fingers, or click twice.', MAP.W / 2, MAP.H - 16); g.restore();
+    g.fillText(S.a ? 'now the second spot.' : 'tap two spots.', MAP.W / 2, MAP.H - 16); g.restore();
   }
 }
 
-$('rs').addEventListener('click', function () { WK.stop(); S.a = S.b = null; S.mid = -1; S.steps = null; $('now').textContent = ''; update(); });
+$('rs').addEventListener('click', function () { WK.stop(); S.a = S.b = null; S.mid = -1; S.steps = null; S.hear = -1; $('now').textContent = ''; update(); });
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); draw(); }, 80); });
 

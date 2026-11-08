@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="../wall.css">
 <style>.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; max-width: 40ch; }</style>
 </head>
-<body data-wall="5" data-line="two 40-pick walks from two seeds. close together = sounds alike." data-keys="auto,alike" style="--act: var(--violet); --acc: var(--violet)">
+<body data-wall="5" data-line="two 40-pick walks from two seeds. close together = sounds alike." data-do="type two seeds and press walk. tap any shape to hear it." data-keys="auto,alike" style="--act: var(--violet); --acc: var(--violet)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the two seeds</span><span class="tl">a toy</span></p>
@@ -38,26 +38,26 @@
       <input type="text" id="sb" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="an artist or a song" style="--acc: var(--rose)">
       <p class="msg" id="mb" aria-live="polite"></p>
       <div class="row">
-        <button type="button" id="run" class="go">walk</button>
+        <button type="button" id="run" class="go">walk both seeds</button>
         <button type="button" id="swap">swap seeds</button>
       </div>
     </section>
     <section>
-      <span class="k">hear a step</span>
+      <span class="k">slide to a step, then hear it</span>
       <input type="range" id="sn" min="0" max="40" step="1" value="0" aria-label="step to hear">
       <div class="row" style="margin-top:4px">
-        <button type="button" id="hear" aria-pressed="false">hear step 0</button>
+        <button type="button" id="hear" aria-pressed="false">hear step 0, both walks</button>
         <a class="btn" href="../../" id="back">back</a>
       </div>
       <p id="now"></p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>type an artist or a song in each box.</p>
-      <p>the same auto-play rule walks 40 steps from each.</p>
-      <p>previews play only after a tap, one at a time.</p>
+      <p>type an artist or song in each box, then press walk.</p>
+      <p>hear any step: slide it, press hear step, or tap a shape.</p>
+      <p>violet and rose are the two walks. white stars: they meet.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>a toy about the rule, not a guess about anyone. the rule is the fitted one from the first wall.</p>
+      <p>a toy about the rule, not a guess about anyone. the rule is the one matched to my log on the first wall.</p>
       <p id="def"></p>
       <p>previews are Apple's 30 seconds. nothing is stored: no account, no cookie, no saved seeds.</p>
     </details>

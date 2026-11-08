@@ -123,7 +123,7 @@ button#again6,button#again{min-height:44px}
 }
 </style>
 </head>
-<body data-wall="2" data-line="two lists as places on my sound map. close together = sounds alike." data-keys="alike,auto">
+<body data-wall="2" data-line="two lists as places on my sound map. close together = sounds alike." data-do="add two lists or try made-up ones. tap shapes to name them." data-keys="alike,auto">
 <main>
 <header>
   <div>
@@ -146,7 +146,7 @@ button#again6,button#again{min-height:44px}
     <h2><span class="a">a</span><small id="lab-a">made-up list</small></h2>
     <div class="row">
       <label class="filebtn">drop or choose a Spotify export<input type="file" id="file-a" accept=".json,application/json" multiple></label>
-      <button type="button" id="own-a">use my log</button>
+      <button type="button" id="own-a">put astralcrest’s log here</button>
     </div>
     <textarea id="txt-a" placeholder="or paste artist names, one per line (your top artists from the app)" aria-label="artist names for a, one per line"></textarea>
     <p class="st" id="st-a"></p>
@@ -155,7 +155,7 @@ button#again6,button#again{min-height:44px}
     <h2><span class="b">b</span><small id="lab-b">made-up list</small></h2>
     <div class="row">
       <label class="filebtn">drop or choose a Spotify export<input type="file" id="file-b" accept=".json,application/json" multiple></label>
-      <button type="button" id="own-b">use my log</button>
+      <button type="button" id="own-b">put astralcrest’s log here</button>
     </div>
     <textarea id="txt-b" placeholder="or paste artist names, one per line (your top artists from the app)" aria-label="artist names for b, one per line"></textarea>
     <p class="st" id="st-b"></p>
@@ -163,6 +163,11 @@ button#again6,button#again{min-height:44px}
 </div>
 <p id="privacy">your file never leaves this tab; only artist, track, time and ms played are kept.</p>
 <div id="tryrow"><button type="button" id="try">try two made-up lists</button><span>no real person listened to them</span></div>
+<details class="how"><summary>how</summary>
+  <p>press try two made-up lists, or paste names for a and b.</p>
+  <p>scroll the six pictures. tap a shape to name it.</p>
+  <p>pink = a, white = b, violet = auto-play, gray = others.</p>
+</details>
 
 <section class="pic" id="p1">
   <div><div class="cv"><canvas id="c1" aria-label="sound map with both sides placed; tap a shape to name it"></canvas></div><p class="tap" id="t1">tap a shape to name it.</p></div>
@@ -204,7 +209,7 @@ button#again6,button#again{min-height:44px}
     <h3>where your sounds nearly touch</h3>
     <p class="find" id="f4"></p>
     <ul class="names" id="l4"></ul>
-    <button type="button" id="hear">hear the closest crossing</button>
+    <button type="button" id="hear">hear the closest pair, one per side</button>
     <p class="tap" id="t4"></p>
     <details class="fine"><summary>the fine print</summary><p>for each artist only one of you has, the nearest artist only the other has, in the 3D sound map.</p></details>
   </div>
@@ -217,12 +222,12 @@ button#again6,button#again{min-height:44px}
     <h3>where auto-play would take you</h3>
     <p class="find" id="f5"></p>
     <span class="lab">a toy · about auto-play, not you</span>
-    <div class="knob"><label class="how" for="habit">how hard auto-play repeats its own pairs</label><input type="range" id="habit" min="0" max="4" step="0.5" value="1" aria-label="habit weight"> <button type="button" id="again">walk again</button></div>
-    <details class="fine"><summary>the fine print</summary><p>0 = every drawn pair equally likely; 4 = the habits that already ran win.</p></details>
+    <div class="knob"><label class="how" for="habit">drag to set how hard auto-play repeats its own pairs</label><input type="range" id="habit" min="0" max="4" step="0.5" value="1" aria-label="habit weight"> <button type="button" id="again">draw 8 new walks per side</button></div>
+    <details class="fine"><summary>the fine print</summary><p>0 = every drawn pair equally likely; 4 = the pairs already played win.</p></details>
     <p class="find" id="spread"></p>
     <p class="cap" id="cap5"></p>
     <p class="cap">faint lines: 8 walks per side. thick line: the first walk. dots: its stops.</p>
-    <details class="fine"><summary>the fine print</summary><p>a 20-step walk from each side's top 10 placed artists, on 1,600 of my queue's 11,688 artist pairs (a random draw), either direction, each step chosen by how often that pair ran (log scale). numbers are the expected stops, averaged over the 10 starts.</p></details>
+    <details class="fine"><summary>the fine print</summary><p>a 20-step walk from each side's top 10 placed artists, on 1,600 of auto-play’s 11,688 artist pairs (a random draw), either direction, each step chosen by how often that pair ran (log scale). numbers are the expected stops, averaged over the 10 starts.</p></details>
   </div>
 </section>
 
@@ -239,8 +244,8 @@ button#again6,button#again{min-height:44px}
     <p class="find" id="f6">loads when you scroll here.</p>
     <span class="lab">a toy</span>
     <p class="cap">short lists place poorly. tap a shape to name the artist.</p>
-    <div class="knob"><label class="how" for="habit6">the same habit dial as panel five</label><input type="range" id="habit6" min="0" max="4" step="0.5" value="1" aria-label="habit weight, mirror"> <button type="button" id="again6">walk again</button></div>
-    <details class="fine"><summary>the fine print</summary><p>the loop machine runs 40 steps twice. mine uses the knobs fitted to my queue, started from your top artist. yours is fitted to your list: an export uses the artists you played back to back; a pasted list uses neighbors in your ranking. the habit knob scales the repeat-the-run weight in both. one walk each, so another seed can differ.</p></details>
+    <div class="knob"><label class="how" for="habit6">drag: the same habit dial as panel five</label><input type="range" id="habit6" min="0" max="4" step="0.5" value="1" aria-label="habit weight, mirror"> <button type="button" id="again6">walk both lists again</button></div>
+    <details class="fine"><summary>the fine print</summary><p>auto-play’s rule walks 40 steps twice. mine uses the settings matched to my own listening, started from your top artist. yours is matched to your list: an export uses the artists you played back to back; a pasted list uses neighbors in your ranking. the habit dial scales how hard each rule repeats a pair in both. one walk each, so another seed can differ.</p></details>
   </div>
 </section>
 

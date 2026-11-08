@@ -5,7 +5,7 @@
   var OWNER_TOP = 200, STEPS = 20, STARTS = 10;
   var F = null, M = null, SAMPLES = null, IDX = new Map(), ADJ = null, STRENGTH = null;
   var HABIT = 1, SEED = 0, WALKS = 8;
-  var S = { a: null, b: null }, HOT = -1, CROSS = null, PV = null, AU = null, PLAYING = 0;
+  var S = { a: null, b: null }, HOT = -1, CROSS = null, PV = null, AU = null, PLAYING = 0, HEARING = false, HEAR = null, C4S = null, C4C = null;
 
   function norm(s) {
     return String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -100,7 +100,7 @@
 
   function set(side, s) {
     S[side] = s; HOT = -1; if ($('t1')) $('t1').textContent = 'tap a shape to name it.';
-    if (PLAYING && $('hear').textContent === 'stop') stopHear();
+    if (HEARING) stopHear();
     var card = document.querySelector('.side[data-s="' + side + '"]');
     card.classList.toggle('owner', s.kind === 'owner');
     var lab = $('lab-' + side);
@@ -136,7 +136,7 @@
     return out.sort(function (x, y) { return x[2] - y[2]; }).slice(0, k);
   }
 
-  // ---- the owner's queue: undirected weighted walk on the drawn pairs ----
+  // ---- auto-play: undirected weighted walk on the drawn pairs ----
   function buildGraph() {
     ADJ = F.n.map(function () { return []; }); STRENGTH = new Float64Array(F.n.length);
     M.lq.forEach(function (e) {
@@ -193,7 +193,7 @@
     g.imageSmoothingEnabled = false;
     return { g: g, d: d, X: function (v) { return pad + v * sc; }, Y: function (v) { return pad + v * sc; }, sc: sc };
   }
-  // the map under every panel: a faint lattice and two-layer squares, additive, cached per canvas size
+  // the map under every panel, cached per canvas size
   var PK = window.WK && window.WK.P, BASES = {};
   function base(c, color) {
     var g = c.g, key = g.canvas.width + 'x' + g.canvas.height + ':' + (color || '');
@@ -285,6 +285,7 @@
     ab.forEach(function (p) { sq(c4, p[0], 8, ca); sq(c4, p[1], 8, cb); });
     ba.forEach(function (p) { sq(c4, p[0], 8, cb); sq(c4, p[1], 8, ca); });
     $('f4').innerHTML = ab.length ? 'the closest crossings between what only <span style="color:' + ca + '">' + na + '</span> has and what only <span style="color:' + cb + '">' + nb + '</span> has.' : 'there is nothing to bridge: one side has nothing the other lacks.';
+    C4C = c4; C4S = document.createElement('canvas'); C4S.width = c4.g.canvas.width; C4S.height = c4.g.canvas.height; C4S.getContext('2d').drawImage(c4.g.canvas, 0, 0);
     $('l4').innerHTML = ab.map(function (p) { return li(swatch(ca) + esc(F.n[p[0]]) + ' <span class="m">to</span> ' + swatch(cb) + esc(F.n[p[1]])); }).join('') +
       ba.map(function (p) { return li(swatch(cb) + esc(F.n[p[0]]) + ' <span class="m">to</span> ' + swatch(ca) + esc(F.n[p[1]])); }).join('');
 
@@ -392,8 +393,8 @@
       m.path.concat(m.set.order).forEach(function (i) { var dx = pad + F.xy[i][0] * sc - x, dy = pad + F.xy[i][1] * sc - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } });
       var el = $('t6');
       if (best < 0) { el.textContent = 'nothing there. tap closer to a shape.'; return; }
-      var st = m.path.indexOf(best);
-      el.innerHTML = '<b>' + esc(F.n[best]) + '</b>' + (st >= 0 ? ' · step ' + st + ' of the walk' : ' · on the list, not visited');
+      var st = m.path.indexOf(best), last = m.path.length - 1;
+      el.innerHTML = '<b>' + esc(F.n[best]) + '</b>' + (st >= 0 ? ' · step ' + st + ' of ' + last + (st < last ? ', then ' + esc(F.n[m.path[st + 1]]) : ', the last stop') : ' · on the list, not visited');
     };
   }
   function mrLine(el, who, w, set, whose) {
@@ -424,8 +425,8 @@
       mrLine($('l6b'), 'your habits on my list', w2, MR.OWN, 'my top 200');
       if (fit.gap > 0.5 || fit.n < 20) $('l6b').innerHTML += ' <b>weak fit</b> (' + fit.n + ' pairs, gap ' + fit.gap.toFixed(2) + ').';
     };
-    f.textContent = 'the dial scales how hard each rule repeats pairs that already ran. higher: tighter loops, fewer distinct artists. lower: wider drift.';
-    $('g6').innerHTML = '<span style="color:' + COL.o + '">violet</span> = auto-play\'s dials on side a\'s list. <span style="color:' + COL.a + '">ice</span> = habits learned from side a, walking my list. white star = the start.';
+    f.textContent = 'the dial scales how hard each rule repeats pairs that already played. higher: tighter loops, fewer distinct artists. lower: wider drift.';
+    $('g6').innerHTML = '<span style="color:' + COL.o + '">violet</span> = auto-play\'s dials on side a\'s list. <span style="color:' + COL.a + '">pink</span> = habits learned from side a, walking my list. white star = the start.';
     var sig = mrSig(A);
     if (MR.fits[sig]) go(MR.fits[sig]);
     else { go(null); mrFit(A, function (fit) { if (A === S.a) go(fit); }); }
@@ -451,29 +452,36 @@
   }
 
   // ---- hear the closest crossing: one 30 s preview each side, 12 s apiece ----
-  function stopHear(msg) {
-    PLAYING++; if (AU) { try { AU.pause(); } catch (x) {} }
-    $('hear').textContent = 'hear the closest crossing'; $('t4').textContent = msg || '';
+  function c4pulse() {
+    if (!HEAR || !C4S) return;
+    var c = C4C, g = c.g; g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(C4S, 0, 0);
+    WK.pulse(g, c.X(F.xy[HEAR.i][0]), c.Y(F.xy[HEAR.i][1]), HEAR.col, 12 * c.d);
   }
-  function playOne(i, side, token, next) {
+  function stopHear(msg) {
+    PLAYING++; HEARING = false; HEAR = null; WK.still(); if (AU) { try { AU.pause(); } catch (x) {} }
+    if (C4S) { var g = C4C.g; g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(C4S, 0, 0); }
+    $('hear').textContent = 'hear the closest pair, one per side'; $('t4').textContent = msg || '';
+  }
+  function playOne(i, side, token, next, step, other) {
     var e = PV && PV.a ? PV.a[F.n[i]] : null;
     if (!e || !e[1]) { next(); return; }
     if (!AU) { AU = new Audio(); AU.preload = 'auto'; }
     AU.src = e[1]; AU.currentTime = 0;
-    $('t4').innerHTML = 'now: <span style="color:' + col(side) + '">' + esc(F.n[i]) + '</span> · ' + esc(e[0]);
+    $('t4').innerHTML = 'step ' + step + ' of 2: <span style="color:' + col(side) + '">' + esc(F.n[i]) + '</span> · ' + esc(e[0]) + (step < 2 ? ', then <span style="color:' + col(side === 'a' ? 'b' : 'a') + '">' + esc(F.n[other]) + '</span>' : '');
+    HEAR = { i: i, col: col(side) }; WK.live(c4pulse);
     var q; try { q = AU.play(); } catch (x) { q = null; }
     if (q && q.catch) q.catch(function () { if (token === PLAYING) stopHear('the preview did not play here.'); });
     setTimeout(function () { if (token === PLAYING) next(); }, 12000);
   }
   function hear() {
-    if ($('hear').textContent === 'stop') { stopHear(); return; }
+    if (HEARING) { stopHear(); return; }
     if (!CROSS) { $('t4').textContent = 'no crossing to hear yet.'; return; }
     var token = ++PLAYING, pair = CROSS;
-    $('hear').textContent = 'stop'; $('t4').textContent = 'loading the previews';
+    HEARING = true; $('hear').textContent = 'stop the preview'; $('t4').textContent = 'loading the previews';
     var go = function () {
       playOne(pair[0], 'a', token, function () {
-        playOne(pair[1], 'b', token, function () { if (token === PLAYING) stopHear('two 12-second previews from Apple Music, one per side.'); });
-      });
+        playOne(pair[1], 'b', token, function () { if (token === PLAYING) stopHear('two 12-second previews from Apple Music, one per side.'); }, 2, pair[0]);
+      }, 1, pair[1]);
     };
     if (PV) { go(); return; }
     fetch('../../front/data/pv.json').then(function (r) { return r.json(); }).then(function (d) { PV = d; if (token === PLAYING) go(); })

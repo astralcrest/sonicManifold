@@ -11,19 +11,28 @@ function nearest(px, py) {
 function draw() {
   MAP.begin();
   var g = MAP.g, small = MAP.W < 500, i, r = small ? 4.5 : 6.5;
+  var k, j, lit = function (q) { return S.all || S.heard[q]; };
+  g.save(); g.lineWidth = 0.7; g.strokeStyle = PAL.ice; g.globalAlpha = S.all ? 0.16 : 0.3; g.beginPath();
   for (i = 0; i < D.xy.length; i++) {
-    if (!S.all && !S.heard[i]) continue;
-    P.peb(g, i, MAP.X(i), MAP.Y(i), r, WK.FAMC[D.fam[D.f[i]]] || '#9a90b8');
+    if (!lit(i)) continue;
+    for (k = 0; k < D.nn[i].length; k++) { j = D.nn[i][k]; if (j > i && lit(j)) { g.moveTo(MAP.X(i), MAP.Y(i)); g.lineTo(MAP.X(j), MAP.Y(j)); } }
+  }
+  g.stroke(); g.restore();
+  for (i = 0; i < D.xy.length; i++) {
+    if (!lit(i)) continue;
+    var rr = (small ? 1.8 : 2.4) + Math.sqrt(D.pl[i] || 1) * (small ? 0.16 : 0.22);
+    P.peb(g, i, MAP.X(i), MAP.Y(i), Math.min(r * 1.6, rr), WK.FAMC[D.fam[D.f[i]]] || '#9a90b8');
   }
   if (S.cur >= 0) {
     P.glyph(g, 'dot', MAP.X(S.cur), MAP.Y(S.cur), 8, PAL.ice);
-    g.save(); g.strokeStyle = PAL.ice; g.lineWidth = 1.5; g.beginPath(); g.arc(MAP.X(S.cur), MAP.Y(S.cur), 12, 0, 6.2832); g.stroke(); g.restore();
+    WK.pulse(g, MAP.X(S.cur), MAP.Y(S.cur), PAL.ice, 12);
     MAP.tag(S.cur, S.silent[S.cur] ? D.n[S.cur] + ' (no clip)' : D.n[S.cur], PAL.ink, PAL.night);
   }
 }
 function out() {
   var nf = Object.keys(S.fams).length;
   $('num').innerHTML = '<span class="a">' + (S.all ? D.n.length : S.cnt) + '</span>';
+  $('say').textContent = S.cur >= 0 ? 'heard ' + (S.all ? D.n.length : S.cnt) + ' of ' + D.n.length.toLocaleString('en-US') + '. now at ' + D.n[S.cur] + '.' : 'turn sound on, then drag across the map.';
   $('keylab').textContent = 'artists heard of ' + D.n.length.toLocaleString('en-US') + ', ' + (S.all ? D.fam.length : nf) + ' of ' + D.fam.length + ' families touched';
 }
 function hasClip(i) { return !!(WK.title(i)); }
@@ -33,9 +42,9 @@ function hit(i) {
   if (!S.heard[i]) { S.heard[i] = 1; S.cnt++; S.fams[D.f[i]] = 1; }
   WK.pv().then(function () {
     if (S.cur !== i) return;
-    if (!hasClip(i)) { S.silent[i] = 1; WK.stop(); $('now').textContent = D.n[i] + ': no clip'; draw(); return; }
+    if (!hasClip(i)) { S.silent[i] = 1; WK.stop(); WK.still(); $('now').textContent = D.n[i] + ': no clip'; draw(); return; }
     S.last = i;
-    WK.play([{ i: i, tag: 'a' }], function (k, info) { if (info && S.cur === i) $('now').textContent = 'hearing ' + info.title + ' (' + D.n[info.i] + ')'; });
+    WK.play([{ i: i, tag: 'a' }], function (k, info) { if (info && S.cur === i) { $('now').textContent = 'hearing ' + info.title + ' (' + D.n[info.i] + ')'; WK.live(draw); } else if (!info) { WK.still(); draw(); } });
   });
   draw(); out();
 }
@@ -45,14 +54,14 @@ cv.addEventListener('pointermove', function (e) { if (S.down) hit(at(e)); });
 function up() { S.down = false; }
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
-$('clear').addEventListener('click', function () { WK.stop(); S.heard = {}; S.fams = {}; S.cnt = 0; S.cur = -1; S.last = -1; S.all = false; S.silent = {}; $('now').textContent = 'sound: clips play only when sound is on.'; draw(); out(); });
+$('clear').addEventListener('click', function () { WK.stop(); WK.still(); S.heard = {}; S.fams = {}; S.cnt = 0; S.cur = -1; S.last = -1; S.all = false; S.silent = {}; $('now').textContent = 'sound: clips play only when sound is on.'; draw(); out(); });
 $('all').addEventListener('click', function () { S.all = true; draw(); out(); });
 $('hear').addEventListener('click', function () {
   var i = S.cur >= 0 ? S.cur : S.last;
-  if (i < 0) { $('now').textContent = 'drag across the map first.'; return; }
+  if (i < 0) { $('now').textContent = 'drag across the map first, then replay.'; return; }
   WK.pv().then(function () {
     if (!hasClip(i)) { $('now').textContent = D.n[i] + ': no clip'; return; }
-    WK.play([{ i: i, tag: 'a' }], function (k, info) { if (info) $('now').textContent = 'hearing ' + info.title + ' (' + D.n[info.i] + ')'; });
+    WK.play([{ i: i, tag: 'a' }], function (k, info) { if (info) { $('now').textContent = 'hearing ' + info.title + ' (' + D.n[info.i] + ')'; WK.live(draw); } else { WK.still(); draw(); } });
   });
 });
 

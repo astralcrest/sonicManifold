@@ -19,7 +19,7 @@
 #pair { --acc: var(--ice); } #clear { --acc: var(--mint); } #hear { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="18 of 18" data-line="drag a finger from one star to another. the shortest way draws beside yours." data-keys="press,alike" style="--act: var(--mint); --acc: var(--mint)">
+<body data-wall="18 of 18" data-line="drag a line between two artists. your way in mint; the shortest way through sound in ice." data-do="drag from star to star, let go. then walk either way and hear every stop." data-keys="press,alike" style="--act: var(--mint); --acc: var(--mint)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>draw the long way</span><span class="tl">a toy</span></p>
@@ -38,16 +38,17 @@
     </div>
     <section>
       <div class="row" style="margin-top:0">
-        <button type="button" id="pair">give me two stars</button>
+        <button type="button" id="wm" aria-pressed="false" style="--acc:var(--mint)" disabled>walk my way, stop by stop</button>
+        <button type="button" id="ws" aria-pressed="false" style="--acc:var(--ice)" disabled>walk the short way</button>
+        <button type="button" id="pair">two new stars</button>
         <button type="button" id="clear">clear</button>
-        <button type="button" id="hear" aria-pressed="false">hear the end</button>
       </div>
-      <p class="note" id="now">sound: the end star plays a preview only after you tap hear, and only when sound is on.</p>
+      <p class="note" id="now">press any star to hear it. after a line, each walk plays its stops in order, 30 s each, and the pulse shows where you are.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>press on a star and drag across the map to another.</p>
-      <p>your line lands on each star you cross, in order.</p>
-      <p>let go: the shortest way draws beside it in ice blue.</p>
+      <p>press on a star, drag to another, let go.</p>
+      <p>read the two lines: mint = the stars you crossed, ice = the fewest hops through what sounds alike.</p>
+      <p>walk either one: every stop plays, the pulse marks where you are.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>a toy on the sound map. a step is one hop from one artist to the next you crossed; a link joins each artist to the six that sound nearest.</p>

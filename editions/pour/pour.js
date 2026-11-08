@@ -2,7 +2,7 @@
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, LOOP, MAP, cv = $('cv');
 var STEPS = 100, HELD = 64, TOP = 60, TABOO = 12, COLW = 38;
-var S = { p: HELD, seed: 20261106, path: [], who: [], rank: [], dirty: true, tilt: false, sm: HELD };
+var S = { p: HELD, seed: 20261106, path: [], who: [], rank: [], hear: null, dirty: true, tilt: false, sm: HELD };
 
 function shuffled(seed) {
   var r = LOOP.rng(seed), a = [], i, j, t;
@@ -53,6 +53,7 @@ function draw() {
   }
   a = pt(S.path[0]); P.rings(g, a[0], a[1], PAL.ink, 14); MAP.tag(S.path[0], 'start', PAL.ink, PAL.night);
   MAP.tag(S.path[n - 1], D.n[S.path[n - 1]], PAL.ink, PAL.night);
+  if (S.hear) { b = pt(S.hear.i); WK.pulse(g, b[0], b[1], S.hear.col, 12); }
   // the column: step 1 at the top, step 100 at the bottom
   cell = (y1 - y0) / STEPS;
   g.save(); g.lineCap = 'round';
@@ -78,7 +79,8 @@ function out() {
   $('num').innerHTML = '<span class="a">' + S.p + '</span>';
   $('say').textContent = s.auto + ' of the 100 steps are auto-play\'s, ' + mine + ' are mine. the night touches ' + s.fams + ' of ' + D.fam.length + ' families. ' + (S.p === HELD ? 'this is the setting that matches my log.' : 'the setting that matches my log is ' + HELD + '.');
 }
-function update() { build(); draw(); out(); WK.stop(); hearLabel(); }
+var NOW0 = 'tap any shape on the map, or hear steps 1 to 8. sound must be on.';
+function update() { WK.stop(); WK.still(); S.hear = null; build(); draw(); out(); $('now').textContent = NOW0; hearLabel(); }
 function setP(p) { S.p = Math.max(0, Math.min(100, Math.round(p))); $('pl').value = S.p; update(); }
 
 $('pl').addEventListener('input', function () { setP(+this.value); });
@@ -86,13 +88,18 @@ $('mylog').addEventListener('click', function () { setP(HELD); });
 $('again').addEventListener('click', function () { S.seed = (S.seed * 1103515245 + 12345) >>> 0; S.rank = shuffled(S.seed); update(); });
 
 var playing = false;
-function hearLabel() { playing = WK.playing(); $('hear').setAttribute('aria-pressed', playing ? 'true' : 'false'); $('hear').textContent = playing ? 'stop' : 'hear the first 8'; }
+function hearLabel() { playing = WK.playing(); $('hear').setAttribute('aria-pressed', playing ? 'true' : 'false'); $('hear').textContent = playing ? 'stop the clips' : 'hear steps 1 to 8'; }
 $('hear').addEventListener('click', function () {
   if (WK.playing()) { WK.stop(); hearLabel(); return; }
   var list = [], k;
   for (k = 1; k <= 8; k++) list.push({ i: S.path[k], tag: S.who[k - 1] ? 'a' : 'b' });
   WK.play(list, function (k, info) {
-    $('now').textContent = info ? 'hearing ' + info.title + ' (' + D.n[info.i] + '), step ' + (k + 1) + ' of 8' : 'sound: previews play only after you tap hear, and only when sound is on.';
+    if (info) {
+      var nx = k < 7 ? ', then ' + D.n[S.path[k + 2]] : '';
+      S.hear = { i: info.i, col: S.who[k] ? PAL.violet : PAL.mint };
+      $('now').textContent = 'step ' + (k + 1) + ' of 8: ' + D.n[info.i] + nx + '. hearing ' + info.title + (S.who[k] ? ' (auto-play)' : ' (my press)');
+      WK.live(draw);
+    } else { S.hear = null; WK.still(); draw(); $('now').textContent = NOW0; }
     hearLabel();
   });
 });
@@ -130,7 +137,13 @@ addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(funct
 
 WK.boot().then(function (b) {
   D = b.D; M = b.M; LOOP = b.LOOP;
-  MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5 }); MAP.resize(); fit();
+  MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5, tap: function (i) {
+    WK.play([{ i: i, tag: 'tap' }], function (k, info) {
+      if (info) { S.hear = { i: i, col: WK.FAMC[D.fam[D.f[i]]] || PAL.ice }; $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[i]; WK.live(draw); }
+      else { S.hear = null; WK.still(); draw(); $('now').textContent = NOW0; }
+      hearLabel();
+    });
+  } }); MAP.resize(); fit();
   S.rank = shuffled(S.seed); update();
   $('meta').textContent = 'data: ' + D.n.length + ' artists on my sound map, ' + STEPS + ' steps per pour.';
   requestAnimationFrame(frame);

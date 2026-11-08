@@ -96,6 +96,7 @@
       if (any && bent[i] !== r[i][0]) { q = bp[i]; sqr(ROSE, q[0], q[1], sq, i <= step, 'dot'); }
     }
     var cur = px(any ? bent[step] : r[step][0]);
+    if (listening && PV && PV[curArtist()]) WK.pulse(ctx, cur[0], cur[1], any && bent[step] !== r[step][0] ? ROSE : COL[r[step][2]], sq + 6);
     if (PK) PK.rings(ctx, cur[0], cur[1], '#efe9ff', sq + 8);
     else { ctx.strokeStyle = '#efe9ff'; ctx.lineWidth = 2; ctx.strokeRect(cur[0] - sq, cur[1] - sq, sq * 2, sq * 2); }
   }
@@ -106,7 +107,7 @@
     var arm = bent[step] !== t[0] ? 'bent by you' : ({ press: 'i pressed', shuffle: 'shuffle picked', queue: 'auto-play picked' })[t[2]];
     $('now').innerHTML = '';
     var s = document.createElement('span'); s.textContent = (M.n[a] || '') + (title ? ' · ' + title : ''); $('now').appendChild(s);
-    var sm = document.createElement('small'); sm.textContent = 'song ' + (step + 1) + ' of ' + r.length + ' · ' + arm; $('now').appendChild(sm);
+    var sm = document.createElement('small'); var nx = step < r.length - 1 ? M.n[presses.length ? bent[step + 1] : r[step + 1][0]] : null; sm.textContent = 'step ' + (step + 1) + ' of ' + r.length + ': ' + (M.n[a] || '') + (nx ? ', then ' + nx : ', end of evening') + ' · ' + arm; $('now').appendChild(sm);
     var y = yourBend(), m = myBend(), v = $('verdict'); v.innerHTML = '';
     $('bend').textContent = y === null ? 'none yet' : y.n ? y.m.toFixed(2) : 'none';
     function line(lab, val) { var d = document.createElement('div'); d.textContent = lab + ': ' + val; v.appendChild(d); }
@@ -114,7 +115,7 @@
     line('my presses that evening', m === null ? 'none' : m.toFixed(2) + ' of the map, a different measure');
     var cnt = { press: 0, shuffle: 0, queue: 0 }; r.forEach(function (x) { cnt[x[2]]++; });
     $('ev').textContent = 'an evening in ' + H.ev[ev].s + ' · evening ' + (ev + 1) + ' of ' + H.ev.length + ' · of these ' + r.length + ' plays: i pressed ' + cnt.press + ', shuffle picked ' + cnt.shuffle + ', auto-play picked ' + cnt.queue + '.';
-    $('back').disabled = step === 0; var last = step >= r.length - 1; $('skip').textContent = last ? 'another evening' : 'skip'; if (last) $('now').lastChild.textContent += ' · end of evening';
+    $('back').disabled = step === 0; var last = step >= r.length - 1; $('skip').textContent = last ? 'next evening' : 'swap next song';
   }
 
   function hash() {
@@ -128,7 +129,7 @@
     if (!p) { stopAudio(); $('now').lastChild.textContent += ' · no preview of this artist'; return; }
     $('now').lastChild.textContent += ' · a preview of this artist'; try { aud.src = p[1]; var pr = aud.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {}
   }
-  function render() { text(); draw(); hash(); syncAudio(); poke(); }
+  function render() { text(); draw(); hash(); syncAudio(); if (listening && PV && PV[curArtist()]) WK.live(draw); else WK.still(); }
 
   function tick() {
     clearTimeout(timer);
@@ -146,7 +147,7 @@
     compute(); playing = step < real().length - 1; render(); tick();
   }
   function doReset() {
-    listening = false; stopAudio(); $('hear').setAttribute('aria-pressed', 'false'); $('hear').textContent = 'listen';
+    listening = false; stopAudio(); $('hear').setAttribute('aria-pressed', 'false'); $('hear').textContent = 'hear this song';
     load(Math.floor(Math.random() * H.ev.length), 0, []);
   }
   $('skip').onclick = function () {
@@ -164,11 +165,18 @@
   $('reset').onclick = doReset;
   $('hear').onclick = function () {
     var b = $('hear');
-    if (listening) { listening = false; stopAudio(); b.setAttribute('aria-pressed', 'false'); b.textContent = 'listen'; return; }
-    listening = true; b.setAttribute('aria-pressed', 'true'); b.textContent = 'stop';
+    if (listening) { listening = false; stopAudio(); b.setAttribute('aria-pressed', 'false'); b.textContent = 'hear this song'; render(); return; }
+    listening = true; b.setAttribute('aria-pressed', 'true'); b.textContent = 'stop sound';
     if (PV) syncAudio();
-    else { $('now').lastChild.textContent += ' · loading previews'; fetch('../loop/data/pv.json').then(function (r) { return r.json(); }).then(function (j) { PV = j.a; syncAudio(); }).catch(function () { PV = {}; }); }
+    else { $('now').lastChild.textContent += ' · loading previews'; fetch('../loop/data/pv.json').then(function (r) { return r.json(); }).then(function (j) { PV = j.a; render(); }).catch(function () { PV = {}; }); }
   };
+  cv.addEventListener('pointerdown', function (e) {
+    var b = cv.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top, r = real(), best = -1, bd = 16, i, p, d;
+    for (i = 0; i < r.length; i++) { p = px(r[i][0]); d = Math.hypot(p[0] - x, p[1] - y); if (d < bd) { bd = d; best = i; } }
+    if (best < 0) return;
+    clearTimeout(resumeT); step = best; playing = false; stopAudio(); render();
+    resumeT = setTimeout(function () { if (step < real().length - 1) { playing = true; tick(); } }, 3000);
+  });
   document.addEventListener('visibilitychange', function () { if (document.hidden) { clearTimeout(timer); stopAudio(); } else { if (listening) syncAudio(); tick(); } });
   var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(size, 120); });
 

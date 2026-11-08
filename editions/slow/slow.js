@@ -48,7 +48,8 @@ function draw() {
     P.ribbon(g, [[MAP.X(cur.i), MAP.Y(cur.i)], [MAP.X(cur.near), MAP.Y(cur.near)]], PAL.ink, PAL.violet, 2, 0.95);
     P.glyph(g, 'ring', MAP.X(cur.near), MAP.Y(cur.near), 6, PAL.violet);
     P.rings(g, MAP.X(cur.i), MAP.Y(cur.i), PAL.ink, 20);
-    MAP.tag(cur.i, name(cur.i), C.ink, C.night);
+    MAP.tag(cur.i, name(cur.i), C.ink, C.night); MAP.tag(cur.near, 'nearest it reached', PAL.violet, C.night);
+    WK.pulse(g, MAP.X(cur.i), MAP.Y(cur.i), PAL.ink, 20);
   }
 }
 
@@ -66,8 +67,8 @@ function show() {
   $('play').classList.toggle('go', !S.on);
   $('play').setAttribute('aria-pressed', S.on ? 'true' : 'false');
   $('who').textContent = s ? name(s.i) : '';
-  $('dline').innerHTML = s ? 'the nearest artist auto-play reached is <b>' + Math.round(s.d) + '</b> away on a map 1000 wide' : '';
-  $('slot').textContent = s ? 'song ' + (S.k + 1) + ' of ' + SONGS.length : '';
+  $('dline').innerHTML = s ? 'the closest auto-play ever came: <b>' + name(s.near) + '</b>, the violet ring, <b>' + Math.round(s.d) + '</b> away on a map 1000 wide.' : '';
+  $('slot').textContent = s ? 'song ' + (S.k + 1) + ' of ' + SONGS.length + '. stay 30 s and the count goes up. tap any bright shape to jump to it.' : '';
   if (!s) $('bar').style.width = '0';
   draw();
 }
@@ -84,11 +85,11 @@ function start() {
   if (S.on) return;
   S.on = true; S.last = performance.now(); $('msg').textContent = '';
   playK(S.k < 0 ? 0 : S.k);
-  S.tick = setInterval(step, 250);
+  S.tick = setInterval(step, 250); WK.live(draw);
 }
 function stop() {
   try { AU.pause(); } catch (e) {}
-  S.on = false; S.listen = 0; clearInterval(S.tick); S.tick = null;
+  S.on = false; S.listen = 0; clearInterval(S.tick); S.tick = null; WK.still();
   show();
 }
 function step() {
@@ -102,7 +103,12 @@ function step() {
 }
 AU.addEventListener('ended', function () { if (S.on) playK(S.k + 1); });
 
-function leave() { S.listen = 0; S.credited = false; $('msg').textContent = 'next listener. the count restarts at zero seconds.'; }
+function leave() { S.listen = 0; S.credited = false; $('msg').textContent = 'you left. next song, and the stay clock restarts at zero.'; if (S.on) playK(S.k + 1); else { S.k = (S.k + 1) % SONGS.length; start(); } }
+function tapAt(i) {
+  var k = -1; SONGS.forEach(function (s, j) { if (s.i === i) k = j; });
+  if (k < 0) { $('msg').textContent = VIS.indexOf(i) >= 0 ? D.n[i] + ': auto-play did reach this one. the bright shapes are the twelve it never did.' : D.n[i] + ' has no clip here. tap a bright shape.'; return; }
+  S.listen = 0; S.credited = false; S.k = k; if (S.on) playK(k); else { S.k = k; start(); }
+}
 function reset() { stop(); S.stays = 0; S.credited = false; S.listen = 0; S.k = -1; $('msg').textContent = ''; drawStays(); show(); }
 function bump() { clearTimeout(S.idle); S.idle = setTimeout(function () { if (S.on || S.stays) reset(); }, 120000); }
 ['pointerdown', 'keydown'].forEach(function (e) { document.addEventListener(e, bump, true); });
@@ -115,7 +121,7 @@ addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(funct
 
 Promise.all([WK.boot(), WK.pv()]).then(function (a) {
   D = a[0].D; M = a[0].M; FIT = a[0].FIT; LOOP = a[0].LOOP; PV = a[1];
-  MAP = new WK.Map($('map'), $('cv'), D, M, { dim: 0.32 }); MAP.resize();
+  MAP = new WK.Map($('map'), $('cv'), D, M, { dim: 0.32, tap: tapAt }); MAP.resize();
   choose();
   var dm = SONGS.map(function (s) { return s.d; });
   $('what').textContent = 'what plays: 30 s preview clips from the public catalog, one at a time, only after a tap, from the ' + SONGS.length + ' artists farthest from anything the fitted auto-play rule reached in ' + RUNS + ' runs. never my own album here.';

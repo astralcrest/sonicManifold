@@ -21,7 +21,7 @@
 #reset { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="10 of 12" data-line="two pulls on one point: toward what sounds alike, toward what i played most." data-keys="auto,press,alike" style="--act: var(--rose); --acc: var(--ice)">
+<body data-wall="10 of 12" data-line="one point, two pulls: violet toward what sounds alike, mint toward what i played most." data-do="hold a pull button. the point moves, plays what it reaches, and the path colors by who won." data-keys="auto,press,alike" style="--act: var(--rose); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>tug of two hands</span><span class="tl">a toy</span></p>
@@ -31,7 +31,7 @@
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span class="c">-</span></div>
-      <span class="keylab" id="numlab">the pull ended</span>
+      <span class="keylab" id="numlab">who moved the point, out of 100</span>
       <div class="lab2"><span class="a">auto-play's lean</span><span class="b">my press</span></div>
       <p class="say" id="say">pull a handle to start. two fingers or two people.</p>
     </div>
@@ -40,13 +40,14 @@
       <p class="ask"><b>open question:</b>when the pulls agree, who is steering?</p>
     </div>
     <section>
-      <div class="row" style="margin-top:0"><button type="button" id="reset">start over</button></div>
-      <p class="note" id="now">sound: a short preview plays when the point reaches a new artist.</p>
+      <div class="row" style="margin-top:0"><button type="button" id="pa" aria-pressed="false" style="--acc:var(--violet)">hold: pull to what sounds alike</button><button type="button" id="pb" aria-pressed="false" style="--acc:var(--mint)">hold: pull to what i played most</button></div>
+      <div class="row"><button type="button" id="reset">start over</button></div>
+      <p class="note" id="now">hold one button, or both at once (two fingers, or two people). the point plays each artist it reaches.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>drag the ring in from the left, the star from the right.</p>
-      <p>farther in = a harder pull. mouse: left half ring, right half star.</p>
-      <p>the ribbon is violet where the ring won, mint where the star did.</p>
+      <p>hold a pull button, or drag a handle inward on the map.</p>
+      <p>hold both: the pulls fight. the point goes where the stronger one says.</p>
+      <p>read the path: violet where sound won, mint where my plays won.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>a toy rule on this screen, not my data. the ring pulls toward the nearest artist in sound; the star pulls toward the most played artist within reach.</p>

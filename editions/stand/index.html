@@ -23,7 +23,7 @@
 #go { --acc: var(--ice); } #clear { --acc: var(--mint); } #hear { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="19 of 21" data-line="type artists you like. a white ring marks where they sit on my map." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
+<body data-wall="19 of 21" data-line="type artists you like. the white ring is where you stand on my map; the list is who sits nearest you." data-do="type one to five artists, pick each from the list, press place me. tap any shape or name to hear it." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>stand where it puts you</span><span class="tl">a toy</span></p>
@@ -33,7 +33,7 @@
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span>-</span></div>
-      <span class="keylab">of 14 families sit within the nearest ten</span>
+      <span class="keylab">kinds of music (of 14) among the ten nearest</span>
       <p class="say" id="say">type one to five artists you like, then press place me.</p>
     </div>
     <div class="lines">
@@ -50,17 +50,17 @@
       </fieldset>
       <datalist id="dl"></datalist>
       <div class="row">
-        <button type="button" id="go">place me</button>
+        <button type="button" id="go">place me on the map</button>
         <button type="button" id="clear">clear</button>
-        <button type="button" id="hear" aria-pressed="false">hear the nearest</button>
+        <button type="button" id="hear" aria-pressed="false">hear the ten nearest, one by one</button>
       </div>
       <ul class="near" id="near" aria-label="the ten nearest artists to your mark"></ul>
-      <p class="note" id="now">sound: the nearest artist plays a preview only after you tap hear, and only when sound is on.</p>
+      <p class="note" id="now">sound: a preview plays only after you tap, and only when sound is on.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>type artists you like. pick each from the list.</p>
-      <p>press place me. each one lights as an ice dot on the map.</p>
-      <p>the white ring is their middle. its ten nearest are listed.</p>
+      <p>type artists you like, picking each from the list.</p>
+      <p>press place me. a white ring lands at their middle.</p>
+      <p>tap a dot to hear it. colors are sound families.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>the mark is the plain mean of the positions you typed, on my sound map.</p>

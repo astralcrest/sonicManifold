@@ -27,7 +27,7 @@
 .hide { display: none !important; }
 </style>
 </head>
-<body data-wall="9" data-line="faint shapes: where auto-play walked. bright shapes: songs it never reached." data-keys="auto,alike" style="--act: var(--ink); --acc: var(--ink)">
+<body data-wall="9" data-line="faint violet: every artist auto-play reached in 40 walks. bright white: twelve it never did." data-do="tap play, or tap any bright shape. stay 30 s, or tap leaving to skip." data-keys="auto,alike" style="--act: var(--ink); --acc: var(--ink)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the slow room</span><span class="tl">a toy</span></p>
@@ -41,7 +41,7 @@
       <div class="stays" id="stays" role="img" aria-label="no stays yet"></div>
     </div>
     <section>
-      <div class="row" style="margin-top:0"><button type="button" class="go" id="play">play</button><button type="button" id="leave">i am leaving</button><button type="button" id="reset">start over</button></div>
+      <div class="row" style="margin-top:0"><button type="button" class="go" id="play">play</button><button type="button" id="leave">i am leaving: next song</button><button type="button" id="reset">start over</button></div>
       <div class="nowbox" aria-live="polite">
         <p class="who" id="who"></p>
         <p class="dline" id="dline"></p>
@@ -56,9 +56,9 @@
     </div>
     <p class="store">nothing is stored. the count lives in this tab tonight and is gone after.</p>
     <details class="how"><summary>how</summary>
-      <p>twelve artists auto-play never reached, in random order.</p>
-      <p>30 s previews, one at a time, only after a tap.</p>
-      <p>stay past 30 s and the count goes up.</p>
+      <p>tap play: a song auto-play never reached starts.</p>
+      <p>stay 30 s and the count goes up. leaving skips ahead.</p>
+      <p>tap any bright shape to jump to that one.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p id="what">what plays: </p>

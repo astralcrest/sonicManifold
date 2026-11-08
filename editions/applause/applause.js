@@ -1,8 +1,8 @@
 (function () {
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, LOOP, FIT, MAP, cv = $('cv');
-var COOL = 3000, REFRACT = 280, SCALE = 0.5, LEN = 70;
-var S = { L: [], idx: 0, active: false, level: 0, base: 0.02, lastClap: 0, lastAdv: 0, flash: 0, c: 0, s: 0, token: 0, dirty: true };
+var COOL = 3000, REFRACT = 280, SCALE = 0.2, LEN = 70;
+var S = { L: [], idx: 0, active: false, level: 0, base: 0.02, lastClap: 0, lastAdv: 0, flash: 0, c: 0, s: 0, token: 0, dirty: true, tapI: -1 };
 var A = { ctx: null, an: null, st: null, buf: null };
 
 function key() { var d = new Date(); return 'sm_applause_' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
@@ -11,18 +11,19 @@ function save() { try { localStorage.setItem(key(), JSON.stringify({ c: S.c, s: 
 
 function out(msg) {
   $('num').innerHTML = '<span class="r">' + S.c + '</span> <span class="c">/</span> <span class="g">' + S.s + '</span>';
-  if (msg) $('say').textContent = msg;
-  else $('say').textContent = 'claps tonight ' + S.c + ', songs advanced ' + S.s + ', on this tablet only.';
+  var step = S.active ? 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + D.n[S.L[S.idx]] + (S.L[S.idx + 1] != null ? ', then ' + D.n[S.L[S.idx + 1]] : ', the last one') + '.' : '';
+  $('say').textContent = msg ? msg + (step ? ' ' + step : '') : (step || 'tap listen for claps, allow the mic, then clap. no mic? tap clap for me.');
 }
 function thr() { return +$('thr').value / 100; }
 
 function playCur() {
-  var my = ++S.token;
+  var my = ++S.token; S.tapI = -1;
   if (!S.active) return;
   WK.play([{ i: S.L[S.idx], tag: 'a' }], function (k, info) {
     if (my !== S.token) return;
-    if (k < 0) { setTimeout(function () { if (my === S.token && S.active) playCur(); }, 400); return; }
-    $('now').textContent = 'now: ' + info.title + ' (' + D.n[info.i] + ')' + (WK.sound() ? '' : '. sound is off; tap the sound chip to hear it.');
+    if (k < 0) { WK.still(); setTimeout(function () { if (my === S.token && S.active) playCur(); }, 400); return; }
+    $('now').textContent = 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + info.title + ' by ' + D.n[info.i] + (WK.sound() ? '' : '. sound is off; tap the sound chip to hear it.');
+    WK.live(function () { S.dirty = true; });
   });
 }
 function advance() {
@@ -57,6 +58,7 @@ function draw(now) {
   if (pts.length > 1) P.ribbon(g, pts, PAL.violet, PAL.violet, small ? 1.8 : 2.4, 0.9);
   for (k = from; k < S.idx; k++) P.glyph(g, 'ring', pts[k - from][0], pts[k - from][1], small ? 4 : 5, PAL.violet);
   a = pt(S.L[S.idx]); P.glyph(g, 'ring', a[0], a[1], small ? 8 : 10, PAL.violet); P.rings(g, a[0], a[1], PAL.ink, 16);
+  if (WK.playing()) { if (S.tapI >= 0) { b = pt(S.tapI); P.peb(g, S.tapI, b[0], b[1], 8, WK.FAMC[D.fam[D.f[S.tapI]]] || PAL.mint); WK.pulse(g, b[0], b[1], PAL.mint, 14); } else WK.pulse(g, a[0], a[1], PAL.violet, 16); }
   MAP.tag(S.L[S.idx], D.n[S.L[S.idx]], PAL.ink, PAL.night);
   var age = now - S.flash;
   if (age < 700) { g.save(); g.strokeStyle = PAL.rose; g.globalAlpha = 1 - age / 700; g.lineWidth = 3; g.beginPath(); g.arc(a[0], a[1], 20 + age / 700 * Math.min(W, H) * 0.35, 0, 6.2832); g.stroke(); g.restore(); }
@@ -72,20 +74,20 @@ function draw(now) {
 
 function listen() {
   if (A.st) { stopMic(); return; }
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { out('no mic here. use tap to clap.'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { out('no mic here. press clap for me.'); return; }
   navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } }).then(function (st) {
     var AC = window.AudioContext || window.webkitAudioContext;
     A.ctx = new AC(); A.st = st; A.an = A.ctx.createAnalyser(); A.an.fftSize = 1024; A.buf = new Float32Array(A.an.fftSize);
     A.ctx.createMediaStreamSource(st).connect(A.an);
     S.active = true; S.base = 0.02; $('listen').setAttribute('aria-pressed', 'true'); $('listen').textContent = 'stop listening';
     out('listening. clap to skip.'); playCur();
-  }, function () { out('the mic was not allowed. use tap to clap.'); S.active = true; playCur(); });
+  }, function () { out('the mic was not allowed. press clap for me.'); S.active = true; playCur(); });
 }
 function stopMic() {
   if (A.st) A.st.getTracks().forEach(function (t) { t.stop(); });
   if (A.ctx) try { A.ctx.close(); } catch (e) {}
-  A.st = null; A.an = null; A.ctx = null; S.active = false; S.token++; WK.stop();
-  $('listen').setAttribute('aria-pressed', 'false'); $('listen').textContent = 'listen'; out(); S.dirty = true;
+  A.st = null; A.an = null; A.ctx = null; S.active = false; S.token++; WK.stop(); WK.still(); S.tapI = -1;
+  $('listen').setAttribute('aria-pressed', 'false'); $('listen').textContent = 'listen for claps'; out(); S.dirty = true;
 }
 $('listen').addEventListener('click', listen);
 $('clap').addEventListener('click', function () {
@@ -95,6 +97,15 @@ $('clap').addEventListener('click', function () {
 $('zero').addEventListener('click', function () { S.c = 0; S.s = 0; save(); out(); });
 $('thr').addEventListener('input', function () { S.dirty = true; });
 window.addEventListener('pagehide', function () { if (A.st) stopMic(); });
+function tap(i) {
+  var my = ++S.token; S.tapI = i;
+  WK.play([{ i: i, tag: 'tap' }], function (k, info) {
+    if (my !== S.token) return;
+    if (k < 0) { S.tapI = -1; WK.still(); S.dirty = true; if (S.active) setTimeout(function () { if (my === S.token && S.active) playCur(); }, 400); return; }
+    $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[i] + '. your tap. the walk resumes after.';
+    WK.live(function () { S.dirty = true; });
+  });
+}
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); S.dirty = true; }, 80); });
 
@@ -104,7 +115,7 @@ WK.boot().then(function (b) {
     var path = LOOP.walk(M, M.order[5], FIT.queue.K, 20261106, 160).path;
     S.L = path.filter(function (i) { return WK.title(i); }).slice(0, LEN);
     if (S.L.length < 3) throw new Error('no previews');
-    MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5 }); MAP.resize();
+    MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5, tap: tap }); MAP.resize();
     load(); out();
     $('meta').textContent = 'data: ' + S.L.length + ' songs with previews along one auto-play walk through ' + D.n.length + ' artists.';
     requestAnimationFrame(tick);

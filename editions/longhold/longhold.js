@@ -34,11 +34,13 @@ function draw() {
     P.peb(g, i, MAP.ox + X[i] * MAP.scl, MAP.oy + Y[i] * MAP.scl, r, col);
   }
   g.globalAlpha = 1;
+  if (S.done && WK.playing()) WK.pulse(g, MAP.ox + X[S.near] * MAP.scl, MAP.oy + Y[S.near] * MAP.scl, PAL.mint, 14);
   if (S.held || S.t > 0) {
     var p = Math.min(1, S.t / SECS), R = (small ? 10 : 12) + p * (small ? 38 : 56);
     g.save(); g.lineWidth = 3; g.strokeStyle = PAL.mint; g.globalAlpha = 0.25; g.beginPath(); g.arc(S.fx, S.fy, R + 14, 0, 6.2832); g.stroke();
     g.globalAlpha = 1; g.beginPath(); g.arc(S.fx, S.fy, R + 14, -1.5708, -1.5708 + p * 6.2832); g.stroke(); g.restore();
     P.glyph(g, 'star', S.fx, S.fy, R * 0.8, PAL.mint);
+    if (S.held && !S.done) WK.pulse(g, S.fx, S.fy, PAL.mint, R + 24);
     g.save(); g.font = '600 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center';
     g.fillText(Math.floor(S.t) + ' s', S.fx, S.fy + R + 40); g.restore();
   }
@@ -46,35 +48,45 @@ function draw() {
 function out() {
   var s = Math.floor(S.t);
   $('num').innerHTML = '<span class="' + (S.t > 0 ? 'm' : 'c') + '">' + s + '</span> <span class="c">/ 60</span>';
-  if (S.done) $('say').textContent = 'settled. ' + D.n[S.near] + ' is the nearest artist to where you held.';
-  else if (S.held) $('say').textContent = 'holding. the map is settling toward your finger.';
-  else if (S.spring >= 0) $('say').textContent = 'springing back.';
-  else $('say').textContent = 'press and hold on the map. keyboard: focus the map and press space.';
+  var t;
+  if (S.done) t = 'second 60 of 60, settled. ' + D.n[S.near] + ' is the nearest artist to where you held' + (WK.playing() ? ', and it is playing.' : '.');
+  else if (S.held) t = 'second ' + s + ' of 60. the artists near ' + D.n[nearestTo(S.fx, S.fy)] + ' are creeping toward your finger. the nearest one plays.';
+  else if (S.spring >= 0) t = 'springing back to where they were.';
+  else t = 'press and hold anywhere on the map. the nearest artist plays at once; keep holding and the map slowly bunches up around your finger. keyboard: focus it, press space.';
+  if ($('say').textContent !== t) $('say').textContent = t;
 }
 function begin(x, y) {
   if (S.held) return;
   WK.stop(); S.held = true; S.t = 0; S.fx = x; S.fy = y; S.done = false; S.spring = -1; S.t0 = performance.now(); S.lastIt = S.t0; S.acc = 0;
-  S.fam = D.f[nearestTo(x, y)];
+  S.fam = D.f[nearestTo(x, y)]; hear(nearestTo(x, y));
   out();
+}
+function hear(i) {
+  if (S.hearing === i) return; S.hearing = i;
+  WK.play([{ i: i, tag: 'a' }], function (k, info) {
+    if (info) { $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[info.i] + ', the nearest to your finger.'; WK.live(function () { draw(); }); }
+    else { S.hearing = -1; WK.still(); draw(); }
+    out();
+  });
 }
 function end() {
   if (!S.held) return;
+  WK.stop(); WK.still(); S.hearing = -1;
   S.held = false;
   if (S.t > 0 || X[0] !== X0[0]) { S.spring = performance.now(); S.springFrom = [Float32Array.from(X), Float32Array.from(Y)]; }
   S.t = S.done ? S.t : 0; S.fam = -1;
   if (!S.done) S.t = 0;
   out();
 }
-function reset() { WK.stop(); S.held = false; S.t = 0; S.done = false; S.fam = -1; S.spring = -1; for (var i = 0; i < N; i++) { X[i] = X0[i]; Y[i] = Y0[i]; } out(); draw(); }
+function reset() { WK.stop(); WK.still(); S.held = false; S.t = 0; S.done = false; S.fam = -1; S.spring = -1; for (var i = 0; i < N; i++) { X[i] = X0[i]; Y[i] = Y0[i]; } out(); draw(); }
 
 function frame(now) {
   var i;
   if (S.held) {
     S.t = Math.min(SECS, (now - S.t0) / 1000);
-    if (now - S.lastIt > 1000 / HZ) { settle(); S.lastIt = now; }
+    if (now - S.lastIt > 1000 / HZ) { settle(); S.lastIt = now; var nn = nearestTo(S.fx, S.fy); if (nn !== S.hearing && Math.floor(S.t) % 8 === 7) hear(nn); }
     if (S.t >= SECS && !S.done) {
-      S.done = true; S.near = nearestTo(S.fx, S.fy);
-      WK.play([{ i: S.near, tag: 'a' }], function (k, info) { if (info) $('now').textContent = 'hearing ' + info.title + ' (' + D.n[info.i] + ')'; });
+      S.done = true; S.near = nearestTo(S.fx, S.fy); hear(S.near);
     }
     out(); draw();
   } else if (S.spring >= 0) {

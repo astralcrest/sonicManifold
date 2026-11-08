@@ -1,11 +1,12 @@
 (function () {
 'use strict';
 var $ = WK.$, C = WK.C, D, M, MAP, PAIRS = [], order = [], oi = 0;
-var S = { phase: 'dark', pair: null, flip: false, p1: -1, p2: -1, same: 0, chg: 0, playing: -1, idle: null };
+var S = { phase: 'dark', pair: null, flip: false, named: false, p1: -1, p2: -1, ns: 0, nc: 0, hs: 0, hc: 0, playing: -1, idle: null };
 var AU = new Audio(); AU.volume = 0.3; AU.preload = 'none';
 
 function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-function opt(k) { return S.pair.o[S.flip ? 1 - k : k]; }
+// round 1 plays the pair; round 2 plays each one's nearest in sound, on the same side
+function opt(k, first) { return (S.phase === 'dark' || first ? S.pair.o : S.pair.pr)[S.flip ? 1 - k : k]; }
 
 function stop() {
   try { AU.pause(); } catch (e) {}
@@ -34,36 +35,41 @@ function drawMap(lit) {
   MAP.begin();
   if (!lit) return;
   var g = MAP.g, P = WK.P;
-  if (lit.length > 1) P.ribbon(g, [[MAP.X(lit[0].i), MAP.Y(lit[0].i)], [MAP.X(lit[1].i), MAP.Y(lit[1].i)]], P.PAL.ice, P.PAL.ink, 1.5, 0.7, [4, 4]);
+  if (S.phase !== 'dark') [0, 1].forEach(function (k) {
+    var a = opt(k, true), b = opt(k);
+    P.ribbon(g, [[MAP.X(a.i), MAP.Y(a.i)], [MAP.X(b.i), MAP.Y(b.i)]], P.PAL.ice, P.PAL.ice, 1.5, 0.8, [4, 4]);
+    g.save(); g.globalAlpha = 0.6; P.peb(g, a.i, MAP.X(a.i), MAP.Y(a.i), 5, WK.FAMC[a.f] || C.mute); g.restore();
+  });
   lit.forEach(function (x) {
     var i = x.i, col = WK.FAMC[D.fam[D.f[i]]] || C.mute;
     P.peb(g, i, MAP.X(i), MAP.Y(i), 7, col);
     P.rings(g, MAP.X(i), MAP.Y(i), x.ring || C.ink, x.rs || 18);
-    MAP.tag(i, x.tag, C.ink, C.night);
+    MAP.tag(i, x.tag, x.ring || C.ink, C.night);
   });
 }
-
+function litNow() {
+  return [0, 1].map(function (k) { var o = opt(k); return { i: o.i, tag: (k ? 'B' : 'A') + (S.named || S.phase === 'result' ? ': ' + o.n : '') + ' (near the first ' + (k ? 'B' : 'A') + ')' }; });
+}
 function resLit() {
-  var a = opt(S.p1), b = opt(S.p2), same = S.p1 === S.p2, o = opt(1 - S.p1);
-  if (same) return [{ i: a.i, tag: 'both: ' + a.n, ring: C.ink, rs: 24 }, { i: o.i, tag: o.n }];
-  return [{ i: a.i, tag: 'dark: ' + a.n, ring: C.ink, rs: 24 }, { i: b.i, tag: 'seen: ' + b.n, ring: C.rose, rs: 24 }];
+  var l = litNow(), same = S.p1 === S.p2;
+  l[S.p2].ring = same ? C.ink : C.rose; l[S.p2].rs = 24; l[S.p2].tag = 'your pick: ' + opt(S.p2).n;
+  return l;
 }
 
 function tally() {
-  var m = S.same + S.chg;
-  $('big').textContent = S.chg + ' of ' + m;
-  $('ns').textContent = S.same; $('nc').textContent = S.chg;
-  $('m1').style.width = (m ? S.same / m * 100 : 0) + '%'; $('m2').style.width = (m ? S.chg / m * 100 : 0) + '%';
-  $('meter').setAttribute('aria-label', 'names changed the pick ' + S.chg + ' of ' + m + ' times tonight');
+  $('big').textContent = S.nc + ' of ' + (S.ns + S.nc);
+  $('big2').textContent = S.hc + ' of ' + (S.hs + S.hc);
+  var n = S.ns + S.nc, h = S.hs + S.hc;
+  $('cmp').textContent = n && h ? 'tonight: with names ' + Math.round(100 * S.nc / n) + ' of 100 switched, without names ' + Math.round(100 * S.hc / h) + ' of 100. if names matter, the first runs higher.' : 'if names matter, the first number runs higher than the second. tonight, in this tab.';
 }
 
 function showPair() {
   stop();
-  S.pair = PAIRS[order[oi % order.length]]; S.flip = Math.random() < 0.5; S.phase = 'dark'; S.p1 = S.p2 = -1;
+  S.pair = PAIRS[order[oi % order.length]]; S.flip = Math.random() < 0.5; S.named = oi % 2 === 0; S.phase = 'dark'; S.p1 = S.p2 = -1;
   document.body.className = 'dark';
-  ['a', 'b'].forEach(function (id) { var sq = $('sq' + id); sq.style.removeProperty('--c'); sq.style.background = ''; $('nm' + id).classList.add('hide'); });
-  $('ph').textContent = 'round 1 of 2: names hidden.';
-  $('hint').textContent = 'tap a card to hear it. tap again to stop. then tap "this one" under your pick.';
+  ['a', 'b'].forEach(function (id) { var sq = $('sq' + id); sq.style.removeProperty('--c'); sq.style.background = ''; $('nm' + id).classList.add('hide'); $('nm' + id).textContent = ''; });
+  $('ph').textContent = 'round 1 of 2: two clips, no names. pick one.';
+  $('hint').textContent = 'tap a card to hear it. then tap "this one" under the one you like more.';
   $('hint').classList.remove('hide');
   $('resbox').classList.add('hide');
   $('pka').classList.remove('on'); $('pkb').classList.remove('on');
@@ -71,41 +77,41 @@ function showPair() {
   drawMap(null);
 }
 
-function showSeen() {
+function showNear() {
   stop();
-  S.phase = 'seen'; document.body.className = 'seen'; if (MAP) MAP.resize();
+  S.phase = 'near'; document.body.className = S.named ? 'seen' : 'dark'; if (MAP) MAP.resize();
   ['a', 'b'].forEach(function (id, k) {
     var o = opt(k), col = WK.FAMC[o.f] || C.mute, sq = $('sq' + id);
-    sq.style.setProperty('--c', col); sq.style.background = col;
-    $('nm' + id).textContent = o.n; $('nm' + id).classList.remove('hide');
-    sq.setAttribute('aria-label', 'clip ' + (k ? 'B' : 'A') + ', ' + o.n + ', ' + o.f + ', tap to hear');
+    if (S.named) { sq.style.setProperty('--c', col); sq.style.background = col; $('nm' + id).textContent = o.n; $('nm' + id).classList.remove('hide'); }
+    sq.setAttribute('aria-label', 'clip ' + (k ? 'B' : 'A') + (S.named ? ', ' + o.n + ', ' + o.f : '') + ', tap to hear');
   });
-  $('ph').textContent = 'round 2 of 2: names shown. same two clips.';
-  $('hint').textContent = 'pick again. a different pick is fine.';
+  $('ph').textContent = 'round 2 of 2: two new clips. A sits next to the first A in sound, B next to the first B. ' + (S.named ? 'names shown.' : 'no names this time.');
+  $('hint').textContent = 'you picked ' + (S.p1 ? 'B' : 'A') + '. hear both new clips, then pick again. switching sides is fine.';
   $('pka').classList.remove('on'); $('pkb').classList.remove('on');
-  var lit = [0, 1].map(function (k) { return { i: opt(k).i, tag: opt(k).n }; });
-  drawMap(lit);
+  drawMap(litNow());
 }
 
 function pick(k) {
-  if (S.phase === 'dark') { S.p1 = k; showSeen(); return; }
-  if (S.phase !== 'seen') return;
+  if (S.phase === 'dark') { S.p1 = k; showNear(); return; }
+  if (S.phase !== 'near') return;
   S.p2 = k; S.phase = 'result'; stop();
-  var same = S.p1 === S.p2; if (same) S.same++; else S.chg++;
+  var same = S.p1 === S.p2;
+  if (S.named) { if (same) S.ns++; else S.nc++; } else { if (same) S.hs++; else S.hc++; }
   $('pka').classList.toggle('on', k === 0); $('pkb').classList.toggle('on', k === 1);
   var r = $('res'); r.className = 'res ' + (same ? 'same' : 'chg');
-  r.textContent = same ? 'same pick with the names shown.' : 'the names changed the pick.';
+  r.textContent = same ? 'same side as before.' : 'you switched sides.';
+  $('com').textContent = S.named ? (same ? 'names shown, and you stayed: the sound held.' : 'names shown, and you switched: a name, or the new clip, pulled you.') : (same ? 'no names, and you stayed.' : 'no names, and you switched: the sound alone moved you.');
   $('ph').textContent = 'result';
   $('hint').classList.add('hide');
   $('resbox').classList.remove('hide');
-  var a = opt(S.p1), b = opt(S.p2);
+  if (!S.named) { document.body.className = 'seen'; if (MAP) MAP.resize(); ['a', 'b'].forEach(function (id, j) { var o = opt(j), col = WK.FAMC[o.f] || C.mute, sq = $('sq' + id); sq.style.setProperty('--c', col); sq.style.background = col; $('nm' + id).textContent = o.n; $('nm' + id).classList.remove('hide'); }); }
   drawMap(resLit());
   tally();
   var rb = $('resbox'); if (rb.scrollIntoView && innerWidth <= 900) rb.scrollIntoView({ block: 'nearest' });
 }
 
-function reset() { S.same = S.chg = 0; tally(); oi = 0; shuffle(order); showPair(); }
-function bump() { clearTimeout(S.idle); S.idle = setTimeout(function () { if (S.same + S.chg > 0 || S.phase !== 'dark') reset(); }, 120000); }
+function reset() { S.ns = S.nc = S.hs = S.hc = 0; tally(); oi = 0; shuffle(order); showPair(); }
+function bump() { clearTimeout(S.idle); S.idle = setTimeout(function () { if (S.ns + S.nc + S.hs + S.hc > 0 || S.phase !== 'dark') reset(); }, 120000); }
 ['pointerdown', 'keydown'].forEach(function (e) { document.addEventListener(e, bump, true); });
 
 $('sqa').addEventListener('click', function () { toggle(0); });
@@ -119,15 +125,12 @@ var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); redraw(); }, 80); });
 function redraw() {
   if (S.phase === 'dark') return drawMap(null);
-  // the phone hides the map in the dark round; size it to the room it now has before the first seen draw
   if (MAP && $('map').clientWidth && $('map').clientWidth !== MAP.W) MAP.resize();
-  var lit = [0, 1].map(function (k) { return { i: opt(k).i, tag: opt(k).n }; });
-  if (S.phase === 'result') lit = resLit();
-  drawMap(lit);
+  drawMap(S.phase === 'result' ? resLit() : litNow());
 }
 
 Promise.all([WK.boot([WK.j('../taste/pairs.json')])]).then(function (a) {
-  D = a[0].D; M = a[0].M; PAIRS = a[0].extra[0].pairs;
+  D = a[0].D; M = a[0].M; PAIRS = a[0].extra[0].pairs.filter(function (p) { return p.pr && p.pr.length === 2; });
   MAP = new WK.Map($('map'), $('cv'), D, M); MAP.resize();
   order = shuffle(PAIRS.map(function (_, i) { return i; }));
   tally(); showPair(); bump();

@@ -42,11 +42,11 @@ button.sq[aria-pressed="true"] { background: #120a24; color: var(--ink); border-
 @media (max-width: 900px) { body.dark #map { display: none; } .sq { max-height: 40vh; } }
 </style>
 </head>
-<body class="dark" data-wall="7" data-line="the same two clips, first with names hidden, then shown. does your pick change?" data-keys="press,alike" style="--act: var(--ice); --acc: var(--ice)">
+<body class="dark" data-wall="7" data-line="two clips with no names, then their two nearest in sound: half the time named, half not." data-do="hear both, pick one. then pick between their two neighbors. do you switch sides?" data-keys="press,alike" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>blind taste, seen taste</span><span class="tl">a toy</span></p>
-    <h1>same pair twice: do <em>names</em> change your pick?</h1>
+    <h1>do <em>names</em> change your pick?</h1>
   </header>
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map: every artist as a shape colored by family; the two artists of this pair are lit once the names are shown"></canvas></div>
   <main id="side">
@@ -60,30 +60,33 @@ button.sq[aria-pressed="true"] { background: #120a24; color: var(--ink); border-
     </section>
     <section id="resbox" class="hide" aria-live="polite">
       <p class="res" id="res"></p>
-      <p id="com">names can move a pick. this counts how often, tonight.</p>
+      <p id="com"></p>
       <div class="row"><button type="button" class="go" id="next">next pair</button></div>
     </section>
     <section aria-live="polite">
       <div class="key" style="margin:0">
         <div class="big ice" id="big">0 of 0</div>
-        <span class="keylab">names changed the pick</span>
+        <span class="keylab">switched sides when the names were shown</span>
       </div>
-      <div class="meter" id="meter" role="img" aria-label="tally"><i id="m1" style="background:var(--ink);width:0"></i><i id="m2" style="background:var(--rose);width:0"></i></div>
-      <div class="mrow"><span><i class="sw" style="background:var(--ink)"></i>same pick <b id="ns">0</b></span><span><i class="sw" style="background:var(--rose)"></i>changed <b id="nc">0</b></span></div>
+      <div class="key" style="margin:12px 0 0">
+        <div class="big" id="big2">0 of 0</div>
+        <span class="keylab">switched sides when the names were hidden</span>
+      </div>
+      <p class="note" id="cmp"></p>
       <div class="row"><button type="button" id="reset">start over</button></div>
     </section>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>the same pair, dark then named; this room counts the switches.</p>
+      <p class="take"><b>takeaway:</b>a fair test: round 2 is never the same clips, so the only thing that differs is the names.</p>
       <p class="ask"><b>open question:</b>how much of taste is the name on the sleeve?</p>
     </div>
     <p class="store">nothing is stored. the tally lives in this tab tonight and is gone after.</p>
     <details class="how"><summary>how</summary>
-      <p>two 30 s clips, one at a time, only after a tap.</p>
-      <p>round 1 hides the names; round 2 shows them.</p>
-      <p>never my own album here.</p>
+      <p>hear A and B, pick the one you like more. no names.</p>
+      <p>round 2: two new clips, each the nearest in sound to one of the first. half the rounds show names.</p>
+      <p>count the switches: more switching with names shown = names move the pick.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>a toy. data: 24 pairs from my sound map, previews from the public catalog.</p>
+      <p>a toy. data: 24 pairs from my sound map, far apart in sound; each one's neighbor is its nearest unused artist on the map. previews from the public catalog. never my own album here.</p>
     </details>
   </main>
 </div>

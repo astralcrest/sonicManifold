@@ -25,17 +25,17 @@
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
 </style>
 </head>
-<body data-wall="11 of 12" data-line="a chain of songs, one hand per link. each hand saw only the last song." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
+<body data-wall="11 of 12" data-line="a chain of songs, one hand per link. each hand saw only the last song." data-do="tap a numbered song to add it. keys 1 to 6 work too." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>telephone</span><span class="tl">a toy</span></p>
-    <h1>who made <em>this</em> path?</h1>
+    <h1>pick the next song. who made <em>this</em> path?</h1>
   </header>
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map. a ribbon shows a chain of songs, one link per visitor. six pebbles around the last song are its nearest in sound; tap one to add the next link."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big ice" id="num">-</div>
-      <span class="keylab" id="numlab">steps from the start</span>
+      <span class="keylab" id="numlab">hops on the map from the first song to the last</span>
       <p class="say" id="say"></p>
     </div>
     <div class="lines">
@@ -44,20 +44,20 @@
     </div>
     <section>
       <p class="lastsong" id="last"></p>
-      <p class="note" id="now">the last song is ringed. pick one of the six that sound closest to it.</p>
+      <p class="note" id="now">tap one of the six numbered songs next to the ringed one.</p>
       <div id="cands" role="group" aria-label="six nearest in sound; press a number key or tap one"></div>
-      <div id="after"><button type="button" id="pc">play the chain</button><button type="button" id="kg">keep going</button></div>
-      <div class="row"><button type="button" id="nw">new chain</button></div>
+      <div id="after"><button type="button" id="pc">hear every link in order</button><button type="button" id="kg">add more links</button></div>
+      <div class="row"><button type="button" id="nw">start a new chain</button></div>
     </section>
     <details class="how"><summary>how</summary>
-      <p>each visitor sees the last song and its six nearest.</p>
-      <p>tap one and the chain grows. the next visitor starts there.</p>
-      <p>at ten hands the chain can play through, a few seconds each.</p>
+      <p>tap one of the six numbered songs by the ringed one.</p>
+      <p>watch the path grow and the ringed song pulse as it plays.</p>
+      <p>read the number: hops from the first song to the last.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>a toy rule on this screen, not my data. the six are the nearest artists on my sound map, not what anyone would pick next.</p>
       <p>steps are counted in the neighbor graph: each artist joined to its six nearest. the toy rule alone always takes the nearest one it has not visited.</p>
-      <p>the chain is kept in this browser until someone taps new chain. previews are 30 s clips and only play with sound on.</p>
+      <p>the chain is kept in this browser until someone starts a new chain. previews are 30 s clips and only play with sound on.</p>
     </details>
   </main>
 </div>
