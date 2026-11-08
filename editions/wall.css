@@ -94,3 +94,5 @@ details.fine > p { font: 13px/1.5 var(--mono); color: var(--mute); max-width: 56
 @media (max-width: 900px) { #side { padding: 28px 24px 56px; } .row { gap: 10px; } .key { padding: 4px 0; } }
 
 h1 em{color:var(--ink)}
+
+.fams{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 0 14px;font:500 11px/1.2 var(--mono,"IBM Plex Mono",ui-monospace,monospace);color:var(--ink);letter-spacing:.04em}.fams span{display:inline-flex;align-items:center;gap:6px;min-height:20px}.fams i{display:block;width:10px;height:10px;border-radius:50%;flex:none}.fams:empty{display:none}

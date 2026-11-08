@@ -107,12 +107,12 @@ function render() {
   $('after').classList.toggle('show', done);
   var hm = $('home'); hm.hidden = n < 1; if (n >= 1) hm.setAttribute('href', '../print/receipt2.html#p=' + S.chain.slice(0, 41).join(','));
   if (!R.on && S.sel < 0 && AU.paused) $('now').textContent = idle();
-  if (n < 1) { $('num').innerHTML = '<span class="c">add a link</span>'; $('say').textContent = 'no hands yet. the chain starts at one song. tap a numbered song to hear it, then tap again to add it.'; }
+  if (n < 1) { $('num').innerHTML = '<span class="c">add a link</span>'; $('say').textContent = 'no presses yet. the chain starts at one song. tap a numbered song to hear it, then tap again to add it.'; }
   else {
     var Rh = bfs(S.chain[0], cur), r = bfs(S.chain[0], toyEnd(S.chain[0], n));
     $('num').textContent = Rh < 0 ? '?' : Rh;
-    $('numlab').textContent = 'hops from the first song to the last, after ' + n + (n === 1 ? ' hand' : ' hands');
-    $('say').textContent = 'after ' + n + (n === 1 ? ' hand' : ' hands') + ' the chain ended ' + (Rh < 0 ? 'out of reach' : Rh + (Rh === 1 ? ' step' : ' steps')) + ' from its start; the toy rule alone ended ' + (r < 0 ? 'out of reach' : r) + '.';
+    $('numlab').textContent = 'hops from the first song to the last, after ' + n + (n === 1 ? ' press' : ' presses');
+    $('say').textContent = 'after ' + n + (n === 1 ? ' press' : ' presses') + ' the chain ended ' + (Rh < 0 ? 'out of reach' : Rh + (Rh === 1 ? ' step' : ' steps')) + ' from its start; the toy rule alone ended ' + (r < 0 ? 'out of reach' : r) + '.';
   }
   draw();
 }

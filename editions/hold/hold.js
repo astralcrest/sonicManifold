@@ -68,6 +68,7 @@ function skip() { if (S.done || S.held) return; S.tok++; WK.stop(); WK.still(); 
 
 function render() {
   var K = keptN(), i = S.list[S.k], n = S.k + 1, nm = S.done ? '' : D.n[i];
+  WK.famKey($('fams'), D, S.list);
   $('num').innerHTML = decided() ? K : '<span class="c">none decided yet</span>';
   $('song').innerHTML = S.done ? '&nbsp;' : WK.esc(nm);
   $('hold').disabled = S.done; $('sk').disabled = S.done || S.held;

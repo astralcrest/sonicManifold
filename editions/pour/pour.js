@@ -82,6 +82,7 @@ function stats() {
 }
 function out() {
   var s = stats(), mine = STEPS - s.auto;
+  WK.famKey($('fams'), D, S.path);
   $('num').innerHTML = '<span class="a">' + S.p + '</span> <span class="c">of 100</span>';
   $('say').textContent = s.auto + ' of the 100 steps are auto-play\'s, ' + mine + ' are mine or shuffle\'s (in my log those split 19 my press, 17 shuffle). the night touches ' + s.fams + ' of ' + D.fam.length + ' families. pebble color is the family, bigger means more plays. ' + (S.p === HELD ? 'this is the setting that matches my log.' : 'the setting that matches my log is ' + HELD + '.');
 }

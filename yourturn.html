@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#06010f">
 <title>your turn &middot; sonic manifold</title>
-<meta name="description" content="drop in your Spotify extended streaming history and see how much of your listening you tapped and how much shuffle and the queue served. it runs in your browser; nothing is uploaded.">
+<meta name="description" content="drop in your Spotify extended streaming history and see how much of your listening you pressed play on and how much shuffle and auto-play served. it runs in your browser; nothing is uploaded.">
 <meta name="robots" content="index, follow, noai, noimageai">
 <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="favicon.ico">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -17,13 +17,13 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/yourturn.html">
 <meta property="og:title" content="your turn &middot; sonic manifold">
-<meta property="og:description" content="drop in your own spotify export and see how much you tapped. it never leaves the tab.">
+<meta property="og:description" content="drop in your own spotify export and see how much you pressed play on. it never leaves the tab.">
 <meta property="og:image" content="https://astralcrest.github.io/sonicManifold/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="your turn &middot; sonic manifold">
-<meta name="twitter:description" content="drop in your own spotify export and see how much you tapped. it never leaves the tab.">
+<meta name="twitter:description" content="drop in your own spotify export and see how much you pressed play on. it never leaves the tab.">
 <meta name="twitter:image" content="https://astralcrest.github.io/sonicManifold/og-card.png">
 <noscript><style>#drop{display:none}</style></noscript>
 <style>
@@ -135,11 +135,11 @@
 
     <div class="grid">
       <div class="card">
-        <h3>the artists you tap</h3>
+        <h3>the artists you press play on</h3>
         <div id="topTap"></div>
       </div>
       <div class="card">
-        <h3>served often, rarely tapped</h3>
+        <h3>served often, rarely pressed</h3>
         <div id="topServed"></div>
       </div>
     </div>
@@ -264,18 +264,18 @@
     $('out').style.display='block';
     if(!d.hasIntent){
       $('heroNum').textContent='–';
-      $('heroSub').innerHTML='these files don’t carry <b>reason_start</b>, so the tapped-or-served split isn’t available, only the totals below. request the <b>extended</b> streaming history for the full cut.';
+      $('heroSub').innerHTML='these files don’t carry <b>reason_start</b>, so the pressed-or-served split isn’t available, only the totals below. request the <b>extended</b> streaming history for the full cut.';
     } else {
       $('heroNum').textContent = d.youPct.toFixed(0)+'%';
       var servedPct = (100 - d.youPct);
-      $('heroSub').innerHTML = 'the other <b>'+servedPct.toFixed(0)+'%</b> played on without you pressing anything: shuffle, the queue running on, and the app starting things up. on my own log, 2019 to 2026, the split was <b>19 / 81</b>.';
+      $('heroSub').innerHTML = 'the other <b>'+servedPct.toFixed(0)+'%</b> played on without you pressing anything: shuffle, auto-play running on, and Spotify starting things up. on my own log, 2019 to 2026, the split was <b>19 / 81</b>.';
     }
 
     // bar
-    var segs=[['you tapped', d.nTap, 'var(--mint)'],
+    var segs=[['you pressed', d.nTap, 'var(--mint)'],
               ['shuffle', d.nShuf, 'var(--amber)'],
-              ['the queue', d.nAuto, 'var(--violet)'],
-              ['the app / other', d.nOther, '#5b4d7a']];
+              ['auto-play', d.nAuto, 'var(--violet)'],
+              ['other starts', d.nOther, '#5b4d7a']];
     var bar='', leg='';
     segs.forEach(function(s){
       var w=pct(s[1], d.nQual);
@@ -287,11 +287,11 @@
     // top tapped
     $('topTap').innerHTML = d.topTap.length ? d.topTap.map(function(t){
       return '<div class="row"><span>'+esc(t[0])+'</span><span class="v">'+fmt(t[1])+'</span></div>';
-    }).join('') : '<div class="stat">no taps found.</div>';
+    }).join('') : '<div class="stat">no presses found.</div>';
 
     // served but rarely chosen
     $('topServed').innerHTML = d.served.length ? d.served.map(function(o){
-      return '<div class="row"><span>'+esc(o.a)+'</span><span class="v dim">'+(o.tapRate*100).toFixed(0)+'% tapped</span></div>';
+      return '<div class="row"><span>'+esc(o.a)+'</span><span class="v dim">'+(o.tapRate*100).toFixed(0)+'% pressed</span></div>';
     }).join('') : '<div class="stat">not enough repeat plays to tell.</div>';
 
     // numbers
@@ -305,13 +305,13 @@
     if(d.hasIntent){
       var av = d.served.length? esc(d.served[0].a) : 'one artist';
       $('means').innerHTML =
-        'the mint slice is the part you <b>tapped</b>. everything else is who pressed play when you didn’t: shuffle and the queue deciding, you riding along.<br><br>'+
+        'the mint slice is the part you <b>pressed</b>. everything else is who pressed play when you didn’t: shuffle and auto-play deciding, you riding along.<br><br>'+
         'the second list is your <b>aversion hint</b>: artists served to you a lot that you almost never start yourself (your top one: '+av+'). the full study looks at the same gap at the <em>genre</em> level.';
     } else {
-      $('means').innerHTML='request the extended export to see the tapped-or-served split.';
+      $('means').innerHTML='request the extended export to see the pressed-or-served split.';
     }
 
-    $('foot').innerHTML='this is a first cut: the same who-pressed-play split the full study starts from. it does <b>not</b> compute your genre served-or-tapped ratio or your listening network; those need reference data i haven’t shipped to your browser. <a href="bridge-index.html">the probe</a> goes one step deeper: it measures how often your own presses jump between genres. if you’d share an anonymized export to help test the method on more than one listener, the contact is on <a href="./">the landing</a>.';
+    $('foot').innerHTML='this is a first cut: the same who-pressed-play split the full study starts from. it does <b>not</b> compute your genre served-or-pressed ratio or your listening network; those need reference data i haven’t shipped to your browser. <a href="bridge-index.html">the probe</a> goes one step deeper: it measures how often your own presses jump between genres. if you’d share an anonymized export to help test the method on more than one listener, the contact is on <a href="./">the landing</a>.';
     $('out').scrollIntoView({behavior:'smooth', block:'start'});
   }
 

@@ -82,8 +82,8 @@ function ui() {
   var m = Object.keys(seen).length;
   $('big').textContent = mine.length;
   $('add').disabled = !mine.length; $('redo').disabled = !mine.length;
-  $('count').textContent = hs.length ? hs.length + (hs.length === 1 ? ' hand' : ' hands') + ' tonight, ' + m + (m === 1 ? ' artist' : ' artists') : 'you are the first hand tonight.';
-  $('say').textContent = mine.length ? (mine.length < MAXM ? 'tap up to ' + (MAXM - mine.length) + ' more, or add your hand to the room.' : 'five marks. a sixth tap replaces your oldest.') : (hs.length ? 'the faint stars are the room so far. tap an artist to add yours.' : 'you are the first hand tonight.');
+  $('count').textContent = hs.length ? hs.length + (hs.length === 1 ? ' visitor' : ' visitors') + ' tonight, ' + m + (m === 1 ? ' artist' : ' artists') : 'you are the first one here tonight.';
+  $('say').textContent = mine.length ? (mine.length < MAXM ? 'tap up to ' + (MAXM - mine.length) + ' more, or add your marks to the room.' : 'five marks. a sixth tap replaces your oldest.') : (hs.length ? 'the faint stars are the room so far. tap an artist to add yours.' : 'you are the first one here tonight.');
   var all = allPts(), a = $('home');
   a.setAttribute('href', all.length ? '../print/chorus.html#pts=' + all.join(',') : '../print/chorus.html');
 }
@@ -107,7 +107,7 @@ $('add').addEventListener('click', function () {
   if (!mine.length) return;
   var t = Date.now(), o = { day: today(), picks: store.concat(mine.map(function (i) { return [i, t]; })) };
   save(o); store = o.picks; mine = []; cur = -1; WK.stop(); WK.still();
-  $('now').textContent = 'your hand is in the room. the next person can tap.';
+  $('now').textContent = 'your marks are in the room. the next person can tap.';
   target(); ui(); drift();
 });
 $('redo').addEventListener('click', function () {

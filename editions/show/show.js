@@ -28,7 +28,7 @@
 
   /* wall loop: scene captions + scene picker */
   var SCENES = [
-    ['1 the count, by whose hand', 'every dot is an artist, placed by how they sound. a line is one play, then the next. color is who pressed play: mint is my press, violet is auto-play, amber is shuffle. a bigger dot is an artist i played more times.'],
+    ['1 the count, by who pressed play', 'every dot is an artist, placed by how they sound. a line is one play, then the next. color is who pressed play: mint is my press, violet is auto-play, amber is shuffle. a bigger dot is an artist i played more times.'],
     ['2 the sound map, by family', 'every dot is an artist, placed by how they sound. a line is one play, then the next. color is the genre family. a bigger dot is an artist i played more times.'],
     ['3 the followed-by map, by neighborhood', 'every dot is an artist, placed by what followed what, so artists that follow each other sit close. a line is one play, then the next. color is the neighborhood. a bigger dot is an artist i played more times.'],
     ['4 the ring', 'my most played artists in a circle. every dot is an artist, every line is one play, then the next. color is who pressed play, as in the first scene. a bigger dot is an artist i played more times.'],

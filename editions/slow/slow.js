@@ -166,7 +166,7 @@ Promise.all([WK.boot(), WK.pv()]).then(function (a) {
   choose();
   var dm = SONGS.map(function (s) { return s.d; });
   $('what').textContent = 'what plays: 30 s preview clips from the public catalog, one at a time, only after a tap, from the ' + SONGS.length + ' artists farthest from anywhere auto-play went in ' + RUNS + ' walks. never my own album here.';
-  $('toy').textContent = 'a toy. data: ' + RUNS + ' walks of ' + STEPSN + ' steps of the app\'s auto-play rule on my sound map (' + D.n.length + ' artists, ' + S.N.visited + ' reached, ' + S.N.never + ' never); the ' + SONGS.length + ' songs are the unreached artists with a preview, farthest first (' + Math.round(Math.min.apply(null, dm)) + ' to ' + Math.round(Math.max.apply(null, dm)) + ' on a map 1000 wide).';
+  $('toy').textContent = 'a toy. data: ' + RUNS + ' walks of ' + STEPSN + ' steps of the auto-play rule on my sound map (' + D.n.length + ' artists, ' + S.N.visited + ' reached, ' + S.N.never + ' never); the ' + SONGS.length + ' songs are the unreached artists with a preview, farthest first (' + Math.round(Math.min.apply(null, dm)) + ' to ' + Math.round(Math.max.apply(null, dm)) + ' on a map 1000 wide).';
   drawStays(); show(); bump();
   window.__slow = { songs: SONGS.map(function (s) { return [name(s.i), Math.round(s.d)]; }), N: S.N };
 }).catch(function () { say('the data did not load. reload the page.'); });

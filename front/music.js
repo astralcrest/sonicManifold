@@ -325,7 +325,7 @@ function genreRow() {
     var host = $('[data-hear="genre"]') || $('#genre .g-chart') || $('#genre'); if (!host || !h.tap || !h.queue) return;
     var R = row(host, 'h-genre');
     chip(R, 'h-me', 'hear one i pressed play on', h.tap.t + ', ' + h.tap.a, h.tap.u);
-    chip(R, 'h-q', 'hear one the queue served', h.queue.t + ', ' + h.queue.a, h.queue.u);
+    chip(R, 'h-q', 'hear one auto-play served', h.queue.t + ', ' + h.queue.a, h.queue.u);
   }, function () { hearP = null; });
 }
 

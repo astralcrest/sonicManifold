@@ -1,7 +1,7 @@
 /* shared by the walls: the gallery painter (WK.P) for every map, and for seeds, undo, blind and slow: loads the loop wall's machine and data by relative path, draws the map, plays previews. no storage. */
 (function (root) {
   'use strict';
-  var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#ff7a3d', 'untagged': '#6f6790' };
+  var FAMC = { 'ambient/lofi': '#3d8bff', 'classical': '#7fd37f', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#38c2d6', 'world/desi': '#ea5a2a', 'untagged': '#6f6790' };
   var C = { ink: '#efe9ff', mute: '#9a90b8', mint: '#21f6bc', amber: '#f5a623', violet: '#8b6fd6', rose: '#ff5c7a', ice: '#bcd3ff', night: '#06010f' };
   var $ = function (id) { return document.getElementById(id); };
   function j(u) { return fetch(u).then(function (r) { return r.json(); }); }
@@ -303,6 +303,7 @@
   // the pulse around the stop that is playing now: rings that breathe
   function pulse(g, x, y, col, r) { r = r || 16; var b = beat(); g.save(); g.strokeStyle = col; g.lineWidth = 2; g.globalAlpha = 0.95 - 0.5 * b; g.beginPath(); g.arc(x, y, r + 7 * b, 0, 6.2832); g.stroke(); g.globalAlpha = 0.45 - 0.3 * b; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, r + 7 * b + 9, 0, 6.2832); g.stroke(); g.restore(); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function famKey(el, D, ids) { if (!el || !D) return; var seen = {}, h = ''; (ids || []).forEach(function (i) { var f = D.fam[D.f[i]]; if (!f || seen[f]) return; seen[f] = 1; h += '<span><i style="background:' + (FAMC[f] || C.mute) + '"></i>' + esc(f) + '</span>'; }); el.innerHTML = h; }
 
   /* ---------- sound: off until the chip is on; every preview and voice on every wall respects it ---------- */
   var SND = false, ELS = [], chip = null;
@@ -334,8 +335,8 @@
   /* ---------- the top strip, identical on every wall: what this shows, the key, sound, where this wall sits; then the sticky nav ---------- */
   var WALLS = [['loop', 'walk the loop'], ['two', 'the two of you'], ['taste', 'the taste test'], ['haunted', 'the haunted night'], ['seeds', 'the two seeds'], ['undo', 'undo a year'], ['blind', 'blind or named'], ['booth', 'the confession booth'], ['slow', 'the slow room'], ['tug', 'tug of two hands'], ['telephone', 'telephone'], ['stutter', 'the stutter'], ['meet', 'meet in the middle'], ['hold', 'hold to keep'], ['shake', 'shake the shuffle'], ['pour', 'the pour'], ['applause', 'clap to skip'], ['way', 'draw the long way'], ['stand', 'where you land'], ['scrub', 'scrub by ear'], ['longhold', 'the long hold'], ['crossings', 'family crossings'], ['radio', 'draw a radio'], ['hand', 'whose finger'], ['chorus', 'the chorus']];
   var KEYS = {
-    press: ['my press', 'a play i chose by hand', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/></svg>', '#21f6bc'],
-    auto: ['auto-play', 'the app\'s own next pick', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="#8b6fd6" stroke-width="2.4"/></svg>', '#8b6fd6'],
+    press: ['my press', 'a play i pressed myself', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/></svg>', '#21f6bc'],
+    auto: ['auto-play', 'its own next pick, nobody pressed', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="#8b6fd6" stroke-width="2.4"/></svg>', '#8b6fd6'],
     shuffle: ['shuffle', 'a random next pick', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 1.5L17 10L10 18.5L3 10Z" fill="#f5a623"/></svg>', '#f5a623'],
     alike: ['sounds alike', 'nearest neighbors on the sound map', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M2 14L10 8L18 12" fill="none" stroke="#efe9ff" stroke-width="1.2"/><circle cx="10" cy="8" r="2.4" fill="#efe9ff"/></svg>', '#efe9ff'],
     own: ['my songs', 'songs i made', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="8.4" fill="none" stroke="#ffd36b" stroke-width="1.3"/><path d="M10 3.5Q10 10 16.5 10Q10 10 10 16.5Q10 10 3.5 10Q10 10 10 3.5Z" fill="#ffd36b"/></svg>', '#ffd36b']
@@ -408,5 +409,5 @@
   }
   strip();
 
-  root.WK = { sound: function () { return SND; }, setSound: setSound, primary: function (v) { PRIM = v; goState(); }, start: start, P: P, j: j, FAMC: FAMC, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, again: again, stop: stop, playing: playing, esc: esc, beat: beat, bpm: bpm, live: live, still: still, pulse: pulse };
+  root.WK = { sound: function () { return SND; }, setSound: setSound, primary: function (v) { PRIM = v; goState(); }, start: start, P: P, j: j, FAMC: FAMC, famKey: famKey, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, again: again, stop: stop, playing: playing, esc: esc, beat: beat, bpm: bpm, live: live, still: still, pulse: pulse };
 })(window);

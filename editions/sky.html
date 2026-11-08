@@ -104,7 +104,7 @@ a{color:var(--ice)}
 <script>
 (function(){
 var S=window.SM,$=function(i){return document.getElementById(i)};
-var FAM=S.families,PAL={'ambient/lofi':'#7cc7ff','classical':'#f4ecd0','electronic':'#ff4fa3','experimental':'#c7f464','folk/country':'#d9a066','funk/disco':'#ff7a3d','hip-hop · r&b':'#ff2e55','jazz':'#ffd36b','other':'#a0a0b8','pop':'#ff9ad5','rock/metal':'#d7d7d7','soundtrack':'#9fe0d8','world/desi':'#ffb347','untagged':'#6b7280'};
+var FAM=S.families,PAL={'ambient/lofi':'#7cc7ff','classical':'#f4ecd0','electronic':'#ff4fa3','experimental':'#c7f464','folk/country':'#d9a066','funk/disco':'#ea5a2a','hip-hop · r&b':'#ff2e55','jazz':'#ffd36b','other':'#a0a0b8','pop':'#ff9ad5','rock/metal':'#d7d7d7','soundtrack':'#9fe0d8','world/desi':'#ffb347','untagged':'#6b7280'};
 var MINT=[33,246,188],AMBER=[245,166,35],VIOLET=[139,111,214];
 /* ---------- data ---------- */
 var A=S.hall.artists.filter(function(a){return a.xyz}).map(function(a){var n=a.p||1;return{n:a.n,f:a.f,p:a.p,t:a.t,s:a.s,v:a.v,x:a.xyz[0],y:a.xyz[1],z:a.xyz[2],tap:a.t/n,sh:a.s/n,sv:a.v/n,r:Math.pow(Math.log1p(a.p),1.1)}});

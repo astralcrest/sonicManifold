@@ -13,7 +13,7 @@ var cv = $('#sky'), stage = $('#stage'); if (!cv || !stage || !cv.getContext) re
 var ctx = cv.getContext('2d');
 var ST = (window.__front || {}).stamps || {};
 var BG = '#06010f', INK = '#efe9ff', MINT = '#21f6bc', VIOLET = '#8b6fd6', GOLD = '#ffd36b', MUTE = '#9a90b8';
-var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#ff7a3d', 'untagged': '#6f6790' };
+var FAMC = { 'ambient/lofi': '#3d8bff', 'classical': '#7fd37f', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#38c2d6', 'world/desi': '#ea5a2a', 'untagged': '#6f6790' };
 var SANS = '"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif', MONO = '"IBM Plex Mono",ui-monospace,Menlo,monospace';
 var R = null, PV = null, pvP = null, pv = null, base = null;
 var W = 0, H = 0, DPR = 1, phone = false, TOP = 50, BOT = 30, PADX = .05;

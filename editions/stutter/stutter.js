@@ -63,7 +63,7 @@ function playAt() {
   if (u) { AU.src = u; var off = (rep * 4) % 24, seek = function () { AU.removeEventListener('loadedmetadata', seek); try { if (off) AU.currentTime = off; } catch (e) {} }; AU.addEventListener('loadedmetadata', seek); var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {}); }
   else AU.pause();
   $('now').textContent = 'play ' + (idx + 1) + ': ' + (p.t ? '\u201c' + p.t + '\u201d by ' : '') + (names[p.i] || '') + ', ' + KIND[p.src].lab + ', ' + (FAM[FI[p.i]] || '') + '.' + (rep ? ' same artist as the last ' + rep + ': one clip per artist here, so a later second of it.' : '') + (u ? '' : ' no clip for this one.');
-  var SAY = { press: 'i began this one by hand (my press, mint star).', queue: 'the app picked this one on its own (auto-play, violet ring).', shuffle: 'this one came from a random shuffle (amber diamond).' };
+  var SAY = { press: 'i pressed play on this one myself (my press, mint star).', queue: 'auto-play picked this one on its own (violet ring).', shuffle: 'this one came from a random shuffle (amber diamond).' };
   $('say').textContent = 'play ' + (idx + 1) + ' of ' + N + ': ' + SAY[p.src] + (idx > 0 && FI[p.i] !== FI[plays[idx - 1].i] ? ' a new family: ' + (FAM[FI[p.i]] || '') + '.' : '');
   preload(idx + 1); draw(); counts();
   timer = setTimeout(function () { idx++; playAt(); }, CLIP); WK.live(draw);

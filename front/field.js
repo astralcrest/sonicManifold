@@ -10,7 +10,7 @@
 var doc = document, html = doc.documentElement, $ = function (s) { return doc.querySelector(s); }, $$ = function (s) { return Array.prototype.slice.call(doc.querySelectorAll(s)); };
 var ST = (window.__front && window.__front.stamps) || {};
 var BG = '#06010f', INK = '#efe9ff', MUTE = '#9a90b8', MINT = '#21f6bc', AMBER = '#f5a623', VIOLET = '#8b6fd6', ROSE = '#ff5c7a', ICE = '#bcd3ff', GOLD = '#ffd36b', LINE = '#2a2140';
-var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#ff7a3d', 'untagged': '#6f6790' };
+var FAMC = { 'ambient/lofi': '#3d8bff', 'classical': '#7fd37f', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#38c2d6', 'world/desi': '#ea5a2a', 'untagged': '#6f6790' };
 var SANS = '"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif', MONO = '"IBM Plex Mono",ui-monospace,Menlo,monospace';
 var cv = $('#field'), ctx = cv && cv.getContext('2d'), stage = $('#stage');
 if (!cv || !ctx) return;
@@ -215,7 +215,7 @@ function setScene(k) {
   S.hover = -1; S.rim = -1; S.rt = []; S.fam = -1; S.hoodHi = -1; S.grow = null; view.z = 1; view.px = 0; view.py = 0; VA = null; S.drawArm = false; GL.x = 0; GL.y = 0; GL.z = 1; pathsDirty = true;
   if (k !== C_MAPS) S.like.seq = null;
   if (k === C_HAND) loadRing();
-  S.color = k === C_HOODS ? 'hood' : 'family'; chips();
+  S.color = k === C_HOODS ? 'hood' : 'family'; var k2b = $('#key2'); if (k2b) k2b.hidden = S.color !== 'family'; chips();
   if (k === C_KEEP) S.keepT0 = 0;
   html.setAttribute('data-scene', SCENES[k]);
   $$('.act.more').forEach(function (a) { a.classList.remove('more'); });
@@ -566,7 +566,7 @@ function keySync() {
     KBt.addEventListener('click', function () { KCOL[scene] = !KCOL[scene]; KSig = ''; keySync(); });
     KW.appendChild(KBt); KW.appendChild(KCv);
   }
-  if (KW.parentNode !== plate) { var how = plate.querySelector('.how'); plate.insertBefore(KW, how ? how.nextSibling : null); KSig = ''; }
+  if (KW.parentNode !== plate) { var how = plate.querySelector('.how'), sub = plate.querySelector('.sub'); plate.insertBefore(KW, !phone && sub ? sub.nextSibling : how ? how.nextSibling : null); KSig = ''; }
   KW.hidden = false; KMX = Math.max(160, plate.clientWidth - 48);
   var g = KCv.getContext('2d'), b = keyBox(g); if (!b) { KW.hidden = true; return; }
   var sig = JSON.stringify(b.lines) + KMX + DPR + scene + (KCOL[scene] ? 'c' : 'o'); if (sig === KSig) return; KSig = sig;
@@ -1449,7 +1449,7 @@ function whose() {
 }
 function whRound() {
   var G = S.wh; clearTimeout(G.to);
-  if (G.n >= G.max) { G.pair = null; var more = G.max === 3; text('#w-k', more ? 'three pairs done. seven more makes the full round of ten.' : 'whose finger? three pairs from the log, then seven more.'); text('#w-q', 'you got ' + G.right + ' of ' + G.n + '. chance is ' + (G.n / 2) + '. the log says i pressed play on 19 of every 100; the rest was the app.'); text('#w-r', ''); show('#w-ans', false); show('#w-start', true); text('#w-start', more ? 'seven more?' : 'play: whose finger?'); if (!more) G.rows = []; return; }
+  if (G.n >= G.max) { G.pair = null; var more = G.max === 3; text('#w-k', more ? 'three pairs done. seven more makes the full round of ten.' : 'whose finger? three pairs from the log, then seven more.'); text('#w-q', 'you got ' + G.right + ' of ' + G.n + '. chance is ' + (G.n / 2) + '. the log says i pressed play on 19 of every 100; the rest was shuffle and auto-play.'); text('#w-r', ''); show('#w-ans', false); show('#w-start', true); text('#w-start', more ? 'seven more?' : 'play: whose finger?'); if (!more) G.rows = []; return; }
   var r = G.rows[G.n], ia = names.indexOf(r.a), ip = r.pa && r.pa !== r.a ? names.indexOf(r.pa) : -1, same = r.pa === r.a;
   text('#w-k', 'pair ' + (G.n + 1) + ' of ' + G.max); text('#w-q', (same ? r.a + ' played, then ' + r.a + ' again: ' : r.pa ? r.pa + ' played. then ' : '') + (same ? '' : r.a + ', ') + r.t + '. who pressed play on it?');
   show('#w-r', true); text('#w-r', ip >= 0 ? 'hear both: ' + cut(r.pa, 18) + ' first, then ' + cut(r.a, 18) + '. close in sound = auto-play walking. a jump = more likely my press.' : 'close in sound = auto-play walking. a jump = more likely my press.');
@@ -1478,7 +1478,7 @@ on('#m-like', function () {
   S.like.on = !S.like.on; if (!S.like.on) S.like.seq = null; chips();
   text('#m-mode', S.like.on ? 'sounds like: tap an artist. it and the six nearest to it in sound light up in ice and play in turn.' : 'sounds like is off: a tap plays one artist, and next walks to its nearest.'); if (S.like.on) say('tap an artist: it and its six nearest play.', 'dense'); else clStop(); wake();
 });
-on('#b-hand', function () { walkMode('hand'); breakRun(); text('#h-mode', 'my press breaks the run: the next song is far in sound, another family. hear the jump.'); say('my hand: far in sound, another family.', 'now'); });
+on('#b-hand', function () { walkMode('hand'); breakRun(); text('#h-mode', 'my press breaks the run: the next song is far in sound, another family. hear the jump.'); say('my press: far in sound, another family.', 'now'); });
 document.addEventListener('click', function (e) { var m = e.target && e.target.closest ? e.target.closest('[data-more]') : null; if (!m) return; var act = m.closest('.act'); if (act) act.classList.add('more'); });
 var NCOL = { hood: 'color: rooms', family: 'color: families', first: 'color: first heard' };
 on('#n-color', function () { var ord = ['hood', 'family', 'first'], nx = ord[(ord.indexOf(S.color) + 1) % ord.length], b = $('#hoods .row .chip[data-c="' + nx + '"]'); if (b) b.click(); });
@@ -1488,13 +1488,13 @@ function datalist() { var dl = $('#f-names'); if (!dl) return; var frag = doc.cr
 function loadMaps() { if (!mapsP) mapsP = fetchJ('maps').then(function (j) { MAPS = j; hoodList(); wake(); return j; }, function () { mapsP = null; }); return mapsP; }
 function flyTo(t) { if (S.mt === t && S.mb === t) return; S.mFrom = S.mb; S.mt = t; S.mT0 = performance.now(); loadMaps(); chips(); wake(); }
 on('#m-sound', function () { S.grow = null; flyTo(0); chips(); text('#m-mode', 'by sound: a model\u2019s ear placed every artist (UMAP of CLAP). the map is a strip, so lines are drawn on the followed-by map only; auto-play\u2019s run sits a shade tighter in sound.'); clStart(0); });
-on('#m-graph', function () { S.grow = null; flyTo(1); chips(); text('#m-mode', 'by what followed: the log placed them (a force layout of the transition graph). every line is short now by construction; the question is which map the other hand\u2019s lines respect.'); clStart(0); });
-var NMODE = { hood: 'colored by room: eleven rooms the log drew from what followed what alone; each outline is a room, colored by the family that fills it most.', family: 'colored by family (Last.fm labels, Apple\u2019s where Last.fm has none). a room that matches a family was never told the family; a room that mixes them is the log\u2019s own.', first: 'colored by when i first heard each artist, in eight cuts of the log. early rooms and late rooms show.', hand: 'colored by the hand that played each artist most. mint rooms are mine; violet rooms auto-play walks alone.' };
-$$('#hoods .row .chip[data-c]').forEach(function (b) { b.addEventListener('click', function () { S.color = b.getAttribute('data-c'); S.hoodHi = -1; text('#n-mode', NMODE[S.color]); chips(); if (NSAY[S.color]) say(NSAY[S.color], 'room0'); wake(); }); });
+on('#m-graph', function () { S.grow = null; flyTo(1); chips(); text('#m-mode', 'by what followed: the log placed them (a force layout of the transition graph). every line is short now by construction; the question is which map the other starter\u2019s lines respect.'); clStart(0); });
+var NMODE = { hood: 'colored by room: eleven rooms the log drew from what followed what alone; each outline is a room, colored by the family that fills it most.', family: 'colored by family (Last.fm labels, Apple\u2019s where Last.fm has none). a room that matches a family was never told the family; a room that mixes them is the log\u2019s own.', first: 'colored by when i first heard each artist, in eight cuts of the log. early rooms and late rooms show.', hand: 'colored by who pressed play on each artist most. mint rooms are mine; violet rooms auto-play walks alone.' };
+$$('#hoods .row .chip[data-c]').forEach(function (b) { b.addEventListener('click', function () { S.color = b.getAttribute('data-c'); S.hoodHi = -1; text('#n-mode', NMODE[S.color]); chips(); var k2 = $('#key2'); if (k2) k2.hidden = S.color !== 'family'; if (NSAY[S.color]) say(NSAY[S.color], 'room0'); wake(); }); });
 on('#m-grow', function () { loadMaps().then(function () { if (S.mb < 1) flyTo(1); S.grow = { t0: performance.now() + 900, c: 0, done: false }; chips(); text('#m-mode', 'as it grew: the second map assembles in the order the log happened, eight cuts by count. watch the rooms form before the names.'); wake(); }); });
 function key() {
   var k = $('#key'), k2 = $('#key2'); if (!F) return;
-  if (k) { k.innerHTML = '';
+  if (k) { k.innerHTML = ''; k.hidden = false;
     F.fam.forEach(function (nm, f) { var b = doc.createElement('button'); b.type = 'button'; b.setAttribute('data-f', f); b.innerHTML = '<i></i><span></span>'; b.firstChild.style.background = FAMC[nm] || MUTE; b.lastChild.textContent = nm; b.addEventListener('click', function () { S.fam = S.fam === f ? -1 : f; chips(); wake(); }); k.appendChild(b); }); }
   if (k2) { k2.innerHTML = ''; F.fam.forEach(function (nm) { var b = doc.createElement('span'); b.className = 'ks'; b.innerHTML = '<i></i><span></span>'; b.firstChild.style.background = FAMC[nm] || MUTE; b.lastChild.textContent = nm; k2.appendChild(b); }); }
 }

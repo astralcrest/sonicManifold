@@ -184,7 +184,7 @@
       }
       return { pts: pts };
     },
-    alt: function (st) { return 'the chorus poster: ' + st.pts.length + ' hands tonight, each one a mint star on my sound map, joined by one ribbon in play order. nobody chose the whole path.'; },
+    alt: function (st) { return 'the chorus poster: ' + st.pts.length + ' visitors tonight, each one a mint star on my sound map, joined by one ribbon in play order. nobody chose the whole path.'; },
     draw: function (g, T, st) {
       var w = 794, h = 1123, s = 660, fx = 67, fy = 340, n = st.pts.length;
       g.fillStyle = T.bg; g.fillRect(0, 0, w, h);
@@ -192,7 +192,7 @@
       var num = String(n); g.font = '600 168px ' + SANS; var nw = g.measureText(num).width;
       tx(g, num, 44, 232, '600 168px ' + SANS, T.ink);
       g.fillStyle = MINT; g.fillRect(48, 246, Math.min(nw, 300), 7);
-      tx(g, n === 1 ? 'hand' : 'hands', 44 + nw + 18, 188, '600 38px ' + SANS, T.ink);
+      tx(g, n === 1 ? 'visitor' : 'visitors', 44 + nw + 18, 188, '600 38px ' + SANS, T.ink);
       tx(g, 'tonight', 44 + nw + 18, 232, '600 38px ' + SANS, T.ink);
       tx(g, 'nobody chose the whole path.', 48, 296, '500 28px ' + SANS, T.ink);
       tx(g, 'each star is one visitor\'s point. the ribbon joins them in the order they came.', 48, 320, '500 11px ' + MONO, T.mute);
@@ -203,7 +203,7 @@
       pts.forEach(function (p) { if (T.paper) P.glyph(g, 'star', p[0], p[1], 8.6, NIGHT); P.glyph(g, 'star', p[0], p[1], 7.4, MINT); });
       legend(g, T, 48, 1034, [['star', MINT, 'one visitor\'s point'], ['line', MINT, 'play order'], ['peb', '#9a90b8', 'artists on my map, by genre family']]);
       tx(g, 'no names. nothing was stored. one night.', 48, 1060, '500 10px ' + MONO, T.mute);
-      if (st.toy) tx(g, 'a toy chain stands in for tonight\'s hands.', 48, 1078, '500 10px ' + MONO, T.mute);
+      if (st.toy) tx(g, 'a toy chain stands in for tonight\'s visitors.', 48, 1078, '500 10px ' + MONO, T.mute);
       var q = qrDraw(g, T, SITE + 'walls/', w - 48 - 70, 1018, 70);
       if (q) tx(g, 'walk the walls', w - 48 - 70 + q / 2, 1018 + q + 12, '500 8.5px ' + MONO, T.mute, 'center');
     }
@@ -332,12 +332,12 @@
       var url = SITE + 'print/receipt2.html#q=' + pack(path);
       return { path: path, rule: rule, steps: path.length - 1, matched: matched, url: url, toy: toy };
     },
-    alt: function (st) { return 'your hand vs the machine: ' + st.matched + ' of ' + st.steps + ' steps were the machine\'s.'; },
+    alt: function (st) { return 'your presses vs auto-play: ' + st.matched + ' of ' + st.steps + ' steps were auto-play\'s.'; },
     draw: function (g, T, st) {
       var w = 302, h = 760, x = 16, s = 270, i;
       g.fillStyle = T.bg; g.fillRect(0, 0, w, h);
       tx(g, 'astralcrest · sonicManifold', x, 24, '500 9px ' + MONO, T.mute);
-      tx(g, 'your hand', x, 56, '600 25px ' + SANS, T.ink); tx(g, 'vs the machine', x, 82, '600 25px ' + SANS, T.ink);
+      tx(g, 'your presses', x, 56, '600 25px ' + SANS, T.ink); tx(g, 'vs auto-play', x, 82, '600 25px ' + SANS, T.ink);
       tx(g, st.steps + ' steps · nothing was stored · a toy', x, 102, '500 9px ' + MONO, T.mute);
       var f = field(g, T, x, 114, s, { dim: T.paper ? 0.3 : 0.4, lat: 0.08 });
       g.strokeStyle = T.line; g.lineWidth = 1; g.strokeRect(x + 0.5, 114.5, s - 1, s - 1);
@@ -348,14 +348,14 @@
       var N = String(st.matched); g.font = '600 66px ' + SANS; var nw = g.measureText(N).width;
       tx(g, N, x - 2, 462, '600 66px ' + SANS, T.ink);
       g.fillStyle = MINT; g.fillRect(x, 470, Math.min(nw, 120), 5);
-      tx(g, 'of ' + st.steps + ' steps', x + nw + 12, 436, '600 14px ' + SANS, T.ink); tx(g, 'were the machine\'s', x + nw + 12, 454, '600 14px ' + SANS, T.ink);
+      tx(g, 'of ' + st.steps + ' steps', x + nw + 12, 436, '600 14px ' + SANS, T.ink); tx(g, 'were auto-play\'s', x + nw + 12, 454, '600 14px ' + SANS, T.ink);
       g.strokeStyle = T.line; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 490.5); g.lineTo(w - x, 490.5); g.stroke();
       var cols = 20, gap = s / cols, kinds = [['star', MINT, 19], ['diamond', AMBER, 17], ['ring', VIOLET, 64]], idx = 0;
       kinds.forEach(function (kd) { for (var q = 0; q < kd[2]; q++, idx++) { var cx = x + gap / 2 + (idx % cols) * gap, cy = 508 + Math.floor(idx / cols) * 14; P.glyph(g, kd[0], cx, cy, 4.4, kd[1]); } });
       tx(g, 'in my log, of every 100 plays:', x, 592, '500 9.5px ' + MONO, T.ink);
       tx(g, 'i pressed 19, shuffle dealt 17,', x, 605, '500 9.5px ' + MONO, T.ink);
       tx(g, 'auto-play served 64.', x, 618, '500 9.5px ' + MONO, T.ink);
-      g.font = '500 8px ' + MONO; wrapT(g, 'a step is the machine\'s when you tapped the nearest artist in sound you had not visited yet. a toy rule, not a finding.', s).forEach(function (l, k) { tx(g, l, x, 637 + k * 10, '500 8px ' + MONO, T.mute); });
+      g.font = '500 8px ' + MONO; wrapT(g, 'a step is auto-play\'s when you pressed the nearest artist in sound you had not visited yet. a toy rule, not a finding.', s).forEach(function (l, k) { tx(g, l, x, 637 + k * 10, '500 8px ' + MONO, T.mute); });
       var qs = 84, q = qrDraw(g, T, st.url, w - x - qs, 668, qs), reopen = !!q;
       if (!q) q = qrDraw(g, T, SITE + 'print/receipt2.html', w - x - qs, 668, qs);
       var lines = reopen ? ['scan to reopen', 'your ' + st.steps + ' steps', 'on your phone'] : ['scan to take', 'your own steps', 'on your phone'];
