@@ -46,9 +46,9 @@ section { border-top: 1px solid var(--line); padding: 24px 0; }
 
 /* controls: 44 px pills, 1 px accent border, filled when on */
 .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-button, a.btn { font: 500 13px/1 var(--mono); letter-spacing: .02em; color: var(--ink); background: transparent; border: 1px solid var(--acc); padding: 0 18px; min-height: 44px; min-width: 44px; border-radius: 22px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-button:hover, a.btn:hover { background: color-mix(in srgb, var(--acc) 14%, transparent); }
-button.go, button[aria-pressed="true"], button[aria-checked="true"], button.on { background: var(--acc); color: var(--night); border-color: var(--acc); }
+button, a.btn { font: 500 13px/1 var(--mono); letter-spacing: .02em; color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 0 18px; min-height: 44px; min-width: 44px; border-radius: 22px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+button:hover, a.btn:hover { border-color: var(--ink); }
+button.go, button[aria-pressed="true"], button[aria-checked="true"], button.on { background: var(--ink); color: var(--night); border-color: var(--ink); }
 button:disabled { opacity: .4; cursor: default; }
 input[type=text] { width: 100%; min-height: 48px; background: var(--night); color: var(--ink); border: 1px solid var(--line); border-bottom: 2px solid var(--acc); padding: 8px 12px; font: 500 17px var(--sans); border-radius: 0; }
 input[type=text]:focus-visible, button:focus-visible, a:focus-visible, input[type=range]:focus-visible, summary:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }

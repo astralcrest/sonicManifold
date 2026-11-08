@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#0a0118">
+<meta name="theme-color" content="#06010f">
 <title>your turn &middot; sonic manifold</title>
 <meta name="description" content="drop in your Spotify extended streaming history and see how much of your listening you tapped and how much shuffle and the queue served. it runs in your browser; nothing is uploaded.">
 <meta name="robots" content="index, follow, noai, noimageai">
@@ -13,6 +13,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/yourturn.html">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/yourturn.html">
 <meta property="og:title" content="your turn &middot; sonic manifold">
@@ -27,22 +28,22 @@
 <noscript><style>#drop{display:none}</style></noscript>
 <style>
   :root{
-    --bg:#0a0118; --panel:#15082d; --ink:#f0eaff; --dim:#a49bbd;
+    --bg:#06010f; --panel:#0d0719; --ink:#efe9ff; --dim:#9a90b8;
     --mint:#21f6bc; --amber:#f5a623; --violet:#8b6fd6; --rose:#ff6e9c; --ice:#86cbfe;
-    --line:#241043; --hair:rgba(134,203,254,.32);
-    --serif:ui-serif,"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    --line:#2a2140; --hair:#2a2140;
+    --serif:"Instrument Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased;}
-  body{background:radial-gradient(1200px 700px at 50% -10%, rgba(40,18,74,.7), var(--bg) 60%);min-height:100vh;}
+    font-family:"Instrument Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  body{min-height:100vh;}
   .wrap{max-width:880px;margin:0 auto;padding:clamp(28px,6vw,72px) 20px 72px;}
-  a{color:var(--ice);text-decoration:none;border-bottom:1px solid rgba(134,203,254,.35)}
-  a:hover{border-bottom-color:var(--ice)}
-  a:focus-visible{outline:1.5px solid var(--ice);outline-offset:3px;border-bottom-color:transparent}
+  a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
+  a:hover{border-bottom-color:var(--ink)}
+  a:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px;border-bottom-color:transparent}
   .sleeve a{border-bottom:0}
-  .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--ice);margin:0 0 12px}
-  h1{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(32px,6vw,54px);line-height:1.08;letter-spacing:-.01em;margin:0 0 16px;color:var(--ink)}
+  .eyebrow{font:500 12px/1.4 var(--mono);letter-spacing:.06em;color:var(--dim);margin:0 0 12px}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(32px,6vw,48px);line-height:1.08;letter-spacing:-.01em;margin:0 0 16px;color:var(--ink)}
   .lede{font-size:clamp(14px,2.2vw,16.5px);line-height:1.65;color:var(--dim);max-width:60ch;margin:0 0 14px}
   .lede b{color:var(--ink);font-weight:600}
   .turns{font-size:12px;line-height:1.7;color:var(--dim);max-width:62ch;margin:0 0 28px}
@@ -51,20 +52,20 @@
   .privacy b{color:var(--ink)}
   /* dropzone */
   #drop{border:1.5px dashed var(--hair);border-radius:18px;padding:clamp(28px,6vw,52px) 24px;text-align:center;
-    background:linear-gradient(180deg,rgba(32,16,58,.45),rgba(18,8,38,.45));transition:border-color .2s,background .2s;cursor:pointer}
-  #drop.over{border-color:var(--ice);background:rgba(134,203,254,.07)}
+    background:var(--panel);transition:border-color .2s,background .2s;cursor:pointer}
+  #drop.over{border-color:var(--ink)}
   #drop .big{font-size:clamp(16px,3vw,20px);color:var(--ink);margin:0 0 8px}
   #drop .small{font-size:12.5px;color:var(--dim);margin:0}
   #file{display:none}
-  .btn{display:inline-block;margin-top:14px;padding:10px 20px;border-radius:999px;font:600 12.5px/1 'JetBrains Mono',monospace;
-    letter-spacing:.12em;text-transform:uppercase;color:#0a0118;background:var(--ice);border:0;cursor:pointer}
+  .btn{display:inline-block;margin-top:14px;padding:0 20px;min-height:44px;line-height:44px;border-radius:999px;font:600 13px/44px var(--mono);
+    letter-spacing:.04em;color:#06010f;background:var(--ink);border:0;cursor:pointer}
   .btn:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
   .status{font-size:12.5px;color:var(--dim);margin:16px 0 0;min-height:18px}
   .err{color:var(--rose)}
   .nojs{font-size:12.5px;line-height:1.6;color:var(--ink);border:1px dashed var(--hair);border-radius:12px;padding:14px 16px;margin:0}
   /* results */
   #out{display:none;margin-top:40px}
-  .hero-num{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(56px,15vw,128px);line-height:.95;letter-spacing:-.02em;margin:6px 0 2px;color:var(--mint)}
+  .hero-num{font-family:var(--serif);font-weight:600;font-size:clamp(56px,15vw,128px);line-height:.95;letter-spacing:-.02em;margin:6px 0 2px;color:var(--mint)}
   .hero-cap{font-size:14px;color:var(--dim);margin:0 0 4px}
   .hero-sub{font-size:13px;color:var(--dim);margin:0 0 30px;max-width:54ch;line-height:1.6}
   .hero-sub b{color:var(--ink)}
@@ -73,9 +74,9 @@
   .legend{display:flex;flex-wrap:wrap;gap:14px 22px;font-size:12.5px;color:var(--dim);margin:0 0 36px}
   .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:middle}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:0 0 30px}
-  .card{background:linear-gradient(180deg,rgba(32,16,58,.6),rgba(18,8,38,.6));border:1px solid rgba(189,166,255,.19);border-radius:14px;padding:18px}
-  .card h3{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ice);margin:0 0 12px}
-  .row{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(36,16,67,.6)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .card h3{font:500 12px/1.4 var(--mono);letter-spacing:.06em;color:var(--dim);margin:0 0 12px}
+  .row{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:5px 0;border-bottom:1px solid var(--line)}
   .row:last-child{border-bottom:0}
   .row .v{color:var(--mint);font-weight:600;white-space:nowrap}
   .row .v.dim{color:var(--violet)}

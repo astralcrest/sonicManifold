@@ -353,7 +353,7 @@ function rimLabels(g) {
   var acc = [], k, n = 0, cap = phone ? 40 : 120, rr = RRING + 12, sel = S.rim, list = sel >= 0 ? [sel].concat(rimOrder) : rimOrder;
   for (k = 0; k < list.length && n < cap; k++) {
     var rk = list[k]; if (k > 0 && rk === sel) continue;
-    var big = n < (phone ? 4 : 10) || rk === sel, fs = phone ? (big ? 10.5 : 8.5) : (big ? 12 : 9.5), need = fs * 1.2 / rr, ok = true, j, a = RA[rk];
+    var big = n < (phone ? 4 : 10) || rk === sel, fs = phone ? (big ? 12 : 10.5) : (big ? 12 : 9.5), need = fs * 1.2 / rr, ok = true, j, a = RA[rk];
     for (j = 0; j < acc.length && ok; j++) { var dA = Math.abs(a - acc[j][0]); dA = Math.min(dA, 6.2832 - dA); if (dA < (need + acc[j][1]) / 2) ok = false; }
     if (!ok) continue;
     var t = cut(RING[rk][1].toLowerCase(), phone ? 13 : 19); g.font = (big ? 600 : 500) + ' ' + fs + 'px ' + SANS;
@@ -802,11 +802,13 @@ function paint(now) {
   /* the overture's count, then the big names, sized by rank */
   if (scene === 0 && blend >= 1 && !grown) {
     var heard = 0; for (k = 0; k < N; k++) if (F.y0[k] < reveal) heard++;
-    g.font = '600 ' + (phone ? 36 : 68) + 'px ' + SANS; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = INK;
+    g.font = '600 ' + (phone ? 36 : 68) + 'px ' + SANS; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    if (phone) { g.fillStyle = 'rgba(6,1,15,.82)'; g.fillRect(8, H - 36 - 34, Math.max(g.measureText(String(heard)).width + 20, 250), 70); }
+    g.fillStyle = INK;
     /* under the what strip on every width: the strip is centered on desk and reaches the count's column below about 1300px */
     var we = document.getElementById('what'), wb = we ? we.offsetTop + we.offsetHeight : 0, wy = phone ? H - 36 : Math.max(110, wb + 64);
     g.fillText(String(heard).replace(/\B(?=(\d{3})+(?!\d))/g, ','), phone ? 14 : 220, wy);
-    g.font = '500 ' + (phone ? 10 : 11.5) + 'px ' + MONO; g.fillStyle = MUTE;
+    g.font = '500 ' + (phone ? 12 : 11.5) + 'px ' + MONO; g.fillStyle = MUTE;
     g.fillText('artists, in the order i first heard them', phone ? 14 : 222, wy + (phone ? 16 : 22));
   }
   if (scene === 0 && blend >= 1 && grown) for (k = 0; k < (phone ? 5 : 10); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 6, SY[i], names[i], phone ? 14.5 - k * 0.6 : 22 - k * 1.1, k < 3 ? 600 : 500, false, INK); }
@@ -874,8 +876,9 @@ function pips(g) {
     wbox(x0, y, x0 + cols * cell, y + bh);
     g.textBaseline = 'top'; g.fillStyle = MUTE;
     var cap = scene === C_KEEP ? (rows[k][1] + ' of 100 kept') : (k === 0 ? 'my press 19 · shuffle 17 · auto-play 64' : 'shuffle 1.5 · auto-play 75 · the rest: my press, not re-judged here');
-    tw = g.measureText(cap).width; var cx = Math.min(x0, W - tw - 8);
-    g.fillText(cap, cx, y + bh + 6); wbox(cx, y + bh + 6, cx + tw, y + bh + 6 + fs * 1.3);
+    if (phone && cap.indexOf(' · the rest') > 0) { var c2 = cap.split(' · the rest'); c2 = [c2[0], 'the rest' + c2[1]]; } else c2 = [cap];
+    tw = Math.max.apply(null, c2.map(function (q) { return g.measureText(q).width; })); var cx = Math.max(8, Math.min(x0, W - tw - 8));
+    for (var ci = 0; ci < c2.length; ci++) g.fillText(c2[ci], cx, y + bh + 6 + ci * fs * 1.35); wbox(cx, y + bh + 6, cx + tw, y + bh + 6 + fs * 1.3 * c2.length);
     if (scene === C_KEEP) { g.font = '600 ' + (phone ? 22 : 30) + 'px ' + SANS; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillStyle = rows[k][2]; var nt = String(Math.round(rows[k][1] * lit)); g.fillText(nt, x0 + cols * cell, y - 6); wbox(x0 + cols * cell - g.measureText(nt).width, y - 6 - (phone ? 22 : 30), x0 + cols * cell, y - 6); }
   }
   /* the first hearing: a 60 second ruler; the like lands at 47 seconds (median) */

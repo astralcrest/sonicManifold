@@ -215,7 +215,7 @@ details.pt>p{margin-top:.1rem}
 .hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,21rem);gap:1rem 2.4rem;align-items:center;margin:0 0 1.6rem}
 .hero-copy{min-width:0}
 h1.hl{font:600 clamp(2rem,3vw + 1rem,3.1rem)/1.08 var(--disp);letter-spacing:-.022em;color:var(--text);margin:0 0 1.2rem;max-width:17ch;text-wrap:balance}
-h1.hl num{font-family:inherit;font-style:italic;font-weight:600;font-variant-numeric:lining-nums;color:var(--text)}
+h1.hl num{font-family:inherit;font-style:normal;font-weight:600;font-variant-numeric:lining-nums;color:var(--text)}
 p.title{font:italic 400 clamp(.98rem,.5vw + .85rem,1.2rem)/1.4 var(--disp);color:var(--text-dim);margin:0;max-width:34ch;border-top:1px solid var(--border);padding-top:.9rem}
 figure.rec{margin:0;justify-self:end;width:100%}
 figure.rec canvas{display:block;width:100%;aspect-ratio:1;height:auto;border-radius:50%;box-shadow:0 1.2rem 3rem -1rem rgba(10,4,20,.55),0 0 0 1px rgba(120,100,170,.28)}
@@ -260,7 +260,7 @@ button.readall[aria-pressed=true]{background:var(--wash)}
 
 /* R13 coherence: the house code. numbers in ink, the interface in ice, one rose, the three hands, a night tint for the condition band */
 @media screen{:root{--accent:#86cbfe;--mono-num:var(--text);--rose:#ff6e9c;--kill:#ff6e9c;--held:var(--text);--brick:var(--text-faint);--dnf:var(--text-faint);--ht:#21f6bc;--hs:#f5a623;--hq:#8b6fd6;--nv:#4a3a86;--sl-fog:#a6a69f;--sl-on:#86cbfe;--sl-line:var(--border)}}
-@media screen and (prefers-color-scheme:dark){:root{--bg:#0f0c18;--bg-raised:#17131f;--border:#2d2839;--wash:#18141f}}
+@media screen and (prefers-color-scheme:dark){:root{--bg:#06010f;--bg-raised:#0d0719;--border:#2a2140;--wash:#0b0516}}
 @media print{:root{--accent:#1f5f86;--rose:#b02a58;--kill:#b02a58;--ht:#0a7d5f;--hs:#9a5c00;--hq:#5b41ad;--nv:#7562bb;--sl-fog:#5c5446;--sl-on:#1f5f86}}
 .g-held .stamp{background:none}
 .xp .dot{fill:var(--hq)}.xp .dot.t{fill:var(--ht)}.xp .dot.s{fill:var(--hs)}.xp .dot.n{fill:var(--mark-n,var(--border))}
