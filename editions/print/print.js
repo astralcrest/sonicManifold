@@ -386,7 +386,7 @@
     bar.innerHTML = '<p class="line">' + esc(b.getAttribute('data-line') || '') + '</p>' +
       (keys.length ? '<ul class="keys" aria-label="key">' + keys.map(function (k) { var d = KEYS[k]; return d ? '<li style="--c:' + d[1] + '"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">' + d[2] + '</svg>' + d[0] + '</li>' : ''; }).join('') + '</ul>' : '') +
       '<div class="ctl"><button type="button" class="go" id="pr-print">print</button><button type="button" id="pr-look" aria-pressed="false"></button>' + (spec.toggle ? '<button type="button" id="pr-alt" aria-pressed="false"></button>' : '') + '<a class="btn" href="../walls/">back to the walls</a></div>' +
-      '<p class="where">take-home ' + (spec.n || '') + ' of 5 &middot; <a href="./">all five</a></p>';
+      '<p class="where">take-home ' + (spec.n || '') + ' of 5 &middot; <a href="./">all five</a> &middot; <a href="../walls/">the walls</a> &middot; <a href="../../">sonic manifold</a></p>';
     b.insertBefore(bar, b.firstChild);
     cv.setAttribute('role', 'img');
     var st = spec.init(H), look = paper ? 'paper' : 'dark';
