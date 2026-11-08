@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the chorus</title>
+<meta name="description" content="everyone in the room tonight, as faint stars on my sound map. tap artists to add your own hand.">
+<meta property="og:title" content="wall 25 of 25: the chorus"><meta property="og:description" content="everyone in the room tonight, as faint stars on my sound map. tap artists to add your own hand."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/show/img/small_wall_5.jpg"><meta property="og:image:width" content="1920"><meta property="og:image:height" content="1080"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: manipulation; cursor: pointer; user-select: none; -webkit-user-select: none; }
+#add { --acc: var(--mint); } #redo { --acc: var(--line); color: var(--mute); }
+#add, #redo { min-height: 44px; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+.take-home { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; color: var(--ice); font: 500 15px var(--sans); }
+</style>
+</head>
+<body data-wall="25" data-line="faint stars are tonight's earlier hands. your marks are bright mint stars." data-do="tap up to five artists to make your hand, then add it to the room." data-keys="press,alike" style="--act: var(--mint); --acc: var(--mint)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>the chorus</span><span class="tl">tonight only</span></p>
+    <h1>what did the room <em>pick</em>?</h1>
+  </header>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. earlier hands tonight are faint mint stars joined by faint ribbons. your own taps are bright mint stars joined by one mint ribbon. the view drifts toward where the room has picked."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <p class="big mint" id="big">0</p>
+      <span class="keylab" id="numlab">your marks, out of five</span>
+      <p class="say" id="say">you are the first hand tonight.</p>
+      <p class="note" id="count">you are the first hand tonight.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>nobody chose the whole path. the room did.</p>
+      <p class="ask"><b>open question:</b>does a room pick the way one hand does, or the way auto-play does?</p>
+    </div>
+    <section>
+      <div class="row">
+        <button type="button" id="add" disabled>add my hand</button>
+        <button type="button" id="redo" disabled>start over</button>
+      </div>
+      <p class="note" id="now">tap any artist on the map to hear it and mark it. turn sound on at the top.</p>
+      <a class="take-home" id="home" href="../print/chorus.html">take it home: the chorus poster</a>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>tap an artist. it plays and becomes your mark, a mint star. you get five marks; a sixth tap replaces your oldest.</p>
+      <p>add my hand puts your marks in the room and clears them for the next person. start over clears only your marks.</p>
+      <p>the view slowly leans toward where tonight's hands landed.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>hands are kept only in this browser, with no names, and only for today. tomorrow the page starts empty. nothing is sent anywhere.</p>
+      <p>a clip is a short public preview of that artist, not always the song in my log.</p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="chorus.js"></script>
+</body>
+</html>
