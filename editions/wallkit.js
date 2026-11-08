@@ -259,7 +259,7 @@
     var l0 = bl, l1 = bl; if (bl > lmin && bl < lmax) { var d = (ac[bl + 1] - ac[bl - 1]) / (2 * (2 * ac[bl] - ac[bl - 1] - ac[bl + 1]) || 1); if (d > -0.5 && d < 0.5) l1 = bl + d; }
     var per = l1, ph = 0, bs = -1, p, q, sum;
     for (p = 0; p < l0; p++) { sum = 0; for (q = p; q < nf; q += per) sum += on[Math.round(q)] || 0; if (sum > bs) { bs = sum; ph = p; } }
-    return { per: per / fps, ph: ph / fps + win / (2 * sr), bpm: Math.round(60 * fps / per) };
+    return { per: per / fps, ph: ph / fps + win / (2 * sr), bpm: Math.round(60 * fps / per), on: on, fps: fps, off: win / (2 * sr) };
   }
   function analyze(url) {
     if (!url || BT[url] || BTp[url]) return;
@@ -272,9 +272,27 @@
     }).then(function (ab) { BT[url] = track(ab) || false; }).catch(function () { BT[url] = false; });
   }
   // the pulse: on the clip's own beat when it is known, else a 120 beats-a-minute grid from the moment the clip started
+  // a steady media clock: the element's currentTime is coarse on some phones, so run our own and resync when it moves
+  var CK = { el: null, t: 0, p: 0 };
+  function clock(el) {
+    var now = performance.now(), ct = el.currentTime;
+    if (CK.el !== el || Math.abs(ct - (CK.t + (now - CK.p) / 1000)) > 0.12 || el.paused) { CK.el = el; CK.t = ct; CK.p = now; return ct; }
+    if (ct !== CK.lastCt) { CK.lastCt = ct; var est = CK.t + (now - CK.p) / 1000; CK.t = est + (ct - est) * 0.25; CK.p = now; }
+    return CK.t + (now - CK.p) / 1000;
+  }
+  // re-pick the phase from the onsets within four seconds of where the clip is, so a tempo that drifts does not pull the pulse off
+  function relock(b, t) {
+    if (b.lockAt !== undefined && Math.abs(t - b.lockAt) < 2) return;
+    b.lockAt = t; var fps = b.fps, on = b.on, per = b.per * fps, c = t * fps, lo = Math.max(0, Math.round(c - 4 * fps)), hi = Math.min(on.length - 1, Math.round(c + 4 * fps));
+    if (hi - lo < per * 3) return;
+    var steps = Math.max(8, Math.round(per)), bs = -1, bp = 0, k, q, sum;
+    for (k = 0; k < steps; k++) { var p0 = lo + per * k / steps; sum = 0; for (q = p0; q <= hi; q += per) sum += on[Math.round(q)] || 0; if (sum > bs) { bs = sum; bp = p0; } }
+    b.ph = bp / fps + b.off;
+  }
+  var LAG = 0.09; // seconds the sound trails the clock on a typical phone speaker or wired set; bluetooth is more
   function beat() {
     var el = SYNC, b = el && BT[el.currentSrc || el.src], u;
-    if (b && !el.paused) { var t = el.currentTime - b.ph; u = ((t % b.per) + b.per) % b.per / b.per; }
+    if (b && !el.paused) { var tc = clock(el); if (b.on) relock(b, tc); var t = tc - LAG - b.ph; u = ((t % b.per) + b.per) % b.per / b.per; }
     else u = ((performance.now() - beat0) % 500) / 500;
     return Math.pow(1 - u, 2.2);
   }
@@ -302,6 +320,7 @@
       if (ELS.indexOf(this) < 0) ELS.push(this);
       this.muted = !SND; if (!SND) nudge();
       SYNC = this; beat0 = performance.now(); analyze(this.currentSrc || this.src); tell('play');
+      if (!this.__wkst) { this.__wkst = 1; ['playing', 'pause', 'ended', 'emptied'].forEach(function (ev) { this.addEventListener(ev, function () { setTimeout(goState, 60); }); }, this); }
       return op.apply(this, arguments);
     };
     HTMLMediaElement.prototype.__wk = 1;
@@ -329,6 +348,7 @@
     '#wk-strip .wk-keys li svg{flex:none}' +
     '#wk-strip #wk-snd{font:500 14px/1.1 "IBM Plex Mono",ui-monospace,monospace;min-height:44px;min-width:44px;padding:0 18px;border-radius:22px;border:1.5px solid #bcd3ff;background:transparent;color:#efe9ff;cursor:pointer}' +
     '#wk-strip #wk-snd.on{background:#21f6bc;border-color:#21f6bc;color:#06010f}' +
+    '#wk-strip #wk-go{font:600 15px/1 "IBM Plex Mono",ui-monospace,monospace;min-height:48px;padding:0 22px;border-radius:24px;border:0;background:#21f6bc;color:#06010f;cursor:pointer;display:inline-flex;align-items:center;gap:8px}#wk-strip #wk-go[hidden]{display:none}#wk-strip #wk-go:hover{background:#5ffad0}' +
     '#wk-strip #wk-snd.nudge{background:#f5a623;border-color:#f5a623;color:#06010f}' +
     '#wk-strip .wk-pos{margin:0;font:500 13px/1.2 "IBM Plex Mono",ui-monospace,monospace;color:#9a90b8;margin-left:auto;white-space:nowrap}' +
     '#wk-strip .wk-pos a{color:#bcd3ff}' +
@@ -341,6 +361,26 @@
     'details.fine summary::-webkit-details-marker{display:none}details.fine summary::before{content:"+";display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border:1px solid #241b3a;color:#bcd3ff}details.fine[open] summary::before{content:"\\2212"}' +
     'details.fine p{font:13px/1.6 "IBM Plex Mono",monospace;color:#9a90b8;margin:0 0 10px;max-width:560px}';
   function esca(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+  // the one button a wall plays from: the wall names it (WK.primary = el or selector) or the first play-shaped button on the page
+  var goBtn = null, PRIM = null;
+  // walls whose first action is not named play/hear: the selectors to try in order, the first enabled visible one wins
+  var PRIMS = { loop: ['#hear'], shake: ['#dl'], telephone: ['#cands button'], way: ['#wm', '#draw'], scrub: ['#hear'], radio: [] };
+  function slug() { var n = parseInt(document.body.getAttribute('data-wall'), 10) || 0; return n ? WALLS[n - 1][0] : ''; }
+  function live(b) { return b && !b.disabled && !b.hidden && b.offsetParent; }
+  function primary() {
+    if (typeof PRIM === 'string') return document.querySelector(PRIM);
+    if (PRIM) return PRIM;
+    var ov = PRIMS[slug()];
+    if (ov) { for (var o = 0; o < ov.length; o++) { var e = document.querySelector(ov[o]); if (live(e)) return e; } return null; }
+    var bs = document.querySelectorAll('main button, body > button, .wall button, section button, button'), i, b, t;
+    for (i = 0; i < bs.length; i++) { b = bs[i]; if (b.closest('#wk-strip, #wk-nav') || b.disabled || b.hidden || !b.offsetParent) continue; t = (b.textContent || '').trim().toLowerCase(); if (/^(play|hear|listen|walk|place|pick|deal|start|hold at|read all)/.test(t) && !/^(play\/pause|stop)/.test(t)) return b; }
+    return null;
+  }
+  function start() { var b = primary(); if (!b) return; try { b.click(); } catch (e) {} }
+  // inside the front, with sound on, a wall starts itself once its play button exists (the press that opened it counts as the gesture)
+  var autoN = 0;
+  function autostart() { var on = pk >= 0 || ELS.some(function (a) { return !a.paused && !a.ended; }); if (on || autoN++ > 20) return; var b = primary(); if (b) { try { b.click(); } catch (e) {} } setTimeout(autostart, 400); }
+  function goState() { if (!goBtn) return; var on = pk >= 0 || ELS.some(function (a) { return !a.paused && !a.ended; }); var pb = primary(); goBtn.hidden = on || !pb; if (pb) { var pt = (pb.textContent || '').trim().replace(/\s+/g, ' ').toLowerCase(); goBtn.textContent = '\u25B6 ' + (pt.length > 26 ? pt.slice(0, 25) + '\u2026' : pt); } }
   function strip() {
     var b = document.body; if (!b || document.getElementById('wk-strip')) return;
     var n = parseInt(b.getAttribute('data-wall'), 10); if (!n) return;
@@ -348,17 +388,21 @@
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     var s = document.createElement('div'); s.id = 'wk-strip';
     s.innerHTML = '<div class="wk-txt"><p class="wk-line">' + esca(line) + '</p>' + (dol ? '<p class="wk-do"><b>you:</b> ' + esca(dol) + '</p>' : '') + '</div>' + (keys.length ? '<ul class="wk-keys" aria-label="key">' : '') + keys.map(function (k) { var d = KEYS[k]; return d ? '<li style="--c:' + d[3] + '" title="' + esca(d[1]) + '">' + d[2] + d[0] + '</li>' : ''; }).join('') + (keys.length ? '</ul>' : '') +
-      '<button type="button" id="wk-snd" aria-pressed="false"></button><p class="wk-pos">wall ' + n + ' of ' + WALLS.length + ' &middot; <a href="../walls/">all walls</a></p>';
+      '<button type="button" id="wk-go" hidden>&#9654; play</button><button type="button" id="wk-snd" aria-pressed="false"></button><p class="wk-pos">wall ' + n + ' of ' + WALLS.length + ' &middot; <a href="../walls/">all walls</a></p>';
     var L = WALLS.length, pv_ = WALLS[(n + L - 2) % L], nx_ = WALLS[n % L];
     var nav = document.createElement('nav'); nav.id = 'wk-nav'; nav.setAttribute('aria-label', 'the walls');
     nav.innerHTML = '<a href="../walls/">all walls</a><a class="sp" href="../' + pv_[0] + '/" rel="prev">&lsaquo; ' + ((n + L - 2) % L + 1) + '<span class="nm">&nbsp;' + pv_[1] + '</span></a><a href="../' + nx_[0] + '/" rel="next">' + (n % L + 1) + '<span class="nm">&nbsp;' + nx_[1] + '</span> &rsaquo;</a>';
     b.insertBefore(nav, b.firstChild); b.insertBefore(s, b.firstChild);
     chip = document.getElementById('wk-snd'); chipLabel();
     chip.addEventListener('click', function () { setSound(!SND); });
+    goBtn = document.getElementById('wk-go'); goState(); [600, 1500, 3000, 6000].forEach(function (t) { setTimeout(goState, t); });
+    goBtn.addEventListener('click', function () { setSound(true); start(); });
+    root.addEventListener('message', function (e) { if (e.origin === location.origin && e.data && e.data.sm === 'front' && e.data.ev === 'start' && SND) autostart(); });
+    if (SND && root.parent && root.parent !== root) autostart();
     var fit = function () { document.documentElement.style.setProperty('--sh', (s.offsetHeight + nav.offsetHeight) + 'px'); document.documentElement.style.setProperty('--nh', nav.offsetHeight + 'px'); };
     fit(); root.addEventListener('resize', fit); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
   }
   strip();
 
-  root.WK = { sound: function () { return SND; }, setSound: setSound, P: P, j: j, FAMC: FAMC, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, again: again, stop: stop, playing: playing, esc: esc, beat: beat, bpm: bpm, live: live, still: still, pulse: pulse };
+  root.WK = { sound: function () { return SND; }, setSound: setSound, primary: function (v) { PRIM = v; goState(); }, start: start, P: P, j: j, FAMC: FAMC, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, again: again, stop: stop, playing: playing, esc: esc, beat: beat, bpm: bpm, live: live, still: still, pulse: pulse };
 })(window);

@@ -131,9 +131,11 @@ var tmp = [0, 0, 0];
 function frame() {
   /* on a desk the text has its own left column (360 px); the drawing fills the rest and never runs under it */
   var x0 = phone ? 0 : Math.min(360, W * 0.3), Wc = W - x0, cx0 = x0 + Wc / 2;
-  if (scene === 1) { cam.r = Math.min(Wc, H) * (phone ? 0.33 : 0.40); cam.cx = phone ? W * 0.5 : cx0; cam.cy = H * 0.5; }
-  else if (scene === C_MAPS) { cam.r = Math.min(Wc, H) * (phone ? 0.43 : 0.44); cam.cx = phone ? W * 0.5 : cx0; cam.cy = H * 0.5; }
-  else { cam.r = phone ? Math.min(W * 0.62, H * 0.9) * 0.78 : Math.min(Wc * 0.6, H * 0.96) * 0.84; cam.cx = phone ? W * 0.5 : cx0; cam.cy = H * 0.5; }
+  /* on a phone the what strip owns the top of the stage: the drawing is centered in the room below it, so the rim names never run under the chips */
+  var we = document.getElementById('what'), wb = we && (phone || scene === 1) ? we.offsetTop + we.offsetHeight + 6 : 0, Hp = H - wb, cyp = wb + Hp * 0.5;
+  if (scene === 1) { cam.r = Math.min(Wc, Hp) * (phone ? 0.36 : 0.41); cam.cx = phone ? W * 0.5 : cx0; cam.cy = cyp; }
+  else if (scene === C_MAPS) { cam.r = Math.min(Wc, phone ? Hp : H) * (phone ? 0.43 : 0.44); cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
+  else { cam.r = phone ? Math.min(W * 0.62, Hp * 0.9) * 0.78 : Math.min(Wc * 0.6, H * 0.96) * 0.84; cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
   cam0.cx = cam.cx; cam0.cy = cam.cy; cam0.r = cam.r;
   cam.r *= view.z; cam.cx += view.px; cam.cy += view.py;
   if (scene === C_COUNT || scene === C_RECORD) { cam.r *= GL.z; cam.cx += GL.x; cam.cy += GL.y; }
@@ -258,11 +260,11 @@ function layout(now) {
   glT = L && L.follow ? now : 0;
 }
 /* ---------- the ring's four looks: R radial, F bundled, C constellations, T arcs ---------- */
-var LOOKN = ['radial', 'bundled', 'islands', 'arcs'];
+var LOOKN = ['straight', 'gathered', 'islands', 'arcs'];
 var LOOKT = ['radial: names on the rim, grouped by family; every line bends through the hubs of its two families, so the bundles show which families lead to which.',
   'bundled: the same lines; the names placed by a force layout of who followed whom, and lines that run together drawn as one.',
   'constellations: one island per family, the most played at its center. a line inside an island stays in a family; a curve between islands crosses families.',
-  'arcs: every name on one line, grouped by family. my press arcs above in mint, the queue arcs below in violet.'];
+  'arcs: every name on one line, grouped by family. my press arcs above in mint, auto-play arcs below in violet.'];
 function ringChk() { var c = 0, k; for (k = 0; k < RING.length; k++) c = (c + (k + 1) * RING[k][1].length) % 1000003; return c; }
 function loadRing() { if (!rlP) rlP = fetchJ('ring').then(function (j) { if (j && j.n === RING.length && j.chk === ringChk()) RL = j; return RL; }, function () { rlP = null; return null; }); return rlP; }
 function lookXY(L, k, out) {
@@ -460,16 +462,16 @@ function walkTok() {
   if (S.now >= 0 && isField(scene)) return [ln(ICE), 'lines = its six nearest in sound'];
   return null;
 }
-var LNK = [ln(MINT), 'my press ', ln(VIOLET), 'the queue ', ln(AMBER), 'both'];
+var LNK = [ln(MINT), 'my press ', ln(VIOLET), 'auto-play ', ln(AMBER), 'both'];
 function keyLines() {
   var L = [], m = S.color || 'family', w = walkTok(), k, na, nl, gc, cr = [];
   if (scene === C_COUNT) {
     L.push(SZK); L.push([sq(MINT), 'me ', sq(AMBER), 'shuffle ', sq(VIOLET), 'queue']); L.push([gstar(), 'my songs']);
     if (w) L.push(w);
   } else if (scene === C_HAND) {
-    L.push(SZK); L.push([ln(MINT), 'my press ', ln(VIOLET), 'the queue ', ln(AMBER), 'both']); L.push(THK);
+    L.push(SZK); L.push([ln(MINT), 'my press ', ln(VIOLET), 'auto-play ', ln(AMBER), 'both']); L.push(THK);
     if (S.rim >= 0) L.push([cut(RING[S.rim][1].toLowerCase(), phone ? 18 : 26) + ': ' + RD[S.rim][0] + ' mint, ' + RD[S.rim][1] + ' violet']);
-    else L.push([['rim', 'force', 'islands', 'one line'][S.look]]);
+    else L.push([LOOKN[S.look]]);
     if (S.rt.length) L.push(['numbers = the walk, strongest line first']);
   } else if (scene === C_MAPS) {
     L.push(SZK); cr = colorRows(m); for (k = 0; k < cr.length; k++) L.push(cr[k]);
@@ -492,7 +494,7 @@ function keyLines() {
     } else if (w) L.push(w);
     else { L.push(THK); if (m === 'hood') L.push([ln(ICE), 'across rooms']); }
   } else if (scene === C_KEEP) {
-    L.push(['one dot = one song']); L.push([sq(MINT), 'i pressed ', sq(VIOLET), 'the queue · bright = kept']);
+    L.push(['one dot = one song']); L.push([sq(MINT), 'i pressed ', sq(VIOLET), 'auto-play · bright = kept']);
   } else if (scene === C_CODA) {
     L.push(['one dot = 1 of 100 plays']); L.push([sq(MINT), 'me ', sq(AMBER), 'shuffle ', sq(VIOLET), 'queue']); L.push(['top: frozen · bottom: newest']);
   } else if (scene === C_RECORD) {
@@ -766,7 +768,7 @@ function paint(now) {
     for (ci = 0; ci < nh; ci++) if (cn[ci] && !(S.grow && !S.grow.done) && (S.hoodHi < 0 || S.hoodHi === ci)) {
       var lab = ROMAN[ci] + ' · mostly ' + F.fam[MAPS.cm[ci][1]], hx = cx[ci] / cn[ci] - (phone ? 10 : 34), hy = cy2[ci] / cn[ci];
       word(g, hx, hy, lab, phone ? 10 : 13, 600, true, HOODC[ci], S.hoodHi === ci);
-      if (S.hoodHi === ci) word(g, hx, hy + (phone ? 15 : 17), MAPS.cm[ci][0] + ' artists · the queue took ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps inside', phone ? 10 : 10.5, 500, true, MUTE, S.hoodHi === ci);
+      if (S.hoodHi === ci) word(g, hx, hy + (phone ? 15 : 17), MAPS.cm[ci][0] + ' artists · auto-play took ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps inside', phone ? 10 : 10.5, 500, true, MUTE, S.hoodHi === ci);
     }
     if (!phone) for (k = 0; k < 8; k++) { i = TOP[k]; if (i !== S.now && i !== S.hover && SA[i] > 0.5) word(g, SX[i] + SR[i] + 4, SY[i], names[i], 11, 500, false, ICE); }
   }
@@ -797,7 +799,7 @@ function isNb(i) { for (var k = 0; k < SNB.length; k++) if (SNB[k] === i) return
 function pipXY(row, i) { var c = i % PG.cols, r = (i / PG.cols) | 0; return [PG.x0 + c * PG.cell + PG.cell / 2, PG.y0 + row * (PG.bh + PG.gap) + r * PG.cell + PG.cell / 2, PG.cell * 0.6]; }
 function wbox(x0, y0, x1, y1) { words.push([x0 - 3, y0 - 3, x1 + 3, y1 + 3]); }
 function pips(g) {
-  var rows = scene === C_KEEP ? [['i pressed play', 42, MINT], ['the queue chose', 16, VIOLET]] : [['the frozen export, of 100 plays', [19, 17, 64]], ['the newest months, of 100 plays', [0, 1.5, 75]]];
+  var rows = scene === C_KEEP ? [['i pressed play', 42, MINT], ['auto-play chose', 16, VIOLET]] : [['the frozen export, of 100 plays', [19, 17, 64]], ['the newest months, of 100 plays', [0, 1.5, 75]]];
   var lit = 1; if (scene === C_KEEP) { if (!S.keepT0) S.keepT0 = performance.now(); lit = reduce ? 1 : ease((performance.now() - S.keepT0) / 1800); }
   var cols = phone ? 20 : 25, cell = Math.min((W - 60) / cols, phone ? 10 : 16), rowsN = 100 / cols, bh = rowsN * cell, gap = phone ? 44 : 56;
   var x0 = Math.round((W - cols * cell) / 2), y0 = Math.round(cam.cy - (rows.length * bh + gap) / 2 - (phone ? 30 : 0)), r = cell * 0.3, k, i, c, rr, fs = phone ? 10.5 : 12, tw;
@@ -818,7 +820,7 @@ function pips(g) {
     }
     wbox(x0, y, x0 + cols * cell, y + bh);
     g.textBaseline = 'top'; g.fillStyle = MUTE;
-    var cap = scene === C_KEEP ? (rows[k][1] + ' of 100 kept') : (k === 0 ? (phone ? 'mint 19 me · amber 17 shuffle · violet 64 queue' : 'mint 19 my press · amber 17 shuffle · violet 64 the queue') : (phone ? 'shuffle 1.5 · queue 75 · me about the same' : 'shuffle 1.5 · the queue 75 · my press about the same'));
+    var cap = scene === C_KEEP ? (rows[k][1] + ' of 100 kept') : (k === 0 ? (phone ? 'mint 19 me · amber 17 shuffle · violet 64 auto-play' : 'mint 19 my press · amber 17 shuffle · violet 64 the queue') : (phone ? 'shuffle 1.5 · queue 75 · me about the same' : 'shuffle 1.5 · the queue 75 · my press about the same'));
     tw = g.measureText(cap).width; var cx = Math.min(x0, W - tw - 8);
     g.fillText(cap, cx, y + bh + 6); wbox(cx, y + bh + 6, cx + tw, y + bh + 6 + fs * 1.3);
     if (scene === C_KEEP) { g.font = '600 ' + (phone ? 22 : 30) + 'px ' + SANS; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillStyle = rows[k][2]; var nt = String(Math.round(rows[k][1] * lit)); g.fillText(nt, x0 + cols * cell, y - 6); wbox(x0 + cols * cell - g.measureText(nt).width, y - 6 - (phone ? 22 : 30), x0 + cols * cell, y - 6); }
@@ -845,14 +847,14 @@ function countdown(g, now) {
    the sentences live in the template (each act's ol.cl, read by screen readers too); the anchors come from this frame's geometry */
 var ACC = [ICE, MINT, ICE, VIOLET, MINT, AMBER, GOLD], CLMS = 4000;
 var CL = { list: null, k: -1, sc: -1, to: 0, one: null, at: {} };
-var LOOKS = ['radial: names on the rim, grouped by family.', 'bundled: placed by who followed whom.', 'islands: one per family; a curve crosses families.', 'arcs: my press above in mint, the queue below.'];
+var LOOKS = ['straight: names on the rim, grouped by family; straight lines inside.', 'gathered: lines that share a road are pulled together.', 'islands: one per family; a curve crosses families.', 'arcs: my press above in mint, the queue below.'];
 var NSAY = { hood: 'colored by room: drawn from what followed what alone.', family: 'colored by family; no room was told a family.', first: 'colored by first heard, in eight cuts of the log.' };
 function clItems(sc) {
   var act = $$('.act')[sc], v = String(S.mt); if (!act) return [];
   return Array.prototype.slice.call(act.querySelectorAll('.cl li')).filter(function (li) { var d = li.getAttribute('data-v'); return d === null || sc !== C_MAPS || d === v; }).map(function (li) { return { t: li.textContent, at: li.getAttribute('data-at') }; });
 }
 function tmLabel() {
-  var on = !!(CL.list && CL.k >= 0), s = on ? 'tell me · ' + (CL.k + 1) + ' of ' + CL.list.length : 'tell me';
+  var on = !!(CL.list && CL.k >= 0), s = on ? 'next finding · ' + (CL.k + 1) + ' of ' + CL.list.length : 'next finding';
   $$('[data-tm]').forEach(function (b) { if (b.textContent !== s) b.textContent = s; b.classList.toggle('on', on); });
 }
 function clReady() {
@@ -1309,7 +1311,7 @@ function breakRun() {
   play(cand[Math.floor(rnd() * Math.min(10, cand.length))][0], 'break');
 }
 function room(i, why) {
-  var h = F.h[i], p = h[0] + h[1] + h[2], hand = h[2] >= h[0] && h[2] >= h[1] ? 'the queue' : h[1] >= h[0] ? 'shuffle' : 'my press';
+  var h = F.h[i], p = h[0] + h[1] + h[2], hand = h[2] >= h[0] && h[2] >= h[1] ? 'auto-play' : h[1] >= h[0] ? 'shuffle' : 'my press';
   var Ls = S.line, nx = Ls && Ls.stops[Ls.k + 1], lead = why === 'stop' && Ls ? 'stop ' + (Ls.k + 1) + ' of ' + Ls.stops.length + ': ' + cut(names[i], 22) + (nx >= 0 ? ', next: ' + cut(names[nx], 22) : ', last stop') : why === 'near' ? 'step ' + S.sn + ': the queue walks to the nearest in sound' : why === 'break' ? 'step ' + S.sn + ': my hand breaks the run, far in sound' : why === 'like' ? (S.like.k ? 'sounds like ' + S.like.k + ' of ' + (S.like.seq.length - 1) + ': ' + cut(names[i], 22) + (S.like.k + 1 < S.like.seq.length ? ', next: ' + cut(names[S.like.seq[S.like.k + 1]], 22) : ', the last') : 'sounds like: ' + cut(names[i], 22) + ' first, then its six nearest in sound') : why === 'ringwalk' ? 'step ' + S.sn + ' on the ring: who followed it most' : why === 'rim' ? 'who led to whom' : why === 'hood' ? 'the most played artist of that room' : why === 'log' ? 'step ' + S.sn + ': the log walks to who followed it most' : why === 'find' ? 'found: zoomed to it' : why === 'game' ? '47 seconds: keep or let go' : 'now playing';
   text('#np-k', lead); text('#np-n', names[i]);
   text('#np-h', p + ' plays · mostly ' + hand + ' · ' + F.fam[F.f[i]] + (apple(i) ? ' (Apple\u2019s label)' : '') + (scene === C_HOODS && MAPS && MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? ' · neighborhood ' + ROMAN[MAPS.c[i]] : ''));
@@ -1393,10 +1395,10 @@ function whAnswer(me) {
 function on(sel, f) { var e = $(sel); if (e) e.addEventListener('click', f); }
 on('#b-pp', function () { var a = el(); if (S.playing) { S.user = true; a.pause(); } else if (S.now >= 0) { S.user = false; sound(S.now); } else next(); });
 on('#b-next', function () { S.user = false; next(); });
-on('#b-queue', function () { walkMode('queue'); walk(); text('#h-mode', 'the queue walks: each next song is the nearest in sound to the last. hear how close it stays.'); say('the queue: each next song, the nearest in sound.', 'now'); });
+on('#b-queue', function () { walkMode('queue'); walk(); text('#h-mode', 'auto-play walks: each next song is the nearest in sound to the last. hear how close it stays.'); say('the queue: each next song, the nearest in sound.', 'now'); });
 on('#b-look', function () {
   var nx = (S.look + 1) % 4;
-  var go = function () { S.lookFrom = S.look; S.look = nx; S.lookT0 = performance.now(); S.lookB = 0; S.rim = -1; text('#b-look', 'look: ' + LOOKN[nx]); text('#h-look', LOOKT[nx]); say(LOOKS[nx], ['rim0', 'ctr', 'isl', 'ctr'][nx]); };
+  var go = function () { S.lookFrom = S.look; S.look = nx; S.lookT0 = performance.now(); S.lookB = 0; S.rim = -1; text('#b-look', 'lines: ' + LOOKN[nx]); text('#h-look', LOOKT[nx]); say(LOOKS[nx], ['rim0', 'ctr', 'isl', 'ctr'][nx]); };
   if ((nx === 1 || nx === 2) && !RL) loadRing().then(function (r) { if (!r) nx = 3; go(); }); else go();
 });
 on('#m-like', function () {

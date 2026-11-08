@@ -1777,7 +1777,7 @@ window.__spTame=true; window.__spAutoClose=true;
         ctx.fill();
       }
     }
-    requestAnimationFrame(tick);
+    if (heroVisible && !document.hidden) requestAnimationFrame(tick); else setTimeout(function () { requestAnimationFrame(tick); }, 300);
   }
 
   function start() {
@@ -2653,7 +2653,7 @@ window.__spTame=true; window.__spAutoClose=true;
 <section aria-label="the headline split" class="prov-lead" id="intent-lead"><div class="prov-eyebrow">the finding</div><h2 class="prov-head">the app, not i, pressed play on 81 of every 100 of my Spotify plays.</h2><div class="prov-split"><div class="prov-split-bar"><span class="prov-you" style="width:19%"></span><span class="prov-shuffle" style="width:17%"></span><span class="prov-algo" style="width:64%"></span></div><div class="prov-split-legend"><span><i class="psw" style="background:#21f6bc"></i>i tapped <b>18,591</b> (19)</span><span><i class="psw" style="background:#f5a623"></i>shuffle <b>16,262</b> (17) <span class="dim">(its own next pick; 20.9% had the flag on at all)</span></span><span><i class="psw" style="background:#8b6fd6"></i>the queue <b>62,574</b> (64)</span></div></div><p class="prov-body">97,427 plays, 2019 to 2026. i chose 19 of every 100, and only 11.5 by the strictest count. A &ldquo;taste profile&rdquo; built from a listening log is, mostly, a profile of an algorithm.</p><!--APPLE-RLHF-START--><!--l4s-->
 <div class="prov-rlhf">
   <span class="rlhf-tag">why this is a training-data problem</span>
-  <p>That has a sharp consequence for anyone who trains models on behavior like this. A system fit to my listening log doesn&rsquo;t learn what i <i>value</i>. It learns what a recommender chose to show me, and grades itself on whether i kept listening. That&rsquo;s structurally what <b>reinforcement learning from human feedback</b> does, with one difference: the feedback was already authored by a model. <span class="pull-quote-inline">In a log like this one, the contamination isn&rsquo;t noise you can filter out; it&rsquo;s <b>structural</b>: the record was co-written by the system you&rsquo;re trying to study.</span></p>
+  <p>That has a sharp consequence for anyone who trains models on behavior like this. A system fit to my listening log doesn&rsquo;t learn what i <i>value</i>.</p><details class="sm-lf-fine"><summary>the fine print</summary><p>It learns what a recommender chose to show me, and grades itself on whether i kept listening. That&rsquo;s structurally what <b>reinforcement learning from human feedback</b> does, with one difference: the feedback was already authored by a model. <span class="pull-quote-inline">In a log like this one, the contamination isn&rsquo;t noise you can filter out; it&rsquo;s <b>structural</b>: the record was co-written by the system you&rsquo;re trying to study.</span></p></details>
 </div>
 <!--APPLE-RLHF-END-->
 <!--APPLE-OOSSTAR-START-->
@@ -2699,12 +2699,12 @@ window.__spTame=true; window.__spAutoClose=true;
     <div class="pd-card win">
       <span class="pc-tag">audit 1 &middot; first-encounter ratification</span>
       <div class="pc-stat">7.2% <span class="vs">vs 28.7%</span></div>
-      <p>When the algorithm introduces a track i&rsquo;ve never heard, i deliberately come back to it within 30 days <b>7.2%</b> of the time (833 of 11,565 algorithm-first encounters; 7.7% at artist level; the per-year bars count 11,469 of these; the other 96 predate 2022). When i find one myself, i return at <b>28.7%</b>. The recommender is a prolific introducer and a mediocre matchmaker: most of what it shows me, i never reach for again. That low rate cuts both ways though: it introduces ~8&times; more tracks (11,565 vs 1,530), so in raw counts it still lands more keepers than i find myself (833 vs 439): weak per encounter, but high-volume.</p>
+      <p>When the algorithm introduces a track i&rsquo;ve never heard, i deliberately come back to it within 30 days <b>7.2%</b> of the time (833 of 11,565 algorithm-first encounters; 7.7% at artist level; the per-year bars count 11,469 of these; the other 96 predate 2022). When i find one myself, i return at <b>28.7%</b>.</p><details class="sm-lf-fine"><summary>the fine print</summary><p>The recommender is a prolific introducer and a mediocre matchmaker: most of what it shows me, i never reach for again. That low rate cuts both ways though: it introduces ~8&times; more tracks (11,565 vs 1,530), so in raw counts it still lands more keepers than i find myself (833 vs 439): weak per encounter, but high-volume.</p></details>
     </div>
     <div class="pd-card decay">
       <span class="pc-tag">audit 2 &middot; passivity decay</span>
       <div class="pc-stat">23.8% &rarr; 1.5%</div>
-      <p>Follow an unbroken autoplay run. For tracks i&rsquo;d <b>already ratified</b>, re-tap odds run 0.55&rarr;0.91 across depth, but hold the track fixed and the rise vanishes (track-FE slope &minus;0.00008, CI straddles zero; conditional logit p=0.65): composition, not delegation-by-depth. For tracks i&rsquo;d <b>never tapped</b>, the curve runs 23.8% at depth 1 down to 1.5% deep in a run, but holding the track fixed keeps only ~8% of that slope (FE &minus;0.00027, CI excludes zero; conditional logit p=0.003). Deep streaks reach less-ratifiable tracks; they barely change any track&rsquo;s odds. The levels stand; the depth story died in audit (graveyard n&deg;14).</p>
+      <p>Follow an unbroken autoplay run. For tracks i&rsquo;d <b>already ratified</b>, re-tap odds run 0.55&rarr;0.91 across depth, but hold the track fixed and the rise vanishes (track-FE slope &minus;0.00008, CI straddles zero; conditional logit p=0.65): composition, not delegation-by-depth.</p><details class="sm-lf-fine"><summary>the fine print</summary><p>For tracks i&rsquo;d <b>never tapped</b>, the curve runs 23.8% at depth 1 down to 1.5% deep in a run, but holding the track fixed keeps only ~8% of that slope (FE &minus;0.00027, CI excludes zero; conditional logit p=0.003). Deep streaks reach less-ratifiable tracks; they barely change any track&rsquo;s odds. The levels stand; the depth story died in audit (graveyard n&deg;14).</p></details>
     </div>
   </div>
   <div class="pd-take">Delegation is real, but only over material i had already ratified. The algorithmic tail is close to preference-free, which is exactly why raw play counts overweight it. And the honest counterpoint stands: a passive play isn&rsquo;t pure noise: even a never-tapped track at autoplay depth 1 gets ratified 23.8% of the time. The claim is <b>provenance ambiguity</b>, not meaninglessness.</div>
@@ -2735,7 +2735,7 @@ window.__spTame=true; window.__spAutoClose=true;
 <section aria-label="what this means for AI systems" class="ai-impl" id="ai-systems">
   <div class="aii-kicker">implications for AI systems</div>
   <h2 class="aii-h">If you train models on human behavior, this is the problem in one person&rsquo;s data.</h2>
-  <p class="aii-lead">The one causal-looking signal in the whole log of my listening, a lag-3 arrow from world/desi to jazz that survived correction across 42 genre pairs, turned out to be the recommender&rsquo;s own sequencing. It lives entirely in autoplay&rsquo;s auto-advance (F=7.87, permutation p=0.008); it goes null under shuffle and is untestable in my deliberate taps. i only saw it by separating what i <i>chose</i> from what i was <i>served</i>. That isn&rsquo;t a footnote; that&rsquo;s the thesis, live in my own data.</p>
+  <p class="aii-lead">The one causal-looking signal in the whole log of my listening, a lag-3 arrow from world/desi to jazz that survived correction across 42 genre pairs, turned out to be the recommender&rsquo;s own sequencing. It lives entirely in autoplay&rsquo;s auto-advance (F=7.87, permutation p=0.008); it goes null under shuffle and is untestable in my deliberate taps.</p><details class="sm-lf-fine"><summary>the fine print</summary><p>i only saw it by separating what i <i>chose</i> from what i was <i>served</i>. That isn&rsquo;t a footnote; that&rsquo;s the thesis, live in my own data.</p></details>
   <ol class="aii-points">
     <li><b>In a log like this, provenance dominates.</b> the app, not i, pressed play on 81 of every 100 of my Spotify plays (64 the queue served, 17 shuffle; 20.9% of plays had Spotify&rsquo;s own shuffle-mode flag on at all). <span class="dim">(tap-rate pooled over a changing logger: the bundled rate swings 11.8%→22.7% across the 2023-10 audit era boundary; the strict 11.5% definition is era-stable.)</span> Train on that and you&rsquo;re training on autopilot: the model mostly learns the recommender&rsquo;s prior decisions, not my values, <span class="pull-quote-inline">a recording of the system talking to itself, with a slim layer of me on top.</span></li>
     <li><b>The deliberate signal is recoverable, and it&rsquo;s a cleaner target.</b> The 19% i tapped on purpose is a different, less circular signal. Separating intentional action from passive exposure yields a training target that reflects preferences instead of prior model outputs, and it falls out of logs everyone already has.</li>
@@ -4584,7 +4584,7 @@ render(parseInt(rg.value,10)||0);
 <!--GENRE-BIAS-LEDE-START--><!--l4s-->
 <div class="smcv gbl" id="genre-trend-verdict" style="--cv390:367px;--cv1600:164px">
   <p class="gbl-eye">served &ne; chosen &middot; read the treemap as exposure</p>
-  <p>The big calm slices below are mostly what i was <b>served</b>, not what i reached for. Re-weight every hour by how often i actually tapped that genre and it diverges from neutral (1.0&times;): <span class="gbl-over">ambient / lo-fi 0.71&times; [0.63, 0.79] on the strict count, completed family map</span> and <span class="gbl-over">classical 0.5&times;</span> sit far left (algorithmically over-served), while <span class="gbl-under">hip-hop &middot; R&amp;B 1.2&times;</span> and <span class="gbl-under">rock 1.3&times;</span> run the other way, sought against the grain. That holds by play-count, via a few heavily-replayed favorites (per unique track even these sit below the line). The treemap is the exposure; the bias is the story. (Full served-vs-chosen bar up top.)</p>
+  <p>The big calm slices below are mostly what i was <b>served</b>, not what i reached for. Re-weight every hour by how often i actually tapped that genre and it diverges from neutral (1.0&times;): <span class="gbl-over">ambient / lo-fi 0.71&times; [0.63, 0.79] on the strict count, completed family map</span> and <span class="gbl-over">classical 0.5&times;</span> sit far left (algorithmically over-served), while <span class="gbl-under">hip-hop &middot; R&amp;B 1.2&times;</span> and <span class="gbl-under">rock 1.3&times;</span> run the other way, sought against the grain.</p><details class="sm-lf-fine"><summary>the fine print</summary><p>That holds by play-count, via a few heavily-replayed favorites (per unique track even these sit below the line). The treemap is the exposure; the bias is the story. (Full served-vs-chosen bar up top.)</p></details>
 </div>
 <!--GENRE-BIAS-LEDE-END-->
 
@@ -4650,8 +4650,7 @@ render(parseInt(rg.value,10)||0);
     <h3>◢ TOP 20 ASYMMETRIC SUBGENRE TRANSITIONS: strongest directional asymmetry</h3>
     <p style="font-size:12px;color:var(--mute);margin-top:0">
       A→B fires much more often than B→A. asym = log₂(P(B|A) / P(A|B));
-      lift = log₂ P(B|A_recent) / P(B). Higher asym = more directional. how to read ASYM: near 0 means the pair flows evenly both ways; this table only shows the 20 most one-way pairs found, so all sit far from 0. Note: a row with lift &lt; 1× is one-way but <em>not</em> facilitative: A precedes B more than the reverse, yet A doesn&rsquo;t actually raise B&rsquo;s odds.
-    </p>
+      lift = log₂ P(B|A_recent) / P(B).</p><details class="sm-lf-fine"><summary>the fine print</summary><p>Higher asym = more directional. how to read ASYM: near 0 means the pair flows evenly both ways; this table only shows the 20 most one-way pairs found, so all sit far from 0. Note: a row with lift &lt; 1× is one-way but <em>not</em> facilitative: A precedes B more than the reverse, yet A doesn&rsquo;t actually raise B&rsquo;s odds.</p></details>
     <table>
       <thead><tr><th>FROM</th><th></th><th>TO</th><th>LIFT</th><th>ASYM</th><th>SUPPORT</th></tr></thead>
       <tbody><tr><td>piano</td><td>→</td><td>rnb</td><td class='yr'>-0.02×</td><td class='dim'>asym 5.16</td><td class='dim'>71 co-occ</td></tr><tr><td>reggae</td><td>→</td><td>dubstep</td><td class='yr'>0.05×</td><td class='dim'>asym 5.03</td><td class='dim'>43 co-occ</td></tr><tr><td>instrumental</td><td>→</td><td>rnb</td><td class='yr'>0.48×</td><td class='dim'>asym 4.91</td><td class='dim'>102 co-occ</td></tr><tr><td>indie</td><td>→</td><td>rnb</td><td class='yr'>0.86×</td><td class='dim'>asym 4.69</td><td class='dim'>190 co-occ</td></tr><tr><td>reggae</td><td>→</td><td>rnb</td><td class='yr'>1.14×</td><td class='dim'>asym 4.42</td><td class='dim'>163 co-occ</td></tr><tr><td>future garage</td><td>→</td><td>pop</td><td class='yr'>0.98×</td><td class='dim'>asym 4.31</td><td class='dim'>153 co-occ</td></tr><tr><td>instrumental</td><td>→</td><td>pop</td><td class='yr'>0.89×</td><td class='dim'>asym 4.29</td><td class='dim'>103 co-occ</td></tr><tr><td>soundtrack</td><td>→</td><td>rnb</td><td class='yr'>-0.34×</td><td class='dim'>asym 4.22</td><td class='dim'>69 co-occ</td></tr><tr><td>afropop</td><td>→</td><td>rnb</td><td class='yr'>1.15×</td><td class='dim'>asym 4.12</td><td class='dim'>281 co-occ</td></tr><tr><td>bhangra</td><td>→</td><td>rnb</td><td class='yr'>0.62×</td><td class='dim'>asym 4.10</td><td class='dim'>193 co-occ</td></tr><tr><td>soundtrack</td><td>→</td><td>hip-hop</td><td class='yr'>0.11×</td><td class='dim'>asym 4.09</td><td class='dim'>54 co-occ</td></tr><tr><td>reggae</td><td>→</td><td>chillout</td><td class='yr'>0.14×</td><td class='dim'>asym 4.01</td><td class='dim'>18 co-occ</td></tr><tr><td>reggae</td><td>→</td><td>hip-hop</td><td class='yr'>1.50×</td><td class='dim'>asym 3.93</td><td class='dim'>120 co-occ</td></tr><tr><td>downtempo</td><td>→</td><td>rnb</td><td class='yr'>-0.01×</td><td class='dim'>asym 3.86</td><td class='dim'>98 co-occ</td></tr><tr><td>jazz</td><td>→</td><td>rnb</td><td class='yr'>1.20×</td><td class='dim'>asym 3.80</td><td class='dim'>199 co-occ</td></tr><tr><td>india</td><td>→</td><td>rnb</td><td class='yr'>0.90×</td><td class='dim'>asym 3.76</td><td class='dim'>254 co-occ</td></tr><tr><td>instrumental</td><td>→</td><td>dubstep</td><td class='yr'>0.16×</td><td class='dim'>asym 3.75</td><td class='dim'>46 co-occ</td></tr><tr><td>chillstep</td><td>→</td><td>rnb</td><td class='yr'>0.28×</td><td class='dim'>asym 3.71</td><td class='dim'>199 co-occ</td></tr><tr><td>soundtrack</td><td>→</td><td>pop</td><td class='yr'>0.27×</td><td class='dim'>asym 3.71</td><td class='dim'>80 co-occ</td></tr><tr><td>indie</td><td>→</td><td>pop</td><td class='yr'>1.63×</td><td class='dim'>asym 3.70</td><td class='dim'>245 co-occ</td></tr></tbody>
@@ -4765,7 +4764,7 @@ render(parseInt(rg.value,10)||0);
     <span class="sn-num">0.496</span>
     <span class="sn-cap">out-of-time next-press AUROC from track-content features<br>(session-sequence features reach 0.815; see below)</span>
   </div>
-  <p>An L2-regularized logistic regression given the audio features and listening history i have predicts my next press at <b>AUROC 0.496</b> on a temporal holdout: a coin flip. That negative is real but narrower than it first read: it is a statement about <i>track-content</i> features on the &ge;30s-qualified corpus. Reformulated the way the sequential-prediction literature does it, with session-sequence features (did i just press next? how restless is this session so far?) on the all-plays population (the &ge;30s filter removes 77% of true next presses by construction), held-out AUROC is <b>0.815</b> [0.796, 0.832]. Two features alone reach 0.80: my next presses are <b>predictable from the spiral, not the song</b>.</p>
+  <p>An L2-regularized logistic regression given the audio features and listening history i have predicts my next press at <b>AUROC 0.496</b> on a temporal holdout: a coin flip. That negative is real but narrower than it first read: it is a statement about <i>track-content</i> features on the &ge;30s-qualified corpus.</p><details class="sm-lf-fine"><summary>the fine print</summary><p>Reformulated the way the sequential-prediction literature does it, with session-sequence features (did i just press next? how restless is this session so far?) on the all-plays population (the &ge;30s filter removes 77% of true next presses by construction), held-out AUROC is <b>0.815</b> [0.796, 0.832]. Two features alone reach 0.80: my next presses are <b>predictable from the spiral, not the song</b>.</p></details>
   <p class="sn-impl"><b>Why it matters.</b> What drives a next press isn&rsquo;t in the audio; it&rsquo;s in the session state: presses arrive in self-propagating runs (P(press&nbsp;|&nbsp;i just pressed next) = 64.8% vs 4.0% after a keeper). A recommender scoring per-track next-press probability for this listener is modeling the wrong object; the predictable thing is the spiral. The track-level negative still binds: a valuable constraint, now with its edges drawn.</p>
 </section>
 <!--APPLE-SKIPNEG-END-->
@@ -5698,11 +5697,10 @@ render(parseInt(rg.value,10)||0);
     the training is carnatic, south indian classical voice: sruti discipline,
     raga grammar, gamaka ornamentation, the varnam-and-kriti drill. the current singing
     is broad: india arie, &ldquo;la vie en rose&rdquo;, the world music + pop +
-    R&amp;B i actually listen to. this panel is what the indian
+    R&amp;B i actually listen to.</p><details class="sm-lf-fine"><summary>the fine print</summary><p>this panel is what the indian
     sub-corpus actually is in the playback log: small, structured, and
     not the part of me you&rsquo;d hear by checking the streaming queue.
-    <b style="font-style:normal;color:var(--sun,#fffa6a)">a trained ear, an active voice, and a catalog that doesn&rsquo;t apologize for either.</b>
-  </p>
+    <b style="font-style:normal;color:var(--sun,#fffa6a)">a trained ear, an active voice, and a catalog that doesn&rsquo;t apologize for either.</b></p></details>
 
   <div class="cp-headline">
     of <span class="cp-num">4,770h</span> of qualifying listening
@@ -6011,14 +6009,12 @@ render(parseInt(rg.value,10)||0);
      font-size:0.88rem;line-height:1.7;max-width:820px;margin-bottom:1.2rem">
     <span class="term-tip" data-tip="Open dataset of pre-computed audio features and SVM-classified mood/genre probabilities (essentia descriptors) for millions of tracks." tabindex="0">AcousticBrainz</span> uses Essentia to extract signal-level features from audio waveforms:
     BPM, key, spectral centroid, and trained classifiers for mood / danceability.
-    This is not a tag proxy; it's what the audio <em>actually measures</em>.
-    MusicBrainz lookup matched 54% of the top-1000 tracks;
+    This is not a tag proxy; it's what the audio <em>actually measures</em>.</p><details class="sm-lf-fine"><summary>the fine print</summary><p>MusicBrainz lookup matched 54% of the top-1000 tracks;
     25% of those had AcousticBrainz data.
     The remaining 86.5% of tracks had no AB entry; coverage skews toward
     older, more widely-indexed music. Newer releases and artists from
     Global South markets are systematically underrepresented.
-    Results below cover the 80-artist subset with complete feature vectors.
-  </p>
+    Results below cover the 80-artist subset with complete feature vectors.</p></details>
 
   <!-- Finding 1: ARI comparison -->
   <div style="margin-bottom:1.4rem;padding:0.8rem 1rem;background:#15082d;border-radius:4px">
@@ -6029,14 +6025,13 @@ render(parseInt(rg.value,10)||0);
     <p style="color:#f0eaff;font-family:'JetBrains Mono',monospace;
        font-size:0.85rem;line-height:1.65;margin:0">
       ARI (K-means on 8-feature AB vector vs W2V, K=8) = <b style="color:#ff6e9c">0.010</b>.
-      The tag-TF-IDF ARI (all 1,484 artists) was 0.030 (at K=8; it ranges 0.01&ndash;0.05 across K, peaking 0.046 at K=12). Actual waveform-derived features
+      The tag-TF-IDF ARI (all 1,484 artists) was 0.030 (at K=8; it ranges 0.01&ndash;0.05 across K, peaking 0.046 at K=12).</p><details class="sm-lf-fine"><summary>the fine print</summary><p>Actual waveform-derived features
       land at half that agreement level. Two spaces, same music, zero correlation:
       the social graph and the acoustic graph are not speaking the same language,
       and more signal-level precision doesn't fix it; it makes it more obvious.
       The hypothesis that TF-IDF tags were a noisy proxy for real acoustics is correct,
       but the implication is backwards: tags are <em>more</em> aligned with social clusters
-      than the physics of the audio itself.
-    </p>
+      than the physics of the audio itself.</p></details>
   </div>
 
   <!-- Finding 2: BPM by family -->
@@ -6081,13 +6076,11 @@ render(parseInt(rg.value,10)||0);
       AcousticBrainz's mood_relaxed classifier gives Linkin Park a score of
       <b style="color:#ff6e9c">0.995</b>,
       nearly 1.0, maximum relaxed. Consistent tempo, stable loudness, clean production:
-      by spectral metrics, <i>Numb</i> and <i>In the End</i> are calm.
-      The emotional devastation is invisible to signal processing.
+      by spectral metrics, <i>Numb</i> and <i>In the End</i> are calm.</p><details class="sm-lf-fine"><summary>the fine print</summary><p>The emotional devastation is invisible to signal processing.
       This is the canonical limitation of acoustic feature extraction:
       it measures the physics of sound, not the semantics of music.
       What tags call "emotional" or "aggressive" often lives in lyrics,
-      cultural context, and memory, none of which Essentia can access.
-    </p>
+      cultural context, and memory, none of which Essentia can access.</p></details>
   </div>
 
   <!-- Key distribution -->
@@ -6115,12 +6108,11 @@ render(parseInt(rg.value,10)||0);
     <b style="color:#df95ff">Coverage caveat:</b>
     AcousticBrainz is CC0 and legal to query, but is no longer accepting new submissions
     (service archived as of 2022). Coverage = 14% of top-1000 tracks
-    (135/1000). MusicBrainz MBID match rate = 54%.
+    (135/1000).</p><details class="sm-lf-fine"><summary>the fine print</summary><p>MusicBrainz MBID match rate = 54%.
     The 45.9% of tracks with no MBID are disproportionately recent releases, Afrobeats,
     UK drill, and Punjabi pop: the genres that show up most in my listening.
     All three findings above hold with this bias in mind but should not be extrapolated
-    to the full library.
-  </p>
+    to the full library.</p></details>
 </div>
 
 <!-- Limitations -->
@@ -11698,7 +11690,7 @@ X <em>Granger-causes</em> Y if X&rsquo;s recent past improves the forecast of Y 
   }
 
   document.addEventListener('sonic:plotly-rendered', function(){ setTimeout(themeTreemap,60); setTimeout(fableFigOverlap,260); });
-  var n=0, iv=setInterval(function(){ themeTreemap(); fableFigOverlap(); if(++n>240) clearInterval(iv); }, 1000);
+  var n=0, iv=setInterval(function(){ if(document.hidden) return; themeTreemap(); fableFigOverlap(); if(++n>240) clearInterval(iv); }, 1000);
   setTimeout(themeTreemap, 800); setTimeout(fableFigOverlap, 900);
 
   /* T2/T4 (2026-07-03): center + widen panels that render ALONE in their grid row.
@@ -13970,5 +13962,21 @@ run();D.addEventListener('sm-defer-done',function(){setTimeout(run,700);});windo
 .lh-forest-fold{max-width:840px;margin-left:auto!important;margin-right:auto!important}.lh-forest-fold>summary{justify-content:center}.lh-forest-fold .lh-forest{margin-left:auto!important;margin-right:auto!important}
 .lh-forest-fold .sm-lf-cap,.lh-forest-fold .sm-lf-fine{max-width:68ch;margin:14px auto 0;font:400 14px/1.55 'JetBrains Mono',ui-monospace,monospace;color:rgba(240,234,255,.7)}
 .lh-forest-fold .sm-lf-fine summary{cursor:pointer;color:#86cbfe;min-height:32px}.lh-forest-fold .sm-lf-fine p{font-size:14px;line-height:1.55;margin:8px 0 0}
-main p,main li,.panel p{max-width:68ch;line-height:1.55}main .panel p,main .panel li{font-size:17px}main figcaption,main .caption,main .fig-cap{font-size:14px}</style><!--SM-LABFIX-END--></body>
+main p,main li,.panel p{max-width:68ch;line-height:1.55}main .panel p,main .panel li{font-size:17px}main figcaption,main .caption,main .fig-cap{font-size:14px}/* labfix2 */
+html body{background:#0a0118!important;background-image:none!important}
+#aurora-bg,#aurora-bg:is(#l14m#l14m#l14m#l14m,*){display:none!important}
+:root{--elev-1:none!important;--elev-2:none!important;--surface-1:#110a22;--surface-2:#110a22}
+.card,.panel,.fig-caption,.scitrack,.sci-abstract,.prov-head,.oos-star,.pass-decay,.aversion,.arch,.ai-impl,#apple-leadhero .lh-stat,#toy-leakdial,.gauntlet,.sci-add-box,.surprising-hero-box,.novel-callout-box,.about-dash,.rev-card,.rev-closer,#umap-method,.umap-card,.atyp-hyp,.gbl,.skip-neg,.hp-fig,.hp-sub,.oura-card,.exo-finding,.cp-headline,.cp-grid,.cp-chart-wrap,.next-chapter,.research-dir,#graveyard .gy-card,.cre-loop,.cre-loop .cl-quote,.field-notes .fn-card,.table-wrap,.sect-tldr,.pull-quote-inline,.aud-card,.contam-anim,.whyn1,#era-scroll .es-card,.apple-mgrid .amg-card,.decontam-box,.gflip,.xpress,.audit-board,#stress-test .stx-card,#field-bodycount .bc-card,.honest-fail,.l5-rec,body.smch-on .smch-card,.method-cmp .mc-scroll,#fg-killed,.sci-portal,.chap-portal,#ss-scrolly .ss-graphic,.share-card-inner,.lazy-placeholder,.plotly-graph-div:empty,.hp-killed,.sankey-mobile-msg{background:#110a22!important;background-image:none!important;box-shadow:none!important;border-color:rgba(124,128,140,.28)!important}
+.fig-caption{background:none!important;border-color:rgba(124,128,140,.28)!important}
+.lazy-placeholder::before,.lazy-placeholder::after,.lazy-ph-text::after,#umap-plot-host::before,#umap-plot-host::after,.fn-card::before,.field-notes .fn-card::before,#stress-test .stx-card::before,.panel::after,#era-scroll::before{display:none!important}
+.panel:hover,.card:hover,.rev-card:hover,.aud-card:hover,#era-scroll .es-card:hover{box-shadow:none!important;transform:none!important}
+#apple-leadhero,#apple-sunomoment,.scrolly,.lifestate h2,.cre-loop h2{background:none!important;background-image:none!important}
+html body nav.cyber-nav,html body nav.cyber-nav ul,.cyber-nav,.cyber-nav ul{background:#0a0118!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-bottom:1px solid rgba(124,128,140,.28)!important}
+html body #aux-play,html body #aux-now,#aux-audio,#idle-koan,:is(#r20n#r20n#r20n#r20n#r20n,*) #aux-audio{background-color:#110a22!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
+#idle-koan{background:rgba(10,1,24,.96)!important}
+.sci-abstract,.oos-star,.pass-decay,.aversion,.arch,.ai-impl,.gauntlet,.sci-add,.skip-neg,.lifestate,.cre-loop,.section-tldr,.scrolly-opener,.scrolly-inner,.hero-essay,.about-dash,.rev-closer,.surprising-hero,.novel-callout,.honest-fail,.sect-tldr,.health-intro,.exo-intro,.cp-intro,.contam-anim,.audit-board,.scitrack,.prov-lead,.sem-key{max-width:880px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
+.atyp-hyp,.gbl,.oura-card,#graveyard .gy-inner,.health-panel,.exo-shock-panel,.carnatic-panel,.methods-index-section,.apple-mgrid,#stress-test,.research-dir{max-width:1040px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
+.sm-lf-fine{max-width:68ch;margin:10px 0 0;font:400 14px/1.55 'JetBrains Mono',ui-monospace,monospace;color:rgba(240,234,255,.7)}
+.sm-lf-fine summary{cursor:pointer;color:#86cbfe;min-height:32px}.sm-lf-fine p{font-size:14px;line-height:1.55;margin:8px 0 0}
+</style><!--SM-LABFIX-END--></body>
 </html>

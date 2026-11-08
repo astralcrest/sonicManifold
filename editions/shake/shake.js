@@ -94,23 +94,54 @@ function draw() {
   if (S.hear && WK.playing()) WK.pulse(g, X(S.hear.i), Y(S.hear.i), S.hear.col, 16);
 }
 
-var lx = 0, ly = 0, lz = 0, have = false;
+var lx = 0, ly = 0, lz = 0, have = false, peaks = [], chip, bar, fillEl, lab, flashT;
+function mkChip() {
+  chip = document.createElement('button'); chip.type = 'button';
+  chip.style.cssText = 'position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid currentColor;background:rgba(10,12,20,.85);color:#e8ecf4;font:500 13px "IBM Plex Mono",monospace;cursor:pointer';
+  lab = document.createElement('span'); bar = document.createElement('span'); fillEl = document.createElement('i');
+  bar.style.cssText = 'display:inline-block;width:48px;height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden';
+  fillEl.style.cssText = 'display:block;height:100%;width:0;background:#7fe3c0';
+  bar.appendChild(fillEl); chip.appendChild(lab); chip.appendChild(bar); document.body.appendChild(chip);
+  bar.style.display = 'none';
+}
+function setChip(t) { lab.textContent = t; }
 function onMotion(e) {
-  var a = e.accelerationIncludingGravity; if (!a) return;
-  var x = a.x || 0, y = a.y || 0, z = a.z || 0;
-  if (have) { var m = Math.abs(x - lx) + Math.abs(y - ly) + Math.abs(z - lz); if (m > TH * 2) shakeNow(); }
-  lx = x; ly = y; lz = z; have = true; S.got = true; $('nophone').hidden = true;
+  var a = e.accelerationIncludingGravity; if (!a || a.x == null) return;
+  var x = a.x, y = a.y || 0, z = a.z || 0;
+  S.got = true; $('nophone').hidden = true;
+  if (have) {
+    var dx = x - lx, dy = y - ly, dz = z - lz, m = Math.sqrt(dx * dx + dy * dy + dz * dz), now = Date.now();
+    fillEl.style.width = Math.min(100, m / 30 * 100) + '%';
+    if (m > 12) {
+      if (!peaks.length || now - peaks[peaks.length - 1] > 80) peaks.push(now);
+      peaks = peaks.filter(function (t) { return now - t < 600; });
+      if (peaks.length >= 2 && now - S.last >= COOL) { peaks = []; flash(); shakeNow(); }
+    }
+  }
+  lx = x; ly = y; lz = z; have = true;
 }
-function listen() { if (S.listening) return; S.listening = true; addEventListener('devicemotion', onMotion); $('alw').hidden = true; $('say').textContent = 'shake is on. shake the phone, tap shake, or press d.'; }
+function flash() { setChip('shook'); clearTimeout(flashT); flashT = setTimeout(function () { setChip('shake me'); }, 700); }
+function listen() {
+  if (S.listening) return; S.listening = true; addEventListener('devicemotion', onMotion);
+  $('alw').hidden = true; bar.style.display = 'inline-block'; setChip('shake me');
+  $('say').textContent = 'shake is on. shake the phone, tap shake, or press d.';
+}
+mkChip();
 var DM = window.DeviceMotionEvent;
-if (DM) {
-  if (typeof DM.requestPermission === 'function') {
-    $('alw').hidden = false;
-    $('alw').addEventListener('click', function () {
-      DM.requestPermission().then(function (r) { if (r === 'granted') listen(); else $('say').textContent = 'motion was not allowed. tap shake instead.'; }).catch(function () { $('say').textContent = 'motion is not available here. tap shake instead.'; });
-    });
-  } else if ('ontouchstart' in window) listen();
+if (DM && typeof DM.requestPermission === 'function') {
+  setChip('tap to allow motion'); $('alw').hidden = false;
+  var ask = function () {
+    if (S.listening) return;
+    DM.requestPermission().then(function (r) { if (r === 'granted') listen(); else { setChip('motion not allowed'); $('dl').hidden = false; $('say').textContent = 'motion was not allowed. tap shake instead.'; } }).catch(function () { setChip('motion not available'); $('say').textContent = 'motion is not available here. tap shake instead.'; });
+  };
+  chip.addEventListener('click', ask); $('alw').addEventListener('click', ask);
+} else if (DM) {
+  listen();
+  setTimeout(function () { if (!S.got) setChip('no motion here, tap shake'); }, 1500);
+} else {
+  setChip('no motion here, tap shake');
 }
+chip.addEventListener('click', function () { if (S.listening) { S.last = 0; flash(); shakeNow(); } });
 setTimeout(function () { if (!S.got) $('nophone').hidden = false; }, 1500);
 $('dl').addEventListener('click', function () { S.last = 0; shakeNow(); });
 $('nc').addEventListener('click', function () { if (!S.seq.length) { $('now').textContent = 'shake first, then step through the clips.'; return; } hearSeq(S.seq, Math.min(S.seq.length - 1, S.sk + 1)); });
