@@ -83,10 +83,53 @@
       var a = int1(H.a, D.n.length); if (a < 0) a = Math.floor(Math.random() * 100);
       var k = H.k == null ? null : Math.max(0, Math.min(12, parseInt(H.k, 10) || 0));
       var n = parseInt(H.n, 10); if (!(n > 0)) n = 1 + Math.floor(Math.random() * 999);
-      return { a: a, k: k, n: n, date: dateStr() };
+      return { a: a, k: k, n: n, date: dateStr(), tape: H.tape === '1' };
     },
-    alt: function (st) { return 'the split stub. left half: the point you ended on, ' + nm(st.a) + ', and its six nearest in sound. right half: the wall copy, stub ' + pad3(st.n) + '.'; },
+    // the 62 mm continuous tape (DK-2205): the same two halves stacked, tear line across
+    mmOf: function (st) { return st.tape ? [62, 190] : [148, 105]; },
+    pxOf: function (st) { return st.tape ? [234, 718] : [559, 397]; },
+    toggle: { key: 'tape', on: 'A6 slip', off: '62 mm tape' },
+    alt: function (st) { return 'the split stub' + (st.tape ? ' on 62 mm tape. top half' : '. left half') + ': the point you ended on, ' + nm(st.a) + ', and its six nearest in sound. ' + (st.tape ? 'bottom' : 'right') + ' half: the wall copy, stub ' + pad3(st.n) + '.'; },
+    drawTape: function (g, T, st) {
+      var w = 234, h = 718, hh = h / 2, s = 200, x0 = 17, a = st.a, near = D.nn[a].slice(0, 6);
+      g.fillStyle = T.bg; g.fillRect(0, 0, w, h);
+      var half = function (y0, flip) {
+        g.save(); g.translate(0, y0);
+        if (flip) { g.translate(x0 + s, 0); g.scale(-1, 1); }
+        var f = field(g, T, flip ? 0 : x0, 46, s, {});
+        g.strokeStyle = T.lat; g.lineWidth = 1.2; g.globalAlpha = 0.9; g.beginPath();
+        near.forEach(function (j) { g.moveTo(f.X(a), f.Y(a)); g.lineTo(f.X(j), f.Y(j)); }); g.stroke(); g.globalAlpha = 1;
+        near.forEach(function (j) { P.peb(g, j, f.X(j), f.Y(j), 4.6, fc(j, T, 0)); });
+        P.glyph(g, 'star', f.X(a), f.Y(a), 8, MINT);
+        g.restore();
+        g.strokeStyle = T.line; g.lineWidth = 1; g.strokeRect(x0 + 0.5, y0 + 46.5, s - 1, s - 1);
+      };
+      // top: the visitor's half
+      tx(g, 'the split stub \u00b7 your half', x0, 20, '500 8px ' + MONO, T.mute);
+      g.font = '600 16px ' + SANS; tx(g, fit(g, nm(a), s), x0, 39, '600 16px ' + SANS, T.ink);
+      half(0, false);
+      g.font = '500 7.5px ' + MONO; var nl = wrapT(g, 'nearest in sound: ' + near.map(nm).join(', '), s).slice(0, 3);
+      nl.forEach(function (l, k) { tx(g, l, x0, 262 + k * 10, '500 7.5px ' + MONO, T.mute); });
+      tx(g, st.date, x0, 300, '500 9px ' + MONO, T.ink);
+      if (st.k != null) tx(g, 'you kept ' + st.k + ' of 12', x0 + s, 300, '600 11px ' + SANS, T.ink, 'right');
+      P.glyph(g, 'own', x0 + 5, 318, 3.2, GOLD);
+      tx(g, 'my album: 23 songs by astralcrest', x0 + 16, 321, '500 7.5px ' + MONO, T.mute);
+      tx(g, 'nothing was stored. a toy.', x0, 336, '500 7.5px ' + MONO, T.mute);
+      // tear line across
+      g.save(); g.strokeStyle = T.mute; g.lineWidth = 1; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(10, hh); g.lineTo(w - 10, hh); g.stroke(); g.restore();
+      tx(g, 'tear here', w / 2, hh - 4, '500 7.5px ' + MONO, T.mute, 'center');
+      // bottom: the wall's copy, mirrored
+      g.save(); g.translate(0, hh);
+      tx(g, 'the split stub \u00b7 the wall\'s half', x0, 20, '500 8px ' + MONO, T.mute);
+      tx(g, 'no. ' + pad3(st.n), x0, 40, '600 22px ' + SANS, T.ink);
+      half(0, true);
+      tx(g, 'same point, mirrored. no names.', x0, 262, '500 7.5px ' + MONO, T.mute);
+      tx(g, st.date, x0, 300, '500 9px ' + MONO, T.ink);
+      g.font = '500 7.5px ' + MONO; wrapT(g, 'tear on the dotted line. one half goes home, one half goes on the wall.', s).forEach(function (l, k) { tx(g, l, x0, 318 + k * 10, '500 7.5px ' + MONO, T.mute); });
+      g.restore();
+    },
     draw: function (g, T, st) {
+      if (st.tape) return PAGES.stub.drawTape(g, T, st);
       var w = 559, h = 397, hw = w / 2, s = 240, a = st.a, near = D.nn[a].slice(0, 6), i;
       g.fillStyle = T.bg; g.fillRect(0, 0, w, h);
       var half = function (x0, flip) {
@@ -342,23 +385,37 @@
     var bar = document.createElement('header'); bar.className = 'bar';
     bar.innerHTML = '<p class="line">' + esc(b.getAttribute('data-line') || '') + '</p>' +
       (keys.length ? '<ul class="keys" aria-label="key">' + keys.map(function (k) { var d = KEYS[k]; return d ? '<li style="--c:' + d[1] + '"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">' + d[2] + '</svg>' + d[0] + '</li>' : ''; }).join('') + '</ul>' : '') +
-      '<div class="ctl"><button type="button" class="go" id="pr-print">print</button><button type="button" id="pr-look" aria-pressed="false"></button><a class="btn" href="../walls/">back to the walls</a></div>' +
+      '<div class="ctl"><button type="button" class="go" id="pr-print">print</button><button type="button" id="pr-look" aria-pressed="false"></button>' + (spec.toggle ? '<button type="button" id="pr-alt" aria-pressed="false"></button>' : '') + '<a class="btn" href="../walls/">back to the walls</a></div>' +
       '<p class="where">take-home ' + (spec.n || '') + ' of 5 &middot; <a href="./">all five</a></p>';
     b.insertBefore(bar, b.firstChild);
-    sheet.style.setProperty('--w', spec.mm[0] + 'mm');
     cv.setAttribute('role', 'img');
     var st = spec.init(H), look = paper ? 'paper' : 'dark';
-    var lookBtn = document.getElementById('pr-look');
+    var lookBtn = document.getElementById('pr-look'), altBtn = document.getElementById('pr-alt'), pageCss = document.createElement('style');
+    document.head.appendChild(pageCss);
+    function size() {
+      var MM = spec.mmOf ? spec.mmOf(st) : spec.mm;
+      sheet.style.setProperty('--w', MM[0] + 'mm');
+      pageCss.textContent = '@page { size: ' + MM[0] + 'mm ' + MM[1] + 'mm; margin: 0; }';
+      return spec.pxOf ? spec.pxOf(st) : spec.px;
+    }
     function paint() {
-      var T = theme(look === 'paper'), g = cv.getContext('2d');
-      cv.width = spec.px[0] * SC; cv.height = spec.px[1] * SC;
+      var T = theme(look === 'paper'), g = cv.getContext('2d'), PX = size();
+      cv.width = PX[0] * SC; cv.height = PX[1] * SC;
       g.setTransform(SC, 0, 0, SC, 0, 0); g.lineJoin = 'round'; g.lineCap = 'round';
       spec.draw(g, T, st);
       b.classList.toggle('paper', look === 'paper');
       lookBtn.textContent = look === 'paper' ? 'dark look' : 'paper look';
       lookBtn.setAttribute('aria-pressed', look === 'paper' ? 'true' : 'false');
       cv.setAttribute('aria-label', spec.alt(st));
+      if (altBtn) { var on = !!st[spec.toggle.key]; altBtn.textContent = on ? spec.toggle.on : spec.toggle.off; altBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
     }
+    if (altBtn) altBtn.addEventListener('click', function () {
+      var k = spec.toggle.key; st[k] = !st[k];
+      var h = location.hash.replace(/^#/, '').split('&').filter(function (kv) { return kv && kv.split('=')[0] !== k; });
+      if (st[k]) h.push(k + '=1');
+      try { history.replaceState(null, '', location.pathname + location.search + (h.length ? '#' + h.join('&') : '')); } catch (e) {}
+      paint();
+    });
     document.getElementById('pr-print').addEventListener('click', function () { window.print(); });
     lookBtn.addEventListener('click', function () { look = look === 'paper' ? 'dark' : 'paper'; paint(); });
     var prev = null;
