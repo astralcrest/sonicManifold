@@ -11678,10 +11678,8 @@ X <em>Granger-causes</em> Y if X&rsquo;s recent past improves the forecast of Y 
   };
   /* 2026-11-08 phone sweep: three charts whose tick labels collide at 390px, id-keyed, idempotent */
   var FFXP={
-    'fig-61': function(gd){ if(gd.__fxp) return; gd.__fxp=1; gd.classList.add('sm-cbtall'); gd.style.setProperty('max-height','none','important'); gd.style.height='640px'; try{ window.Plotly.restyle(gd,{showscale:false},[0]); }catch(e){} RY(gd,{height:640,'margin.b':110,'margin.t':84,'margin.l':130,'margin.r':24,'yaxis.tickfont.size':11,'xaxis.tickfont.size':11,'xaxis.tickangle':-55,'xaxis.automargin':true,'yaxis.automargin':true}); },
-
-    'fig-27': function(gd){ if(gd.__fxp) return; gd.__fxp=1; gd.classList.add('sm-cbtall'); gd.style.setProperty('max-height','none','important'); gd.style.height='560px'; try{ window.Plotly.restyle(gd,{showscale:false},[0]); }catch(e){} RY(gd,{height:560,'margin.b':120,'margin.t':84,'margin.l':150,'margin.r':24,'yaxis.tickfont.size':11,'xaxis.tickfont.size':11,'xaxis.tickangle':-55,'xaxis.automargin':true,'yaxis.automargin':true}); },
-    'fig-9-x2': function(gd){ if(gd.__fxp) return; gd.__fxp=1; var xs=(gd.data&&gd.data[0]&&gd.data[0].x)||[]; var M={'total hours':'hours','unique artists':'artists','Gini coefficient':'Gini','Shannon H (bits)':'entropy','perplexity 2^H':'perplexity'}; RY(gd,{'xaxis.tickmode':'array','xaxis.tickvals':xs,'xaxis.ticktext':xs.map(function(x){ return M[x]||x; }),'xaxis.tickangle':0,'xaxis.tickfont.size':10}); },
+    
+        'fig-9-x2': function(gd){ if(gd.__fxp) return; gd.__fxp=1; var xs=(gd.data&&gd.data[0]&&gd.data[0].x)||[]; var M={'total hours':'hours','unique artists':'artists','Gini coefficient':'Gini','Shannon H (bits)':'entropy','perplexity 2^H':'perplexity'}; RY(gd,{'xaxis.tickmode':'array','xaxis.tickvals':xs,'xaxis.ticktext':xs.map(function(x){ return M[x]||x; }),'xaxis.tickangle':0,'xaxis.tickfont.size':10}); },
     'hp-hr-bar': function(gd){ if(gd.__fxp) return; gd.__fxp=1; var xs=(gd.data&&gd.data[0]&&gd.data[0].x)||[]; RY(gd,{'xaxis.tickmode':'array','xaxis.tickvals':xs,'xaxis.ticktext':xs.map(function(x){ return String(x).replace(' / future','<br>/ future').replace(' / house','<br>/ house'); }),'xaxis.tickangle':0,'xaxis.tickfont.size':10}); }
   };
   function fableFigOverlap(){
@@ -13807,7 +13805,7 @@ if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boo
 if(window.__lab4)return;window.__lab4=1;
 var D=document,W=window;
 /* the deferred scripts' bodies live in one same-origin file, fetched once the page has parsed (FABLE-DEFER waits for it) */
-var SRC='labdata-defer.json?v=0cc73b188a';
+var SRC='labdata-defer.json?v=5c26f3d97c';
 if(D.querySelector('script[data-l4]')){
  W.__l4p=new Promise(function(res){
   function f(n){fetch(SRC,{credentials:'same-origin'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();})
