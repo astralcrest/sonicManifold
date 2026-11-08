@@ -57,7 +57,7 @@ function onst(k, info) {
     if (tap) $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[info.i] + ' (' + fam(info.i) + ').';
     else {
       var prev = kk > 0 ? fam(S.near[kk - 1]) : null, nx = kk + 1 < tot ? ', then ' + D.n[S.near[kk + 1]] : ', the last one';
-      $('now').textContent = 'stop ' + (kk + 1) + ' of ' + tot + ': ' + D.n[info.i] + ' (' + fam(info.i) + (prev && prev !== fam(info.i) ? ', a new family' : '') + ')' + nx + '. hearing ' + info.title + '.';
+      $('now').textContent = 'stop ' + (kk + 1) + ' of ' + tot + ': ' + D.n[info.i] + ' (' + fam(info.i) + (prev && prev !== fam(info.i) ? ', a new family' : '') + ')' + nx + '. hearing ' + info.title + WK.again(info) + '.';
     }
     WK.live(draw);
   } else { S.cur = null; S.k = -1; WK.still(); draw(); $('now').textContent = IDLE; }

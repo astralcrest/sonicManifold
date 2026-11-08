@@ -149,7 +149,7 @@ function walk(which, from) {
       S.wk = at;
       m = 'stop ' + at + ' of ' + (path.length - 1) + (which === 'mine' ? ' on my way' : ' on the short way') + ': ' + D.n[pi] + ', ' + D.fam[D.f[pi]];
       if (pr >= 0 && D.f[pr] !== D.f[pi]) m += ', a change from ' + D.fam[D.f[pr]];
-      m += '. hearing ' + info.title + (at + 1 < path.length ? '. next: ' + D.n[path[at + 1]] : '. the end') + '. tap a star on the line to jump there.';
+      m += '. hearing ' + info.title + WK.again(info) + (at + 1 < path.length ? '. next: ' + D.n[path[at + 1]] : '. the end') + '. tap a star on the line to jump there.';
       $('now').textContent = m; WK.live(draw);
     } else { WK.still(); draw(); $('now').textContent = S.wk >= 0 && S.walk ? 'the walk ended. draw another, or walk the other way.' : ''; S.wk = -1; draw(); }
     hearLabel();

@@ -131,6 +131,7 @@
   function ready() {
     $("status").textContent = S[R].primed
       ? "now play a, then b, and pick the one you like more. did the first song pull you?"
+      : S[R].skipped ? "skipped, so this round counts as one with no first song. play a, then b, and pick the one you like more."
       : "no first song this round. play a, then b, and pick the one you like more.";
     $("playA").disabled = $("playB").disabled = false;
     if (!snd()) $("status").textContent += " sound is off: tap the sound chip at the top first.";
@@ -179,10 +180,12 @@
     body.className = "done";
     let k = 0, m = 0;
     S.forEach(s => { if (s.pick === s.target) s.primed ? k++ : m++; });
-    $("sent").textContent = `after a first song, you went toward it ${k} of 6 times. with none, ${m} of 6.`;
-    $("bk").textContent = `${k} of 6`; $("bm").textContent = `${m} of 6`;
-    $("tk").textContent = `${k} of 6`; $("tkl").textContent = "picks toward the first song";
-    $("ik").style.width = (k / 6 * 100) + "%"; $("im").style.width = (m / 6 * 100) + "%";
+    const nP = S.filter(s => s.primed).length, nM = S.length - nP, sk = S.filter(s => s.skipped).length;
+    $("sent").textContent = nP ? `after a first song, you went toward it ${k} of ${nP} times. with none, ${m} of ${nM}.` + (sk ? ` (you skipped the first song ${sk === 1 ? "once" : sk + " times"}; those rounds count as none.)` : "") : `you skipped every first song, so there is nothing to compare. with none, ${m} of ${nM}.`;
+    $("bk").textContent = `${k} of ${nP}`; $("bm").textContent = `${m} of ${nM}`;
+    $("tk").textContent = `${k} of ${nP}`; $("tkl").textContent = "picks toward the first song";
+    $("ik").style.width = (nP ? k / nP * 100 : 0) + "%"; $("im").style.width = (nM ? m / nM * 100 : 0) + "%";
+    const ch = document.querySelector(".chance"); if (ch) ch.textContent = nP ? `dashed line: ${nP / 2} of ${nP}, what a coin would give on average` : "no first song was heard this time";
     const log = $("log"); log.textContent = "";
     S.forEach((s, r) => {
       const p = D.pairs[s.pi], li = document.createElement("li");
@@ -191,6 +194,7 @@
       const b = document.createElement("b"); b.textContent = p.o[s.pick].n;
       li.append(`${String(r + 1).padStart(2, "0")} · `, b, ` over ${p.o[1 - s.pick].n}`);
       if (s.primed) { const e = document.createElement("em"); e.textContent = ` · first: ${p.pr[s.target].n} · near ${p.o[s.target].n}` + (s.pick === s.target ? " · you went with it" : " · you went against it"); li.append(e); }
+      else if (s.skipped) { const e = document.createElement("em"); e.textContent = " · first song skipped, counted as none"; li.append(e); }
       log.append(li);
     });
     $("now").textContent = snd() ? "press hear your picks in order, tap a shape on the map, or tap a row." : "sound is off. tap the sound chip at the top, then hear your picks.";
@@ -221,7 +225,7 @@
     const d = k - m;
     return {
       wall: "taste", title: "the taste test", sub: "twelve rounds, a toy",
-      lines: [["with a first song", k + " of 6"], ["with none", m + " of 6"], ["gap (a toy: picks toward the first song, minus without)", (d > 0 ? "+" : "") + d], ["picked vs passed: how far apart", Math.round(span / S.length) + "% of map"], ["how scattered your picks are", Math.round(spread) + "% of map"]],
+      lines: [["with a first song", k + " of " + S.filter(s => s.primed).length], ["with none", m + " of " + S.filter(s => !s.primed).length], ["gap (a toy: picks toward the first song, minus without)", (d > 0 ? "+" : "") + d], ["picked vs passed: how far apart", Math.round(span / S.length) + "% of map"], ["how scattered your picks are", Math.round(spread) + "% of map"]],
       next: "your picks are lit on the sound map at the link below. a toy.",
       url: "https://astralcrest.github.io/sonicManifold/editions/taste/#r=" + encodeS(),
       foot: "a toy, not a finding"
@@ -250,7 +254,7 @@
     if (PK) PK.field(g, D.xy, X, Y, { pl: LD ? LD.pl : null, lo: small ? 1.6 : 2.2, hi: small ? 4.5 : 7, core: dim, col: i => LD ? col(i) : "#7a66c8" });
     else { g.fillStyle = "#7a66c8"; for (let i = 0; i < D.xy.length; i++) g.fillRect(X(i) - 1, Y(i) - 1, 2, 2); }
   }
-  function layout(w) { const pad = 14, sc = (w - 2 * pad) / 1000; return { X: i => pad + D.xy[i][0] * sc, Y: i => pad + (1000 - D.xy[i][1]) * sc }; }
+  function layout(w) { const pad = 14, sc = (w - 2 * pad) / 1000; return { X: i => pad + D.xy[i][0] * sc, Y: i => pad + D.xy[i][1] * sc }; }
 
   function drawPreview() { pvBase = null; pvFrame(); }
   function pvFrame() {
@@ -408,7 +412,7 @@
   $("playB").onclick = () => play(1);
   $("pickA").onclick = () => pick(0);
   $("pickB").onclick = () => pick(1);
-  $("skip").onclick = () => { const s = S && S[R]; if (!s || !s.primed) return; stopClip(); endPrimer(s); };
+  $("skip").onclick = () => { const s = S && S[R]; if (!s || !s.primed) return; stopClip(); clearWait(); s.primed = false; s.skipped = true; $("primer").classList.remove("on"); $("skip").disabled = true; ready(); };
   $("next").onclick = () => {
     if (!D) return;
     if (body.classList.contains("done") || !S) { tourEnd(""); newSession(); showRound(); return; }

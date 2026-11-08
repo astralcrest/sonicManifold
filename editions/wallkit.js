@@ -200,7 +200,7 @@
     };
   }
 
-  var PV = null, pvP = null, AU = null, plist = [], pk = -1, onstate = null;
+  var PV = null, pvP = null, AU = null, plist = [], pk = -1, onstate = null, seenN = {};
   function pv() {
     if (PV) return Promise.resolve(PV);
     if (!pvP) pvP = j('../loop/data/pv.json').then(function (x) { PV = x.a; return PV; });
@@ -213,11 +213,17 @@
     while (k < plist.length && !(PV && PV[plist[k].i])) k++;
     if (k >= plist.length) { stop(); return; }
     if (!AU) { AU = new Audio(); AU.volume = 0.25; AU.addEventListener('ended', function () { if (pk >= 0) next(pk + 1); }); }
-    var t = PV[plist[k].i]; pk = k; AU.src = t[1]; beat0 = performance.now();
+    var t = PV[plist[k].i], i = plist[k].i; pk = k; AU.src = t[1]; beat0 = performance.now();
+    // the same artist again on this page: start the clip later each time (0, 8, 16 seconds), so a repeat never sounds like a stuck record
+    var again = seenN[i] || 0; seenN[i] = again + 1;
+    var at = plist[k].at != null ? plist[k].at : (again % 3) * 8;
+    if (at > 0) AU.addEventListener('loadedmetadata', function f() { AU.removeEventListener('loadedmetadata', f); if (pk !== k) return; var d = AU.duration; try { AU.currentTime = isFinite(d) && d > 0 ? Math.min(at, Math.max(0, d - 8)) : at; } catch (e) {} });
     var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {});
-    if (onstate) onstate(k, { title: t[0], tag: plist[k].tag, i: plist[k].i });
+    if (onstate) onstate(k, { title: t[0], tag: plist[k].tag, i: i, at: at, again: again });
   }
-  // list = [{i: artist index, tag: 'a' | 'b'}]; one preview at a time, only after a tap; onst(k, info) is told every change, k = -1 when stopped
+  // list = [{i: artist index, tag: 'a' | 'b', at: seconds (optional)}]; one preview at a time, only after a tap; onst(k, info) is told every change, k = -1 when stopped
+  // again(info): the words for a repeat, '' the first time
+  function again(info) { return info && info.again ? (info.at ? ', this artist again, so the clip starts ' + info.at + ' s in' : ', this artist again, from the top') : ''; }
   function play(list, onst) { onstate = onst; plist = list; return pv().then(function () { next(0); }, function () { if (onst) onst(-1, null); }); }
 
   var liveT = null;
@@ -303,5 +309,5 @@
   }
   strip();
 
-  root.WK = { sound: function () { return SND; }, setSound: setSound, P: P, j: j, FAMC: FAMC, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, stop: stop, playing: playing, esc: esc, beat: beat, live: live, still: still, pulse: pulse };
+  root.WK = { sound: function () { return SND; }, setSound: setSound, P: P, j: j, FAMC: FAMC, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, again: again, stop: stop, playing: playing, esc: esc, beat: beat, live: live, still: still, pulse: pulse };
 })(window);

@@ -30,7 +30,7 @@ function playCur() {
   WK.play([{ i: S.L[S.idx], tag: 'a' }], function (k, info) {
     if (my !== S.token) return;
     if (k < 0) { WK.still(); setTimeout(function () { if (my === S.token && S.active) ended(); }, 400); return; }
-    $('now').textContent = 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + info.title + ' by ' + D.n[info.i] + ', ' + describe(info.i) + (S.L[S.idx + 1] != null ? '. next: ' + D.n[S.L[S.idx + 1]] : '') + (WK.sound() ? '' : '. sound is off; tap the sound chip to hear it.');
+    $('now').textContent = 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + info.title + ' by ' + D.n[info.i] + ', ' + describe(info.i) + WK.again(info) + (S.L[S.idx + 1] != null ? '. next: ' + D.n[S.L[S.idx + 1]] : '') + (WK.sound() ? '' : '. sound is off; tap the sound chip to hear it.');
     WK.live(function () { S.dirty = true; });
   });
 }

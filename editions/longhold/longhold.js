@@ -88,7 +88,7 @@ function walkFrom(k0) {
     if (info) {
       S.k = S.k0 + k;
       var prev = S.k > 0 ? fam(S.list[S.k - 1]) : null, f = fam(info.i);
-      $('now').textContent = 'stop ' + (S.k + 1) + ' of ' + S.list.length + ' nearest your finger: ' + D.n[info.i] + ' (' + f + (prev && prev !== f ? ', a new family' : '') + '). hearing ' + info.title + '.' + (S.k + 1 < S.list.length ? ' next: ' + D.n[S.list[S.k + 1]] + '.' : '');
+      $('now').textContent = 'stop ' + (S.k + 1) + ' of ' + S.list.length + ' nearest your finger: ' + D.n[info.i] + ' (' + f + (prev && prev !== f ? ', a new family' : '') + '). hearing ' + info.title + WK.again(info) + '.' + (S.k + 1 < S.list.length ? ' next: ' + D.n[S.list[S.k + 1]] + '.' : '');
       WK.live(function () { draw(); });
     } else { S.k = -1; WK.still(); draw(); if (S.held) $('now').textContent = 'the six nearest have played. keep holding to watch the pull.'; }
     out();

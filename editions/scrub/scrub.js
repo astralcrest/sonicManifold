@@ -77,9 +77,8 @@ function walkFrom(k0) {
     if (info) {
       var kk = S.walk.k0 + k, prev = kk > 0 ? fam(list[kk - 1]) : null, f = fam(info.i);
       S.walk.k = kk; S.cur = info.i;
-      var same = kk > 0 && list[kk - 1] === info.i;
       $('say').textContent = 'step ' + (kk + 1) + ' of ' + list.length + ' on your path: ' + D.n[info.i] + ' (' + f + (prev && prev !== f ? ', a new family' : '') + ')' + (kk + 1 < list.length ? ', then ' + D.n[list[kk + 1]] : ', the last stop') + '.';
-      $('now').textContent = 'hearing ' + info.title + (same ? ' (same artist again)' : '') + '.';
+      $('now').textContent = 'hearing ' + info.title + WK.again(info) + '.';
       WK.live(draw);
     } else { WK.still(); S.walk = null; draw(); out(); $('now').textContent = IDLE; }
     btns();

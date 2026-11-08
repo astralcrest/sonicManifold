@@ -109,7 +109,7 @@ function playFrom(c, single) {
       msg = 'step ' + st + ' of ' + STEPS + ' (' + (who ? 'auto-play' : 'my press') + '): ' + D.n[info.i] + ', ' + D.fam[D.f[info.i]];
       if (D.f[info.i] !== D.f[prev]) msg += ', a change from ' + D.fam[D.f[prev]];
       if (st < STEPS) msg += '. next: ' + D.n[S.path[st + 1]];
-      if (WK.title(info.i)) msg += '. hearing ' + info.title;
+      if (WK.title(info.i)) msg += '. hearing ' + info.title + WK.again(info);
       $('now').textContent = msg;
       WK.live(draw);
     } else { S.hear = null; WK.still(); draw(); $('now').textContent = NOW0; }
