@@ -62,7 +62,7 @@ canvas#field{display:block;width:100%;height:100%;touch-action:none;-webkit-touc
 #zc{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:96px;z-index:5;display:flex;gap:6px;align-items:flex-end}#zc[hidden]{display:none}@media (max-width:899px){#zc{right:max(46px,env(safe-area-inset-right));bottom:84px}}
 #zc .chip{min-width:44px;min-height:44px;padding:0;justify-content:center;gap:0}#zc .chip span{display:none}@media(min-width:900px){#zc .chip{padding:0 12px 0 10px;gap:6px}#zc .chip span{display:inline;font:500 11px/1 var(--mono);letter-spacing:.05em}}
 #zc .chip svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;display:block}
-#zc .chip.on{background:var(--mint);color:var(--bg)}
+#zc .chip.on{background:var(--ink);color:var(--bg)}
 #zc .zf{position:absolute;right:0;bottom:50px;display:flex}#zc .zf[hidden]{display:none}
 #zc .zf input{width:min(240px,calc(100vw - 100px));min-height:44px;padding:0 12px;border:1px solid var(--mint);border-radius:3px;background:var(--bg);color:var(--ink);font:400 14px/1 var(--sans)}
 #now:empty{display:none}.game .row,#album .row{margin-bottom:0}
@@ -110,7 +110,7 @@ html #what .ks{flex-wrap:wrap}html #what .kc{font-size:10.5px}}
 .chip{appearance:none;-webkit-appearance:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--mint);font:500 12px/1 var(--mono);letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;gap:.5em;white-space:nowrap;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .chip:hover{border-color:var(--mint)}
 .chip[hidden]{display:none}
-.chip.on{background:var(--mint);color:var(--bg);border-color:var(--mint)}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chip:focus-visible,.sg:focus-visible,.door:focus-visible,.dots a:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
 #a-sp{border:0;padding:0 2px;color:var(--mint);text-decoration:underline;text-underline-offset:3px}
 #b-play{color:var(--gold)}
@@ -126,7 +126,7 @@ html[data-scene=hand] #hint,html[data-scene=maps] #hint,html[data-scene=hoods] #
 #col{counter-reset:act;overflow-anchor:none}
 .top .pill{min-height:32px;padding:0 10px;font-size:10.5px;color:var(--gold);border-color:var(--line)}
 .top .pill:hover{border-color:var(--gold)}
-html.sm-album #b-sound{color:var(--bg);background:var(--gold);border-color:var(--gold)}.pill.go{color:var(--ink);background:var(--bg);border-color:var(--line)}.pill.go:hover,.pill.go:focus-visible{border-color:var(--mint)}#b-sound::before{content:"\25B6";font-size:8px;margin-right:3px}.chip.vi{color:var(--violet);border-color:var(--violet)}@media(max-width:600px){.pill.go{display:none}#b-play.pill.go{display:inline-flex;padding:0 10px}#b-play span{display:none}}
+html.sm-album #b-sound{color:var(--bg);background:var(--gold);border-color:var(--gold)}.pill.go{color:var(--ink);background:var(--bg);border-color:var(--line)}.pill.go:hover,.pill.go:focus-visible{border-color:var(--ink)}#b-sound::before{content:"\25B6";font-size:8px;margin-right:3px}.chip.vi{color:var(--violet);border-color:var(--violet)}@media(max-width:600px){.pill.go{display:none}#b-play.pill.go{display:inline-flex;padding:0 10px}#b-play span{display:none}}
 .act h1,.act h2{margin:0 0 10px;font:600 26px/1.1 var(--sans);letter-spacing:-.02em}
 .act h1 span,.act h2 span{color:var(--ac,var(--mint))}
 .sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
