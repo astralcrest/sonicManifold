@@ -1524,10 +1524,10 @@ var KG = { press: ['my press', '<path d="M6 .6Q6 6 11.4 6Q6 6 6 11.4Q6 6 .6 6Q6 
 var WHAT = [
   ['every shape is an artist i played, colored by who pressed play. close together = sounds alike.', ['press', 'shuffle', 'auto', 'mine']],
   ['my 245 most played, on a ring. a mint line: my press followed. violet: auto-play did. tap a name and only its lines stay.', ['press', 'auto']],
-  ['the same artists twice: by sound, and by what followed what. a line = two plays in a row.', ['press', 'auto', 'alike']],
-  ['eleven rooms the log built from what followed what. each outline is a room; its color is the family that fills it most.', []],
+  ['the same artists twice, colored by family. by sound: ice lines join the nearest in sound. by what followed: a line = two plays in a row.', ['alike', 'press', 'auto']],
+  ['eleven rooms the log built from what followed what. each outlined group is a room; its color is the family that fills it most.', []],
   ['did the song stay in my library? split by who picked it.', ['press', 'auto']],
-  ['the frozen export, then the months after it. did the habit hold?', ['press', 'shuffle', 'auto']],
+  ['the export i froze, then the months after it. did the habit hold?', ['press', 'shuffle', 'auto']],
   ['my 23 songs, in gold, each tied to the artist it sounds most like. tap one to play it.', ['mine', 'alike']]
 ];
 function whatFor(k) {
