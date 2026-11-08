@@ -458,12 +458,15 @@ function pebPath(i) {
   for (k = 0; k < n; k++) { var q = pts[(k + 1) % n]; p.quadraticCurveTo(pts[k][0], pts[k][1], (pts[k][0] + q[0]) / 2, (pts[k][1] + q[1]) / 2); }
   p.closePath(); return p;
 }
-function peb(g, i, x, y, r, fill) {
+function peb(g, i, x, y, r, fill, a) {
   if (r < 1.6 || typeof Path2D === 'undefined') return dot(g, x, y, r, fill);
   var p = PEB[i] || (PEB[i] = pebPath(i)); r *= 1.12;
-  g.fillStyle = fill; g.translate(x, y); g.scale(r, r); g.fill(p); g.scale(1 / r, 1 / r); g.translate(-x, -y);
+  g.fillStyle = fill; g.translate(x, y); g.scale(r, r); g.fill(p);
+  /* a rim and one highlight once a mark is big enough to carry them: the point reads as a thing, not a dab */
+  if (r >= 3.2) { g.lineWidth = 0.9 / r; g.strokeStyle = 'rgba(6,1,15,.5)'; g.stroke(p); if (a === undefined) a = 1; g.fillStyle = 'rgba(255,255,255,' + (0.26 * a).toFixed(3) + ')'; g.beginPath(); g.ellipse(-0.28, -0.34, 0.34, 0.22, -0.7, 0, 6.2832); g.fill(); }
+  g.scale(1 / r, 1 / r); g.translate(-x, -y);
 }
-function halo(g, x, y, r, col, a) { g.fillStyle = col; g.globalAlpha = 0.13 * a; g.beginPath(); g.arc(x, y, r * (phone ? 1.9 : 2.4) + 1, 0, 6.2832); g.fill(); }
+function halo(g, x, y, r, col, a) { g.fillStyle = col; g.globalAlpha = (phone ? 0.16 : 0.13) * a; g.beginPath(); g.arc(x, y, r * (phone ? 2.1 : 2.4) + 1, 0, 6.2832); g.fill(); }
 function cuts3(a) { var b = a.slice().sort(function (p, q) { return p - q; }), n = b.length; return n ? [b[Math.floor(n * 0.6)], b[Math.floor(n * 0.88)]] : [0, 0]; }
 function step3(w, T) { return w >= T[1] ? 2 : w >= T[0] ? 1 : 0; }
 var LW3 = [0.8, 1.9, 3.4];
@@ -704,8 +707,8 @@ function paint(now) {
       if (scene === C_RECORD && !isNb(i)) a *= 0.7;
       if (cmap && S.fam >= 0 && F.f[i] !== S.fam) a *= 0.18;
       if (cmap && S.hoodHi >= 0 && MAPS && MAPS.c[i] !== S.hoodHi) a *= 0.22;
-      if (pass2 === 0) halo(g, SX[i], SY[i], SR[i], col, a);
-      else peb(g, i, SX[i], SY[i], SR[i], a >= 0.99 ? col : dim(col, a));
+      if (pass2 === 0) halo(g, SX[i], SY[i], SR[i] * (phone ? 1.25 : 1), col, a);
+      else peb(g, i, SX[i], SY[i], SR[i] * (phone ? 1.25 : 1), a >= 0.99 ? col : dim(col, a), a);
     }
     if (pass2 === 0) { g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
   }
@@ -799,7 +802,7 @@ function paint(now) {
     g.font = '500 ' + (phone ? 10 : 11.5) + 'px ' + MONO; g.fillStyle = MUTE;
     g.fillText('artists, in the order i first heard them', phone ? 14 : 222, wy + (phone ? 16 : 22));
   }
-  if (scene === 0 && blend >= 1 && grown) for (k = 0; k < (phone ? 4 : 10); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 5, SY[i], names[i], phone ? 12 - k * 0.3 : 17 - k * 0.65, k < 3 ? 600 : 500, false, INK); }
+  if (scene === 0 && blend >= 1 && grown) for (k = 0; k < (phone ? 5 : 10); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 6, SY[i], names[i], phone ? 14.5 - k * 0.6 : 22 - k * 1.1, k < 3 ? 600 : 500, false, INK); }
   /* the neighborhoods: a numeral and the family that fills each, at its center; the color is the neighborhood */
   if (scene === C_HOODS && blend >= 1 && MAPS && !S.quiet) {
     var cx = [], cy2 = [], cn = [], ci, nh = Math.min(8, MAPS.cm.length);
@@ -810,7 +813,7 @@ function paint(now) {
       var lab = ROMAN[ci] + ' · mostly ' + F.fam[MAPS.cm[ci][1]], hx = cx[ci] / cn[ci] - (phone ? 10 : 34), hy = cy2[ci] / cn[ci], sub = MAPS.cm[ci][0] + ' artists · auto-play took ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps inside';
       /* a lit room on a phone: the two lines sit at the bottom left of the stage, clear of the dots and inside the screen */
       if (phone && S.hoodHi === ci) { sub = MAPS.cm[ci][0] + ' artists · auto-play ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps'; hx = 12; hy = H - 96; }
-      word(g, hx, hy, lab, phone ? 10 : 13, 600, true, HOODC[ci], S.hoodHi === ci);
+      word(g, hx, hy, lab, phone ? 11 : 15, 600, true, HOODC[ci], S.hoodHi === ci);
       if (S.hoodHi === ci) word(g, hx, hy + (phone ? 15 : 17), sub, phone ? 10 : 10.5, 500, true, MUTE, S.hoodHi === ci);
     }
     if (!phone) for (k = 0; k < 8; k++) { i = TOP[k]; if (i !== S.now && i !== S.hover && SA[i] > 0.5) word(g, SX[i] + SR[i] + 4, SY[i], names[i], 11, 500, false, ICE); }
@@ -1542,12 +1545,32 @@ function songs() {
   SONG.forEach(function (s, k) { var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.className = 'sg'; b.innerHTML = '<b></b><span></span>'; b.firstChild.textContent = s.t.toLowerCase(); b.lastChild.textContent = 'beside ' + names[SNB[k]]; b.addEventListener('click', function () { mine(k); }); li.appendChild(b); ol.appendChild(li); });
 }
 /* the stills act: five pictures, one at a time; prev/next, or a tap on the picture, turns them */
-var STILLS = [["facet4_rooms", "the rooms: eleven neighborhoods drawn only from what followed what"], ["facet5_maps", "two maps: the same artists by sound, and by what followed what"], ["facet7_ring", "the ring: my 245 most played; a line inside = one play, then the next"], ["loop_fig", "the loop: did the app make my taste, or my taste the app"], ["record_still", "the record: my 23 songs as gold stars beside the artists they sound most like"]], stillK = 0;
+var STILLS = [["facet4_rooms", "the rooms: eleven neighborhoods drawn only from what followed what", "#a-hoods"], ["facet5_maps", "two maps: the same artists by sound, and by what followed what", "#a-maps"], ["facet7_ring", "the ring: my 245 most played; a line inside = one play, then the next", "#a-hand"], ["loop_fig", "the loop: did the app make my taste, or my taste the app", "editions/loop/"], ["record_still", "the record: my 23 songs in gold beside the artists they sound most like", "#a-record"]], stillK = 0, BIG4K = { facet4_rooms: 1, record_still: 1 };
+/* the viewer: the still at full size, pinch or wheel to zoom, drag to pan, a link to the act it was drawn from */
+var ZV = { z: 1, x: 0, y: 0, pts: {}, d0: 0, z0: 1, used: false };
+function zvApply() { var im = $('#sbz-img'); if (im) im.style.transform = 'translate(' + ZV.x.toFixed(1) + 'px,' + ZV.y.toFixed(1) + 'px) scale(' + ZV.z.toFixed(3) + ')'; var h = $('#sbz-hint'); if (h) h.hidden = !!ZV.used; }
+function zvZoom(f, px, py) { var z1 = Math.max(1, Math.min(8, ZV.z * f)); f = z1 / ZV.z; ZV.x = px - (px - ZV.x) * f; ZV.y = py - (py - ZV.y) * f; ZV.z = z1; if (z1 <= 1.001) { ZV.z = 1; ZV.x = 0; ZV.y = 0; } zvApply(); }
+function zvOpen() { var st = STILLS[stillK], box = $('#sbz'), im = $('#sbz-img'), lv = $('#sbz-live'), c = $('#sbz-cap'); if (!box || !im) return; im.src = 'editions/show/img/' + st[0] + (BIG4K[st[0]] ? '_4k' : '') + '.jpg'; im.alt = st[1]; if (c) c.textContent = st[1]; if (lv) lv.href = st[2]; ZV.z = 1; ZV.x = 0; ZV.y = 0; ZV.pts = {}; ZV.used = false; zvApply(); box.hidden = false; var bw = box.clientWidth || W, bh = box.clientHeight || H; if (bh > bw) zvZoom(Math.min(3, (bh * 0.62) / (bw * 9 / 16)), bw / 2, bh / 2); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); html.classList.add('sm-zoom'); var x = $('#sbz-x'); if (x) x.focus(); }
+function zvClose() { var box = $('#sbz'); if (!box || box.hidden) return; box.hidden = true; box.removeAttribute('role'); box.removeAttribute('aria-modal'); html.classList.remove('sm-zoom'); }
+function zoomer() {
+  var box = $('#sbz'); if (!box) return;
+  var rel = function (e) { var r = box.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  box.addEventListener('wheel', function (e) { e.preventDefault(); ZV.used = true; var p = rel(e); zvZoom(e.deltaY < 0 ? 1.18 : 1 / 1.18, p[0], p[1]); }, { passive: false });
+  box.addEventListener('pointerdown', function (e) { if (e.target.closest('.sbz-bar')) return; ZV.used = true; var p = rel(e); ZV.pts[e.pointerId] = p; var ks = Object.keys(ZV.pts); if (ks.length === 2) { var a = ZV.pts[ks[0]], b = ZV.pts[ks[1]]; ZV.d0 = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1; ZV.z0 = ZV.z; } try { box.setPointerCapture(e.pointerId); } catch (x) { /* fine */ } e.preventDefault(); });
+  box.addEventListener('pointermove', function (e) { if (!ZV.pts[e.pointerId]) return; var p = rel(e), ks = Object.keys(ZV.pts), o = ZV.pts[e.pointerId]; if (ks.length === 1) { if (ZV.z > 1) { ZV.x += p[0] - o[0]; ZV.y += p[1] - o[1]; zvApply(); } } else { var q = ZV.pts[ks[0] === String(e.pointerId) ? ks[1] : ks[0]], d = Math.hypot(p[0] - q[0], p[1] - q[1]) || 1; zvZoom((ZV.z0 * d / ZV.d0) / ZV.z, (p[0] + q[0]) / 2, (p[1] + q[1]) / 2); } ZV.pts[e.pointerId] = p; });
+  var up = function (e) { delete ZV.pts[e.pointerId]; var ks = Object.keys(ZV.pts); if (ks.length === 1) { ZV.d0 = 0; } };
+  box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
+  box.addEventListener('dblclick', function (e) { if (e.target.closest('.sbz-bar')) return; var p = rel(e); zvZoom(ZV.z > 1.5 ? 0.01 : 2.6, p[0], p[1]); });
+  on('#sbz-x', zvClose); on('#sbz-live', function () { zvClose(); });
+  addEventListener('keydown', function (e) { if (e.key === 'Escape') zvClose(); });
+}
 function thumbs() {
   var img = $('#sb-img'), cap = $('#sb-cap'), pc = $('#sb-pcap'), n = $('#sb-n'), pv = $('#sb-prev'), nx = $('#sb-next'); if (!img || !nx) return;
   function show(k, go) { stillK = (k + STILLS.length) % STILLS.length; var st = STILLS[stillK]; img.src = 'editions/show/img/' + st[0] + '.jpg'; img.alt = st[1]; if (cap) cap.textContent = st[1]; if (pc) pc.textContent = st[1]; if (n) n.textContent = (stillK + 1) + ' of ' + STILLS.length; if (go && scene !== C_SHOW) setScene(C_SHOW); }
   nx.addEventListener('click', function () { show(stillK + 1, true); }); if (pv) pv.addEventListener('click', function () { show(stillK - 1, true); });
-  img.addEventListener('click', function () { show(stillK + 1, false); });
+  img.addEventListener('click', function () { zvOpen(); });
+  on('#sb-zoom', function () { if (scene !== C_SHOW) setScene(C_SHOW); zvOpen(); });
+  zoomer();
   /* the next picture is fetched while this one is up */
   STILLS.forEach(function (st) { var im = new Image(); im.src = 'editions/show/img/' + st[0] + '.jpg'; });
 }
