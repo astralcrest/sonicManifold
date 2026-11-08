@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>draw a radio</title>
+<meta name="description" content="draw a curve on my sound map and it becomes a radio of 3 to 9 stops, played in the order you drew them.">
+<meta property="og:title" content="wall 23 of 24: draw a radio"><meta property="og:description" content="draw a curve on my sound map and it becomes a radio of 3 to 9 stops, played in the order you drew them."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/radio.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../wall.css">
+<style>
+@media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
+#map canvas { touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+</style>
+</head>
+<body data-wall="23" data-line="draw a curve on my sound map: it becomes a radio of 3 to 9 stops, played in drawn order." data-do="draw a curve with a finger. let go. the stops play in order." data-keys="alike" style="--act: var(--mint); --acc: var(--ice)">
+<div class="wrap">
+  <header id="head">
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>draw a radio</span><span class="tl">a toy</span></p>
+    <h1>draw a curve. <em>it plays.</em></h1>
+  </header>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map, artists placed by how they sound, colored by family. drag a finger or mouse across it to draw a curve. when you let go, the curve becomes numbered stops, one artist each, and they play in drawn order, 30 seconds each. tap a numbered stop to jump to it."></canvas></div>
+  <main id="side">
+    <div class="key" aria-live="polite">
+      <div class="big mint" id="num"><span class="c">draw a curve to start</span></div>
+      <span class="keylab">stops, played in drawn order, 30 s each</span>
+      <p class="say" id="say">drag across the map. a longer curve makes more stops, up to 9.</p>
+    </div>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>a radio is a line through what sounds alike. yours, not the app's.</p>
+      <p class="ask"><b>open question:</b>who should draw the line?</p>
+    </div>
+    <section>
+      <div class="row" style="margin-top:0">
+        <button type="button" id="nx" style="--acc:var(--mint)" disabled>next stop</button>
+        <button type="button" id="st" disabled>stop</button>
+        <button type="button" id="clr">clear</button>
+      </div>
+      <p class="note" id="now">turn sound on with the button at the top, then draw. on a laptop, drag with the mouse; press n for the next stop.</p>
+    </section>
+    <details class="how"><summary>how</summary>
+      <p>drag across the map and let go. the curve turns into numbered stops, about one per 90 px.</p>
+      <p>each stop is the nearest artist with a clip, within 48 px of the curve. the stops play in the order you drew them.</p>
+      <p>draw fast and the stops lean to the big names near the curve. draw slow and you get the exact nearest. tap a number to jump there.</p>
+    </details>
+    <details class="fine"><summary>the fine print</summary>
+      <p>the map places artists by how their music sounds. color is the genre family. size is how often i played them.</p>
+      <p>a clip is 30 s of a public preview of that artist, not necessarily a song i played. artists with no clip are skipped, and an artist is never used twice on one radio.</p>
+      <p>fast means a stroke faster than about 0.6 px per millisecond.</p>
+    </details>
+  </main>
+</div>
+<script src="../kiosk.js"></script>
+<script src="../wallkit.js"></script>
+<script src="radio.js"></script>
+</body>
+</html>

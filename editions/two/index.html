@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>sonic manifold · the two of you</title>
 <meta name="description" content="two people place their music on one listener's sound map: where each of you sits, what you share, who has the wider map, and where auto-play would take you.">
-<meta property="og:title" content="wall 2 of 21: the two of you"><meta property="og:description" content="two people place their music on one listener&#x27;s sound map: where each of you sits, what you share, who has the wider map, and where auto-play would take you."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/two.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 2 of 24: the two of you"><meta property="og:description" content="two people place their music on one listener&#x27;s sound map: where each of you sits, what you share, who has the wider map, and where auto-play would take you."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/two.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,6 +32,7 @@ h1 em{font-style:normal;color:var(--ice)}
 .how b{color:var(--ink);font-weight:500}
 .hside{container-type:inline-size;min-width:0}
 .big{font:600 clamp(56px,min(10vw,30cqi),128px)/.9 var(--sans);letter-spacing:-.045em;color:var(--act);font-variant-numeric:tabular-nums}
+.big .c{font:500 18px/1.3 var(--sans);letter-spacing:0;color:var(--mute)}
 .keylab{display:block;font:11px var(--mono);letter-spacing:.14em;color:var(--mute);margin:8px 0 18px}
 .take,.ask{margin:0 0 12px;padding:2px 0 2px 14px;font:500 18px/1.3 var(--sans);letter-spacing:-.005em}
 .take{border-left:3px solid var(--mint);color:var(--mint)}
@@ -86,6 +87,8 @@ section.pic{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap
 .room .lab{font:10px var(--mono);color:var(--amber);letter-spacing:.14em;margin-top:14px;display:inline-block;border:1px solid var(--amber);padding:2px 8px}
 ul.names{list-style:none;margin-top:14px;display:grid;gap:5px;font-size:14px}
 ul.names li{display:flex;gap:8px;align-items:baseline;line-height:1.3}
+ul.names li.on{color:var(--ice);outline:1px solid var(--ice);outline-offset:3px}
+ul#l4 li{cursor:pointer;min-height:32px}
 ul.names li .m{font:11px var(--mono);color:var(--mute)}
 ul.names.cols{grid-template-columns:1fr 1fr;column-gap:16px}
 .split{display:inline-flex;width:10px;height:10px}.split i{flex:1;background:var(--aside)}.split i+i{background:var(--bside)}
@@ -123,7 +126,7 @@ button#again6,button#again{min-height:44px}
 }
 </style>
 </head>
-<body data-wall="2" data-line="two lists as places on my sound map. close together = sounds alike." data-do="add two lists or try made-up ones. tap shapes to name them." data-keys="alike,auto">
+<body data-wall="2" data-line="two lists as places on my sound map. close together = sounds alike." data-do="add two lists or try made-up ones. tap shapes, hear crossings." data-keys="alike,auto">
 <main>
 <header>
   <div>
@@ -134,7 +137,7 @@ button#again6,button#again{min-height:44px}
     <div id="qr"><img src="data/qr.svg" alt="QR code linking to this page"><span>scan to open this page on your phone</span></div>
   </div>
   <div class="hside">
-    <div class="big" id="nshared">-</div>
+    <div class="big" id="nshared"><span class="c">loading the map</span></div>
     <span class="keylab">artists you both have</span>
     <p class="take"><b>takeaway:</b>two lists become places on one map; no score, no verdict.</p>
     <p class="ask"><b>open question:</b>is closeness in sound the same thing as closeness between people?</p>
@@ -166,7 +169,7 @@ button#again6,button#again{min-height:44px}
 <details class="how"><summary>how</summary>
   <p>press try two made-up lists, or paste names for a and b.</p>
   <p>scroll the six pictures. tap a shape to name it.</p>
-  <p>pink = a, white = b, violet = auto-play, gray = others.</p>
+  <p>in pictures four to six press hear: each stop plays 8 seconds and the path keeps going. next stop or a tap jumps ahead. pink = a, white = b, violet = auto-play, gray = others.</p>
 </details>
 
 <section class="pic" id="p1">
@@ -209,9 +212,9 @@ button#again6,button#again{min-height:44px}
     <h3>where your sounds nearly touch</h3>
     <p class="find" id="f4"></p>
     <ul class="names" id="l4"></ul>
-    <button type="button" id="hear">hear the closest pair, one per side</button>
-    <p class="tap" id="t4"></p>
-    <details class="fine"><summary>the fine print</summary><p>for each artist only one of you has, the nearest artist only the other has, in the 3D sound map.</p></details>
+    <div class="row" style="margin-top:14px"><button type="button" id="hear">hear the crossings, pair by pair</button><button type="button" id="next4">next pair</button></div>
+    <p class="tap" id="t4" aria-live="polite"></p>
+    <details class="fine"><summary>the fine print</summary><p>for each artist only one of you has, the nearest artist only the other has, in the 3D sound map. each stop plays 8 seconds of a public preview, so you can judge a crossing by ear. tap a pair in the list to jump to it.</p></details>
   </div>
 </section>
 
@@ -227,6 +230,8 @@ button#again6,button#again{min-height:44px}
     <p class="find" id="spread"></p>
     <p class="cap" id="cap5"></p>
     <p class="cap">faint lines: 8 walks per side. thick line: the first walk. dots: its stops.</p>
+    <div class="row" style="margin-top:12px"><button type="button" id="hear5">hear the thick walks</button><button type="button" id="next5">next stop</button></div>
+    <p class="tap" id="n5" aria-live="polite">tap a stop on the map to hear the walk from there.</p>
     <details class="fine"><summary>the fine print</summary><p>a 20-step walk from each side's top 10 placed artists, on 1,600 of auto-play’s 11,688 artist pairs (a random draw), either direction, each step chosen by how often that pair ran (log scale). numbers are the expected stops, averaged over the 10 starts.</p></details>
   </div>
 </section>
@@ -243,7 +248,9 @@ button#again6,button#again{min-height:44px}
     <p class="find"><b>same rule, different habits, different drift.</b> turn the dial and watch both paths change.</p>
     <p class="find" id="f6">loads when you scroll here.</p>
     <span class="lab">a toy</span>
-    <p class="cap">short lists place poorly. tap a shape to name the artist.</p>
+    <p class="cap">short lists place poorly. tap a shape to name the artist; tap a stop on a path to hear from there.</p>
+    <div class="row" style="margin-top:12px"><button type="button" id="hear6">hear both walks</button><button type="button" id="next6">next stop</button></div>
+    <p class="tap" id="n6" aria-live="polite"></p>
     <div class="knob"><label class="how" for="habit6">drag: the same habit dial as panel five</label><input type="range" id="habit6" min="0" max="4" step="0.5" value="1" aria-label="habit weight, mirror"> <button type="button" id="again6">walk both lists again</button></div>
     <details class="fine"><summary>the fine print</summary><p>auto-play’s rule walks 40 steps twice. mine uses the settings matched to my own listening, started from your top artist. yours is matched to your list: an export uses the artists you played back to back; a pasted list uses neighbors in your ranking. the habit dial scales how hard each rule repeats a pair in both. one walk each, so another seed can differ.</p></details>
   </div>

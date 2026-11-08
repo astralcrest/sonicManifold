@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>the graveyard booth</title>
 <meta name="description" content="a confessional booth of killed claims. press a button, read one sentence i wanted to be true and the line that killed it. a toy, labeled.">
-<meta property="og:title" content="wall 8 of 21: the graveyard booth"><meta property="og:description" content="a confessional booth of killed claims. press a button, read one sentence i wanted to be true and the line that killed it. a toy, labeled."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/booth.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 8 of 24: the graveyard booth"><meta property="og:description" content="a confessional booth of killed claims. press a button, read one sentence i wanted to be true and the line that killed it. a toy, labeled."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/booth.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,6 +32,12 @@ button#go:hover { background: #ffb940; }
 #row i.dead { background: #5a2a3a; } #row i.now { background: var(--rose); }
 .toy { font: 11px/1.5 var(--mono); color: var(--mute); margin: 14px 0 0; }
 .chip[hidden] { display: none; }
+#row i { cursor: pointer; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+.big span.c { font: 500 15px/1.5 var(--mono); color: var(--mute); }
+.cap { font: 500 12px/1.4 var(--mono); color: var(--mute); margin: 0 0 6px; }
+.cap b { color: var(--amber); font-weight: 500; } .cap em { color: var(--rose); font-style: normal; }
+button#go { max-width: 100%; }
 @media (max-width: 900px) {
   #room { display: block; border-width: 4px; }
   #stagebox { padding: 24px 24px 32px; gap: 22px; }
@@ -42,33 +48,35 @@ button#go:hover { background: #ffb940; }
 @media (prefers-reduced-motion: reduce) { #room { transition: none; } }
 </style>
 </head>
-<body data-wall="8" data-line="sixteen things i wanted to be true about my own listening. each one was tested. each one died." data-do="press confess. read the claim, then the check that killed it. a track of mine plays low." data-keys="" style="--act: var(--rose); --acc: var(--amber)">
+<body data-wall="8" data-line="sixteen things i wanted true about my listening. each was tested. each died." data-do="press next claim. read it, then the check that killed it. a track of mine plays." data-keys="" style="--act: var(--rose); --acc: var(--amber)">
 <div id="room" data-lit="0">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the graveyard booth</span><span class="tl">a toy</span></p>
     <h1>a claim i wanted true, and what <em>killed</em> it.</h1>
   </header>
   <main id="stagebox">
-    <div id="stage" aria-live="polite"><canvas id="sig" width="600" height="150" aria-hidden="true" style="display:block;width:100%;height:150px;max-width:900px;margin:0 0 18px"></canvas><p id="claim"></p><p id="ref"><i></i><span id="reft"></span></p></div>
+    <div id="stage" aria-live="polite"><p class="cap" id="cap"><b>amber</b>: the lift i hoped for. <em>rose</em>: what the check found.</p><canvas id="sig" width="600" height="150" role="img" aria-label="a sketch of one claim: an amber curve rising for the lift i wanted, then a rose line flat on zero for what the check found" style="display:block;width:100%;height:150px;max-width:900px;margin:0 0 18px"></canvas><p id="claim"></p><p id="ref"><i></i><span id="reft"></span></p></div>
     <div class="goline">
-      <button type="button" id="go">confess</button>
-      <div id="row" aria-hidden="true"></div>
+      <button type="button" id="go">next claim</button>
+      <div id="row" role="group" aria-label="sixteen claims, tap one to jump to it"></div>
     </div>
   </main>
   <aside id="side">
     <div class="key">
-      <div class="big rose" id="cnt"></div>
-      <span class="keylab">claims a check killed</span>
+      <div class="big rose" id="cnt"><span class="c">none read yet</span></div>
+      <span class="keylab">claims read so far, each one killed by a check (16 in all)</span>
+      <p class="say" id="say">pick a claim, or press next claim. the sketch shows the lift i hoped for in amber, then the check in rose.</p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>each claim here is one i wanted true; a referee killed it.</p>
       <p class="ask"><b>open question:</b>how many claims feel true only because no one tried to kill them?</p>
     </div>
-    <div class="row bar"><button type="button" class="chip" id="reset">start over</button></div>
+    <div class="row bar"><button type="button" id="back">back</button><button type="button" id="auto" aria-pressed="false">read all sixteen</button><button type="button" class="chip" id="reset">start over</button></div>
+    <p class="note" id="now">sound is off. tap the chip at the top to hear one of my own tracks under the words. arrow keys step through the claims; tap any dot to jump.</p>
     <details class="how"><summary>how</summary>
-      <p>press confess. a claim types out, with the lift i hoped for drawn in amber.</p>
-      <p>read the check that killed it: the rose line lands flat on zero.</p>
-      <p>turn sound on for the music: one of my own songs, low. the point: a claim that no one tried to kill is not a finding.</p>
+      <p>press next claim. a claim types out, and the amber curve is the lift i hoped for.</p>
+      <p>then the check that killed it: the rose line lands flat on zero. step with back and next, tap a dot to jump, or press read all sixteen to watch all of them go by on their own.</p>
+      <p>turn sound on for the music: one of my own songs, low, beating under the rose dot. the point: a claim that no one tried to kill is not a finding.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>a booth. data: the graveyard of claims the referee killed, public since 2026. the picture is a sketch of the shape, not the numbers. the music is my own track, never a preview. nothing is stored.</p>

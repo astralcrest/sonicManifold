@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>undo the year</title>
 <meta name="description" content="take one year of artists out of the rule matched to my log and rerun it: which neighborhoods of the map does the walk stop entering.">
-<meta property="og:title" content="wall 6 of 21: undo a year"><meta property="og:description" content="take one year of artists out of the rule matched to my log and rerun it: which neighborhoods of the map does the walk stop entering."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/undo.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 6 of 24: undo a year"><meta property="og:description" content="take one year of artists out of the rule matched to my log and rerun it: which neighborhoods of the map does the walk stop entering."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/undo.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +20,7 @@
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; }
 </style>
 </head>
-<body data-wall="6" data-line="auto-play's walk, with one year of artists taken out. watch it change." data-keys="auto,alike" style="--act: var(--violet); --acc: var(--violet)">
+<body data-wall="6" data-line="auto-play's 40-step walk, rerun with one year of first-heard artists removed." data-do="press play to hear both walks, then pick a year to remove." data-keys="auto,alike" style="--act: var(--violet); --acc: var(--violet)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>undo the year</span><span class="tl">a toy</span></p>
@@ -29,8 +29,8 @@
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map with the rule's 40-step walk in violet and the same rule rerun with one year of first-heard artists removed in dashed rose"></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big violet" id="big">-</div>
-      <span class="keylab">neighborhoods the walk loses</span>
+      <div class="big violet" id="big"><span class="c">loading my map</span></div>
+      <span class="keylab">neighborhoods the walk no longer enters, of eleven</span>
       <p id="say" class="say">loading my map</p>
     </div>
     <div class="lines">
@@ -38,22 +38,28 @@
       <p class="ask"><b>open question:</b>which of my years still steer the rule that grows the rest?</p>
     </div>
     <section>
-      <span class="k" id="yl">tap a year to remove</span>
+      <div class="row">
+        <button type="button" id="hear" class="go" aria-pressed="false">play from step 0, both ways</button>
+        <button type="button" id="prev">back a step</button>
+        <button type="button" id="step">next step</button>
+      </div>
+      <p id="now" class="note" aria-live="polite"></p>
+      <p class="note">on a laptop, the left and right arrow keys step too. tap any dot on a walk to jump there.</p>
+    </section>
+    <section>
+      <span class="k" id="yl">then pick a year to remove</span>
       <div id="years" role="radiogroup" aria-labelledby="yl"></div>
-      <p class="key2"><i style="border-color:var(--violet)"></i>as it grew &nbsp; <i class="d" style="border-color:var(--rose)"></i>with that year removed<br><b></b>the artists taken out</p>
+      <p class="key2"><i style="border-color:var(--violet)"></i>as it grew &nbsp; <i class="d" style="border-color:var(--rose)"></i>with that year removed<br><b></b>the artists taken out &nbsp; a colored ring marks a new family</p>
       <div class="row">
         <button type="button" id="again">another start</button>
-        <button type="button" id="hear" aria-pressed="false">hear it both ways</button>
         <a class="btn" href="../../" id="back">back</a>
       </div>
-      <p id="now"></p>
       <p class="note" id="more"></p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>pick a year; its new artists leave the rule's choices.</p>
-      <p>the same start runs twice: as it grew, and without them.</p>
-      <p>a neighborhood is a cluster of artists that sound alike.</p>
-      <p>hear it: the first step where the two walks part, played both ways. some years change nothing from a given start.</p>
+      <p>press play: the walk is heard stop by stop, as it grew, then with the year removed. it keeps going to the end.</p>
+      <p>use next step, back a step, or tap a dot to jump. the bright line is the path so far.</p>
+      <p>then pick a year: its artists leave the rule's choices, and the number says how many neighborhoods the walk loses.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p id="how"></p>

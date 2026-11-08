@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>walk the loop</title>
 <meta name="description" content="pick who walks, turn a dial, and watch 40 picks cross my sound map.">
-<meta property="og:title" content="wall 1 of 21: walk the loop"><meta property="og:description" content="pick who walks, turn a dial, and watch 40 picks cross my sound map."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/loop.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 1 of 24: walk the loop"><meta property="og:description" content="pick who walks, turn a dial, and watch 40 picks cross my sound map."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/loop.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,7 +49,12 @@ output { font-size: 12px; color: var(--mute); }
 #tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 4px 0 2px; vertical-align: -1px; }
 #path { font: 11px/1.7 var(--mono); color: #cfc6e8; max-height: 7.4em; overflow-y: auto; margin-top: 10px; }
 #path span { white-space: nowrap; margin-right: 10px; }
+#path span { cursor: pointer; display: inline-block; padding: 6px 0; }
+#path span i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; }
 #path span b { color: var(--mute); font-weight: 400; }
+#path span:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
+.big .c { font: 500 18px/1.3 var(--sans); letter-spacing: 0; color: var(--mute); }
+#side .row button { flex: 1 1 140px; }
 #path span.on { color: var(--act); text-decoration: underline; }
 #tab { width: 100%; border-collapse: collapse; font: 11px var(--mono); }
 #tab th, #tab td { text-align: right; padding: 4px 0 4px 8px; font-weight: 400; }
@@ -63,7 +68,7 @@ output { font-size: 12px; color: var(--mute); }
 @media (max-width: 900px) { .met dd { font-size: 22px; } }
 </style>
 </head>
-<body data-wall="1" data-line="a rule's 40-pick walk across my sound map. close together = sounds alike." data-keys="auto,press,alike" style="--act: var(--violet); --acc: var(--violet)">
+<body data-wall="1" data-line="a rule's 40-pick walk across my sound map. close together = sounds alike." data-do="pick who walks, tap a shape to start there, then press hear it." data-keys="auto,press,alike" style="--act: var(--violet); --acc: var(--violet)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>walk the loop</span><span class="tl">a toy</span></p>
@@ -72,8 +77,8 @@ output { font-size: 12px; color: var(--mute); }
   <div id="map"><div id="tip" hidden aria-hidden="true"></div><canvas id="cv" role="img" aria-label="my sound map: every artist as a shape colored by genre family, with a rule's 40-step walk drawn as a numbered ribbon"></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big" id="m-loop">-</div>
-      <span class="keylab">the walk starts repeating at</span>
+      <div class="big" id="m-loop"><span class="c">drawing the walk</span></div>
+      <span class="keylab">the stop where the walk starts repeating</span>
       <p id="say" class="say"></p>
     </div>
     <div class="lines">
@@ -92,11 +97,18 @@ output { font-size: 12px; color: var(--mute); }
       <p class="note" id="pdesc"></p>
     </section>
     <section>
+      <h2>hear the walk, stop by stop</h2>
+      <div class="row"><button type="button" id="hear" aria-pressed="false">hear it</button><button type="button" id="skip">next stop</button></div>
+      <p id="now"></p>
+      <div id="path" tabindex="0" aria-label="the walk so far, scrolls"></div>
+      <p class="note" id="what">each stop plays 10 seconds of a public preview and the walk keeps going to its end. tap a stop here or on the map to jump to it. it is the rule's walk, not my history.</p>
+    </section>
+    <section>
       <h2>what this walk did</h2>
       <dl class="met">
-        <div><dt>distance walked</dt><dd><span id="m-len">-</span><small>in random-hop units</small></dd></div>
-        <div><dt>genre families</dt><dd><span id="m-fam">-</span><small>colors visited</small></dd></div>
-        <div><dt>my top 50</dt><dd><span id="m-top">-</span><small>share of picks</small></dd></div>
+        <div><dt>distance walked</dt><dd><span id="m-len">...</span><small>in random-hop units</small></dd></div>
+        <div><dt>genre families</dt><dd><span id="m-fam">...</span><small>colors visited</small></dd></div>
+        <div><dt>my top 50</dt><dd><span id="m-top">...</span><small>share of picks</small></dd></div>
       </dl>
     </section>
     <section>
@@ -105,27 +117,20 @@ output { font-size: 12px; color: var(--mute); }
       <p class="note" id="fixed"></p>
       <div id="hotline" hidden>right now, this dial changes the walk most</div>
     </section>
-    <section>
-      <h2>the walk, stop by stop</h2>
-      <button type="button" id="hear" aria-pressed="false">hear it</button> <button type="button" id="skip" hidden>next stop</button>
-      <p id="now"></p>
-      <div id="path" tabindex="0" aria-label="the walk so far, scrolls"></div>
-      <p class="note" id="what">what plays: one 30-second preview per stop. it is the rule's walk, not my history.</p>
-    </section>
     <details class="how"><summary>how</summary>
-      <p>each shape is an artist, colored by genre family. hover one for its name; tap one to start the walk there.</p>
-      <p>a rule walks 40 picks across them; the ribbon is its path.</p>
+      <p>tap a shape to start a walk there, or pick who walks. each shape is an artist, colored by genre family; hover one for its name.</p>
+      <p>press hear it. the ribbon is bright up to the stop that plays and faint after. next stop or a tap on any stop jumps there. a ring in the stop's family color marks it; a thick ring means the family changed.</p>
       <p>each step weighs <span id="nc">the</span> nearby, popular and random artists.</p>
       <div id="legend"></div>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>from my log: auto-play's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
-      <p id="qfit"><b>fitted on my log, auto-play leans on closeness in sound more than my presses do. a direction, not a size.</b> "auto-play" here includes my own playlists in order, not only the app's picks.</p>
+      <p>from my log: auto-play's own stretch of songs stays close in sound. when i interrupted it the next song sat farther away, and when shuffle interrupted it, farther still. a direction, not a size.</p>
+      <p id="qfit"><b>matched to my log, auto-play leans on closeness in sound more than my presses do. a direction, not a size.</b> "auto-play" here includes my own playlists in order, not only the app's picks.</p>
       <p id="fitnote" style="white-space:pre-line"></p>
       <p id="mapnote"><span id="nart"></span> artists placed by how they sound. pebbles are sized by plays; faint ice lines join each artist to its three nearest.</p>
-      <p><b>per step: real picks vs this rule (descriptive)</b></p>
+      <p><b>per step: real picks vs this rule, a rough comparison</b></p>
       <div id="tabd"><table id="tab"></table><p id="gap"></p></div>
-      <p>many settings fit about as well. read a preset as one good fit, not the real weights.</p>
+      <p>many settings match about as well. read a preset as one good match, not the real weights.</p>
     </details>
   </main>
 </div>

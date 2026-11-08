@@ -244,13 +244,15 @@ function buildUI() {
     if (!D.f.some(function (x) { return x === f; })) return;
     var s = document.createElement('span'); s.innerHTML = '<i></i>' + nm; s.firstChild.style.background = FAMC[nm] || MUTE; lg.appendChild(s);
   });
-  $('fitnote').textContent = 'auto-play and my press: dials fitted to ' + D.q.length.toLocaleString('en-US') + ' sampled pairs each of my log. descriptive.\na feed is hand-set, not fitted. the pull is a toy, hand-set, not fitted.';
+  $('fitnote').textContent = 'auto-play and my press: dials matched to ' + D.q.length.toLocaleString('en-US') + ' sampled pairs each of my log.\na feed is hand-set, not matched. the pull is a toy, hand-set, not matched.';
   $('fixed').innerHTML = 'fixed by this rule: ' + FIXED.map(function (k) { return DIALN[k] + ' <output id="o' + k + '"></output>'; }).join(' · ');
   $('nart').textContent = M.N.toLocaleString('en-US');
   cv.addEventListener('pointerdown', tap);
   cv.addEventListener('pointermove', hoverTip); cv.addEventListener('pointerleave', function () { $('tip').hidden = true; });
   $('hear').addEventListener('click', hear);
-  $('skip').addEventListener('click', function () { if (S.play >= 0) playStop(S.play + 1); });
+  $('skip').addEventListener('click', nextStop);
+  $('path').addEventListener('click', function (e) { var sp = e.target.closest('span[data-k]'); if (sp) withPV(function () { playStop(+sp.getAttribute('data-k')); }); });
+  $('path').addEventListener('keydown', function (e) { var sp = e.target.closest('span[data-k]'); if (sp && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); withPV(function () { playStop(+sp.getAttribute('data-k')); }); } });
 }
 
 var GLOSS = ['higher: it hops to artists that sound near the last one.', 'higher: it goes back to artists it already visited.',
@@ -351,9 +353,9 @@ function metrics() {
 
 function pathList() {
   var o = $('path'), h = '';
-  S.path.forEach(function (i, k) { h += '<span data-k="' + k + '"><b>' + k + '</b> ' + esc(name(i)) + '</span> '; });
+  S.path.forEach(function (i, k) { h += '<span data-k="' + k + '" tabindex="0" role="button"><i style="background:' + (FAMC[D.fam[D.f[i]]] || MUTE) + '"></i><b>' + k + '</b> ' + esc(name(i)) + '</span> '; });
   o.innerHTML = h;
-  $('now').textContent = 'stop 0, ' + name(S.path[0]) + ', is where the walk starts. tap the map to start somewhere else.';
+  $('now').textContent = 'stop 0, ' + name(S.path[0]) + ', is where the walk starts. press hear it, or tap a shape on the map to start somewhere else.';
 }
 function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
@@ -436,12 +438,28 @@ function draw() {
   var col = PCOL[S.preset] || ICE, end = PEND[S.preset] || INK, p = S.path, n = Math.min(S.anim, p.length), k, pts = [];
   for (k = 0; k < n; k++) pts.push([X(p[k]), Y(p[k])]);
   if (S.ghost) line(S.ghost, S.ghost.length, MUTE, 0.45);
-  if (PK) { PK.ribbon(g, pts, col, end, W < 500 ? 2 : 2.5, 0.92, null, p.slice(0, n).map(function (i) { return Math.log(1 + D.pl[i]) / 11; })); PK.stops(g, pts, col, end, W < 500 ? 5 : 6, PGLY[S.preset] || 'dot'); }
-  else line(p, n, col, 1);
+  var pl = S.play >= 0 && S.play < n ? S.play : -1, wts = p.slice(0, n).map(function (i) { return Math.log(1 + D.pl[i]) / 11; }), lw = W < 500 ? 2 : 2.5, ss = W < 500 ? 5 : 6;
+  if (PK) {
+    if (pl < 0) { PK.ribbon(g, pts, col, end, lw, 0.92, null, wts); PK.stops(g, pts, col, end, ss, PGLY[S.preset] || 'dot'); }
+    else {
+      PK.ribbon(g, pts, col, end, lw * 0.8, 0.26, null, wts);
+      PK.ribbon(g, pts.slice(0, pl + 1), col, end, lw * 1.2, 0.98, null, wts.slice(0, pl + 1));
+      PK.stops(g, pts.slice(0, pl + 1), col, end, ss, PGLY[S.preset] || 'dot');
+      g.globalAlpha = 0.4; g.fillStyle = col;
+      for (k = pl + 1; k < n; k++) { g.beginPath(); g.arc(pts[k][0], pts[k][1], 2.4, 0, 6.2832); g.fill(); }
+      g.globalAlpha = 1;
+    }
+  } else line(p, n, col, 1);
   if (n && PK) PK.glyph(g, 'star', pts[0][0], pts[0][1], 8, INK);
+  g.lineWidth = 1.5;
+  for (k = 0; k < n; k++) {
+    var fc = FAMC[D.fam[D.f[p[k]]]] || MUTE, chg = k > 0 && D.f[p[k]] !== D.f[p[k - 1]];
+    g.globalAlpha = pl >= 0 && k > pl ? 0.3 : 1; g.strokeStyle = fc; g.lineWidth = chg ? 2.4 : 1.2;
+    g.beginPath(); g.arc(pts[k][0], pts[k][1], chg ? 9 : 7.5, 0, 6.2832); g.stroke();
+  }
+  g.globalAlpha = 1;
   g.font = '500 11px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
   var boxes = [];
-  // a number goes in the first of four spots that clears every number already placed; a stop with no clear spot keeps its square only
   for (k = 0; k < n; k++) {
     var lx = X(p[k]), ly = Y(p[k]), lt = String(k), lw = g.measureText(lt).width, spots = [[7, -8], [7, 8], [-7 - lw, -8], [-7 - lw, 8]];
     for (var q = 0; q < 4; q++) {
@@ -453,7 +471,7 @@ function draw() {
       boxes.push([bx, by, lw]); g.fillStyle = k === 0 ? INK : PK ? PK.mix(col, end, n > 1 ? k / (n - 1) : 0) : col; g.fillText(lt, bx, by); break;
     }
   }
-  if (S.play >= 0 && S.play < n) { if (PK) PK.rings(g, X(p[S.play]), Y(p[S.play]), INK, 14); }
+  if (S.play >= 0 && S.play < n && root.WK) root.WK.pulse(g, X(p[S.play]), Y(p[S.play]), INK, 12);
 }
 
 function hoverTip(e) {
@@ -461,40 +479,59 @@ function hoverTip(e) {
   for (var i = 0; i < M.N; i++) { var dx = X(i) - x, dy = Y(i) - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
   if (best < 0) { tip.hidden = true; return; }
   var k = S.path ? S.path.indexOf(best) : -1, fam = D.fam[D.f[best]] || '';
-  tip.innerHTML = '<b>' + name(best) + '</b>' + (fam ? ' <i style="background:' + (FAMC[fam] || MUTE) + '"></i>' + fam : '') + (k >= 0 ? ' · stop ' + k : '') + (S.play < 0 ? ' · tap to start here' : '');
+  tip.innerHTML = '<b>' + name(best) + '</b>' + (fam ? ' <i style="background:' + (FAMC[fam] || MUTE) + '"></i>' + fam : '') + (k >= 0 ? ' · stop ' + k + ', tap to hear it' : ' · tap to start a walk here');
   tip.style.left = Math.min(r.width - 220, x + 12) + 'px'; tip.style.top = Math.max(0, y - 34) + 'px'; tip.hidden = false;
 }
 function tap(e) {
   var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, best = -1, bd = 22 * 22;
   for (var i = 0; i < M.N; i++) { var dx = X(i) - x, dy = Y(i) - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
   if (best < 0) return;
+  var on = S.path ? S.path.indexOf(best) : -1;
+  if (on >= 0 && on < Math.min(S.anim, S.path.length)) { withPV(function () { playStop(on); }); return; }
   S.start = best; S.seed = (Math.random() * 1e9) | 0; newPath(true);
 }
 
-/* ---------- hear it: one preview at a time, low volume, walks the path ---------- */
-var AU = null, PV = null;
+/* ---------- hear it: one preview at a time, each stop 10 s, the walk keeps going to its end ---------- */
+var AU = null, PV = null, STOPMS = 10000;
+function withPV(go) {
+  if (PV) { go(); return; }
+  fetch('data/pv.json').then(function (r) { return r.json(); }).then(function (j) { PV = j.a; go(); }).catch(function () { $('now').textContent = 'the clips did not load. reload to try again.'; });
+}
 function hear() {
   if (S.play >= 0) { stopHear(); return; }
-  var go = function () { playStop(0); };
-  if (PV) go(); else fetch('data/pv.json').then(function (r) { return r.json(); }).then(function (j) { PV = j.a; go(); }).catch(function () {});
+  withPV(function () { playStop(0); });
+}
+function nextStop() {
+  if (S.play >= 0) playStop(S.play + 1); else withPV(function () { playStop(0); });
 }
 function playStop(k) {
-  while (k < S.path.length && (!D.n[S.path[k]] || !PV[S.path[k]])) k++;
-  if (k >= S.path.length) { stopHear(); return; }
-  var t = PV[S.path[k]];
+  var from = k, miss = [];
+  while (k < S.path.length && (!D.n[S.path[k]] || !PV[S.path[k]])) { miss.push(k); k++; }
+  if (k >= S.path.length) { stopHear(from > 0 ? 'that was the whole walk.' : 'none of these artists has a clip. start a walk somewhere else.'); return; }
+  var ai = S.path[k], t = PV[ai], before = 0, k2, prev = k > 0 ? S.path[k - 1] : -1;
+  for (k2 = 0; k2 < k; k2++) if (S.path[k2] === ai) before++;
+  clearTimeout(S.stopT);
   if (!AU) { AU = new Audio(); AU.volume = 0.25; AU.addEventListener('ended', function () { if (S.play >= 0) playStop(S.play + 1); }); }
   AU.src = t[1]; S.play = k;
+  if (before) { var off = (before * 6) % 20, seek = function () { AU.removeEventListener('loadedmetadata', seek); try { AU.currentTime = off; } catch (e) {} }; AU.addEventListener('loadedmetadata', seek); }
   var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {});
+  S.stopT = setTimeout(function () { if (S.play === k) playStop(k + 1); }, STOPMS);
+  var fam = D.fam[D.f[ai]] || '', pf = prev >= 0 ? D.fam[D.f[prev]] : '';
+  var same = prev === ai ? ' same artist as the stop before, so a later part of its clip.' : before ? ' back at an artist the walk already visited, so a later part of its clip.' : '';
+  var chg = prev >= 0 && pf !== fam ? ' the family changes from ' + pf + '.' : prev >= 0 ? ' same family as the stop before.' : '';
   $('hear').textContent = 'stop'; $('hear').setAttribute('aria-pressed', 'true');
-  $('now').textContent = 'playing stop ' + k + ': ' + t[0] + ', by ' + name(S.path[k]) + '. the next stop plays when it ends.'; $('skip').hidden = false;
-  [].forEach.call($('path').children, function (s) { s.classList.toggle('on', +s.getAttribute('data-k') === k); });
-  draw();
+  $('now').textContent = 'stop ' + k + ' of ' + (S.path.length - 1) + ': \u201c' + t[0] + '\u201d by ' + name(ai) + ', ' + fam + '.' + chg + same + (miss.length ? ' (stop' + (miss.length > 1 ? 's ' : ' ') + miss.join(', ') + ' had no clip.)' : '') + (k < S.path.length - 1 ? ' next stop in 10 s, or press next stop.' : '') + (root.WK && !root.WK.sound() ? ' sound is off: tap the sound chip at the top.' : '');
+  [].forEach.call($('path').children, function (sp) { var on = +sp.getAttribute('data-k') === k; sp.classList.toggle('on', on); if (on && sp.scrollIntoView && !reduce) sp.scrollIntoView({ block: 'nearest' }); });
+  if (root.WK) root.WK.live(draw); else draw();
 }
-function stopHear() {
+function stopHear(msg) {
+  clearTimeout(S.stopT);
   if (AU) AU.pause();
+  if (root.WK) root.WK.still();
   if (S.play < 0) return;
-  S.play = -1; $('hear').textContent = 'hear it'; $('hear').setAttribute('aria-pressed', 'false'); $('skip').hidden = true;
+  S.play = -1; $('hear').textContent = 'hear it'; $('hear').setAttribute('aria-pressed', 'false');
   [].forEach.call($('path').children, function (s) { s.classList.remove('on'); });
+  if (msg) $('now').textContent = msg;
   draw();
 }
 })(typeof self !== 'undefined' ? self : this);

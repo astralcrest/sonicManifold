@@ -2,7 +2,7 @@
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, MAP, LOOP, PV = null, ADJ = null;
 var cv = $('cv'), TH = 16, COOL = 900;
-var S = { cur: 0, deals: [], last: 0, listening: false, hear: null, got: false };
+var S = { cur: 0, deals: [], last: 0, listening: false, hear: null, got: false, view: -1, tok: 0, seq: [], sk: -1 };
 
 function adj() {
   if (ADJ) return ADJ;
@@ -19,9 +19,32 @@ function bfs(a, b) {
 function srt(c) { return D.nn[c].slice().sort(function (a, b) { return LOOP.dist(M, c, a) - LOOP.dist(M, c, b); }); }
 function startAt() { var p = M.order.slice(0, 300).filter(function (i) { return PV && PV[i]; }); return p[Math.floor(Math.random() * p.length)]; }
 
+function fam(i) { return D.fam[D.f[i]]; }
+function fcol(i) { return WK.FAMC[fam(i)] || PAL.ice; }
+function rad(i, lo, hi) { return lo + (hi - lo) * Math.log(1 + D.pl[i]) / Math.log(1 + D.pl[M.order[0]]); }
+function setNum(v) { $('num').innerHTML = v == null ? '<span class="c">shake to start</span>' : String(v); }
+function snd() { return WK.sound() ? '' : ' sound is off: tap the sound chip to hear it.'; }
+function hearSeq(seq, from) {
+  var my = ++S.tok, list = [], k;
+  S.seq = seq;
+  for (k = from; k < seq.length; k++) if (PV[seq[k].i] && !(k > 0 && seq[k].i === seq[k - 1].i)) list.push({ i: seq[k].i, tag: String(k) });
+  if (!list.length) { S.hear = null; $('now').textContent = 'no more clips here. shake again.'; S.sk = seq.length; draw(); return; }
+  WK.play(list, function (k, info) {
+    if (my !== S.tok) return;
+    if (info) {
+      var q = seq[parseInt(info.tag, 10)], prev = parseInt(info.tag, 10) > 0 ? seq[parseInt(info.tag, 10) - 1] : null;
+      S.sk = parseInt(info.tag, 10); S.hear = { i: info.i, col: q.col };
+      $('now').textContent = q.label + ': ' + info.title + ' by ' + D.n[info.i] + ' (' + fam(info.i) + ')' + (prev && D.n[prev.i] === D.n[info.i] ? '. same artist as the last clip.' : '.') + (S.sk < seq.length - 1 ? ' next clip: ' + seq[S.sk + 1].label + '.' : ' last clip.') + snd();
+      WK.live(draw);
+    } else { S.hear = null; WK.still(); draw(); }
+  });
+  draw();
+}
 function hearOf(i, col) {
   S.hear = { i: i, col: col };
+  var my = ++S.tok; S.sk = -1;
   WK.play([{ i: i, tag: 'tap' }], function (k, info) {
+    if (my !== S.tok) return;
     if (info) { $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[i]; WK.live(draw); }
     else { S.hear = null; WK.still(); draw(); }
   });
@@ -36,20 +59,21 @@ function shakeNow() {
   S.deals.push({ c: c, t: t, p: press, J: J, j: j });
   if (S.deals.length > 40) S.deals.shift();
   S.cur = press;
+  S.view = S.deals.length - 1;
   render();
-  hearOf(t, PAL.amber);
+  hearSeq([{ i: t, col: PAL.amber, label: 'shuffle landed' }, { i: press, col: PAL.mint, label: 'a press hops' }], 0);
 }
 function render() {
-  var d = S.deals[S.deals.length - 1];
-  if (!d) { $('num').textContent = '-'; $('say').textContent = 'shake the phone, or tap shake.'; draw(); return; }
+  var d = S.deals[S.view < 0 ? S.deals.length - 1 : S.view];
+  if (!d) { setNum(null); $('say').textContent = 'shake the phone, or tap shake.'; draw(); return; }
   var sj = 0, sp = 0; S.deals.forEach(function (x) { sj += Math.max(0, x.J); sp += Math.max(0, x.j); });
-  $('num').textContent = d.J < 0 ? '?' : d.J;
-  $('say').textContent = 'shake ' + S.deals.length + ': from ' + D.n[d.c] + ' shuffle leaped to ' + D.n[d.t] + ', then a press hops to ' + D.n[d.p] + '. shuffle\'s jump was ' + d.J + (d.J === 1 ? ' step' : ' steps') + ', a press\'s was ' + d.j + '. over ' + S.deals.length + (S.deals.length === 1 ? ' shake' : ' shakes') + ' the averages are ' + (sj / S.deals.length).toFixed(1) + ' and ' + (sp / S.deals.length).toFixed(1) + '. a toy rule, not my data.';
+  setNum(d.J < 0 ? '?' : d.J);
+  $('say').textContent = 'shake ' + (S.deals.indexOf(d) + 1) + ' of ' + S.deals.length + ': from ' + D.n[d.c] + ' shuffle leaped to ' + D.n[d.t] + ', then a press hops to ' + D.n[d.p] + '. shuffle\'s jump was ' + d.J + (d.J === 1 ? ' step' : ' steps') + ', a press\'s was ' + d.j + '. over ' + S.deals.length + (S.deals.length === 1 ? ' shake' : ' shakes') + ' the averages are ' + (sj / S.deals.length).toFixed(1) + ' and ' + (sp / S.deals.length).toFixed(1) + '. ' + (fam(d.c) !== fam(d.t) ? 'shuffle crossed from ' + fam(d.c) + ' to ' + fam(d.t) + '. ' : 'shuffle stayed in ' + fam(d.t) + '. ') + (fam(d.c) !== fam(d.p) ? 'the press crossed to ' + fam(d.p) + '.' : 'the press stayed in ' + fam(d.p) + '.') + ' a toy rule, not my data.' + snd();
   draw();
 }
 function draw() {
   MAP.begin();
-  var g = MAP.g, X = MAP.X, Y = MAP.Y, n = S.deals.length, k, d, thick = MAP.W < 500 ? 2.6 : 3.4;
+  var g = MAP.g, X = MAP.X, Y = MAP.Y, n = S.view < 0 ? S.deals.length : S.view + 1, k, d, thick = MAP.W < 500 ? 2.6 : 3.4;
   for (k = Math.max(0, n - 6); k < n - 1; k++) {
     d = S.deals[k];
     P.ribbon(g, [[X(d.c), Y(d.c)], [X(d.t), Y(d.t)]], PAL.amber, PAL.amber, 1.4, 0.28);
@@ -59,14 +83,15 @@ function draw() {
     d = S.deals[n - 1];
     P.ribbon(g, [[X(d.c), Y(d.c)], [X(d.t), Y(d.t)]], PAL.amber, PAL.amber, thick, 0.95);
     P.ribbon(g, [[X(d.c), Y(d.c)], [X(d.p), Y(d.p)]], PAL.mint, PAL.mint, thick, 0.95);
-    P.peb(g, d.t, X(d.t), Y(d.t), 9, WK.FAMC[D.fam[D.f[d.t]]] || PAL.amber); P.glyph(g, 'diamond', X(d.t), Y(d.t), 13, PAL.amber);
-    P.peb(g, d.p, X(d.p), Y(d.p), 8, WK.FAMC[D.fam[D.f[d.p]]] || PAL.mint); P.glyph(g, 'star', X(d.p), Y(d.p), 12, PAL.mint);
-    P.peb(g, d.c, X(d.c), Y(d.c), 9, PAL.ink); P.rings(g, X(d.c), Y(d.c), PAL.ink, 18);
+    P.peb(g, d.t, X(d.t), Y(d.t), rad(d.t, 6, 12), fcol(d.t)); P.glyph(g, 'diamond', X(d.t), Y(d.t), 13, PAL.amber);
+    P.peb(g, d.p, X(d.p), Y(d.p), rad(d.p, 6, 12), fcol(d.p)); P.glyph(g, 'star', X(d.p), Y(d.p), 12, PAL.mint);
+    P.peb(g, d.c, X(d.c), Y(d.c), rad(d.c, 6, 12), fcol(d.c)); P.rings(g, X(d.c), Y(d.c), PAL.ink, 18);
+    MAP.tag(d.c, 'from ' + D.n[d.c], PAL.ink); MAP.tag(d.t, 'shuffle ' + D.n[d.t], PAL.amber); if (d.p !== d.t) MAP.tag(d.p, 'press ' + D.n[d.p], PAL.mint);
   } else {
-    P.peb(g, S.cur, X(S.cur), Y(S.cur), 9, PAL.ink); P.rings(g, X(S.cur), Y(S.cur), PAL.ink, 18);
-    g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText('shake the phone, or tap shake.', MAP.W / 2, MAP.H - 16); g.restore();
+    P.peb(g, S.cur, X(S.cur), Y(S.cur), rad(S.cur, 6, 12), fcol(S.cur)); P.rings(g, X(S.cur), Y(S.cur), PAL.ink, 18);
+    g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText('shake the phone, tap shake, or press d.', MAP.W / 2, MAP.H - 16); g.restore();
   }
-  if (S.hear) WK.pulse(g, X(S.hear.i), Y(S.hear.i), S.hear.col, 16);
+  if (S.hear && WK.playing()) WK.pulse(g, X(S.hear.i), Y(S.hear.i), S.hear.col, 16);
 }
 
 var lx = 0, ly = 0, lz = 0, have = false;
@@ -76,7 +101,7 @@ function onMotion(e) {
   if (have) { var m = Math.abs(x - lx) + Math.abs(y - ly) + Math.abs(z - lz); if (m > TH * 2) shakeNow(); }
   lx = x; ly = y; lz = z; have = true; S.got = true; $('nophone').hidden = true;
 }
-function listen() { if (S.listening) return; S.listening = true; addEventListener('devicemotion', onMotion); $('alw').hidden = true; $('say').textContent = 'shake is on. shake the phone, or tap shake.'; }
+function listen() { if (S.listening) return; S.listening = true; addEventListener('devicemotion', onMotion); $('alw').hidden = true; $('say').textContent = 'shake is on. shake the phone, tap shake, or press d.'; }
 var DM = window.DeviceMotionEvent;
 if (DM) {
   if (typeof DM.requestPermission === 'function') {
@@ -88,7 +113,14 @@ if (DM) {
 }
 setTimeout(function () { if (!S.got) $('nophone').hidden = false; }, 1500);
 $('dl').addEventListener('click', function () { S.last = 0; shakeNow(); });
-$('sr').addEventListener('click', function () { WK.stop(); WK.still(); S.hear = null; S.deals = []; S.cur = startAt(); $('now').textContent = 'tap any shape on the map to hear it.'; render(); });
+$('nc').addEventListener('click', function () { if (!S.seq.length) { $('now').textContent = 'shake first, then step through the clips.'; return; } hearSeq(S.seq, Math.min(S.seq.length - 1, S.sk + 1)); });
+$('ea').addEventListener('click', function () {
+  if (S.deals.length < 2) { $('now').textContent = 'shake at least twice to step back.'; return; }
+  S.view = (S.view < 0 ? S.deals.length - 1 : S.view) - 1; if (S.view < 0) S.view = S.deals.length - 1;
+  var d = S.deals[S.view]; render();
+  hearSeq([{ i: d.t, col: PAL.amber, label: 'shuffle landed' }, { i: d.p, col: PAL.mint, label: 'a press hops' }], 0);
+});
+$('sr').addEventListener('click', function () { S.tok++; S.seq = []; S.sk = -1; S.view = -1; WK.stop(); WK.still(); S.hear = null; S.deals = []; S.cur = startAt(); $('now').textContent = 'turn the sound chip on, then shake.'; render(); });
 addEventListener('keydown', function (e) { if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey) { S.last = 0; shakeNow(); } });
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); draw(); }, 80); });
@@ -96,5 +128,6 @@ addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(funct
 Promise.all([WK.boot(), WK.pv()]).then(function (a) {
   D = a[0].D; M = a[0].M; LOOP = a[0].LOOP; PV = a[1];
   MAP = new WK.Map($('map'), cv, D, M, { dim: 0.6, tap: function (i) { hearOf(i, WK.FAMC[D.fam[D.f[i]]] || PAL.ice); } }); MAP.resize(); S.cur = startAt(); render();
+  var sc = document.getElementById('wk-snd'); if (sc) sc.addEventListener('click', function () { setTimeout(render, 0); });
 }).catch(function () { $('say').textContent = 'the data did not load. reload the page.'; });
 })();

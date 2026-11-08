@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>the pour</title>
 <meta name="description" content="tilt to pour: your picks on one side, auto-play's on the other. a toy.">
-<meta property="og:title" content="wall 16 of 21: the pour"><meta property="og:description" content="tilt to pour: your picks on one side, auto-play&#x27;s on the other. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/pour.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 16 of 24: the pour"><meta property="og:description" content="tilt to pour: your picks on one side, auto-play&#x27;s on the other. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/pour.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
 </style>
 </head>
 <body data-wall="16 of 18" data-line="a hundred-step night: how many steps are mine, how many auto-play's."
- data-do="slide the line or tilt the phone. tap any shape to hear it." data-keys="press,auto,alike" style="--act: var(--violet); --acc: var(--violet)">
+ data-do="press hear to play the night, then slide the line or tilt the phone." data-keys="press,auto,alike" style="--act: var(--violet); --acc: var(--violet)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the pour</span><span class="tl">a toy</span></p>
@@ -33,9 +33,9 @@
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map with a hundred-step path. a column on the left shows each step: wide mint bars are picks by hand, narrow violet bars are auto-play picks. the path draws as a ribbon with a mint star for each hand pick and a violet ring for each auto-play pick."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big" id="num"><span class="a">64</span></div>
+      <div class="big" id="num"><span class="a">64</span> <span class="c">of 100</span></div>
       <span class="keylab">of 100 steps are auto-play's, the rest are mine</span>
-      <p class="say" id="say">tilt your phone, or slide below.</p>
+      <p class="say" id="say">press hear below to play the night in order, then slide to change who picks.</p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>pour more auto-play and each step stays near the last. pour more of mine and it jumps.</p>
@@ -49,14 +49,15 @@
         <button type="button" id="tilt" hidden>allow tilt</button>
         <button type="button" id="mylog">set to 64, my log</button>
         <button type="button" id="again">pour again, new picks</button>
-        <button type="button" id="hear" aria-pressed="false">hear steps 1 to 8</button>
+        <button type="button" id="hear" aria-pressed="false">hear the night, step 1 on</button>
+        <button type="button" id="next">next step, and play it</button>
       </div>
-      <p class="note" id="now">tap any shape on the map, or hear steps 1 to 8. sound must be on.</p>
+      <p class="note" id="now">press hear to listen in step order, or tap any shape or step. sound must be on.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>slide the line, or tilt the phone, to set auto-play's share.</p>
-      <p>the path and the column redraw. tap a shape or hear steps.</p>
-      <p>wide mint bar = my press. narrow violet bar = auto-play.</p>
+      <p>press hear. the clips play in step order and keep going until you stop. next step skips ahead; so does a tap on any pebble or on the column.</p>
+      <p>slide the line, or tilt the phone, to set auto-play's share. on a laptop use the slider, the left and right arrow keys, and n for next step.</p>
+      <p>wide mint bar and star = my press. narrow violet bar and ring = auto-play. the small dot beside each bar is the sound family; a bigger dot marks a change.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>a toy rule on this screen. a pick of mine is a jump to one of my 60 most played artists; an auto-play pick is the nearest artist in sound that the path has not just visited.</p>

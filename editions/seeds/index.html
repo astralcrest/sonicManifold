@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>the two seeds</title>
 <meta name="description" content="two seeds, one rule matched to my log, forty steps each: do the two paths ever share a neighborhood. a toy about the rule.">
-<meta property="og:title" content="wall 5 of 21: the two seeds"><meta property="og:description" content="two seeds, one rule matched to my log, forty steps each: do the two paths ever share a neighborhood. a toy about the rule."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/seeds.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 5 of 24: the two seeds"><meta property="og:description" content="two seeds, one rule matched to my log, forty steps each: do the two paths ever share a neighborhood. a toy about the rule."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/seeds.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="../wall.css">
 <style>.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; max-width: 40ch; }</style>
 </head>
-<body data-wall="5" data-line="two 40-pick walks from two seeds. close together = sounds alike." data-do="type two seeds and press walk. tap any shape to hear it." data-keys="auto,alike" style="--act: var(--violet); --acc: var(--violet)">
+<body data-wall="5" data-line="two 40-step walks from two seeds. do they ever land near each other?" data-do="press play to hear both walks, then type your own seeds." data-keys="auto,alike" style="--act: var(--violet); --acc: var(--violet)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the two seeds</span><span class="tl">a toy</span></p>
@@ -22,8 +22,8 @@
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map: every artist as a dot colored by family, with two 40-step walks, one violet, one rose, and white stars where they first meet"></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big violet" id="big">-</div>
-      <span class="keylab">the walks first meet at</span>
+      <div class="big violet" id="big"><span class="c">loading my map</span></div>
+      <span class="keylab">step where the two walks first land in one neighborhood</span>
       <p id="say" class="say">loading my map</p>
     </div>
     <div class="lines">
@@ -31,6 +31,17 @@
       <p class="ask"><b>open question:</b>if two strangers start far apart, does one rule walk them together?</p>
     </div>
     <section>
+      <span class="k">step on the walks: slide, press next step, or tap a dot. arrow keys work on a laptop.</span>
+      <input type="range" id="sn" min="0" max="40" step="1" value="0" aria-label="step to hear">
+      <div class="row" style="margin-top:4px">
+        <button type="button" id="hear" class="go" aria-pressed="false">play the walks</button>
+        <button type="button" id="step">next step</button>
+        <a class="btn" href="../../" id="back">back</a>
+      </div>
+      <p id="now" class="note" aria-live="polite"></p>
+    </section>
+    <section>
+      <span class="k" style="display:block;margin-bottom:6px">or try your own seeds</span>
       <label class="k" for="sa"><i class="sw" style="background:var(--violet)"></i>seed one</label>
       <input type="text" id="sa" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="an artist or a song" style="--acc: var(--violet)">
       <p class="msg" id="ma" aria-live="polite"></p>
@@ -39,22 +50,12 @@
       <p class="msg" id="mb" aria-live="polite"></p>
       <div class="row">
         <button type="button" id="run" class="go">walk both seeds</button>
-        <button type="button" id="swap">swap seeds</button>
       </div>
-    </section>
-    <section>
-      <span class="k">slide to a step, then hear it</span>
-      <input type="range" id="sn" min="0" max="40" step="1" value="0" aria-label="step to hear">
-      <div class="row" style="margin-top:4px">
-        <button type="button" id="hear" aria-pressed="false">hear step 0, both walks</button>
-        <a class="btn" href="../../" id="back">back</a>
-      </div>
-      <p id="now"></p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>type an artist or song in each box, then press walk.</p>
-      <p>hear any step: slide it, press hear step, or tap a shape.</p>
-      <p>violet and rose are the two walks. white stars: they meet.</p>
+      <p>press play: both walks are heard step by step, to the end, with the next stop named.</p>
+      <p>jump anywhere with the slider, next step, or a tap on a dot. the bright line is the path so far; a colored ring marks a new family.</p>
+      <p>then type your own two seeds and press walk. white stars mark where the walks first meet.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>a toy about the rule, not a guess about anyone. the rule is the one matched to my log on the first wall.</p>

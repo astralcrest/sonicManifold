@@ -16,19 +16,31 @@ function out(msg) {
 }
 function thr() { return +$('thr').value / 100; }
 
+function famCol(i) { return WK.FAMC[D.fam[D.f[i]]] || PAL.ice; }
+function rad(i, small) { return Math.max(3, Math.min(small ? 8 : 10, 2 + Math.log(1 + D.pl[i]) * 0.85)); }
+function describe(i) {
+  var prev = S.idx > 0 ? S.L[S.idx - 1] : -1, m = D.fam[D.f[i]];
+  if (prev >= 0 && prev === i) m += ', same artist as the last song';
+  else if (prev >= 0 && D.f[prev] !== D.f[i]) m += ', a change from ' + D.fam[D.f[prev]];
+  return m;
+}
 function playCur() {
   var my = ++S.token; S.tapI = -1;
   if (!S.active) return;
   WK.play([{ i: S.L[S.idx], tag: 'a' }], function (k, info) {
     if (my !== S.token) return;
-    if (k < 0) { WK.still(); setTimeout(function () { if (my === S.token && S.active) playCur(); }, 400); return; }
-    $('now').textContent = 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + info.title + ' by ' + D.n[info.i] + (WK.sound() ? '' : '. sound is off; tap the sound chip to hear it.');
+    if (k < 0) { WK.still(); setTimeout(function () { if (my === S.token && S.active) ended(); }, 400); return; }
+    $('now').textContent = 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + info.title + ' by ' + D.n[info.i] + ', ' + describe(info.i) + (S.L[S.idx + 1] != null ? '. next: ' + D.n[S.L[S.idx + 1]] : '') + (WK.sound() ? '' : '. sound is off; tap the sound chip to hear it.');
     WK.live(function () { S.dirty = true; });
   });
 }
-function advance() {
-  S.idx = Math.min(S.L.length - 1, S.idx + 1); S.s++; S.lastAdv = performance.now(); save(); S.dirty = true; playCur(); out();
+function ended() { S.idx = (S.idx + 1) % S.L.length; S.dirty = true; playCur(); out('the song ended, so auto-play moved on by itself. that does not count as a skip.'); }
+function step(count) {
+  S.idx = Math.max(0, Math.min(S.L.length - 1, S.idx + 1)); S.lastAdv = performance.now();
+  if (count) { S.s++; save(); }
+  S.dirty = true; playCur(); out();
 }
+function advance() { step(true); }
 function clap(now) {
   S.c++; S.lastClap = now; S.flash = now; S.dirty = true;
   if (S.active && now - S.lastAdv > COOL) advance(); else { save(); out(S.active ? 'clap heard, waiting out the 3 second cooldown.' : null); }
@@ -53,13 +65,20 @@ function tick(now) {
 function pt(i) { return [MAP.X(i), MAP.Y(i)]; }
 function draw(now) {
   MAP.begin();
-  var g = MAP.g, W = MAP.W, H = MAP.H, small = W < 500, k, a, b, from = Math.max(0, S.idx - 30), pts = [];
+  var g = MAP.g, W = MAP.W, H = MAP.H, small = W < 500, k, a, b, from = Math.max(0, S.idx - 30), pts = [], to = Math.min(S.L.length - 1, S.idx + 8), ahead = [];
   for (k = from; k <= S.idx; k++) pts.push(pt(S.L[k]));
+  for (k = S.idx; k <= to; k++) ahead.push(pt(S.L[k]));
+  if (ahead.length > 1) P.ribbon(g, ahead, PAL.violet, PAL.violet, 1.4, 0.35, [3, 5]);
   if (pts.length > 1) P.ribbon(g, pts, PAL.violet, PAL.violet, small ? 1.8 : 2.4, 0.9);
-  for (k = from; k < S.idx; k++) P.glyph(g, 'ring', pts[k - from][0], pts[k - from][1], small ? 4 : 5, PAL.violet);
-  a = pt(S.L[S.idx]); P.glyph(g, 'ring', a[0], a[1], small ? 8 : 10, PAL.violet); P.rings(g, a[0], a[1], PAL.ink, 16);
-  if (WK.playing()) { if (S.tapI >= 0) { b = pt(S.tapI); P.peb(g, S.tapI, b[0], b[1], 8, WK.FAMC[D.fam[D.f[S.tapI]]] || PAL.mint); WK.pulse(g, b[0], b[1], PAL.mint, 14); } else WK.pulse(g, a[0], a[1], PAL.violet, 16); }
-  MAP.tag(S.L[S.idx], D.n[S.L[S.idx]], PAL.ink, PAL.night);
+  for (k = S.idx + 1; k <= to; k++) { b = pt(S.L[k]); g.save(); g.globalAlpha = 0.3; P.peb(g, S.L[k], b[0], b[1], rad(S.L[k], small), famCol(S.L[k])); g.restore(); g.save(); g.globalAlpha = 0.5; P.glyph(g, 'ring', b[0], b[1], small ? 3.5 : 4.5, PAL.violet); g.restore(); }
+  for (k = from; k < S.idx; k++) {
+    var ft = 0.35 + 0.65 * (k - from) / Math.max(1, S.idx - from);
+    g.save(); g.globalAlpha = 0.75 * ft; P.peb(g, S.L[k], pts[k - from][0], pts[k - from][1], rad(S.L[k], small), famCol(S.L[k])); g.restore();
+    g.save(); g.globalAlpha = ft; P.glyph(g, 'ring', pts[k - from][0], pts[k - from][1], small ? 4 : 5, PAL.violet); g.restore();
+  }
+  a = pt(S.L[S.idx]); P.peb(g, S.L[S.idx], a[0], a[1], rad(S.L[S.idx], small) + 2, famCol(S.L[S.idx])); P.glyph(g, 'ring', a[0], a[1], small ? 8 : 10, PAL.violet); P.rings(g, a[0], a[1], PAL.ink, 16);
+  if (WK.playing()) { if (S.tapI >= 0) { b = pt(S.tapI); P.peb(g, S.tapI, b[0], b[1], 8, famCol(S.tapI)); WK.pulse(g, b[0], b[1], PAL.mint, 14); } else WK.pulse(g, a[0], a[1], PAL.violet, 16); }
+  MAP.tag(S.L[S.idx], 'step ' + (S.idx + 1) + ': ' + D.n[S.L[S.idx]], PAL.ink, PAL.night);
   var age = now - S.flash;
   if (age < 700) { g.save(); g.strokeStyle = PAL.rose; g.globalAlpha = 1 - age / 700; g.lineWidth = 3; g.beginPath(); g.arc(a[0], a[1], 20 + age / 700 * Math.min(W, H) * 0.35, 0, 6.2832); g.stroke(); g.restore(); }
   // the level meter: round capsules, ice under the bar, rose over it
@@ -80,29 +99,41 @@ function listen() {
     A.ctx = new AC(); A.st = st; A.an = A.ctx.createAnalyser(); A.an.fftSize = 1024; A.buf = new Float32Array(A.an.fftSize);
     A.ctx.createMediaStreamSource(st).connect(A.an);
     S.active = true; S.base = 0.02; $('listen').setAttribute('aria-pressed', 'true'); $('listen').textContent = 'stop listening';
-    out('listening. clap to skip.'); playCur();
-  }, function () { out('the mic was not allowed. press clap for me.'); S.active = true; playCur(); });
+    out('listening. clap to skip.'); $('play').textContent = 'stop the walk'; if (!WK.playing()) playCur();
+  }, function () { out('the mic was not allowed. press clap for me, or the c key.'); S.active = true; $('play').textContent = 'stop the walk'; playCur(); });
 }
 function stopMic() {
   if (A.st) A.st.getTracks().forEach(function (t) { t.stop(); });
   if (A.ctx) try { A.ctx.close(); } catch (e) {}
-  A.st = null; A.an = null; A.ctx = null; S.active = false; S.token++; WK.stop(); WK.still(); S.tapI = -1;
+  A.st = null; A.an = null; A.ctx = null; S.active = false; S.token++; WK.stop(); WK.still(); S.tapI = -1; $('play').textContent = 'play the walk first';
   $('listen').setAttribute('aria-pressed', 'false'); $('listen').textContent = 'listen for claps'; out(); S.dirty = true;
 }
 $('listen').addEventListener('click', listen);
 $('clap').addEventListener('click', function () {
-  if (!S.active) { S.active = true; playCur(); }
+  if (!S.active) { S.active = true; $('play').textContent = 'stop the walk'; playCur(); }
   clap(performance.now());
+});
+function startWalk() {
+  if (S.active && !A.st) { S.active = false; S.token++; WK.stop(); WK.still(); S.tapI = -1; $('play').textContent = 'play the walk first'; out(); S.dirty = true; return; }
+  S.active = true; $('play').textContent = 'stop the walk'; out('playing. nothing skips until the room claps.'); playCur();
+}
+$('play').addEventListener('click', startWalk);
+$('go').addEventListener('click', function () { if (!S.active) { S.active = true; $('play').textContent = 'stop the walk'; } step(false); });
+document.addEventListener('keydown', function (e) {
+  if (e.metaKey || e.ctrlKey || e.altKey || (e.target && e.target.tagName === 'INPUT')) return;
+  if (e.key === 'c') $('clap').click(); else if (e.key === 'n') $('go').click();
 });
 $('zero').addEventListener('click', function () { S.c = 0; S.s = 0; save(); out(); });
 $('thr').addEventListener('input', function () { S.dirty = true; });
 window.addEventListener('pagehide', function () { if (A.st) stopMic(); });
 function tap(i) {
+  var at = S.L.indexOf(i);
+  if (at >= 0 && at !== S.idx) { S.idx = at; S.active = true; S.dirty = true; playCur(); out('jumped to step ' + (at + 1) + '.'); return; }
   var my = ++S.token; S.tapI = i;
   WK.play([{ i: i, tag: 'tap' }], function (k, info) {
     if (my !== S.token) return;
     if (k < 0) { S.tapI = -1; WK.still(); S.dirty = true; if (S.active) setTimeout(function () { if (my === S.token && S.active) playCur(); }, 400); return; }
-    $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[i] + '. your tap. the walk resumes after.';
+    $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[i] + '. not on the walk, so it resumes after. tap a ring on the walk to jump there.';
     WK.live(function () { S.dirty = true; });
   });
 }
@@ -113,7 +144,7 @@ WK.boot().then(function (b) {
   D = b.D; M = b.M; LOOP = b.LOOP; FIT = b.FIT;
   return WK.pv().then(function () {
     var path = LOOP.walk(M, M.order[5], FIT.queue.K, 20261106, 160).path;
-    S.L = path.filter(function (i) { return WK.title(i); }).slice(0, LEN);
+    S.L = path.filter(function (i, n, a) { return WK.title(i) && (n === 0 || a[n - 1] !== i); }).slice(0, LEN);
     if (S.L.length < 3) throw new Error('no previews');
     MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5, tap: tap }); MAP.resize();
     load(); out();

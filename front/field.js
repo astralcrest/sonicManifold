@@ -1527,6 +1527,39 @@ fetchJ('field').then(function (j) {
   $$('.lz').forEach(function (e) { e.hidden = true; });
   var R = (window.__ledger && window.__ledger.READY) || {}; R.field = true;
   whatFor(scene);
+
+// the wall room: any wall link opens the wall inside the front, with a rail to walk the walls
+var WALLS = [['loop','walk the loop'],['two','the two of you'],['taste','the taste test'],['haunted','the haunted night'],['seeds','the two seeds'],['undo','undo a year'],['blind','blind or named'],['booth','the graveyard booth'],['slow','the slow room'],['tug','tug of two hands'],['telephone','telephone'],['stutter','the stutter'],['meet','meet in the middle'],['hold','hold to keep'],['shake','shake the shuffle'],['pour','the pour'],['applause','applause as skip'],['way','draw the long way'],['stand','stand where it puts you'],['scrub','scrub the map by ear'],['longhold','the long hold'],['crossings','family crossings'],['radio','draw a radio'],['hand','whose hand']];
+var WR = { k: -1, was: '' };
+function wallIdx(slug) { for (var i = 0; i < WALLS.length; i++) if (WALLS[i][0] === slug) return i; return -1; }
+function wallOpen(slug, push) {
+  var k = wallIdx(slug), box = $('#wallroom'); if (k < 0 || !box) return;
+  var a = el(); if (a && !a.paused) { S.user = true; try { a.pause(); } catch (x) { /* fine */ } S.playing = false; ppLabel(); }
+  duck();
+  WR.k = k; box.hidden = false; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); document.documentElement.classList.add('sm-wall');
+  $('#wr-n').textContent = 'wall ' + (k + 1) + ' of ' + WALLS.length; $('#wr-name').textContent = WALLS[k][1];
+  $('#wr-full').href = 'editions/' + slug + '/';
+  var fr = $('#wr-f'); if (fr.getAttribute('src') !== 'editions/' + slug + '/') fr.src = 'editions/' + slug + '/';
+  if (push !== false) { WR.was = location.hash; try { history.pushState({ wall: slug }, '', '#wall=' + slug); } catch (x) { /* fine */ } }
+  $('#wr-x').focus();
+}
+function wallClose(pop) {
+  var box = $('#wallroom'); if (!box || box.hidden) return;
+  box.hidden = true; box.removeAttribute('role'); box.removeAttribute('aria-modal'); document.documentElement.classList.remove('sm-wall'); $('#wr-f').src = 'about:blank'; WR.k = -1; unduck();
+  if (!pop && /^#wall=/.test(location.hash)) { try { history.pushState(null, '', WR.was && !/^#wall=/.test(WR.was) ? WR.was : location.pathname); } catch (x) { /* fine */ } }
+}
+document.addEventListener('click', function (e) {
+  var a = e.target && e.target.closest ? e.target.closest('a.wl, a.wk') : null; if (!a) return;
+  var m = /editions\/([a-z]+)\//.exec(a.getAttribute('href') || ''); if (!m || wallIdx(m[1]) < 0) return;
+  if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+  e.preventDefault(); wallOpen(m[1]);
+});
+$('#wr-x').addEventListener('click', function () { wallClose(false); });
+$('#wr-prev').addEventListener('click', function () { if (WR.k >= 0) wallOpen(WALLS[(WR.k + WALLS.length - 1) % WALLS.length][0]); });
+$('#wr-next').addEventListener('click', function () { if (WR.k >= 0) wallOpen(WALLS[(WR.k + 1) % WALLS.length][0]); });
+addEventListener('keydown', function (e) { if (WR.k < 0) return; if (e.key === 'Escape') wallClose(false); else if (e.key === 'ArrowRight') $('#wr-next').click(); else if (e.key === 'ArrowLeft') $('#wr-prev').click(); });
+addEventListener('popstate', function () { var m = /^#wall=([a-z]+)$/.exec(location.hash); if (m) wallOpen(m[1], false); else wallClose(true); });
+(function () { var m = /^#wall=([a-z]+)$/.exec(location.hash); if (m) setTimeout(function () { wallOpen(m[1], false); }, 300); })();
   window.__field = { demo: function () { return DEMO; }, S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; }, reveal: function () { return reveal; }, grow: function () { reveal = 8; wake(); }, hoods: function () { return MAPS ? MAPS.cm.length : 0; }, ring: function () { return { look: S.look, b: S.lookB, rl: !!RL, x: Array.prototype.slice.call(RPX), y: Array.prototype.slice.call(RPY) }; }, cl: function () { return { k: CL.k, n: CL.list ? CL.list.length : 0, one: CL.one ? CL.one.t : '', box: CLB }; }, tell: function () { clStart(0); }, view: function () { return { z: view.z, px: view.px, py: view.py }; }, line: function () { var L = S.line; if (!L) return null; var o = [0, 0], pts = [], k; for (k = 0; k < L.c.length; k++) { lineXY(L, L.c[k], o); pts.push([o[0], o[1]]); } return { pts: pts, field: L.c.slice(0, 3).map(function (p) { return [p[0], p[1]]; }), stops: L.stops.map(function (i) { return [SX[i], SY[i]]; }) }; } };
   wake(); DEMO.last = performance.now(); if (!phone) clStart(400);
   if (!lite()) { if (window.requestIdleCallback) requestIdleCallback(prefetchPV, { timeout: 4000 }); else setTimeout(prefetchPV, 2500); }

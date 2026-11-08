@@ -2,13 +2,26 @@
   const CLIP = 8000, FALLBACK = 2500, ROUNDS = 12;
   const $ = id => document.getElementById(id);
   const body = document.body;
-  let D = null, S = null, R = 0, heard = [false, false];
+  const PK = window.WK && window.WK.P;
+  const FAMC = (window.WK && window.WK.FAMC) || {};
+  const NIGHT = "#06010f", INK = "#efe9ff", MINT = "#21f6bc", AMBER = "#f5a623", ICE = "#bcd3ff";
+  let D = null, LD = null, S = null, R = 0, heard = [false, false], shown = [], cur = null;
+  let tourTok = 0, tourOn = false, tourK = -1, mapTok = 0, hl = null, wait = null;
+  let pvBase = null, pvKey = "", mapBase = null, mapKey = "", MP = [];
   const audio = new Audio();
   audio.preload = "none";
   let clip = null;
 
+  const snd = () => !window.WK || !WK.sound || WK.sound();
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const half = () => shuffle([0, 0, 0, 1, 1, 1]);
+  const famOf = i => (LD ? LD.fam[LD.f[i]] : "") || "";
+  const col = (i, fam) => FAMC[fam || famOf(i)] || "#9a90b8";
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function redraw() { if (body.classList.contains("done")) mapFrame(); else pvFrame(); }
+  function liveOn() { if (window.WK) WK.live(redraw); }
+  function liveOff() { if (window.WK) WK.still(); }
 
   function stopClip() {
     if (!clip) return;
@@ -18,7 +31,9 @@
     const c = clip; clip = null;
     if (c.btn) c.btn.classList.remove("playing");
     c.meter.style.width = "0";
+    cur = null; liveOff();
     c.done && c.done();
+    redraw();
   }
 
   function playClip(url, meter, btn, done) {
@@ -58,14 +73,40 @@
 
   const sideOpt = (s, side) => (side === 0) === s.targetOnA ? s.target : 1 - s.target;
 
+  function clearWait() { if (wait) { clearInterval(wait); wait = null; } }
+
+  function endPrimer(s) {
+    clearWait();
+    if (S[R] !== s) return;
+    $("primer").classList.remove("on");
+    $("skip").disabled = true;
+    ready();
+  }
+
+  function startPrimer(s, p) {
+    const pr = p.pr[s.target];
+    const run = () => {
+      clearWait();
+      $("status").innerHTML = '<span class="a">a first song plays.</span> just listen. you do not pick this one.';
+      shown.push({ i: pr.i, tag: "first", fam: pr.f });
+      playClip(pr.u, $("pm"), null, () => endPrimer(s));
+      cur = { i: pr.i, fam: pr.f }; liveOn();
+      $("pvcap").textContent = "playing the first song: " + (pr.f || "");
+    };
+    if (snd()) { run(); return; }
+    $("status").innerHTML = '<span class="a">sound is off.</span> tap the sound chip at the top to hear the first song, or skip it.';
+    wait = setInterval(() => { if (S[R] !== s) { clearWait(); return; } if (snd()) run(); }, 400);
+  }
+
   function showRound() {
     const s = S[R], p = D.pairs[s.pi];
+    clearWait(); stopClip();
     body.className = "r";
     if (!/kiosk=1/.test(location.search)) try { history.replaceState(null, "", location.pathname + location.search + "#n=" + (R + 1)); } catch (e) {}
     $("rk").textContent = `round ${R + 1} of ${ROUNDS}`;
-    $("tk").textContent = R + 1; $("tkl").textContent = `of ${ROUNDS} rounds`;
-    heard = [false, false];
-    ["A", "B"].forEach((L, side) => {
+    $("tk").textContent = R + 1; $("tkl").textContent = `of ${ROUNDS} rounds: play both, then pick`;
+    heard = [false, false]; shown = []; cur = null;
+    ["A", "B"].forEach((L) => {
       $("c" + L).classList.remove("won");
       $("n" + L).textContent = "the name shows after you pick";
       $("pick" + L).disabled = true;
@@ -73,16 +114,14 @@
       $("m" + L).style.width = "0";
     });
     $("next").disabled = true;
-    $("next").textContent = R === ROUNDS - 1 ? "see the result" : "next";
+    $("next").textContent = R === ROUNDS - 1 ? "see the result" : "next round";
+    $("pvcap").textContent = "color = genre family. each song you hear lands here and pulses with its clip.";
+    pvFrame();
     if (s.primed) {
       $("primer").classList.add("on");
-      $("status").innerHTML = '<span class="a">priming.</span> a third song plays first. just listen; you do not pick this one.';
-      const pr = p.pr[s.target];
-      playClip(pr.u, $("pm"), null, () => {
-        if (S[R] !== s) return;
-        $("primer").classList.remove("on");
-        ready();
-      });
+      $("skip").disabled = false;
+      $("pm").style.width = "0";
+      startPrimer(s, p);
     } else {
       $("primer").classList.remove("on");
       ready();
@@ -90,23 +129,31 @@
   }
 
   function ready() {
-    $("status").textContent = S[R].primed ? "primed. now play a and b and pick the one you like more. did the first song pull you?" : "no priming this round: a cold pick. play a and b, then pick the one you like more.";
+    $("status").textContent = S[R].primed
+      ? "now play a, then b, and pick the one you like more. did the first song pull you?"
+      : "no first song this round. play a, then b, and pick the one you like more.";
     $("playA").disabled = $("playB").disabled = false;
+    if (!snd()) $("status").textContent += " sound is off: tap the sound chip at the top first.";
   }
 
   function play(side) {
     const s = S[R], p = D.pairs[s.pi];
     const L = side ? "B" : "A";
     if (clip && clip.btn === $("play" + L)) { stopClip(); return; }
+    if (!snd()) { $("status").textContent = "sound is off. tap the sound chip at the top, then play " + L.toLowerCase() + " again. you pick only after you hear both."; return; }
+    const o = p.o[sideOpt(s, side)];
+    playClip(o.u, $("m" + L), $("play" + L), null);
     heard[side] = true;
-    playClip(p.o[sideOpt(s, side)].u, $("m" + L), $("play" + L), null);
+    if (!shown.some(x => x.tag === L.toLowerCase())) shown.push({ i: o.i, tag: L.toLowerCase(), fam: o.f });
+    cur = { i: o.i, fam: o.f }; liveOn();
+    $("pvcap").textContent = "playing " + L.toLowerCase() + ": " + (o.f || "") + (heard[0] && heard[1] ? ". now pick." : ". " + (heard[0] ? "b" : "a") + " is still to hear.");
     if (heard[0] && heard[1] && s.pick === null) { $("pickA").disabled = $("pickB").disabled = false; }
   }
 
   function pick(side) {
     const s = S[R], p = D.pairs[s.pi];
     if (s.pick !== null) return;
-    stopClip();
+    stopClip(); clearWait();
     s.pick = sideOpt(s, side);
     $("pickA").disabled = $("pickB").disabled = true;
     $(side ? "cB" : "cA").classList.add("won");
@@ -123,29 +170,32 @@
       $("status").append(a, (s.pick === s.target ? " you went with it." : " you went against it.") + end);
     } else $("status").textContent = (R === ROUNDS - 1 ? "picked." : "picked. next round when you are ready.") + end;
     $("next").disabled = false;
+    $("pvcap").textContent = "your pick is saved. the next round starts when you press next round.";
+    pvFrame();
   }
 
-  function plural(x) { return x === 1 ? "1 time" : `${x} times`; }
-
   function showResult() {
-    stopClip();
+    stopClip(); clearWait(); tourEnd("");
     body.className = "done";
     let k = 0, m = 0;
     S.forEach(s => { if (s.pick === s.target) s.primed ? k++ : m++; });
     $("sent").textContent = `after a first song, you went toward it ${k} of 6 times. with none, ${m} of 6.`;
     $("bk").textContent = `${k} of 6`; $("bm").textContent = `${m} of 6`;
-    $("tk").textContent = `${k} of 6`; $("tkl").textContent = "toward the first song";
+    $("tk").textContent = `${k} of 6`; $("tkl").textContent = "picks toward the first song";
     $("ik").style.width = (k / 6 * 100) + "%"; $("im").style.width = (m / 6 * 100) + "%";
     const log = $("log"); log.textContent = "";
     S.forEach((s, r) => {
       const p = D.pairs[s.pi], li = document.createElement("li");
+      li.tabIndex = 0; li.setAttribute("role", "button"); li.dataset.r = r;
+      li.setAttribute("aria-label", `hear pick ${r + 1}`);
       const b = document.createElement("b"); b.textContent = p.o[s.pick].n;
       li.append(`${String(r + 1).padStart(2, "0")} · `, b, ` over ${p.o[1 - s.pick].n}`);
       if (s.primed) { const e = document.createElement("em"); e.textContent = ` · first: ${p.pr[s.target].n} · near ${p.o[s.target].n}` + (s.pick === s.target ? " · you went with it" : " · you went against it"); li.append(e); }
       log.append(li);
     });
+    $("now").textContent = snd() ? "press hear your picks in order, tap a shape on the map, or tap a row." : "sound is off. tap the sound chip at the top, then hear your picks.";
     $("next").disabled = false; $("next").textContent = "again";
-    drawMap();
+    mapBase = null; mapFrame();
     try { history.replaceState(null, "", "#r=" + encodeS()); } catch (e) {}
     window.scrollTo(0, 0);
   }
@@ -180,7 +230,7 @@
   $("slip").onclick = () => { if (S && window.smReceipt) window.smReceipt(slipFields()); };
 
   function reset() {
-    stopClip(); S = null; R = 0;
+    stopClip(); clearWait(); tourEnd(""); S = null; R = 0;
     if (window.smReceipt && window.smReceipt.close) window.smReceipt.close(true);
     body.className = "";
     try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
@@ -189,66 +239,201 @@
     if (D) { newSession(); showRound(); }
   }
 
-  const PK = window.WK && window.WK.P;
-  function field(g, X, Y, w, col) {
+  /* ---------- the map under the round: only songs you have heard this round ---------- */
+  function sized(cv) {
+    const dpr = Math.min(3, window.devicePixelRatio || 1);
+    const w = Math.round(cv.getBoundingClientRect().width) || 0;
+    return { dpr, w };
+  }
+  function fieldOn(g, X, Y, w, dim) {
     const small = w < 420;
-    if (PK) PK.field(g, D.xy, X, Y, { lo: small ? 1.6 : 2.2, hi: small ? 4.5 : 7, core: 0.75, col: () => col });
-    else { g.fillStyle = col; for (let i = 0; i < D.xy.length; i++) g.fillRect(X(i) - 1, Y(i) - 1, 2, 2); }
+    if (PK) PK.field(g, D.xy, X, Y, { pl: LD ? LD.pl : null, lo: small ? 1.6 : 2.2, hi: small ? 4.5 : 7, core: dim, col: i => LD ? col(i) : "#7a66c8" });
+    else { g.fillStyle = "#7a66c8"; for (let i = 0; i < D.xy.length; i++) g.fillRect(X(i) - 1, Y(i) - 1, 2, 2); }
   }
-  function drawMap() {
-    const cv = $("map"), dpr = Math.min(3, window.devicePixelRatio || 1);
-    const w = Math.round(cv.getBoundingClientRect().width) || 560;
-    cv.width = cv.height = w * dpr;
+  function layout(w) { const pad = 14, sc = (w - 2 * pad) / 1000; return { X: i => pad + D.xy[i][0] * sc, Y: i => pad + (1000 - D.xy[i][1]) * sc }; }
+
+  function drawPreview() { pvBase = null; pvFrame(); }
+  function pvFrame() {
+    const cv = $("pv"); if (!D) return;
+    const z = sized(cv); if (!z.w) return;
+    const key = z.w + ":" + z.dpr;
+    const L = layout(z.w);
+    if (!pvBase || pvKey !== key) {
+      pvKey = key;
+      pvBase = document.createElement("canvas"); pvBase.width = pvBase.height = Math.round(z.w * z.dpr);
+      const b = pvBase.getContext("2d"); b.setTransform(z.dpr, 0, 0, z.dpr, 0, 0);
+      b.fillStyle = NIGHT; b.fillRect(0, 0, z.w, z.w);
+      fieldOn(b, L.X, L.Y, z.w, 0.45);
+      cv.width = cv.height = Math.round(z.w * z.dpr);
+    }
     const g = cv.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.fillStyle = "#06010f"; g.fillRect(0, 0, w, w);
-    const pad = 14, sc = (w - 2 * pad) / 1000;
-    const X = i => pad + D.xy[i][0] * sc, Y = i => pad + (1000 - D.xy[i][1]) * sc;
-    field(g, X, Y, w, "#4f4282");
-    const P = (i) => [X(i), Y(i)];
-    const ln = (i, j, a, b, wd, al, dash) => { if (PK) PK.ribbon(g, [P(i), P(j)], a, b, wd, al, dash); else { g.strokeStyle = a; g.lineWidth = 1; g.setLineDash(dash || []); g.beginPath(); g.moveTo(X(i), Y(i)); g.lineTo(X(j), Y(j)); g.stroke(); g.setLineDash([]); } };
-    S.forEach(s => { if (!s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#3a3058", "#3a3058", 1, 1); } });
-    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#f5a623", "#f5a623", 1, 0.8, [3, 4]); } });
-    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.pr[s.target].i, p.o[s.target].i, "#f5a623", "#ffd8a0", 2, 1); } });
-    const sq = (i, s, fill, col, kind) => {
-      if (PK) { PK.glyph(g, kind || (fill ? "dot" : "ring"), X(i), Y(i), s * 0.9, col); return; }
-      const x = Math.round(X(i) - s / 2), y = Math.round(Y(i) - s / 2);
-      if (fill) { g.fillStyle = col; g.fillRect(x, y, s, s); }
-      else { g.strokeStyle = col; g.lineWidth = 1.5; g.strokeRect(x + .75, y + .75, s - 1.5, s - 1.5); }
-    };
-    S.forEach(s => { const p = D.pairs[s.pi]; sq(p.o[1 - s.pick].i, 10, false, "#efe9ff", "ring"); });
-    S.forEach(s => sq(D.pairs[s.pi].o[s.pick].i, 10, true, "#21f6bc", "star"));
-    S.forEach(s => { if (s.primed) sq(D.pairs[s.pi].pr[s.target].i, 7, true, "#f5a623", "dot"); });
+    g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(pvBase, 0, 0);
+    g.setTransform(z.dpr, 0, 0, z.dpr, 0, 0);
+    const r0 = z.w < 400 ? 7 : 9;
+    shown.forEach(h => {
+      const x = L.X(h.i), y = L.Y(h.i), c = col(h.i, h.fam);
+      if (PK) { PK.peb(g, h.i, x, y, r0, c); } else { g.fillStyle = c; g.beginPath(); g.arc(x, y, r0, 0, 6.2832); g.fill(); }
+      g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.arc(x, y, r0 + 3, 0, 6.2832); g.stroke();
+      g.fillStyle = INK; g.font = '600 12px "IBM Plex Mono", monospace'; g.textBaseline = "middle";
+      const t = h.tag === "first" ? "first" : h.tag, tw = g.measureText(t).width;
+      const lx = x + r0 + 8 + tw > z.w - 2 ? x - r0 - 8 - tw : x + r0 + 8;
+      g.fillText(t, lx, y);
+    });
+    if (cur && window.WK) WK.pulse(g, L.X(cur.i), L.Y(cur.i), col(cur.i, cur.fam), r0 + 6);
+    cv.setAttribute("aria-label", "the sound map: " + (shown.length ? shown.length + " song" + (shown.length > 1 ? "s" : "") + " heard this round, each lit in its genre family color" : "your picks land here"));
   }
+
+  /* ---------- the map at the end ---------- */
+  function buildItems(L) {
+    MP = [];
+    S.forEach((s, r) => {
+      const p = D.pairs[s.pi], pk = p.o[s.pick], ps = p.o[1 - s.pick];
+      MP.push({ i: pk.i, kind: "pick", r, o: pk, x: L.X(pk.i), y: L.Y(pk.i) });
+      MP.push({ i: ps.i, kind: "pass", r, o: ps, x: L.X(ps.i), y: L.Y(ps.i) });
+      if (s.primed) { const pr = p.pr[s.target]; MP.push({ i: pr.i, kind: "first", r, o: pr, x: L.X(pr.i), y: L.Y(pr.i) }); }
+    });
+  }
+  function mapFrame() {
+    if (!S || !D || !body.classList.contains("done")) return;
+    const cv = $("map"), z = sized(cv); if (!z.w) return;
+    const L = layout(z.w), key = z.w + ":" + z.dpr;
+    if (!mapBase || mapKey !== key) {
+      mapKey = key;
+      mapBase = document.createElement("canvas"); mapBase.width = mapBase.height = Math.round(z.w * z.dpr);
+      const b = mapBase.getContext("2d"); b.setTransform(z.dpr, 0, 0, z.dpr, 0, 0);
+      b.fillStyle = NIGHT; b.fillRect(0, 0, z.w, z.w);
+      fieldOn(b, L.X, L.Y, z.w, 0.4);
+      cv.width = cv.height = Math.round(z.w * z.dpr);
+      buildItems(L);
+    }
+    const g = cv.getContext("2d");
+    g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(mapBase, 0, 0);
+    g.setTransform(z.dpr, 0, 0, z.dpr, 0, 0);
+    const P = i => [L.X(i), L.Y(i)];
+    const ln = (i, j, a, b, wd, al, dash) => { if (PK) PK.ribbon(g, [P(i), P(j)], a, b, wd, al, dash); else { g.strokeStyle = a; g.lineWidth = 1; g.setLineDash(dash || []); g.beginPath(); g.moveTo(L.X(i), L.Y(i)); g.lineTo(L.X(j), L.Y(j)); g.stroke(); g.setLineDash([]); } };
+    S.forEach(s => { if (!s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#4a3f72", "#4a3f72", 1, 1); } });
+    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, AMBER, AMBER, 1, 0.8, [3, 4]); } });
+    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.pr[s.target].i, p.o[s.target].i, AMBER, "#ffd8a0", 2, 1); } });
+    const picks = S.map(s => D.pairs[s.pi].o[s.pick].i), pts = picks.map(P);
+    const upto = tourOn ? tourK : -1;
+    if (PK && pts.length > 1) {
+      if (upto < 0) PK.ribbon(g, pts, ICE, MINT, 1.6, 0.5);
+      else {
+        PK.ribbon(g, pts, ICE, MINT, 1.2, 0.18);
+        if (upto > 0) PK.ribbon(g, pts.slice(0, upto + 1), ICE, MINT, 2.6, 0.95);
+      }
+    }
+    const glyph = (i, s, kind, c) => { if (PK) PK.glyph(g, kind, L.X(i), L.Y(i), s * 0.9, c); else { g.fillStyle = c; g.fillRect(L.X(i) - s / 2, L.Y(i) - s / 2, s, s); } };
+    S.forEach(s => glyph(D.pairs[s.pi].o[1 - s.pick].i, 9, "dot", "#b9aedc"));
+    S.forEach(s => { if (s.primed) glyph(D.pairs[s.pi].pr[s.target].i, 8, "dot", AMBER); });
+    S.forEach((s, r) => {
+      const i = D.pairs[s.pi].o[s.pick].i, on = tourOn && r === tourK, c = col(i, D.pairs[s.pi].o[s.pick].f);
+      const dim = tourOn && r > tourK;
+      g.globalAlpha = dim ? 0.45 : 1;
+      glyph(i, on ? 15 : 11, "star", c);
+      g.globalAlpha = 1;
+      g.fillStyle = on ? INK : dim ? "#6f6790" : "#cfc6e8"; g.font = '600 11px "IBM Plex Mono", monospace'; g.textBaseline = "middle";
+      const t = String(r + 1), x = L.X(i), y = L.Y(i), w = g.measureText(t).width;
+      g.fillText(t, x + 8 + w > z.w - 2 ? x - 8 - w : x + 8, y - 9 < 6 ? y + 10 : y - 9);
+    });
+    if (hl && window.WK) WK.pulse(g, L.X(hl.i), L.Y(hl.i), hl.col, 14);
+    cv.setAttribute("aria-label", "the sound map with your twelve picks lit as stars in order, the ones you passed as dots, the first songs in amber");
+  }
+
+  const tip = $("mtip");
+  function nearest(e) {
+    const cv = $("map"), r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    let best = null, bd = 18 * 18;
+    MP.forEach(m => { const dx = m.x - x, dy = m.y - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = m; } });
+    return { m: best, x, y, w: r.width };
+  }
+  const KIND = { pick: "you picked it", pass: "you passed", first: "the first song" };
+  $("map").addEventListener("pointermove", e => {
+    const n = nearest(e);
+    if (!n.m) { tip.hidden = true; return; }
+    const m = n.m;
+    tip.textContent = "";
+    const b = document.createElement("b"); b.textContent = m.o.n;
+    tip.append(b, ` · ${m.o.f || famOf(m.i)} · round ${m.r + 1}, ${KIND[m.kind]} · tap to hear`);
+    tip.style.left = Math.max(0, Math.min(n.w - 240, n.x + 12)) + "px"; tip.style.top = Math.max(0, n.y - 38) + "px"; tip.hidden = false;
+  });
+  $("map").addEventListener("pointerleave", () => { tip.hidden = true; });
+  $("map").addEventListener("pointerdown", e => {
+    const n = nearest(e); if (!n.m) return;
+    const m = n.m;
+    if (!snd()) { $("now").textContent = "sound is off. tap the sound chip at the top, then tap a shape again."; return; }
+    tourEnd("");
+    const t = ++mapTok;
+    playClip(m.o.u, $("tm"), null, () => { if (t === mapTok && !tourOn) { hl = null; } });
+    hl = { i: m.i, col: col(m.i, m.o.f) }; liveOn();
+    $("now").textContent = `${m.o.n}, "${m.o.t}": round ${m.r + 1}, ${KIND[m.kind]}, ${m.o.f || famOf(m.i)}.`;
+  });
+
+  /* ---------- hear your picks in order ---------- */
+  function tourEnd(msg) {
+    tourTok++;
+    const was = tourOn;
+    tourOn = false; tourK = -1;
+    $("tour").textContent = "hear your picks in order";
+    $("stoptour").hidden = true;
+    [].forEach.call($("log").children, li => li.classList.remove("on"));
+    if (was) { mapTok++; hl = null; stopClip(); if (msg) $("now").textContent = msg; if (body.classList.contains("done")) mapFrame(); }
+  }
+  function tourGo(k) {
+    const t = ++tourTok;
+    if (k >= S.length) { tourEnd("that was all twelve picks."); return; }
+    if (!snd()) { $("now").textContent = "sound is off. tap the sound chip at the top, then press hear your picks in order."; return; }
+    tourOn = true; tourK = k;
+    const s = S[k], o = D.pairs[s.pi].o[s.pick];
+    let rep = 0; for (let q = 0; q < k; q++) if (D.pairs[S[q].pi].o[S[q].pick].i === o.i) rep++;
+    hl = { i: o.i, col: col(o.i, o.f) };
+    $("tour").textContent = k === S.length - 1 ? "finish" : "next pick";
+    $("stoptour").hidden = false;
+    [].forEach.call($("log").children, li => li.classList.toggle("on", +li.dataset.r === k));
+    const row = $("log").children[k]; if (row && row.scrollIntoView && !reduce) row.scrollIntoView({ block: "nearest" });
+    const prev = k > 0 ? D.pairs[S[k - 1].pi].o[S[k - 1].pick] : null;
+    const fam = o.f || famOf(o.i), pf = prev ? (prev.f || famOf(prev.i)) : null;
+    $("now").textContent = `pick ${k + 1} of ${S.length}: ${o.n}, "${o.t}", ${fam}` + (pf && pf !== fam ? `. the family changes from ${pf}.` : pf ? ". same family as the pick before." : ".") + (k < S.length - 1 ? " the next one plays when this ends." : "");
+    playClip(o.u, $("tm"), null, () => { if (t === tourTok && tourOn) tourGo(k + 1); });
+    hl = { i: o.i, col: col(o.i, o.f) }; liveOn();
+    mapFrame();
+  }
+  $("tour").onclick = () => { if (!S) return; tourGo(tourOn ? tourK + 1 : 0); };
+  $("stoptour").onclick = () => tourEnd("stopped. press hear your picks in order to start again.");
+  const rowGo = e => { const li = e.target.closest("li"); if (li && li.dataset.r != null) tourGo(+li.dataset.r); };
+  $("log").addEventListener("click", rowGo);
+  $("log").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); rowGo(e); } });
 
   $("playA").onclick = () => play(0);
   $("playB").onclick = () => play(1);
   $("pickA").onclick = () => pick(0);
   $("pickB").onclick = () => pick(1);
+  $("skip").onclick = () => { const s = S && S[R]; if (!s || !s.primed) return; stopClip(); endPrimer(s); };
   $("next").onclick = () => {
     if (!D) return;
-    if (body.classList.contains("done") || !S) { newSession(); showRound(); return; }
+    if (body.classList.contains("done") || !S) { tourEnd(""); newSession(); showRound(); return; }
     if (S[R].pick === null) return;
     if (R === ROUNDS - 1) { showResult(); return; }
     R++; showRound();
   };
-  function drawPreview() {
-    const cv = $("pv"), w = Math.round(cv.getBoundingClientRect().width);
-    if (!w || !D) return;
-    const dpr = Math.min(3, window.devicePixelRatio || 1);
-    cv.width = cv.height = w * dpr;
-    const g = cv.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.fillStyle = "#06010f"; g.fillRect(0, 0, w, w);
-    const pad = 14, sc = (w - 2 * pad) / 1000;
-    field(g, i => pad + D.xy[i][0] * sc, i => pad + (1000 - D.xy[i][1]) * sc, w, "#7a66c8");
-  }
-  window.addEventListener("resize", () => { if (body.classList.contains("done")) drawMap(); else drawPreview(); });
+  addEventListener("keydown", e => {
+    if (e.metaKey || e.ctrlKey || e.altKey || /input|textarea/i.test((e.target.tagName || ""))) return;
+    if (!S || body.classList.contains("done") || !body.classList.contains("r")) return;
+    const k = e.key.toLowerCase();
+    if (k === "a" && !$("playA").disabled) { e.preventDefault(); $("playA").click(); }
+    else if (k === "b" && !$("playB").disabled) { e.preventDefault(); $("playB").click(); }
+    else if (k === "1" && !$("pickA").disabled) $("pickA").click();
+    else if (k === "2" && !$("pickB").disabled) $("pickB").click();
+    else if (k === "n" && !$("next").disabled) $("next").click();
+  });
+  window.addEventListener("resize", () => { pvBase = null; mapBase = null; redraw(); });
 
   $("next").disabled = true;
-  fetch("pairs.json").then(r => r.json()).then(d => { D = d; $("next").disabled = false; drawPreview();
+  const ld = fetch("../loop/data/loop.json").then(r => r.json()).catch(() => null);
+  Promise.all([fetch("pairs.json").then(r => r.json()), ld]).then(a => {
+    D = a[0]; LD = a[1]; $("next").disabled = false; drawPreview();
     const m = /[#&]r=([0-9a-f]{24})/.exec(location.hash), ss = m && decodeS(m[1]);
     if (ss) { S = ss; showResult(); if (window.smReceipt) window.smReceipt(slipFields()); }
     else { newSession(); showRound(); }
-  });
+  }).catch(() => { $("status").textContent = "the songs did not load. reload the page."; });
 })();

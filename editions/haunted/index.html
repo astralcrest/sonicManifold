@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>the haunted evening</title>
 <meta name="description" content="a real evening from my log plays across my sound map. press skip and watch the rest of the night bend. a toy.">
-<meta property="og:title" content="wall 4 of 21: the haunted night"><meta property="og:description" content="a real evening from my log plays across my sound map. press skip and watch the rest of the night bend. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/haunted.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 4 of 24: the haunted night"><meta property="og:description" content="a real evening from my log plays across my sound map. press skip and watch the rest of the night bend. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/haunted.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,16 +13,18 @@
 <link rel="stylesheet" href="../wall.css">
 <style>
 #side h2 { font: 500 11px/1.3 var(--mono); letter-spacing: .14em; color: var(--mute); margin: 0 0 10px; }
-#bar { display: flex; gap: 8px; padding: 0 0 16px; }
+#bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 0 16px; }
 #bar button { min-height: 52px; font-size: 15px; }
 #skip { flex: 2; --acc: var(--rose); background: var(--rose); color: var(--night); font-weight: 600; font-size: 18px !important; }
 #cv { cursor: pointer; }
 #back { flex: 1; --acc: var(--ice); color: var(--ice); }
-#hear { flex: 1; --acc: var(--ice); }
+#hear { flex: 1 1 100%; --acc: var(--ice); }
+#back, #fwd { flex: 1 1 40%; }
+#skip { flex: 1 1 100% !important; }
 #hear[aria-pressed="false"] { background: var(--ice); color: var(--night); }
 #hear[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--night); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-#now { font: 500 17px/1.3 var(--sans); color: var(--ink); min-height: 3.2em; margin: 0 0 8px; }
+#now { font: 500 17px/1.3 var(--sans); color: var(--ink); min-height: 3.2em; margin: 0 0 8px; overflow-wrap: anywhere; }
 #now small { display: block; font: 11px/1.5 var(--mono); color: var(--mute); margin-top: 4px; }
 #verdict { font: 12px/1.6 var(--mono); color: var(--ink); }
 #ev { font: 11px/1.6 var(--mono); color: var(--mute); }
@@ -35,7 +37,7 @@
 }
 </style>
 </head>
-<body data-wall="4" data-line="one real evening of my plays, in order. swap a song and watch." data-do="press swap to replace the next song. tap a dot to jump there." data-keys="press,auto,shuffle" style="--act: var(--rose); --acc: var(--ice)">
+<body data-wall="4" data-line="one real evening of my plays, in order. swap a song and watch the rest bend." data-do="press play to hear the evening, then swap a song to bend it." data-keys="press,auto,shuffle" style="--act: var(--rose); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the haunted night</span><span class="tl">a toy</span></p>
@@ -44,13 +46,14 @@
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map as dim dots, with one real evening drawn as a ribbon of glyphs; your skips draw the bent night in rose"></canvas></div>
   <main id="side">
     <div id="bar" role="group" aria-label="play controls">
+      <button type="button" id="hear" aria-pressed="false">play the evening with sound</button>
       <button type="button" id="back">back one song</button>
+      <button type="button" id="fwd">next song</button>
       <button type="button" id="skip">swap next song</button>
-      <button type="button" id="hear" aria-pressed="false">hear this song</button>
     </div>
     <div class="key" aria-live="polite">
-      <div class="big rose" id="bend">none yet</div>
-      <span class="keylab">map distance of your swaps from the real songs</span>
+      <div class="big rose" id="bend"><span class="c">no swaps yet. press swap next song.</span></div>
+      <span class="keylab">how far your swapped songs sit from the real ones, as a share of the map</span>
     </div>
     <p id="now" aria-live="polite"></p>
     <div class="lines">
@@ -68,9 +71,9 @@
       <div class="chips"><button type="button" id="next">next evening</button><button type="button" id="reset">random evening</button></div>
     </section>
     <details class="how"><summary>how</summary>
-      <p>press swap to replace the next song with a near one.</p>
-      <p>watch the rose line bend away from the real purple one.</p>
-      <p>read the number: bigger means your swaps landed farther.</p>
+      <p>press play: the evening is heard song by song to the end, with the next song named. on a laptop, the arrow keys step and s swaps.</p>
+      <p>use next song, back one song, or tap a dot to jump. the bright line is the night so far; a colored ring marks a new family.</p>
+      <p>press swap: the next song is replaced with a near one, and the rose line bends away from the real purple one. bigger number, farther bend.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>from my log: auto-play's own streak of songs stays close in sound. when i broke the streak the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
@@ -79,8 +82,8 @@
     </details>
   </main>
 </div>
+<script src="../kiosk.js"></script>
 <script src="../wallkit.js"></script>
 <script src="haunted.js"></script>
-<script src="../kiosk.js"></script>
 </body>
 </html>

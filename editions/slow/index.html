@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>the slow room</title>
 <meta name="description" content="twelve songs auto-play never reached in 40 walks. the wall counts how many people stay past thirty seconds, in this room, tonight.">
-<meta property="og:title" content="wall 9 of 21: the slow room"><meta property="og:description" content="twelve songs auto-play never reached in 40 walks. the wall counts how many people stay past thirty seconds, in this room, tonight."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/slow.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 9 of 24: the slow room"><meta property="og:description" content="twelve songs auto-play never reached in 40 walks. the wall counts how many people stay past thirty seconds, in this room, tonight."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/slow.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,40 +25,45 @@
 .stays i { display: block; width: 18px; height: 18px; background: var(--ink); border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%; }
 .stays i.cur { background: transparent; border: 1px solid var(--ice); }
 .hide { display: none !important; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+.big span.c { font: 500 15px/1.5 var(--mono); color: var(--mute); }
+.stays i { cursor: pointer; background: #2a2140; }
+.stays i.ok { background: var(--mint); } .stays i.lf { background: var(--rose); } .stays i.cur { background: transparent; border: 2px solid var(--ice); }
 </style>
 </head>
-<body data-wall="9" data-line="faint violet: every artist auto-play reached in 40 walks. bright white: twelve it never did." data-do="tap play, or tap any bright shape. stay 30 s, or tap leaving to skip." data-keys="auto,alike" style="--act: var(--ink); --acc: var(--ink)">
+<body data-wall="9" data-line="faint violet: where auto-play went in 40 walks. bright colors: twelve places it never went." data-do="press play, or tap a bright shape. stay 30 seconds, or skip." data-keys="auto,alike" style="--act: var(--ink); --acc: var(--ink)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the slow room</span><span class="tl">a toy</span></p>
     <h1>songs auto-play <em>never</em> would have played.</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map, dimmed. faint violet shapes are artists auto-play reached in 40 walks. bright white shapes are the twelve it never reached. the one playing is ringed."></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map, dimmed. faint violet shapes are artists auto-play reached in 40 walks. bright shapes, colored by family, are the twelve it never reached. the one playing pulses."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big ice" id="n">0</div>
-      <span class="keylab">stayed past thirty seconds, tonight</span>
-      <div class="stays" id="stays" role="img" aria-label="no stays yet"></div>
+      <div class="big ice" id="n"><span class="c">no stays yet</span></div>
+      <span class="keylab">songs you stayed with past thirty seconds, tonight</span>
+      <p class="say" id="say">twelve dots, one per song: mint = you stayed, rose = you left, ring = playing now. tap a dot to jump to that song.</p>
+      <div class="stays" id="stays" role="group" aria-label="twelve songs"></div>
     </div>
     <section>
-      <div class="row" style="margin-top:0"><button type="button" class="go" id="play">play</button><button type="button" id="leave">i am leaving: next song</button><button type="button" id="reset">start over</button></div>
+      <div class="row" style="margin-top:0"><button type="button" class="go" id="play">play the first one</button><button type="button" id="leave">skip to the next song</button><button type="button" id="reset">start over</button></div>
       <div class="nowbox" aria-live="polite">
         <p class="who" id="who"></p>
         <p class="dline" id="dline"></p>
         <div class="prog" role="img" aria-label="seconds into this clip, out of 30" id="progbox"><i id="bar"></i></div>
         <p class="slot" id="slot"></p>
       </div>
-      <p class="note" id="msg"></p>
+      <p class="note" id="now">sound is off until you tap the chip at the top. the stay clock counts only while you can hear it. on a keyboard: space plays or stops, n skips.</p>
     </section>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>auto-play never reached these twelve in 40 walks; here they play.</p>
+      <p class="take"><b>takeaway:</b>auto-play never reached these twelve in 40 walks. here they play.</p>
       <p class="ask"><b>open question:</b>what does it cost a song to never be reached?</p>
     </div>
     <p class="store">nothing is stored. the count lives in this tab tonight and is gone after.</p>
     <details class="how"><summary>how</summary>
-      <p>tap play: a song auto-play never reached starts.</p>
-      <p>stay 30 s and the count goes up. leaving skips ahead.</p>
-      <p>tap any bright shape to jump to that one.</p>
+      <p>press play: a song auto-play never reached starts, and the map pulses on it with a line to the closest place auto-play did go.</p>
+      <p>stay 30 s and the dot turns mint. skip (or n) turns it rose and moves on. every song plays its full 30 s unless you skip it.</p>
+      <p>tap a dot or a bright shape on the map to jump to any of the twelve. the path so far is bright, the rest faint.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p id="what">what plays: </p>

@@ -12,8 +12,13 @@ function deal() {
   WK.stop(); WK.still(); $('hold').classList.remove('go'); setBar(0); $('now').textContent = ''; render();
 }
 function setBar(f) { $('bar').firstElementChild.style.width = Math.round(Math.max(0, Math.min(1, f)) * 100) + '%'; }
+function fam(i) { return D.fam[D.f[i]]; }
+function fcol(i) { return WK.FAMC[fam(i)] || PAL.ice; }
+function decided() { return S.st.some(function (x) { return x !== 0; }); }
+function snd() { return WK.sound() ? '' : ' sound is off: tap the sound chip to hear it.'; }
 function keptN() { return S.st.filter(function (x) { return x === 1; }).length; }
 
+function keptNames() { var o = []; S.list.forEach(function (a, n) { if (S.st[n] === 1) o.push(D.n[a]); }); return o.length ? ': ' + o.join(', ') : ''; }
 function nextName() { var n = S.list[S.k + 1]; return n == null ? null : D.n[n]; }
 function setBtn(t) { $('hold').textContent = t; }
 function advance() {
@@ -33,7 +38,8 @@ function startClip() {
       S.st[S.k] = 2; advance(); return;
     }
     S.heard = true;
-    $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[i] + (nextName() ? '. next up: ' + nextName() + '.' : '. last song.');
+    var pf = S.k > 0 ? S.list[S.k - 1] : null, fc = pf == null ? '' : (fam(pf) !== fam(i) ? ' family change from ' + fam(pf) + '.' : ' same family as the last song.');
+    $('now').textContent = 'song ' + (S.k + 1) + ' of 12, hearing ' + info.title + ' by ' + D.n[i] + '.' + fc + (nextName() ? ' next up: ' + nextName() + '.' : ' last song.');
     WK.live(draw);
   });
 }
@@ -62,29 +68,33 @@ function skip() { if (S.done || S.held) return; S.tok++; WK.stop(); WK.still(); 
 
 function render() {
   var K = keptN(), i = S.list[S.k], n = S.k + 1, nm = S.done ? '' : D.n[i];
-  $('num').textContent = K;
+  $('num').innerHTML = decided() ? K : '<span class="c">none decided yet</span>';
   $('song').innerHTML = S.done ? '&nbsp;' : WK.esc(nm);
   $('hold').disabled = S.done; $('sk').disabled = S.done || S.held;
-  if (S.done) { $('say').textContent = 'you kept ' + K + ' of 12. in my log, 42 of 100 songs i started myself stayed, and 16 of 100 of auto-play\'s. this one is a toy.'; setBtn('all 12 heard'); return; }
-  if (S.phase !== 'playing') { $('say').textContent = 'press play to hear song ' + n + ' of 12: ' + nm + '. then decide.'; setBtn('play song ' + n + ' of 12'); }
+  if (S.done) { $('say').textContent = 'you kept ' + K + ' of 12' + keptNames() + '. in my log, 42 of 100 songs i started myself stayed, and 16 of 100 of auto-play\'s. this one is a toy.'; setBtn('all 12 heard'); draw(); return; }
+  if (S.phase !== 'playing') { $('say').textContent = 'press play to hear song ' + n + ' of 12: ' + nm + ' (' + fam(i) + ', ' + D.pl[i] + ' plays in my log). then decide.' + snd(); setBtn('play song ' + n + ' of 12'); }
   else if (S.held && S.kept) { $('say').textContent = 'kept: song ' + n + ' of 12, ' + nm + '. let go for the next one.'; setBtn('kept. let go for next'); }
   else if (S.held) { $('say').textContent = 'keeping song ' + n + ' of 12: ' + nm + '. hold two seconds. let go = skip.'; setBtn('keeping... keep holding'); }
-  else { $('say').textContent = 'song ' + n + ' of 12 is playing: ' + nm + '. like it? hold to keep. let go = skip.'; setBtn('hold to keep song ' + n); }
+  else { $('say').textContent = 'song ' + n + ' of 12 is playing: ' + nm + '. like it? hold to keep. let go = skip.' + snd(); setBtn('hold to keep song ' + n); }
   draw();
 }
 
 function draw() {
   MAP.begin();
-  var g = MAP.g, k, i, x, y;
+  var g = MAP.g, k, i, x, y, pts = MAP.pts(S.list), cur = Math.min(S.k, S.list.length - 1);
+  if (pts.length > 1) {
+    P.ribbon(g, pts, PAL.ice, PAL.ice, 1.2, 0.22, [3, 5]);
+    if (cur > 0) P.ribbon(g, pts.slice(0, cur + 1), PAL.ice, PAL.mint, 2.6, 0.9);
+  }
   S.list.forEach(function (a, n) {
     x = MAP.X(a); y = MAP.Y(a);
-    if (S.st[n] === 1) { P.peb(g, a, x, y, 9, WK.FAMC[D.fam[D.f[a]]] || PAL.mint); P.glyph(g, 'star', x, y, 12, PAL.mint); }
+    if (S.st[n] === 1) { P.peb(g, a, x, y, 9, fcol(a)); P.glyph(g, 'star', x, y, 12, PAL.mint); }
     else if (S.st[n] === 2) P.glyph(g, 'dot', x, y, 3, '#3a3052');
-    else if (n !== S.k) P.glyph(g, 'ring', x, y, 9, '#6f6790');
+    else if (n !== S.k) { P.peb(g, a, x, y, 3.5 + 3 * Math.log(1 + D.pl[a]) / Math.log(1 + D.pl[M.order[0]]), fcol(a)); P.glyph(g, 'ring', x, y, 9, '#6f6790'); if (n === S.k + 1) MAP.tag(a, 'next ' + D.n[a], '#9a90b8'); }
   });
   if (!S.done && S.list.length) {
     i = S.list[S.k]; x = MAP.X(i); y = MAP.Y(i);
-    P.peb(g, i, x, y, 10, PAL.ink); P.rings(g, x, y, PAL.ink, 22);
+    P.peb(g, i, x, y, 10, fcol(i)); P.rings(g, x, y, PAL.ink, 22); MAP.tag(i, (S.k + 1) + '/12 ' + D.n[i], PAL.ink);
     if (S.phase === 'playing') WK.pulse(g, x, y, PAL.mint, 18);
   }
 }
@@ -104,6 +114,7 @@ addEventListener('keydown', function (e) { if (e.code === 'Space' && !e.repeat &
 addEventListener('keyup', function (e) { if (e.code === 'Space') release(); });
 $('again').addEventListener('click', deal);
 $('sk').addEventListener('click', skip);
+var sc = document.getElementById('wk-snd'); if (sc) sc.addEventListener('click', function () { setTimeout(function () { if (D) render(); }, 0); });
 
 Promise.all([WK.boot(), WK.pv()]).then(function (a) {
   D = a[0].D; M = a[0].M; PV = a[1];

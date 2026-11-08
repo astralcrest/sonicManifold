@@ -1,8 +1,10 @@
 (function () {
 'use strict';
-var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, MAP, LOOP;
+var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, MAP, LOOP, PV = null;
 var cv = $('cv'), V = 150, R_REACH = 150, TABOO = 12;
-var S = { x: 0, y: 0, cur: 0, ta: -1, tb: -1, la: 0, lb: 0, trail: [], seen: [], start: 0, last: 0, active: false, dirty: true, lastPlay: 0, kept: 0 };
+var S = { x: 0, y: 0, cur: 0, ta: -1, tb: -1, la: 0, lb: 0, trail: [], seen: [], start: 0, last: 0, active: false, dirty: true, lastPlay: 0, kept: 0, path: [], fchg: 0 };
+var CLIP = 7000, AU = new Audio(), R = { on: false, k: -1, list: [], t: 0 };
+AU.volume = 0.25;
 var H = { a: { id: null, dx: 0, dy: 0, s: 0, key: 0 }, b: { id: null, dx: 0, dy: 0, s: 0, key: 0 } };
 
 function px(i) { return D.xy[i][0]; }
@@ -29,8 +31,36 @@ function pickB(c) {
 }
 function retarget() { S.ta = pickA(S.cur); S.tb = pickB(S.cur); }
 
+function fam(i) { return D.fam[D.f[i]] || ''; }
+function famCol(i) { return WK.FAMC[fam(i)] || PAL.ice; }
+function clipOf(i) { return PV && PV[i] ? PV[i] : null; }
+function silence() { clearTimeout(R.t); AU.pause(); }
+function hear(i, off, done) {
+  var c = clipOf(i); silence();
+  if (!c) { R.t = setTimeout(done || function () {}, 2500); return null; }
+  AU.src = c[1];
+  var seek = function () { AU.removeEventListener('loadedmetadata', seek); try { if (off) AU.currentTime = off; } catch (e) {} };
+  AU.addEventListener('loadedmetadata', seek);
+  var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {});
+  R.t = setTimeout(done || function () {}, CLIP);
+  return c[0];
+}
+function sameRun(list, k) { var n = 0; while (k - n > 0 && list[k - n - 1] === list[k]) n++; return n; }
+function playBtn() { var b = $('play'); b.textContent = R.on ? 'stop the path' : (S.path.length > 1 ? 'hear the path (' + S.path.length + ' stops)' : 'hear the start'); b.setAttribute('aria-pressed', R.on ? 'true' : 'false'); }
+function stopReplay(msg) { R.on = false; R.k = -1; silence(); playBtn(); if (msg) $('now').textContent = msg; S.dirty = true; }
+function replayAt(k) {
+  if (k >= R.list.length) { stopReplay('that was the whole path: ' + R.list.length + ' stops. pull again to extend it.'); return; }
+  R.k = k; var i = R.list[k], t = hear(i, (sameRun(R.list, k) * 5) % 20, function () { replayAt(k + 1); });
+  var nx = R.list[k + 1];
+  $('now').textContent = 'stop ' + (k + 1) + ' of ' + R.list.length + ': ' + (t ? t + ' by ' : '') + D.n[i] + ' (' + fam(i) + ')' + (t ? '' : ', no clip for this one') + (nx !== undefined ? '. next: ' + D.n[nx] + (fam(nx) !== fam(i) ? ', a new family' : '') + '.' : '. the last stop.') + (sameRun(R.list, k) ? ' same artist as the last stop, so a later second of it.' : '');
+  S.dirty = true;
+}
+function startReplay(k) { R.on = true; R.list = S.path.slice(); playBtn(); replayAt(k || 0); }
+function skip() { if (R.on) { clearTimeout(R.t); replayAt(R.k + 1); } }
+
 function reset() {
-  S.start = M.order[11]; S.cur = S.start; S.x = px(S.start); S.y = py(S.start); S.la = 0; S.lb = 0; S.trail = [[S.x, S.y, 0]]; S.seen = [S.start]; S.lastPlay = 0;
+  stopReplay();
+  S.start = M.order[11]; S.cur = S.start; S.x = px(S.start); S.y = py(S.start); S.la = 0; S.lb = 0; S.trail = [[S.x, S.y, 0]]; S.seen = [S.start]; S.lastPlay = 0; S.path = [S.start]; S.fchg = 0; playBtn();
   retarget(); S.dirty = true; out();
 }
 
@@ -43,9 +73,23 @@ function setHandle(h, x, y) {
   if (L > G.r) { dx *= G.r / L; dy *= G.r / L; L = G.r; }
   h.dx = dx; h.dy = dy; h.s = L / G.r < 0.12 ? 0 : L / G.r;
 }
+function hitTarget(x, y) {
+  var list = [[S.ta, 1], [S.tb, 2]], k, j;
+  for (k = 0; k < list.length; k++) if (Math.hypot(MAP.X(list[k][0]) - x, MAP.Y(list[k][0]) - y) < 20) return { i: list[k][0], w: list[k][1] };
+  for (j = 0; j < S.path.length; j++) if (Math.hypot(MAP.X(S.path[j]) - x, MAP.Y(S.path[j]) - y) < 12) { startReplay(j); return { i: -1 }; }
+  return null;
+}
+function jumpTo(i, w) {
+  if (i < 0) return;
+  var d = Math.hypot(px(i) - S.x, py(i) - S.y);
+  if (w === 1) S.la += d; else S.lb += d;
+  S.x = px(i); S.y = py(i); S.trail.push([S.x, S.y, w]); arrive(i, true); S.dirty = true;
+}
 function local(e) { var b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top, b.width]; }
 function which(e) { var l = local(e); return l[0] < l[2] / 2 ? H.a : H.b; }
 cv.addEventListener('pointerdown', function (e) {
+  var l0 = local(e), tg = hitTarget(l0[0], l0[1]);
+  if (tg) { jumpTo(tg.i, tg.w); e.preventDefault(); return; }
   var h = which(e); if (h.id !== null) return;
   h.id = e.pointerId; try { cv.setPointerCapture(e.pointerId); } catch (x) {}
   var l = local(e); setHandle(h, l[0], l[1]); S.dirty = true; e.preventDefault();
@@ -60,6 +104,7 @@ function up(e) {
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 addEventListener('keydown', function (e) {
   if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.key === 'n' && R.on) { skip(); return; }
   if (e.key === 'ArrowLeft') { H.a.key = 1; e.preventDefault(); } else if (e.key === 'ArrowRight') { H.b.key = 1; e.preventDefault(); }
 });
 addEventListener('keyup', function (e) { if (e.key === 'ArrowLeft') H.a.key = 0; else if (e.key === 'ArrowRight') H.b.key = 0; });
@@ -89,17 +134,23 @@ function step(dt) {
   if (da < 14 || db < 14) { arrive(da < db ? S.ta : S.tb); }
   return true;
 }
-function arrive(i) {
-  S.cur = i; remember(i); retarget();
+function arrive(i, force) {
+  var prev = S.cur, chg = fam(i) !== fam(prev);
+  S.cur = i; remember(i); retarget(); S.path.push(i); if (chg) S.fchg++; playBtn();
   var now = Date.now();
-  if (now - S.lastPlay > 2500) { S.lastPlay = now; S.hear = i; WK.play([{ i: i, tag: 'a' }], function (k, info) { $('now').textContent = info ? 'reached ' + D.n[i] + ': hearing ' + info.title + '. keep pulling for the next.' : 'the point plays each artist it reaches. keep pulling.'; }); }
+  if (R.on) return;
+  if (force || now - S.lastPlay > 1500) {
+    S.lastPlay = now;
+    var t = hear(i, prev === i ? 6 : 0);
+    $('now').textContent = 'stop ' + S.path.length + ': ' + D.n[i] + ' (' + fam(i) + (chg ? ', a new family' : '') + '), ' + (t ? 'hearing ' + t : 'no clip for this one') + '. keep pulling, or jump to the next stop.';
+  } else $('now').textContent = 'stop ' + S.path.length + ': ' + D.n[i] + ' (' + fam(i) + (chg ? ', a new family' : '') + '). keep pulling.';
 }
 
 function out() {
   var t = S.la + S.lb, a = t ? Math.round(100 * S.la / t) : 0;
-  $('num').innerHTML = t ? '<span class="a">' + a + '</span><span class="c">:</span><span class="b">' + (100 - a) + '</span>' : '<span class="c">-</span>';
+  $('num').innerHTML = t ? '<span class="a">' + a + '</span><span class="c">:</span><span class="b">' + (100 - a) + '</span>' : '<span class="c">pull to start</span>';
   $('numlab').textContent = t ? 'of the path so far: auto-play\'s pull : my press' : 'who moved the point, out of 100';
-  $('say').textContent = t ? 'auto-play\'s pull (violet, toward what sounds alike) moved it ' + a + '. my press (mint, toward what i played most) moved it ' + (100 - a) + '. ' + (Math.abs(a - 50) < 8 ? 'close to even: the two pulls cancel and the point barely moves.' : a > 50 ? 'the pull toward sound is winning.' : 'the pull toward my plays is winning.') + ' now at ' + D.n[S.cur] + '.' : 'hold a button below (or drag a handle on the map). the point moves toward that pull and plays what it reaches.';
+  $('say').textContent = t ? 'auto-play\'s pull (violet, toward what sounds alike) moved it ' + a + '. my press (mint, toward what i played most) moved it ' + (100 - a) + '. ' + (Math.abs(a - 50) < 8 ? 'close to even: the two pulls cancel and the point barely moves.' : a > 50 ? 'the pull toward sound is winning.' : 'the pull toward my plays is winning.') + ' stop ' + S.path.length + ' at ' + D.n[S.cur] + '; ' + S.fchg + (S.fchg === 1 ? ' family change' : ' family changes') + ' so far.' : 'hear the start first. then hold a button below, press an arrow key, drag a handle, or tap a target on the map. the point moves toward that pull and plays what it reaches.';
 }
 
 function runs() {
@@ -123,8 +174,18 @@ function draw() {
   P.glyph(g, 'star', tx(S.tb), ty(S.tb), 11, PAL.mint);
   if (strength(H.a) > 0) MAP.tag(S.ta, D.n[S.ta], PAL.violet, PAL.night);
   if (strength(H.b) > 0) MAP.tag(S.tb, D.n[S.tb], PAL.mint, PAL.night);
+  var pm = 1; S.path.forEach(function (i) { if (D.pl[i] > pm) pm = D.pl[i]; });
+  S.path.forEach(function (i, k) {
+    var x = tx(i), y = ty(i), fade = R.on && k > R.k ? 0.35 : 1, rr = 4 + 6 * Math.sqrt(D.pl[i] / pm);
+    g.save(); g.globalAlpha = fade;
+    if (k > 0 && fam(i) !== fam(S.path[k - 1])) { g.strokeStyle = famCol(i); g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, rr + 4, 0, 6.2832); g.stroke(); }
+    P.peb(g, i, x, y, rr, famCol(i));
+    if (S.path.length <= 40) { g.font = '600 10px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText(String(k + 1), x, y - rr - 3); }
+    g.restore();
+  });
+  if (R.on && R.k >= 0) { var ri = S.path[R.k]; WK.pulse(g, tx(ri), ty(ri), famCol(ri), 14); MAP.tag(ri, (R.k + 1) + ' of ' + S.path.length + ': ' + D.n[ri], famCol(ri), PAL.night); }
   P.peb(g, S.cur, X, Y, 8, PAL.ink);
-  P.rings(g, X, Y, PAL.ink, 18); WK.pulse(g, X, Y, S.active ? (strength(H.a) > strength(H.b) ? PAL.violet : PAL.mint) : PAL.ink, 18);
+  P.rings(g, X, Y, PAL.ink, 18); WK.pulse(g, X, Y, S.active && !R.on ? (strength(H.a) > strength(H.b) ? PAL.violet : PAL.mint) : PAL.ink, 18);
   MAP.tag(S.cur, 'here: ' + D.n[S.cur], PAL.ink, PAL.night);
   // handles
   [[H.a, G.ax, PAL.violet, 'ring', "auto-play's lean"], [H.b, G.bx, PAL.mint, 'star', 'my press']].forEach(function (d) {
@@ -134,7 +195,7 @@ function draw() {
     P.glyph(g, d[3], hx, hy, 17, d[2]);
     g.save(); g.font = '500 12px "IBM Plex Mono", monospace'; g.fillStyle = d[2]; g.textAlign = d[1] < G.bx ? 'left' : 'right'; g.fillText(d[4], d[1] < G.bx ? 12 : MAP.W - 12, G.y + 52); g.restore();
   });
-  if (S.trail.length < 2) { g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText('hold a pull button below, or drag a handle inward.', MAP.W / 2, MAP.H - 16); g.restore(); }
+  if (S.trail.length < 2) { g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText('hear the start, then hold a pull button, or drag a handle inward.', MAP.W / 2, MAP.H - 16); g.restore(); }
 }
 
 var lastT = 0;
@@ -144,11 +205,19 @@ function frame(t) {
   if (moved || S.dirty || S.fr % 2 === 0) { draw(); if (moved || S.dirty) out(); S.dirty = false; }
   requestAnimationFrame(frame);
 }
-$('reset').addEventListener('click', function () { reset(); });
+$('reset').addEventListener('click', function () { reset(); $('now').textContent = 'back at the start. tap hear the start, then pull.'; });
+$('play').addEventListener('click', function () {
+  if (R.on) { stopReplay('stopped. tap hear the path to start again.'); return; }
+  if (S.path.length === 1) { var t = hear(S.path[0], 0); $('now').textContent = 'the point starts at ' + D.n[S.path[0]] + ' (' + fam(S.path[0]) + '), ' + (t ? 'hearing ' + t : 'no clip for this one') + '. now pull, or jump one stop.'; return; }
+  startReplay(0);
+});
+$('ja').addEventListener('click', function () { if (R.on) stopReplay(); jumpTo(S.ta, 1); });
+$('jb').addEventListener('click', function () { if (R.on) stopReplay(); jumpTo(S.tb, 2); });
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); S.dirty = true; }, 80); });
 
-WK.boot().then(function (b) {
+Promise.all([WK.boot(), WK.pv()]).then(function (a) {
+  var b = a[0]; PV = a[1];
   D = b.D; M = b.M; LOOP = b.LOOP;
   MAP = new WK.Map($('map'), cv, D, M, { dim: 0.55 }); MAP.resize();
   reset();

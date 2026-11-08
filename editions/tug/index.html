@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>two hands pull one point</title>
 <meta name="description" content="two handles on one map: one pulls toward what sounds alike, one toward what i played most. a toy.">
-<meta property="og:title" content="wall 10 of 21: tug of two hands"><meta property="og:description" content="two handles on one map: one pulls toward what sounds alike, one toward what i played most. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/tug.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 10 of 24: tug of two hands"><meta property="og:description" content="two handles on one map: one pulls toward what sounds alike, one toward what i played most. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/tug.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +21,7 @@
 #reset { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="10 of 12" data-line="one point, two pulls: violet toward what sounds alike, mint toward what i played most." data-do="hold a pull button. the point moves, plays what it reaches, and the path colors by who won." data-keys="auto,press,alike" style="--act: var(--rose); --acc: var(--ice)">
+<body data-wall="10 of 12" data-line="one point, two pulls: violet toward what sounds alike, mint toward my most played." data-do="hear the start, then hold a pull button or tap a target to jump." data-keys="auto,press,alike" style="--act: var(--rose); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>tug of two hands</span><span class="tl">a toy</span></p>
@@ -30,24 +30,25 @@
   <div id="map"><canvas id="cv" tabindex="0" role="img" aria-label="my sound map with a point on it. a violet ring handle on the left edge pulls the point toward what sounds alike. a mint star handle on the right edge pulls it toward the most played. the path draws as a ribbon colored by which handle was winning. keyboard: hold left arrow or right arrow."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big" id="num"><span class="c">-</span></div>
+      <div class="big" id="num"><span class="c">pull to start</span></div>
       <span class="keylab" id="numlab">who moved the point, out of 100</span>
       <div class="lab2"><span class="a">auto-play's lean</span><span class="b">my press</span></div>
-      <p class="say" id="say">pull a handle to start. two fingers or two people.</p>
+      <p class="say" id="say">hear the start first, then pull. on a laptop hold the left or right arrow key.</p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>if you pull together you go nowhere new. a loop is two pulls that rarely disagree.</p>
       <p class="ask"><b>open question:</b>when the pulls agree, who is steering?</p>
     </div>
     <section>
-      <div class="row" style="margin-top:0"><button type="button" id="pa" aria-pressed="false" style="--acc:var(--violet)">hold: pull to what sounds alike</button><button type="button" id="pb" aria-pressed="false" style="--acc:var(--mint)">hold: pull to what i played most</button></div>
-      <div class="row"><button type="button" id="reset">start over</button></div>
-      <p class="note" id="now">hold one button, or both at once (two fingers, or two people). the point plays each artist it reaches.</p>
+      <div class="row" style="margin-top:0"><button type="button" id="play" style="--acc:var(--ice)">hear the start</button></div>
+      <div class="row"><button type="button" id="pa" aria-pressed="false" style="--acc:var(--violet)">hold: pull to what sounds alike</button><button type="button" id="pb" aria-pressed="false" style="--acc:var(--mint)">hold: pull to what i played most</button></div>
+      <div class="row"><button type="button" id="ja" style="--acc:var(--violet)">jump one stop: sounds alike</button><button type="button" id="jb" style="--acc:var(--mint)">jump one stop: my plays</button><button type="button" id="reset">start over</button></div>
+      <p class="note" id="now">tap hear the start. then hold a pull button, or jump if you are impatient. each stop plays; the numbered pebbles are your path.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>hold a pull button, or drag a handle inward on the map.</p>
-      <p>hold both: the pulls fight. the point goes where the stronger one says.</p>
-      <p>read the path: violet where sound won, mint where my plays won.</p>
+      <p>tap hear the start, then hold a pull button or press the left or right arrow. tap a target on the map to jump to it.</p>
+      <p>each stop plays seven seconds. hear the path replays every stop in order; press n or tap a numbered pebble to skip ahead.</p>
+      <p>read the path: violet where sound won, mint where my plays won. pebbles take their family color; a ring marks a new family.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>a toy rule on this screen, not my data. the ring pulls toward the nearest artist in sound; the star pulls toward the most played artist within reach.</p>

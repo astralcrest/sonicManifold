@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hold to keep</title>
 <meta name="description" content="twelve songs in a row. listen, then hold to keep one or let go to skip. a toy.">
-<meta property="og:title" content="wall 14 of 21: hold to keep"><meta property="og:description" content="twelve songs in a row. listen, then hold to keep one or let go to skip. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/hold.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 14 of 24: hold to keep"><meta property="og:description" content="twelve songs in a row. listen, then hold to keep one or let go to skip. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/hold.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +23,7 @@
 .song { font: 600 clamp(26px, 8cqi, 40px)/1.05 var(--sans); letter-spacing: -.02em; color: var(--ink); overflow-wrap: anywhere; margin: 0 0 6px; }
 </style>
 </head>
-<body data-wall="14" data-line="listen to twelve songs. hold to keep one, let go to skip." data-do="press play. hold to keep the song, let go to skip. tap a ring." data-keys="press" style="--act: var(--ice); --acc: var(--ice)">
+<body data-wall="14" data-line="listen to twelve songs. hold to keep one, let go to skip." data-do="press play, listen, then hold to keep or let go to skip. tap any ring to jump there." data-keys="press" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>hold to keep</span><span class="tl">a toy</span></p>
@@ -32,7 +32,7 @@
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map. twelve songs sit as faint rings. the current one is ringed in white. kept songs light as mint stars, skipped ones go dark."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big mint" id="num">-</div>
+      <div class="big mint" id="num"><span class="c">none decided yet</span></div>
       <span class="keylab" id="numlab">songs you kept so far, of 12</span>
       <p class="say" id="say">press play to hear song 1 of 12.</p>
     </div>
@@ -45,12 +45,12 @@
       <button type="button" id="hold" aria-pressed="false">play song 1 of 12</button>
       <div id="bar" aria-hidden="true"><i></i></div>
       <div class="row"><button type="button" id="again">deal 12 new songs</button><button type="button" id="sk">skip this song</button></div>
-      <p class="note" id="now"></p>
+      <p class="note" id="now">turn the sound chip on first. on a laptop, hold the space bar instead of the button.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>press play to hear a 30 s clip of the song.</p>
-      <p>hold the button 2 seconds to keep it. let go to skip.</p>
-      <p>read a mint star as kept, a dark dot as skipped.</p>
+      <p>turn sound on, then press play to hear a 30 s clip. you hear it before you decide.</p>
+      <p>hold the button (or the space bar) 2 seconds to keep it. let go early to skip. skip this song or tap a ring on the map to move on faster.</p>
+      <p>the line on the map is your order of twelve: bright so far, faint ahead. a mint star is kept, a dark dot is skipped, colors are sound families, bigger shapes are played more.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>the twelve songs are drawn at random from my most played artists that have a clip. what you hold is a toy, not a measure of you.</p>

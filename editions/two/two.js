@@ -5,7 +5,7 @@
   var OWNER_TOP = 200, STEPS = 20, STARTS = 10;
   var F = null, M = null, SAMPLES = null, IDX = new Map(), ADJ = null, STRENGTH = null;
   var HABIT = 1, SEED = 0, WALKS = 8;
-  var S = { a: null, b: null }, HOT = -1, CROSS = null, PV = null, AU = null, PLAYING = 0, HEARING = false, HEAR = null, C4S = null, C4C = null;
+  var S = { a: null, b: null }, HOT = -1, PV = null, C4S = null, C4C = null, LIST4 = [], C5S = null, W5 = [], MS = {};
 
   function norm(s) {
     return String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -100,7 +100,7 @@
 
   function set(side, s) {
     S[side] = s; HOT = -1; if ($('t1')) $('t1').textContent = 'tap a shape to name it.';
-    if (HEARING) stopHear();
+    sqStop();
     var card = document.querySelector('.side[data-s="' + side + '"]');
     card.classList.toggle('owner', s.kind === 'owner');
     var lab = $('lab-' + side);
@@ -112,7 +112,7 @@
     draw();
   }
   function col(side) { return S[side] && S[side].kind === 'owner' ? COL.o : COL[side]; }
-  function nm(side) { return S[side] && S[side].kind === 'owner' ? 'the owner' : side; }
+  function nm(side) { return S[side] && S[side].kind === 'owner' ? 'astralcrest' : side; }
 
   // ---- geometry ----
   function center(s) {
@@ -235,6 +235,7 @@
 
   function draw() {
     var A = S.a, B = S.b; if (!A || !B || !F) return;
+    sqStop();
     var ca = col('a'), cb = col('b'), na = nm('a'), nb = nm('b');
     var both = A.order.filter(function (i) { return B.set.has(i); });
     var CA = A.order.length ? center(A) : null, CB = B.order.length ? center(B) : null;
@@ -276,7 +277,6 @@
     // four
     var c4 = ctxOf('c4'); base(c4);
     var ab = bridge(A, B, 5);
-    CROSS = ab.length ? ab[0] : null;
     var seenP = new Set(ab.map(function (p) { return p[0] + ':' + p[1]; }));
     var ba = bridge(B, A, 10).filter(function (p) { return !seenP.has(p[1] + ':' + p[0]); }).slice(0, 5);
     dots(c4, A, '#4b5a78', 2, 4); dots(c4, B, '#6b6878', 2, 4);
@@ -286,8 +286,10 @@
     ba.forEach(function (p) { sq(c4, p[0], 8, cb); sq(c4, p[1], 8, ca); });
     $('f4').innerHTML = ab.length ? 'the closest crossings between what only <span style="color:' + ca + '">' + na + '</span> has and what only <span style="color:' + cb + '">' + nb + '</span> has.' : 'there is nothing to bridge: one side has nothing the other lacks.';
     C4C = c4; C4S = document.createElement('canvas'); C4S.width = c4.g.canvas.width; C4S.height = c4.g.canvas.height; C4S.getContext('2d').drawImage(c4.g.canvas, 0, 0);
-    $('l4').innerHTML = ab.map(function (p) { return li(swatch(ca) + esc(F.n[p[0]]) + ' <span class="m">to</span> ' + swatch(cb) + esc(F.n[p[1]])); }).join('') +
-      ba.map(function (p) { return li(swatch(cb) + esc(F.n[p[0]]) + ' <span class="m">to</span> ' + swatch(ca) + esc(F.n[p[1]])); }).join('');
+    LIST4 = [];
+    ab.forEach(function (p) { LIST4.push([p[0], p[1], 'a', 'b']); });
+    ba.forEach(function (p) { LIST4.push([p[0], p[1], 'b', 'a']); });
+    $('l4').innerHTML = LIST4.map(function (p, n) { return '<li data-p="' + n + '" tabindex="0" role="button">' + swatch(col(p[2])) + esc(F.n[p[0]]) + ' <span class="m">to</span> ' + swatch(col(p[3])) + esc(F.n[p[1]]) + '</li>'; }).join('');
 
     // five
     var c5 = ctxOf('c5'); base(c5);
@@ -295,7 +297,7 @@
     M.lq.forEach(function (e) { g5.moveTo(c5.X(F.xy[e[0]][0]), c5.Y(F.xy[e[0]][1])); g5.lineTo(c5.X(F.xy[e[1]][0]), c5.Y(F.xy[e[1]][1])); });
     g5.stroke();
     dots(c5, A, '#4b5a78', 2, 4); dots(c5, B, '#6b6878', 2, 4);
-    var touched = new Set();
+    var touched = new Set(); W5 = [];
     [[A, 20261105, ca], [B, 20261106, cb]].forEach(function (z) {
       for (var w = 1; w < WALKS; w++) {
         var q = oneWalk(z[0], z[1] + SEED + 1000 * w);
@@ -303,12 +305,13 @@
         PK.ribbon(c5.g, q.map(function (i) { return [c5.X(F.xy[i][0]), c5.Y(F.xy[i][1])]; }), z[2], z[2], 1 * c5.d, 0.6);
       }
     });
-    [[oneWalk(A, 20261105 + SEED), ca], [oneWalk(B, 20261106 + SEED), cb]].forEach(function (z) {
-      var p = z[0]; p.forEach(function (i) { touched.add(i); });
+    [[oneWalk(A, 20261105 + SEED), ca, 'a'], [oneWalk(B, 20261106 + SEED), cb, 'b']].forEach(function (z) {
+      var p = z[0]; W5.push({ path: p, col: z[1], side: z[2] }); p.forEach(function (i) { touched.add(i); });
       if (PK) PK.ribbon(c5.g, p.map(function (i) { return [c5.X(F.xy[i][0]), c5.Y(F.xy[i][1])]; }), z[1], z[1] === COL.b ? '#9a90b8' : '#7f9cff', 2.5 * c5.d, 0.95);
       else for (var k = 1; k < p.length; k++) line(c5, p[k - 1], p[k], z[1], 2.5);
       p.forEach(function (i, k) { sq(c5, i, k === 0 ? 11 : 6, z[1]); });
     });
+    C5S = snap(c5.g.canvas);
     var rAB = walkReach(A, B), rBA = walkReach(B, A);
     var r1 = function (v) { return v == null ? 'never' : v < 0.05 ? 'under 0.1 times' : v.toFixed(1) + ' times'; };
     var xAB = rAB.n ? rAB.k / chance(B) : 0, xBA = rBA.n ? rBA.k / chance(A) : 0;
@@ -360,21 +363,21 @@
       if (tok !== MR.tok) return;
       var end = Math.min(grid.length, at + 6);
       for (; at < end; at++) { var g = L.gap(L.ruleStats(m, grid[at], starts, L.FIT_SEED), tgt); if (g < bg) { bg = g; best = grid[at]; } }
-      if (at < grid.length) { if (note) note.textContent = 'fitting your habits: ' + Math.round(100 * at / grid.length) + '%'; setTimeout(chunk, 0); return; }
+      if (at < grid.length) { if (note) note.textContent = 'matching your habits: ' + Math.round(100 * at / grid.length) + '%'; setTimeout(chunk, 0); return; }
       MR.fits[sig] = { K: best, gap: bg, n: pairs.length }; if (note) note.textContent = ''; done(MR.fits[sig]);
     })();
   }
   var MA = {};
-  function mrCanvas(id, set, path, color, setColor) {
+  function mrCanvas(id, set, path, color, setColor, force) {
     var c = ctxOf(id), tok = MA[id] = (MA[id] || 0) + 1; base(c);
     set.order.forEach(function (i) { sq(c, i, 4, setColor); });
-    var still = path.length < 2 || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var still = force || path.length < 2 || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
     var step = function (k) {
       if (k > 0) { var pp = function (q) { return [c.X(F.xy[q][0]), c.Y(F.xy[q][1])]; }, a = pp(path[k - 1]), b = pp(path[k]), s0 = k > 1 ? pp(path[k - 2]) : a, g = c.g; g.save(); g.strokeStyle = color; g.lineWidth = 1.6 * c.d; g.lineCap = 'round'; g.beginPath(); g.moveTo((s0[0] + a[0]) / 2, (s0[1] + a[1]) / 2); g.quadraticCurveTo(a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); g.stroke(); g.restore(); }
       sq(c, path[k], k === 0 ? 11 : set.set.has(path[k]) ? 8 : 5, k === 0 ? '#efe9ff' : color);
       if (k === 0) PK.glyph(c.g, 'star', c.X(F.xy[path[0]][0]), c.Y(F.xy[path[0]][1]), 9 * c.d, '#efe9ff');
     };
-    c.path = path; c.set = set; MC[id] = { path: path, set: set };
+    c.path = path; c.set = set; MC[id] = { path: path, set: set, color: color, setColor: setColor };
     if (still) { path.forEach(function (_, k) { step(k); }); return; }
     var k = 0, t0 = performance.now();
     (function tick(now) {
@@ -394,7 +397,8 @@
       var el = $('t6');
       if (best < 0) { el.textContent = 'nothing there. tap closer to a shape.'; return; }
       var st = m.path.indexOf(best), last = m.path.length - 1;
-      el.innerHTML = '<b>' + esc(F.n[best]) + '</b>' + (st >= 0 ? ' · step ' + st + ' of ' + last + (st < last ? ', then ' + esc(F.n[m.path[st + 1]]) : ', the last stop') : ' · on the list, not visited');
+      el.innerHTML = '<b>' + esc(F.n[best]) + '</b>' + (st >= 0 ? ' · step ' + st + ' of ' + last + (st < last ? ', then ' + esc(F.n[m.path[st + 1]]) : ', the last stop') + ', playing it' : ' · on the list, not visited');
+      if (st >= 0) seq6(st, id);
     };
   }
   function mrLine(el, who, w, set, whose) {
@@ -404,6 +408,7 @@
   }
   function mirror() {
     var A = S.a; if (!F || !A || !$('c6a')) return;
+    if (SQ.view && SQ.view.id === 6) sqStop();
     var f = $('f6'), note = $('m6note');
     if (MR.st === 0) { return; }
     if (MR.st < 0) { f.textContent = 'the walk rule did not load. reload to try again.'; return; }
@@ -417,8 +422,8 @@
       var w1 = L.walk(m, topA, mine, 20261105 + SEED);
       mrCanvas('c6a', A, w1.path, COL.o, '#4b5a78');
       mrLine($('l6a'), 'auto-play on your list', w1, A, 'your');
-      if (!fit) { $('l6b').textContent = 'fitting your habits from your list.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
-      if (!fit.K) { $('l6b').textContent = 'your list is too short to fit your habits.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
+      if (!fit) { $('l6b').textContent = 'matching your habits from your list.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
+      if (!fit.K) { $('l6b').textContent = 'your list is too short to match your habits.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
       var K = fit.K.slice(); K[4] = Math.min(1, K[4] * HABIT);
       var w2 = L.walk(m, topMe, K, 20261106 + SEED);
       mrCanvas('c6b', MR.OWN, w2.path, COL.a, '#4b5a78');
@@ -451,43 +456,124 @@
     draw();
   }
 
-  // ---- hear the closest crossing: one 30 s preview each side, 12 s apiece ----
-  function c4pulse() {
-    if (!HEAR || !C4S) return;
-    var c = C4C, g = c.g; g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(C4S, 0, 0);
-    WK.pulse(g, c.X(F.xy[HEAR.i][0]), c.Y(F.xy[HEAR.i][1]), HEAR.col, 12 * c.d);
+  // ---- hearing a path: one preview at a time, 8 s a stop, on to the end unless stopped ----
+  var SQ = { tok: 0, au: null, list: [], k: -1, t: null, view: null }, STOPMS = 8000;
+  function snap(cv) { var c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; c.getContext('2d').drawImage(cv, 0, 0); return c; }
+  function mapOf(el) {
+    var d = el.width / Math.max(1, el.getBoundingClientRect().width), pad = 14 * d, sc = (Math.min(el.width, el.height) - 2 * pad) / 1000;
+    return { d: d, X: function (i) { return pad + F.xy[i][0] * sc; }, Y: function (i) { return pad + F.xy[i][1] * sc; } };
   }
-  function stopHear(msg) {
-    PLAYING++; HEARING = false; HEAR = null; WK.still(); if (AU) { try { AU.pause(); } catch (x) {} }
-    if (C4S) { var g = C4C.g; g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(C4S, 0, 0); }
-    $('hear').textContent = 'hear the closest pair, one per side'; $('t4').textContent = msg || '';
-  }
-  function playOne(i, side, token, next, step, other) {
-    var e = PV && PV.a ? PV.a[F.n[i]] : null;
-    if (!e || !e[1]) { next(); return; }
-    if (!AU) { AU = new Audio(); AU.preload = 'auto'; }
-    AU.src = e[1]; AU.currentTime = 0;
-    $('t4').innerHTML = 'step ' + step + ' of 2: <span style="color:' + col(side) + '">' + esc(F.n[i]) + '</span> · ' + esc(e[0]) + (step < 2 ? ', then <span style="color:' + col(side === 'a' ? 'b' : 'a') + '">' + esc(F.n[other]) + '</span>' : '');
-    HEAR = { i: i, col: col(side) }; WK.live(c4pulse);
-    var q; try { q = AU.play(); } catch (x) { q = null; }
-    if (q && q.catch) q.catch(function () { if (token === PLAYING) stopHear('the preview did not play here.'); });
-    setTimeout(function () { if (token === PLAYING) next(); }, 12000);
-  }
-  function hear() {
-    if (HEARING) { stopHear(); return; }
-    if (!CROSS) { $('t4').textContent = 'no crossing to hear yet.'; return; }
-    var token = ++PLAYING, pair = CROSS;
-    HEARING = true; $('hear').textContent = 'stop the preview'; $('t4').textContent = 'loading the previews';
-    var go = function () {
-      playOne(pair[0], 'a', token, function () {
-        playOne(pair[1], 'b', token, function () { if (token === PLAYING) stopHear('two 12-second previews from Apple Music, one per side.'); }, 2, pair[0]);
-      }, 1, pair[1]);
-    };
+  function clipFor(i) { var e = PV && PV.a ? PV.a[F.n[i]] : null; return e && e[1] ? e : null; }
+  function withPV(go, fail) {
     if (PV) { go(); return; }
-    fetch('../../front/data/pv.json').then(function (r) { return r.json(); }).then(function (d) { PV = d; if (token === PLAYING) go(); })
-      .catch(function () { if (token === PLAYING) stopHear('the previews did not load.'); });
+    fetch('../../front/data/pv.json').then(function (r) { return r.json(); }).then(function (d) { PV = d; go(); }).catch(fail);
+  }
+  function sqStop(msg) {
+    SQ.tok++; clearTimeout(SQ.t);
+    if (SQ.au) { try { SQ.au.pause(); } catch (x) {} }
+    WK.still();
+    var v = SQ.view; SQ.view = null; SQ.k = -1; SQ.list = [];
+    if (v) { v.btn.textContent = v.idle; v.btn.setAttribute('aria-pressed', 'false'); if (v.frame0) v.frame0(); v.now.textContent = msg || ''; if (v.mark) v.mark(-1); }
+  }
+  function sqRun(view, list, k) {
+    if (SQ.view) sqStop();
+    SQ.view = view; SQ.list = list; view.now.textContent = 'loading the previews';
+    withPV(function () { if (SQ.view === view) sqStep(view, k); }, function () { if (SQ.view === view) sqStop('the previews did not load.'); });
+  }
+  function sqStep(view, k) {
+    var list = SQ.list, miss = [];
+    while (k < list.length && !clipFor(list[k].i)) { miss.push(k + 1); k++; }
+    if (k >= list.length) { sqStop(list.length ? 'that was every stop.' : 'nothing to hear yet.'); return; }
+    var tok = ++SQ.tok, it = list[k], e = clipFor(it.i), before = 0, q, prev = k > 0 ? list[k - 1] : null;
+    for (q = 0; q < k; q++) if (list[q].i === it.i) before++;
+    clearTimeout(SQ.t); SQ.k = k;
+    if (!SQ.au) { SQ.au = new Audio(); SQ.au.preload = 'auto'; SQ.au.volume = 0.25; }
+    var au = SQ.au, off = before ? (before * 6) % 20 : 0;
+    au.src = e[1]; au.onloadedmetadata = function () { try { if (off) au.currentTime = off; } catch (x) {} };
+    var pr; try { pr = au.play(); } catch (x) { pr = null; }
+    if (pr && pr.catch) pr.catch(function () {});
+    SQ.t = setTimeout(function () { if (tok === SQ.tok) sqStep(view, k + 1); }, STOPMS);
+    var fam = F.fam[F.f[it.i]] || '', pf = prev ? F.fam[F.f[prev.i]] || '' : '';
+    var tail = ', ' + esc(fam) + '.' + (prev ? (pf !== fam ? ' the family changes from ' + esc(pf) + '.' : ' same family as the stop before.') : '') +
+      (prev && prev.i === it.i ? ' same artist as the stop before, so a later part of its clip.' : before ? ' an artist heard earlier in this walk, so a later part of its clip.' : '') +
+      (miss.length ? ' (no clip for stop' + (miss.length > 1 ? 's ' : ' ') + miss.join(', ') + ')' : '') + (WK.sound() ? '' : ' sound is off: tap the sound chip at the top.');
+    view.btn.textContent = 'stop'; view.btn.setAttribute('aria-pressed', 'true');
+    view.now.innerHTML = view.head(k, it, list.length, e[0]) + tail;
+    if (view.mark) view.mark(k, it);
+    WK.live(function () { view.frame(k, it); });
+  }
+  function bright(g, m, path, k, color) {
+    if (PK && k > 0) PK.ribbon(g, path.slice(0, k + 1).map(function (i) { return [m.X(i), m.Y(i)]; }), color, '#ffffff', 3.4 * m.d, 0.98);
+    PK.glyph(g, 'star', m.X(path[0]), m.Y(path[0]), 8 * m.d, '#efe9ff');
+  }
+  function numTag(g, m, i, text) {
+    g.save(); g.font = '600 ' + Math.round(11 * m.d) + 'px "IBM Plex Mono", monospace'; g.textBaseline = 'middle'; g.fillStyle = '#efe9ff';
+    var x = m.X(i), w = g.measureText(text).width; g.fillText(text, x + 10 * m.d + w > g.canvas.width ? x - 10 * m.d - w : x + 10 * m.d, Math.max(8 * m.d, m.Y(i) - 10 * m.d)); g.restore();
   }
 
+  var V4 = {
+    id: 4, btn: $('hear'), now: $('t4'), idle: 'hear the crossings, pair by pair',
+    head: function (k, it, n, title) { var p = LIST4[it.pair]; return 'pair ' + (it.pair + 1) + ' of ' + LIST4.length + ', stop ' + it.pos + ' of 2: <span style="color:' + col(it.side) + '">' + esc(F.n[it.i]) + '</span> (' + it.side + '), “' + esc(title) + '”'; },
+    frame0: function () { if (!C4S) return; var g = C4C.g; g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(C4S, 0, 0); },
+    frame: function (k, it) {
+      var c = C4C, g = c.g, p = LIST4[it.pair]; g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(C4S, 0, 0);
+      if (PK) PK.ribbon(g, [[c.X(F.xy[p[0]][0]), c.Y(F.xy[p[0]][1])], [c.X(F.xy[p[1]][0]), c.Y(F.xy[p[1]][1])]], col(p[2]), col(p[3]), 3.4 * c.d, 1);
+      WK.pulse(g, c.X(F.xy[it.i][0]), c.Y(F.xy[it.i][1]), col(it.side), 12 * c.d);
+    },
+    mark: function (k, it) { [].forEach.call($('l4').children, function (li) { li.classList.toggle('on', !!it && +li.getAttribute('data-p') === it.pair); }); }
+  };
+  function list4() {
+    var out = [];
+    LIST4.forEach(function (p, n) { out.push({ i: p[0], side: p[2], pair: n, pos: 1 }); out.push({ i: p[1], side: p[3], pair: n, pos: 2 }); });
+    return out;
+  }
+  function seq4(pair) { if (!LIST4.length) { V4.now.textContent = 'no crossing to hear yet.'; return; } sqRun(V4, list4(), 2 * pair); }
+  function next4() {
+    var cur = SQ.view === V4 && SQ.k >= 0 ? SQ.list[SQ.k].pair : -1;
+    seq4(cur + 1 >= LIST4.length ? 0 : cur + 1);
+  }
+
+  var V5 = {
+    id: 5, btn: $('hear5'), now: $('n5'), idle: 'hear the thick walks',
+    head: function (k, it, n, title) { return it.side + '’s walk, stop ' + it.k + ' of ' + (it.len - 1) + ': <span style="color:' + it.col + '">' + esc(F.n[it.i]) + '</span>, “' + esc(title) + '”'; },
+    frame0: function () { if (!C5S) return; var el = $('c5'), g = el.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(C5S, 0, 0); },
+    frame: function (k, it) {
+      var el = $('c5'), g = el.getContext('2d'), m = mapOf(el), w = W5[it.w]; g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(C5S, 0, 0);
+      bright(g, m, w.path, it.k, w.col); numTag(g, m, it.i, String(it.k)); WK.pulse(g, m.X(it.i), m.Y(it.i), w.col, 12 * m.d);
+    }
+  };
+  function list5() {
+    var out = [];
+    W5.forEach(function (w, n) { w.path.forEach(function (i, k) { out.push({ i: i, side: nm(w.side), col: w.col, w: n, k: k, len: w.path.length }); }); });
+    return out;
+  }
+  function seq5(from) { var l = list5(); if (!l.length) { V5.now.textContent = 'no walk to hear yet.'; return; } sqRun(V5, l, from || 0); }
+  function next5() { seq5(SQ.view === V5 && SQ.k >= 0 ? (SQ.k + 1 >= SQ.list.length ? 0 : SQ.k + 1) : 0); }
+
+  var V6 = {
+    id: 6, btn: $('hear6'), now: $('n6'), idle: 'hear both walks',
+    head: function (k, it, n, title) { return it.label + ', stop ' + it.k + ' of ' + (it.len - 1) + ': <span style="color:' + it.color + '">' + esc(F.n[it.i]) + '</span>, “' + esc(title) + '”'; },
+    frame0: function () { ['c6a', 'c6b'].forEach(function (id) { if (!MS[id]) return; var g = $(id).getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(MS[id], 0, 0); }); },
+    frame: function (k, it) {
+      var el = $(it.cv), g = el.getContext('2d'), m = mapOf(el); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(MS[it.cv], 0, 0);
+      bright(g, m, MC[it.cv].path, it.k, it.color); numTag(g, m, it.i, String(it.k)); WK.pulse(g, m.X(it.i), m.Y(it.i), it.color, 12 * m.d);
+    }
+  };
+  function list6() {
+    var out = [];
+    [['c6a', 'auto-play on your list'], ['c6b', 'your habits on my list']].forEach(function (z) {
+      var m = MC[z[0]]; if (!m) return;
+      m.path.forEach(function (i, k) { out.push({ i: i, cv: z[0], label: z[1], color: m.color, k: k, len: m.path.length }); });
+    });
+    return out;
+  }
+  function seq6(from, id) {
+    if (!MC.c6a || !MC.c6b) { V6.now.textContent = 'the walks are still being drawn. try again in a moment.'; return; }
+    ['c6a', 'c6b'].forEach(function (cid) { var m = MC[cid]; if (SQ.view !== V6) { mrCanvas(cid, m.set, m.path, m.color, m.setColor, true); MS[cid] = snap($(cid)); } });
+    var l = list6(), start = 0, n;
+    if (from != null) { for (n = 0; n < l.length; n++) if (l[n].cv === (id || 'c6a') && l[n].k === from) { start = n; break; } }
+    sqRun(V6, l, start);
+  }
   // ---- wiring ----
   function bind(side) {
     var card = document.querySelector('.side[data-s="' + side + '"]');
@@ -502,7 +588,7 @@
     });
     $('own-' + side).addEventListener('click', function () {
       var other = side === 'a' ? 'b' : 'a';
-      if (S[other] && S[other].kind === 'owner') { var st = $('st-' + side); st.className = 'st'; st.innerHTML = 'the owner is already on side ' + other + '. give this side your own music.'; return; }
+      if (S[other] && S[other].kind === 'owner') { var st = $('st-' + side); st.className = 'st'; st.innerHTML = 'astralcrest is already on side ' + other + '. give this side your own music.'; return; }
       $('txt-' + side).value = ''; set(side, fromOwner());
     });
   }
@@ -513,7 +599,8 @@
   }
 
   var rz = null;
-  window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(draw, 120); });
+  var rw = window.innerWidth;
+  window.addEventListener('resize', function () { if (window.innerWidth === rw) return; rw = window.innerWidth; clearTimeout(rz); rz = setTimeout(draw, 120); });
 
   $('t4').textContent = 'loading my map';
   Promise.all([
@@ -528,7 +615,22 @@
     $('try').addEventListener('click', samples);
     $('c1').addEventListener('click', tap);
     $('c6a').addEventListener('click', mrTap('c6a')); $('c6b').addEventListener('click', mrTap('c6b'));
-    $('hear').addEventListener('click', hear);
+    $('hear').addEventListener('click', function () { if (SQ.view === V4) sqStop(); else seq4(0); });
+    $('next4').addEventListener('click', next4);
+    $('l4').addEventListener('click', function (e) { var li = e.target.closest('li[data-p]'); if (li) seq4(+li.getAttribute('data-p')); });
+    $('l4').addEventListener('keydown', function (e) { var li = e.target.closest('li[data-p]'); if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); seq4(+li.getAttribute('data-p')); } });
+    $('hear5').addEventListener('click', function () { if (SQ.view === V5) sqStop(); else seq5(0); });
+    $('next5').addEventListener('click', next5);
+    $('c5').addEventListener('click', function (e) {
+      if (!W5.length) return;
+      var el = $('c5'), r = el.getBoundingClientRect(), m = mapOf(el), x = (e.clientX - r.left) * m.d, y = (e.clientY - r.top) * m.d, best = -1, bd = Math.pow(24 * m.d, 2), idx = 0;
+      W5.forEach(function (w) { w.path.forEach(function (i, k) { var dx = m.X(i) - x, dy = m.Y(i) - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = idx; } idx++; }); });
+      if (best >= 0) seq5(best);
+    });
+    $('hear6').addEventListener('click', function () { if (SQ.view === V6) sqStop(); else seq6(0, 'c6a'); });
+    $('next6').addEventListener('click', function () {
+      if (SQ.view === V6 && SQ.k >= 0) { var l = SQ.list, k = SQ.k + 1 >= l.length ? 0 : SQ.k + 1; sqRun(V6, l, k); } else seq6(0, 'c6a');
+    });
     var Q = new URLSearchParams((location.hash || '').slice(1)), KIOSK = /[?&]kiosk=1/.test(location.search);
     var setHabit = function (v) { HABIT = v; $('habit').value = v; $('habit6').value = v; };
     var keep = function () { try { history.replaceState(null, '', '#habit=' + HABIT + '&seed=' + SEED); } catch (e) {} };

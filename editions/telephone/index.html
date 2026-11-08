@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>telephone</title>
 <meta name="description" content="a chain of songs on my sound map, one hand per link. nobody chose the whole path. a toy.">
-<meta property="og:title" content="wall 11 of 21: telephone"><meta property="og:description" content="a chain of songs on my sound map, one hand per link. nobody chose the whole path. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/telephone.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 11 of 24: telephone"><meta property="og:description" content="a chain of songs on my sound map, one hand per link. nobody chose the whole path. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/telephone.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +25,7 @@
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
 </style>
 </head>
-<body data-wall="11 of 12" data-line="a chain of songs, one hand per link. each hand saw only the last song." data-do="tap a numbered song to add it. keys 1 to 6 work too." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
+<body data-wall="11 of 12" data-line="a chain of songs, one hand per link. each hand saw only the last song." data-do="tap a numbered song to hear it, tap again to add it." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>telephone</span><span class="tl">a toy</span></p>
@@ -34,7 +34,7 @@
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map. a ribbon shows a chain of songs, one link per visitor. six pebbles around the last song are its nearest in sound; tap one to add the next link."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big ice" id="num">-</div>
+      <div class="big ice" id="num"><span class="c">add a link</span></div>
       <span class="keylab" id="numlab">hops on the map from the first song to the last</span>
       <p class="say" id="say"></p>
     </div>
@@ -44,15 +44,15 @@
     </div>
     <section>
       <p class="lastsong" id="last"></p>
-      <p class="note" id="now">tap one of the six numbered songs next to the ringed one.</p>
+      <p class="note" id="now">tap a numbered song to hear it first. tap it again to add it as the next link.</p>
       <div id="cands" role="group" aria-label="six nearest in sound; press a number key or tap one"></div>
       <div id="after"><button type="button" id="pc">hear every link in order</button><button type="button" id="kg">add more links</button></div>
       <div class="row"><button type="button" id="nw">start a new chain</button></div>
     </section>
     <details class="how"><summary>how</summary>
-      <p>tap one of the six numbered songs by the ringed one.</p>
-      <p>watch the path grow and the ringed song pulse as it plays.</p>
-      <p>read the number: hops from the first song to the last.</p>
+      <p>tap a numbered song, or press 1 to 6, to hear it. tap it again, or press enter, to add it.</p>
+      <p>the path grows and the ringed song pulses as it plays. press n or tap a numbered link to skip around when you replay.</p>
+      <p>read the number: hops from the first song to the last. pebble colors are families; a ring marks a new family.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>a toy rule on this screen, not my data. the six are the nearest artists on my sound map, not what anyone would pick next.</p>

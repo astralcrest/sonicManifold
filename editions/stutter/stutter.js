@@ -4,7 +4,7 @@ var $ = WK.$, P = WK.P, PAL = P.PAL;
 var CLIP = 1500, N = 100;
 var KIND = { press: { col: PAL.mint, gly: 'star', lab: 'my press' }, queue: { col: PAL.violet, gly: 'ring', lab: 'auto-play' }, shuffle: { col: PAL.amber, gly: 'diamond', lab: 'shuffle' } };
 var cv = $('cv'), g = cv.getContext('2d'), box = $('map');
-var plays = [], names = null, FAM = null, FI = null, PV = null, fchg = 0, AU = new Audio(), PRE = new Audio(), idx = 0, held = false, timer = null, W = 0, Ht = 0, dpr = 1;
+var D0 = null, plays = [], names = null, FAM = null, FI = null, PV = null, fchg = 0, AU = new Audio(), PRE = new Audio(), idx = 0, held = false, timer = null, W = 0, Ht = 0, dpr = 1;
 AU.preload = 'auto'; AU.volume = 0.3; PRE.preload = 'auto'; PRE.volume = 0;
 
 function resize() {
@@ -19,8 +19,8 @@ function draw() {
   for (k = 0; k < plays.length; k++) {
     p = plays[k]; kd = KIND[p.src]; a = -Math.PI / 2 + k * 6.2832 / plays.length; x = cx + Math.cos(a) * R; y = cy + Math.sin(a) * R;
     on = !fin && (held || idx > 0) && k === idx;
-    if (k < idx) { g.globalAlpha = 0.82; P.peb(g, p.i, x, y, r0, kd.col); g.globalAlpha = 1; }
-    else if (on) { P.peb(g, p.i, x, y, r0 * 1.7, kd.col); P.glyph(g, kd.gly, x, y, r0 * 2.2, PAL.night); g.save(); g.strokeStyle = kd.col; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, r0 * 2.5, 0, 6.2832); g.stroke(); g.restore(); }
+    if (k < idx) { g.globalAlpha = 0.82; P.peb(g, p.i, x, y, r0 * sz(p), kd.col); g.globalAlpha = 1; }
+    else if (on) { P.peb(g, p.i, x, y, r0 * 1.7 * sz(p), kd.col); P.glyph(g, kd.gly, x, y, r0 * 2.2, PAL.night); g.save(); g.strokeStyle = kd.col; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, r0 * 2.5, 0, 6.2832); g.stroke(); g.restore(); }
     else { g.globalAlpha = 0.5; P.peb(g, p.i, x, y, r0 * 0.85, '#3a3158'); g.globalAlpha = 1; }
     var fx = cx + Math.cos(a) * R * 0.84, fy = cy + Math.sin(a) * R * 0.84, fc = WK.FAMC[FAM[FI[p.i]]] || '#3a3158';
     g.globalAlpha = k < idx || on ? 1 : 0.35; g.fillStyle = fc; g.beginPath(); g.arc(fx, fy, on ? r0 * 0.7 : r0 * 0.42, 0, 6.2832); g.fill(); g.globalAlpha = 1;
@@ -37,8 +37,17 @@ function draw() {
     WK.pulse(g, cx + Math.cos(-Math.PI / 2 + idx * 6.2832 / plays.length) * R, cy + Math.sin(-Math.PI / 2 + idx * 6.2832 / plays.length) * R, kd2.col, r0 * 2.5);
     g.fillStyle = PAL.mute || '#9a90b8'; g.fillText((idx + 1) + ' of ' + N, cx, cy + R * 0.2 + 42);
   } else {
-    g.fillStyle = PAL.ink; g.font = '500 ' + (W < 500 ? 15 : 18) + 'px "Instrument Sans", sans-serif'; g.fillText('hold to hear a night', cx, cy);
+    g.fillStyle = PAL.ink; g.font = '500 ' + (W < 500 ? 15 : 18) + 'px "Instrument Sans", sans-serif'; g.fillText(fin ? 'that was the night' : 'tap play the night', cx, cy);
+    g.fillStyle = PAL.mute || '#9a90b8'; g.font = '500 12px "IBM Plex Mono", monospace'; g.fillText(fin ? 'tap play to hear it again' : 'or tap any shape to start there', cx, cy + 24);
   }
+}
+var PM = 1;
+function sz(p) { return 0.75 + 0.6 * Math.sqrt((D0.pl[p.i] || 0) / PM); }
+function geoms() { var cx = W / 2, cy = Ht / 2, R = Math.min(W, Ht) / 2 - (W < 500 ? 30 : 46); return { cx: cx, cy: cy, R: R }; }
+function nearest(x, y, lim) {
+  var G = geoms(), best = -1, bd = lim * lim, k, a, dx, dy, d;
+  for (k = 0; k < plays.length; k++) { a = -Math.PI / 2 + k * 6.2832 / plays.length; dx = G.cx + Math.cos(a) * G.R - x; dy = G.cy + Math.sin(a) * G.R - y; d = dx * dx + dy * dy; if (d < bd) { bd = d; best = k; } }
+  return best;
 }
 function trim(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
 
@@ -54,23 +63,30 @@ function playAt() {
   if (u) { AU.src = u; var off = (rep * 4) % 24, seek = function () { AU.removeEventListener('loadedmetadata', seek); try { if (off) AU.currentTime = off; } catch (e) {} }; AU.addEventListener('loadedmetadata', seek); var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {}); }
   else AU.pause();
   $('now').textContent = 'play ' + (idx + 1) + ': ' + (p.t ? '\u201c' + p.t + '\u201d by ' : '') + (names[p.i] || '') + ', ' + KIND[p.src].lab + ', ' + (FAM[FI[p.i]] || '') + '.' + (rep ? ' same artist as the last ' + rep + ': one clip per artist here, so a later second of it.' : '') + (u ? '' : ' no clip for this one.');
+  var SAY = { press: 'i began this one by hand (my press, mint star).', queue: 'the app picked this one on its own (auto-play, violet ring).', shuffle: 'this one came from a random shuffle (amber diamond).' };
+  $('say').textContent = 'play ' + (idx + 1) + ' of ' + N + ': ' + SAY[p.src] + (idx > 0 && FI[p.i] !== FI[plays[idx - 1].i] ? ' a new family: ' + (FAM[FI[p.i]] || '') + '.' : '');
   preload(idx + 1); draw(); counts();
   timer = setTimeout(function () { idx++; playAt(); }, CLIP); WK.live(draw);
 }
+function btn() { var b = $('hold'); b.classList.toggle('go', held); b.setAttribute('aria-pressed', held ? 'true' : 'false'); b.textContent = held ? 'pause' : (idx >= N ? 'play it again' : idx > 0 ? 'keep playing' : 'play the night'); }
 function end() {
-  AU.pause(); WK.still(); $('hold').classList.remove('go'); $('hold').setAttribute('aria-pressed', 'false'); $('hold').textContent = 'hold to hear again';
-  $('now').textContent = 'that was a night. hold again to hear it again.'; draw();
+  AU.pause(); WK.still(); btn();
+  $('now').textContent = 'that was a night: all ' + N + ' plays. tap play to hear it again, or tap a shape to start anywhere.'; draw();
 }
 function press() {
   if (held || !plays.length) return;
   if (idx >= N) idx = 0;
-  held = true; $('hold').classList.add('go'); $('hold').setAttribute('aria-pressed', 'true'); $('hold').textContent = 'hearing...'; playAt();
+  held = true; btn(); playAt();
 }
 function release() {
   if (!held) return;
-  held = false; clearTimeout(timer); AU.pause(); WK.still();
-  $('hold').classList.remove('go'); $('hold').setAttribute('aria-pressed', 'false'); $('hold').textContent = 'hold to hear';
-  if (idx > 0) idx = Math.min(idx, N); draw();
+  held = false; clearTimeout(timer); AU.pause(); WK.still(); btn();
+  $('now').textContent = 'paused at play ' + (idx + 1) + ' of ' + N + '. tap keep playing to go on.'; draw();
+}
+function toggle() { if (held) release(); else press(); }
+function jump(k) {
+  k = Math.max(0, Math.min(N - 1, k)); clearTimeout(timer); idx = k;
+  if (held) playAt(); else { held = true; btn(); playAt(); }
 }
 function counts() {
   var c = { press: 0, queue: 0, shuffle: 0 }; plays.forEach(function (p) { c[p.src]++; });
@@ -79,20 +95,34 @@ function counts() {
 }
 
 var hb = $('hold');
-hb.addEventListener('pointerdown', function (e) { try { hb.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); press(); });
-['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (ev) { hb.addEventListener(ev, release); });
-cv.addEventListener('pointerdown', function (e) { try { cv.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); press(); });
-['pointerup', 'pointercancel'].forEach(function (ev) { cv.addEventListener(ev, release); });
-hb.addEventListener('keydown', function (e) { if (e.key === ' ' || e.key === 'Enter') e.preventDefault(); });
-addEventListener('keydown', function (e) { if (e.code === 'Space' && !e.repeat && !e.metaKey && !e.ctrlKey) { e.preventDefault(); press(); } });
-addEventListener('keyup', function (e) { if (e.code === 'Space') { e.preventDefault(); release(); } });
-$('again').addEventListener('click', function () { release(); idx = 0; hb.textContent = 'hold to hear'; $('now').textContent = ''; draw(); });
+hb.addEventListener('click', toggle);
+$('next').addEventListener('click', function () { if (idx < N - 1) jump(idx + 1); });
+cv.addEventListener('click', function (e) {
+  var r = cv.getBoundingClientRect(), k = nearest(e.clientX - r.left, e.clientY - r.top, 26);
+  if (k >= 0) jump(k); else toggle();
+});
+var tip = document.createElement('div'); tip.className = 'wk-tip'; tip.hidden = true; tip.setAttribute('aria-hidden', 'true'); box.style.position = 'relative'; box.appendChild(tip);
+cv.addEventListener('pointermove', function (e) {
+  var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, k = nearest(x, y, 16);
+  if (k < 0 || !plays.length) { tip.hidden = true; return; }
+  var p = plays[k];
+  tip.innerHTML = '<b>' + WK.esc(names[p.i] || '') + '</b> <i style="background:' + (WK.FAMC[FAM[FI[p.i]]] || '#6f6790') + '"></i>' + WK.esc(FAM[FI[p.i]] || '') + ' · ' + KIND[p.src].lab + ' · play ' + (k + 1);
+  tip.style.left = Math.max(0, Math.min(W - 220, x + 12)) + 'px'; tip.style.top = Math.max(0, y - 34) + 'px'; tip.hidden = false;
+});
+cv.addEventListener('pointerleave', function () { tip.hidden = true; });
+addEventListener('keydown', function (e) {
+  if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /BUTTON|INPUT|TEXTAREA/.test(e.target.tagName))) return;
+  if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) toggle(); }
+  else if (e.key === 'ArrowRight' || e.key === 'n') { e.preventDefault(); if (idx < N - 1) jump(idx + 1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); if (idx > 0) jump(idx - 1); }
+});
+$('again').addEventListener('click', function () { release(); idx = 0; btn(); $('now').textContent = 'back at the start. tap play the night.'; $('say').textContent = 'tap play the night. each play is a 1.5 s clip, one after another, until the end or until you pause.'; draw(); });
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 80); });
 
 Promise.all([WK.j('../haunted/data/haunted.json'), WK.j('../loop/data/loop.json'), WK.pv()]).then(function (a) {
   var ev = a[0].ev, k, used = 0;
-  names = a[1].n; FAM = a[1].fam; FI = a[1].f; PV = a[2];
+  D0 = a[1]; PM = Math.max.apply(null, D0.pl) || 1; names = a[1].n; FAM = a[1].fam; FI = a[1].f; PV = a[2];
   for (k = 0; k < ev.length && plays.length < N; k++) {
     used++;
     ev[k].p.forEach(function (p) { if (plays.length < N && KIND[p[2]]) plays.push({ i: p[0], src: p[2], t: p[1] }); });

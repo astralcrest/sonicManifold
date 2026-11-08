@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>stand where it puts you</title>
 <meta name="description" content="type up to five artists you like. a white ring marks where they sit on my sound map.">
-<meta property="og:title" content="wall 19 of 21: stand where it puts you"><meta property="og:description" content="type up to five artists you like. a white ring marks where they sit on my sound map."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/stand.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="wall 19 of 24: stand where it puts you"><meta property="og:description" content="type up to five artists you like. a white ring marks where they sit on my sound map."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/stand.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,12 +18,15 @@
 .ins { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
 .ins legend { font: 500 12px var(--mono); color: var(--mute); padding: 0; margin-bottom: 8px; }
 .near { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; font: 500 14px/1.3 var(--sans); }
-.near li { display: flex; align-items: center; min-width: 0; } .near li span.nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.near .sw { flex: none; border-radius: 50%; }
-#go { --acc: var(--ice); } #clear { --acc: var(--mint); } #hear { --acc: var(--ice); }
+.near li { min-width: 0; } button[hidden] { display: none; }
+#side .near .nb { justify-content: flex-start; gap: 6px; width: 100%; min-width: 0; min-height: 40px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; text-align: left; color: var(--ink); background: transparent; }
+#side .near .nb.on { border-color: var(--mint); background: #1a1236; color: var(--ink); }
+.near .q { flex: none; width: 1.4em; font: 600 12px var(--mono); color: var(--mute); } .near .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; } .near .fm { flex: none; font: 500 11px var(--mono); color: var(--mute); max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#side .near .sw { flex: none; width: 10px; height: 10px; margin: 0; border-radius: 50%; } @media (max-width: 520px) { .near { grid-template-columns: 1fr; } .near .fm { max-width: 9em; } }
+#go { --acc: var(--ice); } #clear { --acc: var(--mint); } #hear, #next { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="19 of 21" data-line="type artists you like. the white ring is where you stand on my map; the list is who sits nearest you." data-do="type one to five artists, pick each from the list, press place me. tap any shape or name to hear it." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
+<body data-wall="19 of 24" data-line="the white ring is where your artists average out on my map." data-do="type one to five artists, pick each, press place me, then hear the nearest." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>stand where it puts you</span><span class="tl">a toy</span></p>
@@ -32,8 +35,8 @@
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map. each artist you type lights as an ice dot with a name tag. a big white ring with a crosshair marks the average of their positions, and the ten nearest artists to the ring light up in their family colors."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big" id="num"><span>-</span></div>
-      <span class="keylab">kinds of music (of 14) among the ten nearest</span>
+      <div class="big" id="num"><span class="c">not placed yet</span></div>
+      <span class="keylab">sound families (of 14) among the ten nearest to your ring</span>
       <p class="say" id="say">type one to five artists you like, then press place me.</p>
     </div>
     <div class="lines">
@@ -50,17 +53,18 @@
       </fieldset>
       <datalist id="dl"></datalist>
       <div class="row">
-        <button type="button" id="go">place me on the map</button>
-        <button type="button" id="clear">clear</button>
-        <button type="button" id="hear" aria-pressed="false">hear the ten nearest, one by one</button>
+        <button type="button" id="go">place me and play</button>
+        <button type="button" id="hear" aria-pressed="false" hidden>hear the ten nearest</button>
+        <button type="button" id="next" hidden>next stop</button>
+        <button type="button" id="clear" hidden>start over</button>
       </div>
       <ul class="near" id="near" aria-label="the ten nearest artists to your mark"></ul>
-      <p class="note" id="now">sound: a preview plays only after you tap, and only when sound is on.</p>
+      <p class="note" id="now">sound: tap any shape or name to hear it, only when sound is on.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>type artists you like, picking each from the list.</p>
-      <p>press place me. a white ring lands at their middle.</p>
-      <p>tap a dot to hear it. colors are sound families.</p>
+      <p>type artists you like, picking each from the list, then press place me and play.</p>
+      <p>a white ring lands at their middle and the ten nearest play in order, nearest first. press next stop, or tap a number, to skip ahead.</p>
+      <p>colors are sound families, size is how much i played an artist. tap any dot to hear it.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>the mark is the plain mean of the positions you typed, on my sound map.</p>
