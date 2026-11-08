@@ -165,7 +165,7 @@ html.in-met #when{opacity:1}
   <div class="copy">
     <p class="k">ii · the shape · the same plays, gathered into 1,986 artists</p>
     <h2 id="h-shape">my taste has a shape. the app lives in one corner of it.</h2>
-    <p class="so">artists placed by the evenings they shared. where it pools violet, the app chose. where it goes mint, i did.</p>
+    <p class="so">artists placed by the evenings they shared, one color per family. tap who pressed play to see whose finger.</p>
     <p class="sub">drag to turn the sky. tap a dot and it sings. the families light one constellation at a time.</p>
     <p class="num">ambient/lofi reaches me through the app: 0.71 [0.63, 0.79] under-tapped by the strictest count, on the completed family map. hip-hop/r&amp;b i reach for: 1.24 [1.19, 1.29] over-tapped, the less firm of the two. when i pick the next song i cross families slightly more often: 69.9 vs 66.3 of 100, a direction, not a size.</p>
     <div class="bar"><button type="button" class="chip" id="b-mode" aria-pressed="false">who pressed play</button><button type="button" class="chip" id="b-key" aria-pressed="false">families</button><button type="button" class="chip" id="b-sky" aria-pressed="false">what sounds alike</button><button type="button" class="chip" id="b-years" aria-pressed="false">as it grew</button><button type="button" class="chip b-deeper" data-act="shape">deeper</button></div>
@@ -290,7 +290,7 @@ function sync(){var o=on();b.textContent=o?'sound on':'sound off, tap to hear';b
 var pre=false;['pointerdown','touchstart'].forEach(function(e){b.addEventListener(e,function(){pre=on()},true)});
 b.addEventListener('click',function(){var A=au();if(pre){A.forEach(function(a){a.muted=true})}else{A.forEach(function(a){a.muted=false});if(!A.some(function(a){return !a.paused})){var p=document.getElementById('b-play');if(p)p.click()}}pre=on();setTimeout(sync,60)});
 ['play','pause','volumechange','ended'].forEach(function(e){document.addEventListener(e,sync,true)});setInterval(sync,700);sync()})()</script>
-<script src="front/spine.js?v=f9d7434fd7" defer></script>
+<script src="front/spine.js?v=7632ea2f74" defer></script>
 <script src="front/music.js?v=39372afec0" defer></script>
 </body>
 </html>

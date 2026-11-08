@@ -897,7 +897,7 @@ var CL = { list: null, k: -1, sc: -1, to: 0, one: null, at: {} };
 var LOOKS = ['straight: names on the rim, grouped by family; straight lines inside.', 'gathered: lines that share a road are pulled together.', 'islands: one per family; a curve crosses families.', 'arcs: my press above in mint, auto-play below.'];
 var NSAY = { hood: 'colored by room: drawn from what followed what alone.', family: 'colored by family; no room was told a family.', first: 'colored by first heard, in eight cuts of the log.' };
 function clItems(sc) {
-  var act = $$('.act')[sc], v = String(S.mt); if (!act) return [];
+  var act = document.getElementById('a-' + SCENES[sc]), v = String(S.mt); if (!act) return [];  /* by id: the opener is a .act with no scene, so an index would be off by one */
   return Array.prototype.slice.call(act.querySelectorAll('.cl li')).filter(function (li) { var d = li.getAttribute('data-v'); return d === null || sc !== C_MAPS || d === v; }).map(function (li) { return { t: li.textContent, at: li.getAttribute('data-at') }; });
 }
 function tmLabel() {
@@ -1039,16 +1039,18 @@ function clDraw(g) {
   var vx = a[0] - cam.cx, vy = a[1] - cam.cy, vl = Math.hypot(vx, vy) || 1, dirs = [[vx / vl, vy / vl]], c8 = [[1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1]];
   c8.forEach(function (d) { var l = Math.hypot(d[0], d[1]); dirs.push([d[0] / l, d[1] / l]); });
   dirs.sort(function (p, r2) { return (r2[0] * vx + r2[1] * vy) - (p[0] * vx + p[1] * vy); });
-  var ds = scene === C_HAND ? [150, 190, 60, 100] : [28, 56, 96, 150], top = phone ? 56 : 10, rgt = W - (phone ? 40 : 10), box = null, pass, di, dk;
+  var ds = scene === C_HAND ? [150, 190, 60, 100] : [28, 56, 96, 150, 210, 280], top = phone ? 56 : 10, rgt = W - (phone ? 40 : 10), box = null, pass, di, dk, best = null, bestS = Infinity, ALL = words.concat(DW, KB ? [KB] : []);
   for (pass = 0; pass < 3 && !box; pass++) for (dk = 0; dk < ds.length && !box; dk++) for (di = 0; di < dirs.length && !box; di++) {
     var d0 = dirs[di], px = a[0] + d0[0] * (rr + ds[dk]), py = a[1] + d0[1] * (rr + ds[dk]), bx = px + d0[0] * bw / 2 - bw / 2, by = py + d0[1] * bh / 2 - bh / 2;
     if (bx < 10 || by < top || bx + bw > rgt || by + bh > H - 10) continue;
     if (a[0] > bx - rr - 4 && a[0] < bx + bw + rr + 4 && a[1] > by - rr - 4 && a[1] < by + bh + rr + 4) continue;
-    var L3 = pass === 0 ? words : pass === 1 ? DW.concat(KB ? [KB] : []) : [], ok = true;
+    /* last pass: nothing is clear, so take the spot that covers the least of any label, closer first */
+    if (pass === 2) { var sc2 = (rr + ds[dk]) * 2; for (q = 0; q < ALL.length; q++) { var o2 = ALL[q], ow = Math.min(bx + bw, o2[2]) - Math.max(bx, o2[0]), oh = Math.min(by + bh, o2[3]) - Math.max(by, o2[1]); if (ow > 0 && oh > 0) sc2 += ow * oh; } if (sc2 < bestS) { bestS = sc2; best = [Math.round(bx), Math.round(by)]; } continue; }
+    var L3 = pass === 0 ? words : DW.concat(KB ? [KB] : []), ok = true;
     for (q = 0; ok && q < L3.length; q++) { var o = L3[q]; if (!(bx + bw + 4 < o[0] || bx - 4 > o[2] || by + bh + 4 < o[1] || by - 4 > o[3])) ok = false; }
     if (ok) box = [Math.round(bx), Math.round(by)];
   }
-  if (!box) box = [Math.round(Math.max(10, Math.min(rgt - bw, a[0] - bw / 2))), Math.round(Math.max(top, Math.min(H - 10 - bh, a[1] + rr + 24)))];
+  if (!box) box = best || [Math.round(Math.max(10, Math.min(rgt - bw, a[0] - bw / 2))), Math.round(Math.max(top, Math.min(H - 10 - bh, a[1] + rr + 24)))];
   var X = box[0], Y = box[1], ex = Math.max(X, Math.min(a[0], X + bw)), ey = Math.max(Y, Math.min(a[1], Y + bh)), an = Math.atan2(ey - a[1], ex - a[0]);
   g.strokeStyle = ac; g.lineWidth = 1; g.beginPath(); g.moveTo(a[0] + Math.cos(an) * rr, a[1] + Math.sin(an) * rr); g.lineTo(ex, ey); g.stroke();
   ring(g, a[0], a[1], rr, ac, a[2] ? 1 : 1.4);
