@@ -54,7 +54,7 @@ function up(e) {
   S.drag = false;
   if (S.line.length >= 2) S.short = bfs(S.line[0], S.line[S.line.length - 1]);
   else if (S.line.length === 1 && !S.moved) { var one = S.line[0]; WK.play([{ i: one, tag: 'tap' }], function (k, info) { $('now').textContent = info ? 'hearing ' + info.title + ' by ' + D.n[one] + '. drag from it to draw a way.' : ''; }); }
-  out(); draw();
+  hearLabel(); out(); draw();
 }
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
