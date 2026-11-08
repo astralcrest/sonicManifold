@@ -141,7 +141,7 @@
     const s = S[R], p = D.pairs[s.pi];
     const L = side ? "B" : "A";
     if (clip && clip.btn === $("play" + L)) { stopClip(); return; }
-    if (!snd()) { $("status").textContent = "sound is off. tap the sound chip at the top, then play " + L.toLowerCase() + " again. you pick only after you hear both."; return; }
+    if (!snd()) { $("status").textContent = "sound is off: tap the sound chip at the top, then play " + L.toLowerCase() + " again. you pick only after you hear both."; return; }
     const o = p.o[sideOpt(s, side)];
     playClip(o.u, $("m" + L), $("play" + L), null);
     heard[side] = true;
@@ -197,7 +197,7 @@
       else if (s.skipped) { const e = document.createElement("em"); e.textContent = " · first song skipped, counted as none"; li.append(e); }
       log.append(li);
     });
-    $("now").textContent = snd() ? "press hear your picks in order, tap a shape on the map, or tap a row." : "sound is off. tap the sound chip at the top, then hear your picks.";
+    $("now").textContent = snd() ? "press hear your picks in order, tap a shape on the map, or tap a row." : "sound is off: tap the sound chip at the top, then hear your picks.";
     $("next").disabled = false; $("next").textContent = "again";
     mapBase = null; mapFrame();
     try { history.replaceState(null, "", "#r=" + encodeS()); } catch (e) {}
@@ -365,7 +365,7 @@
   $("map").addEventListener("pointerdown", e => {
     const n = nearest(e); if (!n.m) return;
     const m = n.m;
-    if (!snd()) { $("now").textContent = "sound is off. tap the sound chip at the top, then tap a shape again."; return; }
+    if (!snd()) { $("now").textContent = "sound is off: tap the sound chip at the top, then tap a shape again."; return; }
     tourEnd("");
     const t = ++mapTok;
     playClip(m.o.u, $("tm"), null, () => { if (t === mapTok && !tourOn) { hl = null; } });
@@ -386,7 +386,7 @@
   function tourGo(k) {
     const t = ++tourTok;
     if (k >= S.length) { tourEnd("that was all twelve picks."); return; }
-    if (!snd()) { $("now").textContent = "sound is off. tap the sound chip at the top, then press hear your picks in order."; return; }
+    if (!snd()) { $("now").textContent = "sound is off: tap the sound chip at the top, then press hear your picks in order."; return; }
     tourOn = true; tourK = k;
     const s = S[k], o = D.pairs[s.pi].o[s.pick];
     let rep = 0; for (let q = 0; q < k; q++) if (D.pairs[S[q].pi].o[S[q].pick].i === o.i) rep++;

@@ -75,7 +75,7 @@ function onst(k, info) {
     return;
   }
   S.at = S.base + k; sayFor(S.at);
-  $('now').textContent = 'playing “' + info.title + '”, ' + D.n[S.stops[S.at].i] + '. ' + modeLine() + (WK.sound() ? '' : ' sound is off: tap the button at the top.');
+  $('now').textContent = 'playing “' + info.title + '”, ' + D.n[S.stops[S.at].i] + '. ' + modeLine() + (WK.sound() ? '' : ' sound is off: tap the sound chip at the top.');
   $('nx').disabled = S.at >= S.stops.length - 1; $('st').disabled = false;
   WK.live(draw);
 }

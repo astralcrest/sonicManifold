@@ -15,7 +15,7 @@ function setBar(f) { $('bar').firstElementChild.style.width = Math.round(Math.ma
 function fam(i) { return D.fam[D.f[i]]; }
 function fcol(i) { return WK.FAMC[fam(i)] || PAL.ice; }
 function decided() { return S.st.some(function (x) { return x !== 0; }); }
-function snd() { return WK.sound() ? '' : ' sound is off: tap the sound chip to hear it.'; }
+function snd() { return WK.sound() ? '' : ' sound is off: tap the sound chip at the top.'; }
 function keptN() { return S.st.filter(function (x) { return x === 1; }).length; }
 
 function keptNames() { var o = []; S.list.forEach(function (a, n) { if (S.st[n] === 1) o.push(D.n[a]); }); return o.length ? ': ' + o.join(', ') : ''; }

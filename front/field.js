@@ -1275,10 +1275,10 @@ function unduck() { var M = window.__smMusic; if (M && M.release) M.release(); }
 window.__radioYield = function () { if (pv && !pv.paused) { S.user = true; pv.pause(); } if (S.game && S.game.on) endGame(true); };
 function npSilent() { if (!phone) return; var e = $('#np'); if (!e || e.hidden) return; var q = function () { var alb = window.__smMusic && window.__smMusic.A && window.__smMusic.A.el; return !S.playing && !(pv && !pv.paused) && !(alb && !alb.paused) && S.pend < 0; }; if (q()) setTimeout(function () { if (q() && !e.hidden) e.hidden = true; }, 1100); }
 function albumEl() { var M = window.__smMusic; return M && M.A && M.A.el; }
-function anyOn() { var a = albumEl(); return !!(S.playing || (a && !a.paused)); }
+function anyOn() { var a = albumEl(); return !!(S.playing || (a && !a.paused) || S.wallOn); }
 /* the one sound cue: "sound on" whenever anything plays (a preview, the album, a gold song), one string when nothing does */
 function ppLabel() { npSilent(); var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; } var h = $('#b-hear'); if (h) { var on = anyOn(); h.classList.toggle('on', on); text('#b-hear', on ? 'sound on' : 'sound off, tap to hear'); } html.classList.toggle('sm-pv', !!S.playing); }
-function hushWall() { var fr = $('#wr-f'); if (html.classList.contains('sm-wall') && fr && fr.contentWindow) try { fr.contentWindow.postMessage({ sm: 'front', ev: 'hush' }, location.origin); } catch (x) { /* fine */ } }
+function hushWall() { var fr = $('#wr-f'); if (html.classList.contains('sm-wall') && fr && fr.contentWindow) try { fr.contentWindow.postMessage({ sm: 'front', ev: 'hush' }, location.origin); } catch (x) { /* fine */ } S.wallOn = false; }
 (function () { var t = setInterval(function () { var a = albumEl(); if (!a || a.__hear) return; a.__hear = 1; clearInterval(t); ['play', 'pause', 'ended'].forEach(function (e) { a.addEventListener(e, ppLabel); }); ppLabel(); }, 700); })();
 function el() {
   if (pv) return pv;
@@ -1676,13 +1676,14 @@ var wrT = 0;
 function wrArm() { clearTimeout(wrT); var k = WR.k; if (k < 0) return; wrT = setTimeout(function () { if (WR.k === k) playedMark(WALLS[k][0]); }, 45000); }
 addEventListener('message', function (e) {
   var d = e.data; if (!d || d.sm !== 'wall' || WR.k < 0) return;
-  if (d.ev === 'end') { playedMark(WALLS[WR.k][0]); var nx = $('#wr-next'); if (nx) nx.classList.add('go'); var nm = $('#wr-name'); if (nm) nm.textContent = WALLS[WR.k][1] + '. next: ' + WALLS[(WR.k + 1) % WALLS.length][1]; }
-  else if (d.ev === 'play') { wrArm(); duck(); if (pv && !pv.paused) { S.user = true; pv.pause(); } }
+  if (d.ev === 'stop') { S.wallOn = false; ppLabel(); }
+  else if (d.ev === 'end') { S.wallOn = false; ppLabel(); playedMark(WALLS[WR.k][0]); var nx = $('#wr-next'); if (nx) nx.classList.add('go'); var nm = $('#wr-name'); if (nm) nm.textContent = WALLS[WR.k][1] + '. next: ' + WALLS[(WR.k + 1) % WALLS.length][1]; }
+  else if (d.ev === 'play') { S.wallOn = true; wrArm(); duck(); if (pv && !pv.paused) { S.user = true; pv.pause(); } ppLabel(); }
 });
 var _wallOpen = wallOpen;
 wallOpen = function (slug, push) { _wallOpen(slug, push); var nx = $('#wr-next'); if (nx) nx.classList.remove('go'); wrArm(); playedPaint(); };
 var _wallClose = wallClose;
-wallClose = function (pop) { clearTimeout(wrT); _wallClose(pop); playedPaint(); };
+wallClose = function (pop) { clearTimeout(wrT); S.wallOn = false; _wallClose(pop); playedPaint(); ppLabel(); };
 (function () { var wd = $('#wr-deal'); if (wd) wd.addEventListener('click', function () { wallOpen(dealOne(WR.k >= 0 ? WALLS[WR.k][0] : '')); }); })();
 (function () { var b = $('#b-walls'); if (!b) return; b.addEventListener('click', function (e) { if (e.metaKey || e.ctrlKey || e.shiftKey) return; if (PLAYED.length >= WALLS.length) return; e.preventDefault(); wallOpen(dealOne('')); }); })();
 playedPaint();

@@ -7574,7 +7574,7 @@ try {
 <!--l4s-->
 
 <!-- R20: no toast and no gate. sound starts on the first press anywhere (at once when the browser already counts one); this chip is the one sound control and names its state: "sound on" or "mute" -->
-<button id="sound-chip" type="button"><span class="scp-n" aria-hidden="true">&#9834;</span> <span class="scp-t">play music</span></button>
+<button id="sound-chip" type="button"><span class="scp-n" aria-hidden="true">&#9834;</span> <span class="scp-t">sound off, tap to hear</span></button>
 
 <script>
 try {
@@ -7608,7 +7608,7 @@ try {
     var on = running(), off = !on && armed() && held();
     var muted = has('aux-play', 'muted') || (!armed() && stored());
     if (muted && !on) off = true;
-    var t = muted ? 'unmute' : on ? 'mute' : 'play music'; /* R21 DA: the label is the command, not the state */
+    var t = muted ? 'sound off, tap to hear' : on ? 'sound on' : 'sound off, tap to hear'; /* one sound string on every page; the title carries the command. not the state */
     var s = chip.querySelector('.scp-t');
     if (s && s.textContent !== t) s.textContent = t;
     chip.classList.toggle('is-on', on);
@@ -7695,11 +7695,12 @@ try {
     }
     /* the H1 loop, like every Spotify player, pauses the soundtrack through the player bridge in the soundtrack control */
     /* the browser already counts a press from the page before: start now */
-    if (window.__smArrivedActive && !stored() && !armed() && p) { try { p.click(); } catch (e) {} }
+    if (window.__smArrivedActive && pref() === 'on' && !armed() && p) { try { p.click(); } catch (e) {} }
     render();
   }
 
-  listen();
+  /* the album starts from the chip, or on the first press when another room already chose sound on; a cold page stays silent */
+  if (pref() === 'on') listen();
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', ready); else ready();
   window.addEventListener('pageshow', function (e) {
     follow();

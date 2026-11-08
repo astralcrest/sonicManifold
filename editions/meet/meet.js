@@ -28,7 +28,7 @@ function path(a, b) {
 function fam(i) { return D.fam[D.f[i]]; }
 function fcol(i) { return WK.FAMC[fam(i)] || PAL.ice; }
 function setNum(t) { $('num').innerHTML = t == null ? '<span class="c">tap two spots</span>' : String(t); }
-function soundHint() { return WK.sound() ? '' : ' sound is off: tap the sound chip to hear it.'; }
+function soundHint() { return WK.sound() ? '' : ' sound is off: tap the sound chip at the top.'; }
 function nearest(x, y, needClip) {
   var best = -1, bd = 1e18, i, d;
   for (i = 0; i < M.N; i++) {

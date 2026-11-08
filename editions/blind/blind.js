@@ -36,7 +36,7 @@ function toggle(k, seq) {
   var was = S.playing; S.seq = !!seq; stop();
   if (was === k && !seq) return;
   AU.src = opt(k).u; var pr = AU.play(); if (pr && pr.catch) pr.catch(function () { S.seq = false; stop(); });
-  S.playing = k; setPlay(k, true); say(nowLine(k) + (WK.sound() ? '' : ' sound is off: tap the chip at the top to hear it.'));
+  S.playing = k; setPlay(k, true); say(nowLine(k) + (WK.sound() ? '' : ' sound is off: tap the sound chip at the top.'));
   if (S.phase !== 'dark') WK.live(redraw);
 }
 function done() {

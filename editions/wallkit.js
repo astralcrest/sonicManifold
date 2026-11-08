@@ -210,7 +210,7 @@
   function playing() { return pk >= 0; }
   // the front, when a wall plays inside it, hears when a walk ends and when a clip starts
   function tell(ev) { try { if (window.parent && window.parent !== window) { var n = parseInt(document.body.getAttribute('data-wall'), 10) || 0; window.parent.postMessage({ sm: 'wall', wall: n ? WALLS[n - 1][0] : '', ev: ev }, location.origin); } } catch (e) {} }
-  function stop() { var ended = pk >= 0 && pk >= plist.length - 1; if (AU) AU.pause(); pk = -1; if (onstate) onstate(-1, null); if (ended) tell('end'); }
+  function stop() { var ended = pk >= 0 && pk >= plist.length - 1, was = !!(AU && !AU.paused); if (AU) AU.pause(); pk = -1; if (onstate) onstate(-1, null); if (ended) tell('end'); else if (was) tell('stop'); }
   function next(k) {
     while (k < plist.length && !(PV && PV[plist[k].i])) k++;
     if (k >= plist.length) { stop(); return; }

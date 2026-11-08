@@ -23,7 +23,7 @@ function fam(i) { return D.fam[D.f[i]]; }
 function fcol(i) { return WK.FAMC[fam(i)] || PAL.ice; }
 function rad(i, lo, hi) { return lo + (hi - lo) * Math.log(1 + D.pl[i]) / Math.log(1 + D.pl[M.order[0]]); }
 function setNum(v) { $('num').innerHTML = v == null ? '<span class="c">shake to start</span>' : String(v); }
-function snd() { return WK.sound() ? '' : ' sound is off: tap the sound chip to hear it.'; }
+function snd() { return WK.sound() ? '' : ' sound is off: tap the sound chip at the top.'; }
 function hearSeq(seq, from) {
   var my = ++S.tok, list = [], k;
   S.seq = seq;

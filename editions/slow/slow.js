@@ -97,7 +97,7 @@ function playK(k) {
   AU.src = PV[s.i][1];
   var pr = AU.play();
   if (pr && pr.catch) pr.catch(function () { say('the clip did not start. tap play again.'); stop(); });
-  say(nowLine(k) + (WK.sound() ? '' : ' sound is off, so the clock waits: tap the chip at the top.'));
+  say(nowLine(k) + (WK.sound() ? '' : ' sound is off, so the clock waits: tap the sound chip at the top.'));
   show();
 }
 function advance() {
@@ -144,7 +144,7 @@ function tapAt(i) {
   if (k < 0) { say(VIS.indexOf(i) >= 0 ? D.n[i] + ' (' + fam(i) + '): auto-play did reach this one. the bright shapes are the twelve it never did.' : D.n[i] + ' (' + fam(i) + ') has no clip here. tap a bright shape.'); return; }
   jumpK(k);
 }
-function reset() { stop(); S.res = []; S.credited = false; S.listen = 0; S.el = 0; S.k = -1; say('sound is off until you tap the chip at the top. the stay clock counts only while you can hear it. on a keyboard: space plays or stops, n skips.'); show(); }
+function reset() { stop(); S.res = []; S.credited = false; S.listen = 0; S.el = 0; S.k = -1; say('sound is off until you tap the sound chip at the top. the stay clock counts only while you can hear it. on a keyboard: space plays or stops, n skips.'); show(); }
 function bump() { clearTimeout(S.idle); S.idle = setTimeout(function () { if (S.on || S.stays) reset(); }, 120000); }
 ['pointerdown', 'keydown'].forEach(function (e) { document.addEventListener(e, bump, true); });
 
