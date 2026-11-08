@@ -1609,7 +1609,7 @@ fetchJ('field').then(function (j) {
   whatFor(scene); if (phone) text('#b-hear', 'sound off');
 
 // the wall room: any wall link opens the wall inside the front, with a rail to walk the walls
-var WALLS = [['loop','walk the loop'],['two','the two of you'],['taste','the taste test'],['haunted','the haunted night'],['seeds','the two seeds'],['undo','undo a year'],['blind','blind or named'],['booth','the graveyard booth'],['slow','the slow room'],['tug','tug of two hands'],['telephone','telephone'],['stutter','the stutter'],['meet','meet in the middle'],['hold','hold to keep'],['shake','shake the shuffle'],['pour','the pour'],['applause','applause as skip'],['way','draw the long way'],['stand','stand where it puts you'],['scrub','scrub the map by ear'],['longhold','the long hold'],['crossings','family crossings'],['radio','draw a radio'],['hand','whose finger'],['chorus','the chorus']];
+var WALLS = [['loop','walk the loop'],['two','the two of you'],['taste','the taste test'],['haunted','the haunted night'],['seeds','the two seeds'],['undo','undo a year'],['blind','blind or named'],['booth','the confession booth'],['slow','the slow room'],['tug','tug of two hands'],['telephone','telephone'],['stutter','the stutter'],['meet','meet in the middle'],['hold','hold to keep'],['shake','shake the shuffle'],['pour','the pour'],['applause','clap to skip'],['way','draw the long way'],['stand','where you land'],['scrub','scrub by ear'],['longhold','the long hold'],['crossings','family crossings'],['radio','draw a radio'],['hand','whose finger'],['chorus','the chorus']];
 var WR = { k: -1, was: '' };
 function wallIdx(slug) { for (var i = 0; i < WALLS.length; i++) if (WALLS[i][0] === slug) return i; return -1; }
 function wallOpen(slug, push) {
