@@ -325,7 +325,7 @@ function newPath(animate) {
   $('nc').textContent = 'about ' + Math.round(w.nc);
   S.anim = animate && !reduce ? 0 : S.path.length;
   if (animate) S.ghost = null;
-  metrics(); pathList();
+  metrics(); pathList(); stubLink();
   if (S.anim < S.path.length) tick(); else draw();
   clearTimeout(S.t); S.t = setTimeout(slow, 140);
   saveHash();
@@ -351,6 +351,8 @@ function metrics() {
   $('say').textContent = s.loop > STEPS ? 'this rule never repeats in 40 steps; ' + pct(s.top) + ' of its picks are artists i play most.' : 'this rule starts repeating at step ' + s.loop + '; ' + pct(s.top) + ' of its picks are artists i play most.';
 }
 
+/* the split stub for this walk: the last stop, numbered from the walk itself so the same walk prints the same stub */
+function stubLink() { var el = $('stub'); if (!el || !S.path) return; var last = S.path[S.path.length - 1], n = ((S.seed * 131 + S.start * 17 + last) % 999) + 1; el.href = '../print/stub.html#a=' + last + '&n=' + n; el.setAttribute('aria-label', 'print the stub for ' + name(last) + ', number ' + n); }
 function pathList() {
   var o = $('path'), h = '';
   S.path.forEach(function (i, k) { h += '<span data-k="' + k + '" tabindex="0" role="button"><i style="background:' + (FAMC[D.fam[D.f[i]]] || MUTE) + '"></i><b>' + k + '</b> ' + esc(name(i)) + '</span> '; });
