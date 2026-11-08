@@ -1547,7 +1547,7 @@ function songs() {
   var ol = $('#songs'); if (!ol) return;
   SONG.forEach(function (s, k) { var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.className = 'sg'; b.innerHTML = '<b></b><span></span>'; b.firstChild.textContent = s.t.toLowerCase(); b.lastChild.textContent = 'beside ' + names[SNB[k]]; b.addEventListener('click', function () { mine(k); }); li.appendChild(b); ol.appendChild(li); });
 }
-/* the stills act: five pictures, one at a time; prev/next, or a tap on the picture, turns them */
+/* the acts: an observer names the act under the reading line; the dots rail follows it */
 function acts() {
   var secs = $$('.act'), io = 'IntersectionObserver' in window;
   if (!io) return;
