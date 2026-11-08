@@ -401,7 +401,7 @@
     document.addEventListener('click', function (e) { var el = e.target && e.target.closest ? e.target.closest('button, a[role=button]') : null; if (!el || el.closest('#wk-strip, #wk-nav')) return; var tx = (el.textContent || '').trim().toLowerCase().replace(/^\u25b6\s*/, ''); if (/^(play|hear|listen|sing|sound on)/.test(tx) && !/^(play\/pause|stop)/.test(tx) && !SND) setSound(true); }, true);
     goBtn = document.getElementById('wk-go'); goState(); [600, 1500, 3000, 6000].forEach(function (t) { setTimeout(goState, t); });
     goBtn.addEventListener('click', function () { setSound(true); start(); });
-    root.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || e.data.sm !== 'front') return; if (e.data.ev === 'start' && SND) autostart(); else if (e.data.ev === 'hush') { ELS.forEach(function (a) { try { a.pause(); } catch (x) {} }); if (root.speechSynthesis) try { root.speechSynthesis.cancel(); } catch (x) {} } });
+    root.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || e.data.sm !== 'front') return; if (e.data.ev === 'start' && SND) autostart(); else if (e.data.ev === 'hush') { try { stop(); } catch (x0) {} ELS.forEach(function (a) { try { a.pause(); } catch (x) {} }); if (root.speechSynthesis) try { root.speechSynthesis.cancel(); } catch (x) {} } });
     if (SND && root.parent && root.parent !== root) autostart();
     var fit = function () { document.documentElement.style.setProperty('--sh', (s.offsetHeight + nav.offsetHeight) + 'px'); document.documentElement.style.setProperty('--nh', nav.offsetHeight + 'px'); };
     fit(); root.addEventListener('resize', fit); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);

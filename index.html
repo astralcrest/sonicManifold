@@ -43,7 +43,7 @@ if(!own[base])location.replace('lab.html'+h);
 <link rel="preload" as="fetch" crossorigin href="front/data/field.json?v=24ef332630">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="script" href="front/field.js?v=3d1b0f0e34">
+<link rel="preload" as="script" href="front/field.js?v=112dc94050">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
 <style>
 :root{--bg:#06010f;--panel:#0d0719;--card:#120a22;--ink:#efe9ff;--dim:#9a90b8;--mute:#9a90b8;--line:#2a2140;--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;--sans:"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--col:clamp(380px,34vw,560px);--top:60svh}
@@ -306,7 +306,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <header class="top" id="top"><a class="brand" href="./">sonic manifold<small>by astralcrest</small></a><nav class="tr" aria-label="the album and the other rooms"><button type="button" class="chip pill" id="b-deep" aria-expanded="false" aria-controls="col">deeper</button><a class="chip pill" id="b-contact" href="#contact">contact</a><a class="chip pill go" id="b-walls" href="editions/walls/" data-n="25"><span id="b-play-n">25 walls</span></a><button type="button" class="chip pill" id="b-sound" aria-label="play or pause my album">my album</button></nav></header>
 <nav class="dots" aria-label="the acts"><a href="#a-open"><i></i><span>begin</span></a><a href="#a-count"><i></i><span>i whose finger</span></a><a href="#a-hand"><i></i><span>ii who led to whom</span></a><a href="#a-maps"><i></i><span>iii the same artists, twice</span></a><a href="#a-hoods"><i></i><span>iv eleven rooms</span></a><a href="#a-keep"><i></i><span>v forty-seven seconds</span></a><a href="#a-coda"><i></i><span>vi the newest months</span></a><a href="#a-record"><i></i><span>vii in gold</span></a></nav>
 <div id="hint" aria-hidden="true">tap a shape to hear it. draw a curve: a radio of stops, played in order. pinch to zoom.</div>
-<div id="what"><p id="what-l">every shape is an artist i played, colored by who pressed play. close together = sounds alike.</p><div class="ks" id="what-k"><button type="button" class="chip" id="b-hear">sound off. tap to hear</button></div></div>
+<div id="what"><p id="what-l">every shape is an artist i played, colored by who pressed play. close together = sounds alike.</p><div class="ks" id="what-k"><button type="button" class="chip" id="b-hear">sound off, tap to hear</button></div></div>
 </div>
 <main id="col">
 <div id="np" aria-live="polite" hidden>
@@ -537,7 +537,7 @@ cv.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)aside();},{passi
 })();
 </script>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"f866beb3af","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"c81287ac4c","pv":"381d21eeee","field":"24ef332630","maps":"8fc6260095","ring":"5c3aa07b40","ghost":"eccb19b1ac","gloss":"da3f4523b1"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,field:true};})();</script>
-<script src="front/field.js?v=3d1b0f0e34" defer></script>
+<script src="front/field.js?v=112dc94050" defer></script>
 <script src="front/music.js?v=57fbd03cb0" defer></script>
 <div id="cpop" hidden aria-label="contact"><div class="cp"><small>contact</small><b>astralcrestlab@proton.me</b><div class="row"><button type="button" class="chip" id="cp-copy">copy the address</button><a class="chip" href="mailto:astralcrestlab@proton.me">open mail</a></div><p>pgp fingerprint <code>3EAD CE97 F8CE C3BF 8E5B D727 B7F4 EEAB 1BB1 6E67</code> &middot; <a href="researcher.html">the key, on the report page</a></p><button type="button" class="chip x" id="cp-x">close</button></div></div>
 <div id="wallroom" hidden aria-label="a wall, playing inside the manifold"><div class="wr-rail"><button type="button" class="chip" id="wr-prev" aria-label="previous wall">&lsaquo;</button><p class="wr-t"><b id="wr-n"></b><span id="wr-name"></span><i id="wr-done" hidden>done</i></p><button type="button" class="chip" id="wr-next" aria-label="next wall">&rsaquo;</button><button type="button" class="chip x" id="wr-x">close</button></div><iframe id="wr-f" title="the wall" allow="autoplay; microphone; accelerometer; gyroscope; magnetometer" referrerpolicy="same-origin"></iframe></div>

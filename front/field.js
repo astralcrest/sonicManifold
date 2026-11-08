@@ -1267,8 +1267,13 @@ addEventListener('keydown', function (e) { if (e.key === 'n' && !e.metaKey && !e
 function duck() { var M = window.__smMusic; if (M && M.hold) M.hold(); }
 function unduck() { var M = window.__smMusic; if (M && M.release) M.release(); }
 window.__radioYield = function () { if (pv && !pv.paused) { S.user = true; pv.pause(); } if (S.game && S.game.on) endGame(true); };
-function npSilent() { if (!phone) return; var e = $('#np'); if (!e || e.hidden) return; var q = function () { var alb = window.__smMusic && window.__smMusic.A && window.__smMusic.A.el; return !(pv && !pv.paused) && !(alb && !alb.paused) && S.pend < 0; }; if (q()) setTimeout(function () { if (q() && !e.hidden) e.hidden = true; }, 1100); }
-function ppLabel() { npSilent(); var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; } var h = $('#b-hear'); if (h && h.classList.contains('on')) text('#b-hear', S.playing ? 'sound on' : (phone ? 'sound off' : 'sound off. tap to hear')); html.classList.toggle('sm-pv', !!S.playing); }
+function npSilent() { if (!phone) return; var e = $('#np'); if (!e || e.hidden) return; var q = function () { var alb = window.__smMusic && window.__smMusic.A && window.__smMusic.A.el; return !S.playing && !(pv && !pv.paused) && !(alb && !alb.paused) && S.pend < 0; }; if (q()) setTimeout(function () { if (q() && !e.hidden) e.hidden = true; }, 1100); }
+function albumEl() { var M = window.__smMusic; return M && M.A && M.A.el; }
+function anyOn() { var a = albumEl(); return !!(S.playing || (a && !a.paused)); }
+/* the one sound cue: "sound on" whenever anything plays (a preview, the album, a gold song), one string when nothing does */
+function ppLabel() { npSilent(); var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; } var h = $('#b-hear'); if (h) { var on = anyOn(); h.classList.toggle('on', on); text('#b-hear', on ? 'sound on' : 'sound off, tap to hear'); } html.classList.toggle('sm-pv', !!S.playing); }
+function hushWall() { var fr = $('#wr-f'); if (html.classList.contains('sm-wall') && fr && fr.contentWindow) try { fr.contentWindow.postMessage({ sm: 'front', ev: 'hush' }, location.origin); } catch (x) { /* fine */ } }
+(function () { var t = setInterval(function () { var a = albumEl(); if (!a || a.__hear) return; a.__hear = 1; clearInterval(t); ['play', 'pause', 'ended'].forEach(function (e) { a.addEventListener(e, ppLabel); }); ppLabel(); }, 700); })();
 function el() {
   if (pv) return pv;
   pv = new Audio(); pv.preload = 'auto';
@@ -1289,7 +1294,7 @@ function sound(i, then) {
   }
   var p = PV[nm];
   if (!p) { text('#np-t', 'no preview for this one'); if (then) then(false); else next(); return; }
-  text('#np-t', p[0]);
+  text('#np-t', p[0]); hushWall();
   if (a.getAttribute('src') !== p[1]) a.src = p[1]; else try { a.currentTime = 0; } catch (x) { /* not seekable yet */ }
   duck();
   var q; try { q = a.play(); } catch (x) { q = null; }
@@ -1520,7 +1525,7 @@ function whatFor(k) {
   var KC = { press: '#21f6bc', auto: '#8b6fd6', shuffle: '#f5a623', alike: '#bcd3ff', mine: '#ffd36b' };
   keys.forEach(function (key) { var c = doc.createElement('span'); c.className = 'kc'; c.style.setProperty('--kcb', KC[key] + '73'); c.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true">' + KG[key][1] + '</svg>' + KG[key][0]; el.insertBefore(c, b); });
 }
-(function () { var e = $('#np'); if (!e) return; var sx = 0, sy = 0, id = -1; if ('MutationObserver' in window) { new MutationObserver(function () { doc.documentElement.classList.toggle('sm-np', !e.hidden); }).observe(e, { attributes: true, attributeFilter: ['hidden'] }); } e.addEventListener('pointerdown', function (ev) { sx = ev.clientX; sy = ev.clientY; id = ev.pointerId; }, { passive: true }); e.addEventListener('pointermove', function (ev) { if (ev.pointerId !== id || !phone) return; var dx = ev.clientX - sx, dy = ev.clientY - sy; if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.5) { id = -1; e.hidden = true; } }, { passive: true }); })();
+(function () { var e = $('#np'); if (!e) return; var sx = 0, sy = 0, id = -1; if ('MutationObserver' in window) { new MutationObserver(function () { doc.documentElement.classList.toggle('sm-np', !e.hidden); }).observe(e, { attributes: true, attributeFilter: ['hidden'] }); } e.addEventListener('pointerdown', function (ev) { if (ev.pointerType === 'mouse') return; sx = ev.clientX; sy = ev.clientY; id = ev.pointerId; }, { passive: true }); ['pointerup', 'pointercancel'].forEach(function (t) { e.addEventListener(t, function () { id = -1; }, { passive: true }); }); e.addEventListener('pointermove', function (ev) { if (ev.pointerId !== id || !phone) return; var dx = ev.clientX - sx, dy = ev.clientY - sy; if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.5) { id = -1; e.hidden = true; if (pv && !pv.paused) { S.user = true; try { pv.pause(); } catch (x) { /* fine */ } S.playing = false; ppLabel(); } } }, { passive: true }); })();
 /* contact: a small sheet with the address, never a bare hash jump */
 function cpop(on) { var c = $('#cpop'); if (!c) return; c.hidden = !on; if (on) { c.setAttribute('role', 'dialog'); c.setAttribute('aria-modal', 'true'); var x = $('#cp-x'); if (x) x.focus(); } else { c.removeAttribute('role'); c.removeAttribute('aria-modal'); } }
 ['#b-contact', '#b-contact2', '#b-contact3'].forEach(function (s) { var a = $(s); if (a) a.addEventListener('click', function (e) { e.preventDefault(); cpop(true); }); });
@@ -1529,10 +1534,12 @@ on('#cpop', function (e) { if (e.target && e.target.id === 'cpop') cpop(false); 
 on('#cp-copy', function () { var b = $('#cp-copy'); try { navigator.clipboard.writeText('astralcrestlab@proton.me').then(function () { text('#cp-copy', 'copied'); setTimeout(function () { text('#cp-copy', 'copy the address'); }, 1800); }); } catch (x) { if (b) b.textContent = 'select it above'; } });
 addEventListener('keydown', function (e) { if (e.key === 'Escape') cpop(false); });
 on('#b-hear', function () {
-  var b = $('#b-hear'), a = el();
-  if (!b.classList.contains('on')) { var i = TOP[Math.floor(Math.random() * Math.min(12, TOP.length))]; if (i === undefined) return; b.classList.add('on'); try { localStorage.setItem('sm_sound', '1'); } catch (e2) {} text('#b-hear', 'sound on'); play(i, 'tap'); return; }
-  if (S.playing && a && !a.paused) { S.user = true; try { a.pause(); } catch (x) { /* fine */ } S.playing = false; unduck(); ppLabel(); return; }
-  if (S.now >= 0) { sound(S.now); S.playing = true; ppLabel(); } else play(TOP[0], 'tap');
+  var a = el(), alb = albumEl();
+  if (anyOn()) { if (S.playing && a && !a.paused) { S.user = true; try { a.pause(); } catch (x) { /* fine */ } S.playing = false; } if (alb && !alb.paused) { var M = window.__smMusic; if (M && M.toggle) M.toggle(); else try { alb.pause(); } catch (x2) { /* fine */ } } hushWall(); ppLabel(); return; }
+  try { localStorage.setItem('sm_sound', '1'); } catch (e2) { /* fine */ }
+  if (html.classList.contains('sm-wall')) { var fr = $('#wr-f'); if (fr && fr.contentWindow) try { fr.contentWindow.postMessage({ sm: 'front', ev: 'start' }, location.origin); } catch (x3) { /* fine */ } return; }
+  if (S.now >= 0) { sound(S.now); S.playing = true; ppLabel(); return; }
+  var i = TOP[Math.floor(Math.random() * Math.min(12, TOP.length))]; if (i !== undefined) play(i, 'tap');
 });
 on('#b-sound', function () {
   var M = window.__smMusic; if (!M || !M.toggle) return; M.toggle();
@@ -1607,7 +1614,7 @@ fetchJ('field').then(function (j) {
   zcBuild(); songs(); key(); datalist(); chips(); acts(); if (ro) ro.observe(stage); else addEventListener('resize', function () { fit(); wake(); });
   $$('.lz').forEach(function (e) { e.hidden = true; });
   var R = (window.__ledger && window.__ledger.READY) || {}; R.field = true;
-  whatFor(scene); if (phone) text('#b-hear', 'sound off');
+  whatFor(scene);
 
 // the wall room: any wall link opens the wall inside the front, with a rail to walk the walls
 var WALLS = [['loop','walk the loop'],['two','the two of you'],['taste','the taste test'],['haunted','the haunted night'],['seeds','the two seeds'],['undo','undo a year'],['blind','blind or named'],['booth','the confession booth'],['slow','the slow room'],['tug','tug of two hands'],['telephone','telephone'],['stutter','the stutter'],['meet','meet in the middle'],['hold','hold to keep'],['shake','shake the shuffle'],['pour','the pour'],['applause','clap to skip'],['way','draw the long way'],['stand','where you land'],['scrub','scrub by ear'],['longhold','the long hold'],['crossings','family crossings'],['radio','draw a radio'],['hand','whose finger'],['chorus','the chorus']];

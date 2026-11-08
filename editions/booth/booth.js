@@ -28,7 +28,7 @@ function type(el, text, speed, done) {
   (function step() { n++; el.textContent = text.slice(0, n); if (n < text.length) timers.push(setTimeout(step, speed)); else done && done(); })();
 }
 function rng(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
-function soundLine(c) { return WK.sound() ? 'now playing: one of my own tracks, low, under the words. claim ' + c + ' of ' + claims.length + '.' : 'sound is off. tap the chip at the top to hear one of my own tracks under the words. claim ' + c + ' of ' + claims.length + '.'; }
+function soundLine(c) { return WK.sound() ? 'now playing: one of my own tracks, low, under the words. claim ' + c + ' of ' + claims.length + '.' : 'sound off, tap to hear one of my own tracks under the words. claim ' + c + ' of ' + claims.length + '.'; }
 // the amber ribbon is the lift i wanted; the rose pebbles and flat ribbon are what the check found, a pulse at its end on the beat of the track
 function picture(n, killed, u) {
   cur = { n: n, killed: killed };
@@ -89,7 +89,7 @@ function setAuto(on) { autoOn = on; $('auto').setAttribute('aria-pressed', on ? 
 function reset() {
   clear(); setAuto(false); shuffle(); claimEl.textContent = ''; reft.textContent = ''; refEl.classList.remove('on');
   room.dataset.lit = '0'; draw(-1); go.textContent = 'next claim'; clearTimeout(idle); sg.setTransform(1, 0, 0, 1, 0, 0); sg.clearRect(0, 0, sig.width, sig.height);
-  say('sound is off. tap the chip at the top to hear one of my own tracks under the words. arrow keys step through the claims; tap any dot to jump.');
+  say((WK.sound() ? 'sound on: one of my own tracks, low, under the words.' : 'sound off, tap to hear one of my own tracks under the words.') + ' arrow keys step through the claims; tap any dot to jump.');
   try { BED.pause(); BED.currentTime = 0; } catch (e) {}
 }
 go.addEventListener('click', function () { setAuto(false); step(1); });

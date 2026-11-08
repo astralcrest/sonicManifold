@@ -202,7 +202,7 @@ html.in-met #when{opacity:1}
     <div class="bar"><button type="button" class="chip b-deeper" data-act="record">deeper</button></div>
   <div id="album">
       <h2>my soundtrack</h2>
-      <p>twenty-three songs i wrote for this, keyed and tempo-matched so one hands into the next. the first press anywhere on the site starts them; the dock at the bottom holds play, next and mute, and your choice carries across every page.</p>
+      <p>twenty-three songs i wrote for this, keyed and tempo-matched so one hands into the next. tap &#9654; to hear them; the dock at the bottom holds play, next and mute, and your choice carries across every page.</p>
       <button type="button" id="b-play">play my soundtrack</button>
       <p class="honest">every claim was pre-declared and refereed; the ones that died are still here, marked. nothing on this page says music changes the body, or that the app knows me. the strictest count, the genre numbers and the crossing rate are directions with intervals, not sizes. counts are plays of 30 seconds or more.</p>
     </div>
@@ -289,7 +289,7 @@ html.in-met #when{opacity:1}
 function on(){return au().some(function(a){return !a.paused&&!a.muted})}
 function sync(){var o=on();b.textContent=o?'sound on':'sound off, tap to hear';b.setAttribute('aria-pressed',String(o))}
 var pre=false;['pointerdown','touchstart'].forEach(function(e){b.addEventListener(e,function(){pre=on()},true)});
-b.addEventListener('click',function(){var A=au();if(pre){A.forEach(function(a){a.muted=true})}else{A.forEach(function(a){a.muted=false});if(!A.some(function(a){return !a.paused})){var p=document.getElementById('b-play');if(p)p.click()}}pre=on();setTimeout(sync,60)});
+b.addEventListener('click',function(){var A=au();if(pre){A.forEach(function(a){try{a.pause()}catch(e){}});try{localStorage.setItem('sm.sound','off')}catch(e){}}else{A.forEach(function(a){a.muted=false});try{localStorage.setItem('sm.sound','on')}catch(e){}if(!A.some(function(a){return !a.paused})){var p=document.getElementById('b-play');if(p)p.click()}}pre=on();setTimeout(sync,60)});
 ['play','pause','volumechange','ended'].forEach(function(e){document.addEventListener(e,sync,true)});setInterval(sync,700);sync()})()</script>
 <script src="front/spine.js?v=a97ac1effb" defer></script>
 <script src="front/music.js?v=d07aa37842" defer></script>
