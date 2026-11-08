@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>sonic manifold · your own data</title>
+<meta name="description" content="paste the artists you play most and see which of them land on one listener's sound map, and how many fall off it.">
+<meta property="og:title" content="your own data, on my sound map"><meta property="og:description" content="paste the artists you play most and see which of them land on one listener's sound map, and how many fall off it.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#06010f">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--rose:#ff5c7a;--ice:#bcd3ff;--mine:#5a4a92;--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--night);color-scheme:dark}
+body{background:var(--night);color:var(--ink);font:17px/1.45 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+main{max-width:1320px;margin:0 auto;padding:32px 48px 72px}
+header{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px 48px;align-items:start;border-bottom:1px solid var(--line);padding-bottom:26px}
+.eyebrow{font:11px var(--mono);letter-spacing:.14em;color:var(--mute);margin:0 0 12px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
+.eyebrow a{color:var(--mute);text-decoration:none;border-bottom:1px solid var(--line);display:inline-flex;align-items:center;min-height:44px}
+h1{font:600 clamp(28px,4vw,56px)/1.02 var(--sans);letter-spacing:-.025em;text-wrap:balance}
+h1 em{font-style:normal;color:var(--ice)}
+#lead{font-size:clamp(16px,1.5vw,20px);line-height:1.35;font-weight:500;max-width:60ch;margin-top:16px;color:#d8d0ee}
+.how{font:12px/1.55 var(--mono);color:var(--mute);max-width:100ch;margin-top:10px}
+.how b{color:var(--ink);font-weight:500}
+.hside{min-width:0}
+.big{font:600 clamp(56px,9vw,120px)/.9 var(--sans);letter-spacing:-.045em;color:var(--ice);font-variant-numeric:tabular-nums}
+.keylab{display:block;font:12px var(--mono);letter-spacing:.06em;color:var(--mute);margin:10px 0 16px}
+.take{padding:2px 0 2px 14px;border-left:3px solid var(--mint);color:var(--mint);font:500 18px/1.3 var(--sans)}
+.take[hidden],#lists[hidden]{display:none}
+section{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:40px;margin-top:30px;align-items:start}
+.in{display:grid;gap:14px;min-width:0}
+.ask{font:500 15px/1.4 var(--sans);color:#d8d0ee}
+textarea{width:100%;min-height:180px;resize:vertical;background:var(--night);color:var(--ink);border:1px solid var(--line);padding:12px;font:16px/1.4 var(--sans)}
+textarea::placeholder{color:#6f6690}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+button,.filebtn,summary{font:500 13px/1 var(--mono);letter-spacing:.02em;color:var(--ink);background:transparent;border:1px solid var(--ice);border-radius:22px;padding:0 18px;cursor:pointer;min-height:44px;display:inline-flex;align-items:center}
+button:hover,.filebtn:hover,summary:hover{background:rgba(188,211,255,.12)}
+button:disabled{opacity:.4;cursor:default;background:transparent}
+button:focus-visible,.filebtn:focus-within,textarea:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+#place{background:var(--ice);color:var(--night)}
+summary{list-style:none;border-color:var(--line);color:var(--mute);width:max-content;max-width:100%}
+summary::-webkit-details-marker{display:none}
+details[open] summary{color:var(--ink);border-color:var(--ice)}
+#drop{margin-top:12px;border:1px dashed var(--line);padding:16px;display:grid;gap:10px}
+#drop.over{border-color:var(--ice)}
+.filebtn{position:relative;width:max-content;max-width:100%}
+.filebtn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.st{font:12px/1.45 var(--mono);color:var(--mute);min-height:1.45em;overflow-wrap:anywhere}
+.st.err{color:var(--rose)}
+#privacy{font:12px/1.5 var(--mono);color:var(--mute)}
+.pic{min-width:0}
+.cv{position:relative;width:100%;aspect-ratio:1/1;background:var(--night);border:1px solid var(--line)}
+.cv canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:manipulation}
+.keyrow{display:flex;flex-wrap:wrap;gap:6px 18px;font:12px var(--mono);color:var(--mute);margin-top:10px}
+.sw{display:inline-block;border-radius:50%;margin-right:6px;vertical-align:middle}
+.sw.m{width:6px;height:6px;background:var(--mine)}
+.sw.i{width:11px;height:11px;background:var(--ice)}
+.tap{font:12px/1.45 var(--mono);color:var(--ink);margin-top:8px;min-height:1.45em}
+#lists{margin-top:14px;display:grid;gap:8px;font:12px/1.55 var(--mono);color:var(--mute);overflow-wrap:anywhere}
+#lists b{display:block;font-weight:500;letter-spacing:.14em;color:var(--mute)}
+#pl{color:var(--ice)}
+@media(max-width:900px){header,section{grid-template-columns:minmax(0,1fr)}section{gap:28px}}
+@media(max-width:700px){main{padding:24px 16px 56px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <p class="eyebrow"><a href="../../">sonic manifold</a><span>your own data</span></p>
+    <h1>where <em>your</em> artists land on my sound map</h1>
+    <p id="lead">paste the artists you play most. the ones i have heard light up in ice; the rest are counted, never guessed.</p>
+    <p class="how"><b>how:</b> each faint dot is an artist i have heard (<span id="nmine">1,871</span>), placed by how it sounds to a model (CLAP, flattened to two axes by UMAP). near = alike to the model, not to me. your names match mine by spelling only, ignoring case and accents. a name i never heard has no place to go.</p>
+  </div>
+  <div class="hside">
+    <div class="big" id="np">0</div>
+    <span class="keylab" id="noff">loading the map</span>
+    <p class="take" id="line" hidden>my map only knows artists i have heard; far from my taste lands off the map, and that is the point.</p>
+  </div>
+</header>
+<section>
+  <div class="in">
+    <label class="ask" for="names">paste the artists you play most, one per line or comma separated, in rank order</label>
+    <textarea id="names" rows="8" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="your top artists from the app, most played first"></textarea>
+    <div class="row"><button type="button" id="place" disabled>place me</button><button type="button" id="try">try a made-up list</button></div>
+    <p class="st" id="st" role="status"></p>
+    <details>
+      <summary>or drop your Spotify file</summary>
+      <div id="drop">
+        <label class="filebtn">choose or drop the file<input type="file" id="file" accept=".json,application/json" multiple></label>
+        <p class="how">only StreamingHistory_music_*.json or Streaming_History_Audio_*.json, any other file stays unread. kept per play: artist, ms played, time; everything else is dropped as it parses. plays over 30 s rank your artists, private-session plays are skipped, and your 50 most played are placed.</p>
+      </div>
+    </details>
+    <p id="privacy">read in your browser, gone when the tab closes. no upload, nothing saved.</p>
+    <div class="row"><button type="button" id="copy" disabled>copy my placement</button></div>
+  </div>
+  <div class="pic">
+    <div class="cv"><canvas id="map" role="img" aria-label="my sound map: faint dots are artists i have heard; ice marks are the artists from your list that i have heard too"></canvas></div>
+    <p class="keyrow"><span><i class="sw m"></i>an artist i have heard</span><span><i class="sw i"></i>yours, on my map (bigger = higher on your list)</span></p>
+    <p class="tap" id="tap" aria-live="polite"></p>
+    <div id="lists" hidden><p><b>placed</b><span id="pl"></span></p><p><b>off my map</b><span id="of"></span></p></div>
+  </div>
+</section>
+</main>
+<script src="yours.js"></script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>the loop · the room</title>
+<meta name="description" content="the loop in the room: four rules walk my sound map in turn, on a big screen. scan the code to turn the dials on your phone.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script>
+/* ?kiosk=1 on the LED: no cursor, and a fresh page every 30 min instead of every 2 (nobody touches this screen) */
+(function () {
+  var q = new URLSearchParams(location.search);
+  if (q.get('kiosk') !== '1') return;
+  document.documentElement.classList.add('kiosk');
+  if (!q.get('idle')) { q.set('idle', '1800'); try { history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash); } catch (e) {} }
+})();
+</script>
+<script src="../kiosk.js"></script>
+<style>
+:root { --night: #06010f; --ink: #efe9ff; --mute: #9a90b8; --line: #241b3a; --mint: #21f6bc; --amber: #f5a623; --violet: #8b6fd6; --ice: #bcd3ff; --gold: #ffd36b; --rose: #ff5c7a; --act: var(--violet);
+  --u: min(calc(100vw / 1920), calc(100vh / 1080));
+  --sans: 'Instrument Sans', system-ui, sans-serif; --mono: 'IBM Plex Mono', ui-monospace, monospace; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--night); color: var(--ink); overflow: hidden; }
+body { font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+html.kiosk, html.kiosk * { cursor: none; }
+body > p { display: none; }
+#room { display: grid; width: 100vw; height: 100vh; height: 100dvh; grid-template-columns: calc(var(--u) * 470) minmax(0, 1fr) calc(var(--u) * 420); grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: "left stage right" "cap cap cap"; }
+#left { grid-area: left; padding: calc(var(--u) * 60) calc(var(--u) * 20) 0 calc(var(--u) * 72); min-width: 0; }
+#stage { grid-area: stage; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+#stage canvas { position: absolute; left: 0; top: 0; display: block; }
+#right { grid-area: right; padding: calc(var(--u) * 60) calc(var(--u) * 72) 0 calc(var(--u) * 20); display: flex; flex-direction: column; align-items: flex-end; text-align: right; min-width: 0; }
+#cap { grid-area: cap; border-top: 1px solid var(--line); padding: calc(var(--u) * 30) calc(var(--u) * 72) calc(var(--u) * 44); min-width: 0; }
+.eyebrow { font: 500 calc(var(--u) * 16) / 1.3 var(--mono); letter-spacing: .14em; color: var(--mute); margin: 0 0 calc(var(--u) * 22); }
+.eyebrow span + span::before { content: "\00b7"; margin: 0 .6em; }
+h1 { font: 600 calc(var(--u) * 42) / 1.08 var(--sans); letter-spacing: -.02em; margin: 0 0 calc(var(--u) * 20); text-wrap: balance; }
+.line { font: 400 calc(var(--u) * 20) / 1.45 var(--sans); color: #d8d0ee; margin: 0 0 calc(var(--u) * 30); }
+#rules { list-style: none; margin: 0 0 calc(var(--u) * 26); padding: 0; }
+#rules li { display: flex; align-items: center; gap: calc(var(--u) * 14); font: 500 calc(var(--u) * 26) / 1.2 var(--sans); color: var(--mute); padding: calc(var(--u) * 7) 0; }
+#rules li svg { width: calc(var(--u) * 22); height: calc(var(--u) * 22); flex: none; opacity: .45; }
+#rules li.on { color: var(--c); }
+#rules li.on svg { opacity: 1; }
+#rules li.on::after { content: ""; flex: 1; height: 2px; background: var(--c); margin-left: calc(var(--u) * 6); }
+#live { font: 500 calc(var(--u) * 19) / 1.45 var(--mono); color: var(--ink); margin: 0 0 calc(var(--u) * 14); min-height: 2.9em; }
+.note { font: 400 calc(var(--u) * 15) / 1.5 var(--mono); color: var(--mute); margin: 0; }
+#qr { width: calc(var(--u) * 300); height: calc(var(--u) * 300); margin: 0 0 calc(var(--u) * 22); }
+#qr svg { display: block; width: 100%; height: 100%; }
+.go { font: 600 calc(var(--u) * 30) / 1.15 var(--sans); letter-spacing: -.01em; margin: 0 0 calc(var(--u) * 10); }
+.url { font: 400 calc(var(--u) * 15) / 1.45 var(--mono); color: var(--ice); margin: 0 0 calc(var(--u) * 6); overflow-wrap: anywhere; }
+#capt { font: 600 calc(var(--u) * 44) / 1.15 var(--sans); letter-spacing: -.015em; margin: 0; white-space: nowrap; overflow: hidden; }
+#capt b { color: var(--act); font-weight: 600; }
+@media (max-aspect-ratio: 6/5) {
+  :root { --u: min(calc(100vw / 1080), calc(100vh / 1920)); }
+  #room { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "left right" "stage stage" "cap cap"; }
+  #left { padding: calc(var(--u) * 48) calc(var(--u) * 20) calc(var(--u) * 20) calc(var(--u) * 48); }
+  #right { padding: calc(var(--u) * 48) calc(var(--u) * 48) 0 0; }
+  #qr { width: calc(var(--u) * 240); height: calc(var(--u) * 240); }
+  #capt { white-space: normal; text-wrap: balance; }
+}
+</style>
+</head>
+<body>
+<div id="room">
+  <section id="left" aria-label="what you see">
+    <p class="eyebrow"><span>sonic manifold</span><span>the loop</span><span>wall 1, walk the loop</span></p>
+    <h1>does auto-play follow sound more than i do?</h1>
+    <p class="line">one start, four rules, 40 picks each. each shape is an artist, colored by genre family. close together = sounds alike.</p>
+    <ul id="rules" aria-label="the four rules, in turn">
+      <li data-p="queue" style="--c: var(--violet)"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" stroke="#8b6fd6" stroke-width="2"/></svg>auto-play</li>
+      <li data-p="hand" style="--c: var(--mint)"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 0l1.6 5.4L14 7l-5.4 1.6L7 14l-1.6-5.4L0 7l5.4-1.6z" fill="#21f6bc"/></svg>my press</li>
+      <li data-p="feed" style="--c: var(--ink)"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="4" fill="#efe9ff"/></svg>a feed</li>
+      <li data-p="siren" style="--c: var(--rose)"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="4" fill="#ff5c7a"/></svg>the pull</li>
+    </ul>
+    <p id="live" aria-live="off">loading my map</p>
+    <p class="note">gray line: the rule before, from the same start. a toy: read each rule as one good match, not the real weights.</p>
+  </section>
+  <div id="stage"><canvas id="cv" role="img" aria-label="my sound map: every artist as a shape colored by genre family, with one rule's 40-pick walk drawn as a numbered ribbon"></canvas></div>
+  <section id="right" aria-label="play it yourself">
+    <div id="qr" role="img" aria-label="QR code that opens walk the loop on your phone"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41" shape-rendering="crispEdges"><path fill="#bcd3ff" d="M0 0h41v41h-41z"/><path fill="#06010f" d="M4 4h7v1h-7zM13 4h2v1h-2zM17 4h1v1h-1zM21 4h5v1h-5zM27 4h1v1h-1zM30 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM14 5h8v1h-8zM24 5h3v1h-3zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h1v1h-1zM16 6h2v1h-2zM20 6h1v1h-1zM23 6h4v1h-4zM28 6h1v1h-1zM30 6h1v1h-1zM32 6h3v1h-3zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM12 7h1v1h-1zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h2v1h-2zM26 7h1v1h-1zM28 7h1v1h-1zM30 7h1v1h-1zM32 7h3v1h-3zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h4v1h-4zM19 8h1v1h-1zM21 8h3v1h-3zM27 8h1v1h-1zM30 8h1v1h-1zM32 8h3v1h-3zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h3v1h-3zM16 9h5v1h-5zM22 9h1v1h-1zM24 9h3v1h-3zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h7v1h-7zM12 11h3v1h-3zM16 11h1v1h-1zM18 11h2v1h-2zM23 11h1v1h-1zM25 11h1v1h-1zM27 11h1v1h-1zM4 12h1v1h-1zM6 12h5v1h-5zM14 12h6v1h-6zM21 12h1v1h-1zM26 12h3v1h-3zM30 12h5v1h-5zM6 13h3v1h-3zM18 13h1v1h-1zM20 13h2v1h-2zM23 13h3v1h-3zM27 13h1v1h-1zM30 13h2v1h-2zM33 13h2v1h-2zM36 13h1v1h-1zM5 14h3v1h-3zM9 14h4v1h-4zM16 14h1v1h-1zM19 14h2v1h-2zM25 14h2v1h-2zM28 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM34 14h2v1h-2zM6 15h1v1h-1zM8 15h1v1h-1zM12 15h4v1h-4zM18 15h2v1h-2zM22 15h4v1h-4zM27 15h3v1h-3zM32 15h3v1h-3zM36 15h1v1h-1zM6 16h1v1h-1zM10 16h3v1h-3zM14 16h1v1h-1zM16 16h1v1h-1zM21 16h1v1h-1zM23 16h2v1h-2zM26 16h1v1h-1zM28 16h2v1h-2zM31 16h3v1h-3zM35 16h2v1h-2zM6 17h1v1h-1zM9 17h1v1h-1zM15 17h1v1h-1zM18 17h3v1h-3zM22 17h4v1h-4zM27 17h2v1h-2zM30 17h1v1h-1zM35 17h2v1h-2zM4 18h3v1h-3zM8 18h1v1h-1zM10 18h1v1h-1zM16 18h2v1h-2zM28 18h8v1h-8zM4 19h2v1h-2zM8 19h1v1h-1zM12 19h4v1h-4zM20 19h1v1h-1zM22 19h5v1h-5zM29 19h2v1h-2zM32 19h3v1h-3zM6 20h6v1h-6zM14 20h3v1h-3zM21 20h1v1h-1zM23 20h1v1h-1zM26 20h1v1h-1zM29 20h1v1h-1zM31 20h2v1h-2zM36 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM18 21h1v1h-1zM20 21h4v1h-4zM26 21h2v1h-2zM30 21h2v1h-2zM33 21h2v1h-2zM36 21h1v1h-1zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h5v1h-5zM14 22h3v1h-3zM18 22h2v1h-2zM21 22h1v1h-1zM25 22h1v1h-1zM28 22h2v1h-2zM31 22h2v1h-2zM34 22h2v1h-2zM5 23h2v1h-2zM12 23h2v1h-2zM15 23h1v1h-1zM17 23h1v1h-1zM20 23h1v1h-1zM24 23h3v1h-3zM30 23h7v1h-7zM5 24h3v1h-3zM9 24h2v1h-2zM13 24h5v1h-5zM21 24h1v1h-1zM26 24h1v1h-1zM28 24h2v1h-2zM31 24h3v1h-3zM35 24h2v1h-2zM4 25h2v1h-2zM7 25h2v1h-2zM11 25h1v1h-1zM14 25h1v1h-1zM16 25h4v1h-4zM21 25h7v1h-7zM30 25h1v1h-1zM34 25h1v1h-1zM36 25h1v1h-1zM4 26h1v1h-1zM6 26h2v1h-2zM9 26h3v1h-3zM13 26h1v1h-1zM15 26h3v1h-3zM19 26h2v1h-2zM22 26h1v1h-1zM24 26h1v1h-1zM28 26h1v1h-1zM33 26h1v1h-1zM35 26h1v1h-1zM4 27h1v1h-1zM7 27h2v1h-2zM11 27h1v1h-1zM13 27h4v1h-4zM18 27h1v1h-1zM20 27h1v1h-1zM22 27h4v1h-4zM29 27h1v1h-1zM31 27h1v1h-1zM33 27h2v1h-2zM36 27h1v1h-1zM4 28h1v1h-1zM7 28h2v1h-2zM10 28h2v1h-2zM16 28h1v1h-1zM18 28h1v1h-1zM21 28h1v1h-1zM23 28h2v1h-2zM26 28h7v1h-7zM34 28h1v1h-1zM36 28h1v1h-1zM12 29h3v1h-3zM17 29h1v1h-1zM21 29h1v1h-1zM23 29h3v1h-3zM27 29h2v1h-2zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM4 30h7v1h-7zM15 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM24 30h5v1h-5zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM15 31h2v1h-2zM18 31h1v1h-1zM23 31h1v1h-1zM25 31h1v1h-1zM27 31h2v1h-2zM32 31h5v1h-5zM4 32h1v1h-1zM6 32h3v1h-3zM10 32h1v1h-1zM12 32h1v1h-1zM14 32h2v1h-2zM19 32h1v1h-1zM21 32h1v1h-1zM26 32h1v1h-1zM28 32h6v1h-6zM4 33h1v1h-1zM6 33h3v1h-3zM10 33h1v1h-1zM12 33h2v1h-2zM17 33h2v1h-2zM23 33h3v1h-3zM27 33h1v1h-1zM29 33h1v1h-1zM32 33h2v1h-2zM35 33h2v1h-2zM4 34h1v1h-1zM6 34h3v1h-3zM10 34h1v1h-1zM12 34h3v1h-3zM16 34h2v1h-2zM19 34h1v1h-1zM24 34h3v1h-3zM28 34h4v1h-4zM33 34h2v1h-2zM4 35h1v1h-1zM10 35h1v1h-1zM16 35h1v1h-1zM19 35h1v1h-1zM25 35h2v1h-2zM29 35h2v1h-2zM32 35h3v1h-3zM4 36h7v1h-7zM12 36h2v1h-2zM15 36h2v1h-2zM18 36h2v1h-2zM21 36h1v1h-1zM23 36h2v1h-2zM26 36h6v1h-6zM35 36h1v1h-1z"/></svg></div>
+    <p class="go">turn the dials on your phone</p>
+    <p class="url">astralcrest.github.io/<wbr>sonicManifold/<wbr>editions/loop</p>
+    <p class="note">point your camera at the code. nothing you do is stored.</p>
+  </section>
+  <footer id="cap"><p id="capt" aria-live="polite"></p></footer>
+</div>
+<script src="../wallkit.js"></script>
+<script>
+(function () {
+  'use strict';
+  var Q = new URLSearchParams(location.search);
+  function num(v, lo, hi, d) { var x = parseFloat(v); return isFinite(x) ? Math.max(lo, Math.min(hi, x)) : d; }
+  var STEP = num(Q.get('step'), 60, 5000, 260), HOLD = num(Q.get('hold'), 1, 120, 9) * 1000;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ORDER = ['queue', 'hand', 'feed', 'siren'];
+  var NAME = { queue: 'auto-play', hand: 'my press', feed: 'a feed', siren: 'the pull' };
+  var COL = { queue: '#8b6fd6', hand: '#21f6bc', feed: '#efe9ff', siren: '#ff5c7a' };
+  var GLY = { queue: 'ring', hand: 'star', feed: 'dot', siren: 'dot' };
+  var CAP = {
+    queue: 'a rule matched to the app’s own next picks. it stays close in sound.',
+    hand: 'a rule matched to the plays i chose by hand. it hops a little farther in sound.',
+    feed: 'a hand-set rule that leans on the artists i play most.',
+    siren: 'a toy rule that drags every walk closed, to show what a feed can do.'
+  };
+  var INK = '#efe9ff', MUTE = '#9a90b8', NIGHT = [6, 1, 15], WARM = [26, 18, 6];
+  var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#ffd36b', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#f5a623', 'untagged': '#6f6790' };
+  var $ = function (id) { return document.getElementById(id); };
+  var cv = $('cv'), g = cv.getContext('2d'), stage = $('stage'), P = window.WK && WK.P;
+  // drawing happens in a 1080p frame: U css px per unit, so a 4k wall gets the same picture at twice the pixels
+  var W = 0, H = 0, U = 1, DPR = 1, SCL = 1, OX = 0, OY = 0, base = null;
+  var L, D, M, KS = {}, R = { i: 0, seed: 0, start: 0, path: null, ghost: null, t0: 0, n: -1, done: false };
+
+  if (!P) { $('live').textContent = 'the map did not load. reload to try again.'; return; }
+  WK.boot().then(function (b) {
+    L = b.LOOP; D = b.D; M = b.M;
+    KS.queue = b.FIT.queue.K.slice(); KS.hand = b.FIT.hand.K.slice();
+    KS.feed = [0.4, 0.8, 1, 0, 0.6, 0.15];
+    KS.siren = [0.55, 0.5, 0.5, 1, 0.5, 0];  // loop.js "the pull" at its opening setting, 0.5
+    var sd = parseInt(Q.get('seed'), 10);
+    R.seed = isFinite(sd) ? sd : (Date.now() / 60000) | 0;
+    var p0 = ORDER.indexOf(Q.get('preset') || Q.get('p'));
+    resize(); newStart(); begin(p0 >= 0 ? p0 : 0);
+    window.addEventListener('resize', function () { resize(); draw(); fitCap(); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { draw(); fitCap(); });
+    requestAnimationFrame(frame);
+  }).catch(function () { $('live').textContent = 'the map did not load. reload to try again.'; });
+
+  function pickStart(r) {
+    var u = r() * M.tot, lo = 0, hi = M.N - 1;
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (M.cum[mid] < u) lo = mid + 1; else hi = mid; }
+    return lo;
+  }
+  function newStart() { R.start = pickStart(L.rng(R.seed)); R.ghost = null; }
+
+  function begin(i) {
+    var key = ORDER[i], col = COL[key];
+    var w = L.walk(M, R.start, KS[key], R.seed);
+    R.i = i; R.path = w.path; R.stats = L.pathStats(M, w);
+    R.t0 = performance.now(); R.n = -1; R.done = false;
+    document.documentElement.style.setProperty('--act', col);
+    [].forEach.call($('rules').children, function (li) { li.classList.toggle('on', li.getAttribute('data-p') === key); });
+    $('capt').innerHTML = '<b>' + NAME[key] + ':</b> ' + CAP[key];
+    fitCap();
+  }
+
+  function frame(now) {
+    var len = R.path.length, n = reduce ? len : Math.min(len, 1 + Math.floor((now - R.t0) / STEP));
+    if (n !== R.n) { R.n = n; draw(); liveLine(); }
+    var end = R.t0 + (reduce ? 0 : len * STEP) + HOLD;
+    if (n === len && now >= end) {
+      R.ghost = R.path;
+      if (R.i === ORDER.length - 1) { R.seed++; newStart(); begin(0); } else begin(R.i + 1);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function liveLine() {
+    var p = R.path, n = R.n, s = R.stats, el = $('live'), i = p[n - 1];
+    if (n < p.length) { el.textContent = 'stop ' + (n - 1) + ' of ' + (p.length - 1) + ': ' + (D.n[i] || 'an artist'); return; }
+    var top = Math.round(s.top * (p.length - 1));
+    el.textContent = (s.loop > L.STEPS ? 'never repeats in ' + L.STEPS + ' picks' : 'starts repeating at step ' + s.loop) + '. ' + top + ' of ' + L.STEPS + ' picks sit in my top 50.';
+  }
+
+  function fitCap() {
+    var el = $('capt'); el.style.fontSize = '';
+    if (getComputedStyle(el).whiteSpace !== 'nowrap') return;
+    var fs = parseFloat(getComputedStyle(el).fontSize), min = fs * 0.6;
+    while (el.scrollWidth > el.clientWidth + 1 && fs > min) { fs -= 1; el.style.fontSize = fs + 'px'; }
+  }
+
+  function resize() {
+    DPR = Math.min(3, window.devicePixelRatio || 1);
+    W = Math.max(100, stage.clientWidth); H = Math.max(100, stage.clientHeight);
+    var tall = window.matchMedia && matchMedia('(max-aspect-ratio: 6/5)').matches;
+    U = tall ? Math.min(innerWidth / 1080, innerHeight / 1920) : Math.min(innerWidth / 1920, innerHeight / 1080);
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    var wl = W / U, hl = H / U, pad = 24;
+    SCL = Math.min(wl - 2 * pad, hl - 2 * pad) / 1000; OX = (wl - 1000 * SCL) / 2; OY = (hl - 1000 * SCL) / 2;
+    base = null;
+  }
+  function X(i) { return OX + D.xy[i][0] * SCL; }
+  function Y(i) { return OY + D.xy[i][1] * SCL; }
+  function fam(i) { return FAMC[D.fam[D.f[i]]] || MUTE; }
+  function bg() {
+    var s = ORDER[R.i] === 'siren' ? 0.5 : 0;
+    return 'rgb(' + [0, 1, 2].map(function (k) { return Math.round(NIGHT[k] + (WARM[k] - NIGHT[k]) * s); }).join(',') + ')';
+  }
+
+  function drawBase() {
+    base = document.createElement('canvas'); base.width = cv.width; base.height = cv.height;
+    var b = base.getContext('2d'); b.setTransform(DPR * U, 0, 0, DPR * U, 0, 0);
+    P.field(b, D.xy, X, Y, { pl: D.pl, lo: 2.6, hi: 9, lattice: 0.14, latW: 0.7, col: fam });
+  }
+
+  function draw() {
+    if (!M || !R.path) return;
+    if (!base) drawBase();
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.fillStyle = bg(); g.fillRect(0, 0, cv.width, cv.height); g.drawImage(base, 0, 0);
+    g.setTransform(DPR * U, 0, 0, DPR * U, 0, 0);
+    var key = ORDER[R.i], col = COL[key], p = R.path, n = Math.max(1, Math.min(R.n, p.length)), pts = [], k;
+    if (R.ghost) P.ribbon(g, R.ghost.map(function (i) { return [X(i), Y(i)]; }), MUTE, MUTE, 1.6, 0.42);
+    for (k = 0; k < n; k++) pts.push([X(p[k]), Y(p[k])]);
+    var wts = p.slice(0, n).map(function (i) { return Math.log(1 + D.pl[i]) / 11; });
+    P.ribbon(g, pts, col, INK, 3.2, 0.94, null, wts);
+    P.stops(g, pts, col, INK, 7.5, GLY[key]);
+    for (k = 0; k < n; k++) {
+      var chg = k > 0 && D.f[p[k]] !== D.f[p[k - 1]];
+      g.strokeStyle = fam(p[k]); g.lineWidth = chg ? 3 : 1.5;
+      g.beginPath(); g.arc(pts[k][0], pts[k][1], chg ? 11.5 : 9.5, 0, 6.2832); g.stroke();
+    }
+    P.glyph(g, 'star', pts[0][0], pts[0][1], 10, INK);
+    if (n < p.length && n > 1) {
+      var hx = pts[n - 1][0], hy = pts[n - 1][1];
+      g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.arc(hx, hy, 17, 0, 6.2832); g.stroke();
+      g.globalAlpha = 0.45; g.lineWidth = 1.5; g.beginPath(); g.arc(hx, hy, 25, 0, 6.2832); g.stroke(); g.globalAlpha = 1;
+    }
+    labels(pts, col, n);
+  }
+
+  // stop numbers, each in the first free spot of four around its stop (as on the wall)
+  function labels(pts, col, n) {
+    var wl = W / U, hl = H / U, boxes = [], k, q;
+    g.font = '500 14px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
+    for (k = 0; k < n; k++) {
+      var lx = pts[k][0], ly = pts[k][1], lt = String(k), lw = g.measureText(lt).width, spots = [[13, -12], [13, 12], [-13 - lw, -12], [-13 - lw, 12]];
+      for (q = 0; q < 4; q++) {
+        var bx = lx + spots[q][0], by = ly + spots[q][1], hit = false;
+        if (bx < 2 || bx + lw > wl - 2 || by < 9 || by > hl - 9) continue;
+        for (var bb = 0; bb < boxes.length && !hit; bb++) hit = bx < boxes[bb][0] + boxes[bb][2] + 3 && boxes[bb][0] < bx + lw + 3 && Math.abs(by - boxes[bb][1]) < 15;
+        if (hit) continue;
+        boxes.push([bx, by, lw]); g.fillStyle = k === 0 ? INK : P.mix(col, INK, n > 1 ? k / (n - 1) : 0); g.fillText(lt, bx, by); break;
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>
