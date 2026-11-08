@@ -141,7 +141,7 @@ const SHARE = {
   clock: { line: 'my whole log folded onto one day: midnight at the top, noon at the bottom. the busiest hour is 14:00, on one fixed clock, all year.', src: ['exhibit/data/clock.json#hours', 'derive:hour14_total', 'exhibit/data/clock.json#tap_share_by_hour', 'exhibit/labels.js#clock.hour'] },
   map: { line: 'a program learned a map of my artists from my plays. the more of its diet was songs i didn’t pick, the higher my number read on it. my headline uses no map.', src: ['exhibit/labels.js#map.curve', 'exhibit/labels.js#map.withdrawn'] },
   graveyard: { line: 'each card is a claim i once made. press it: 150 to 500 fake versions of my data fall first. if my real number lands in that pile, the claim dies.', src: ['exhibit/data/killit.json#buried', 'exhibit/data/killit.json#cases', 'researcher.html#graveyard'] },
-  make: { line: 'the 81% falls away; the 19% i tapped becomes a wheel of my 22 tracks, placed by musical key. pick one: the glow shows which others mix cleanly with it.', src: ['exhibit.html#make.say', 'exhibit/data/wall.json#pct_rounded', 'exhibit/data/tracks.json'] },
+  make: { line: 'the 81% falls away; the 19% i tapped becomes a wheel of my 23 tracks, placed by musical key. pick one: the glow shows which others mix cleanly with it.', src: ['exhibit.html#make.say', 'exhibit/data/wall.json#pct_rounded', 'exhibit/data/tracks.json'] },
   yours: { line: 'find your own split: drop your export, nothing leaves your tab.', src: ['exhibit.html#yours.say'] },
 };
 
@@ -484,7 +484,7 @@ export const TOURS = [
         room: 'make', angle: 'wheel',
         share: SHARE.make,
         pose: { z: 1 },
-        caption: 'the 81% falls away; the 19% i tapped becomes a wheel of my 22 tracks, placed by musical key. pick one: the glow shows which others mix cleanly with it.',
+        caption: 'the 81% falls away; the 19% i tapped becomes a wheel of my 23 tracks, placed by musical key. pick one: the glow shows which others mix cleanly with it.',
         src: ['exhibit.html#make.say', 'exhibit/data/tracks.json'],
       },
       {
@@ -683,7 +683,7 @@ export const TOURS = [
       {
         room: 'make', angle: 'wheel',
         share: SHARE.make,
-        caption: '22 tracks i made, placed by musical key. the glow marks the keys that mix cleanly with the one you tap. that is music theory, not a finding.',
+        caption: '23 tracks i made, placed by musical key. the glow marks the keys that mix cleanly with the one you tap. that is music theory, not a finding.',
         src: ['exhibit/data/tracks.json', 'exhibit/labels.js#make.wheel'],
         then: [{ angle: 'blend', caption: 'put two of them together and hear what the key does.', src: ['exhibit.html#make.say'] }],
       },
@@ -751,7 +751,7 @@ export const TOURS = [
       {
         room: 'make', angle: 'wheel',
         share: SHARE.make,
-        caption: '22 tracks, one wheel. put two of them together.',
+        caption: '23 tracks, one wheel. put two of them together.',
         src: ['exhibit/data/tracks.json', 'exhibit.html#make.say'],
       },
     ],

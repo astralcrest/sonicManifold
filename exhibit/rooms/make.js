@@ -1,6 +1,6 @@
 /* room 6 — make your own. the finale: the wall from room 01 re-forms, everything the queue chose
    falls out of the picture, and what is left (the plays i tapped) rises into a camelot wheel: two
-   rings, inner is the minor keys, outer is the major ones, and the twenty-two tracks i made from
+   rings, inner is the minor keys, outer is the major ones, and the twenty-three tracks i made from
    this log sit at their real key. tap one to hear it; its harmonic neighbours glow.
    data: exhibit/data/tracks.json, and dot provenance from exhibit/data/wall.json via ctx.identity().
    atlas mode (BUILD_SPEC_V2 §3 make row): beats one and two are the wall again in categorical glyphs (the shape says
@@ -11,7 +11,7 @@
    not a finding) and lights the tracks in keys that mix cleanly with it. */
 const RIM = 0.36, TAU = 6.2831853;
 const B1 = 1400, B2 = 2600, SETTLE = 1400; /* beat boundaries in ms, read off the frame clock */
-const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two'];
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three'];
 function ang(n) { return (n - 1) * 30 - 90; }
 function rad(d) { return d * Math.PI / 180; }
 /* k of the way from one 0xRRGGBB to another */
@@ -174,7 +174,7 @@ export default {
     const huge = document.createElement('p'); huge.className = 'mk-huge'; huge.setAttribute('aria-hidden', 'true'); text.insertBefore(huge, intro); this.hugeEl = huge; /* beat two's display number: decorative, the intro line still carries the sentence for AT */
     const now = document.createElement('p'); now.className = 'mk-now'; now.setAttribute('aria-live', 'off'); text.appendChild(now);
     const next = document.createElement('p'); next.className = 'mk-next'; text.appendChild(next);
-    const chips = document.createElement('div'); chips.className = 'mk-chips'; chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', 'my twenty-two tracks, by key'); text.appendChild(chips); this.chipWrap = chips;
+    const chips = document.createElement('div'); chips.className = 'mk-chips'; chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', 'my twenty-three tracks, by key'); text.appendChild(chips); this.chipWrap = chips;
     /* K7: the chips and the desk are this room's controls, so no chrome hint and no label may sit on them */
     chips.setAttribute('data-keepout', '');
     const bar = document.createElement('div'); bar.className = 'mk-chipbar'; bar.setAttribute('aria-hidden', 'true'); bar.appendChild(document.createElement('i')); text.appendChild(bar); this.chipBar = bar;
