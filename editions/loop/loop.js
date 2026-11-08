@@ -160,7 +160,7 @@ if (typeof document === 'undefined') return;
 
 /* ---------- the wall ---------- */
 var NIGHT = [6, 1, 15], WARM = [26, 18, 6], INK = '#efe9ff', MUTE = '#9a90b8', MINT = '#21f6bc', AMBER = '#f5a623', VIOLET = '#8b6fd6', ICE = '#bcd3ff';
-var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#ffd36b', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#f5a623', 'untagged': '#6f6790' };
+var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#ff7a3d', 'untagged': '#6f6790' };
 var PCOL = { queue: VIOLET, hand: MINT, feed: INK, siren: '#ff5c7a' };
 var PGLY = { queue: 'ring', hand: 'star', feed: 'dot', siren: 'dot' };
 var PDESC = { queue: 'auto-play: dials set to match the app\'s own next picks in my log.', hand: 'my press: dials set to match the plays i chose by hand.', feed: 'a feed: a rule that leans on popular, familiar artists.', siren: 'the pull: a rule that drags every walk to one corner, to show what a feed can do.' };
