@@ -290,6 +290,8 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
  .dots a{min-height:30px}
  #b-deep{position:fixed;left:max(16px,env(safe-area-inset-left));top:316px;min-height:44px}
  html.drawer #b-deep{visibility:hidden}
+ html.drawer #what{left:calc(50% + (min(520px,44vw) + min(320px,34vw) + 24px) / 2);width:min(600px,calc(100vw - min(520px,44vw) - min(320px,34vw) - 72px))}
+ html.drawer #hint{left:calc(50% + (min(520px,44vw) + min(320px,34vw) + 24px) / 2);max-width:calc(100vw - min(520px,44vw) - min(320px,34vw) - 380px)}
  .dots a span{display:inline;background:var(--bg);padding:2px 4px}
  .foot{margin:0;padding:18px 0 0;pointer-events:auto;position:relative;border-top:2px solid var(--line)}
  .foot .doors{grid-template-columns:repeat(4,minmax(0,220px));margin:0 0 16px;padding:0 32px}
@@ -339,7 +341,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <p class="sub">shuffle took the rest. every dot is colored by whose finger.</p>
 <p class="lz">the field is loading…</p>
 <div class="game" id="whose">
-  <small class="k" id="w-k">whose finger? ten pairs from the log.</small>
+  <small class="k" id="w-k">whose finger? three pairs from the log, then seven more.</small>
   <p id="w-q">the log plays two songs in a row. you hear both. who pressed play on the second: my press, or the app's auto-play?</p>
   <p class="r" id="w-r" hidden>a hint: auto-play walks to the nearest sound. a jump is more likely my press.</p>
   <div class="row"><button type="button" class="chip" id="w-start">play: whose finger?</button><span id="w-ans" hidden><button type="button" class="chip" id="w-me">my press</button> <button type="button" class="chip vi" id="w-app">auto-play</button></span><button type="button" class="chip tm" data-tm>point it out</button></div>
@@ -419,11 +421,11 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <div class="plate">
 <p class="kick"><b>iv</b>eleven rooms</p>
 <h2 id="h-hoods">the log sorts itself into <span>eleven rooms.</span></h2>
-<p class="sub">rooms the log built on its own from what followed what; no genre labels allowed in.</p>
+<p class="sub">rooms the log built on its own from what followed what; no genre labels allowed in. the family on each label was read off afterward.</p>
 <div class="game" id="hoods">
   <div class="row"><button type="button" class="chip" id="n-jump">next room</button><button type="button" class="chip" id="n-color" aria-label="change what the colors mean">color: rooms</button><button type="button" class="chip sec on" data-c="hood">color: rooms</button><button type="button" class="chip sec" data-c="family">color: families</button><button type="button" class="chip sec" data-c="first">color: first heard</button><button type="button" class="chip sec" id="n-walk">the log walks</button><button type="button" class="chip more" data-more aria-label="more choices">more</button><button type="button" class="chip tm" data-tm>point it out</button></div>
   <div class="key" id="key2" aria-label="the family colors" hidden></div>
-  <p class="r sr" id="n-mode" aria-live="polite">colored by room: eleven rooms the log drew from what followed what alone; the outline is the room.</p>
+  <p class="r sr" id="n-mode" aria-live="polite">colored by room: eleven rooms the log drew from what followed what alone; each outline is a room, colored by the family that fills it most.</p>
 </div>
 <p class="how">how: rooms found by <dfn data-g="louvain">a community algorithm</dfn> on what followed what; the colors came after.</p><p class="wrow"><a class="wk go" href="editions/crossings/" data-wall="crossings">family crossings</a><span class="or">or <a class="wk" href="editions/seeds/" data-wall="seeds">the two seeds</a> · <a class="wk" href="editions/two/" data-wall="two">the two of you</a></span></p>
 <ol class="cl sr" aria-label="what the picture shows"><li data-at="room0">the largest room, drawn from what followed what alone.</li><li data-at="room1">no sound, no label, no hand went in.</li><li data-at="roomq">here auto-play took {n} of 100 steps inside.</li></ol>
@@ -450,7 +452,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <h2 id="h-keep">i keep <span>what i press.</span></h2>
 <p class="sub">the like lands about 47 seconds in. 42 of 100 of what i press stays; 16 of auto-play&rsquo;s.</p>
 <div class="game" id="g47">
-  <small class="k" id="g-k">ten songs, 47 seconds each. keep it or let it go.</small>
+  <small class="k" id="g-k">three songs, 47 seconds each. keep it or let it go. then seven more if you like.</small>
   <p class="r" id="g-score"></p>
   <div class="row"><button type="button" class="chip" id="g-start">play: keep it?</button><span id="g-ans" hidden><button type="button" class="chip" id="g-keep">keep</button> <button type="button" class="chip" id="g-go">let it go</button></span><button type="button" class="chip tm" data-tm>point it out</button></div>
 </div>
@@ -498,8 +500,8 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <section class="act" id="a-record" aria-labelledby="h-record" style="--ac:var(--gold)">
 <div class="plate">
 <p class="kick"><b>vii</b>in gold</p>
-<h2 id="h-record">23 songs i made from this, <span>placed by the same ears.</span></h2>
-<p class="sub">my own 23 songs, each placed beside the artist it sounds most like.</p>
+<h2 id="h-record">23 songs i made from this, <span>placed by the same sound model as every artist.</span></h2>
+<p class="sub">tap a song to hear it. the album is the last word; the data came first.</p>
 <div id="album">
   <div class="row"><button type="button" class="chip" id="b-play">play my album</button><button type="button" class="chip tm" data-tm>point it out</button></div>
   <p id="now" aria-live="off"></p>
@@ -507,7 +509,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 </div>
 <ol id="songs" aria-label="the songs"></ol>
 <p class="close">so, is my taste my own? one log cannot settle it. it points one way: <b>my press goes a little farther in sound, and what i press, i keep.</b></p><p class="close2"><a href="editions/yours/">is yours? paste your top artists and see.</a></p>
-<ol class="cl sr" aria-label="what the picture shows"><li data-at="gold">gold: my 23 songs, placed by the same ears.</li><li data-at="gline">each one joined to its nearest artist in sound.</li><li data-at="gsong">the album is the last word; the data came first.</li></ol>
+<ol class="cl sr" aria-label="what the picture shows"><li data-at="gold">gold: my 23 songs, placed by the same sound model as every artist.</li><li data-at="gline">each one joined to its nearest artist in sound.</li><li data-at="gsong">the album is the last word; the data came first.</li></ol>
 </div>
 <div class="dr" role="region" aria-label="deeper: the record">
 <p class="dh"><b>vii</b>in gold<button type="button" class="chip x" data-close>close</button></p>
@@ -526,7 +528,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 /* the panel: the card steps aside while a hand is on the field and comes back after 2 s; "deeper" opens the act's drawer */
 (function(){
 var H=document.documentElement,b=document.getElementById('b-deep'),cv=document.getElementById('field'),t=0;
-function set(o){H.classList.toggle('drawer',o);b.setAttribute('aria-expanded',o?'true':'false');b.classList.toggle('on',o);}
+function set(o){H.classList.toggle('drawer',o);b.setAttribute('aria-expanded',o?'true':'false');b.classList.toggle('on',o);dispatchEvent(new Event('sm:drawer'));}
 b.addEventListener('click',function(){set(!H.classList.contains('drawer'));});
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-close]'))set(false);});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&H.classList.contains('drawer'))set(false);});

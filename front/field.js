@@ -144,10 +144,12 @@ function proj3(x, y, z, out) {
   out[0] = cam.cx + x1 * s * cam.r; out[1] = cam.cy - y1 * s * cam.r; out[2] = z2;
 }
 var tmp = [0, 0, 0];
+/* the text column on a desk: the card (360 px), or the open drawer and the card beside it; the drawing never runs under either */
+function leftCol() { return phone ? 0 : (html.classList.contains('drawer') ? Math.min(520, W * 0.44) + Math.min(320, W * 0.34) + 24 : Math.min(360, W * 0.3)); }
 /* the per-scene camera: on a desk the field fills the screen, nudged right of the card; on a phone it sits above the panel */
 function frame() {
   /* on a desk the text has its own left column (360 px); the drawing fills the rest and never runs under it */
-  var x0 = phone ? 0 : Math.min(360, W * 0.3), Wc = W - x0, cx0 = x0 + Wc / 2;
+  var x0 = leftCol(), Wc = W - x0, cx0 = x0 + Wc / 2;
   /* on a phone the what strip owns the top of the stage: the drawing is centered in the room below it, so the rim names never run under the chips */
   var we = document.getElementById('what'), wb = we && (phone || scene === 1) ? we.offsetTop + we.offsetHeight + 6 : 0, Hp = H - wb, cyp = wb + Hp * 0.5;
   if (phone && scene === C_COUNT && wb) { wb += 66; Hp = H - wb; cyp = wb + Hp * 0.5; }
@@ -492,7 +494,7 @@ function famRows() {
 }
 function colorRows(m) {
   var t, k;
-  if (m === 'hood') return [['color = room']];
+  if (m === 'hood') return [['color = the room\u2019s main family']];
   if (m === 'hand') return [[['press'], 'my press ', ['shuf'], 'shuffle ', ['auto'], 'auto-play']];
   if (m === 'first') { t = ['early ']; for (k = 0; k < 8; k++) t.push(sq(FIRSTC[k])); t.push(' late'); return [t]; }
   return famRows();
@@ -810,18 +812,18 @@ function paint(now) {
   if (scene === 0 && blend >= 1 && grown) for (k = 0; k < (phone ? 5 : 10); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 6, SY[i], names[i], phone ? 14.5 - k * 0.6 : 22 - k * 1.1, k < 3 ? 600 : 500, false, INK); }
   /* the rooms: a numeral and the family that fills each, at its center; the color is the room */
   if (scene === C_HOODS && blend >= 1 && MAPS && !S.quiet) {
-    var cx = [], cy2 = [], cn = [], ci, nh = Math.min(8, MAPS.cm.length);
+    var cx = [], cy2 = [], cn = [], ci, nh = MAPS.cm.length;
     for (ci = 0; ci < nh; ci++) { cx.push(0); cy2.push(0); cn.push(0); }
     for (k = 0; k < N; k++) { ci = MAPS.c[k]; if (ci >= 0 && ci < nh && SA[k] > 0.01) { cx[ci] += SX[k]; cy2[ci] += SY[k]; cn[ci]++; } }
     var cm2 = S.color || 'hood';
-    for (ci = 0; ci < nh; ci++) if (cn[ci] && !(S.grow && !S.grow.done) && (S.hoodHi < 0 || S.hoodHi === ci)) {
+    for (ci = 0; ci < nh; ci++) if (cn[ci] && !(S.grow && !S.grow.done) && (S.hoodHi < 0 || S.hoodHi === ci) && (!phone || ci < 4 || S.hoodHi === ci)) {
       var lab = (ci + 1) + ' · mostly ' + F.fam[MAPS.cm[ci][1]], hx = cx[ci] / cn[ci] - (phone ? 10 : 34), hy = cy2[ci] / cn[ci], sub = MAPS.cm[ci][0] + ' artists · auto-play took ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps inside';
       /* a lit room on a phone: the two lines sit at the bottom left of the stage, clear of the dots and inside the screen */
       if (phone && S.hoodHi === ci) { sub = MAPS.cm[ci][0] + ' artists · auto-play ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps'; hx = 12; hy = H - 96; }
       word(g, hx, hy, lab, phone ? 11 : 15, 600, true, hoodCol(ci), S.hoodHi === ci);
       if (S.hoodHi === ci) word(g, hx, hy + (phone ? 15 : 17), sub, phone ? 10 : 10.5, 500, true, MUTE, S.hoodHi === ci);
     }
-    if (!phone) for (k = 0; k < 8; k++) { i = TOP[k]; if (i !== S.now && i !== S.hover && SA[i] > 0.5) word(g, SX[i] + SR[i] + 4, SY[i], names[i], 11, 500, false, ICE); }
+    if (!phone) for (k = 0; k < 8; k++) { i = TOP[k]; if (i !== S.now && i !== S.hover && SA[i] > 0.5) word(g, SX[i] + SR[i] + 4, SY[i], names[i], 11, 500, false, INK); }
   }
   if (scene === C_MAPS && blend >= 1 && MAPS && S.mb >= 0.99 && !phone && !(S.grow && !S.grow.done)) for (k = 0; k < 10; k++) { i = TOP[k]; if (i !== S.now && i !== S.hover && SA[i] > 0.5) word(g, SX[i] + SR[i] + 4, SY[i], names[i], 11, 500, false, ICE); }
   if (inRing && S.lookB >= 1) {
@@ -852,8 +854,8 @@ function wbox(x0, y0, x1, y1) { words.push([x0 - 3, y0 - 3, x1 + 3, y1 + 3]); }
 function pips(g) {
   var rows = scene === C_KEEP ? [['i pressed play', 42, MINT], ['auto-play chose', 16, VIOLET]] : [['the frozen export, of 100 plays', [19, 17, 64]], ['the newest months, of 100 plays', [0, 1.5, 75]]];
   var lit = 1; if (scene === C_KEEP) { if (!S.keepT0) S.keepT0 = performance.now(); lit = reduce ? 1 : ease((performance.now() - S.keepT0) / 1800); }
-  var cols = phone ? 20 : 25, cell = Math.min((W - 60) / cols, phone ? 10 : 16), rowsN = 100 / cols, bh = rowsN * cell, gap = phone ? 44 : 56;
-  var x0 = Math.round((W - cols * cell) / 2), y0 = Math.round(cam.cy - (rows.length * bh + gap) / 2 - (phone ? 30 : 0)), r = cell * 0.3, k, i, c, rr, fs = phone ? 10.5 : 12, tw;
+  var xl = phone || !html.classList.contains('drawer') ? 0 : leftCol(), cols = phone ? 20 : 25, cell = Math.min((W - xl - 60) / cols, phone ? 10 : 16), rowsN = 100 / cols, bh = rowsN * cell, gap = phone ? 44 : 56;
+  var x0 = Math.round(xl + (W - xl - cols * cell) / 2), y0 = Math.round(cam.cy - (rows.length * bh + gap) / 2 - (phone ? 30 : 0)), r = cell * 0.3, k, i, c, rr, fs = phone ? 10.5 : 12, tw;
   if (phone) { var we = document.getElementById('what'); if (we) y0 = Math.max(y0, we.offsetTop + we.offsetHeight + 26); }
   PG = { x0: x0, y0: y0, cell: cell, bh: bh, gap: gap, cols: cols, rx: 0, ry: 0 };
   for (k = 0; k < rows.length; k++) {
@@ -1231,6 +1233,7 @@ cv.addEventListener('gestureend', function (e) { e.preventDefault(); gs0 = 0; })
 var lastScroll = -1e9;
 addEventListener('scroll', function () { domStale = true; lastIn = lastScroll = performance.now(); }, { capture: true, passive: true });
 addEventListener('resize', function () { domStale = true; });
+addEventListener('sm:drawer', function () { domStale = true; pathsDirty = true; frame(); wake(); });
 /* the zoom chips: fit (with the zoom level) and draw, only while zoomed */
 var ZI = { find: '<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14.5 14.5"/>', draw: '<path d="M1.5 12C4 3 7 15 9.5 8S13 4 14.5 3"/>', fit: '<path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/>', zin: '<path d="M2.5 8h11M8 2.5v11"/>', zout: '<path d="M2.5 8h11"/>' };
 var findB = null, zfEl = null, gkEl = null, gkDone = false;
@@ -1394,18 +1397,19 @@ function mine(k) {
 /* ---------- the 47-second game ---------- */
 function startGame() {
   if (S.game && S.game.on) return;
-  S.game = { on: true, n: 0, kept: 0, until: 0, i: -1, pool: TOP.slice(0, 600) };
+  if (S.game && S.game.max === 3 && S.game.n >= 3) { S.game.on = true; S.game.max = 10; S.mode = ''; S.line = null; show('#g-ans', true); show('#g-start', false); text('#g-start', 'play: keep it?'); gameNext(); return; }
+  S.game = { on: true, n: 0, kept: 0, until: 0, i: -1, max: 3, pool: TOP.slice(0, 600) };
   S.mode = ''; S.line = null; text('#g-score', ''); show('#g-ans', true); show('#g-start', false);
   gameNext();
 }
 function gameNext() {
   var G = S.game; if (!G || !G.on) return;
-  if (G.n >= 10) { endGame(false); return; }
+  if (G.n >= G.max) { endGame(false); return; }
   var i = -1, tries = 0;
   while (i < 0 && tries++ < 50) { var c = G.pool[Math.floor(rnd() * G.pool.length)]; if (!S.played[c] && (!PV || PV[names[c]])) i = c; }
   if (i < 0) { endGame(false); return; }
   G.i = i; G.n++; G.until = performance.now() + 47000; S.now = i; S.played[i] = 1;
-  room(i, 'game'); text('#g-k', 'song ' + G.n + ' of 10 · you have 47 seconds'); sound(i);
+  room(i, 'game'); text('#g-k', 'song ' + G.n + ' of ' + G.max + ' · you have 47 seconds'); sound(i);
   clearTimeout(G.to); G.to = setTimeout(function () { answer(false, true); }, 47000);
   wake();
 }
@@ -1420,27 +1424,29 @@ function endGame(quiet) {
   if (pv && !pv.paused && !quiet) { S.user = true; pv.pause(); }
   show('#g-ans', false); show('#g-start', true);
   if (G.n) text('#g-score', 'you kept ' + G.kept + ' of ' + G.n + ' (' + Math.round(100 * G.kept / G.n) + ' of 100). i keep 42 of 100 of what i press, and 16 of 100 of what auto-play chose.');
-  text('#g-k', 'ten songs, 47 seconds each. keep it or let it go.');
+  var more = G.max === 3 && G.n >= 3 && G.pool.length;
+  text('#g-start', more ? 'seven more?' : 'play: keep it?');
+  text('#g-k', more ? 'three songs done. seven more makes the full round of ten.' : 'three songs, 47 seconds each. keep it or let it go. then seven more if you like.');
   wake();
 }
 
 /* ---------- whose hand? ---------- */
 function whose() {
-  if (S.wh && S.wh.rows.length) return;
+  if (S.wh && S.wh.rows.length) { if (S.wh.max === 3 && S.wh.n >= 3) { S.wh.max = 10; text('#w-start', 'play: whose finger?'); whRound(); } return; }
   var go = function (rows) {
     var me = rows.filter(function (r) { return r.arm === 'me'; }), app = rows.filter(function (r) { return r.arm === 'app'; }), pick = [], k;
     for (k = 0; k < 5; k++) { pick.push(me.splice(Math.floor(rnd() * me.length), 1)[0]); pick.push(app.splice(Math.floor(rnd() * app.length), 1)[0]); }
     for (k = pick.length - 1; k > 0; k--) { var j = Math.floor(rnd() * (k + 1)), t = pick[k]; pick[k] = pick[j]; pick[j] = t; }
-    S.wh = { rows: pick, n: 0, right: 0 }; whRound();
+    S.wh = { rows: pick, n: 0, right: 0, max: 3 }; whRound();
   };
   if (!PV) prefetchPV();
   if (TASTE) go(TASTE); else fetchJ('taste').then(function (j) { TASTE = j.rows; go(TASTE); }, function () { text('#w-q', 'the game rows did not load here.'); });
 }
 function whRound() {
   var G = S.wh; clearTimeout(G.to);
-  if (G.n >= 10) { G.pair = null; text('#w-k', 'whose finger? ten pairs from the log.'); text('#w-q', 'you got ' + G.right + ' of 10. chance is 5. the log says i pressed play on 19 of every 100; the rest was the app.'); text('#w-r', ''); show('#w-ans', false); show('#w-start', true); G.rows = []; return; }
+  if (G.n >= G.max) { G.pair = null; var more = G.max === 3; text('#w-k', more ? 'three pairs done. seven more makes the full round of ten.' : 'whose finger? three pairs from the log, then seven more.'); text('#w-q', 'you got ' + G.right + ' of ' + G.n + '. chance is ' + (G.n / 2) + '. the log says i pressed play on 19 of every 100; the rest was the app.'); text('#w-r', ''); show('#w-ans', false); show('#w-start', true); text('#w-start', more ? 'seven more?' : 'play: whose finger?'); if (!more) G.rows = []; return; }
   var r = G.rows[G.n], ia = names.indexOf(r.a), ip = r.pa && r.pa !== r.a ? names.indexOf(r.pa) : -1, same = r.pa === r.a;
-  text('#w-k', 'pair ' + (G.n + 1) + ' of 10'); text('#w-q', (same ? r.a + ' played, then ' + r.a + ' again: ' : r.pa ? r.pa + ' played. then ' : '') + (same ? '' : r.a + ', ') + r.t + '. who pressed play on it?');
+  text('#w-k', 'pair ' + (G.n + 1) + ' of ' + G.max); text('#w-q', (same ? r.a + ' played, then ' + r.a + ' again: ' : r.pa ? r.pa + ' played. then ' : '') + (same ? '' : r.a + ', ') + r.t + '. who pressed play on it?');
   show('#w-r', true); text('#w-r', ip >= 0 ? 'hear both: ' + cut(r.pa, 18) + ' first, then ' + cut(r.a, 18) + '. close in sound = auto-play walking. a jump = more likely my press.' : 'close in sound = auto-play walking. a jump = more likely my press.');
   show('#w-ans', true); show('#w-start', false);
   G.pair = [ip, ia];
@@ -1478,7 +1484,7 @@ function loadMaps() { if (!mapsP) mapsP = fetchJ('maps').then(function (j) { MAP
 function flyTo(t) { if (S.mt === t && S.mb === t) return; S.mFrom = S.mb; S.mt = t; S.mT0 = performance.now(); loadMaps(); chips(); wake(); }
 on('#m-sound', function () { S.grow = null; flyTo(0); chips(); text('#m-mode', 'by sound: a model\u2019s ear placed every artist (UMAP of CLAP). the map is a strip, so lines are drawn on the followed-by map only; auto-play\u2019s run sits a shade tighter in sound.'); clStart(0); });
 on('#m-graph', function () { S.grow = null; flyTo(1); chips(); text('#m-mode', 'by what followed: the log placed them (a force layout of the transition graph). every line is short now by construction; the question is which map the other hand\u2019s lines respect.'); clStart(0); });
-var NMODE = { hood: 'colored by room: eleven rooms the log drew from what followed what alone; the outline is the room.', family: 'colored by family (Last.fm labels, Apple\u2019s where Last.fm has none). a room that matches a family was never told the family; a room that mixes them is the log\u2019s own.', first: 'colored by when i first heard each artist, in eight cuts of the log. early rooms and late rooms show.', hand: 'colored by the hand that played each artist most. mint rooms are mine; violet rooms auto-play walks alone.' };
+var NMODE = { hood: 'colored by room: eleven rooms the log drew from what followed what alone; each outline is a room, colored by the family that fills it most.', family: 'colored by family (Last.fm labels, Apple\u2019s where Last.fm has none). a room that matches a family was never told the family; a room that mixes them is the log\u2019s own.', first: 'colored by when i first heard each artist, in eight cuts of the log. early rooms and late rooms show.', hand: 'colored by the hand that played each artist most. mint rooms are mine; violet rooms auto-play walks alone.' };
 $$('#hoods .row .chip[data-c]').forEach(function (b) { b.addEventListener('click', function () { S.color = b.getAttribute('data-c'); S.hoodHi = -1; text('#n-mode', NMODE[S.color]); chips(); if (NSAY[S.color]) say(NSAY[S.color], 'room0'); wake(); }); });
 on('#m-grow', function () { loadMaps().then(function () { if (S.mb < 1) flyTo(1); S.grow = { t0: performance.now() + 900, c: 0, done: false }; chips(); text('#m-mode', 'as it grew: the second map assembles in the order the log happened, eight cuts by count. watch the rooms form before the names.'); wake(); }); });
 function key() {
@@ -1516,9 +1522,9 @@ var WHAT = [
   ['every shape is an artist i played, colored by who pressed play. close together = sounds alike.', ['press', 'shuffle', 'auto', 'mine']],
   ['my 245 most played, on a ring. a mint line: my press followed. violet: auto-play did. tap a name and only its lines stay.', ['press', 'auto']],
   ['the same artists twice: by sound, and by what followed what. a line = two plays in a row.', ['press', 'auto', 'alike']],
-  ['eleven rooms the log built from what followed what, one color each. the outline is the room.', []],
+  ['eleven rooms the log built from what followed what. each outline is a room; its color is the family that fills it most.', []],
   ['did the song stay in my library? split by who picked it.', ['press', 'auto']],
-  ['the frozen export, then the months after it. did the habit hold?', ['press', 'auto']],
+  ['the frozen export, then the months after it. did the habit hold?', ['press', 'shuffle', 'auto']],
   ['my 23 songs, in gold, each tied to the artist it sounds most like. tap one to play it.', ['mine', 'alike']]
 ];
 function whatFor(k) {
@@ -1556,7 +1562,7 @@ on('#w-start', whose); on('#b-begin', function () { var a = $('#a-count'); if (a
 $$('[data-tm]').forEach(function (b) { b.addEventListener('click', function () { if (CL.list && CL.k >= 0 && CL.sc === scene) { clearTimeout(CL.to); clStep(); } else clStart(0); }); });
 function songs() {
   var ol = $('#songs'); if (!ol) return;
-  SONG.forEach(function (s, k) { var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.className = 'sg'; b.innerHTML = '<b></b><span></span>'; b.firstChild.textContent = s.t.toLowerCase(); b.lastChild.textContent = 'beside ' + names[SNB[k]]; b.addEventListener('click', function () { mine(k); }); li.appendChild(b); ol.appendChild(li); });
+  SONG.forEach(function (s, k) { var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.className = 'sg'; b.innerHTML = '<b></b><span></span>'; b.firstChild.textContent = s.t.toLowerCase(); b.lastChild.textContent = 'beside ' + names[SNB[k]]; b.setAttribute('aria-label', 'my song ' + s.t.toLowerCase() + ', beside ' + names[SNB[k]]); b.addEventListener('click', function () { mine(k); }); li.appendChild(b); ol.appendChild(li); });
 }
 /* the acts: an observer names the act under the reading line; the dots rail follows it */
 function acts() {
