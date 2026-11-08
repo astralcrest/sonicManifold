@@ -6,7 +6,7 @@ html, body { margin: 0; background: var(--night); color: var(--ink); }
 body { font-family: var(--sans); font-size: 17px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 .mono, output, .eyebrow, .note, #now, nav.walls, label.k, .k, .sw, .keylab { font-family: var(--mono); }
 p { margin: 0 0 12px; max-width: 560px; }
-a { color: var(--ice); }
+a { color: var(--ink); text-decoration-color: var(--line); }
 
 /* the room: a title band across the top, the drawing left, the text in its own column right */
 .wrap { display: grid; grid-template-columns: minmax(0, 1fr) clamp(440px, 38vw, 624px); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "head head" "map side"; height: calc(100vh - var(--sh, 0px)); height: calc(100dvh - var(--sh, 0px)); }
@@ -30,8 +30,8 @@ h1 em, .hl em { font-style: normal; color: var(--act); }
 
 /* takeaway and open question */
 .take, .ask { margin: 0 0 16px; padding: 2px 0 2px 16px; font: 500 18px/1.35 var(--sans); letter-spacing: -.005em; }
-.take { border-left: 3px solid var(--mint); color: var(--mint); }
-.ask { border-left: 3px solid var(--violet); color: #b7a3f2; }
+.take { border-left: 3px solid var(--ink); color: var(--ink); }
+.ask { border-left: 3px solid var(--line); color: var(--dim); }
 .take b, .ask b { display: block; font: 500 10px/1.6 var(--mono); letter-spacing: .16em; color: var(--mute); }
 .lines { margin: 4px 0 6px; }
 
@@ -41,7 +41,7 @@ section { border-top: 1px solid var(--line); padding: 24px 0; }
 .msg { font: 12px/1.5 var(--mono); color: var(--mute); margin: 4px 0 0; min-height: 18px; }
 .msg button { margin: 6px 6px 0 0; }
 #now { font-size: 11px; color: var(--mute); margin: 10px 0 0; min-height: 16px; }
-.tl { display: inline-block; font: 600 10px/1.6 var(--mono); letter-spacing: .14em; border: 1px solid var(--amber); color: var(--amber); padding: 1px 8px; }
+.tl { display: inline-block; font: 600 10px/1.6 var(--mono); letter-spacing: .14em; border: 1px solid var(--line); color: var(--dim); padding: 1px 8px; }
 .sw { display: inline-block; width: 9px; height: 9px; margin-right: 6px; }
 
 /* controls: 44 px pills, 1 px accent border, filled when on */
@@ -50,27 +50,27 @@ button, a.btn { font: 500 13px/1 var(--mono); letter-spacing: .02em; color: var(
 button:hover, a.btn:hover { border-color: var(--ink); }
 button.go, button[aria-pressed="true"], button[aria-checked="true"], button.on { background: var(--ink); color: var(--night); border-color: var(--ink); }
 button:disabled { opacity: .4; cursor: default; }
-input[type=text] { width: 100%; min-height: 48px; background: var(--night); color: var(--ink); border: 1px solid var(--line); border-bottom: 2px solid var(--acc); padding: 8px 12px; font: 500 17px var(--sans); border-radius: 0; }
-input[type=text]:focus-visible, button:focus-visible, a:focus-visible, input[type=range]:focus-visible, summary:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
+input[type=text] { width: 100%; min-height: 48px; background: var(--night); color: var(--ink); border: 1px solid var(--line); border-bottom: 2px solid var(--ink); padding: 8px 12px; font: 500 17px var(--sans); border-radius: 0; }
+input[type=text]:focus-visible, button:focus-visible, a:focus-visible, input[type=range]:focus-visible, summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; margin: 0; cursor: pointer; }
 input[type=range]::-webkit-slider-runnable-track { height: 6px; background: var(--line); border: 0; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; background: var(--acc); border: 0; border-radius: 0; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; background: var(--ink); border: 0; border-radius: 0; }
 input[type=range]::-moz-range-track { height: 6px; background: var(--line); border: 0; }
-input[type=range]::-moz-range-progress { height: 6px; background: color-mix(in srgb, var(--acc) 45%, transparent); }
-input[type=range]::-moz-range-thumb { width: 22px; height: 22px; background: var(--acc); border: 0; border-radius: 0; }
+input[type=range]::-moz-range-progress { height: 6px; background: color-mix(in srgb, var(--ink) 45%, transparent); }
+input[type=range]::-moz-range-thumb { width: 22px; height: 22px; background: var(--ink); border: 0; border-radius: 0; }
 
 /* the long words live behind "how" at the bottom */
 details.how { border-top: 1px solid var(--line); padding: 0; margin: 8px 0 0; }
 details.how summary { min-height: 44px; display: flex; align-items: center; gap: 10px; cursor: pointer; font: 500 12px var(--mono); letter-spacing: .14em; color: var(--mute); list-style: none; }
 details.how summary::-webkit-details-marker { display: none; }
-details.how summary::before { content: "+"; display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; border: 1px solid var(--line); color: var(--ice); }
+details.how summary::before { content: "+"; display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; border: 1px solid var(--line); color: var(--dim); }
 details.how[open] summary::before { content: "\2212"; }
 details.how p { font: 13px/1.6 var(--mono); color: var(--mute); margin: 0 0 10px; }
 details.how p b { color: var(--ink); font-weight: 500; }
 
 nav.walls { display: flex; flex-wrap: wrap; gap: 0 14px; font: 500 11px/1 var(--mono); letter-spacing: .06em; margin: 18px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
 nav.walls a { color: var(--mute); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; }
-nav.walls a:hover { color: var(--ice); }
+nav.walls a:hover { color: var(--ink); }
 nav.walls a[aria-current] { color: var(--act); text-decoration: underline; text-underline-offset: 6px; }
 
 details.how p, .how p { max-width: 560px; }
