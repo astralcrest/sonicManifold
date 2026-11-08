@@ -57,7 +57,7 @@ function noise(x, t, i) { var k = (x * 0.11 + t * 0.0013 + i * 97) % 4096; var a
 function spike(p) { var q = (p - 0.5) * 14; var qrs = Math.exp(-q * q * 2.2) - Math.exp(-(q + 1.1) * (q + 1.1) * 4) * 0.35 - Math.exp(-(q - 1.3) * (q - 1.3) * 3) * 0.25; return qrs + Math.exp(-(q - 4.5) * (q - 4.5) * 0.6) * 0.22; }
 function laneY() { var top = H * (phone ? 0.13 : 0.18), bot = H * (phone ? 0.42 : 0.72), n = L.length, gap = (bot - top) / Math.max(1, n - 1); return L.map(function (l, i) { return top + gap * i; }); }
 function bodyLx() { return phone ? 16 : (W > 900 ? L0() + 24 : Math.max(24, W * 0.04)); }
-function gy() { return H * (phone ? 0.465 : 0.82); }
+function gy() { return H * (phone ? 0.5 : 0.82); }
 function traceY(i, u, x, t, band, ba) { var l = L[i], tier = l ? l.tier : 'null', y = 0; if (tier === 'null') return noise(x, t, i) * band * 0.42; var ph = ((u * 3.2 - t * 0.00032) % 1 + 1) % 1; if (tier === 'descriptive') return -spike(ph) * band * 2.4 * ba + noise(x, t, i) * 1.2; if (tier === 'reversed') return spike(ph) * band * 2.4 * ba + noise(x, t, i) * 1.2; var kx = 0.56; if (u < kx) { var fade = Math.min(1, (kx - u) * 6); return -spike(ph) * band * 2.4 * ba * fade + noise(x, t, i) * 1.2; } return noise(x, t, i) * 0.5; }
 
 /* ---------- canvas ---------- */

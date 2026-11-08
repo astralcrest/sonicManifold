@@ -291,7 +291,7 @@ function sync(){var o=on();b.textContent=o?'sound on':'sound off, tap to hear';b
 var pre=false;['pointerdown','touchstart'].forEach(function(e){b.addEventListener(e,function(){pre=on()},true)});
 b.addEventListener('click',function(){var A=au();if(pre){A.forEach(function(a){a.muted=true})}else{A.forEach(function(a){a.muted=false});if(!A.some(function(a){return !a.paused})){var p=document.getElementById('b-play');if(p)p.click()}}pre=on();setTimeout(sync,60)});
 ['play','pause','volumechange','ended'].forEach(function(e){document.addEventListener(e,sync,true)});setInterval(sync,700);sync()})()</script>
-<script src="front/spine.js?v=7f14ed4760" defer></script>
+<script src="front/spine.js?v=394aebce12" defer></script>
 <script src="front/music.js?v=39372afec0" defer></script>
 </body>
 </html>
