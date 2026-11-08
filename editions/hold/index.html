@@ -21,6 +21,8 @@
 #bar i { display: block; height: 100%; width: 0; background: var(--mint); }
 #again, #sk { --acc: var(--line); color: var(--mute); }
 .song { font: 600 clamp(26px, 8cqi, 40px)/1.05 var(--sans); letter-spacing: -.02em; color: var(--ink); overflow-wrap: anywhere; margin: 0 0 6px; }
+.take-home[hidden] { display: none; }
+.take-home { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; color: var(--ice); font: 500 15px var(--sans); }
 </style>
 </head>
 <body data-wall="14" data-line="listen to twelve songs. hold to keep one, let go to skip." data-do="press play, listen, then hold to keep or let go to skip. tap any ring to jump there." data-keys="press" style="--act: var(--ice); --acc: var(--ice)">
@@ -45,6 +47,7 @@
       <button type="button" id="hold" aria-pressed="false">play song 1 of 12</button>
       <div id="bar" aria-hidden="true"><i></i></div>
       <div class="row"><button type="button" id="again">deal 12 new songs</button><button type="button" id="sk">skip this song</button></div>
+      <a class="take-home" id="home" href="../print/stub.html" hidden>take it home: the split stub</a>
       <p class="note" id="now">turn the sound chip on first. on a laptop, hold the space bar instead of the button.</p>
     </section>
     <details class="how"><summary>how</summary>

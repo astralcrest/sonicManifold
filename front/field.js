@@ -133,10 +133,12 @@ function frame() {
   var x0 = phone ? 0 : Math.min(360, W * 0.3), Wc = W - x0, cx0 = x0 + Wc / 2;
   /* on a phone the what strip owns the top of the stage: the drawing is centered in the room below it, so the rim names never run under the chips */
   var we = document.getElementById('what'), wb = we && (phone || scene === 1) ? we.offsetTop + we.offsetHeight + 6 : 0, Hp = H - wb, cyp = wb + Hp * 0.5;
+  if (phone && scene === C_COUNT && wb) { wb += 66; Hp = H - wb; cyp = wb + Hp * 0.5; }
   var sb = document.getElementById('showbig'); if (sb) sb.style.top = phone && we ? (we.offsetTop + we.offsetHeight + 8) + 'px' : '';
   if (scene === 1) { cam.r = Math.min(Wc, Hp) * (phone ? 0.36 : 0.41); cam.cx = phone ? W * 0.5 : cx0; cam.cy = cyp; }
   else if (scene === C_MAPS) { cam.r = Math.min(Wc, phone ? Hp : H) * (phone ? 0.43 : 0.44); cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
-  else { cam.r = phone ? Math.min(W * 0.62, Hp * 0.9) * 0.78 : Math.min(Wc * 0.6, H * 0.96) * 0.84; cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
+  else if (phone && scene === C_RECORD) { cam.r = Math.min(W * 1.0, Hp * 0.9) * 0.78; cam.cx = W * 0.5; cam.cy = cyp; }
+  else { cam.r = phone ? Math.min(W * 0.72, Hp * 0.9) * 0.78 : Math.min(Wc * 0.6, H * 0.96) * 0.84; cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
   cam0.cx = cam.cx; cam0.cy = cam.cy; cam0.r = cam.r;
   cam.r *= view.z; cam.cx += view.px; cam.cy += view.py;
   if (scene === C_COUNT || scene === C_RECORD) { cam.r *= GL.z; cam.cx += GL.x; cam.cy += GL.y; }
@@ -226,7 +228,7 @@ function place(k, i, out) {
   }
   proj3(P3[i * 3], P3[i * 3 + 1], P3[i * 3 + 2], tmp); out[0] = tmp[0]; out[1] = tmp[1];
   var depth = 1 - Math.min(1, Math.max(0, (tmp[2] - 1.9) / 2.6));
-  out[2] = (k === C_KEEP || k === C_CODA || k === C_SHOW) ? 0.22 : k === C_RECORD ? 0.35 : 0.55 + 0.45 * depth;
+  out[2] = (k === C_KEEP || k === C_CODA || k === C_SHOW) ? 0.22 : k === C_RECORD ? 0.5 : 0.55 + 0.45 * depth;
   out[3] = 0.75 + 0.5 * depth; out[4] = 1 - depth;
 }
 var pa = [0, 0, 0, 1, 0.5], pb = [0, 0, 0, 1, 0.5];
@@ -431,7 +433,7 @@ function cuts3(a) { var b = a.slice().sort(function (p, q) { return p - q; }), n
 function step3(w, T) { return w >= T[1] ? 2 : w >= T[0] ? 1 : 0; }
 var LW3 = [0.8, 1.9, 3.4];
 function star(g, x, y, r, fill) { var k, a, rr; g.fillStyle = fill; g.beginPath(); for (k = 0; k < 8; k++) { a = -1.5708 + k * 0.7854; rr = k % 2 ? r * 0.38 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); }
-function mark(g, x, y, r) { if (!phone) ring(g, x, y, r + 8, 'rgba(255,211,107,.22)', 1); star(g, x, y, r, GOLD); ring(g, x, y, r + 3.5, 'rgba(255,211,107,.8)', 1); }
+function mark(g, x, y, r) { if (!phone) ring(g, x, y, r + 8, 'rgba(255,211,107,.22)', 1); star(g, x, y, r, GOLD); if (!phone || scene === C_RECORD) ring(g, x, y, r + 3.5, 'rgba(255,211,107,.8)', 1); }
 function ring(g, x, y, r, stroke, lw) { g.strokeStyle = stroke; g.lineWidth = lw; g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.stroke(); }
 
 /* ---------- the key: a solid plate on the canvas that says what a point, its size, its color and its lines mean in THIS act ---------- */
@@ -586,7 +588,7 @@ function paint(now) {
   var inRing = scene === 1 && blend >= 1, field = scene !== 1, grown = reveal >= 8;
   /* threads in the field (desk): the skeleton of the map, three nearest each */
   if (field && isField(scene) && blend >= 1 && grown) {
-    g.lineWidth = phone ? 0.5 : 0.6; g.strokeStyle = 'rgba(189,211,255,' + (scene === C_RECORD ? 0.06 : 0.11) + ')'; g.beginPath();
+    g.lineWidth = phone ? 0.5 : 0.6; g.strokeStyle = 'rgba(189,211,255,' + (scene === C_RECORD ? 0.1 : 0.11) + ')'; g.beginPath();
     for (k = 0; k < KNN.length; k += 2) { i = KNN[k]; var j = KNN[k + 1]; g.moveTo(SX[i], SY[i]); g.lineTo(SX[j], SY[j]); }
     g.stroke();
   }
@@ -661,7 +663,7 @@ function paint(now) {
       i = TOP[N - 1 - k]; var a = SA[i]; if (a <= 0.01 || SX[i] < -24 || SX[i] > W + 24 || SY[i] < -24 || SY[i] > H + 24) continue;
       var col = cmap ? colorOf(i, cmap) : inR ? FC[i] : tint ? HC[i] : FC[i];
       if (LKs && !LKo[i]) a *= 0.4;
-      if (scene === C_RECORD && !isNb(i)) a *= 0.5;
+      if (scene === C_RECORD && !isNb(i)) a *= 0.7;
       if (cmap && S.fam >= 0 && F.f[i] !== S.fam) a *= 0.18;
       if (cmap && S.hoodHi >= 0 && MAPS && MAPS.c[i] !== S.hoodHi) a *= 0.22;
       if (pass2 === 0) halo(g, SX[i], SY[i], SR[i], col, a);
@@ -742,7 +744,7 @@ function paint(now) {
     var n0 = S.now;
     if (scene !== 1 && !LKs && !(scene === C_MAPS && S.mb >= 0.5)) { var nn = NN[n0]; for (k = 0; k < nn.length; k++) { var j2 = nn[k]; g.strokeStyle = 'rgba(188,211,255,' + (k < 2 ? '.85' : '.6') + ')'; g.lineWidth = k < 2 ? 1.8 : 1.1; g.beginPath(); g.moveTo(SX[n0], SY[n0]); g.lineTo(SX[j2], SY[j2]); g.stroke(); } }
     ring(g, SX[n0], SY[n0], 8, MINT, 2); word(g, SX[n0] + 12, SY[n0], names[n0], phone ? 11.5 : 13, 600, false, INK, true);
-    if (S.trail.length > 1 && scene !== 1 && !(L && scene === L.scene)) {
+    if (S.trail.length > 1 && !(L && scene === L.scene)) {
       var tc = S.mode === 'queue' ? VIOLET : S.mode === 'log' ? ICE : MINT;
       g.strokeStyle = rgba(tc, 0.8); g.lineWidth = 2.2; g.beginPath(); for (k = 0; k < S.trail.length; k++) { i = S.trail[k]; if (k) g.lineTo(SX[i], SY[i]); else g.moveTo(SX[i], SY[i]); } g.stroke();
       if (S.mode === 'queue' || S.mode === 'hand' || S.mode === 'log') for (k = Math.max(0, S.trail.length - 8); k < S.trail.length; k++) { i = S.trail[k]; if (SA[i] > 0.3) badge(g, SX[i] - 9, SY[i] - 9, S.tn[k], k === S.trail.length - 1 ? MINT : tc); }
@@ -1037,6 +1039,8 @@ function step(now) {
   var other = blend < 1 || reveal < 8 || DEMO.on || (S.game && S.game.on) || !!VA || S.mb !== S.mt || (S.grow && !S.grow.done) || (scene === C_KEEP && S.keepT0 && now - S.keepT0 < 1900) || gliding || S.lookB < 1, spin = canSpin(now);
   /* a slow turn needs 30 frames a second, not 120: the frames go to the hand */
   if (spin && !other && !dirty && now - lastPaint < 30) { tick(); return; }
+  /* while the page scrolls, the crossfade paints at 30 a second so the scroll itself keeps its frames */
+  if (phone && now - lastScroll < 250 && now - lastPaint < 30) { tick(); return; }
   if (spin) yaw += 0.0000698 * Math.min(60, now - (last || now));
   last = now; lastPaint = now;
   paint(now); zcSync();
@@ -1174,14 +1178,15 @@ var gs0 = 0;
 cv.addEventListener('gesturestart', function (e) { e.preventDefault(); VA = null; gs0 = view.z; });
 cv.addEventListener('gesturechange', function (e) { e.preventDefault(); if (!gs0) return; var p = at(e); zoomAt(p[0], p[1], gs0 * e.scale / view.z); });
 cv.addEventListener('gestureend', function (e) { e.preventDefault(); gs0 = 0; });
-addEventListener('scroll', function () { domStale = true; }, { capture: true, passive: true });
+var lastScroll = -1e9;
+addEventListener('scroll', function () { domStale = true; lastIn = lastScroll = performance.now(); }, { capture: true, passive: true });
 addEventListener('resize', function () { domStale = true; });
 /* the zoom chips: fit (with the zoom level) and draw, only while zoomed */
 var ZI = { find: '<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14.5 14.5"/>', draw: '<path d="M1.5 12C4 3 7 15 9.5 8S13 4 14.5 3"/>', fit: '<path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/>', zin: '<path d="M2.5 8h11M8 2.5v11"/>', zout: '<path d="M2.5 8h11"/>' };
 var findB = null, zfEl = null, gkEl = null, gkDone = false;
 function zbtn(kind, label) {
   var b = doc.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-label', label); b.title = label;
-  b.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true">' + ZI[kind] + '</svg>'; return b;
+  b.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true">' + ZI[kind] + '</svg><span>' + ({ find: 'find', draw: 'draw a radio', fit: 'fit', zin: 'in', zout: 'out' }[kind] || '') + '</span>'; return b;
 }
 function zcBuild() {
   zc = doc.createElement('div'); zc.id = 'zc'; zc.hidden = true;
@@ -1438,12 +1443,12 @@ function hoodList() {
 var KG = { press: ['my press', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#21f6bc"/>'], auto: ['auto-play', '<circle cx="6" cy="6" r="4" fill="none" stroke="#8b6fd6" stroke-width="2"/>'], shuffle: ['shuffle', '<path d="M6 1 11 6 6 11 1 6Z" fill="#f5a623"/>'], alike: ['ice line = nearest in sound', '<path d="M1 6H11" stroke="#bcd3ff" stroke-width="2" stroke-linecap="round"/>'], mine: ['my songs', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#ffd36b"/>'] };
 var WHAT = [
   ['every shape is an artist i played, colored by who pressed play. close together = sounds alike.', ['press', 'shuffle', 'auto', 'mine']],
-  ['my 245 most played, on a ring. a line = one play, then the next. next walks the lines.', ['press', 'auto']],
+  ['my 245 most played, on a ring. a line = one play, then the next. be auto-play or be my press: the walk steps around the ring, numbered.', ['press', 'auto']],
   ['the same artists twice: by sound, and by what followed what. a line = two plays in a row.', ['press', 'auto', 'alike']],
   ['11 neighborhoods, drawn only from what followed what. one color per neighborhood. a line = two plays in a row.', []],
   ['did the song stay in my library? split by who picked it.', ['press', 'auto']],
   ['the frozen export, then the months after it. did the habit hold?', ['press', 'auto']],
-  ['the room, as it would stand: four walls, a floor, the record. tap a small picture to see it big.', []],
+  ['five stills from the same plays, one per finding. tap the picture, or next still, to turn them.', []],
   ['my 23 songs as gold stars, each tied to the artist it sounds most like. tap one to play it.', ['mine', 'alike']]
 ];
 function whatFor(k) {
@@ -1472,10 +1477,15 @@ function songs() {
   var ol = $('#songs'); if (!ol) return;
   SONG.forEach(function (s, k) { var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.className = 'sg'; b.innerHTML = '<b></b><span></span>'; b.firstChild.textContent = s.t.toLowerCase(); b.lastChild.textContent = 'beside ' + names[SNB[k]]; b.addEventListener('click', function () { mine(k); }); li.appendChild(b); ol.appendChild(li); });
 }
-/* the show act: eight small pictures of the room; the pressed one fills the stage */
+/* the stills act: five pictures, one at a time; prev/next, or a tap on the picture, turns them */
+var STILLS = [["facet4_rooms", "the rooms: eleven neighborhoods drawn only from what followed what"], ["facet5_maps", "two maps: the same artists by sound, and by what followed what"], ["facet7_ring", "the ring: my 245 most played; a line inside = one play, then the next"], ["loop_fig", "the loop: did the app make my taste, or my taste the app"], ["record_still", "the record: my 23 songs as gold stars beside the artists they sound most like"]], stillK = 0;
 function thumbs() {
-  var img = $('#sb-img'), cap = $('#sb-cap'), bs = $$('#a-show .th'); if (!img || !bs.length) return;
-  bs.forEach(function (b) { b.addEventListener('click', function () { bs.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); }); img.src = b.getAttribute('data-big'); img.alt = b.getAttribute('data-cap'); if (cap) cap.textContent = b.getAttribute('data-cap'); text('#sb-pcap', b.getAttribute('data-cap')); if (scene !== C_SHOW) setScene(C_SHOW); }); });
+  var img = $('#sb-img'), cap = $('#sb-cap'), pc = $('#sb-pcap'), n = $('#sb-n'), pv = $('#sb-prev'), nx = $('#sb-next'); if (!img || !nx) return;
+  function show(k, go) { stillK = (k + STILLS.length) % STILLS.length; var st = STILLS[stillK]; img.src = 'editions/show/img/' + st[0] + '.jpg'; img.alt = st[1]; if (cap) cap.textContent = st[1]; if (pc) pc.textContent = st[1]; if (n) n.textContent = (stillK + 1) + ' of ' + STILLS.length; if (go && scene !== C_SHOW) setScene(C_SHOW); }
+  nx.addEventListener('click', function () { show(stillK + 1, true); }); if (pv) pv.addEventListener('click', function () { show(stillK - 1, true); });
+  img.addEventListener('click', function () { show(stillK + 1, false); });
+  /* the next picture is fetched while this one is up */
+  STILLS.forEach(function (st) { var im = new Image(); im.src = 'editions/show/img/' + st[0] + '.jpg'; });
 }
 /* the acts drive the scene */
 function acts() {

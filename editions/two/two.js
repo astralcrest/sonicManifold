@@ -236,6 +236,7 @@
   function draw() {
     var A = S.a, B = S.b; if (!A || !B || !F) return;
     sqStop();
+    var hm = $('home'); if (hm && A.order.length && B.order.length) { hm.hidden = false; hm.setAttribute('href', '../print/mirror.html#a=' + A.order.slice(0, 8).join(',') + '&b=' + B.order.slice(0, 8).join(',')); }
     var ca = col('a'), cb = col('b'), na = nm('a'), nb = nm('b');
     var both = A.order.filter(function (i) { return B.set.has(i); });
     var CA = A.order.length ? center(A) : null, CB = B.order.length ? center(B) : null;

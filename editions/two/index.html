@@ -124,6 +124,8 @@ button#again6,button#again{min-height:44px}
   .big{font-size:clamp(56px,18vw,96px)}
   .take,.ask{font-size:17px}
 }
+.take-home { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; color: var(--ice); font: 500 15px var(--sans); }
+.take-home[hidden] { display: none; }
 </style>
 </head>
 <body data-wall="2" data-line="two lists as places on my sound map. close together = sounds alike." data-do="add two lists or try made-up ones. tap shapes, hear crossings." data-keys="alike,auto">
@@ -166,6 +168,7 @@ button#again6,button#again{min-height:44px}
 </div>
 <p id="privacy">your file never leaves this tab; only artist, track, time and ms played are kept.</p>
 <div id="tryrow"><button type="button" id="try">try two made-up lists</button><span>no real person listened to them</span></div>
+<a class="take-home" id="home" href="../print/mirror.html" hidden>take it home: the mirror card</a>
 <details class="how"><summary>how</summary>
   <p>press try two made-up lists, or paste names for a and b.</p>
   <p>scroll the six pictures. tap a shape to name it.</p>

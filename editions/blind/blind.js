@@ -2,6 +2,7 @@
 'use strict';
 var $ = WK.$, C = WK.C, D, M, MAP, PAIRS = [], order = [], oi = 0, TW = null;
 var S = { phase: 'dark', pair: null, flip: false, named: false, p1: -1, p2: -1, ns: 0, nc: 0, hs: 0, hc: 0, playing: -1, idle: null, heard: [false, false], seq: false };
+var RES = [];
 var AU = new Audio(); AU.volume = 0.3; AU.preload = 'none';
 
 function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
@@ -128,6 +129,7 @@ function pick(k) {
   if (S.phase !== 'near' || !(S.heard[0] && S.heard[1])) return;
   S.p2 = k; S.phase = 'result'; stop();
   var same = S.p1 === S.p2;
+  if (S.named) { RES.push(S.pair.o[0].i + '.' + S.pair.o[1].i + '.' + (S.flip ? 1 - k : k) + '.' + (same ? 0 : 1)); if (RES.length > 6) RES.shift(); $('home').setAttribute('href', '../print/taste.html#r=' + RES.join(',')); }
   if (S.named) { if (same) S.ns++; else S.nc++; } else { if (same) S.hs++; else S.hc++; }
   $('pka').classList.toggle('on', k === 0); $('pkb').classList.toggle('on', k === 1);
   var r = $('res'); r.className = 'res ' + (same ? 'same' : 'chg');

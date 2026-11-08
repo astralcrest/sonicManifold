@@ -48,6 +48,7 @@ body.dark .wk-tip { display: none !important; }
 @keyframes beat { 0% { outline-offset: -2px; } 100% { outline-offset: 5px; } }
 @media (prefers-reduced-motion: reduce) { .sq[aria-pressed="true"] { animation: none; } }
 @media (max-width: 900px) { body.dark #map { display: none; } .sq { max-height: 40vh; } }
+.take-home { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; color: var(--ice); font: 500 15px var(--sans); }
 </style>
 </head>
 <body class="dark" data-wall="7" data-line="two clips with no names, then two close in sound, named half the time." data-do="play both, pick one. then play two new clips and pick again." data-keys="press,alike" style="--act: var(--ice); --acc: var(--ice)">
@@ -71,6 +72,7 @@ body.dark .wk-tip { display: none !important; }
       <p class="res" id="res"></p>
       <p id="com"></p>
       <div class="row"><button type="button" class="go" id="next">next pair</button></div>
+      <a class="take-home" id="home" href="../print/taste.html">take it home: the taste card</a>
     </section>
     <section aria-live="polite">
       <div class="key" style="margin:0">

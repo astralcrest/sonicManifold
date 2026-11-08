@@ -8,7 +8,7 @@ var S = { list: [], st: [], k: 0, t0: 0, held: false, kept: false, raf: 0, done:
 function deal() {
   var pool = M.order.slice(0, 200).filter(function (i) { return PV && PV[i]; }), out = [], n;
   while (out.length < COUNT && pool.length) { n = Math.floor(Math.random() * pool.length); out.push(pool.splice(n, 1)[0]); }
-  S.list = out; S.st = out.map(function () { return 0; }); S.k = 0; S.held = false; S.kept = false; S.done = false; S.phase = 'idle'; S.heard = false; S.tok++;
+  S.list = out; S.st = out.map(function () { return 0; }); S.k = 0; S.held = false; S.kept = false; S.done = false; S.phase = 'idle'; S.heard = false; S.tok++; $('home').hidden = true;
   WK.stop(); WK.still(); $('hold').classList.remove('go'); setBar(0); $('now').textContent = ''; render();
 }
 function setBar(f) { $('bar').firstElementChild.style.width = Math.round(Math.max(0, Math.min(1, f)) * 100) + '%'; }
@@ -71,6 +71,7 @@ function render() {
   $('num').innerHTML = decided() ? K : '<span class="c">none decided yet</span>';
   $('song').innerHTML = S.done ? '&nbsp;' : WK.esc(nm);
   $('hold').disabled = S.done; $('sk').disabled = S.done || S.held;
+  if (S.done) { var kl = S.list.filter(function (a, n) { return S.st[n] === 1; }), hm = $('home'); hm.hidden = false; hm.setAttribute('href', '../print/stub.html#a=' + (kl.length ? kl[kl.length - 1] : S.list[S.list.length - 1]) + '&k=' + K); }
   if (S.done) { $('say').textContent = 'you kept ' + K + ' of 12' + keptNames() + '. in my log, 42 of 100 songs i started myself stayed, and 16 of 100 of auto-play\'s. this one is a toy.'; setBtn('all 12 heard'); draw(); return; }
   if (S.phase !== 'playing') { $('say').textContent = 'press play to hear song ' + n + ' of 12: ' + nm + ' (' + fam(i) + ', ' + D.pl[i] + ' plays in my log). then decide.' + snd(); setBtn('play song ' + n + ' of 12'); }
   else if (S.held && S.kept) { $('say').textContent = 'kept: song ' + n + ' of 12, ' + nm + '. let go for the next one.'; setBtn('kept. let go for next'); }

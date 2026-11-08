@@ -23,6 +23,8 @@
 #after.show { display: flex; }
 #nw { --acc: var(--line); color: var(--mute); }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+.take-home { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; color: var(--ice); font: 500 15px var(--sans); }
+.take-home[hidden] { display: none; }
 </style>
 </head>
 <body data-wall="11 of 12" data-line="a chain of songs, one hand per link. each hand saw only the last song." data-do="tap a numbered song to hear it, tap again to add it." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
@@ -48,6 +50,7 @@
       <div id="cands" role="group" aria-label="six nearest in sound; press a number key or tap one"></div>
       <div id="after"><button type="button" id="pc">hear every link in order</button><button type="button" id="kg">add more links</button></div>
       <div class="row"><button type="button" id="nw">start a new chain</button></div>
+      <a class="take-home" id="home" href="../print/receipt2.html" hidden>take it home: your hand vs the machine</a>
     </section>
     <details class="how"><summary>how</summary>
       <p>tap a numbered song, or press 1 to 6, to hear it. tap it again, or press enter, to add it.</p>

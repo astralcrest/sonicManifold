@@ -105,6 +105,7 @@ function render() {
     box.appendChild(b);
   });
   $('after').classList.toggle('show', done);
+  var hm = $('home'); hm.hidden = n < 1; if (n >= 1) hm.setAttribute('href', '../print/receipt2.html#p=' + S.chain.slice(0, 41).join(','));
   if (!R.on && S.sel < 0 && AU.paused) $('now').textContent = idle();
   if (n < 1) { $('num').innerHTML = '<span class="c">add a link</span>'; $('say').textContent = 'no hands yet. the chain starts at one song. tap a numbered song to hear it, then tap again to add it.'; }
   else {
