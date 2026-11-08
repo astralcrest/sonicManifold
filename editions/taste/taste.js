@@ -76,7 +76,7 @@
     $("next").textContent = R === ROUNDS - 1 ? "see the result" : "next";
     if (s.primed) {
       $("primer").classList.add("on");
-      $("status").innerHTML = '<span class="a">listen first.</span> you do not pick this one.';
+      $("status").innerHTML = '<span class="a">priming.</span> a third song plays first. just listen; you do not pick this one.';
       const pr = p.pr[s.target];
       playClip(pr.u, $("pm"), null, () => {
         if (S[R] !== s) return;
@@ -90,7 +90,7 @@
   }
 
   function ready() {
-    $("status").textContent = "play a and b, then pick the one you like more.";
+    $("status").textContent = S[R].primed ? "primed. now play a and b and pick the one you like more. did the first song pull you?" : "no priming this round: a cold pick. play a and b, then pick the one you like more.";
     $("playA").disabled = $("playB").disabled = false;
   }
 

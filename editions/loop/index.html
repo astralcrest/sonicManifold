@@ -44,6 +44,9 @@ output { font-size: 12px; color: var(--mute); }
 .met small { display: block; font: 11px var(--mono); color: var(--mute); }
 #qfit b { color: var(--mint); font-weight: 500; }
 #hear { --acc: var(--ice); }
+#map { position: relative; }
+#tip { position: absolute; z-index: 3; pointer-events: none; font: 500 11px/1.4 var(--mono); color: var(--ink); background: var(--night, #06010f); border: 1px solid var(--line); padding: 4px 8px; border-radius: 6px 9px 6px 8px; white-space: nowrap; }
+#tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 4px 0 2px; vertical-align: -1px; }
 #path { font: 11px/1.7 var(--mono); color: #cfc6e8; max-height: 7.4em; overflow-y: auto; margin-top: 10px; }
 #path span { white-space: nowrap; margin-right: 10px; }
 #path span b { color: var(--mute); font-weight: 400; }
@@ -66,7 +69,7 @@ output { font-size: 12px; color: var(--mute); }
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>walk the loop</span><span class="tl">a toy</span></p>
     <h1 id="h1">does auto-play follow sound more than i do?</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map: every artist as a shape colored by genre family, with a rule's 40-step walk drawn as a numbered ribbon"></canvas></div>
+  <div id="map"><div id="tip" hidden aria-hidden="true"></div><canvas id="cv" role="img" aria-label="my sound map: every artist as a shape colored by genre family, with a rule's 40-step walk drawn as a numbered ribbon"></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="m-loop">-</div>
@@ -104,13 +107,13 @@ output { font-size: 12px; color: var(--mute); }
     </section>
     <section>
       <h2>the walk, stop by stop</h2>
-      <button type="button" id="hear" aria-pressed="false">hear it</button>
+      <button type="button" id="hear" aria-pressed="false">hear it</button> <button type="button" id="skip" hidden>next stop</button>
       <p id="now"></p>
       <div id="path" tabindex="0" aria-label="the walk so far, scrolls"></div>
       <p class="note" id="what">what plays: one 30-second preview per stop. it is the rule's walk, not my history.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>each shape is an artist, colored by genre family.</p>
+      <p>each shape is an artist, colored by genre family. hover one for its name; tap one to start the walk there.</p>
       <p>a rule walks 40 picks across them; the ribbon is its path.</p>
       <p>each step weighs <span id="nc">the</span> nearby, popular and random artists.</p>
       <div id="legend"></div>

@@ -248,7 +248,9 @@ function buildUI() {
   $('fixed').innerHTML = 'fixed by this rule: ' + FIXED.map(function (k) { return DIALN[k] + ' <output id="o' + k + '"></output>'; }).join(' · ');
   $('nart').textContent = M.N.toLocaleString('en-US');
   cv.addEventListener('pointerdown', tap);
+  cv.addEventListener('pointermove', hoverTip); cv.addEventListener('pointerleave', function () { $('tip').hidden = true; });
   $('hear').addEventListener('click', hear);
+  $('skip').addEventListener('click', function () { if (S.play >= 0) playStop(S.play + 1); });
 }
 
 var GLOSS = ['higher: it hops to artists that sound near the last one.', 'higher: it goes back to artists it already visited.',
@@ -454,6 +456,14 @@ function draw() {
   if (S.play >= 0 && S.play < n) { if (PK) PK.rings(g, X(p[S.play]), Y(p[S.play]), INK, 14); }
 }
 
+function hoverTip(e) {
+  var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, best = -1, bd = 16 * 16, tip = $('tip');
+  for (var i = 0; i < M.N; i++) { var dx = X(i) - x, dy = Y(i) - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
+  if (best < 0) { tip.hidden = true; return; }
+  var k = S.path ? S.path.indexOf(best) : -1, fam = D.fam[D.f[best]] || '';
+  tip.innerHTML = '<b>' + name(best) + '</b>' + (fam ? ' <i style="background:' + (FAMC[fam] || MUTE) + '"></i>' + fam : '') + (k >= 0 ? ' · stop ' + k : '') + (S.play < 0 ? ' · tap to start here' : '');
+  tip.style.left = Math.min(r.width - 220, x + 12) + 'px'; tip.style.top = Math.max(0, y - 34) + 'px'; tip.hidden = false;
+}
 function tap(e) {
   var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, best = -1, bd = 22 * 22;
   for (var i = 0; i < M.N; i++) { var dx = X(i) - x, dy = Y(i) - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
@@ -476,14 +486,14 @@ function playStop(k) {
   AU.src = t[1]; S.play = k;
   var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {});
   $('hear').textContent = 'stop'; $('hear').setAttribute('aria-pressed', 'true');
-  $('now').textContent = 'playing stop ' + k + ': ' + t[0] + ', by ' + name(S.path[k]) + '. next stop plays when it ends.';
+  $('now').textContent = 'playing stop ' + k + ': ' + t[0] + ', by ' + name(S.path[k]) + '. the next stop plays when it ends.'; $('skip').hidden = false;
   [].forEach.call($('path').children, function (s) { s.classList.toggle('on', +s.getAttribute('data-k') === k); });
   draw();
 }
 function stopHear() {
   if (AU) AU.pause();
   if (S.play < 0) return;
-  S.play = -1; $('hear').textContent = 'hear it'; $('hear').setAttribute('aria-pressed', 'false');
+  S.play = -1; $('hear').textContent = 'hear it'; $('hear').setAttribute('aria-pressed', 'false'); $('skip').hidden = true;
   [].forEach.call($('path').children, function (s) { s.classList.remove('on'); });
   draw();
 }
