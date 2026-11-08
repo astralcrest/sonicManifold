@@ -397,7 +397,7 @@
     chip.addEventListener('click', function () { setSound(!SND); });
     goBtn = document.getElementById('wk-go'); goState(); [600, 1500, 3000, 6000].forEach(function (t) { setTimeout(goState, t); });
     goBtn.addEventListener('click', function () { setSound(true); start(); });
-    root.addEventListener('message', function (e) { if (e.origin === location.origin && e.data && e.data.sm === 'front' && e.data.ev === 'start' && SND) autostart(); });
+    root.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || e.data.sm !== 'front') return; if (e.data.ev === 'start' && SND) autostart(); else if (e.data.ev === 'hush') { ELS.forEach(function (a) { try { a.pause(); } catch (x) {} }); if (root.speechSynthesis) try { root.speechSynthesis.cancel(); } catch (x) {} } });
     if (SND && root.parent && root.parent !== root) autostart();
     var fit = function () { document.documentElement.style.setProperty('--sh', (s.offsetHeight + nav.offsetHeight) + 'px'); document.documentElement.style.setProperty('--nh', nav.offsetHeight + 'px'); };
     fit(); root.addEventListener('resize', fit); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);

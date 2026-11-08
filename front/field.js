@@ -21,6 +21,8 @@ var N = 0, P3 = null, PL = [], PMAX = 1, SZ = [], FC = [], HC = [], NN = [], KNN
 var SX = [], SY = [], SA = [], SR = [];       /* screen x, y, alpha, radius this frame */
 var RING = [], RA = {}, RI = {}, RF = [], GA = {}, TX = [], EDG = [], RPX = null, RPY = null, RRING = 1, LASP = 1, RL = null, rlP = null, ZD = null, MINE = [], Q = [], SONG = [], SNB = [], RD = [], RLONE = 0, RZERO = 0, RNODOT = 0, KB = null, LFM = 0, APPL = 0, NOLAB = 0;
 var KNN2 = null, NB2 = null, DW = [], PG = null, CLB = null;
+/* phone: the drawing is fitted to the points it actually has (the cloud is a ribbon, not a box), and the fit arrives slowly, as a zoom in */
+var FITS = {};
 var pendT = 0, pendF = null, VA = null, lastIn = -1e9, lastPaint = 0, ZMAX = 24, hold = 0, lastTap = null, zc = null, fitB = null, drawB = null, zcOn = false, zcT = '', ov = null, ovg = null, ovRaf = 0, domC = null, domT = -1e9, domStale = true;
 var scene = 0, blend = 0, from = 0, tStart = 0, yaw = 0.62, pitch = 0.36, last = 0, raf = 0, dirty = true;
 var DEMO = { on: false, t0: 0, a: null, n: 0, last: 0 };
@@ -124,7 +126,7 @@ function prep(j) {
 /* ---------- layout ---------- */
 function fit() {
   var b = stage.getBoundingClientRect(); W = Math.max(1, Math.round(b.width)); H = Math.max(1, Math.round(b.height));
-  phone = W < 700 || innerWidth < 900; DPR = Math.min(3, Math.max(1, Math.round((window.devicePixelRatio || 1) * 2) / 2));
+  phone = W < 700 || innerWidth < 900; FITS = {}; DPR = Math.min(3, Math.max(1, Math.round((window.devicePixelRatio || 1) * 2) / 2));
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   if (ov) { ov.width = cv.width; ov.height = cv.height; }
   domStale = true;
@@ -153,6 +155,7 @@ function frame() {
   else if (phone && scene === C_RECORD) { cam.r = Math.min(W * 1.0, Hp * 0.9) * 0.78; cam.cx = W * 0.5; cam.cy = cyp; }
   else { cam.r = phone ? Math.min(W * 0.72, Hp * 0.9) * 0.78 : Math.min(Wc * 0.6, H * 0.96) * 0.84; cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
   cam0.cx = cam.cx; cam0.cy = cam.cy; cam0.r = cam.r;
+  if (phone && FITS[scene] && FITS[scene].s > 1) { var ff = FITS[scene], fa = ff.a < 1 ? ease(ff.a) : 1; cam.cx -= ff.dx * fa; cam.cy -= ff.dy * fa; cam.r *= 1 + (ff.s - 1) * fa; cam0.cx = cam.cx; cam0.cy = cam.cy; cam0.r = cam.r; }
   cam.r *= view.z; cam.cx += view.px; cam.cy += view.py;
   if (scene === C_COUNT || scene === C_RECORD) { cam.r *= GL.z; cam.cx += GL.x; cam.cy += GL.y; }
 }
@@ -168,6 +171,15 @@ function zoomAt(mx, my, f) {
   view.z = z; view.px = cx - cam0.cx; view.py = cy - cam0.cy; clampView(); pathsDirty = true; wake();
 }
 /* an eased move of the view (200 ms): double tap, keys, fit, find. the target is a zoom and the screen point that ends up under (tx, ty) */
+function fitPhone(now) {
+  var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, n = 0, i;
+  var o = [0, 0, 0, 0];
+  for (i = 0; i < N; i++) { place(scene, i, o); if (!(o[2] > 0.05)) continue; n++; if (o[0] < x0) x0 = o[0]; if (o[0] > x1) x1 = o[0]; if (o[1] < y0) y0 = o[1]; if (o[1] > y1) y1 = o[1]; }
+  if (n < 20 || x1 - x0 < 10 || y1 - y0 < 10) { FITS[scene] = { s: 1, dx: 0, dy: 0, a: 1, t0: now }; return; }
+  var we = document.getElementById('what'), wb = we ? we.offsetTop + we.offsetHeight + 10 : 50, aw = W - 28, ah = H - wb - 14;
+  var s = Math.min(aw / (x1 - x0), ah / (y1 - y0)) * 0.9; s = Math.max(1, Math.min(2.6, s)); if (s < 1.04) s = 1;
+  FITS[scene] = { s: s, dx: (x0 + x1) / 2 - cam0.cx, dy: (y0 + y1) / 2 - (wb + ah / 2), a: s > 1 ? 0 : 1, t0: now };
+}
 function animView(z1, x1, y1, ms) {
   if (isField(scene) && (GL.x || GL.y || GL.z !== 1)) unglide();
   VA = { t0: performance.now(), dur: reduce ? 1 : ms, z0: view.z, z1: z1, x0: cam.cx, y0: cam.cy, x1: x1, y1: y1 }; wake();
@@ -203,6 +215,7 @@ function setScene(k) {
   if (k === C_KEEP) S.keepT0 = 0;
   html.setAttribute('data-scene', SCENES[k]);
   if (NPR.on) npRef();
+  var npE = $('#np'); if (npE) { npE.classList.remove('open'); var alb = window.__smMusic && window.__smMusic.A && window.__smMusic.A.el; if (phone && !npE.hidden && !(pv && !pv.paused) && !(S.mine >= 0 && alb && !alb.paused)) npE.hidden = true; }
   if (k !== C_KEEP && S.game) endGame(true);
   if (k === C_MAPS || k === C_HOODS) loadMaps();
   whatFor(k);
@@ -270,6 +283,8 @@ function layout(now) {
     if (reveal < 8 && scene === C_COUNT && F.y0[i] >= reveal) SA[i] = 0;
     if (gc < 8 && F.y0[i] >= gc) SA[i] = 0;
   }
+  if (phone && scene !== C_HAND && k >= 1 && !FITS[scene] && view.z === 1) fitPhone(now);
+  if (phone && FITS[scene] && FITS[scene].a < 1) { FITS[scene].a = Math.min(1, (now - FITS[scene].t0) / 1700); dirty = true; pathsDirty = true; }
   /* the camera eases along the curve: the stop that plays drifts to the middle, a little closer */
   var L = S.line; gliding = false;
   if (L && L.follow && scene === L.scene && blend >= 1 && L.k < L.stops.length) {
@@ -774,10 +789,10 @@ function paint(now) {
     var heard = 0; for (k = 0; k < N; k++) if (F.y0[k] < reveal) heard++;
     g.font = '600 ' + (phone ? 36 : 68) + 'px ' + SANS; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = INK;
     /* under the what strip on every width: the strip is centered on desk and reaches the count's column below about 1300px */
-    var we = document.getElementById('what'), wb = we ? we.offsetTop + we.offsetHeight : 0, wy = phone ? Math.max(94, wb + 40) : Math.max(110, wb + 64);
+    var we = document.getElementById('what'), wb = we ? we.offsetTop + we.offsetHeight : 0, wy = phone ? H - 36 : Math.max(110, wb + 64);
     g.fillText(String(heard).replace(/\B(?=(\d{3})+(?!\d))/g, ','), phone ? 14 : 220, wy);
     g.font = '500 ' + (phone ? 10 : 11.5) + 'px ' + MONO; g.fillStyle = MUTE;
-    g.fillText('artists, in the order i first heard them', phone ? 14 : 222, wy + (phone ? 18 : 22));
+    g.fillText('artists, in the order i first heard them', phone ? 14 : 222, wy + (phone ? 16 : 22));
   }
   if (scene === 0 && blend >= 1 && grown) for (k = 0; k < (phone ? 4 : 10); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 5, SY[i], names[i], phone ? 12 - k * 0.3 : 17 - k * 0.65, k < 3 ? 600 : 500, false, INK); }
   /* the neighborhoods: a numeral and the family that fills each, at its center; the color is the neighborhood */
@@ -1205,7 +1220,7 @@ addEventListener('resize', function () { domStale = true; });
 var ZI = { find: '<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14.5 14.5"/>', draw: '<path d="M1.5 12C4 3 7 15 9.5 8S13 4 14.5 3"/>', fit: '<path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/>', zin: '<path d="M2.5 8h11M8 2.5v11"/>', zout: '<path d="M2.5 8h11"/>' };
 var findB = null, zfEl = null, gkEl = null, gkDone = false;
 function zbtn(kind, label) {
-  var b = doc.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-label', label); b.title = label;
+  var b = doc.createElement('button'); b.type = 'button'; b.className = 'chip z-' + kind; b.setAttribute('aria-label', label); b.title = label;
   b.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true">' + ZI[kind] + '</svg><span>' + ({ find: 'find', draw: 'draw a radio', fit: 'fit', zin: 'in', zout: 'out' }[kind] || '') + '</span>'; return b;
 }
 function zcBuild() {
@@ -1490,6 +1505,14 @@ function whatFor(k) {
   var KC = { press: '#21f6bc', auto: '#8b6fd6', shuffle: '#f5a623', alike: '#bcd3ff', mine: '#ffd36b' };
   keys.forEach(function (key) { var c = doc.createElement('span'); c.className = 'kc'; c.style.setProperty('--kcb', KC[key] + '73'); c.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true">' + KG[key][1] + '</svg>' + KG[key][0]; el.insertBefore(c, b); });
 }
+on('#np-n', function () { if (phone) $('#np').classList.toggle('open'); });
+/* contact: a small sheet with the address, never a bare hash jump */
+function cpop(on) { var c = $('#cpop'); if (!c) return; c.hidden = !on; if (on) { c.setAttribute('role', 'dialog'); c.setAttribute('aria-modal', 'true'); var x = $('#cp-x'); if (x) x.focus(); } else { c.removeAttribute('role'); c.removeAttribute('aria-modal'); } }
+['#b-contact', '#b-contact2'].forEach(function (s) { var a = $(s); if (a) a.addEventListener('click', function (e) { e.preventDefault(); cpop(true); }); });
+on('#cp-x', function () { cpop(false); });
+on('#cpop', function (e) { if (e.target && e.target.id === 'cpop') cpop(false); });
+on('#cp-copy', function () { var b = $('#cp-copy'); try { navigator.clipboard.writeText('astralcrestlab@proton.me').then(function () { text('#cp-copy', 'copied'); setTimeout(function () { text('#cp-copy', 'copy the address'); }, 1800); }); } catch (x) { if (b) b.textContent = 'select it above'; } });
+addEventListener('keydown', function (e) { if (e.key === 'Escape') cpop(false); });
 on('#b-hear', function () {
   var b = $('#b-hear'), a = el();
   if (!b.classList.contains('on')) { var i = TOP[Math.floor(Math.random() * Math.min(12, TOP.length))]; if (i === undefined) return; b.classList.add('on'); text('#b-hear', 'sound on'); play(i, 'tap'); return; }
@@ -1498,6 +1521,7 @@ on('#b-hear', function () {
 });
 on('#b-sound', function () {
   var M = window.__smMusic; if (!M || !M.toggle) return; M.toggle();
+  setTimeout(function () { var a = M.A && M.A.el; if (!a || a.paused) return; if (pv && !pv.paused) { S.user = true; pv.pause(); } var fr = $('#wr-f'); if (html.classList.contains('sm-wall') && fr && fr.contentWindow) try { fr.contentWindow.postMessage({ sm: 'front', ev: 'hush' }, location.origin); } catch (x) { /* fine */ } }, 450);
   var lab = function () { var a = M.A && M.A.el, on = a && !a.paused; text('#b-sound', on ? 'album playing' : 'my album'); html.classList.toggle('sm-album', !!on); };
   if (M.A && M.A.el && !M.A.el.__pill) { M.A.el.__pill = 1; ['play', 'pause', 'ended'].forEach(function (t) { M.A.el.addEventListener(t, lab); }); }
   setTimeout(lab, 400);
@@ -1632,7 +1656,7 @@ function wrArm() { clearTimeout(wrT); var k = WR.k; if (k < 0) return; wrT = set
 addEventListener('message', function (e) {
   var d = e.data; if (!d || d.sm !== 'wall' || WR.k < 0) return;
   if (d.ev === 'end') { playedMark(WALLS[WR.k][0]); var nx = $('#wr-next'); if (nx) nx.classList.add('go'); var nm = $('#wr-name'); if (nm) nm.textContent = WALLS[WR.k][1] + '. next: ' + WALLS[(WR.k + 1) % WALLS.length][1]; }
-  else if (d.ev === 'play') wrArm();
+  else if (d.ev === 'play') { wrArm(); duck(); if (pv && !pv.paused) { S.user = true; pv.pause(); } }
 });
 var _wallOpen = wallOpen;
 wallOpen = function (slug, push) { _wallOpen(slug, push); var nx = $('#wr-next'); if (nx) nx.classList.remove('go'); wrArm(); playedPaint(); };
@@ -1641,7 +1665,7 @@ wallClose = function (pop) { clearTimeout(wrT); _wallClose(pop); playedPaint(); 
 $('#wr-deal').addEventListener('click', function () { wallOpen(dealOne(WR.k >= 0 ? WALLS[WR.k][0] : '')); });
 (function () { var b = $('#b-play'); if (!b) return; b.addEventListener('click', function (e) { if (e.metaKey || e.ctrlKey || e.shiftKey) return; if (PLAYED.length >= WALLS.length) return; e.preventDefault(); wallOpen(dealOne('')); }); })();
 playedPaint();
-  window.__field = { demo: function () { return DEMO; }, S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; }, reveal: function () { return reveal; }, grow: function () { reveal = 8; wake(); }, hoods: function () { return MAPS ? MAPS.cm.length : 0; }, ring: function () { return { look: S.look, b: S.lookB, rl: !!RL, x: Array.prototype.slice.call(RPX), y: Array.prototype.slice.call(RPY) }; }, cl: function () { return { k: CL.k, n: CL.list ? CL.list.length : 0, one: CL.one ? CL.one.t : '', box: CLB }; }, tell: function () { clStart(0); }, view: function () { return { z: view.z, px: view.px, py: view.py }; }, line: function () { var L = S.line; if (!L) return null; var o = [0, 0], pts = [], k; for (k = 0; k < L.c.length; k++) { lineXY(L, L.c[k], o); pts.push([o[0], o[1]]); } return { pts: pts, field: L.c.slice(0, 3).map(function (p) { return [p[0], p[1]]; }), stops: L.stops.map(function (i) { return [SX[i], SY[i]]; }) }; } };
+  window.__field = { fits: function () { return FITS; }, demo: function () { return DEMO; }, S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; }, reveal: function () { return reveal; }, grow: function () { reveal = 8; wake(); }, hoods: function () { return MAPS ? MAPS.cm.length : 0; }, ring: function () { return { look: S.look, b: S.lookB, rl: !!RL, x: Array.prototype.slice.call(RPX), y: Array.prototype.slice.call(RPY) }; }, cl: function () { return { k: CL.k, n: CL.list ? CL.list.length : 0, one: CL.one ? CL.one.t : '', box: CLB }; }, tell: function () { clStart(0); }, view: function () { return { z: view.z, px: view.px, py: view.py }; }, line: function () { var L = S.line; if (!L) return null; var o = [0, 0], pts = [], k; for (k = 0; k < L.c.length; k++) { lineXY(L, L.c[k], o); pts.push([o[0], o[1]]); } return { pts: pts, field: L.c.slice(0, 3).map(function (p) { return [p[0], p[1]]; }), stops: L.stops.map(function (i) { return [SX[i], SY[i]]; }) }; } };
   wake(); DEMO.last = performance.now(); if (!phone) clStart(400);
   if (!lite()) { if (window.requestIdleCallback) requestIdleCallback(prefetchPV, { timeout: 4000 }); else setTimeout(prefetchPV, 2500); }
 }, function () { var h = $('#hint'); if (h) h.textContent = 'the map did not load here. the story is below.'; });
