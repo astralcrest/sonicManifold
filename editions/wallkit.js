@@ -228,8 +228,55 @@
 
   var liveT = null;
   var beat0 = 0;
-  // a pulse on a 120 beats-a-minute grid from the moment a clip starts: a sharp hit, then a decay
-  function beat() { var u = ((performance.now() - beat0) % 500) / 500; return Math.pow(1 - u, 2.2); }
+
+  /* ---------- the beat of the clip that is playing: the preview is fetched once more (Apple allows it), decoded, and its onsets give a period and a phase; the pulse then follows the element's own clock ---------- */
+  var BT = {}, BTp = {}, SYNC = null;
+  // onset strength per frame from the log energy of the full band and of the lows, then the period by autocorrelation with a soft pull toward 120, then the phase that lands on the most onsets
+  function track(ab) {
+    var sr = ab.sampleRate, n = ab.length, hop = 512, win = 1024, nf = Math.floor((n - win) / hop);
+    if (nf < 120) return null;
+    var x = ab.getChannelData(0), y = ab.numberOfChannels > 1 ? ab.getChannelData(1) : null;
+    var env = new Float32Array(nf), lo = new Float32Array(nf), lp = 0, a = Math.exp(-6.2832 * 180 / sr), f, k, v, e, el;
+    for (f = 0; f < nf; f++) {
+      e = 0; el = 0;
+      for (k = f * hop; k < f * hop + win; k++) { v = y ? 0.5 * (x[k] + y[k]) : x[k]; lp = a * lp + (1 - a) * v; e += v * v; el += lp * lp; }
+      env[f] = Math.log(1e-7 + e / win); lo[f] = Math.log(1e-7 + el / win);
+    }
+    var on = new Float32Array(nf), tot = 0;
+    for (f = 1; f < nf; f++) { on[f] = Math.max(0, env[f] - env[f - 1]) + 1.5 * Math.max(0, lo[f] - lo[f - 1]); tot += on[f]; }
+    if (tot < 1e-3) return null;
+    var fps = sr / hop, lmin = Math.round(fps * 60 / 200), lmax = Math.round(fps * 60 / 60), lag, r, best = -1, bl = 0, ac = new Float32Array(lmax + 2);
+    for (lag = lmin; lag <= lmax; lag++) {
+      r = 0; for (f = 0; f + lag < nf; f++) r += on[f] * on[f + lag]; r /= (nf - lag);
+      ac[lag] = r;
+      var bpm = 60 * fps / lag, pr = Math.exp(-0.5 * Math.pow(Math.log(bpm / 120) / Math.LN2 / 0.9, 2));
+      if (r * pr > best) { best = r * pr; bl = lag; }
+    }
+    if (!bl) return null;
+    var l0 = bl, l1 = bl; if (bl > lmin && bl < lmax) { var d = (ac[bl + 1] - ac[bl - 1]) / (2 * (2 * ac[bl] - ac[bl - 1] - ac[bl + 1]) || 1); if (d > -0.5 && d < 0.5) l1 = bl + d; }
+    var per = l1, ph = 0, bs = -1, p, q, sum;
+    for (p = 0; p < l0; p++) { sum = 0; for (q = p; q < nf; q += per) sum += on[Math.round(q)] || 0; if (sum > bs) { bs = sum; ph = p; } }
+    return { per: per / fps, ph: ph / fps + win / (2 * sr), bpm: Math.round(60 * fps / per) };
+  }
+  function analyze(url) {
+    if (!url || BT[url] || BTp[url]) return;
+    var OC = root.OfflineAudioContext || root.webkitOfflineAudioContext, AC = root.AudioContext || root.webkitAudioContext;
+    if (!root.fetch || !(OC || AC)) return;
+    try { if (navigator.connection && navigator.connection.saveData) return; } catch (e) {}
+    BTp[url] = fetch(url, { mode: 'cors' }).then(function (r) { return r.arrayBuffer(); }).then(function (buf) {
+      var ctx = OC ? new OC(1, 44100, 44100) : new AC();
+      return new Promise(function (res, rej) { var pr = ctx.decodeAudioData(buf, res, rej); if (pr && pr.then) pr.then(res, rej); }).then(function (ab) { if (!OC && ctx.close) ctx.close(); return ab; });
+    }).then(function (ab) { BT[url] = track(ab) || false; }).catch(function () { BT[url] = false; });
+  }
+  // the pulse: on the clip's own beat when it is known, else a 120 beats-a-minute grid from the moment the clip started
+  function beat() {
+    var el = SYNC, b = el && BT[el.currentSrc || el.src], u;
+    if (b && !el.paused) { var t = el.currentTime - b.ph; u = ((t % b.per) + b.per) % b.per / b.per; }
+    else u = ((performance.now() - beat0) % 500) / 500;
+    return Math.pow(1 - u, 2.2);
+  }
+  // beats a minute of the clip that is playing, or 0 while it is not known yet
+  function bpm() { var el = SYNC, b = el && BT[el.currentSrc || el.src]; return b ? b.bpm : 0; }
   function live(fn) { still(); if (matchMedia('(prefers-reduced-motion: reduce)').matches) { fn(); return; } liveT = setInterval(fn, 33); }
   function still() { if (liveT) clearInterval(liveT); liveT = null; }
   // the pulse around the stop that is playing now: rings that breathe
@@ -251,6 +298,7 @@
     HTMLMediaElement.prototype.play = function () {
       if (ELS.indexOf(this) < 0) ELS.push(this);
       this.muted = !SND; if (!SND) nudge();
+      SYNC = this; beat0 = performance.now(); analyze(this.currentSrc || this.src);
       return op.apply(this, arguments);
     };
     HTMLMediaElement.prototype.__wk = 1;
@@ -309,5 +357,5 @@
   }
   strip();
 
-  root.WK = { sound: function () { return SND; }, setSound: setSound, P: P, j: j, FAMC: FAMC, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, again: again, stop: stop, playing: playing, esc: esc, beat: beat, live: live, still: still, pulse: pulse };
+  root.WK = { sound: function () { return SND; }, setSound: setSound, P: P, j: j, FAMC: FAMC, C: C, $: $, boot: boot, Map: Map, pv: pv, title: title, play: play, again: again, stop: stop, playing: playing, esc: esc, beat: beat, bpm: bpm, live: live, still: still, pulse: pulse };
 })(window);
