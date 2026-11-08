@@ -390,7 +390,7 @@
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     var s = document.createElement('div'); s.id = 'wk-strip';
     s.innerHTML = '<div class="wk-txt"><p class="wk-line">' + esca(line) + '</p>' + (dol ? '<p class="wk-do"><b>you:</b> ' + esca(dol) + '</p>' : '') + '</div>' + (keys.length ? '<ul class="wk-keys" aria-label="key">' : '') + keys.map(function (k) { var d = KEYS[k]; return d ? '<li style="--c:' + d[3] + '" title="' + esca(d[1]) + '">' + d[2] + d[0] + '</li>' : ''; }).join('') + (keys.length ? '</ul>' : '') +
-      '<button type="button" id="wk-go" hidden>&#9654; play</button><p class="wk-pos">wall ' + n + ' of ' + WALLS.length + ' &middot; <a href="../walls/">all walls</a></p>';
+      '<button type="button" id="wk-go" hidden>&#9654; play</button><p class="wk-pos">wall ' + n + ' of ' + WALLS.length + ' &middot; <a href="../../">&lsaquo; sonic manifold</a></p>';
     var L = WALLS.length, pv_ = WALLS[(n + L - 2) % L], nx_ = WALLS[n % L];
     var nav = document.createElement('nav'); nav.id = 'wk-nav'; nav.setAttribute('aria-label', 'the walls');
     nav.innerHTML = '<button type="button" id="wk-snd" aria-pressed="false"></button><a href="../walls/">all walls</a><a class="sp" href="../' + pv_[0] + '/" rel="prev">&lsaquo; ' + ((n + L - 2) % L + 1) + '<span class="nm">&nbsp;' + pv_[1] + '</span></a><a href="../' + nx_[0] + '/" rel="next">' + (n % L + 1) + '<span class="nm">&nbsp;' + nx_[1] + '</span> &rsaquo;</a>';

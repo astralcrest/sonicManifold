@@ -1656,7 +1656,7 @@ function unplayed() { return WALLS.map(function (w) { return w[0]; }).filter(fun
 function dealOne(not) { var u = unplayed().filter(function (x) { return x !== not; }); if (!u.length) u = WALLS.map(function (w) { return w[0]; }).filter(function (x) { return x !== not; }); return u[Math.floor(Math.random() * u.length)]; }
 function playedPaint() {
   var n = PLAYED.length, L = WALLS.length, all = n >= L, b = $('#b-walls'), bn = $('#b-play-n'), p = $('#wr-p');
-  if (bn) bn.textContent = all ? 'all ' + L + ' played' : (n ? n + ' of ' + L + ' played' : L + ' walls');
+  if (bn) bn.textContent = all ? 'all ' + L + ' played' : (n ? n + ' of ' + L + ' played' : 'play a wall');
   if (b) { b.classList.toggle('all', all); b.setAttribute('aria-label', all ? 'you played every wall. open the walls index' : 'play a wall you have not played yet, ' + n + ' of ' + L + ' played'); }
   if (p) p.textContent = n + ' of ' + L + ' played';
   $$('a.wl, a.wk').forEach(function (a) { var m = /editions\/([a-z]+)\//.exec(a.getAttribute('href') || ''); a.classList.toggle('did', !!(m && played(m[1]))); });
