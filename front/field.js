@@ -750,10 +750,11 @@ function paint(now) {
   if (scene === 0 && blend >= 1 && !grown) {
     var heard = 0; for (k = 0; k < N; k++) if (F.y0[k] < reveal) heard++;
     g.font = '600 ' + (phone ? 36 : 68) + 'px ' + SANS; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = INK;
-    var we = phone ? document.getElementById('what') : null, wy = phone ? Math.max(94, (we ? we.offsetTop + we.offsetHeight : 0) + 40) : 110;
+    /* under the what strip on every width: the strip is centered on desk and reaches the count's column below about 1300px */
+    var we = document.getElementById('what'), wb = we ? we.offsetTop + we.offsetHeight : 0, wy = phone ? Math.max(94, wb + 40) : Math.max(110, wb + 64);
     g.fillText(String(heard).replace(/\B(?=(\d{3})+(?!\d))/g, ','), phone ? 14 : 220, wy);
     g.font = '500 ' + (phone ? 10 : 11.5) + 'px ' + MONO; g.fillStyle = MUTE;
-    g.fillText('artists, in the order i first heard them', phone ? 14 : 222, phone ? wy + 18 : 132);
+    g.fillText('artists, in the order i first heard them', phone ? 14 : 222, wy + (phone ? 18 : 22));
   }
   if (scene === 0 && blend >= 1 && grown) for (k = 0; k < (phone ? 4 : 10); k++) { i = TOP[k]; if (i !== S.now && i !== S.hover) word(g, SX[i] + SR[i] + 5, SY[i], names[i], phone ? 12 - k * 0.3 : 17 - k * 0.65, k < 3 ? 600 : 500, false, INK); }
   /* the neighborhoods: a numeral and the family that fills each, at its center; the color is the neighborhood */
@@ -1560,6 +1561,35 @@ $('#wr-next').addEventListener('click', function () { if (WR.k >= 0) wallOpen(WA
 addEventListener('keydown', function (e) { if (WR.k < 0) return; if (e.key === 'Escape') wallClose(false); else if (e.key === 'ArrowRight') $('#wr-next').click(); else if (e.key === 'ArrowLeft') $('#wr-prev').click(); });
 addEventListener('popstate', function () { var m = /^#wall=([a-z]+)$/.exec(location.hash); if (m) wallOpen(m[1], false); else wallClose(true); });
 (function () { var m = /^#wall=([a-z]+)$/.exec(location.hash); if (m) setTimeout(function () { wallOpen(m[1], false); }, 300); })();
+// the game of it: every wall you play is remembered on this phone; the play chip deals the next one, the rail counts, the pictures and chips mark what you played
+var PLAYED = (function () { try { var j = JSON.parse(localStorage.getItem('sm_played') || '[]'); return j.filter(function (x) { return wallIdx(x) >= 0; }); } catch (e) { return []; } })();
+function playedSave() { try { localStorage.setItem('sm_played', JSON.stringify(PLAYED)); } catch (e) { /* fine */ } }
+function played(slug) { return PLAYED.indexOf(slug) >= 0; }
+function unplayed() { return WALLS.map(function (w) { return w[0]; }).filter(function (x) { return !played(x); }); }
+function dealOne(not) { var u = unplayed().filter(function (x) { return x !== not; }); if (!u.length) u = WALLS.map(function (w) { return w[0]; }).filter(function (x) { return x !== not; }); return u[Math.floor(Math.random() * u.length)]; }
+function playedPaint() {
+  var n = PLAYED.length, L = WALLS.length, all = n >= L, b = $('#b-play'), bn = $('#b-play-n'), p = $('#wr-p');
+  if (bn) bn.textContent = all ? 'all ' + L + ' played' : (n ? n + ' of ' + L + ' played' : L + ' walls');
+  if (b) { b.classList.toggle('all', all); b.setAttribute('aria-label', all ? 'you played every wall. open the walls index' : 'play a wall you have not played yet, ' + n + ' of ' + L + ' played'); }
+  if (p) p.textContent = n + ' of ' + L + ' played';
+  $$('a.wl, a.wk').forEach(function (a) { var m = /editions\/([a-z]+)\//.exec(a.getAttribute('href') || ''); a.classList.toggle('did', !!(m && played(m[1]))); });
+  var d = $('#wr-done'); if (d) d.hidden = !(WR.k >= 0 && played(WALLS[WR.k][0]));
+}
+function playedMark(slug) { if (wallIdx(slug) < 0 || played(slug)) return; PLAYED.push(slug); playedSave(); playedPaint(); }
+var wrT = 0;
+function wrArm() { clearTimeout(wrT); var k = WR.k; if (k < 0) return; wrT = setTimeout(function () { if (WR.k === k) playedMark(WALLS[k][0]); }, 45000); }
+addEventListener('message', function (e) {
+  var d = e.data; if (!d || d.sm !== 'wall' || WR.k < 0) return;
+  if (d.ev === 'end') { playedMark(WALLS[WR.k][0]); var nx = $('#wr-next'); if (nx) nx.classList.add('go'); var nm = $('#wr-name'); if (nm) nm.textContent = WALLS[WR.k][1] + '. next: ' + WALLS[(WR.k + 1) % WALLS.length][1]; }
+  else if (d.ev === 'play') wrArm();
+});
+var _wallOpen = wallOpen;
+wallOpen = function (slug, push) { _wallOpen(slug, push); var nx = $('#wr-next'); if (nx) nx.classList.remove('go'); wrArm(); playedPaint(); };
+var _wallClose = wallClose;
+wallClose = function (pop) { clearTimeout(wrT); _wallClose(pop); playedPaint(); };
+$('#wr-deal').addEventListener('click', function () { wallOpen(dealOne(WR.k >= 0 ? WALLS[WR.k][0] : '')); });
+(function () { var b = $('#b-play'); if (!b) return; b.addEventListener('click', function (e) { if (e.metaKey || e.ctrlKey || e.shiftKey) return; if (PLAYED.length >= WALLS.length) return; e.preventDefault(); wallOpen(dealOne('')); }); })();
+playedPaint();
   window.__field = { demo: function () { return DEMO; }, S: S, n: function () { return N; }, pv: function () { return pv; }, scene: function () { return scene; }, at: function (i) { var o = [0, 0, 0, 0]; place(scene, i, o); return o; }, top: function () { return TOP; }, reveal: function () { return reveal; }, grow: function () { reveal = 8; wake(); }, hoods: function () { return MAPS ? MAPS.cm.length : 0; }, ring: function () { return { look: S.look, b: S.lookB, rl: !!RL, x: Array.prototype.slice.call(RPX), y: Array.prototype.slice.call(RPY) }; }, cl: function () { return { k: CL.k, n: CL.list ? CL.list.length : 0, one: CL.one ? CL.one.t : '', box: CLB }; }, tell: function () { clStart(0); }, view: function () { return { z: view.z, px: view.px, py: view.py }; }, line: function () { var L = S.line; if (!L) return null; var o = [0, 0], pts = [], k; for (k = 0; k < L.c.length; k++) { lineXY(L, L.c[k], o); pts.push([o[0], o[1]]); } return { pts: pts, field: L.c.slice(0, 3).map(function (p) { return [p[0], p[1]]; }), stops: L.stops.map(function (i) { return [SX[i], SY[i]]; }) }; } };
   wake(); DEMO.last = performance.now(); if (!phone) clStart(400);
   if (!lite()) { if (window.requestIdleCallback) requestIdleCallback(prefetchPV, { timeout: 4000 }); else setTimeout(prefetchPV, 2500); }

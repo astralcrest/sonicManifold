@@ -153,12 +153,12 @@ html.in-met #when{opacity:1}
 <section class="act" id="act-count" aria-labelledby="hl">
   <div class="copy">
     <p class="k">i · the count · one listener's log · 97,427 plays · 2019 to 2026</p>
-    <h1 id="hl">i pressed play on <b class="t">19</b> of every 100. shuffle picked <b class="s">17</b>. the queue served <b class="v">64</b>.</h1>
-    <p class="so">every play as a mote of light, colored by whose hand started it. the app runs most of my days.</p>
+    <h1 id="hl">i pressed play on <b class="t">19</b> of every 100. shuffle picked <b class="s">17</b>. auto-play served <b class="v">64</b>.</h1>
+    <p class="so">every dot is one play. mint = i pressed it, violet = auto-play chose it, amber = shuffle. scroll to move through the years.</p>
     <p class="sub">hover a month. the clock turns the same plays by hour of day. the strictest count keeps only the play button, the track row and the remote.</p>
     <p id="strict-note"></p>
     <p class="num">by the strictest count 11.5 of 100: 7.6 of the 19 were my back and skip presses. october 2023: the app changed how it records a start, so the bands before and after that line are not the same instrument.</p>
-    <div class="bar"><button type="button" class="chip" id="b-strict" aria-pressed="false">strictest count</button><button type="button" class="chip" id="b-clock" aria-pressed="false">the clock</button><button type="button" class="chip b-deeper" data-act="count">deeper</button></div>
+    <div class="bar"><button type="button" class="chip" id="b-sound" style="min-height:44px;min-width:44px" aria-pressed="false">sound off, tap to hear</button><button type="button" class="chip" id="b-strict" aria-pressed="false">strictest count</button><button type="button" class="chip" id="b-clock" aria-pressed="false">the clock</button><button type="button" class="chip b-deeper" data-act="count">deeper</button></div>
   </div>
 </section>
 <section class="act" id="act-shape" aria-labelledby="h-shape">
@@ -196,7 +196,7 @@ html.in-met #when{opacity:1}
   <div class="copy">
     <p class="k">v · the record · every play, pressed into one record</p>
     <h2 id="h-record">the last word is the record.</h2>
-    <p class="so">97,427 plays as grooves of light, 2019 at the rim, 2026 at the center. one groove per month, mint where i pressed, violet where the queue did.</p>
+    <p class="so">97,427 plays as grooves of light, 2019 at the rim, 2026 at the center. one groove per month, mint where i pressed, violet where auto-play did.</p>
     <p class="num">after the seven in the body, twelve more pre-declared tests on the log and on the sound: three died, two reversed, seven are directions or curves. what held everywhere: hip-hop/r&amp;b i reach for, ambient/lofi reaches me through the app, and the map of who shared my evenings is not the map of what sounds alike.</p>
     <div class="bar"><button type="button" class="chip b-deeper" data-act="record">deeper</button></div>
   <div id="album">
@@ -224,7 +224,7 @@ html.in-met #when{opacity:1}
  <h3>how deep</h3><div class="lv"><button type="button" data-lv="1" aria-pressed="true">the sentence</button><button type="button" data-lv="2">the numbers</button><button type="button" data-lv="3">the test</button></div>
  <h4 id="deep-count">the count</h4>
  <p class="d1" id="d-s1"></p>
- <p class="d2"><span class="num">19<small>of 100</small></span> my hand, counting every press. <span class="num">11.5</span> by the strictest count: <span id="d-s2"></span> shuffle 17, the queue 64. the river draws the first count; the strictest count has no month-by-month series, so the switch changes only the headline.</p>
+ <p class="d2"><span class="num">19<small>of 100</small></span> my hand, counting every press. <span class="num">11.5</span> by the strictest count: <span id="d-s2"></span> shuffle 17, auto-play 64. the river draws the first count; the strictest count has no month-by-month series, so the switch changes only the headline.</p>
  <p class="d3" id="d-s3"></p>
  <h3>the river</h3>
  <p class="d1">height is how much i listened that month; the bands are whose hand started the plays. october 2023: the app changed how it records a start, so the bands before and after that line are not the same instrument.</p>
@@ -238,15 +238,15 @@ html.in-met #when{opacity:1}
  <h3>the map</h3>
  <p class="d1">artists that shared my evenings sit near each other. far apart means little. the map learned from every play, and the app started most of them. the map is the picture, not the proof.</p>
  <p class="d2">a personal word2vec on 5,489 sittings (a 30-minute silence closes one), then umap to three dimensions, cosine, 18 neighbors. 1,986 artists placed; the rest wait at the edge. the glow around each star is the plays themselves, one mote per dozen, landing on the artist in proportion to the hand that started them.</p>
- <p class="d3">the embedding is trained on all 97,427 plays, so its geometry reflects the queue as much as me. that is why no finding on this page is read off the map; the refereed numbers below come from genre tags, not from distances.</p>
+ <p class="d3">the embedding is trained on all 97,427 plays, so its geometry reflects auto-play as much as me. that is why no finding on this page is read off the map; the refereed numbers below come from genre tags, not from distances.</p>
  <h3>two skies</h3>
  <p class="d1">what sat together in my evenings and what sounds alike are two different maps. artists that share my sessions do not sound alike, except right next door. my own 23 songs, run through the same models, land together in one corner of the sound map, beside the house, the desi pop and the r&amp;b.</p>
  <p class="d2">up to three 30-second previews per artist, 3,902 clips, embedded by two audio models (mert, clap), 1,889 artists, 89 of every 100 plays covered. rank correlation between the sessions map and the sound map: 0.02 and below, at the edge of the permutation null. the ten nearest neighbors agree on 1.9 to 2.6 of every 100 pairs, seven times chance and still almost never. the genre families do hold together in sound, 0.02 to 0.09 cosine above their permuted selves.</p>
- <p class="d3">pre-registered as sound lane S1 (the prereg hashed before any number), mantel correlation on cosine distances with 500 label permutations, 10-nearest jaccard, within-minus-between family similarity. two sound lanes died in the same run: the queue does not sound closer to last year's taps than to this year's, and my taps do not sound farther from my own past than the queue's plays do; both ran the other way by a hair, 0.001 to 0.013 cosine pooled. a zero-shot mood read, post hoc, says my hand leans to faster and away from ambient and relaxed, no effect above 0.18 of a standard deviation. which preview stands for an artist moves its neighbors: with one clip or up to three, the artist vectors agree (median cosine 0.97) but their ten nearest neighbors overlap 18 of 100, so local neighbors in the sound map are soft and only the global reads are kept.</p>
+ <p class="d3">pre-registered as sound lane S1 (the prereg hashed before any number), mantel correlation on cosine distances with 500 label permutations, 10-nearest jaccard, within-minus-between family similarity. two sound lanes died in the same run: auto-play does not sound closer to last year's taps than to this year's, and my taps do not sound farther from my own past than auto-play's plays do; both ran the other way by a hair, 0.001 to 0.013 cosine pooled. a zero-shot mood read, post hoc, says my hand leans to faster and away from ambient and relaxed, no effect above 0.18 of a standard deviation. which preview stands for an artist moves its neighbors: with one clip or up to three, the artist vectors agree (median cosine 0.97) but their ten nearest neighbors overlap 18 of 100, so local neighbors in the sound map are soft and only the global reads are kept.</p>
  <h3>the sky as it grew</h3>
  <p class="d1">the same map, retrained on the evenings so far at eight cuts and lined up with the last one. stars move most while the sky is young, then keep a small drift that never quite stops. the clock adds little: by day and by night, both hands reach for nearly the same families.</p>
- <p class="d2">cut to cut, the median move is 0.059 in cosine at the first pair and 0.047 to 0.052 from the fourth on (306 to 1,691 artists per pair). by the hour, desi and world music fall away at night for both hands, about 5 of every 100 plays fewer than in the day (my taps -0.054 [-0.079, -0.016], the queue -0.049 [-0.080, -0.012]); every other family swing sits inside its interval. my hand is on the play button 16 of every 100 plays at night and 18 to 21 by day, intervals touching.</p>
- <p class="d3">pre-registered as log lanes 6 and 7, hashed before any number. the drift falls by construction, the training set is cumulative, so the curve is a description, not a finding. the one test in the lane ran the other way: i expected artists the queue introduced to drift more than the ones i went looking for, matched on plays; mine drift more, -0.017 [-0.021, -0.014] in cosine. a reversal, logged, not a finding: an artist i reach for travels through more different evenings than one the queue keeps in its own neighborhood, and the vectors share one embedding, so the interval is too narrow. a third lane, bursts by hand, was withdrawn before running: served runs are the queue by definition.</p>
+ <p class="d2">cut to cut, the median move is 0.059 in cosine at the first pair and 0.047 to 0.052 from the fourth on (306 to 1,691 artists per pair). by the hour, desi and world music fall away at night for both hands, about 5 of every 100 plays fewer than in the day (my taps -0.054 [-0.079, -0.016], auto-play -0.049 [-0.080, -0.012]); every other family swing sits inside its interval. my hand is on the play button 16 of every 100 plays at night and 18 to 21 by day, intervals touching.</p>
+ <p class="d3">pre-registered as log lanes 6 and 7, hashed before any number. the drift falls by construction, the training set is cumulative, so the curve is a description, not a finding. the one test in the lane ran the other way: i expected artists auto-play introduced to drift more than the ones i went looking for, matched on plays; mine drift more, -0.017 [-0.021, -0.014] in cosine. a reversal, logged, not a finding: an artist i reach for travels through more different evenings than one auto-play keeps in its own neighborhood, and the vectors share one embedding, so the interval is too narrow. a third lane, bursts by hand, was withdrawn before running: served walks are auto-play by definition.</p>
  <h3>families</h3>
  <p class="d1">counted by play, ambient and lo-fi reach me mostly through the app; hip-hop and r&amp;b are the ones i reach for.</p>
  <p class="d2" id="d-g2"></p>
@@ -258,7 +258,7 @@ html.in-met #when{opacity:1}
  <h4 id="deep-met">who introduced us</h4>
  <p class="d1" id="d-i1"></p>
  <p class="d2" id="d-i2"></p>
- <p class="d3">unit = an artist with two plays or more. introducer = the arm of our first play: my tap (track row, play button, remote, skip forward or back), shuffle, or the queue on its own. an artist is "still with me" while its last play is within 90 days of the end of the log. survival by kaplan-meier, interval from a 28-day block bootstrap over the months we met. pre-registered on a hash before the numbers. this is selection, not treatment: a first tap is usually a search for a name i already carried, so the sentence says what i already knew, never that the queue fails.</p>
+ <p class="d3">unit = an artist with two plays or more. introducer = the arm of our first play: my tap (track row, play button, remote, skip forward or back), shuffle, or auto-play on its own. an artist is "still with me" while its last play is within 90 days of the end of the log. survival by kaplan-meier, interval from a 28-day block bootstrap over the months we met. pre-registered on a hash before the numbers. this is selection, not treatment: a first tap is usually a search for a name i already carried, so the sentence says what i already knew, never that auto-play fails.</p>
  <h3>my hand, four more ways</h3>
  <p class="d1" id="d-h1"></p>
  <div class="d2" id="d-h2"></div>
@@ -284,6 +284,12 @@ html.in-met #when{opacity:1}
 <div id="player-dock"></div>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"c059e2686a","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"c81287ac4c","pv":"381d21eeee","field":"295626c3ff","maps":"935bff627d"};window.__front={stamps:ST,spine:true};var io='IntersectionObserver' in window&&document.getElementById('act-met');if(io){new IntersectionObserver(function(es){for(var i=0;i<es.length;i++)document.documentElement.classList.toggle('in-met',es[i].isIntersecting)},{rootMargin:'-45% 0px -45% 0px'}).observe(io)}})();</script>
 <script src="editions/data/pack.js?v=r25e" defer></script>
+<script>(function(){var b=document.getElementById('b-sound');if(!b)return;function au(){return [].slice.call(document.querySelectorAll('audio'))}
+function on(){return au().some(function(a){return !a.paused&&!a.muted})}
+function sync(){var o=on();b.textContent=o?'sound on':'sound off, tap to hear';b.setAttribute('aria-pressed',String(o))}
+var pre=false;['pointerdown','touchstart'].forEach(function(e){b.addEventListener(e,function(){pre=on()},true)});
+b.addEventListener('click',function(){var A=au();if(pre){A.forEach(function(a){a.muted=true})}else{A.forEach(function(a){a.muted=false});if(!A.some(function(a){return !a.paused})){var p=document.getElementById('b-play');if(p)p.click()}}pre=on();setTimeout(sync,60)});
+['play','pause','volumechange','ended'].forEach(function(e){document.addEventListener(e,sync,true)});setInterval(sync,700);sync()})()</script>
 <script src="front/spine.js?v=f9d7434fd7" defer></script>
 <script src="front/music.js?v=39372afec0" defer></script>
 </body>

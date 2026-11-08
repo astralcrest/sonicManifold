@@ -208,7 +208,9 @@
   }
   function title(i) { return PV && PV[i] ? PV[i][0] : null; }
   function playing() { return pk >= 0; }
-  function stop() { if (AU) AU.pause(); pk = -1; if (onstate) onstate(-1, null); }
+  // the front, when a wall plays inside it, hears when a walk ends and when a clip starts
+  function tell(ev) { try { if (window.parent && window.parent !== window) { var n = parseInt(document.body.getAttribute('data-wall'), 10) || 0; window.parent.postMessage({ sm: 'wall', wall: n ? WALLS[n - 1][0] : '', ev: ev }, location.origin); } } catch (e) {} }
+  function stop() { var ended = pk >= 0 && pk >= plist.length - 1; if (AU) AU.pause(); pk = -1; if (onstate) onstate(-1, null); if (ended) tell('end'); }
   function next(k) {
     while (k < plist.length && !(PV && PV[plist[k].i])) k++;
     if (k >= plist.length) { stop(); return; }
@@ -219,6 +221,7 @@
     var at = plist[k].at != null ? plist[k].at : (again % 3) * 8;
     if (at > 0) AU.addEventListener('loadedmetadata', function f() { AU.removeEventListener('loadedmetadata', f); if (pk !== k) return; var d = AU.duration; try { AU.currentTime = isFinite(d) && d > 0 ? Math.min(at, Math.max(0, d - 8)) : at; } catch (e) {} });
     var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {});
+    if (k === 0) tell('play');
     if (onstate) onstate(k, { title: t[0], tag: plist[k].tag, i: i, at: at, again: again });
   }
   // list = [{i: artist index, tag: 'a' | 'b', at: seconds (optional)}]; one preview at a time, only after a tap; onst(k, info) is told every change, k = -1 when stopped
@@ -298,7 +301,7 @@
     HTMLMediaElement.prototype.play = function () {
       if (ELS.indexOf(this) < 0) ELS.push(this);
       this.muted = !SND; if (!SND) nudge();
-      SYNC = this; beat0 = performance.now(); analyze(this.currentSrc || this.src);
+      SYNC = this; beat0 = performance.now(); analyze(this.currentSrc || this.src); tell('play');
       return op.apply(this, arguments);
     };
     HTMLMediaElement.prototype.__wk = 1;
