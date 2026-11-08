@@ -85,7 +85,7 @@ canvas#field{display:block;width:100%;height:100%;touch-action:none;-webkit-touc
 #np small,#now,.how,.k,.h{display:block;font:400 11.5px/1.5 var(--mono);color:var(--dim)}
 #np-n{display:block;font:600 20px/1.1 var(--sans);margin:2px 0 1px;min-height:1.1em;word-break:break-word}
 #np-t{display:block;font:400 12.5px/1.3 var(--sans);color:var(--ink);opacity:.8;min-height:1.3em}
-.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}.row .chip.sec,.act.more .row .chip.more{display:none}.act.more .row .chip.sec{display:inline-flex}.act.more #n-color{display:none}.row .chip.more{color:var(--dim)}
 .chip{appearance:none;-webkit-appearance:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--mint);font:500 12px/1 var(--mono);letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;gap:.5em;white-space:nowrap;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .chip:hover{border-color:var(--mint)}
 .chip[hidden]{display:none}
@@ -205,7 +205,7 @@ dl.rows dd{margin:0;font:400 11.5px/1.6 var(--mono);color:var(--dim)}
 .key{display:flex;flex-wrap:wrap;gap:4px 10px;margin:0 0 12px;padding:0}
 .key button{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 4px 0 0;border:0;background:transparent;color:var(--ink);font:500 11px/1 var(--mono);letter-spacing:.04em;cursor:pointer;opacity:.9;-webkit-tap-highlight-color:transparent}
 .key button i{display:block;width:10px;height:10px}
-.key[hidden]{display:none}.key .ks{display:inline-flex;align-items:center;gap:6px;min-height:20px;color:var(--ink);font:500 11px/1 var(--mono);letter-spacing:.04em}.key .ks i{display:block;width:10px;height:10px}
+.key[hidden]{display:none}.key .ks{display:inline-flex;align-items:center;gap:6px;min-height:20px;color:var(--ink);font:500 11px/1 var(--mono);letter-spacing:.04em}.key .ks i{display:block;width:10px;height:10px;border-radius:3px}
 .key button.on{color:var(--mint)}.key button.off{opacity:.35}
 #hl-list{list-style:none;margin:0 0 8px;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
 #hl-list button{appearance:none;-webkit-appearance:none;display:grid;grid-template-columns:14px 2.2em minmax(0,1fr);align-items:center;column-gap:8px;width:100%;min-height:44px;padding:4px 8px 4px 0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -284,7 +284,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <header class="top" id="top"><a class="brand" href="./">sonic manifold<small>by astralcrest</small></a><nav class="tr" aria-label="the album and the other rooms"><button type="button" class="chip pill" id="b-deep" aria-expanded="false" aria-controls="col">deeper</button><a class="chip pill" id="b-contact" href="#contact">contact</a><a class="chip pill go" id="b-play" href="editions/walls/" data-n="25"><b>play</b><span id="b-play-n">25 walls</span></a><button type="button" class="chip pill" id="b-sound" aria-label="play or pause my album">my album</button></nav></header>
 <nav class="dots" aria-label="the eight acts"><a href="#a-count"><i></i><span>the count</span></a><a href="#a-hand"><i></i><span>the hand</span></a><a href="#a-maps"><i></i><span>the two maps</span></a><a href="#a-hoods"><i></i><span>the neighborhoods</span></a><a href="#a-keep"><i></i><span>what stays</span></a><a href="#a-coda"><i></i><span>the coda</span></a><a href="#a-show"><i></i><span>the stills</span></a><a href="#a-record"><i></i><span>the record</span></a></nav>
 <div id="hint" aria-hidden="true">tap a shape to hear it. draw a curve: a radio of stops, played in order. pinch to zoom.</div>
-<div id="what"><p id="what-l">every shape is an artist i played. close together = sounds alike. gold stars = my own songs.</p><div class="ks" id="what-k"><button type="button" class="chip" id="b-hear">sound off. tap to hear</button></div></div>
+<div id="what"><p id="what-l">every shape is an artist i played, colored by who pressed play. close together = sounds alike.</p><div class="ks" id="what-k"><button type="button" class="chip" id="b-hear">sound off. tap to hear</button></div></div>
 </div>
 <main id="col">
 <div id="np" aria-live="polite" hidden>
@@ -333,7 +333,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <p class="kick">the hand</p>
 <h2 id="h-hand">when my hand moves, it moves <span>a little farther.</span></h2>
 <div class="game">
-  <div class="row"><button type="button" class="chip" id="b-queue">be auto-play</button><button type="button" class="chip" id="b-hand">be my press</button><button type="button" class="chip" id="b-look">lines: straight</button><button type="button" class="chip tm" data-tm>next finding</button></div>
+  <div class="row"><button type="button" class="chip" id="b-queue">walk like auto-play</button><button type="button" class="chip" id="b-hand">walk like my press</button><button type="button" class="chip" id="b-look">lines: straight</button><button type="button" class="chip tm" data-tm>next finding</button></div>
   <p class="r sr" id="h-mode" aria-live="polite">auto-play walks to the nearest sound, again and again. my press breaks the run.</p>
   <p class="r sr" id="h-look">radial: names on the rim, grouped by family; every line bends through the hubs of its two families, so the bundles show which families lead to which.</p>
 </div>
@@ -361,7 +361,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <p class="kick">the two maps</p>
 <h2 id="h-maps">the same artists, drawn twice: <span>by sound, and by what followed.</span></h2>
 <div class="game" id="maps">
-  <div class="row"><button type="button" class="chip" id="m-sound" hidden aria-label="fly to the map by sound">by sound</button><button type="button" class="chip" id="m-graph" aria-label="fly to the map by what followed">by what followed</button><button type="button" class="chip" id="m-grow">as it grew</button><button type="button" class="chip" id="m-like">sounds like</button><button type="button" class="chip tm" data-tm>next finding</button></div>
+  <div class="row"><button type="button" class="chip" id="m-sound" hidden aria-label="fly to the map by sound">by sound</button><button type="button" class="chip" id="m-graph" aria-label="fly to the map by what followed">by what followed</button><button type="button" class="chip" id="m-grow">as it grew</button><button type="button" class="chip sec" id="m-like">sounds like</button><button type="button" class="chip more" data-more aria-label="more choices">more</button><button type="button" class="chip tm" data-tm>next finding</button></div>
   <p class="r sr" id="m-mode" aria-live="polite">by sound: a model&rsquo;s ear placed every artist. the map is a strip, so lines are drawn on the followed-by map only; the queue&rsquo;s run sits a shade tighter in sound.</p>
   <div class="find"><input id="f-q" list="f-names" type="search" placeholder="find an artist, zoom to it" aria-label="find an artist" autocomplete="off"><datalist id="f-names"></datalist></div>
   <p id="f-r"></p>
@@ -386,7 +386,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 <p class="kick">the neighborhoods</p>
 <h2 id="h-hoods">the log sorts itself into <span>11 neighborhoods.</span></h2>
 <div class="game" id="hoods">
-  <div class="row"><button type="button" class="chip on" data-c="hood">by neighborhood</button><button type="button" class="chip" data-c="family">by family</button><button type="button" class="chip" data-c="first">by first heard</button><button type="button" class="chip" id="n-walk">the log walks</button><button type="button" class="chip" id="n-jump">next room</button><button type="button" class="chip tm" data-tm>next finding</button></div>
+  <div class="row"><button type="button" class="chip" id="n-jump">next room</button><button type="button" class="chip" id="n-color" aria-label="change what the colors mean">color: rooms</button><button type="button" class="chip sec on" data-c="hood">color: rooms</button><button type="button" class="chip sec" data-c="family">color: families</button><button type="button" class="chip sec" data-c="first">color: first heard</button><button type="button" class="chip sec" id="n-walk">the log walks</button><button type="button" class="chip more" data-more aria-label="more choices">more</button><button type="button" class="chip tm" data-tm>next finding</button></div>
   <div class="key" id="key2" aria-label="the family colors" hidden></div>
   <p class="r sr" id="n-mode" aria-live="polite">colored by neighborhood: eleven rooms the log drew from what followed what alone; the outline is the room.</p>
 </div>

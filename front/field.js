@@ -214,6 +214,7 @@ function setScene(k) {
   S.color = k === C_HOODS ? 'hood' : 'family'; chips();
   if (k === C_KEEP) S.keepT0 = 0;
   html.setAttribute('data-scene', SCENES[k]);
+  $$('.act.more').forEach(function (a) { a.classList.remove('more'); });
   if (NPR.on) npRef();
   var npE = $('#np'); if (npE) { npE.classList.remove('open'); var alb = window.__smMusic && window.__smMusic.A && window.__smMusic.A.el; if (phone && !npE.hidden && !(pv && !pv.paused) && !(S.mine >= 0 && alb && !alb.paused)) npE.hidden = true; }
   if (k !== C_KEEP && S.game) endGame(true);
@@ -236,6 +237,7 @@ function chips() {
   var ms = $('#m-sound'), mg = $('#m-graph'); if (ms && mg) { ms.hidden = S.mt === 0; mg.hidden = S.mt === 1; }
   $$('.key button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-f') === S.fam); b.classList.toggle('off', S.fam >= 0 && +b.getAttribute('data-f') !== S.fam); });
   var k2 = $('#key2'); if (k2) k2.hidden = S.color !== 'family';
+  var nc = $('#n-color'); if (nc) nc.textContent = NCOL[S.color] || NCOL.hood;
   $$('#hl-list button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-h') === S.hoodHi); });
   var hd = $('#hl-d'); if (hd) hd.textContent = S.hoodHi >= 0 && HD[S.hoodHi] ? HD[S.hoodHi] : '';
 }
@@ -475,7 +477,7 @@ function ln(c) { return ['ln', c]; }
 function bsq(n) { return ['bsq', n, ICE]; }
 function stk(n, c) { return ['stk', n, c || ICE]; }
 function gstar() { return ['star']; }
-var SZK = ['fewer plays ', bsq(3), bsq(5), bsq(8), ' more plays'], THK = ['once ', stk(1), stk(2), stk(3.4), ' often'];
+var SZK = ['fewer plays ', bsq(3), bsq(6), bsq(9), ' more plays'], THK = ['once ', ['wedge', ICE], ' often'];
 function cut(t, n) { return t.length > n ? t.slice(0, n - 1) + '…' : t; }
 function num(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 function famRows() {
@@ -528,7 +530,7 @@ function keyLines() {
       for (k = 0; k < MAPS.le.length; k++) if (MAPS.le[k][3] < gc) nl++;
       L.push([num(na) + ' artists · ' + num(nl) + ' lines']);
     } else if (w) L.push(w);
-    else { L.push(THK); if (m === 'hood') L.push([ln(ICE), 'across rooms']); }
+    else { L.push(THK); if (m === 'hood') L.push([['dash', ICE], 'across rooms']); }
   } else if (scene === C_KEEP) {
     L.push(['one dot = one song']); L.push([sq(MINT), 'i pressed ', sq(VIOLET), 'auto-play · bright = kept']);
   } else if (scene === C_CODA) {
@@ -538,11 +540,11 @@ function keyLines() {
   }
   return L;
 }
-function tokW(g, t) { return typeof t === 'string' ? g.measureText(t).width : t[0] === 'ln' ? 18 : t[0] === 'stk' ? 18 : t[0] === 'bsq' ? t[1] + 4 : t[0] === 'star' ? 18 : 12; }
+function tokW(g, t) { return typeof t === 'string' ? g.measureText(t).width : t[0] === 'ln' || t[0] === 'dash' ? 22 : t[0] === 'wedge' ? 34 : t[0] === 'stk' ? 18 : t[0] === 'bsq' ? t[1] + 6 : t[0] === 'star' ? 18 : 14; }
 var KW = null, KCv = null, KBt = null, KSig = '', KMX = 280, KCOL = {};
 function keyBox(g) {
   var lines = keyLines(); if (!lines.length) return null;
-  var fs = phone ? 10.5 : 11.5, lh = fs + 6, pad = 6, w = 0, i, j, lw;
+  var fs = phone ? 11.5 : 12, lh = fs + 10, pad = 10, w = 0, i, j, lw;
   g.font = '500 ' + fs + 'px ' + MONO;
   for (i = 0; i < lines.length; i++) { lw = 0; for (j = 0; j < lines[i].length; j++) lw += tokW(g, lines[i][j]); if (lw > w) w = lw; }
   return { x: 0, y: 0, w: Math.ceil(w) + pad * 2, h: lines.length * lh + pad * 2 - 4, lines: lines, fs: fs, lh: lh, pad: pad };
@@ -568,21 +570,24 @@ function keySync() {
 }
 function drawKey(g, b) {
   var i, j, t, x;
-  g.fillStyle = BG; g.fillRect(b.x, b.y, b.w, b.h); g.strokeStyle = LINE; g.lineWidth = 1; g.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
+  g.fillStyle = 'rgba(18,10,34,.92)'; rrect(g, b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1, 7); g.fill(); g.strokeStyle = LINE; g.lineWidth = 1; g.stroke();
   g.font = '500 ' + b.fs + 'px ' + MONO; g.textBaseline = 'middle'; g.textAlign = 'left';
   for (i = 0; i < b.lines.length; i++) {
     var y = b.y + b.pad + i * b.lh + b.lh / 2 - 2; x = b.x + b.pad;
     for (j = 0; j < b.lines[i].length; j++) {
       t = b.lines[i][j];
       if (typeof t === 'string') { g.fillStyle = i === 0 ? INK : '#d8d0ee'; g.fillText(t, x, y); x += g.measureText(t).width; }
-      else if (t[0] === 'sq') { g.fillStyle = t[1]; g.fillRect(Math.round(x), Math.round(y - 4), 8, 8); x += 12; }
-      else if (t[0] === 'bsq') { g.fillStyle = t[2]; g.fillRect(Math.round(x), Math.round(y - t[1] / 2), t[1], t[1]); x += t[1] + 4; }
-      else if (t[0] === 'stk') { g.fillStyle = t[2]; g.fillRect(Math.round(x), Math.round(y - t[1] / 2), 14, t[1]); x += 18; }
+      else if (t[0] === 'sq') { g.fillStyle = t[1]; rrect(g, x, y - 5, 10, 10, 3); g.fill(); x += 14; }
+      else if (t[0] === 'bsq') { g.fillStyle = t[2]; rrect(g, x, y - t[1] / 2, t[1], t[1], t[1] * 0.4); g.fill(); x += t[1] + 6; }
+      else if (t[0] === 'stk') { g.strokeStyle = t[2]; g.lineWidth = t[1]; g.lineCap = 'round'; g.beginPath(); g.moveTo(x + 1, y); g.lineTo(x + 15, y); g.stroke(); x += 18; }
+      else if (t[0] === 'wedge') { g.fillStyle = t[1]; g.beginPath(); g.moveTo(x, y - 0.5); g.lineTo(x + 30, y - 2.6); g.lineTo(x + 30, y + 2.6); g.lineTo(x, y + 0.5); g.closePath(); g.fill(); x += 34; }
+      else if (t[0] === 'dash') { g.strokeStyle = t[1]; g.lineWidth = 2; g.lineCap = 'round'; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x + 1, y); g.lineTo(x + 19, y); g.stroke(); g.setLineDash([]); x += 22; }
       else if (t[0] === 'star') { mark(g, x + 6, y, 5); x += 18; }
-      else { g.fillStyle = t[1]; g.fillRect(Math.round(x), Math.round(y - 1), 14, 2); x += 18; }
+      else { g.strokeStyle = t[1]; g.lineWidth = 2; g.lineCap = 'round'; g.beginPath(); g.moveTo(x + 1, y); g.lineTo(x + 19, y); g.stroke(); x += 22; }
     }
   }
 }
+function rrect(g, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 function badge(g, x, y, n, fill) {
   dot(g, x, y, 6.5, fill); g.font = '600 ' + (n > 9 ? 8 : 9) + 'px ' + MONO; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = BG; g.fillText(String(n), x, y + 0.5); g.textAlign = 'left';
 }
@@ -1447,6 +1452,9 @@ on('#m-like', function () {
   text('#m-mode', S.like.on ? 'sounds like: tap an artist. it and the six nearest to it in sound light up in ice and play in turn.' : 'sounds like is off: a tap plays one artist, and next walks to its nearest.'); if (S.like.on) say('tap an artist: it and its six nearest play.', 'dense'); else clStop(); wake();
 });
 on('#b-hand', function () { walkMode('hand'); breakRun(); text('#h-mode', 'my hand breaks the run: the next song is far in sound, another family. hear the jump.'); say('my hand: far in sound, another family.', 'now'); });
+document.addEventListener('click', function (e) { var m = e.target && e.target.closest ? e.target.closest('[data-more]') : null; if (!m) return; var act = m.closest('.act'); if (act) act.classList.add('more'); });
+var NCOL = { hood: 'color: rooms', family: 'color: families', first: 'color: first heard' };
+on('#n-color', function () { var ord = ['hood', 'family', 'first'], nx = ord[(ord.indexOf(S.color) + 1) % ord.length], b = $('#hoods .row .chip[data-c="' + nx + '"]'); if (b) b.click(); });
 on('#n-walk', function () { walkMode('log'); S.hoodHi = -1; chips(); walkLog(); text('#n-mode', 'the log walks: each next artist is the one that most often sat beside the last in the log. the ice trail is the path; see whether it stays in one room.'); say('the log walks: who most often sat beside it.', 'now'); });
 var fi = $('#f-q'); if (fi) { fi.addEventListener('change', function () { find(fi.value); }); fi.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); find(fi.value); } }); }
 function datalist() { var dl = $('#f-names'); if (!dl) return; var frag = doc.createDocumentFragment(), k; for (k = 0; k < Math.min(N, 600); k++) { var o = doc.createElement('option'); o.value = names[TOP[k]]; frag.appendChild(o); } dl.appendChild(frag); }
@@ -1487,16 +1495,16 @@ function hoodList() {
 }
 /* the sound pill: one press starts my album; previews still take their turn (one sound at a time) */
 /* the what strip: one plain line per act and the fixed key (mint star = my press, violet ring = auto-play, amber diamond = shuffle, ice dot = sounds alike, gold = my songs) */
-var KG = { press: ['my press', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#21f6bc"/>'], auto: ['auto-play', '<circle cx="6" cy="6" r="4" fill="none" stroke="#8b6fd6" stroke-width="2"/>'], shuffle: ['shuffle', '<path d="M6 1 11 6 6 11 1 6Z" fill="#f5a623"/>'], alike: ['ice line = nearest in sound', '<path d="M1 6H11" stroke="#bcd3ff" stroke-width="2" stroke-linecap="round"/>'], mine: ['my songs', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#ffd36b"/>'] };
+var KG = { press: ['my press', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#21f6bc"/>'], auto: ['auto-play', '<circle cx="6" cy="6" r="4" fill="none" stroke="#8b6fd6" stroke-width="2"/>'], shuffle: ['shuffle', '<path d="M6 1 11 6 6 11 1 6Z" fill="#f5a623"/>'], alike: ['nearest in sound', '<path d="M1 6H11" stroke="#bcd3ff" stroke-width="2" stroke-linecap="round"/>'], mine: ['my songs', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#ffd36b"/>'] };
 var WHAT = [
   ['every shape is an artist i played, colored by who pressed play. close together = sounds alike.', ['press', 'shuffle', 'auto', 'mine']],
-  ['my 245 most played, on a ring. a line = one play, then the next. be auto-play or be my press: the walk steps around the ring, numbered.', ['press', 'auto']],
+  ['my 245 most played, on a ring. a line = one play, then the next. walk like auto-play or like my press: the steps are numbered.', ['press', 'auto']],
   ['the same artists twice: by sound, and by what followed what. a line = two plays in a row.', ['press', 'auto', 'alike']],
-  ['11 neighborhoods, drawn only from what followed what. one color per neighborhood. a line = two plays in a row.', []],
+  ['11 neighborhoods, one color each: artists the log walks between. a line = two plays in a row.', []],
   ['did the song stay in my library? split by who picked it.', ['press', 'auto']],
   ['the frozen export, then the months after it. did the habit hold?', ['press', 'auto']],
   ['five stills from the same plays, one per finding. tap the picture, or next still, to turn them.', []],
-  ['my 23 songs as gold stars, each tied to the artist it sounds most like. tap one to play it.', ['mine', 'alike']]
+  ['my 23 songs, in gold, each tied to the artist it sounds most like. tap one to play it.', ['mine', 'alike']]
 ];
 function whatFor(k) {
   var w = WHAT[k] || WHAT[0], el = $('#what-k'), b = $('#b-hear'); if (!el) return; text('#what-l', w[0]);
