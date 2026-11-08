@@ -36,7 +36,7 @@ button#go:hover { background: #fff; }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
 .big span.c { font: 500 15px/1.5 var(--mono); color: var(--mute); }
 .cap { font: 500 12px/1.4 var(--mono); color: var(--mute); margin: 0 0 6px; }
-.cap b { color: var(--amber); font-weight: 500; } .cap em { color: var(--rose); font-style: normal; }
+.cap b { color: var(--ink); font-weight: 500; } .cap em { color: var(--rose); font-style: normal; }
 button#go { max-width: 100%; }
 @media (max-width: 900px) {
   #room { display: block; border-width: 4px; }
@@ -55,7 +55,7 @@ button#go { max-width: 100%; }
     <h1>a claim i wanted true, and what <em>killed</em> it.</h1>
   </header>
   <main id="stagebox">
-    <div id="stage" aria-live="polite"><p class="cap" id="cap"><b>amber</b>: the lift i hoped for. <em>rose</em>: what the check found.</p><canvas id="sig" width="600" height="150" role="img" aria-label="a sketch of one claim: an amber curve rising for the lift i wanted, then a rose line flat on zero for what the check found" style="display:block;width:100%;height:150px;max-width:900px;margin:0 0 18px"></canvas><p id="claim"></p><p id="ref"><i></i><span id="reft"></span></p></div>
+    <div id="stage" aria-live="polite"><p class="cap" id="cap"><b>the pale line</b>: the lift i hoped for. <em>rose</em>: what the check found.</p><canvas id="sig" width="600" height="150" role="img" aria-label="a sketch of one claim: an amber curve rising for the lift i wanted, then a rose line flat on zero for what the check found" style="display:block;width:100%;height:150px;max-width:900px;margin:0 0 18px"></canvas><p id="claim"></p><p id="ref"><i></i><span id="reft"></span></p></div>
     <div class="goline">
       <button type="button" id="go">next claim</button>
       <div id="row" role="group" aria-label="sixteen claims, tap one to jump to it"></div>
@@ -65,7 +65,7 @@ button#go { max-width: 100%; }
     <div class="key">
       <div class="big rose" id="cnt"><span class="c">none read yet</span></div>
       <span class="keylab">claims read so far, each one killed by a check (16 in all)</span>
-      <p class="say" id="say">pick a claim, or press next claim. the sketch shows the lift i hoped for in amber, then the check in rose.</p>
+      <p class="say" id="say">pick a claim, or press next claim. the sketch shows the lift i hoped for as a pale line, then the check in rose.</p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>each claim here is one i wanted true; a referee killed it.</p>
@@ -74,7 +74,7 @@ button#go { max-width: 100%; }
     <div class="row bar"><button type="button" id="back">back</button><button type="button" id="auto" aria-pressed="false">read all sixteen</button><button type="button" class="chip" id="reset">start over</button></div>
     <p class="note" id="now">sound is off: tap the sound chip at the top to hear one of my songs under the words. arrow keys step through the claims; tap any dot to jump.</p>
     <details class="how"><summary>how</summary>
-      <p>press next claim. a claim types out, and the amber curve is the lift i hoped for.</p>
+      <p>press next claim. a claim types out, and the pale curve is the lift i hoped for.</p>
       <p>then the check that killed it: the rose line lands flat on zero. step with back and next, tap a dot to jump, or press read all sixteen to watch all of them go by on their own.</p>
       <p>turn sound on for the music: one of my own songs, low, beating under the rose dot. the point: a claim that no one tried to kill is not a finding.</p>
     </details>

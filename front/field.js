@@ -1569,7 +1569,8 @@ function songs() {
 }
 /* the acts: an observer names the act under the reading line; the dots rail follows it */
 function acts() {
-  var secs = $$('.act'), io = 'IntersectionObserver' in window;
+  var secs = $$('.act'), io = 'IntersectionObserver' in window, ft = $('footer.foot');
+  if (io && ft && phone) new IntersectionObserver(function (es) { doc.documentElement.classList.toggle('sm-foot', es[0].isIntersecting); }, { threshold: 0.05 }).observe(ft);
   if (!io) return;
   var obs = new IntersectionObserver(function (es) {
     var best = null; es.forEach(function (e) { if (e.isIntersecting && (!best || e.intersectionRatio > best.intersectionRatio)) best = e; });

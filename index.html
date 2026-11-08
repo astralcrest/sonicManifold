@@ -43,7 +43,7 @@ if(!own[base])location.replace('lab.html'+h);
 <link rel="preload" as="fetch" crossorigin href="front/data/field.json?v=24ef332630">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="script" href="front/field.js?v=73cbb333b9">
+<link rel="preload" as="script" href="front/field.js?v=62ad3bafe5">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
 <style>
 :root{--bg:#06010f;--panel:#0d0719;--card:#120a22;--ink:#efe9ff;--dim:#9a90b8;--mute:#9a90b8;--line:#2a2140;--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;--sans:"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--col:clamp(380px,34vw,560px);--top:60svh}
@@ -51,7 +51,7 @@ if(!own[base])location.replace('lab.html'+h);
 html{overflow-anchor:none;background:var(--bg);color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-text-size-adjust:100%}
 a{color:var(--ice)}
-#stage{position:fixed;top:0;left:0;width:100%;height:var(--top);z-index:3;background:var(--bg);overflow:hidden}
+#stage{position:fixed;top:0;left:0;width:100%;height:var(--top);z-index:3;background:var(--bg);overflow:hidden;transition:transform .35s ease}@media (max-width:899px){html.sm-foot #stage{transform:translateY(-100%)}html.sm-foot #what,html.sm-foot #zc,html.sm-foot .top{visibility:hidden}}#what #b-hear{order:-1}@media (max-width:899px){#songs{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}}
 canvas#field{display:block;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none;cursor:crosshair;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 .top{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left));font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:lowercase;color:var(--dim);pointer-events:none}
 .top>*{pointer-events:auto}
@@ -257,7 +257,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
  #np .fine{display:none}
  #np-n{font-size:22px}
  .act{min-height:100dvh;padding:0 0 24px 24px;border:0;display:flex;flex-direction:column;justify-content:flex-end;scroll-margin-top:0}
- .plate{pointer-events:auto;position:sticky;bottom:24px;width:min(320px,34vw);max-height:none;overflow:visible;background:var(--org) center/100% 100% no-repeat,var(--panel);border:0;border-left:3px solid var(--line);padding:18px 20px 16px}
+ .plate{pointer-events:auto;position:sticky;bottom:24px;width:min(320px,34vw);max-height:calc(100vh - 400px);overflow:auto;background:var(--org) center/100% 100% no-repeat,var(--panel);border:0;border-left:3px solid var(--line);padding:18px 20px 16px}
  .plate .kick{margin:0 0 8px}
  .plate h1,.plate h2{font-size:clamp(22px,2vw,34px);line-height:1.06;margin:0 0 8px}
  .plate .so{font-size:13.5px;line-height:1.42;margin:0 0 6px}
@@ -506,7 +506,7 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
   <p id="now" aria-live="off"></p>
   <p class="lzfail" hidden>the album did not load here.</p>
 </div>
-<ol id="songs" aria-label="the songs"></ol>
+<ol id="songs" aria-label="the songs"></ol><p class="pcap">swipe for all 23.</p>
 <p class="close">so, is my taste my own? one log cannot settle it. it points one way: <b>my press crosses a genre family a little more often, and what i press, i keep.</b></p><p class="close2"><a href="editions/yours/">is yours? paste your top artists and see.</a></p>
 <ol class="cl sr" aria-label="what the picture shows"><li data-at="gold">gold: my 23 songs, placed by the same sound model as every artist.</li><li data-at="gline">each one joined to its nearest artist in sound.</li><li data-at="gsong">23 songs, placed where they sound like they belong.</li></ol>
 </div>
@@ -538,7 +538,7 @@ cv.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)aside();},{passi
 })();
 </script>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"f866beb3af","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"c81287ac4c","pv":"381d21eeee","field":"24ef332630","maps":"8fc6260095","ring":"5c3aa07b40","ghost":"eccb19b1ac","gloss":"da3f4523b1"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,field:true};})();</script>
-<script src="front/field.js?v=73cbb333b9" defer></script>
+<script src="front/field.js?v=62ad3bafe5" defer></script>
 <script src="front/music.js?v=57fbd03cb0" defer></script>
 <div id="cpop" hidden aria-label="contact"><div class="cp"><small>contact</small><b>astralcrestlab@proton.me</b><div class="row"><button type="button" class="chip" id="cp-copy">copy the address</button><a class="chip" href="mailto:astralcrestlab@proton.me">open mail</a></div><p>pgp fingerprint <code>3EAD CE97 F8CE C3BF 8E5B D727 B7F4 EEAB 1BB1 6E67</code> &middot; <a href="researcher.html">the key, on the report page</a></p><button type="button" class="chip x" id="cp-x">close</button></div></div>
 <div id="wallroom" hidden aria-label="a wall, playing inside the manifold"><div class="wr-rail"><button type="button" class="chip" id="wr-prev" aria-label="previous wall">&lsaquo;</button><p class="wr-t"><b id="wr-n"></b><span id="wr-name"></span><i id="wr-done" hidden>done</i></p><button type="button" class="chip" id="wr-next" aria-label="next wall">&rsaquo;</button><button type="button" class="chip x" id="wr-x">close</button></div><iframe id="wr-f" title="the wall" allow="autoplay; microphone; accelerometer; gyroscope; magnetometer" referrerpolicy="same-origin"></iframe></div>

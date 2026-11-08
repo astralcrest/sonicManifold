@@ -4,7 +4,7 @@ var $ = function (id) { return document.getElementById(id); };
 var claims = [], order = [], pos = -1, shown = [], timers = [], idle = 0, autoOn = false, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 var go = $('go'), claimEl = $('claim'), refEl = $('ref'), reft = $('reft'), row = $('row'), cnt = $('cnt'), room = $('room'), sig = $('sig'), sg = sig.getContext('2d');
 var BED = new Audio('../../audio/bed/brain-rm-rf.mp3'); BED.loop = true; BED.volume = 0.14; BED.preload = 'none';
-var PAL = { amber: '#f5a623', rose: '#ff5c7a', mute: '#9a90b8', line: '#2a2140' }, cur = { n: 0, killed: false };
+var PAL = { amber: '#efe9ff', rose: '#ff5c7a', mute: '#9a90b8', line: '#2a2140' }, cur = { n: 0, killed: false };
 
 function shuffle() {
   order = claims.map(function (_, i) { return i; });
