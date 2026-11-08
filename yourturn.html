@@ -13,7 +13,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="canonical" href="https://astralcrest.github.io/sonicManifold/yourturn.html">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="front/shared.css?v=44">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://astralcrest.github.io/sonicManifold/yourturn.html">
 <meta property="og:title" content="your turn &middot; sonic manifold">
@@ -28,9 +29,8 @@
 <noscript><style>#drop{display:none}</style></noscript>
 <style>
   :root{
-    --bg:#06010f; --panel:#0d0719; --ink:#efe9ff; --dim:#9a90b8;
-    --mint:#21f6bc; --amber:#f5a623; --violet:#8b6fd6; --rose:#ff5c7a; --ice:#cfc7e8;
-    --line:#2a2140; --hair:#2a2140;
+    --ice:#cfc7e8;
+    --hair:#2a2140;
     --serif:"Instrument Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
   }
   *{box-sizing:border-box}
@@ -318,5 +318,6 @@
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 })();
 </script>
+<footer class="sm-doors" aria-label="sonic manifold, every room"><a href="./">the front</a><a href="story.html">the story</a><a href="lab.html">the lab: every chart</a><a href="researcher.html">the report: the method</a><a href="yourturn.html" aria-current="page">your turn: your own log</a><a href="editions/walls/">25 walls</a><a href="colophon.html">how it was made</a></footer>
 </body>
 </html>

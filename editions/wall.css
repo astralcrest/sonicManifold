@@ -1,5 +1,6 @@
+@import url("../front/shared.css?v=44");
 /* the walls, as gallery pieces: a dark room, one confident sentence, one huge number, crisp flat color. no blur, no shadow. */
-:root { --night: #06010f; --panel: #0a0517; --ink: #efe9ff; --mute: #9a90b8; --dim: #9a90b8; --line: #2a2140; --mint: #21f6bc; --amber: #f5a623; --violet: #8b6fd6; --ice: #bcd3ff; --rose: #ff5c7a; --gold: #ffd36b; --act: var(--mint); --acc: var(--ice);
+:root {  --ice: #bcd3ff; --act: var(--mint); --acc: var(--ice);
   --sans: 'Instrument Sans', system-ui, sans-serif; --mono: 'IBM Plex Mono', ui-monospace, monospace; }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--night); color: var(--ink); }
