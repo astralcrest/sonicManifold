@@ -182,8 +182,7 @@ function press(e) {
     if (t.closest('.hear, .hcard, #tracks, #b-play, #player-dock, #np, #field, .game, #songs, .dots, .top, #what, #zc, .row, .wrow, .dr, #cpop, #wallroom, .show, dfn, a, button')) return;
   }
   if (A.blocked && A.cur >= 0 && !A.up) { A.blocked = false; start(A.el); return; }
-  if (A.started || S.playing || lite || lsGet() === 'off' || ssGet().p) return;
-  begin(false);
+  /* 2026-11-08: no start from a stray press. the album starts only from its own buttons, so the sound chip stays truthful */
 }
 ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach(function (y) { addEventListener(y, press, { capture: true, passive: true }); });
 addEventListener('pagehide', function () { A.was = !!A.el && !A.el.paused; save(); });
@@ -205,8 +204,8 @@ function api() {
 }
 /* spotify's controller methods return nothing and can throw inside its own frame */
 function cmd(m) { var c = S.ctl; if (!c) return; try { var r = (typeof c[m] === 'function' ? c[m] : c.play).call(c); if (r && r.catch) r.catch(function () {}); } catch (e) { /* see above */ } }
-function holdAlbum() { S.held = true; var a = A.el; if (a && !a.paused) a.pause(); }
-function release() { if (!S.held) return; S.held = false; var a = A.el; if (a && a.paused && A.cur >= 0 && !A.up) start(a); }
+function holdAlbum() { var a = A.el; if (a && !a.paused) { S.held = true; a.pause(); } }
+function release() { if (!S.held || document.documentElement.classList.contains('sm-wall')) return; S.held = false; var a = A.el; if (a && a.paused && A.cur >= 0 && !A.up) start(a); }
 function hush() { if (S.ctl && (S.playing || S.want)) { S.want = false; cmd('pause'); } S.held = false; }
 function stopHere() { S.want = false; cmd('pause'); if (!S.heard) release(); }
 function paint(c) {

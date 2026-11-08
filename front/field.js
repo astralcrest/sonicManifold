@@ -204,7 +204,8 @@ function resetView() { if (isField(scene) && (GL.x || GL.y || GL.z !== 1)) ungli
 var SCENES = ['count', 'hand', 'maps', 'hoods', 'keep', 'coda', 'record'];
 var C_COUNT = 0, C_HAND = 1, C_MAPS = 2, C_HOODS = 3, C_KEEP = 4, C_CODA = 5, C_RECORD = 6;
 /* the rooms: eight crisp hues for the eight largest, the rest muted; the color is the room, never the hand */
-var HOODC = ['#5fb8ff', '#ff5c7a', '#ff9f6b', '#b8ec4a', '#ff8fd6', '#f2f0e6', '#c9c2ff', '#8fd3b6'];
+/* a room wears its majority family's color, the hex act iii taught; two rooms of one family are told apart by number */
+function hoodCol(ci) { var m = MAPS && MAPS.cm && MAPS.cm[ci]; return (m && FAMC[F.fam[m[1]]]) || MUTE; }
 var ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii'];
 function setScene(k) {
   if (k === scene) return;
@@ -227,7 +228,7 @@ function setScene(k) {
 }
 /* the color of an artist under a mode: the hand that played it most, its family, its room, or when i first heard it */
 function colorOf(i, m) {
-  if (m === 'hood') return MAPS && MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? HOODC[MAPS.c[i]] : MUTE;
+  if (m === 'hood') return MAPS && MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? hoodCol(MAPS.c[i]) : MUTE;
   if (m === 'hand') return HC[i];
   if (m === 'first') return FIRSTC[Math.min(7, Math.max(0, F.y0[i]))];
   return FC[i];
@@ -690,7 +691,7 @@ function paint(now) {
       for (k = 0; k < N; k++) { ci2 = MAPS.c[k]; if (ci2 >= 0 && ci2 < nh2 && SA[k] > 0.5) hp[ci2].push([SX[k], SY[k]]); }
       for (ci2 = 0; ci2 < nh2; ci2++) if (hp[ci2].length > 3 && hh === ci2) {
         var hu = hull(hp[ci2]), dimh = hh >= 0 && hh !== ci2; g.beginPath(); for (k = 0; k < hu.length; k++) { if (k) g.lineTo(hu[k][0], hu[k][1]); else g.moveTo(hu[k][0], hu[k][1]); } g.closePath();
-        g.fillStyle = rgba(HOODC[ci2], dimh ? 0.015 : 0.05); g.fill(); g.strokeStyle = rgba(HOODC[ci2], dimh ? 0.15 : hh === ci2 ? 0.9 : 0.45); g.lineWidth = hh === ci2 ? 1.4 : 0.8; g.stroke();
+        g.fillStyle = rgba(hoodCol(ci2), dimh ? 0.015 : 0.05); g.fill(); g.strokeStyle = rgba(hoodCol(ci2), dimh ? 0.15 : hh === ci2 ? 0.9 : 0.45); g.lineWidth = hh === ci2 ? 1.4 : 0.8; g.stroke();
       }
     }
   }
@@ -814,7 +815,7 @@ function paint(now) {
       var lab = (ci + 1) + ' · mostly ' + F.fam[MAPS.cm[ci][1]], hx = cx[ci] / cn[ci] - (phone ? 10 : 34), hy = cy2[ci] / cn[ci], sub = MAPS.cm[ci][0] + ' artists · auto-play took ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps inside';
       /* a lit room on a phone: the two lines sit at the bottom left of the stage, clear of the dots and inside the screen */
       if (phone && S.hoodHi === ci) { sub = MAPS.cm[ci][0] + ' artists · auto-play ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps'; hx = 12; hy = H - 96; }
-      word(g, hx, hy, lab, phone ? 11 : 15, 600, true, HOODC[ci], S.hoodHi === ci);
+      word(g, hx, hy, lab, phone ? 11 : 15, 600, true, hoodCol(ci), S.hoodHi === ci);
       if (S.hoodHi === ci) word(g, hx, hy + (phone ? 15 : 17), sub, phone ? 10 : 10.5, 500, true, MUTE, S.hoodHi === ci);
     }
     if (!phone) for (k = 0; k < 8; k++) { i = TOP[k]; if (i !== S.now && i !== S.hover && SA[i] > 0.5) word(g, SX[i] + SR[i] + 4, SY[i], names[i], 11, 500, false, ICE); }
@@ -867,7 +868,7 @@ function pips(g) {
     }
     wbox(x0, y, x0 + cols * cell, y + bh);
     g.textBaseline = 'top'; g.fillStyle = MUTE;
-    var cap = scene === C_KEEP ? (rows[k][1] + ' of 100 kept') : (k === 0 ? (phone ? 'mint 19 me · amber 17 shuffle · violet 64 auto-play' : 'mint 19 my press · amber 17 shuffle · violet 64 auto-play') : (phone ? 'shuffle 1.5 · auto-play 75 · my press about the same' : 'shuffle 1.5 · auto-play 75 · my press about the same'));
+    var cap = scene === C_KEEP ? (rows[k][1] + ' of 100 kept') : (k === 0 ? 'my press 19 · shuffle 17 · auto-play 64' : 'shuffle 1.5 · auto-play 75 · the rest: my press, not re-judged here');
     tw = g.measureText(cap).width; var cx = Math.min(x0, W - tw - 8);
     g.fillText(cap, cx, y + bh + 6); wbox(cx, y + bh + 6, cx + tw, y + bh + 6 + fs * 1.3);
     if (scene === C_KEEP) { g.font = '600 ' + (phone ? 22 : 30) + 'px ' + SANS; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillStyle = rows[k][2]; var nt = String(Math.round(rows[k][1] * lit)); g.fillText(nt, x0 + cols * cell, y - 6); wbox(x0 + cols * cell - g.measureText(nt).width, y - 6 - (phone ? 22 : 30), x0 + cols * cell, y - 6); }
@@ -951,7 +952,7 @@ function denseOf(test, lim, rad, skip) {
 }
 function songXY(k, o) { var p = SONG[k].p; proj3(p[0] / 1000, p[1] / 1000, p[2] / 1000, o); return o; }
 function roomDot(c) { for (var k = 20; k < N; k++) { var i = TOP[k]; if (MAPS.c[i] === c && SA[i] > 0.5 && !inW(SX[i], SY[i])) return i; } return -1; }
-function hullOf(c, g) { var pts = [], k, q; for (k = 0; k < N; k++) if (MAPS.c[k] === c && SA[k] > 0.5) pts.push([SX[k], SY[k]]); if (pts.length < 4) return; var hu = hull(pts), n = hu.length, cx = 0, cy = 0, pad = phone ? 9 : 13; if (n < 3) return; for (k = 0; k < n; k++) { cx += hu[k][0]; cy += hu[k][1]; } cx /= n; cy /= n; var P = hu.map(function (p) { var dx = p[0] - cx, dy = p[1] - cy, d = Math.sqrt(dx * dx + dy * dy) || 1; return [p[0] + dx / d * pad, p[1] + dy / d * pad]; }); g.beginPath(); g.moveTo((P[n - 1][0] + P[0][0]) / 2, (P[n - 1][1] + P[0][1]) / 2); for (k = 0; k < n; k++) { q = P[(k + 1) % n]; g.quadraticCurveTo(P[k][0], P[k][1], (P[k][0] + q[0]) / 2, (P[k][1] + q[1]) / 2); } g.closePath(); g.fillStyle = rgba(HOODC[c], 0.05); g.fill(); g.strokeStyle = rgba(HOODC[c], 0.72); g.lineWidth = 1.2; g.stroke(); }
+function hullOf(c, g) { var pts = [], k, q; for (k = 0; k < N; k++) if (MAPS.c[k] === c && SA[k] > 0.5) pts.push([SX[k], SY[k]]); if (pts.length < 4) return; var hu = hull(pts), n = hu.length, cx = 0, cy = 0, pad = phone ? 9 : 13; if (n < 3) return; for (k = 0; k < n; k++) { cx += hu[k][0]; cy += hu[k][1]; } cx /= n; cy /= n; var P = hu.map(function (p) { var dx = p[0] - cx, dy = p[1] - cy, d = Math.sqrt(dx * dx + dy * dy) || 1; return [p[0] + dx / d * pad, p[1] + dy / d * pad]; }); g.beginPath(); g.moveTo((P[n - 1][0] + P[0][0]) / 2, (P[n - 1][1] + P[0][1]) / 2); for (k = 0; k < n; k++) { q = P[(k + 1) % n]; g.quadraticCurveTo(P[k][0], P[k][1], (P[k][0] + q[0]) / 2, (P[k][1] + q[1]) / 2); } g.closePath(); g.fillStyle = rgba(hoodCol(c), 0.05); g.fill(); g.strokeStyle = rgba(hoodCol(c), 0.72); g.lineWidth = 1.2; g.stroke(); }
 /* an anchor: a function of the live frame that returns [x, y, ring radius (0 = a point), the number for {n}, an emphasis to draw] */
 function anchorOf(key) {
   var i, k, best = -1, bv = -1, o = [0, 0, 0], HAND = { mint: MINT, amber: AMBER, violet: VIOLET };
@@ -1272,7 +1273,7 @@ function el() {
   if (pv) return pv;
   pv = new Audio(); pv.preload = 'auto';
   pv.addEventListener('playing', function () { S.playing = true; S.errs = 0; duck(); ppLabel(); });
-  pv.addEventListener('pause', function () { S.playing = false; ppLabel(); if (!pv.ended) unduck(); });
+  pv.addEventListener('pause', function () { S.playing = false; ppLabel(); if (!pv.ended && !document.documentElement.classList.contains('sm-wall')) unduck(); });
   pv.addEventListener('ended', function () { S.playing = false; if (S.user || (S.game && S.game.on)) { unduck(); ppLabel(); return; } next(); });
   pv.addEventListener('error', function () { S.playing = false; if (++S.errs > 3 || S.pend >= 0) { unduck(); ppLabel(); return; } if (S.game && S.game.on) gameNext(); else next(); });
   return pv;
@@ -1495,7 +1496,7 @@ function hoodList() {
   var ol = $('#hl-list'); if (!ol || !MAPS || ol.childElementCount) return;
   MAPS.cm.slice(0, 8).forEach(function (c, h) {
     var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.setAttribute('data-h', h);
-    b.innerHTML = '<i></i><b></b><span></span>'; b.firstChild.style.background = HOODC[h]; b.children[1].textContent = h + 1; b.lastChild.textContent = F.fam[c[1]]; HD[h] = c[0] + ' artists · ' + Math.round(c[3] / 10) + ' of 100 plays in ' + F.fam[c[1]] + (c[5] ? ', ' + Math.round(c[5] / 10) + ' in ' + F.fam[c[4]] : '') + ' · auto-play took ' + Math.round(c[2] / 10) + ' of 100 steps inside';
+    b.innerHTML = '<i></i><b></b><span></span>'; b.firstChild.style.background = hoodCol(h); b.children[1].textContent = h + 1; b.lastChild.textContent = F.fam[c[1]]; HD[h] = c[0] + ' artists · ' + Math.round(c[3] / 10) + ' of 100 plays in ' + F.fam[c[1]] + (c[5] ? ', ' + Math.round(c[5] / 10) + ' in ' + F.fam[c[4]] : '') + ' · auto-play took ' + Math.round(c[2] / 10) + ' of 100 steps inside';
     b.addEventListener('click', function () { pickHood(h, false); });
     li.appendChild(b); ol.appendChild(li);
   });
@@ -1614,9 +1615,9 @@ var WR = { k: -1, was: '' };
 function wallIdx(slug) { for (var i = 0; i < WALLS.length; i++) if (WALLS[i][0] === slug) return i; return -1; }
 function wallOpen(slug, push) {
   var k = wallIdx(slug), box = $('#wallroom'); if (k < 0 || !box) return;
+  if (S.game && S.game.on) endGame(false);
   var a = el(); if (a && !a.paused) { S.user = true; try { a.pause(); } catch (x) { /* fine */ } S.playing = false; ppLabel(); }
-  duck();
-  WR.k = k; box.hidden = false; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); document.documentElement.classList.add('sm-wall');
+  WR.k = k; duck(); box.hidden = false; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); document.documentElement.classList.add('sm-wall');
   $('#wr-n').textContent = 'wall ' + (k + 1) + ' of ' + WALLS.length; $('#wr-name').textContent = WALLS[k][1];
   var wf = $('#wr-full'); if (wf) wf.href = 'editions/' + slug + '/';
   var fr = $('#wr-f'); if (fr.getAttribute('src') !== 'editions/' + slug + '/') fr.src = 'editions/' + slug + '/';

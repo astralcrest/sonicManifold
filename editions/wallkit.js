@@ -346,17 +346,17 @@
     '#wk-strip .wk-keys{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0;padding:0;list-style:none}' +
     '#wk-strip .wk-keys li{display:inline-flex;align-items:center;gap:7px;font:500 13px/1.2 "Instrument Sans",system-ui,sans-serif;color:var(--c)}' +
     '#wk-strip .wk-keys li svg{flex:none}' +
-    '#wk-strip #wk-snd{font:500 14px/1.1 "IBM Plex Mono",ui-monospace,monospace;min-height:44px;min-width:44px;padding:0 18px;border-radius:22px;border:1.5px solid #bcd3ff;background:transparent;color:#efe9ff;cursor:pointer}' +
-    '#wk-strip #wk-snd.on{background:#21f6bc;border-color:#21f6bc;color:#06010f}' +
+    '#wk-snd{font:500 14px/1.1 "IBM Plex Mono",ui-monospace,monospace;min-height:44px;min-width:44px;padding:0 18px;border-radius:22px;border:1.5px solid #bcd3ff;background:transparent;color:#efe9ff;cursor:pointer}' +
+    '#wk-snd.on{background:#21f6bc;border-color:#21f6bc;color:#06010f}' +
     '#wk-strip #wk-go{font:600 15px/1 "IBM Plex Mono",ui-monospace,monospace;min-height:48px;padding:0 22px;border-radius:24px;border:0;background:#21f6bc;color:#06010f;cursor:pointer;display:inline-flex;align-items:center;gap:8px}#wk-strip #wk-go[hidden]{display:none}#wk-strip #wk-go:hover{background:#5ffad0}' +
-    '#wk-strip #wk-snd.nudge{background:#f5a623;border-color:#f5a623;color:#06010f}' +
+    '#wk-snd.nudge{background:#bcd3ff;border-color:#bcd3ff;color:#06010f}' +
     '#wk-strip .wk-pos{margin:0;font:500 13px/1.2 "IBM Plex Mono",ui-monospace,monospace;color:#9a90b8;margin-left:auto;white-space:nowrap}' +
     '#wk-strip .wk-pos a{color:#bcd3ff}' +
     '#wk-nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:6px;padding:0 48px;border-bottom:1px solid #241b3a;overflow:hidden}' +
-    '#wk-nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;color:#bcd3ff;text-decoration:none;font:500 13px/1 "IBM Plex Mono",ui-monospace,monospace;white-space:nowrap;border-radius:22px}' +
+    '#wk-nav #wk-snd{min-height:36px;padding:0 14px;font-size:12.5px;margin-right:4px}#wk-nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;color:#bcd3ff;text-decoration:none;font:500 13px/1 "IBM Plex Mono",ui-monospace,monospace;white-space:nowrap;border-radius:22px}' +
     '.wk-tip{position:absolute;z-index:3;pointer-events:none;font:500 11px/1.4 "IBM Plex Mono",monospace;color:#f2eefa;background:#06010f;border:1px solid #2a2140;padding:4px 8px;border-radius:6px 9px 6px 8px;white-space:nowrap}.wk-tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0 2px;vertical-align:-1px}#wk-nav a:hover{background:#1a1230}#wk-nav a.sp{margin-left:auto}#wk-nav a[aria-disabled]{opacity:.35;pointer-events:none}' +
     '#wk-nav a:focus-visible,#wk-strip a:focus-visible,#wk-strip button:focus-visible{outline:2px solid #bcd3ff;outline-offset:2px}' +
-    'html.wk-framed #wk-nav,html.wk-framed #wk-strip .wk-pos{display:none}' +
+    'html.wk-framed #wk-strip .wk-pos,html.wk-framed .eyebrow,html.wk-framed #wk-nav a,html.wk-framed #wk-snd:not(.on){display:none}html.wk-framed #wk-nav{position:static;border:0;background:none;padding:0 24px}' +
     '@media(max-width:700px){#wk-strip{padding:16px 24px;gap:12px}#wk-strip .wk-pos{margin-left:0;white-space:normal}#wk-nav{padding:0 12px}#wk-nav a{padding:0 10px}#wk-nav a .nm{display:none}}' +
     'details.fine{border-top:1px solid #241b3a;margin:8px 0 0}details.fine summary{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.14em;color:#9a90b8;list-style:none}' +
     'details.fine summary::-webkit-details-marker{display:none}details.fine summary::before{content:"+";display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border:1px solid #241b3a;color:#bcd3ff}details.fine[open] summary::before{content:"\\2212"}' +
@@ -383,20 +383,22 @@
   function autostart() { var on = pk >= 0 || ELS.some(function (a) { return !a.paused && !a.ended; }); if (on || autoN++ > 20) return; var b = primary(); if (b) { try { b.click(); } catch (e) {} } setTimeout(autostart, 400); }
   function goState() { if (!goBtn) return; var on = pk >= 0 || ELS.some(function (a) { return !a.paused && !a.ended; }); var pb = primary(); goBtn.hidden = on || !pb; if (pb) { var pt = (pb.textContent || '').trim().replace(/\s+/g, ' ').toLowerCase(); goBtn.textContent = '\u25B6 ' + (pt.length > 26 ? pt.slice(0, 25) + '\u2026' : pt); } }
   function strip() {
-    try { if (window.parent && window.parent !== window) document.documentElement.classList.add('wk-framed'); } catch (e) {}
+    try { if (window.parent && window.parent !== window) { document.documentElement.classList.add('wk-framed'); Array.prototype.forEach.call(document.querySelectorAll('a[href]'), function (a) { var h = a.getAttribute('href') || ''; if (h.charAt(0) !== '#' && !/^javascript:/.test(h)) a.target = '_top'; }); } } catch (e) {}
     var b = document.body; if (!b || document.getElementById('wk-strip')) return;
     var n = parseInt(b.getAttribute('data-wall'), 10); if (!n) return;
     var line = b.getAttribute('data-line') || '', dol = b.getAttribute('data-do') || '', keys = (b.getAttribute('data-keys') || '').split(',').filter(Boolean);
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     var s = document.createElement('div'); s.id = 'wk-strip';
     s.innerHTML = '<div class="wk-txt"><p class="wk-line">' + esca(line) + '</p>' + (dol ? '<p class="wk-do"><b>you:</b> ' + esca(dol) + '</p>' : '') + '</div>' + (keys.length ? '<ul class="wk-keys" aria-label="key">' : '') + keys.map(function (k) { var d = KEYS[k]; return d ? '<li style="--c:' + d[3] + '" title="' + esca(d[1]) + '">' + d[2] + d[0] + '</li>' : ''; }).join('') + (keys.length ? '</ul>' : '') +
-      '<button type="button" id="wk-go" hidden>&#9654; play</button><button type="button" id="wk-snd" aria-pressed="false"></button><p class="wk-pos">wall ' + n + ' of ' + WALLS.length + ' &middot; <a href="../walls/">all walls</a></p>';
+      '<button type="button" id="wk-go" hidden>&#9654; play</button><p class="wk-pos">wall ' + n + ' of ' + WALLS.length + ' &middot; <a href="../walls/">all walls</a></p>';
     var L = WALLS.length, pv_ = WALLS[(n + L - 2) % L], nx_ = WALLS[n % L];
     var nav = document.createElement('nav'); nav.id = 'wk-nav'; nav.setAttribute('aria-label', 'the walls');
-    nav.innerHTML = '<a href="../walls/">all walls</a><a class="sp" href="../' + pv_[0] + '/" rel="prev">&lsaquo; ' + ((n + L - 2) % L + 1) + '<span class="nm">&nbsp;' + pv_[1] + '</span></a><a href="../' + nx_[0] + '/" rel="next">' + (n % L + 1) + '<span class="nm">&nbsp;' + nx_[1] + '</span> &rsaquo;</a>';
+    nav.innerHTML = '<button type="button" id="wk-snd" aria-pressed="false"></button><a href="../walls/">all walls</a><a class="sp" href="../' + pv_[0] + '/" rel="prev">&lsaquo; ' + ((n + L - 2) % L + 1) + '<span class="nm">&nbsp;' + pv_[1] + '</span></a><a href="../' + nx_[0] + '/" rel="next">' + (n % L + 1) + '<span class="nm">&nbsp;' + nx_[1] + '</span> &rsaquo;</a>';
     b.insertBefore(nav, b.firstChild); b.insertBefore(s, b.firstChild);
+    if (document.documentElement.classList.contains('wk-framed')) Array.prototype.forEach.call(document.querySelectorAll('#wk-strip a, #wk-nav a'), function (a) { a.target = '_top'; });
     chip = document.getElementById('wk-snd'); chipLabel();
     chip.addEventListener('click', function () { setSound(!SND); });
+    document.addEventListener('click', function (e) { var el = e.target && e.target.closest ? e.target.closest('button, a[role=button]') : null; if (!el || el.closest('#wk-strip, #wk-nav')) return; var tx = (el.textContent || '').trim().toLowerCase().replace(/^\u25b6\s*/, ''); if (/^(play|hear|listen|sing|sound on)/.test(tx) && !/^(play\/pause|stop)/.test(tx) && !SND) setSound(true); }, true);
     goBtn = document.getElementById('wk-go'); goState(); [600, 1500, 3000, 6000].forEach(function (t) { setTimeout(goState, t); });
     goBtn.addEventListener('click', function () { setSound(true); start(); });
     root.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || e.data.sm !== 'front') return; if (e.data.ev === 'start' && SND) autostart(); else if (e.data.ev === 'hush') { ELS.forEach(function (a) { try { a.pause(); } catch (x) {} }); if (root.speechSynthesis) try { root.speechSynthesis.cancel(); } catch (x) {} } });

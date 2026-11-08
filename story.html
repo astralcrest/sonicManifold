@@ -155,7 +155,7 @@ html.in-met #when{opacity:1}
   <div class="copy">
     <p class="k">i · the count · one listener's log · 97,427 plays · 2019 to 2026</p>
     <h1 id="hl">i pressed play on <b class="t">19</b> of every 100. shuffle picked <b class="s">17</b>. auto-play served <b class="v">64</b>.</h1>
-    <p class="so">every mark is one play. <svg class="gl" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M6 .5 7.6 4.4 11.5 6 7.6 7.6 6 11.5 4.4 7.6 .5 6 4.4 4.4z" fill="#21f6bc"/></svg> = my press. <svg class="gl" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.6" fill="none" stroke="#8b6fd6" stroke-width="2"/></svg> = auto-play. <svg class="gl" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M6 .8 10.6 6 6 11.2 1.4 6z" fill="#f5a623"/></svg> = shuffle.</p>
+    <p class="so"><span id="so-per">each mark is about a dozen plays.</span> <svg class="gl" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M6 .5 7.6 4.4 11.5 6 7.6 7.6 6 11.5 4.4 7.6 .5 6 4.4 4.4z" fill="#21f6bc"/></svg> = my press. <svg class="gl" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.6" fill="none" stroke="#8b6fd6" stroke-width="2"/></svg> = auto-play. <svg class="gl" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M6 .8 10.6 6 6 11.2 1.4 6z" fill="#f5a623"/></svg> = shuffle.</p>
     <p class="sub">hover a month. the clock turns the same plays by hour of day. the strictest count keeps only the play button, the track row and the remote.</p>
     <p id="strict-note"></p>
     <p class="num">by the strictest count 11.5 of 100: 7.6 of the 19 were my back and skip presses. october 2023: the app changed how it records a start, so the bands before and after that line are not the same instrument.</p>
@@ -291,7 +291,7 @@ function sync(){var o=on();b.textContent=o?'sound on':'sound off, tap to hear';b
 var pre=false;['pointerdown','touchstart'].forEach(function(e){b.addEventListener(e,function(){pre=on()},true)});
 b.addEventListener('click',function(){var A=au();if(pre){A.forEach(function(a){a.muted=true})}else{A.forEach(function(a){a.muted=false});if(!A.some(function(a){return !a.paused})){var p=document.getElementById('b-play');if(p)p.click()}}pre=on();setTimeout(sync,60)});
 ['play','pause','volumechange','ended'].forEach(function(e){document.addEventListener(e,sync,true)});setInterval(sync,700);sync()})()</script>
-<script src="front/spine.js?v=394aebce12" defer></script>
-<script src="front/music.js?v=39372afec0" defer></script>
+<script src="front/spine.js?v=a97ac1effb" defer></script>
+<script src="front/music.js?v=d07aa37842" defer></script>
 </body>
 </html>
