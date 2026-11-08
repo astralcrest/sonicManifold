@@ -65,7 +65,7 @@ main{position:relative;z-index:2}
 #act-count{min-height:170vh}#act-met{min-height:280vh}#act-record{min-height:120vh}
 .copy{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:72px max(16px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));max-width:100%;pointer-events:none;background:linear-gradient(180deg,rgba(6,1,15,0) 0,rgba(6,1,15,0) 40%,var(--bg) 50%)}
 @media (max-width:899px){html.sm-dock .copy{padding-bottom:calc(80px + env(safe-area-inset-bottom))}}
-@media (max-width:899px){#act-record .copy{padding-top:53vh}}
+@media (max-width:899px){#act-record .copy{padding-top:53vh;justify-content:flex-start;min-height:0;background:linear-gradient(180deg,rgba(6,1,15,0) 0,rgba(6,1,15,0) calc(53vh - 48px),var(--bg) 53vh)}}
 @media (min-width:900px){.copy{justify-content:center;width:min(44vw,640px);padding:72px 110px 72px 28px;background:linear-gradient(90deg,var(--bg) 0,var(--bg) 82%,rgba(6,1,15,0) 100%)}}
 .copy>*{pointer-events:auto}
 .copy .k{font:11px/1 var(--mono);letter-spacing:.06em;text-transform:none;color:var(--dim);margin:0 0 10px}
@@ -144,7 +144,7 @@ html.in-met #when{opacity:1}
 <header class="top" id="top">
   <a class="brand" href="./">sonic manifold <small>by astralcrest</small></a>
   <nav class="dots" aria-label="the five acts"><a href="#act-count" aria-label="the count"><i></i><span>the count</span></a><a href="#act-shape" aria-label="the shape"><i></i><span>the shape</span></a><a href="#act-met" aria-label="who introduced us"><i></i><span>who introduced us</span></a><a href="#act-body" aria-label="the body"><i></i><span>the body</span></a><a href="#act-record" aria-label="the record"><i></i><span>the record</span></a></nav>
-  <a class="chip" href="#links">rooms</a>
+  <a class="chip" href="#links">doors</a>
   <button type="button" class="chip" id="b-deep" aria-pressed="false">deep<span class="xw">&nbsp;science</span></button>
 </header>
 <div id="when" aria-live="off"><small>we met in</small><span id="ym">september 2019</span></div>
@@ -291,7 +291,7 @@ function sync(){var o=on();b.textContent=o?'sound on':'sound off, tap to hear';b
 var pre=false;['pointerdown','touchstart'].forEach(function(e){b.addEventListener(e,function(){pre=on()},true)});
 b.addEventListener('click',function(){var A=au();if(pre){A.forEach(function(a){try{a.pause()}catch(e){}});try{localStorage.setItem('sm.sound','off')}catch(e){}}else{A.forEach(function(a){a.muted=false});try{localStorage.setItem('sm.sound','on')}catch(e){}if(!A.some(function(a){return !a.paused})){var p=document.getElementById('b-play');if(p)p.click()}}pre=on();setTimeout(sync,60)});
 ['play','pause','volumechange','ended'].forEach(function(e){document.addEventListener(e,sync,true)});setInterval(sync,700);sync()})()</script>
-<script src="front/spine.js?v=fe22d25c6e" defer></script>
+<script src="front/spine.js?v=963ebc142b" defer></script>
 <script src="front/music.js?v=d07aa37842" defer></script>
 </body>
 </html>

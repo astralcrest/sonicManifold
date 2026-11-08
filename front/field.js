@@ -869,9 +869,11 @@ function pips(g) {
       else {
         /* the newest months: my share was not re-judged (faint), then shuffle 1.5, then auto-play 75, so auto-play row holds 75 points */
         var h = rows[k][1], me = k === 1 ? 100 - Math.round(h[1]) - h[2] : h[0];
-        col = i < me ? (k === 1 ? dim(ICE, .25) : MINT) : i < me + Math.round(h[1]) ? AMBER : i < me + Math.round(h[1]) + h[2] ? VIOLET : dim(ICE, .25);
+        var sh = Math.round(h[1]), half = (h[1] % 1 !== 0) && i === me + sh - 1;
+        col = i < me ? (k === 1 ? null : MINT) : i < me + sh ? (half ? dim(AMBER, .5) : AMBER) : i < me + sh + h[2] ? VIOLET : dim(ICE, .25);
       }
-      dot(g, x, yy, r, col);
+      if (col === null) { g.beginPath(); g.arc(x, yy, Math.max(1, r - .7), 0, 6.2832); g.strokeStyle = MINT; g.lineWidth = 1; g.stroke(); }
+      else dot(g, x, yy, r, col);
     }
     wbox(x0, y, x0 + cols * cell, y + bh);
     g.textBaseline = 'top'; g.fillStyle = MUTE;

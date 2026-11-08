@@ -108,7 +108,7 @@ function draw(now) {
   targetsFor(act, t, G, body);
   if (blend > 0) { for (var i = 0; i < NP; i++) { var p = P[i]; TX[i] = p.tx; TY[i] = p.ty; AL[i] = p.al; SZ[i] = p.s; KK[i] = p.k; } targetsFor(nextAct, t, G, body); for (i = 0; i < NP; i++) { p = P[i]; p.tx = TX[i] + (p.tx - TX[i]) * blend; p.ty = TY[i] + (p.ty - TY[i]) * blend; p.al = AL[i] + (p.al - AL[i]) * blend; p.s = SZ[i] + (p.s - SZ[i]) * blend; if (blend < 0.5) p.k = KK[i]; } }
   g.globalCompositeOperation = 'source-over'; g.fillStyle = '#06010f'; g.fillRect(0, 0, W, H);
-  var fade = act === 3 ? 1 - blend : act === 2 && nextAct === 3 ? blend : 0;
+  var fade = act === 3 ? 1 - blend : act === 2 && nextAct === 3 ? Math.max(0, (blend - 0.6) / 0.4) : 0;
   /* the river's envelope */
   if (act === 0 && view === 'river' && blend < 1) { var cw0 = (G.rx - G.lx) / NM, span0 = G.bot - G.top; [['v'], ['s'], ['t']].forEach(function (arm) { var c = COL[arm[0]]; g.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + (0.16 * (1 - blend)) + ')'; g.beginPath(); var top = [], bot = []; for (var m = 0; m < NM; m++) { var hgt = tot[m] / maxT * span0, base = G.top + (span0 - hgt) * 0.5, tt = tot[m] || 1, ft = T[m] / tt, fs = SH[m] / tt, y0 = arm[0] === 't' ? base : arm[0] === 's' ? base + hgt * ft : base + hgt * (ft + fs), y1 = arm[0] === 't' ? base + hgt * ft : arm[0] === 's' ? base + hgt * (ft + fs) : base + hgt; top.push([G.lx + cw0 * (m + .5), y0]); bot.push([G.lx + cw0 * (m + .5), y1]); } top.forEach(function (pt, i) { if (i === 0) g.moveTo(pt[0], pt[1]); else g.lineTo(pt[0], pt[1]); }); for (var j = bot.length - 1; j >= 0; j--) g.lineTo(bot[j][0], bot[j][1]); g.closePath(); g.fill(); }); }
   /* the null bands of the body */

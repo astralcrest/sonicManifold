@@ -43,7 +43,7 @@ if(!own[base])location.replace('lab.html'+h);
 <link rel="preload" as="fetch" crossorigin href="front/data/field.json?v=24ef332630">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="script" href="front/field.js?v=59caa97389">
+<link rel="preload" as="script" href="front/field.js?v=b207cf9dcc">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
 <style>
 :root{--bg:#06010f;--panel:#0d0719;--card:#120a22;--ink:#efe9ff;--dim:#9a90b8;--mute:#9a90b8;--line:#2a2140;--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;--sans:"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--col:clamp(380px,34vw,560px);--top:60svh}
@@ -83,7 +83,7 @@ html.sm-open #hint,html.sm-open .dots,html.sm-open #b-deep,html.sm-open #b-conta
 .wrow .or{display:none}
 .wrow a.wk.go::before{content:"\25B8";color:var(--mint);margin-right:6px}
 .wr-t b{margin-right:10px}
-@media (min-width:900px){#a-open{justify-content:center}.plate.op{position:relative;bottom:auto;width:min(600px,54vw);padding:26px 30px 22px}.plate.op h1{font-size:clamp(34px,4.4vw,62px)}.dots a.on span{display:block;color:var(--ink)}}
+@media (min-width:900px){#stage{z-index:auto}#a-open{justify-content:center}.plate.op{position:relative;bottom:auto;width:min(600px,54vw);padding:26px 30px 22px}.plate.op h1{font-size:clamp(34px,4.4vw,62px)}.dots a.on span{display:block;color:var(--ink)}}
 @media (max-width:899px){html .wrow{flex-wrap:wrap;overflow:visible}.plate.op{padding-top:22px}.plate.op h1{font-size:clamp(30px,9vw,38px)}.plate.op .op-l{font-size:13.5px}
 html #np{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));top:calc(var(--top) - 50px);bottom:auto;z-index:8;margin:0;padding:0 4px 0 12px;border:1px solid var(--line);border-radius:999px;background:rgba(6,1,15,.92);display:flex;align-items:center;gap:6px;min-height:40px;touch-action:pan-y;box-shadow:0 2px 14px rgba(0,0,0,.4)}
 html #np[hidden]{display:none}html body #np-k,html body #np-h,html body #np-x,html body #np .fine,html body #np #a-sp{display:none}
@@ -538,7 +538,7 @@ cv.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)aside();},{passi
 })();
 </script>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"f866beb3af","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"c81287ac4c","pv":"381d21eeee","field":"24ef332630","maps":"8fc6260095","ring":"5c3aa07b40","ghost":"eccb19b1ac","gloss":"da3f4523b1"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,field:true};})();</script>
-<script src="front/field.js?v=59caa97389" defer></script>
+<script src="front/field.js?v=b207cf9dcc" defer></script>
 <script src="front/music.js?v=57fbd03cb0" defer></script>
 <div id="cpop" hidden aria-label="contact"><div class="cp"><small>contact</small><b>astralcrestlab@proton.me</b><div class="row"><button type="button" class="chip" id="cp-copy">copy the address</button><a class="chip" href="mailto:astralcrestlab@proton.me">open mail</a></div><p>pgp fingerprint <code>3EAD CE97 F8CE C3BF 8E5B D727 B7F4 EEAB 1BB1 6E67</code> &middot; <a href="researcher.html">the key, on the report page</a></p><button type="button" class="chip x" id="cp-x">close</button></div></div>
 <div id="wallroom" hidden aria-label="a wall, playing inside the manifold"><div class="wr-rail"><button type="button" class="chip" id="wr-prev" aria-label="previous wall">&lsaquo;</button><p class="wr-t"><b id="wr-n"></b><span id="wr-name"></span><i id="wr-done" hidden>done</i></p><button type="button" class="chip" id="wr-next" aria-label="next wall">&rsaquo;</button><button type="button" class="chip x" id="wr-x">close</button></div><iframe id="wr-f" title="the wall" allow="autoplay; microphone; accelerometer; gyroscope; magnetometer" referrerpolicy="same-origin"></iframe></div>
