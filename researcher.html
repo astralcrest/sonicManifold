@@ -37,7 +37,7 @@
     --mint: #21f6bc;
     --rose: #ff6e9c;
     --ice: #86cbfe;
-    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --serif: "Instrument Sans", system-ui, sans-serif;
     --sans: "Instrument Sans", system-ui, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Consolas, monospace;
     color-scheme: dark;
@@ -99,8 +99,8 @@
   h2.sec-title {
     font-family: var(--sans);
     font-size: 0.72rem;
-    letter-spacing: 0.11em;
-    text-transform: uppercase;
+    letter-spacing:.06em;
+    text-transform:none;
     color: var(--text-faint);
     font-weight: 600;
     margin: 0 0 1rem;
@@ -167,8 +167,8 @@
   .stability h4 {
     font-family: var(--sans);
     font-size: 0.75rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing:0.06em;
+    text-transform:none;
     color: var(--text-dim);
     font-weight: 600;
     margin: 0 0 0.7rem;
@@ -233,8 +233,8 @@
     font-weight: 600;
     color: var(--text-dim);
     font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    text-transform:none;
+    letter-spacing:0.05em;
     border-bottom: 1px solid var(--text-faint);
   }
   td.num-cell { font-family: var(--mono); color: var(--mono-num); white-space: normal; min-width: 16em; }
@@ -272,7 +272,7 @@
     flex: 1 1 140px;
   }
   .scoreboard .cell .n { font-family: var(--mono); font-size: 1.5rem; color: var(--mono-num); display: block; }
-  .scoreboard .cell .lbl { font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+  .scoreboard .cell .lbl { font-size: 0.75rem; color: var(--text-faint); text-transform:none; letter-spacing:0.06em; }
 
   .headline-list { display: grid; grid-template-columns: 1fr; gap: 0.7rem; margin: 1rem 0 1.5rem; }
   .headline-row {
@@ -373,7 +373,7 @@
   #findings table { min-width: 640px; }
   .tbl-cap { font-family: var(--sans); font-size: 0.82rem; color: var(--text-faint); font-style: italic; margin: 0.75rem 0 0.5rem; max-width: none; }
   .claim-card { background: var(--bg-raised); border: 1px solid var(--border); border-left: 2px solid var(--accent); border-radius: 6px; padding: 1.1rem 1.3rem; margin: 0 0 0.9rem; font-family: var(--sans); }
-  .claim-card .ck { font-size: 0.72rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--text-faint); font-weight: 600; margin: 0 0 0.45rem; }
+  .claim-card .ck { font-size: 0.72rem; letter-spacing:.06em; text-transform:none; color: var(--text-faint); font-weight: 600; margin: 0 0 0.45rem; }
   .claim-card .cv { font-family: var(--mono); font-size: 1.3rem; color: var(--mono-num); margin: 0 0 0.35rem; line-height: 1.35; }
   .claim-card .cv em { font-family: var(--sans); font-style: normal; font-size: 0.95rem; color: var(--text); }
   .claim-card .cl { font-size: 0.86rem; color: var(--text-dim); margin: 0 0 0.4rem; line-height: 1.55; max-width: none; }
@@ -397,8 +397,8 @@
   .hero-copy h1.hl + p.hl-sub { margin-top: -0.5rem; }
   @media (max-width: 760px) { p.hl-sub { max-width: none; margin-bottom: 0.9rem; } .hero-copy h1.hl + p.hl-sub { margin-top: -0.2rem; } }
 </style>
-<style id="pipe-css">.pipe{margin:0 0 2.5rem;padding:1.1rem 1rem 1rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-raised);font-family:var(--sans)}.pipe .pk{font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;color:var(--text-faint);font-weight:600;margin:0 0 .8rem}.pp-svg{display:block;width:100%;height:auto;overflow:visible}.pp-narrow{display:none}@media (max-width:760px){.pp-wide{display:none}.pp-narrow{display:block;max-width:440px;margin:0 auto}.pipe{padding:.9rem .55rem .8rem}}.pp-svg text{font-family:var(--sans)}.pp-t{font-size:13.5px;fill:#9a9fa8}.pp-h{font-size:14.5px;font-weight:600;fill:#d8dade}.pp-k{font-family:var(--mono)!important;font-size:13.5px;fill:#b8935f}.pp-n{font-family:var(--mono)!important;font-size:14px;fill:#c9a878}.pp-big{font-family:var(--mono)!important;font-size:19px;fill:#c9a878}</style>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"><link rel="stylesheet" href="report.css?v=1108b">
+<style id="pipe-css">.pipe{margin:0 0 2.5rem;padding:1.1rem 1rem 1rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-raised);font-family:var(--sans)}.pipe .pk{font-size:.72rem;letter-spacing:.06em;text-transform:none;color:var(--text-faint);font-weight:600;margin:0 0 .8rem}.pp-svg{display:block;width:100%;height:auto;overflow:visible}.pp-narrow{display:none}@media (max-width:760px){.pp-wide{display:none}.pp-narrow{display:block;max-width:440px;margin:0 auto}.pipe{padding:.9rem .55rem .8rem}}.pp-svg text{font-family:var(--sans)}.pp-t{font-size:13.5px;fill:#9a9fa8}.pp-h{font-size:14.5px;font-weight:600;fill:#d8dade}.pp-k{font-family:var(--mono)!important;font-size:13.5px;fill:#b8935f}.pp-n{font-family:var(--mono)!important;font-size:14px;fill:#c9a878}.pp-big{font-family:var(--mono)!important;font-size:19px;fill:#c9a878}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=IBM+Plex+Mono:wght@400;500&display=swap"><link rel="stylesheet" href="report.css?v=1108c">
 <script src="report.js" defer></script>
 </head>
 <body id="top">
@@ -416,9 +416,9 @@
   <p class="title">Streaming Logs Are Not Preference Logs: A Single-Subject Provenance Audit of the Human&ndash;Recommender Loop</p>
   <a class="start" href="#ninety" data-new>start here: the short read<span class="st-n">, ninety seconds</span> <span aria-hidden="true">&darr;</span></a>
   </div>
-  <figure class="rec" data-new><canvas id="rec" width="640" height="640" role="img" aria-label="a record. one spiral groove holds every play of the log, in order. mint stretches are plays i tapped, amber plays shuffle served, violet plays auto-play served."></canvas>
+  <figure class="rec" data-new><canvas id="rec" width="640" height="640" role="img" aria-label="a record. one spiral groove holds every play of the log, in order. mint stretches are my presses, amber shuffle, violet auto-play served."></canvas>
   <figcaption>one groove, every play in order: mint my press, amber shuffle, violet auto-play.</figcaption>
-  <p class="key" aria-hidden="true"><i class="t">i tapped <num>19.1%</num> (strict <num>11.5%</num>)</i><i class="s">shuffle-driven <num>16.7%</num></i><i class="q">the queue <num>63.5%</num></i></p></figure>
+  <p class="key" aria-hidden="true"><i class="t">my press <num>19.1%</num> (strict <num>11.5%</num>)</i><i class="s">shuffle <num>16.7%</num></i><i class="q">auto-play <num>63.5%</num></i></p></figure>
   </div>
   <p class="byline"><span class="pseud">astralcrest</span> &middot; Independent Researcher &middot; astralcrestlab@proton.me</p>
   <p class="head-links">
@@ -561,7 +561,7 @@
         <ul>
           <li><strong>Partition, seed, <em>k</em>, resolution.</strong> Eight label-independent partitions span <num>1.03&ndash;1.14</num>.</li>
           <li><strong>Era.</strong> <num>1.061</num> [<num>1.022</num>, <num>1.100</num>] before the 2023-09 logging changepoint, <num>1.053</num> [<num>1.018</num>, <num>1.088</num>] after it.</li>
-          <li><strong>Playback device.</strong> <num>1.084</num> [<num>1.046</num>, <num>1.124</num>] within iOS, <num>1.043</num> [<num>1.008</num>, <num>1.077</num>] within macOS.</li>
+          <li><strong>Playback device.</strong> <num>1.084</num> [<num>1.046</num>, <num>1.124</num>] within the first playback platform, <num>1.043</num> [<num>1.008</num>, <num>1.077</num>] within the second.</li>
           <li><strong>Resampling unit.</strong> Clustering the bootstrap on departure artist (<num>1,153</num> clusters) instead of session gives [<num>1.021</num>, <num>1.090</num>], about <num>30%</num> wider and still excluding 1. Against a naive transition-level resample the design effect of session clustering is <num>1.571</num>, so the session-block interval is the conservative choice.</li>
           <li><strong>Standardization.</strong> Hour-standardized <num>1.052</num> [<num>1.028</num>, <num>1.079</num>]; platform-standardized <num>1.069</num> [<num>1.042</num>, <num>1.096</num>] when both arms are standardized to the deliberate margin. The direction of that shift is a property of which margin is the target, not evidence about confounding.</li>
           <li><strong>Label permutation.</strong> A conditional label-permutation test (not randomization inference, since the deliberate-versus-served split is observational throughout) puts the null at <num>1.0022</num> [<num>0.9858</num>, <num>1.0187</num>], with the observed <num>1.0532</num> above every one of <num>20,000</num> replicates. Only <num>1,550</num> of <num>3,271</num> session blocks carry both arms, so it bounds the headline&rsquo;s within-session component rather than the headline.</li>
@@ -711,7 +711,7 @@
     <li><span class="claim">The corrected-embedding leakage-correction point estimate</span>: <span class="why">killed by perturbing the correction procedure itself: same-artist-controlled variants span 1.026&ndash;1.345 (one seed&rsquo;s CI includes 1), the estimator choice moves the corrected value more than the same-artist control does; only the partition-sensitivity range (1.03&ndash;1.14) and the direction survive.</span></li>
     <li><span class="claim">Bridge Index topology (&ldquo;agency is topological&rdquo; framing) and its H&#8321; persistent-homology loop</span>: <span class="why">killed by a first-order Markov corpus surrogate: the naive Bridge Index observed (1.613, the withdrawn 1.61) falls below the surrogate&rsquo;s 95th percentile (1.774, mean 1.731); the H&#8321; loop statistic likewise sits below its own Markov-null 95th percentile in both point-set variants; session first-order locality, not emergent topology, explains the signal.</span></li>
     <li><span class="claim">Tap-only Markov floor for the Bridge Index (a sequencing-agency reading)</span>: <span class="why">killed: a first-order Markov floor fit to the tap arm alone (0.5785 [0.5722, 0.5846]) exceeds the observed tap crossing rate (0.4665 [0.4524, 0.4813], p=1.0 against the floor): the listener&rsquo;s own one-step habit predicts the crossing rate at least as well as any claim of deliberate sequencing does; a follow-up &alpha;-sweep on the same-artist-controlled stream holds the kill at every smoothing level on the balanced arm and at &alpha;&ge;1 on the higher-coverage partition (&alpha;=0.5 is an effective tie). &ldquo;Deliberate&rdquo; here names tap provenance, not agency.</span></li>
-    <li><span class="claim">Multi-year &ldquo;rising deliberate choice&rdquo; trend</span>: <span class="why">retracted: a 2023 logging-code addition (<code>backbtn</code>) plus an iOS device-mix shift account for the entire apparent rise.</span></li>
+    <li><span class="claim">Multi-year &ldquo;rising deliberate choice&rdquo; trend</span>: <span class="why">retracted: a 2023 logging-code addition (<code>backbtn</code>) plus a shift in the playback-platform mix account for the entire apparent rise.</span></li>
     <li><span class="claim">In-sample next-track predictability gap</span>: <span class="why">retracted: full-vocabulary Cohen&rsquo;s d falls from 0.49 in-sample to &minus;0.02 under temporal held-out evaluation, a null; over the 600 most frequent artists it falls from 0.62 to +0.11, a heavy-rotation memorization residual.</span><span class="rev">tested years ahead the gap is gone; retrained every four weeks it is not.</span></li>
     <li><span class="claim">PAD contamination diagnostic</span>: <span class="why">killed by its own audit: algebraically a restatement of the two cross-rates whose ratio is the Bridge Index it was meant to guard.</span></li>
     <li><span class="claim">Acoustic energy/brightness predicting heart-rate change</span>: <span class="why">does not survive once selection and regression-to-mean are controlled.</span></li>
@@ -743,7 +743,7 @@
   <p class="lede">The full tool-by-tool comparison previously embedded in the dashboard: what each method was asked to do, what it returned, and its disposition.</p>
 <style>.method-cmp .mc-scroll{-webkit-mask-image:var(--mc-mask,linear-gradient(90deg,#000 88%,transparent));mask-image:var(--mc-mask,linear-gradient(90deg,#000 88%,transparent))}
 @media(max-width:768px){.method-cmp::after{content:'swipe \2192';display:block;text-align:right;font:600 10px ui-monospace,monospace;color:var(--mc-swipe,rgba(184,147,95,.6));margin-top:4px}}
-.method-cmp{max-width:100%;margin:36px auto 14px;padding:26px 22px;font-family:'IBM Plex Mono',ui-monospace,monospace;border:1px solid rgba(124,128,140,.22);border-radius:6px;background:var(--bg-raised)}.method-cmp .mc-kick{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}.method-cmp .mc-h{font-size:clamp(17px,2.3vw,22px);line-height:1.32;margin:0 0 16px;color:var(--mc-head,#EEF0F3);font-weight:700}.method-cmp .mc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.method-cmp table{border-collapse:collapse;width:100%;min-width:640px;font-size:12.5px}.method-cmp thead th{text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mc-th,rgba(214,178,125,.95));font-weight:600;padding:0 14px 10px;border-bottom:1px solid rgba(124,128,140,.22)}.method-cmp tbody td{padding:13px 14px;vertical-align:top;line-height:1.5;color:var(--text-dim);border-bottom:1px solid rgba(255,255,255,.06)}.method-cmp .mc-m{color:var(--mc-name,#fff);font-weight:700;white-space:nowrap}.method-cmp .mc-fam{display:block;font-weight:400;font-size:10.5px;color:var(--text-faint);white-space:normal;margin-top:3px;max-width:160px}.method-cmp .mc-why{color:var(--text-dim)}@media(max-width:768px){.method-cmp{margin:26px 12px;padding:20px 14px}}</style>
+.method-cmp{max-width:100%;margin:36px auto 14px;padding:26px 22px;font-family:'IBM Plex Mono',ui-monospace,monospace;border:1px solid rgba(124,128,140,.22);border-radius:6px;background:var(--bg-raised)}.method-cmp .mc-kick{font-size:11px;letter-spacing:.06em;text-transform:none;color:var(--accent);margin-bottom:8px}.method-cmp .mc-h{font-size:clamp(17px,2.3vw,22px);line-height:1.32;margin:0 0 16px;color:var(--mc-head,#EEF0F3);font-weight:700}.method-cmp .mc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.method-cmp table{border-collapse:collapse;width:100%;min-width:640px;font-size:12.5px}.method-cmp thead th{text-align:left;font-size:10.5px;letter-spacing:.06em;text-transform:none;color:var(--mc-th,rgba(214,178,125,.95));font-weight:600;padding:0 14px 10px;border-bottom:1px solid rgba(124,128,140,.22)}.method-cmp tbody td{padding:13px 14px;vertical-align:top;line-height:1.5;color:var(--text-dim);border-bottom:1px solid rgba(255,255,255,.06)}.method-cmp .mc-m{color:var(--mc-name,#fff);font-weight:700;white-space:nowrap}.method-cmp .mc-fam{display:block;font-weight:400;font-size:10.5px;color:var(--text-faint);white-space:normal;margin-top:3px;max-width:160px}.method-cmp .mc-why{color:var(--text-dim)}@media(max-width:768px){.method-cmp{margin:26px 12px;padding:20px 14px}}</style>
 <section class="method-cmp" aria-label="Methods comparison table">
   <div class="mc-kick">the methods, and why they&rsquo;re unusual here</div>
   <h2 class="mc-h">Nine tools, where they come from, and why music analytics doesn&rsquo;t usually reach for them.</h2>
