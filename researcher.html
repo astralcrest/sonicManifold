@@ -410,17 +410,18 @@
 <header class="report-head" role="presentation">
   <div class="hero">
   <div class="hero-copy">
+  <a class="brand" href="./">sonic manifold <small>by astralcrest</small></a>
   <p class="kicker" data-new>the report: the method in full &middot; is my taste my own?</p>
   <h1 class="hl" data-new>auto-play pressed play on 64 of every 100 of my Spotify plays. shuffle 17. i pressed 19.</h1>
   <p class="hl-sub" data-new><num>97,427</num> plays, 2019 to 2026. i chose <num>19</num> of every <num>100</num>, and only <num>11.5</num> by the strictest count. my press crosses a genre family a little more often, and what i press, i keep (in-sample).</p>
   <p class="title">Streaming Logs Are Not Preference Logs: A Single-Subject Provenance Audit of the Human&ndash;Recommender Loop</p>
-  <a class="start" href="#ninety" data-new>start here: the short read<span class="st-n">, ninety seconds</span> <span aria-hidden="true">&darr;</span></a>
+  <a class="start" href="#ninety" data-new>start here: the short read,<span class="st-n">ninety seconds</span> <span aria-hidden="true">&darr;</span></a>
   </div>
   <figure class="rec" data-new><canvas id="rec" width="640" height="640" role="img" aria-label="a record. one spiral groove holds every play of the log, in order. mint stretches are my presses, amber shuffle, violet auto-play served."></canvas>
   <figcaption>one groove, every play in order: mint my press, amber shuffle, violet auto-play.</figcaption>
   <p class="key" aria-hidden="true"><i class="t">my press <num>19.1%</num> (strict <num>11.5%</num>)</i><i class="s">shuffle <num>16.7%</num></i><i class="q">auto-play <num>63.5%</num></i></p></figure>
   </div>
-  <p class="byline"><span class="pseud">astralcrest</span> &middot; Independent Researcher &middot; astralcrestlab@proton.me</p>
+  <p class="byline"><span class="pseud">astralcrest</span> &middot; independent researcher &middot; astralcrestlab@proton.me</p>
   <p class="head-links">
     <a href="./">&larr; sonic manifold</a>
     <span class="sep">&middot;</span>
@@ -460,7 +461,7 @@
 </section>
 
 <div class="claim-card" role="region" aria-label="the claim, in one card">
-  <p class="ck">The claim</p>
+  <p class="ck">the claim</p>
   <p class="cv">1.05 [1.03, 1.08] <em><ins>a direction, not a size</ins></em></p>
   <p class="cl">Bridge Index on the external-tag partition: deliberate transitions cross genre-family communities more often than auto-play ones (<num>69.9%</num> vs <num>66.3%</num>, same-artist repeats removed from both arms).</p>
   <p class="cl"><strong>holds under</strong> partition, seed, resolution, era, playback platform, artist-level clustering.</p>
@@ -501,7 +502,7 @@
 </section>
 
 <section class="part" id="method">
-  <h2 class="sec-title"><span style="color:var(--accent)">&#9698;&#9700;</span> Method in one screen</h2>
+  <h2 class="sec-title"><span style="color:var(--accent)">&#9698;&#9700;</span> method in one screen</h2>
 <p class="plain" data-new>split the plays into the ones i pressed and the ones auto-play played. count how often each kind of step crosses from one genre family to another. the ratio of the two rates is the bridge index. then try to break it.</p>
 <aside class="mnote" data-new><b>aside</b>the first form of this number was <num>1.61</num>, withdrawn. the map i used was trained on the algorithm&rsquo;s own plays.</aside>
 <div class="killbox" data-new><b>what would kill this</b>
@@ -510,12 +511,12 @@
 <details class="fold" open><summary data-new>the full technical text</summary>
 
   <div class="method-block">
-    <h3 class="sub-title">Provenance classes</h3>
+    <h3 class="sub-title">provenance classes</h3>
     <p>Every play is stratified on <code>reason_start</code> into three tiers: <strong>direct tap</strong> (<num>19.1%</num>: <code>clickrow</code>/<code>playbtn</code>/<code>backbtn</code>/<code>fwdbtn</code>/<code>remote</code>; a <em>strict</em> deliberate-selection subset, <code>clickrow</code>/<code>playbtn</code>/<code>remote</code>, is <num>11.5%</num>), <strong>auto-play</strong> (<num>80.2%</num>: <code>trackdone</code>, the platform selecting the next queue item), and <strong>ambiguous</strong> (<num>0.5%</num>: <code>appload</code>/null/unknown, excluded from intent-stratified analyses). Independently, <num>16.7%</num> of plays are shuffle-driven auto-play (<code>shuffle=True</code> and <code>trackdone</code>); the shuffle flag itself is on for <num>20.9%</num>, and within the auto-play transition pool the shuffle share is <num>20.5%</num>. Autoadvance and shuffle-driven plays together put the algorithmic-exposure share at roughly <num>84%</num> of the corpus (<num>80.2%</num> + <num>20.9%</num> &minus; <num>16.7%</num>). The 81 of every 100 the app started (shuffle plus auto-play) is a different cut: 100% minus the bundled direct-tap share of 19.1%, the plays that were not explicitly user-initiated. Note: bundled 19.1% is not era-stable across the logger change, with the audit&rsquo;s era boundary at 2023-10 (<num>11.8%</num> before vs <num>22.7%</num> after, a <num>10.92pp</num> swing; ledger <num>114</num>); strict <num>11.5%</num> swings <num>1.87pp</num> under the pre-declared 3pp stability bar, though drifting slightly upward.</p>
   </div>
 
   <div class="method-block">
-    <h3 class="sub-title">The gate sequence</h3>
+    <h3 class="sub-title">the gate sequence</h3>
     <p>Every candidate claim runs an ordered sequence of pass/fail gates, kill condition fixed in code before the result is seen:</p>
     <div class="gate-seq">
       <span class="gate"><span class="g-num">0</span>pre-declared kill condition</span>
@@ -536,7 +537,7 @@
   </div>
 
   <div class="method-block">
-    <h3 class="sub-title">The Bridge Index and the leakage correction</h3>
+    <h3 class="sub-title">the bridge index and the leakage correction</h3>
     <details class="pt" open><summary><strong>What the Index is.</strong></summary><p>Splitting the log by provenance yields two transition graphs over the same artists: the listener&rsquo;s deliberate taps and the platform&rsquo;s auto-play plays. Which artists depends on the partition, and the two populations differ enough to state separately. The embedding- and graph-based partitions run on the <num>804</num> artists with <num>20</num> or more plays. The external-tag partition that carries the headline is a different and larger set: <num>1,196</num> artists labeled into <num>13</num> families, of which <num>526</num> (<num>44.0%</num>) fall below that 20-play line, with a median of <num>23</num> qualified plays, and only <num>670</num> of the <num>804</num> appear in it at all. On communities detected from an intent-independent artist-embedding <em>k</em>-NN graph (Louvain, <em>k</em>=10, resolution 1.0), and restricted to different-artist transitions, with same-artist repeats removed from both arms, since the algorithm produces them more often (<num>24.1%</num> vs. the listener&rsquo;s <num>18.9%</num>) and they are trivially within-community on any partition: deliberate transitions cross community boundaries <num>58.8%</num> of the time against auto-play&rsquo;s <num>51.0%</num> (same-artist-controlled, balanced-partition rates, mid-session transitions exclusively; the crossing pool is mid-session by construction, as transitions with gaps &gt;30 minutes never enter it). Those two rates come from the stream-trained embedding partition, the arm a geometry-adaptive null later killed; the headline <num>1.05</num> is computed on the external-tag partition, where the same control gives <num>69.9%</num> against <num>66.3%</num>. The <strong>Bridge Index</strong> is the ratio of the listener&rsquo;s cross-community rate to the algorithm&rsquo;s, always same-artist-controlled and always the rate over its own partition&rsquo;s geometry-free floor. A separate floor comparison would restate the same ratio twice, so none is quoted.</p></details>
     <details class="pt" open><summary><strong>Partition-selection rule.</strong></summary><p>The Index is reported primarily on the <em>leakage-free</em> partition (built only from external Last.fm tags, with no label propagated through the stream-trained embedding) at the 13-genre-family granularity, which was fixed in the pre-declaration of the same-artist control before any controlled value was computed: <num>1.05</num> [<num>1.03</num>, <num>1.08</num>], a direction, not a size. Where the higher-coverage variant is quoted (the same 13 families including the <num>39%</num> of artist labels propagated through the embedding&rsquo;s <em>k</em>-NN; <num>45,210</num> controlled transitions against <num>31,814</num>), it is labeled as such; at every matched granularity the propagated-label partition sits <num>0.03&ndash;0.05</num> above its leakage-free counterpart, the same leakage channel at a smaller dose. The balanced-embedding rates above are therefore a leakage-reduced upper bound, not the headline.</p></details>
     <details class="pt" open><summary><strong>Session openers and crossing floors.</strong></summary><p>Session-opening taps, built separately, show a controlled BI of <num>1.220</num> [<num>1.157</num>, <num>1.290</num>], so deliberate steering is not concentrated only at session openers. Both streams cross far below the ~86–91% a blind random pick from the listener&rsquo;s own catalog would give (post-hoc diagnostic), so the gap is not free-crossing noise.</p></details>
@@ -557,7 +558,7 @@
 
     <div class="stability">
       <div class="col">
-        <h4>What the direction is stable to</h4>
+        <h4>what the direction is stable to</h4>
         <ul>
           <li><strong>Partition, seed, <em>k</em>, resolution.</strong> Eight label-independent partitions span <num>1.03&ndash;1.14</num>.</li>
           <li><strong>Era.</strong> <num>1.061</num> [<num>1.022</num>, <num>1.100</num>] before the 2023-09 logging changepoint, <num>1.053</num> [<num>1.018</num>, <num>1.088</num>] after it.</li>
@@ -571,7 +572,7 @@
         </ul>
       </div>
       <div class="col">
-        <h4>What the direction is not stable to</h4>
+        <h4>what the direction is not stable to</h4>
         <ul>
           <li><strong>The untagged tail.</strong> <num>33.8%</num> of deliberate and <num>40.9%</num> of auto-play different-artist transitions carry no external tag. Pooling untagged artists into one community gives <num>1.135</num> [<num>1.109</num>, <num>1.161</num>]; giving each its own gives <num>0.999</num> [<num>0.983</num>, <num>1.015</num>], the lowest cell the paper prints.</li>
           <li><strong>The two arm definitions at their most inclusive.</strong> The full <num>2&times;2</num> on the embedding-free partition: strict taps against strict auto-play <num>1.053</num> [<num>1.027</num>, <num>1.080</num>]; strict taps against a shuffle-included comparator <num>1.028</num> [<num>1.003</num>, <num>1.053</num>]; bundled taps against strict auto-play <num>1.037</num> [<num>1.014</num>, <num>1.060</num>]; bundled taps against a shuffle-included comparator <num>1.012</num> [<num>0.991</num>, <num>1.033</num>], an interval that brackets 1. The four cells are nested subsets of one transition stream, not four tests (post hoc, ledger <num>234</num>).</li>
@@ -587,17 +588,17 @@
   </div>
 
   <div class="method-block">
-    <h3 class="sub-title">The genre deconfounding, placebo-checked</h3>
+    <h3 class="sub-title">the genre deconfounding, placebo-checked</h3>
     <p>An inverse-propensity re-derivation of the genre exposure bias barely moves the poles (Spearman <num>0.93</num> against the stratified ranking), but that agreement is weaker evidence than it looks: the weights move mass only mildly (Kish ESS <num>0.65</num>), and content-free size-matched placebo partitions reproduce the agreement (median Spearman <num>0.89</num>; <num>63%</num> of 150 draws clear 0.85). What the placebo control does certify is the poles themselves: both anchor families are more extreme than every one of 150 size-matched placebo draws under both weightings (exploratory, post-hoc; one-sided Monte-Carlo <num>p &le; 0.0066</num> each). The claim is agreement plus placebo-extremity, not causality.</p>
   </div>
 
   <div class="method-block">
-    <h3 class="sub-title">Same distance, different boundary</h3>
+    <h3 class="sub-title">same distance, different boundary</h3>
     <p>The natural gloss (the algorithm follows a similarity gradient, the listener jumps over it) predicts deliberate transitions should be <em>longer</em> in content space. They are not: the acoustic jump ratio of deliberate to algorithmic transitions is <num>1.01</num> on CLAP embeddings (CI <num>[0.99, 1.04]</num>) and <num>0.99</num> on MERT (CI <num>[0.97, 1.01]</num>) at the artist-level primary, though at track resolution a small distance effect is significant on both substrates (<num>1.026&ndash;1.033</num>), consistent with the community-boundary channel dominating but not exhausting the signal. The CLAP distances cover only the <num>57%</num> of transitions whose two artists have an audio vector, and a pre-declared split (ledger <num>257</num>) finds the headline Index lower on that covered set than on the rest: the ratio is <num>0.915</num> (95% interval <num>[0.872, 0.961]</num>). So the acoustic null describes the covered transitions, not the whole stream. Communities are not metric balls; a partition, not a metric, is the right instrument.</p>
   </div>
 
   <div class="method-block">
-    <h3 class="sub-title">The design-fact reading</h3>
+    <h3 class="sub-title">the design-fact reading</h3>
     <p>A skeptical reading holds that sequential recommenders are <em>engineered</em> to stay local (coherent, low-surprise continuation is the design objective), so the algorithm&rsquo;s lane-keeping is a product fact, not a finding about listeners. The central claim does not depend on adjudicating this: whether the gap reflects listener agency, recommender design, or both, the two channels demonstrably differ, and a log that mixes them misrepresents each. What the audit adds is that on the embedding-free partitions the difference holds under the measurement-artifact tests that could be run (embedding leakage, acoustic step size, first-order sequence structure), with label accuracy bounded only as far as the two tag-error runs above state, so there the channel difference reads as a property of the data rather than of the instruments. The psychological reading (<em>why</em> the human channel bridges) is left explicitly open; this log does not contain the experimental or context-conditioned data it would require.</p>
   </div>
 </details>
@@ -607,7 +608,7 @@
   <h2 class="sec-title"><span style="color:var(--accent)">&#9698;&#9700;</span> Findings</h2>
 <p class="plain" data-new>this is the whole record: what i tried, what died, what stayed. of eleven new candidates, none passed unqualified.</p>
 <div class="ledger-wrap" id="tests" data-new>
-<h3>The seventeen tests the headline faced</h3>
+<h3>the seventeen tests the headline faced</h3>
 <p>each one was written down before i saw its result. nine were settled before i revised the paper, four were added while revising, and the last four ran in october 2026 (audit ledger 272&ndash;275), each hashed before it ran. none of the last eight fired. four times i found a test that could never have fired at all. writing them down first fixed the order, not the power, so now a test has to show it can fail before i write it down.</p>
 <div class="legend"><span><i class="sw k"></i>killed, three</span><span><i class="sw h"></i>held, two</span><span><i class="sw b"></i>unreachable by construction, four</span><span><i class="sw d"></i>added in revision or after, did not fire, eight</span></div>
 <ol class="ledger">
@@ -632,7 +633,7 @@
 <aside class="mnote" data-new><b>aside</b>none of the eleven new candidates passed unqualified. i kept the table anyway.</aside>
 <details class="fold" open><summary data-new>the full technical text</summary>
 
-  <h3 class="sub-title">The retrospective audit</h3>
+  <h3 class="sub-title">the retrospective audit</h3>
   <p class="lede">Separately from the prospective gauntlet below, every headline claim the public dashboard had ever made was run back through the same audit.</p>
   <div class="scoreboard">
     <div class="cell"><span class="n">11 / 25</span><span class="lbl">survived</span></div>
@@ -641,14 +642,14 @@
   </div>
   <p class="lede" style="font-size:0.85rem">Two sets, two denominators: these 25 are retrospective dashboard claims; the 11 below are candidates gated prospectively as they arose.</p>
 
-  <h3 class="sub-title">The prospective gauntlet</h3>
+  <h3 class="sub-title">the prospective gauntlet</h3>
   <p class="lede">Eleven new positive candidates were generated while this paper was being written and gated as they arose, each a result the study wanted to keep.</p>
   <div class="scoreboard">
     <div class="cell"><span class="n">0 / 11</span><span class="lbl">survived unqualified</span></div>
     <div class="cell"><span class="n">6 / 11</span><span class="lbl">caveated</span></div>
     <div class="cell"><span class="n">5 / 11</span><span class="lbl">killed</span></div>
   </div>
-  <p class="tbl-cap" id="gauntlet-cap">The prospective gauntlet: eleven positive candidates, gated as they arose; none passed unqualified. Candidates 1&ndash;6 are independent hypotheses; candidates 7&ndash;8 are the headline magnitude&rsquo;s own inflation and its correction; candidates 9&ndash;11 were added in revision (the planted-null leakage rerun, ledger 244, and the two tag-error runs, ledger 245 and 247). The four rows below them are adjudications on the headline itself, returned by later pre-declared waves, and are not counted toward the scoreboard. Nine pre-declared gates were adjudicated on the headline before this revision: three whose kill conditions fired, one substituted follow-up that ran and passed, four retired as unreachable by construction, and one informative survivor; each appears once. Eight further gates, added in revision and after it, did not fire and are accounted for in the text rather than in this table, which brings the headline tally to seventeen.</p>
+  <p class="tbl-cap" id="gauntlet-cap">the prospective gauntlet: eleven positive candidates, gated as they arose; none passed unqualified. Candidates 1&ndash;6 are independent hypotheses; candidates 7&ndash;8 are the headline magnitude&rsquo;s own inflation and its correction; candidates 9&ndash;11 were added in revision (the planted-null leakage rerun, ledger 244, and the two tag-error runs, ledger 245 and 247). The four rows below them are adjudications on the headline itself, returned by later pre-declared waves, and are not counted toward the scoreboard. Nine pre-declared gates were adjudicated on the headline before this revision: three whose kill conditions fired, one substituted follow-up that ran and passed, four retired as unreachable by construction, and one informative survivor; each appears once. Eight further gates, added in revision and after it, did not fire and are accounted for in the text rather than in this table, which brings the headline tally to seventeen.</p>
   <div class="tbl-wrap" tabindex="0" role="region" aria-label="results table, scrolls sideways">
   <table aria-describedby="gauntlet-cap">
     <thead>
@@ -676,7 +677,7 @@
 
   <p class="lede">Retrospectively, every killed claim in the study maps to the specific gate that killed it. The first four analysis passes cataloged <num>66</num> analyses individually in the research log: about <num>25</num> survived their robustness checks cleanly, about <num>15</num> survived with caveats, and about <num>26</num> were killed. The audit ledger as a whole runs to row <num>302</num> at the time of writing (rows are numbered by line, headers and notes included). No family-wise correction is applied across the suite; this is reported as a filtered, exploratory sample, not a preregistered confirmatory battery.</p>
 
-  <h3 class="sub-title">Headline numbers, with qualifiers</h3>
+  <h3 class="sub-title">headline numbers, with qualifiers</h3>
   <div class="headline-list">
     <div class="headline-row"><span class="hn">1.05 [1.03, 1.08]</span><span class="hd">Bridge Index, same-artist-controlled, on the embedding-free genre-family partition (deliberate vs. auto-play cross-community rate 69.9% vs 66.3%) (external tags only; no embedding sees the play order) against strict auto-play: the headline, a direction, not a size. A third to two fifths of transitions have no external genre tag on this partition, and depending on how that untagged tail is treated the index lands anywhere from 1.00 to 1.13, so the direction is reported and the size is not. The higher-coverage tag partition reads 1.10 [1.08, 1.13] (86% coverage in simulation at a planted 1.10), but 39% of its labels were propagated through the stream-trained embedding, so it is reported as a variant, never alone. The full 2&times;2 of the two arm definitions against the two comparators, on this partition: strict taps against strict auto-play 1.053 [1.027, 1.080]; strict taps against a shuffle-included comparator 1.028 [1.003, 1.053] (p=0.013; does not survive a Bonferroni correction over the eight partitions), which is the lower bound on the comparator axis and not the study&rsquo;s lower bound; bundled taps against strict auto-play 1.037 [1.014, 1.060]; bundled taps against a shuffle-included comparator 1.012 [0.991, 1.033], which brackets 1 (post hoc, ledger 234). The four cells are nested subsets of one transition stream, not four tests. The lowest cell printed anywhere is the singleton imputation of the untagged tail, 0.999 [0.983, 1.015]. The previously reported 1.15&ndash;1.30 band is withdrawn; all eight partitions that do not use the transition labels read 1.03&ndash;1.14 (a partition-sensitivity range, not an interval estimate). CLAP (1.047) and MERT (1.026) are directionally consistent, not corroborating. On five held-out months the analysis never saw (the 2026-10 export, 308 strict taps, hashed pre-registration, ledger 351&ndash;355) it reads 0.997 [0.88, 1.09]: consistent, not confirmed; too few new plays to judge it on their own. In those months shuffle fell from 17 to 1.5 of every 100 plays and the queue rose from 64 to 75, so they are not the same picture.</span></div>
     <div class="headline-row"><span class="hn">85 / 81 / 64 of 100, replicated</span><span class="hd">return within a week after a tap, after the queue, after shuffle; the one pre-registered result the held-out months could judge, and it held (ledger 351). counted by sitting instead of by play, at the same familiarity and place in the sitting, an artist a strict tap brought in came back in a later sitting within a week more often than one the queue brought in, in the held-out months (+0.069 [+0.023, +0.115]) and on the frozen rows (+0.064 [+0.048, +0.082]); familiarity takes about half the raw gap (ledger 379).</span></div>
@@ -746,7 +747,7 @@
 .method-cmp{max-width:100%;margin:36px auto 14px;padding:26px 22px;font-family:'IBM Plex Mono',ui-monospace,monospace;border:1px solid rgba(124,128,140,.22);border-radius:6px;background:var(--bg-raised)}.method-cmp .mc-kick{font-size:11px;letter-spacing:.06em;text-transform:none;color:var(--accent);margin-bottom:8px}.method-cmp .mc-h{font-size:clamp(17px,2.3vw,22px);line-height:1.32;margin:0 0 16px;color:var(--mc-head,#EEF0F3);font-weight:700}.method-cmp .mc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.method-cmp table{border-collapse:collapse;width:100%;min-width:640px;font-size:12.5px}.method-cmp thead th{text-align:left;font-size:10.5px;letter-spacing:.06em;text-transform:none;color:var(--mc-th,rgba(214,178,125,.95));font-weight:600;padding:0 14px 10px;border-bottom:1px solid rgba(124,128,140,.22)}.method-cmp tbody td{padding:13px 14px;vertical-align:top;line-height:1.5;color:var(--text-dim);border-bottom:1px solid rgba(255,255,255,.06)}.method-cmp .mc-m{color:var(--mc-name,#fff);font-weight:700;white-space:nowrap}.method-cmp .mc-fam{display:block;font-weight:400;font-size:10.5px;color:var(--text-faint);white-space:normal;margin-top:3px;max-width:160px}.method-cmp .mc-why{color:var(--text-dim)}@media(max-width:768px){.method-cmp{margin:26px 12px;padding:20px 14px}}</style>
 <section class="method-cmp" aria-label="Methods comparison table">
   <div class="mc-kick">the methods, and why they&rsquo;re unusual here</div>
-  <h2 class="mc-h">Nine tools, where they come from, and why music analytics doesn&rsquo;t usually reach for them.</h2>
+  <h2 class="mc-h">nine tools, where they come from, and why music analytics doesn&rsquo;t usually reach for them.</h2>
   <div class="mc-scroll" tabindex="0" role="region" aria-label="method comparison table, scrolls sideways">
     <table>
       <thead><tr><th>Method</th><th>Standard field</th><th>How applied here</th><th>Why non-standard in music analytics</th></tr></thead>

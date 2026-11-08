@@ -1,18 +1,18 @@
 /* the report: a monograph read on a gallery wall. loaded after the inline sheet, so it only re-points tokens and adds parts. */
 :root{
-  --bg:#0e1013;--bg-raised:#100a1f;--border:#2a2340;--text:#dcdad4;--text-dim:#a6a69f;--text-faint:#8f9096;
-  --accent:#c4a06a;--mono-num:#d4b684;--mint:#5ee0b8;--rose:#ff5c7a;--ice:#cfc7e8;--wash:#1a1d22;
-  --kill:#ff5c7a;--held:#5ee0b8;--brick:#cfc7e8;--dnf:#d4b684;
+  --bg:#06010f;--bg-raised:#0d0719;--border:#2a2140;--text:#efe9ff;--text-dim:#9a90b8;--text-faint:#7d74a0;
+  --accent:#cfc7e8;--mono-num:#efe9ff;--mint:#21f6bc;--rose:#ff5c7a;--ice:#cfc7e8;--wash:#0b0516;
+  --kill:#ff5c7a;--held:#efe9ff;--brick:#cfc7e8;--dnf:#9a90b8;
   --serif:"Instrument Sans",system-ui,sans-serif;
   --sans:"Instrument Sans",system-ui,sans-serif;
   --rail:15rem;
   color-scheme:dark;
 }
 @supports (color:oklch(0 0 0)){:root{
-  --bg:#06010f;--bg-raised:#100a1f;--border:oklch(.31 .014 265);--wash:#1a1330;
-  --text:oklch(.9 .008 85);--text-dim:oklch(.76 .01 85);--text-faint:oklch(.67 .012 265);
-  --accent:oklch(.74 .09 78);--mono-num:oklch(.8 .085 80);--mint:oklch(.82 .13 170);--rose:oklch(.74 .16 8);--ice:oklch(.8 .09 240);
-  --kill:oklch(.74 .16 8);--held:oklch(.82 .13 170);--brick:oklch(.8 .09 240);--dnf:oklch(.8 .085 80)}}
+  --bg:#06010f;--bg-raised:#0d0719;--border:#2a2140;--wash:#0b0516;
+  --text:#efe9ff;--text-dim:#9a90b8;--text-faint:#7d74a0;
+  --accent:#cfc7e8;--mono-num:#efe9ff;--mint:#21f6bc;--rose:#ff5c7a;--ice:#cfc7e8;
+  --kill:#ff5c7a;--held:#efe9ff;--brick:#cfc7e8;--dnf:#9a90b8}}
 @media print{:root{
   --bg:#f6f1e7;--bg-raised:#efe8da;--border:#d6cdbb;--text:#26211a;--text-dim:#4a4337;--text-faint:#5c5446;--wash:#e9e1d0;
   --accent:#7a5a22;--mono-num:#6b4d1a;--mint:#0b6b52;--rose:#a3214f;--ice:#0d5483;
@@ -327,3 +327,5 @@ ol.graveyard li{text-wrap:pretty}
 /* 2026-11-08: the report is pinned to the night like every other page; the paper look is for print only. the sticky bar carries a way home on the phone */
 .toc .tochome{display:none}
 @media (max-width:700px){.js .toc{display:flex;flex-wrap:wrap;align-items:center}.js .toc .tocb{flex:1 1 0;width:auto;min-width:0}.js .toc .tochome{display:flex;align-items:center;min-height:44px;padding:0 1rem;font:600 .68rem/1 var(--sans);letter-spacing:.06em;text-transform:none;color:var(--text);text-decoration:none;white-space:nowrap;flex:none}.js .toc ol{flex-basis:100%;order:3}}
+
+.report-head .brand{display:inline-flex;align-items:center;min-height:44px;font:700 11px/1 var(--mono,"IBM Plex Mono",monospace);letter-spacing:.18em;color:var(--text);text-decoration:none;margin-bottom:10px}.report-head .brand small{font-weight:400;color:var(--text-dim);margin-left:8px;letter-spacing:.14em}
