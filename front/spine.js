@@ -8,7 +8,7 @@ var html = document.documentElement, RM = matchMedia('(prefers-reduced-motion: r
 var M = S.months, NM = M.length, T = S.tap_m, SH = S.shuffle_m, SV = S.served_m, C = S.clock || {}, PCT = S.pct || {};
 var COL = { t: [33, 246, 188], s: [245, 166, 35], v: [139, 111, 214], ice: [188, 211, 255], rose: [255, 107, 138], ash: [70, 60, 96] };
 var NAME = { t: 'my tap', s: 'shuffle', v: 'auto-play' };
-var PAL = { 'ambient/lofi': '#7cc7ff', 'classical': '#f4ecd0', 'electronic': '#ff4fa3', 'experimental': '#c7f464', 'folk/country': '#d9a066', 'funk/disco': '#ff7a3d', 'hip-hop · r&b': '#ff2e55', 'jazz': '#ffd36b', 'other': '#a0a0b8', 'pop': '#ff9ad5', 'rock/metal': '#d7d7d7', 'soundtrack': '#9fe0d8', 'world/desi': '#ffb347', 'untagged': '#6b7280' };
+var PAL = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#ff7a3d', 'untagged': '#6f6790' }; /* one family palette with the front and the walls */
 var MO = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 var W = 0, H = 0, DPR = 1, phone = false;
 function L0() { return W > 900 ? Math.min(W * 0.44, 640) + 16 : 0; }
@@ -223,7 +223,7 @@ dots();
   $('d-c1').textContent = 'my hand is busiest around ' + hour(ph) + '; the loudest hour of the day is ' + hour(pv) + '. ' + (c.clock_note || '');
   $('d-c2').textContent = 'tap share by hour: ' + hours.map(function (h) { return (h === 0 ? 'midnight' : h === 12 ? 'noon' : h < 12 ? h + 'a' : (h - 12) + 'p') + ' ' + Math.round((HT[h] || 0) / (htot[h] || 1) * 100); }).join(' · ');
   var os = ga.over_served || {}, ch = ga.chosen || {};
-  $('d-g2').innerHTML = 'ambient/lofi <span class="num">' + (os.strict || '0.636') + '</span> under-tapped [' + (os.lo || '0.569') + ', ' + (os.hi || '0.710') + '] by the strictest count. hip-hop/r&b <span class="num">' + (ch.strict || '1.22') + '</span> over-tapped, the less firm of the two: counted per track, not per play, hip-hop reads below 1.';
+  $('d-g2').innerHTML = 'ambient/lofi <span class="num">' + (os.strict || '0.71') + '</span> under-tapped [' + (os.lo || '0.63') + ', ' + (os.hi || '0.79') + '] by the strictest count. hip-hop/r&b <span class="num">' + (ch.strict || '1.24') + '</span> over-tapped, the less firm of the two: counted per track, not per play, hip-hop reads below 1.';
   $('d-b1').textContent = dr.short || 'when i pick the next song i cross genre families slightly more often. a direction, not a size.';
   $('d-b2').innerHTML = '<span class="num">' + (dr.tap || 69.9) + '</span> vs <span class="num">' + (dr.queue || 66.3) + '</span> of 100 next tracks crossed to another family, my hand vs auto-play. ratio ' + (dr.bi || 1.05) + ' [' + (dr.lo || 1.03) + ', ' + (dr.hi || 1.08) + '].';
   var r = S.r25 || {}, ls = r.lanes || [], I = null; ls.forEach(function (l) { if (l.id === 'intro') I = l; });

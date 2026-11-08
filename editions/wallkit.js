@@ -1,7 +1,7 @@
 /* shared by the walls: the gallery painter (WK.P) for every map, and for seeds, undo, blind and slow: loads the loop wall's machine and data by relative path, draws the map, plays previews. no storage. */
 (function (root) {
   'use strict';
-  var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#ffd36b', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#f5a623', 'untagged': '#6f6790' };
+  var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#ff7a3d', 'untagged': '#6f6790' };
   var C = { ink: '#efe9ff', mute: '#9a90b8', mint: '#21f6bc', amber: '#f5a623', violet: '#8b6fd6', rose: '#ff5c7a', ice: '#bcd3ff', night: '#06010f' };
   var $ = function (id) { return document.getElementById(id); };
   function j(u) { return fetch(u).then(function (r) { return r.json(); }); }
@@ -338,7 +338,7 @@
     auto: ['auto-play', 'the app\'s own next pick', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="#8b6fd6" stroke-width="2.4"/></svg>', '#8b6fd6'],
     shuffle: ['shuffle', 'a random next pick', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 1.5L17 10L10 18.5L3 10Z" fill="#f5a623"/></svg>', '#f5a623'],
     alike: ['sounds alike', 'nearest neighbors on the sound map', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M2 14L10 8L18 12" fill="none" stroke="#bcd3ff" stroke-width="1.2"/><circle cx="10" cy="8" r="2.4" fill="#bcd3ff"/></svg>', '#bcd3ff'],
-    own: ['my own songs', 'songs i made', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="8.4" fill="none" stroke="#ffd36b" stroke-width="1.3"/><path d="M10 3.5Q10 10 16.5 10Q10 10 10 16.5Q10 10 3.5 10Q10 10 10 3.5Z" fill="#ffd36b"/></svg>', '#ffd36b']
+    own: ['my songs', 'songs i made', '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="8.4" fill="none" stroke="#ffd36b" stroke-width="1.3"/><path d="M10 3.5Q10 10 16.5 10Q10 10 10 16.5Q10 10 3.5 10Q10 10 10 3.5Z" fill="#ffd36b"/></svg>', '#ffd36b']
   };
   var CSS = '#wk-strip,#wk-nav{font-family:"Instrument Sans",system-ui,sans-serif;background:#06010f;color:#efe9ff;box-sizing:border-box}' +
     '#wk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;padding:16px 48px;border-bottom:1px solid #241b3a}' +

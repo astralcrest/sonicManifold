@@ -10,7 +10,7 @@
 var doc = document, html = doc.documentElement, $ = function (s) { return doc.querySelector(s); }, $$ = function (s) { return Array.prototype.slice.call(doc.querySelectorAll(s)); };
 var ST = (window.__front && window.__front.stamps) || {};
 var BG = '#06010f', INK = '#efe9ff', MUTE = '#9a90b8', MINT = '#21f6bc', AMBER = '#f5a623', VIOLET = '#8b6fd6', ROSE = '#ff5c7a', ICE = '#bcd3ff', GOLD = '#ffd36b', LINE = '#2a2140';
-var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#f5a623', 'untagged': '#6f6790' };
+var FAMC = { 'ambient/lofi': '#5fb8ff', 'classical': '#e9dcae', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#8fd3b6', 'world/desi': '#ff7a3d', 'untagged': '#6f6790' };
 var SANS = '"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif', MONO = '"IBM Plex Mono",ui-monospace,Menlo,monospace';
 var cv = $('#field'), ctx = cv && cv.getContext('2d'), stage = $('#stage');
 if (!cv || !ctx) return;
@@ -30,7 +30,7 @@ var S = { rt: [], now: -1, line: null, drag: null, played: {}, playing: false, p
 /* the curve radio's camera: a glide on top of the view, eased toward the stop that is playing (field acts only) */
 var GL = { x: 0, y: 0, z: 1 }, gliding = false, glT = 0;
 /* first heard: eight cuts of the log by sitting count (never a date), deep violet first to gold last */
-var FIRSTC = ['#3a2d5c', '#5a46a0', '#8b6fd6', '#9fa6ff', '#bcd3ff', '#9df0e0', '#21f6bc', '#eafff7'];
+var FIRSTC = ['#2b2342', '#443a6e', '#5d5596', '#7a74b8', '#9a97d2', '#bbbce6', '#dcdcf4', '#f4f2ff']; /* early to late: a neutral ramp that borrows no key color */
 function rgba(h, a) { var c = hex(h); return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')'; }
 var ease = function (t) { return t < 0 ? 0 : t > 1 ? 1 : 1 - Math.pow(1 - t, 3); };
 
@@ -493,7 +493,7 @@ function famRows() {
 function colorRows(m) {
   var t, k;
   if (m === 'hood') return [['color = room']];
-  if (m === 'hand') return [[sq(MINT), 'my press ', sq(AMBER), 'shuffle ', sq(VIOLET), 'auto-play']];
+  if (m === 'hand') return [[['press'], 'my press ', ['shuf'], 'shuffle ', ['auto'], 'auto-play']];
   if (m === 'first') { t = ['early ']; for (k = 0; k < 8; k++) t.push(sq(FIRSTC[k])); t.push(' late'); return [t]; }
   return famRows();
 }
@@ -582,7 +582,10 @@ function drawKey(g, b) {
     for (j = 0; j < b.lines[i].length; j++) {
       t = b.lines[i][j];
       if (typeof t === 'string') { g.fillStyle = i === 0 ? INK : '#d8d0ee'; g.fillText(t, x, y); x += g.measureText(t).width; }
-      else if (t[0] === 'sq') { g.fillStyle = t[1]; rrect(g, x, y - 5, 10, 10, 3); g.fill(); x += 14; }
+      else if (t[0] === 'sq') { g.fillStyle = t[1]; g.beginPath(); g.arc(x + 5, y, 4.6, 0, 6.2832); g.fill(); x += 14; }
+      else if (t[0] === 'press') { g.fillStyle = MINT; g.beginPath(); g.moveTo(x + 5, y - 5.4); g.quadraticCurveTo(x + 5, y, x + 10.4, y); g.quadraticCurveTo(x + 5, y, x + 5, y + 5.4); g.quadraticCurveTo(x + 5, y, x - .4, y); g.quadraticCurveTo(x + 5, y, x + 5, y - 5.4); g.fill(); x += 14; }
+      else if (t[0] === 'auto') { g.strokeStyle = VIOLET; g.lineWidth = 1.6; g.beginPath(); g.arc(x + 5, y, 4, 0, 6.2832); g.stroke(); x += 14; }
+      else if (t[0] === 'shuf') { g.fillStyle = AMBER; g.beginPath(); g.moveTo(x + 5, y - 5); g.lineTo(x + 9.5, y); g.lineTo(x + 5, y + 5); g.lineTo(x + .5, y); g.closePath(); g.fill(); x += 14; }
       else if (t[0] === 'bsq') { g.fillStyle = t[2]; rrect(g, x, y - t[1] / 2, t[1], t[1], t[1] * 0.4); g.fill(); x += t[1] + 6; }
       else if (t[0] === 'stk') { g.strokeStyle = t[2]; g.lineWidth = t[1]; g.lineCap = 'round'; g.beginPath(); g.moveTo(x + 1, y); g.lineTo(x + 15, y); g.stroke(); x += 18; }
       else if (t[0] === 'wedge') { g.fillStyle = t[1]; g.beginPath(); g.moveTo(x, y - 0.5); g.lineTo(x + 30, y - 2.6); g.lineTo(x + 30, y + 2.6); g.lineTo(x, y + 0.5); g.closePath(); g.fill(); x += 34; }
@@ -1508,7 +1511,7 @@ function hoodList() {
 }
 /* the sound pill: one press starts my album; previews still take their turn (one sound at a time) */
 /* the what strip: one plain line per act and the fixed key (mint star = my press, violet ring = auto-play, amber diamond = shuffle, ice dot = sounds alike, gold = my songs) */
-var KG = { press: ['my press', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#21f6bc"/>'], auto: ['auto-play', '<circle cx="6" cy="6" r="4" fill="none" stroke="#8b6fd6" stroke-width="2"/>'], shuffle: ['shuffle', '<path d="M6 1 11 6 6 11 1 6Z" fill="#f5a623"/>'], alike: ['nearest in sound', '<path d="M1 6H11" stroke="#bcd3ff" stroke-width="2" stroke-linecap="round"/>'], mine: ['my songs', '<path d="M6 .5 7.3 4.7 11.5 6 7.3 7.3 6 11.5 4.7 7.3 .5 6 4.7 4.7Z" fill="#ffd36b"/>'] };
+var KG = { press: ['my press', '<path d="M6 .6Q6 6 11.4 6Q6 6 6 11.4Q6 6 .6 6Q6 6 6 .6Z" fill="#21f6bc"/>'], auto: ['auto-play', '<circle cx="6" cy="6" r="4.2" fill="none" stroke="#8b6fd6" stroke-width="1.6"/>'], shuffle: ['shuffle', '<path d="M6 .9L10.2 6L6 11.1L1.8 6Z" fill="#f5a623"/>'], alike: ['sounds alike', '<path d="M1.2 8.4L6 4.8L10.8 7.2" fill="none" stroke="#bcd3ff" stroke-width=".9"/><circle cx="6" cy="4.8" r="1.5" fill="#bcd3ff"/>'], mine: ['my songs', '<circle cx="6" cy="6" r="5" fill="none" stroke="#ffd36b" stroke-width=".9"/><path d="M6 2.1Q6 6 9.9 6Q6 6 6 9.9Q6 6 2.1 6Q6 6 6 2.1Z" fill="#ffd36b"/>'] }; /* the same marks as the walls kit's KEYS, scaled to 12 */
 var WHAT = [
   ['every shape is an artist i played, colored by who pressed play. close together = sounds alike.', ['press', 'shuffle', 'auto', 'mine']],
   ['my 245 most played, on a ring. a mint line: my press followed. violet: auto-play did. tap a name and only its lines stay.', ['press', 'auto']],
