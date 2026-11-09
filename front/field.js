@@ -247,7 +247,7 @@ function chips() {
   var ms = $('#m-sound'), mg = $('#m-graph'); if (ms && mg) { ms.hidden = S.mt === 0; mg.hidden = S.mt === 1; }
   $$('.key button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-f') === S.fam); b.classList.toggle('off', S.fam >= 0 && +b.getAttribute('data-f') !== S.fam); });
   var k2 = $('#key2'); if (k2) k2.hidden = S.color !== 'family';
-  var k1 = $('#key'); if (k1 && k1.children.length) k1.hidden = !(scene === C_MAPS || (scene === C_HOODS && S.color === 'family'));
+  var k1 = $('#key'); if (k1 && k1.children.length) k1.hidden = !(scene === C_MAPS || scene === C_HAND || (scene === C_HOODS && S.color === 'family'));
   var nc = $('#n-color'); if (nc) nc.textContent = NCOL[S.color] || NCOL.hood;
   $$('#hl-list button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-h') === S.hoodHi); });
   var hd = $('#hl-d'); if (hd) hd.textContent = S.hoodHi >= 0 && HD[S.hoodHi] ? HD[S.hoodHi] : '';
@@ -1559,7 +1559,7 @@ function hoodList() {
 var KG = { press: ['my press', '<path d="M6 .6Q6 6 11.4 6Q6 6 6 11.4Q6 6 .6 6Q6 6 6 .6Z" fill="#21f6bc"/>'], auto: ['auto-play', '<circle cx="6" cy="6" r="4.2" fill="none" stroke="#8b6fd6" stroke-width="1.6"/>'], shuffle: ['shuffle', '<path d="M6 .9L10.2 6L6 11.1L1.8 6Z" fill="#f5a623"/>'], alike: ['sounds alike', '<path d="M1.2 8.4L6 4.8L10.8 7.2" fill="none" stroke="#bcd3ff" stroke-width=".9"/><circle cx="6" cy="4.8" r="1.5" fill="#bcd3ff"/>'], mine: ['my songs', '<circle cx="6" cy="6" r="5" fill="none" stroke="#ffd36b" stroke-width=".9"/><path d="M6 2.1Q6 6 9.9 6Q6 6 6 9.9Q6 6 2.1 6Q6 6 6 2.1Z" fill="#ffd36b"/>'] }; /* the same marks as the walls kit's KEYS, scaled to 12 */
 var WHAT = [
   ['every shape is an artist i played, colored by who pressed play. close together = sounds alike.', ['press', 'shuffle', 'auto', 'mine']],
-  ['my 245 most played, on a ring. a mint line: my press followed. violet: auto-play did. tap a name and only its lines stay.', ['press', 'auto']],
+  ['my 245 most played, on a ring. a line = one play followed another, colored by who started it. tap a name and only its lines stay.', ['press', 'shuffle', 'auto']],
   ['the same artists twice, colored by family. ice line = nearest in sound. a line = two plays in a row.', ['alike', 'press', 'auto']],
   ['eleven rooms the log built from what followed what. each outlined group is a room; its color is the family that fills it most.', []],
   ['did the song stay in my library? split by who picked it.', ['press', 'auto']],

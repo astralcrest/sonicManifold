@@ -43,7 +43,7 @@ if(!own[base])location.replace('lab.html'+h);
 <link rel="preload" as="fetch" crossorigin href="front/data/field.json?v=24ef332630">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="script" href="front/field.js?v=b82e79c9e5">
+<link rel="preload" as="script" href="front/field.js?v=c33f7d1ea5">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
 <style>
 :root{--bg:#06010f;--panel:#0d0719;--card:#120a22;--ink:#efe9ff;--dim:#9a90b8;--mute:#9a90b8;--line:#2a2140;--faint:rgba(239,233,255,.12);--hair:rgba(239,233,255,.3);--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--gold:#ffd36b;--sans:"Instrument Sans",-apple-system,"Inter",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--col:clamp(380px,34vw,560px);--top:60svh}
@@ -157,7 +157,7 @@ ul.dead li small{display:block;color:var(--dim);font:400 11.5px/1.4 var(--mono)}
 .bars .br b,.bars .br span{white-space:nowrap}
 .lg{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0 0 6px;font:500 11px/1.5 var(--mono);letter-spacing:.04em;color:var(--dim)}
 .plate ul.dead small{display:none}
-#what .key{display:none}html[data-scene=maps] #what .key:not([hidden]),html[data-scene=hoods] #what .key:not([hidden]){display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;pointer-events:auto;scrollbar-width:none;gap:4px;margin:0;padding:0 24px 2px 0;-webkit-mask:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}#what .key::-webkit-scrollbar{display:none}#what .key button{flex:none;min-height:28px;padding:0 9px 0 7px;border-radius:999px;background:rgba(6,1,15,.84)}#what .key button i{border-radius:50%}.game .key{margin:8px 0 0}
+#what .key{display:none}html[data-scene=hand] #what .key:not([hidden]),html[data-scene=maps] #what .key:not([hidden]),html[data-scene=hoods] #what .key:not([hidden]){display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;pointer-events:auto;scrollbar-width:none;gap:4px;margin:0;padding:0 24px 2px 0;-webkit-mask:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}#what .key::-webkit-scrollbar{display:none}#what .key button{flex:none;min-height:28px;padding:0 9px 0 7px;border-radius:999px;background:rgba(6,1,15,.84)}#what .key button i{border-radius:50%}.game .key{margin:8px 0 0}
 .plate .r:empty{display:none}
 /* the two pills: the act's own color, no box, a crisp chevron on the drawer one */
 html[data-scene=count]{--dac:var(--ice)}html[data-scene=hand]{--dac:var(--mint)}html[data-scene=maps]{--dac:var(--ice)}html[data-scene=hoods]{--dac:var(--violet)}html[data-scene=keep]{--dac:var(--mint)}html[data-scene=coda]{--dac:var(--amber)}html[data-scene=record]{--dac:var(--ink)}
@@ -543,7 +543,7 @@ cv.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)aside();},{passi
 })();
 </script>
 <script>(function(){var ST={"taste":"5b22ea6a68","genre":"d8225fac12","nodes":"f62c9d46f9","pairs":"65271eccdc","graveyard":"f866beb3af","tracks":"9f65301c74","hear":"32c1ba0b88","sky":"ce556d8763","years":"122de0cd9e","radio":"c81287ac4c","pv":"381d21eeee","field":"24ef332630","maps":"8fc6260095","ring":"5c3aa07b40","ghost":"eccb19b1ac","gloss":"da3f4523b1"};window.__ledger={V:ST,READY:{}};window.__front={stamps:ST,field:true};})();</script>
-<script src="front/field.js?v=b82e79c9e5" defer></script>
+<script src="front/field.js?v=c33f7d1ea5" defer></script>
 <script src="front/music.js?v=e564c8cd66" defer></script>
 <div id="cpop" hidden aria-label="contact"><div class="cp"><small>contact</small><b>astralcrestlab@proton.me</b><div class="row"><button type="button" class="chip" id="cp-copy">copy the address</button><a class="chip" href="mailto:astralcrestlab@proton.me">open mail</a></div><p>pgp fingerprint <code>3EAD CE97 F8CE C3BF 8E5B D727 B7F4 EEAB 1BB1 6E67</code> &middot; <a href="researcher.html">the key, on the report page</a></p><button type="button" class="chip x" id="cp-x">close</button></div></div>
 <div id="wallroom" hidden aria-label="a wall, playing inside the manifold"><div class="wr-rail"><button type="button" class="chip" id="wr-prev" aria-label="previous wall">&lsaquo;</button><p class="wr-t"><b id="wr-n"></b><span id="wr-name"></span><i id="wr-done" hidden>done</i></p><button type="button" class="chip" id="wr-next" aria-label="next wall">&rsaquo;</button><button type="button" class="chip" id="wr-hear">sound off, tap to hear</button><button type="button" class="chip x" id="wr-x">back to the front</button></div><iframe id="wr-f" title="the wall" allow="autoplay; microphone; accelerometer; gyroscope; magnetometer" referrerpolicy="same-origin"></iframe></div>
