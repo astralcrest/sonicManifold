@@ -5,7 +5,7 @@
 </head><body>
 <img id="s" alt="sonicManifold, a surface of the field">
 <script>
-var m={'entrance-led':'entrance-led-8640x2448.png','cube-1':'cube-1-rooms-1280x1280.png','cube-2':'cube-2-ring-1280x1280.png','cube-3':'cube-3-hand-1280x1280.png','cube-4':'cube-4-grew-1280x1280.png'};
+var m={'entrance-led':'entrance-led-8640x2448.png','cube-1':'cube-1-rooms-1280x1280.png','cube-2':'cube-2-ring-1280x1280.png','cube-3':'cube-3-hand-1280x1280.png','cube-4':'cube-4-time-1280x1280.png'};
 var s=new URLSearchParams(location.search).get('surface');
 if(!m[s]) s=innerWidth/innerHeight>2?'entrance-led':'cube-1';
 document.getElementById('s').src=m[s];
