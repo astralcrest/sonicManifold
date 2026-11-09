@@ -658,10 +658,11 @@ function paint(now) {
       var onE = hi >= 0 && (e2[0] === hi || e2[1] === hi), wE = e2[2] / 1000, tE = false, q4;
       for (q4 = 0; q4 < S.rt.length; q4++) if (S.rt[q4][0] === k) tE = true;
       var alE = tE ? 1 : pass ? (hi < 0 ? 0.26 + 0.1 * e2[4] : onE ? 1 : 0.035) : (hi < 0 ? 0.18 + 0.1 * e2[4] : onE ? 0.95 : 0.03);
-      g.strokeStyle = rgba(pass ? (e2[5] ? AMBER : MINT) : VIOLET, alE * la); g.lineWidth = LW3[e2[4]] + (onE ? 0.8 : 0) + (tE ? 2 : 0);
+      if (!tE && S.rt.length) alE *= phone ? 0.3 : 0.45;
+      g.strokeStyle = rgba(pass ? (e2[5] ? AMBER : MINT) : VIOLET, alE * la); g.lineWidth = LW3[e2[4]] + (onE ? 0.8 : 0) + (tE ? (phone ? 3 : 2) : 0);
       g.beginPath(); edge(g, k, lk); g.stroke();
     }
-    if (scene === 1 && blend >= 1 && S.rt.length) for (k = 0; k < S.rt.length; k++) { var rtE = EDG[S.rt[k][0]], rto = S.rt[k][1], rtc = rtE[3] ? (rtE[5] ? AMBER : MINT) : VIOLET; ring(g, RPX[rto], RPY[rto], 7, rtc, 1.5); badge(g, RPX[rto] - 9, RPY[rto] - 9, k + 1, rtc); }
+    if (scene === 1 && blend >= 1 && S.rt.length) for (k = 0; k < S.rt.length; k++) { var rtE = EDG[S.rt[k][0]], rto = S.rt[k][1], rtc = rtE[3] ? (rtE[5] ? AMBER : MINT) : VIOLET; ring(g, RPX[rto], RPY[rto], phone ? 9 : 7, rtc, phone ? 2 : 1.5); badge(g, RPX[rto] - 9, RPY[rto] - 9, k + 1, rtc); }
     if (scene === 1 && blend >= 1) for (k = 0; k < RING.length; k++) {
       var fcol = FAMC[F.fam[RF[k]]] || MUTE;
       if (S.look === 0 && S.lookB >= 1) { var ca = Math.cos(RA[k]), sa2 = Math.sin(RA[k]); g.strokeStyle = fcol; g.lineWidth = phone ? 1.4 : 2; g.beginPath(); g.moveTo(cam.cx + (RRING + 4) * ca, cam.cy + (RRING + 4) * sa2); g.lineTo(cam.cx + (RRING + 9) * ca, cam.cy + (RRING + 9) * sa2); g.stroke(); }
@@ -1316,7 +1317,7 @@ function el() {
   pv = new Audio(); pv.preload = 'auto';
   pv.addEventListener('playing', function () { S.playing = true; S.errs = 0; duck(); ppLabel(); });
   pv.addEventListener('pause', function () { S.playing = false; ppLabel(); if (!pv.ended && !document.documentElement.classList.contains('sm-wall')) unduck(); });
-  pv.addEventListener('ended', function () { S.playing = false; if (S.user || (S.game && S.game.on) || (S.wh && S.wh.pair) || (phone && S.playScene >= 0 && S.playScene !== scene)) { unduck(); ppLabel(); return; } next(); });
+  pv.addEventListener('ended', function () { S.playing = false; if (S.user || (S.game && S.game.on) || (S.wh && S.wh.pair)) { unduck(); ppLabel(); return; } next(); });
   pv.addEventListener('error', function () { S.playing = false; if (++S.errs > 3 || S.pend >= 0) { unduck(); ppLabel(); return; } if (S.game && S.game.on) gameNext(); else next(); });
   return pv;
 }
@@ -1677,6 +1678,7 @@ function wallOpen(slug, push) {
   var fr = $('#wr-f'); if (fr.getAttribute('src') !== 'editions/' + slug + '/') fr.src = 'editions/' + slug + '/';
   if (push !== false) { WR.was = location.hash; try { history.pushState({ wall: slug }, '', '#wall=' + slug); } catch (x) { /* fine */ } }
   $('#wr-x').focus();
+  fr.onload = function () { [60, 700, 1600].forEach(function (t) { setTimeout(function () { try { fr.contentWindow.scrollTo(0, 0); } catch (x) { /* fine */ } }, t); }); };
 }
 function wallClose(pop) {
   var box = $('#wallroom'); if (!box || box.hidden) return;
