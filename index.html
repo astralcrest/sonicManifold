@@ -294,6 +294,12 @@ dfn[data-g]:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
  html.drawer #b-deep{visibility:hidden}
  html.drawer #what{left:calc(50% + (min(520px,44vw) + min(320px,34vw) + 24px) / 2);width:min(600px,calc(100vw - min(520px,44vw) - min(320px,34vw) - 72px))}
  html.drawer #hint{left:calc(50% + (min(520px,44vw) + min(320px,34vw) + 24px) / 2);max-width:calc(100vw - min(520px,44vw) - min(320px,34vw) - 380px)}
+ #what{transition:left .35s ease,width .35s ease}
+}
+@media (min-width:900px) and (max-width:1479px){
+ html.sm-np:not(.drawer) #what{left:calc(50% - 90px);width:min(720px,calc(100vw - 600px))}
+}
+@media (min-width:900px){
  .dots a span{display:inline;background:var(--bg);padding:2px 4px}
  .foot{margin:0;padding:18px 0 0;pointer-events:auto;position:relative;border-top:2px solid var(--line)}
  .foot .doors{grid-template-columns:repeat(4,minmax(0,220px));margin:0 0 16px;padding:0 32px}
