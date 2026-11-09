@@ -26,6 +26,8 @@ var FITS = {};
 var pendT = 0, pendF = null, VA = null, lastIn = -1e9, lastPaint = 0, ZMAX = 24, hold = 0, lastTap = null, zc = null, fitB = null, drawB = null, zcOn = false, zcT = '', ov = null, ovg = null, ovRaf = 0, domC = null, domT = -1e9, domStale = true;
 var scene = 0, blend = 0, from = 0, tStart = 0, yaw = 0.62, pitch = 0.36, last = 0, raf = 0, dirty = true;
 var DEMO = { on: false, t0: 0, a: null, n: 0, last: 0 };
+/* the phone keeps the caption strip and the playing strip clear: no box, no anchor under them */
+var WBp = 0, NBp = 0;
 var S = { rt: [], now: -1, line: null, drag: null, played: {}, playing: false, pend: -1, errs: 0, user: false, hover: -1, mine: -1, mode: '', trail: [], rim: -1, game: null, wh: null, pips: null, mt: 0, mb: 0, mFrom: 0, mT0: 0, color: '', fam: -1, hoodHi: -1, grow: null, keepT0: 0, sn: 0, tn: [], hoodSeen: false, look: 0, lookFrom: 0, lookT0: 0, lookB: 1, like: { on: false, seq: null, k: 0 }, zb: 0 };
 /* the curve radio's camera: a glide on top of the view, eased toward the stop that is playing (field acts only) */
 var GL = { x: 0, y: 0, z: 1 }, gliding = false, glT = 0;
@@ -151,8 +153,9 @@ function frame() {
   /* on a desk the text has its own left column (360 px); the drawing fills the rest and never runs under it */
   var x0 = leftCol(), Wc = W - x0, cx0 = x0 + Wc / 2;
   /* on a phone the what strip owns the top of the stage: the drawing is centered in the room below it, so the rim names never run under the chips */
-  var we = document.getElementById('what'), wb = we && (phone || scene === 1) ? we.offsetTop + we.offsetHeight + 6 : 0, Hp = H - wb, cyp = wb + Hp * 0.5;
-  if (phone && scene === C_COUNT && wb) { wb += 66; Hp = H - wb; cyp = wb + Hp * 0.5; }
+  var we = document.getElementById('what'), wb = we && (phone || scene === 1) ? we.offsetTop + we.offsetHeight + 6 : 0, npI = phone ? document.getElementById('np') : null, nb = npI && !npI.hidden ? 54 : 0, Hp = H - wb - nb, cyp = wb + Hp * 0.5;
+  WBp = phone ? wb : 0; NBp = nb;
+  if (phone && scene === C_COUNT && wb) { wb += 66; Hp = H - wb - nb; cyp = wb + Hp * 0.5; }
   if (scene === 1) { cam.r = Math.min(Wc, Hp) * (phone ? 0.36 : 0.41); cam.cx = phone ? W * 0.5 : cx0; cam.cy = cyp; }
   else if (scene === C_MAPS) { cam.r = Math.min(Wc, phone ? Hp : H) * (phone ? 0.43 : 0.44); cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
   else if (phone && scene === C_RECORD) { cam.r = Math.min(W * 1.0, Hp * 0.9) * 0.78; cam.cx = W * 0.5; cam.cy = cyp; }
@@ -215,14 +218,14 @@ function setScene(k) {
   S.hover = -1; S.rim = -1; S.rt = []; S.fam = -1; S.hoodHi = -1; S.grow = null; view.z = 1; view.px = 0; view.py = 0; VA = null; S.drawArm = false; GL.x = 0; GL.y = 0; GL.z = 1; pathsDirty = true;
   if (k !== C_MAPS) S.like.seq = null;
   if (k === C_HAND) loadRing();
-  S.color = k === C_HOODS ? 'hood' : 'family'; var k2b = $('#key2'); if (k2b) k2b.hidden = S.color !== 'family'; chips();
+  S.color = k === C_HOODS || k === C_RECORD ? 'hood' : 'family'; var k2b = $('#key2'); if (k2b) k2b.hidden = S.color !== 'family'; chips();
   if (k === C_KEEP) S.keepT0 = 0;
   html.setAttribute('data-scene', SCENES[k]);
   $$('.act.more').forEach(function (a) { a.classList.remove('more'); });
   if (NPR.on) npRef();
   var npE = $('#np'); if (npE) { npE.classList.remove('open'); var alb = window.__smMusic && window.__smMusic.A && window.__smMusic.A.el; if (phone && !npE.hidden && !(pv && !pv.paused) && !(S.mine >= 0 && alb && !alb.paused)) npE.hidden = true; }
   if (k !== C_KEEP && S.game) endGame(true);
-  if (k === C_MAPS || k === C_HOODS) loadMaps();
+  if (k === C_MAPS || k === C_HOODS || k === C_RECORD) loadMaps();
   whatFor(k);
   if (!phone) clStart(500);
   if (k === C_HOODS && !S.hoodSeen) { S.hoodSeen = true; loadMaps().then(function () { if (MAPS && scene === C_HOODS && !S.grow) { S.grow = { t0: performance.now() + 700, c: 0, done: false, dur: 6500, hood: true }; wake(); } }); }
@@ -241,6 +244,7 @@ function chips() {
   var ms = $('#m-sound'), mg = $('#m-graph'); if (ms && mg) { ms.hidden = S.mt === 0; mg.hidden = S.mt === 1; }
   $$('.key button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-f') === S.fam); b.classList.toggle('off', S.fam >= 0 && +b.getAttribute('data-f') !== S.fam); });
   var k2 = $('#key2'); if (k2) k2.hidden = S.color !== 'family';
+  var k1 = $('#key'); if (k1 && k1.children.length) k1.hidden = !(scene === C_MAPS || (scene === C_HOODS && S.color === 'family'));
   var nc = $('#n-color'); if (nc) nc.textContent = NCOL[S.color] || NCOL.hood;
   $$('#hl-list button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-h') === S.hoodHi); });
   var hd = $('#hl-d'); if (hd) hd.textContent = S.hoodHi >= 0 && HD[S.hoodHi] ? HD[S.hoodHi] : '';
@@ -616,9 +620,9 @@ function word(g, x, y, t, fs, w, mono, fill, fixed) {
   g.fillStyle = fill; g.fillText(t, b[0] + 3, (b[1] + b[3]) / 2);
 }
 /* labels keep off the rail, the card, the drawer and the player on a desk */
-var DOMW = ['.dots', '#b-deep', '#np', '.plate', '.dr', '#hint', '.top .brand', '.top .tr', '#zc'];
+var DOMW = ['.dots', '#b-deep', '#np', '.plate', '.dr', '#hint', '.top .brand', '.top .tr', '#zc', '#what'];
 function domWords(now) {
-  var DL = phone ? ['.top .brand', '.top .tr', '#zc'] : DOMW;
+  var DL = phone ? ['.top .brand', '.top .tr', '#zc', '#what', '#np'] : DOMW;
   if (domC && !domStale && now - domT < 160) return domC.slice();
   var out = [], sb = stage.getBoundingClientRect(), i, j, es, r;
   for (i = 0; i < DL.length; i++) {
@@ -806,7 +810,7 @@ function paint(now) {
     if (phone) { g.fillStyle = 'rgba(6,1,15,.82)'; g.fillRect(8, H - 36 - 34, Math.max(g.measureText(String(heard)).width + 20, 250), 70); }
     g.fillStyle = INK;
     /* under the what strip on every width: the strip is centered on desk and reaches the count's column below about 1300px */
-    var we = document.getElementById('what'), wb = we ? we.offsetTop + we.offsetHeight : 0, wy = phone ? H - 36 : Math.max(110, wb + 64);
+    var we = document.getElementById('what'), wb = we ? we.offsetTop + we.offsetHeight : 0, wy = phone ? H - 36 - NBp : Math.max(110, wb + 64);
     g.fillText(String(heard).replace(/\B(?=(\d{3})+(?!\d))/g, ','), phone ? 14 : 220, wy);
     g.font = '500 ' + (phone ? 12 : 11.5) + 'px ' + MONO; g.fillStyle = MUTE;
     g.fillText('artists, in the order i first heard them', phone ? 14 : 222, wy + (phone ? 16 : 22));
@@ -943,7 +947,7 @@ function say(t, at) {
   CL.to = setTimeout(function () { CL.one = null; wake(); }, CLMS + 500);
 }
 function inDW(x, y) {
-  if (x < 8 || x > W - (phone ? 40 : 8) || y < (phone ? 56 : 8) || y > H - 8) return true;
+  if (x < 8 || x > W - (phone ? 40 : 8) || y < (phone ? Math.max(56, WBp) : 8) || y > H - 8 - NBp) return true;
   for (var q = 0; q < DW.length; q++) { var o = DW[q]; if (x >= o[0] && x <= o[2] && y >= o[1] && y <= o[3]) return true; }
   return false;
 }
@@ -1039,7 +1043,7 @@ function clDraw(g) {
   var key = (CL.one ? 'one' : CL.k) + ':' + it.at;
   if (!(key in CL.at)) CL.at[key] = anchorOf(it.at);
   var f = CL.at[key], a = f && f(); if (!a || a[0] < 0 || a[0] > W || a[1] < 0 || a[1] > H) return;
-  var ac = ACC[scene], t = it.t.replace('{n}', a[3] != null ? a[3] : ''), fs = phone ? 12 : 13, lh = Math.round(fs * 1.38), pad = phone ? 8 : 10, mw = phone ? Math.min(210, W - 60) : 280;
+  var ac = ACC[scene], t = it.t.replace('{n}', a[3] != null ? a[3] : ''), fs = 13, lh = Math.round(fs * 1.4), pad = 10, mw = phone ? Math.min(250, W - 56) : 280;
   if (a[4]) a[4](g);
   g.font = '500 ' + fs + 'px ' + SANS; g.textBaseline = 'middle'; g.textAlign = 'left';
   var ws = t.split(' '), lines = [], cur = '', q, tw = 0;
@@ -1050,10 +1054,10 @@ function clDraw(g) {
   var vx = a[0] - cam.cx, vy = a[1] - cam.cy, vl = Math.hypot(vx, vy) || 1, dirs = [[vx / vl, vy / vl]], c8 = [[1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1]];
   c8.forEach(function (d) { var l = Math.hypot(d[0], d[1]); dirs.push([d[0] / l, d[1] / l]); });
   dirs.sort(function (p, r2) { return (r2[0] * vx + r2[1] * vy) - (p[0] * vx + p[1] * vy); });
-  var ds = scene === C_HAND ? [150, 190, 60, 100] : [28, 56, 96, 150, 210, 280], top = phone ? 56 : 10, rgt = W - (phone ? 40 : 10), box = null, pass, di, dk, best = null, bestS = Infinity, ALL = words.concat(DW, KB ? [KB] : []);
+  var ds = scene === C_HAND ? [150, 190, 60, 100] : [28, 56, 96, 150, 210, 280], top = phone ? Math.max(56, WBp) : 10, hb = H - 10 - NBp, rgt = W - (phone ? 40 : 10), box = null, pass, di, dk, best = null, bestS = Infinity, ALL = words.concat(DW, KB ? [KB] : []);
   for (pass = 0; pass < 3 && !box; pass++) for (dk = 0; dk < ds.length && !box; dk++) for (di = 0; di < dirs.length && !box; di++) {
     var d0 = dirs[di], px = a[0] + d0[0] * (rr + ds[dk]), py = a[1] + d0[1] * (rr + ds[dk]), bx = px + d0[0] * bw / 2 - bw / 2, by = py + d0[1] * bh / 2 - bh / 2;
-    if (bx < 10 || by < top || bx + bw > rgt || by + bh > H - 10) continue;
+    if (bx < 10 || by < top || bx + bw > rgt || by + bh > hb) continue;
     if (a[0] > bx - rr - 4 && a[0] < bx + bw + rr + 4 && a[1] > by - rr - 4 && a[1] < by + bh + rr + 4) continue;
     /* last pass: nothing is clear, so take the spot that covers the least of any label, closer first */
     if (pass === 2) { var sc2 = (rr + ds[dk]) * 2; for (q = 0; q < ALL.length; q++) { var o2 = ALL[q], ow = Math.min(bx + bw, o2[2]) - Math.max(bx, o2[0]), oh = Math.min(by + bh, o2[3]) - Math.max(by, o2[1]); if (ow > 0 && oh > 0) sc2 += ow * oh; } if (sc2 < bestS) { bestS = sc2; best = [Math.round(bx), Math.round(by)]; } continue; }
@@ -1061,11 +1065,11 @@ function clDraw(g) {
     for (q = 0; ok && q < L3.length; q++) { var o = L3[q]; if (!(bx + bw + 4 < o[0] || bx - 4 > o[2] || by + bh + 4 < o[1] || by - 4 > o[3])) ok = false; }
     if (ok) box = [Math.round(bx), Math.round(by)];
   }
-  if (!box) box = best || [Math.round(Math.max(10, Math.min(rgt - bw, a[0] - bw / 2))), Math.round(Math.max(top, Math.min(H - 10 - bh, a[1] + rr + 24)))];
+  if (!box) box = best || [Math.round(Math.max(10, Math.min(rgt - bw, a[0] - bw / 2))), Math.round(Math.max(top, Math.min(hb - bh, a[1] + rr + 24)))];
   var X = box[0], Y = box[1], ex = Math.max(X, Math.min(a[0], X + bw)), ey = Math.max(Y, Math.min(a[1], Y + bh)), an = Math.atan2(ey - a[1], ex - a[0]);
   g.strokeStyle = ac; g.lineWidth = 1; g.beginPath(); g.moveTo(a[0] + Math.cos(an) * rr, a[1] + Math.sin(an) * rr); g.lineTo(ex, ey); g.stroke();
   ring(g, a[0], a[1], rr, ac, a[2] ? 1 : 1.4);
-  g.fillStyle = BG; g.fillRect(X, Y, bw, bh); g.strokeStyle = ac; g.lineWidth = 1; g.strokeRect(X + 0.5, Y + 0.5, bw - 1, bh - 1);
+  g.fillStyle = BG; g.fillRect(X, Y, bw, bh); g.strokeStyle = ac; g.lineWidth = phone ? 2 : 1; g.strokeRect(X + 0.5, Y + 0.5, bw - 1, bh - 1);
   var LEAD = { mint: MINT, violet: VIOLET, amber: AMBER, gold: GOLD }, m = /^(mint|violet|amber|gold):/.exec(lines[0]);
   for (q = 0; q < lines.length; q++) {
     var ly = Y + pad + q * lh + lh / 2 - 1, lx = X + pad, s2 = lines[q];
@@ -1282,7 +1286,7 @@ function npSilent() { if (!phone) return; var e = $('#np'); if (!e || e.hidden) 
 function albumEl() { var M = window.__smMusic; return M && M.A && M.A.el; }
 function anyOn() { var a = albumEl(); return !!(S.playing || (a && !a.paused) || S.wallOn); }
 /* the one sound cue: "sound on" whenever anything plays (a preview, the album, a gold song), one string when nothing does */
-function ppLabel() { npSilent(); var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; } var h = $('#b-hear'); if (h) { var on = anyOn(); h.classList.toggle('on', on); text('#b-hear', on ? 'sound on' : 'sound off, tap to hear'); } html.classList.toggle('sm-pv', !!S.playing); }
+function ppLabel() { npSilent(); var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; } var h = $('#b-hear'); if (h) { var on = anyOn(); h.classList.toggle('on', on); text('#b-hear', on ? 'sound on' : phone ? 'sound off' : 'sound off, tap to hear'); var wh = $('#wr-hear'); if (wh) { wh.classList.toggle('on', on); wh.textContent = on ? 'sound on' : phone ? 'sound off' : 'sound off, tap to hear'; } } html.classList.toggle('sm-pv', !!S.playing); }
 function hushWall() { var fr = $('#wr-f'); if (html.classList.contains('sm-wall') && fr && fr.contentWindow) try { fr.contentWindow.postMessage({ sm: 'front', ev: 'hush' }, location.origin); } catch (x) { /* fine */ } S.wallOn = false; }
 (function () { var t = setInterval(function () { var a = albumEl(); if (!a || a.__hear) return; a.__hear = 1; clearInterval(t); ['play', 'pause', 'ended'].forEach(function (e) { a.addEventListener(e, ppLabel); }); ppLabel(); }, 700); })();
 function el() {
@@ -1290,7 +1294,7 @@ function el() {
   pv = new Audio(); pv.preload = 'auto';
   pv.addEventListener('playing', function () { S.playing = true; S.errs = 0; duck(); ppLabel(); });
   pv.addEventListener('pause', function () { S.playing = false; ppLabel(); if (!pv.ended && !document.documentElement.classList.contains('sm-wall')) unduck(); });
-  pv.addEventListener('ended', function () { S.playing = false; if (S.user || (S.game && S.game.on)) { unduck(); ppLabel(); return; } next(); });
+  pv.addEventListener('ended', function () { S.playing = false; if (S.user || (S.game && S.game.on) || (S.wh && S.wh.pair) || (phone && S.playScene >= 0 && S.playScene !== scene)) { unduck(); ppLabel(); return; } next(); });
   pv.addEventListener('error', function () { S.playing = false; if (++S.errs > 3 || S.pend >= 0) { unduck(); ppLabel(); return; } if (S.game && S.game.on) gameNext(); else next(); });
   return pv;
 }
@@ -1314,7 +1318,7 @@ function sound(i, then) {
 }
 function play(i, why) {
   html.classList.remove('sm-mine');
-  S.user = false; S.mine = -1; S.now = i; S.played[i] = 1; S.trail.push(i); S.tn.push(++S.sn); if (S.trail.length > 14) { S.trail.shift(); S.tn.shift(); }
+  S.user = false; S.mine = -1; S.now = i; S.played[i] = 1; S.playScene = scene; S.trail.push(i); S.tn.push(++S.sn); if (S.trail.length > 14) { S.trail.shift(); S.tn.shift(); }
   room(i, why); sound(i); wake(); DEMO.on = false; if (isField(scene) || scene === C_HOODS) whatFor(scene);
 }
 function next() {
@@ -1382,7 +1386,7 @@ function breakRun() {
 }
 function room(i, why) {
   var h = F.h[i], p = h[0] + h[1] + h[2], hand = h[2] >= h[0] && h[2] >= h[1] ? 'auto-play' : h[1] >= h[0] ? 'shuffle' : 'my press';
-  var Ls = S.line, nx = Ls && Ls.stops[Ls.k + 1], lead = why === 'stop' && Ls ? 'stop ' + (Ls.k + 1) + ' of ' + Ls.stops.length + ': ' + cut(names[i], 22) + (nx >= 0 ? ', next: ' + cut(names[nx], 22) : ', last stop') : why === 'near' ? 'step ' + S.sn + ': auto-play walks to the nearest in sound' : why === 'break' ? 'step ' + S.sn + ': my press breaks the run, far in sound' : why === 'like' ? (S.like.k ? 'sounds like ' + S.like.k + ' of ' + (S.like.seq.length - 1) + ': ' + cut(names[i], 22) + (S.like.k + 1 < S.like.seq.length ? ', next: ' + cut(names[S.like.seq[S.like.k + 1]], 22) : ', the last') : 'sounds like: ' + cut(names[i], 22) + ' first, then its six nearest in sound') : why === 'ringwalk' ? 'step ' + S.sn + ' on the ring: who followed it most' : why === 'rim' ? 'who led to whom' : why === 'hood' ? 'the most played artist of that room' : why === 'log' ? 'step ' + S.sn + ': the log walks to who followed it most' : why === 'find' ? 'found: zoomed to it' : why === 'game' ? '47 seconds: keep or let go' : 'now playing';
+  var Ls = S.line, nx = Ls && Ls.stops[Ls.k + 1], lead = why === 'stop' && Ls ? 'stop ' + (Ls.k + 1) + ' of ' + Ls.stops.length + ': ' + cut(names[i], 22) + (nx >= 0 ? ', next: ' + cut(names[nx], 22) : ', last stop') : why === 'near' ? 'step ' + S.sn + ': auto-play walks to the nearest in sound' : why === 'break' ? 'step ' + S.sn + ': my press breaks the run, far in sound' : why === 'like' ? (S.like.k ? 'sounds like ' + S.like.k + ' of ' + (S.like.seq.length - 1) + ': ' + cut(names[i], 22) + (S.like.k + 1 < S.like.seq.length ? ', next: ' + cut(names[S.like.seq[S.like.k + 1]], 22) : ', the last') : 'sounds like: ' + cut(names[i], 22) + ' first, then its six nearest in sound') : why === 'ringwalk' ? 'step ' + S.sn + ' on the ring: who followed it most' : why === 'rim' ? 'who led to whom' : why === 'hood' ? 'the most played artist of that room' : why === 'log' ? 'step ' + S.sn + ': the log walks to who followed it most' : why === 'find' ? 'found: zoomed to it' : why === 'back' ? 'back one: ' + cut(names[i], 22) : why === 'game' ? '47 seconds: keep or let go' : 'now playing';
   text('#np-k', lead); text('#np-n', names[i]);
   text('#np-h', p + ' plays · mostly ' + hand + ' · ' + F.fam[F.f[i]] + (apple(i) ? ' (Apple\u2019s label)' : '') + (scene === C_HOODS && MAPS && MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? ' · room ' + ROMAN[MAPS.c[i]] : ''));
   text('#np-x', why === 'ringwalk' ? 'the walk so far: ' + S.trail.map(function (n) { return names[n]; }).join(', then ') + '. each step takes the strongest line out of the last stop; mint = my press, violet = auto-play.' : why === 'like' ? 'lit in ice: the six artists nearest to it in sound, on whichever map is showing.' : scene === C_MAPS ? (S.mb < 0.5 ? 'the ice threads: its six nearest in sound. next walks there.' : 'mint lines: my press before or after it. violet: auto-play\u2019s run through it. faint gray: every other followed-by.') : scene === C_HOODS ? 'lit: its steps in the graph, in its room\u2019s color when both ends share the room.' : scene === C_HAND ? 'lit on the ring: who it followed and who followed it.' : 'the ice threads: its six nearest in sound. next walks there.');
@@ -1414,7 +1418,7 @@ function gameNext() {
   while (i < 0 && tries++ < 50) { var c = G.pool[Math.floor(rnd() * G.pool.length)]; if (!S.played[c] && (!PV || PV[names[c]])) i = c; }
   if (i < 0) { endGame(false); return; }
   G.i = i; G.n++; G.until = performance.now() + 47000; S.now = i; S.played[i] = 1;
-  room(i, 'game'); text('#g-k', 'song ' + G.n + ' of ' + G.max + ' · you have 47 seconds'); sound(i);
+  room(i, 'game'); text('#g-k', 'song ' + G.n + ' of ' + G.max + ': ' + names[i] + ' is playing. would you keep it? 47 seconds.'); sound(i);
   clearTimeout(G.to); G.to = setTimeout(function () { answer(false, true); }, 47000);
   wake();
 }
@@ -1449,15 +1453,19 @@ function whose() {
 }
 function whRound() {
   var G = S.wh; clearTimeout(G.to);
+  show('#w-hear', false);
   if (G.n >= G.max) { G.pair = null; var more = G.max === 3; text('#w-k', more ? 'three pairs done. seven more makes the full round of ten.' : 'whose finger? three pairs from the log, then seven more.'); text('#w-q', 'you got ' + G.right + ' of ' + G.n + '. chance is ' + (G.n / 2) + '. the log says i pressed play on 19 of every 100; the rest was shuffle and auto-play.'); text('#w-r', ''); show('#w-ans', false); show('#w-start', true); text('#w-start', more ? 'seven more?' : 'play: whose finger?'); if (!more) G.rows = []; return; }
   var r = G.rows[G.n], ia = names.indexOf(r.a), ip = r.pa && r.pa !== r.a ? names.indexOf(r.pa) : -1, same = r.pa === r.a;
   text('#w-k', 'pair ' + (G.n + 1) + ' of ' + G.max); text('#w-q', (same ? r.a + ' played, then ' + r.a + ' again: ' : r.pa ? r.pa + ' played. then ' : '') + (same ? '' : r.a + ', ') + r.t + '. who pressed play on it?');
-  show('#w-r', true); text('#w-r', ip >= 0 ? 'hear both: ' + cut(r.pa, 18) + ' first, then ' + cut(r.a, 18) + '. close in sound = auto-play walking. a jump = more likely my press.' : 'close in sound = auto-play walking. a jump = more likely my press.');
+  show('#w-r', true); text('#w-r', 'close in sound = auto-play walking. a jump = more likely my press.');
+  show('#w-hear', ip >= 0); if (ip >= 0) { text('#w-h1', '1: ' + cut(r.pa, 14)); text('#w-h2', '2: ' + cut(r.a, 14)); }
   show('#w-ans', true); show('#w-start', false);
   G.pair = [ip, ia];
-  var go2 = function () { if (S.wh === G && G.rows[G.n] === r && ia >= 0 && PV && PV[r.a]) { S.now = ia; room(ia, 'tap'); sound(ia); if (isField(scene)) whatFor(scene); } };
-  if (ip >= 0 && PV && PV[r.pa]) { S.now = ip; room(ip, 'tap'); sound(ip); G.to = setTimeout(go2, 7000); } else go2();
+  var go2 = function () { if (S.wh === G && G.rows[G.n] === r && ia >= 0 && PV && PV[r.a]) { S.now = ia; room(ia, 'tap'); sound(ia); whHi(1); if (isField(scene)) whatFor(scene); } };
+  if (ip >= 0 && PV && PV[r.pa]) { S.now = ip; room(ip, 'tap'); sound(ip); whHi(0); G.to = setTimeout(go2, 7000); } else go2();
 }
+function whHi(k) { ['#w-h1', '#w-h2'].forEach(function (q, j) { var b = $(q); if (b) b.classList.toggle('on', j === k); }); }
+function whHear(k) { var G = S.wh; if (!G || !G.pair) return; var i = G.pair[k]; if (i < 0) return; clearTimeout(G.to); S.user = false; S.now = i; room(i, 'tap'); sound(i); whHi(k); if (isField(scene)) whatFor(scene); }
 function whAnswer(me) {
   var G = S.wh; if (!G || !G.rows.length) return; var r = G.rows[G.n], ok = (r.arm === 'me') === me; if (ok) G.right++;
   text('#w-r', (ok ? 'yes: ' : 'no: ') + (r.arm === 'me' ? 'my press.' : 'auto-play.') + ' ' + G.right + ' of ' + (G.n + 1) + ' so far.');
@@ -1468,6 +1476,7 @@ function whAnswer(me) {
 function on(sel, f) { var e = $(sel); if (e) e.addEventListener('click', f); }
 on('#b-pp', function () { var a = el(); if (S.playing) { S.user = true; a.pause(); } else if (S.now >= 0) { S.user = false; sound(S.now); } else next(); });
 on('#b-next', function () { S.user = false; next(); });
+on('#b-prev', function () { var t = S.trail; if (t.length < 2) return; t.pop(); S.tn.pop(); var p = t.pop(); S.tn.pop(); S.user = false; if (S.line) S.line.k = Math.max(-1, S.line.k - 2); play(p, 'back'); });
 on('#b-queue', function () { walkMode('queue'); walk(); text('#h-mode', 'auto-play walks: each next song is the nearest in sound to the last. hear how close it stays.'); say('auto-play: each next song, the nearest in sound.', 'now'); });
 on('#b-look', function () {
   var nx = (S.look + 1) % 4;
@@ -1497,6 +1506,7 @@ function key() {
   if (k) { k.innerHTML = ''; k.hidden = false;
     F.fam.forEach(function (nm, f) { var b = doc.createElement('button'); b.type = 'button'; b.setAttribute('data-f', f); b.innerHTML = '<i></i><span></span>'; b.firstChild.style.background = FAMC[nm] || MUTE; b.lastChild.textContent = nm; b.addEventListener('click', function () { S.fam = S.fam === f ? -1 : f; chips(); wake(); }); k.appendChild(b); }); }
   if (k2) { k2.innerHTML = ''; F.fam.forEach(function (nm) { var b = doc.createElement('span'); b.className = 'ks'; b.innerHTML = '<i></i><span></span>'; b.firstChild.style.background = FAMC[nm] || MUTE; b.lastChild.textContent = nm; k2.appendChild(b); }); }
+  chips();
 }
 var HD = [];
 /* light a room, glide to it and hear its most played artist; a second tap on the same room (list only) lets go */
@@ -1530,14 +1540,14 @@ var WHAT = [
   ['eleven rooms the log built from what followed what. each outlined group is a room; its color is the family that fills it most.', []],
   ['did the song stay in my library? split by who picked it.', ['press', 'auto']],
   ['the export i froze, then the months after it. did the habit hold?', ['press', 'shuffle', 'auto']],
-  ['my 23 songs, in gold, each tied to the artist it sounds most like. tap one to play it.', ['mine', 'alike']]
+  ['my 23 songs, in gold, each tied to the artist it sounds most like; behind them, the eleven rooms from act iv. tap one to play it.', ['mine', 'alike']]
 ];
 function whatFor(k) {
   var w = WHAT[k] || WHAT[0], el = $('#what-k'), b = $('#b-hear'); if (!el) return; text('#what-l', w[0]);
   $$('#what-k .kc').forEach(function (e) { e.parentNode.removeChild(e); });
   var keys = w[1].slice(); if (S.now >= 0 && (isField(k) || k === C_HOODS) && keys.indexOf('alike') < 0) keys.push('alike');
   var KC = { press: '#21f6bc', auto: '#8b6fd6', shuffle: '#f5a623', alike: '#bcd3ff', mine: '#ffd36b' };
-  keys.forEach(function (key) { var c = doc.createElement('span'); c.className = 'kc'; c.style.setProperty('--kcb', KC[key] + '73'); c.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true">' + KG[key][1] + '</svg>' + KG[key][0]; el.insertBefore(c, b); });
+  keys.forEach(function (key) { var c = doc.createElement('span'); c.className = 'kc'; c.style.setProperty('--kcb', KC[key] + '73'); c.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true">' + KG[key][1] + '</svg>' + KG[key][0]; if (b && b.parentNode === el) el.insertBefore(c, b); else el.appendChild(c); });
 }
 (function () { var e = $('#np'); if (!e) return; var sx = 0, sy = 0, id = -1; if ('MutationObserver' in window) { new MutationObserver(function () { doc.documentElement.classList.toggle('sm-np', !e.hidden); }).observe(e, { attributes: true, attributeFilter: ['hidden'] }); } e.addEventListener('pointerdown', function (ev) { if (ev.pointerType === 'mouse') return; sx = ev.clientX; sy = ev.clientY; id = ev.pointerId; }, { passive: true }); ['pointerup', 'pointercancel'].forEach(function (t) { e.addEventListener(t, function () { id = -1; }, { passive: true }); }); e.addEventListener('pointermove', function (ev) { if (ev.pointerId !== id || !phone) return; var dx = ev.clientX - sx, dy = ev.clientY - sy; if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.5) { id = -1; e.hidden = true; if (pv && !pv.paused) { S.user = true; try { pv.pause(); } catch (x) { /* fine */ } S.playing = false; ppLabel(); } } }, { passive: true }); })();
 /* contact: a small sheet with the address, never a bare hash jump */
@@ -1563,7 +1573,7 @@ on('#b-sound', function () {
   setTimeout(lab, 400);
 });
 on('#g-start', startGame); on('#g-keep', function () { answer(true, false); }); on('#g-go', function () { answer(false, false); });
-on('#w-start', whose); on('#b-begin', function () { var a = $('#a-count'); if (a) a.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); on('#w-me', function () { whAnswer(true); }); on('#w-app', function () { whAnswer(false); });
+on('#w-start', whose); on('#b-begin', function () { var a = $('#a-count'); if (a) a.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); on('#w-me', function () { whAnswer(true); }); on('#w-app', function () { whAnswer(false); }); on('#w-h1', function () { whHear(0); }); on('#w-h2', function () { whHear(1); });
 $$('[data-tm]').forEach(function (b) { b.addEventListener('click', function () { if (CL.list && CL.k >= 0 && CL.sc === scene) { clearTimeout(CL.to); clStep(); } else clStart(0); }); });
 function songs() {
   var ol = $('#songs'); if (!ol) return;
@@ -1658,6 +1668,8 @@ document.addEventListener('click', function (e) {
   e.preventDefault(); wallOpen(m[1]);
 });
 $('#wr-x').addEventListener('click', function () { wallClose(false); });
+on('#wr-hear', function () { var b = $('#b-hear'); if (b) b.click(); });
+ppLabel();
 $('#wr-prev').addEventListener('click', function () { if (WR.k >= 0) wallOpen(WALLS[(WR.k + WALLS.length - 1) % WALLS.length][0]); });
 $('#wr-next').addEventListener('click', function () { if (WR.k >= 0) wallOpen(WALLS[(WR.k + 1) % WALLS.length][0]); });
 addEventListener('keydown', function (e) { if (WR.k < 0) return; if (e.key === 'Escape') wallClose(false); else if (e.key === 'ArrowRight') $('#wr-next').click(); else if (e.key === 'ArrowLeft') $('#wr-prev').click(); });

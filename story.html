@@ -145,7 +145,7 @@ html.in-met #when{opacity:1}
 <header class="top" id="top">
   <a class="brand" href="./">sonic manifold <small>by astralcrest</small></a>
   <nav class="dots" aria-label="the five acts"><a href="#act-count" aria-label="the count"><i></i><span>the count</span></a><a href="#act-shape" aria-label="the shape"><i></i><span>the shape</span></a><a href="#act-met" aria-label="who introduced us"><i></i><span>who introduced us</span></a><a href="#act-body" aria-label="the body"><i></i><span>the body</span></a><a href="#act-record" aria-label="the record"><i></i><span>the record</span></a></nav>
-  <a class="chip" href="#links">doors</a>
+  <a class="chip" href="#links">the other rooms</a>
   <button type="button" class="chip" id="b-deep" aria-pressed="false">deep<span class="xw">&nbsp;science</span></button>
 </header>
 <div id="when" aria-live="off"><small>we met in</small><span id="ym">september 2019</span></div>
@@ -161,7 +161,7 @@ html.in-met #when{opacity:1}
     <p class="sub">hover a month. the clock turns the same plays by hour of day. the strictest count keeps only the play button, the track row and the remote.</p>
     <p id="strict-note"></p>
     <p class="num">by the strictest count 11.5 of 100: 7.5 of the 19 were my back and skip presses. october 2023: Spotify changed how it records a start, so the bands before and after that line are not the same instrument.</p>
-    <div class="bar"><button type="button" class="chip" id="b-sound" style="min-height:44px;min-width:44px" aria-pressed="false">sound off, tap to hear</button><button type="button" class="chip" id="b-strict" aria-pressed="false">strictest count</button><button type="button" class="chip" id="b-clock" aria-pressed="false">the clock</button><button type="button" class="chip b-deeper" data-act="count">more on this</button></div>
+    <div class="bar"><button type="button" class="chip" id="b-sound" style="min-height:44px;min-width:44px" aria-pressed="false">sound off, tap to hear</button><button type="button" class="chip" id="b-strict" aria-pressed="false">strictest count: 11.5</button><button type="button" class="chip" id="b-clock" aria-pressed="false">the clock</button><button type="button" class="chip b-deeper" data-act="count">more on this</button></div>
   </div>
 </section>
 <section class="act" id="act-shape" aria-labelledby="h-shape">
@@ -223,7 +223,7 @@ html.in-met #when{opacity:1}
   </div>
 </section>
 <aside id="deep" data-lv="1" aria-hidden="true" aria-label="the science, three depths"><button class="x" id="deepx" type="button" aria-label="close">×</button>
- <h3>how deep</h3><div class="lv"><button type="button" data-lv="1" aria-pressed="true">the sentence</button><button type="button" data-lv="2">the numbers</button><button type="button" data-lv="3">the test</button></div>
+ <h3>how deep</h3><div class="lv"><button type="button" data-lv="1" aria-pressed="true">the sentence</button><button type="button" data-lv="2">+ the numbers</button><button type="button" data-lv="3">+ the test</button></div>
  <h4 id="deep-count">the count</h4>
  <p class="d1" id="d-s1"></p>
  <p class="d2"><span class="num">19<small>of 100</small></span> my press, counting every one. <span class="num">11.5</span> by the strictest count: <span id="d-s2"></span> shuffle 17, auto-play 64. the river draws the first count; the strictest count has no month-by-month series, so the switch changes only the headline.</p>
@@ -292,7 +292,7 @@ function sync(){var o=on();b.textContent=o?'sound on':'sound off, tap to hear';b
 var pre=false;['pointerdown','touchstart'].forEach(function(e){b.addEventListener(e,function(){pre=on()},true)});
 b.addEventListener('click',function(){var A=au();if(pre){A.forEach(function(a){try{a.pause()}catch(e){}});try{localStorage.setItem('sm.sound','off')}catch(e){}}else{A.forEach(function(a){a.muted=false});try{localStorage.setItem('sm.sound','on')}catch(e){}if(!A.some(function(a){return !a.paused})){var p=document.getElementById('b-play');if(p)p.click()}}pre=on();setTimeout(sync,60)});
 ['play','pause','volumechange','ended'].forEach(function(e){document.addEventListener(e,sync,true)});setInterval(sync,700);sync()})()</script>
-<script src="front/spine.js?v=c32bb639c2" defer></script>
+<script src="front/spine.js?v=0b869ea119" defer></script>
 <script src="front/music.js?v=9afc0bc23c" defer></script>
 </body>
 </html>
