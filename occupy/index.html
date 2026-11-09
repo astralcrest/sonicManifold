@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>sonicManifold, occupy</title>
+<style>html,body{margin:0;height:100%;background:#06010f;overflow:hidden}img{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;display:block}</style>
+</head><body>
+<img id="s" alt="sonicManifold, a surface of the field">
+<script>
+var m={'entrance-led':'entrance-led-8640x2448.png','cube-1':'cube-1-rooms-1280x1280.png','cube-2':'cube-2-ring-1280x1280.png','cube-3':'cube-3-hand-1280x1280.png','cube-4':'cube-4-grew-1280x1280.png'};
+var s=new URLSearchParams(location.search).get('surface');
+if(!m[s]) s=innerWidth/innerHeight>2?'entrance-led':'cube-1';
+document.getElementById('s').src=m[s];
+</script>
+</body></html>
