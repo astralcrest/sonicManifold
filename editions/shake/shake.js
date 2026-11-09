@@ -108,7 +108,7 @@ function setChip(t) { lab.textContent = t; }
 function onMotion(e) {
   var a = e.accelerationIncludingGravity; if (!a || a.x == null) return;
   var x = a.x, y = a.y || 0, z = a.z || 0;
-  S.got = true; $('nophone').hidden = true;
+  S.got = true; $('nophone').hidden = true; chip.hidden = false;
   if (have) {
     var dx = x - lx, dy = y - ly, dz = z - lz, m = Math.sqrt(dx * dx + dy * dy + dz * dz), now = Date.now();
     fillEl.style.width = Math.min(100, m / 30 * 100) + '%';
@@ -136,10 +136,9 @@ if (DM && typeof DM.requestPermission === 'function') {
   };
   chip.addEventListener('click', ask); $('alw').addEventListener('click', ask);
 } else if (DM) {
-  listen();
-  setTimeout(function () { if (!S.got) setChip('no motion here, tap shake'); }, 1500);
+  chip.hidden = true; listen();
 } else {
-  setChip('no motion here, tap shake');
+  chip.hidden = true;
 }
 chip.addEventListener('click', function () { if (S.listening) { S.last = 0; flash(); shakeNow(); } });
 setTimeout(function () { if (!S.got) $('nophone').hidden = false; }, 1500);
