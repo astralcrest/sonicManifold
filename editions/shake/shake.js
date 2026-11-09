@@ -97,11 +97,11 @@ function draw() {
 var lx = 0, ly = 0, lz = 0, have = false, peaks = [], chip, bar, fillEl, lab, flashT;
 function mkChip() {
   chip = document.createElement('button'); chip.type = 'button';
-  chip.style.cssText = 'position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid currentColor;background:rgba(10,12,20,.85);color:#e8ecf4;font:500 13px "IBM Plex Mono",monospace;cursor:pointer';
+  chip.style.cssText = 'display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--line, #2a2140);background:transparent;color:var(--mute, #9a90b8);font:500 13px "IBM Plex Mono",monospace;cursor:pointer;vertical-align:middle';
   lab = document.createElement('span'); bar = document.createElement('span'); fillEl = document.createElement('i');
   bar.style.cssText = 'display:inline-block;width:48px;height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden';
   fillEl.style.cssText = 'display:block;height:100%;width:0;background:#7fe3c0';
-  bar.appendChild(fillEl); chip.appendChild(lab); chip.appendChild(bar); document.body.appendChild(chip);
+  bar.appendChild(fillEl); chip.appendChild(lab); chip.appendChild(bar); var dl = document.getElementById('dl'); if (dl && dl.parentNode) dl.parentNode.insertBefore(chip, dl.nextSibling); else document.body.appendChild(chip);
   bar.style.display = 'none';
 }
 function setChip(t) { lab.textContent = t; }
