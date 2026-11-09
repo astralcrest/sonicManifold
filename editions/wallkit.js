@@ -349,7 +349,7 @@
     '#wk-strip .wk-keys li svg{flex:none}' +
     '#wk-snd{font:500 14px/1.1 "IBM Plex Mono",ui-monospace,monospace;min-height:44px;min-width:44px;padding:0 18px;border-radius:22px;border:1.5px solid #efe9ff;background:transparent;color:#efe9ff;cursor:pointer}' +
     '#wk-snd.on{background:#efe9ff;border-color:#efe9ff;color:#06010f}' +
-    '@keyframes wkPulse{0%,100%{box-shadow:0 0 0 0 rgba(207,199,232,.55)}60%{box-shadow:0 0 0 9px rgba(207,199,232,0)}}#wk-strip #wk-go{font:600 15px/1 "IBM Plex Mono",ui-monospace,monospace;min-height:48px;padding:0 22px;border-radius:24px;border:0;background:#efe9ff;color:#06010f;cursor:pointer;display:inline-flex;align-items:center;gap:8px;animation:wkPulse 2.6s ease-out infinite}@media(prefers-reduced-motion:reduce){#wk-strip #wk-go{animation:none}}#wk-strip #wk-go[hidden]{display:none}#wk-strip #wk-go:hover{background:#fff}' +
+    '@keyframes wkPulse{0%,100%{box-shadow:0 0 0 0 rgba(222,186,255,.34)}70%{box-shadow:0 0 0 7px rgba(222,186,255,0)}}#wk-strip #wk-go{font:600 15px/1 "IBM Plex Mono",ui-monospace,monospace;min-height:48px;padding:0 22px;border-radius:24px;border:0;background:#efe9ff;color:#06010f;cursor:pointer;display:inline-flex;align-items:center;gap:8px;animation:wkPulse 3.6s ease-in-out infinite}@media(prefers-reduced-motion:reduce){#wk-strip #wk-go{animation:none}}#wk-strip #wk-go[hidden]{display:none}#wk-strip #wk-go:hover{background:#fff}' +
     '#wk-snd.nudge{background:#efe9ff;border-color:#efe9ff;color:#06010f}' +
     '#wk-strip .wk-pos{margin:0;font:500 13px/1.2 "IBM Plex Mono",ui-monospace,monospace;color:#9a90b8;margin-left:auto;white-space:nowrap}' +
     '#wk-strip .wk-pos a{color:#efe9ff}' +
@@ -381,6 +381,7 @@
   function start() { var b = primary(); if (!b) return; try { b.click(); } catch (e) {} }
   // inside the front, with sound on, a wall starts itself once its play button exists (the press that opened it counts as the gesture)
   var autoN = 0;
+  function pin(ms) { var until = Date.now() + ms, g = function () { if (Date.now() > until) { root.removeEventListener('scroll', g); return; } if (root.pageYOffset) try { root.scrollTo(0, 0); } catch (x) {} }; root.addEventListener('scroll', g, { passive: true }); g(); }
   function autostart() { var on = pk >= 0 || ELS.some(function (a) { return !a.paused && !a.ended; }); if (on || autoN++ > 20) return; var b = primary(); if (b) { try { b.click(); } catch (e) {} } setTimeout(autostart, 400); }
   function goState() { if (!goBtn) return; var on = pk >= 0 || ELS.some(function (a) { return !a.paused && !a.ended; }); var pb = primary(); goBtn.hidden = on || !pb; if (pb) { var pt = (pb.textContent || '').trim().replace(/\s+/g, ' ').toLowerCase(); goBtn.textContent = '\u25B6 ' + (pt.length > 26 ? pt.slice(0, 25) + '\u2026' : pt); } }
   function strip() {
@@ -402,8 +403,8 @@
     document.addEventListener('click', function (e) { var el = e.target && e.target.closest ? e.target.closest('button, a[role=button]') : null; if (!el || el.closest('#wk-strip, #wk-nav')) return; var tx = (el.textContent || '').trim().toLowerCase().replace(/^\u25b6\s*/, ''); if (/^(play|hear|listen|sing|sound on)/.test(tx) && !/^(play\/pause|stop)/.test(tx) && !SND) setSound(true); }, true);
     goBtn = document.getElementById('wk-go'); goState(); [600, 1500, 3000, 6000].forEach(function (t) { setTimeout(goState, t); });
     goBtn.addEventListener('click', function () { setSound(true); start(); });
-    root.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || e.data.sm !== 'front') return; if (e.data.ev === 'start') { setSound(true); autostart(); setTimeout(function () { try { root.scrollTo(0, 0); } catch (x1) {} }, 500); } else if (e.data.ev === 'hush') { setSound(false); try { stop(); } catch (x0) {} ELS.forEach(function (a) { try { a.pause(); } catch (x) {} }); if (root.speechSynthesis) try { root.speechSynthesis.cancel(); } catch (x) {} } });
-    if (SND && root.parent && root.parent !== root) autostart();
+    root.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || e.data.sm !== 'front') return; if (e.data.ev === 'start') { setSound(true); autostart(); pin(2500); } else if (e.data.ev === 'hush') { setSound(false); try { stop(); } catch (x0) {} ELS.forEach(function (a) { try { a.pause(); } catch (x) {} }); if (root.speechSynthesis) try { root.speechSynthesis.cancel(); } catch (x) {} } });
+    if (root.parent && root.parent !== root) { pin(2500); if (SND) autostart(); }
     var fit = function () { document.documentElement.style.setProperty('--sh', (s.offsetHeight + nav.offsetHeight) + 'px'); document.documentElement.style.setProperty('--nh', nav.offsetHeight + 'px'); };
     fit(); root.addEventListener('resize', fit); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
   }

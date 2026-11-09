@@ -1678,18 +1678,19 @@ function wallIdx(slug) { for (var i = 0; i < WALLS.length; i++) if (WALLS[i][0] 
 function wallOpen(slug, push) {
   var k = wallIdx(slug), box = $('#wallroom'); if (k < 0 || !box) return;
   if (S.game && S.game.on) endGame(false);
-  var a = el(); if (a && !a.paused) { S.user = true; try { a.pause(); } catch (x) { /* fine */ } S.playing = false; ppLabel(); }
+  var a = el(); WR.resume = !!(a && !a.paused); if (WR.resume) { S.user = true; try { a.pause(); } catch (x) { /* fine */ } S.playing = false; ppLabel(); }
   WR.k = k; duck(); box.hidden = false; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); document.documentElement.classList.add('sm-wall');
   $('#wr-n').textContent = 'wall ' + (k + 1) + ' of ' + WALLS.length; $('#wr-name').textContent = WALLS[k][1];
   var wf = $('#wr-full'); if (wf) wf.href = 'editions/' + slug + '/';
   var fr = $('#wr-f'); if (fr.getAttribute('src') !== 'editions/' + slug + '/') fr.src = 'editions/' + slug + '/';
   if (push !== false) { WR.was = location.hash; try { history.pushState({ wall: slug }, '', '#wall=' + slug); } catch (x) { /* fine */ } }
   $('#wr-x').focus();
-  fr.onload = function () { [60, 700, 1600].forEach(function (t) { setTimeout(function () { try { fr.contentWindow.scrollTo(0, 0); } catch (x) { /* fine */ } }, t); }); };
+  fr.onload = function () { try { fr.contentWindow.scrollTo(0, 0); } catch (x) { /* fine */ } };
 }
 function wallClose(pop) {
   var box = $('#wallroom'); if (!box || box.hidden) return;
   box.hidden = true; box.removeAttribute('role'); box.removeAttribute('aria-modal'); document.documentElement.classList.remove('sm-wall'); $('#wr-f').src = 'about:blank'; WR.k = -1; unduck();
+  if (WR.resume) { WR.resume = false; var ra = el(); if (ra && ra.paused && !ra.ended && S.now >= 0) { S.user = false; var pr = ra.play(); if (pr && pr.catch) pr.catch(function () { /* fine */ }); S.playing = true; ppLabel(); } }
   if (!pop && /^#wall=/.test(location.hash)) { try { history.pushState(null, '', WR.was && !/^#wall=/.test(WR.was) ? WR.was : location.pathname); } catch (x) { /* fine */ } }
 }
 document.addEventListener('click', function (e) {
