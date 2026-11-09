@@ -27,7 +27,7 @@ var pendT = 0, pendF = null, VA = null, lastIn = -1e9, lastPaint = 0, ZMAX = 24,
 var scene = 0, blend = 0, from = 0, tStart = 0, yaw = 0.62, pitch = 0.36, last = 0, raf = 0, dirty = true;
 var DEMO = { on: false, t0: 0, a: null, n: 0, last: 0 };
 /* the phone keeps the caption strip and the playing strip clear: no box, no anchor under them */
-var WBp = 0, NBp = 0;
+var WBp = 0, NBp = 0, FINR = null, FINH = 0;
 var S = { rt: [], now: -1, line: null, drag: null, played: {}, playing: false, pend: -1, errs: 0, user: false, hover: -1, mine: -1, mode: '', trail: [], rim: -1, game: null, wh: null, pips: null, mt: 0, mb: 0, mFrom: 0, mT0: 0, color: '', fam: -1, hoodHi: -1, grow: null, keepT0: 0, sn: 0, tn: [], hoodSeen: false, look: 0, lookFrom: 0, lookT0: 0, lookB: 1, like: { on: false, seq: null, k: 0 }, zb: 0 };
 /* the curve radio's camera: a glide on top of the view, eased toward the stop that is playing (field acts only) */
 var GL = { x: 0, y: 0, z: 1 }, gliding = false, glT = 0;
@@ -156,9 +156,11 @@ function frame() {
   var we = document.getElementById('what'), wb = we && (phone || scene === 1) ? we.offsetTop + we.offsetHeight + 6 : 0, npI = phone ? document.getElementById('np') : null, nb = npI && !npI.hidden ? 54 : 0, Hp = H - wb - nb, cyp = wb + Hp * 0.5;
   WBp = phone ? wb : 0; NBp = nb;
   if (phone && scene === C_COUNT && wb) { wb += 66; Hp = H - wb - nb; cyp = wb + Hp * 0.5; }
+  if (phone && scene === C_RECORD && FINH) { nb += FINH; Hp = H - wb - nb; cyp = wb + Hp * 0.5; }
   if (scene === 1) { cam.r = Math.min(Wc, Hp) * (phone ? 0.36 : 0.41); cam.cx = phone ? W * 0.5 : cx0; cam.cy = cyp; }
   else if (scene === C_MAPS) { cam.r = Math.min(Wc, phone ? Hp : H) * (phone ? 0.43 : 0.44); cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
   else if (phone && scene === C_RECORD) { cam.r = Math.min(W * 1.0, Hp * 0.9) * 0.78; cam.cx = W * 0.5; cam.cy = cyp; }
+  else if (scene === C_RECORD && FINH) { cam.r = Math.min(Wc * 0.6, (H - FINH) * 0.96) * 0.84; cam.cx = cx0 - 60; cam.cy = (H - FINH) * 0.52; }
   else { cam.r = phone ? Math.min(W * 0.72, Hp * 0.9) * 0.78 : Math.min(Wc * 0.6, H * 0.96) * 0.84; cam.cx = phone ? W * 0.5 : cx0; cam.cy = phone ? cyp : H * 0.5; }
   cam0.cx = cam.cx; cam0.cy = cam.cy; cam0.r = cam.r;
   if (phone && FITS[scene] && FITS[scene].s > 1) { var ff = FITS[scene], fa = ff.a < 1 ? ease(ff.a) : 1; cam.cx -= ff.dx * fa; cam.cy -= ff.dy * fa; cam.r *= 1 + (ff.s - 1) * fa; cam0.cx = cam.cx; cam0.cy = cam.cy; cam0.r = cam.r; }
@@ -220,6 +222,7 @@ function setScene(k) {
   if (k === C_HAND) loadRing();
   S.color = k === C_HOODS || k === C_RECORD ? 'hood' : 'family'; var k2b = $('#key2'); if (k2b) k2b.hidden = S.color !== 'family'; chips();
   if (k === C_KEEP) S.keepT0 = 0;
+  S.finT0 = 0;
   html.setAttribute('data-scene', SCENES[k]);
   $$('.act.more').forEach(function (a) { a.classList.remove('more'); });
   if (NPR.on) npRef();
@@ -637,6 +640,7 @@ function paint(now) {
   g.setTransform(DPR, 0, 0, DPR, 0, 0); g.fillStyle = BG; g.fillRect(0, 0, W, H);
   if (scene !== 1) { var gx, gy, gs = phone ? 24 : 30; g.fillStyle = 'rgba(188,211,255,.05)'; for (gy = gs; gy < H; gy += gs) for (gx = gs; gx < W; gx += gs) g.fillRect(gx, gy, 1, 1); }
   layout(now); words = domWords(now); DW = words.slice(); KB = null; keySync();
+  if (scene === C_RECORD && blend >= 1 && FINR) DW.push(FINR); else if (scene !== C_RECORD) { FINR = null; FINH = 0; }
   var inRing = scene === 1 && blend >= 1, field = scene !== 1, grown = reveal >= 8;
   /* threads in the field (desk): the skeleton of the map, three nearest each */
   if (field && isField(scene) && blend >= 1 && grown) {
@@ -843,7 +847,23 @@ function paint(now) {
   /* the pips: the keep grid and the hold-out rows */
   if ((scene === C_KEEP || scene === C_CODA) && blend >= 1) pips(g);
   if (S.game && S.game.on) countdown(g, now);
+  if (scene === C_RECORD && blend >= 1) finale(g, now);
   clDraw(g);
+}
+/* the last word, drawn on the picture: the question the front opened with, answered as far as one log can */
+var FIN = ['so, is my taste my own?', 'one log cannot settle it. it points one way:', 'my press crosses a family a little more often,', 'and what i press, i keep.', 'the 23 songs in gold are what i made from it; they sit between the rooms.'];
+function finale(g, now) {
+  if (!S.finT0) { S.finT0 = now + 900; dirty = true; }
+  var a = Math.min(1, Math.max(0, (now - S.finT0) / 1800)); if (a <= 0) { dirty = true; return; }
+  if (a < 1) dirty = true;
+  var x0 = leftCol(), cx = x0 + (W - x0) / 2, big = phone ? Math.min(27, (W - 40) / 12) : Math.min(54, (W - x0 - 80) / 13), mid = phone ? 13 : 18, sm = phone ? 10.5 : 13, gap = phone ? 4 : 10;
+  var hs = [big, mid, mid, mid, sm], tot = 0, k; for (k = 0; k < hs.length; k++) tot += hs[k] * 1.25 + gap; tot -= gap;
+  var y = phone ? H - NBp - 22 - tot : H - 60 - tot, ya = y; FINH = Math.round(tot + 30 + (phone ? 8 : 40)); if (!phone) cx = x0 + (W - x0 - 300) / 2;
+  g.save(); g.globalAlpha = a * 0.84; g.fillStyle = BG; g.fillRect(x0 + 8, y - 16, (phone ? W : W - 300) - x0 - 16, tot + 30); g.restore();
+  g.save(); g.globalAlpha = a; g.textAlign = 'center'; g.textBaseline = 'top';
+  for (k = 0; k < FIN.length; k++) { g.font = (k === 0 ? 600 : k === 2 || k === 3 ? 600 : 400) + ' ' + hs[k] + 'px ' + SANS; g.fillStyle = k === 2 || k === 3 ? MINT : k === 4 ? GOLD : k === 0 ? INK : '#cfc7e8'; var line = FIN[k]; if (k === 2 && phone) line = 'my press crosses a family a little more often,'; while (g.measureText(line).width > (phone ? W - 32 : W - x0 - 340) && hs[k] > 9) { hs[k] -= 1; g.font = (k === 0 ? 600 : 400) + ' ' + hs[k] + 'px ' + SANS; } g.fillText(line, cx, ya); ya += hs[k] * 1.25 + gap; }
+  g.restore();
+  FINR = [x0 + 8, y - 16, (phone ? W : W - 300) - 8, y + tot + 14];
 }
 var rimOrder = [];
 function rimName(g, k, col, fs, w, t, rr) {
@@ -1286,7 +1306,9 @@ function npSilent() { if (!phone) return; var e = $('#np'); if (!e || e.hidden) 
 function albumEl() { var M = window.__smMusic; return M && M.A && M.A.el; }
 function anyOn() { var a = albumEl(); return !!(S.playing || (a && !a.paused) || S.wallOn); }
 /* the one sound cue: "sound on" whenever anything plays (a preview, the album, a gold song), one string when nothing does */
-function ppLabel() { npSilent(); var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; } var h = $('#b-hear'); if (h) { var on = anyOn(); h.classList.toggle('on', on); text('#b-hear', on ? 'sound on' : phone ? 'sound off' : 'sound off, tap to hear'); var wh = $('#wr-hear'); if (wh) { wh.classList.toggle('on', on); wh.textContent = on ? 'sound on' : phone ? 'sound off' : 'sound off, tap to hear'; } } html.classList.toggle('sm-pv', !!S.playing); }
+function ppLabel() { npSilent(); var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; } var on = anyOn(); if (on || S.pend >= 0) { clearTimeout(HT); HT = 0; setHear(true); } else if (!HT) HT = setTimeout(function () { HT = 0; if (!anyOn() && S.pend < 0) setHear(false); }, 2600); html.classList.toggle('sm-pv', !!S.playing); }
+var HT = 0;
+function setHear(on) { var lab = on ? 'sound on' : phone ? 'sound off' : 'sound off, tap to hear'; ['#b-hear', '#wr-hear'].forEach(function (q) { var h = $(q); if (h) { h.classList.toggle('on', on); h.textContent = lab; } }); }
 function hushWall() { var fr = $('#wr-f'); if (html.classList.contains('sm-wall') && fr && fr.contentWindow) try { fr.contentWindow.postMessage({ sm: 'front', ev: 'hush' }, location.origin); } catch (x) { /* fine */ } S.wallOn = false; }
 (function () { var t = setInterval(function () { var a = albumEl(); if (!a || a.__hear) return; a.__hear = 1; clearInterval(t); ['play', 'pause', 'ended'].forEach(function (e) { a.addEventListener(e, ppLabel); }); ppLabel(); }, 700); })();
 function el() {
@@ -1540,7 +1562,7 @@ var WHAT = [
   ['eleven rooms the log built from what followed what. each outlined group is a room; its color is the family that fills it most.', []],
   ['did the song stay in my library? split by who picked it.', ['press', 'auto']],
   ['the export i froze, then the months after it. did the habit hold?', ['press', 'shuffle', 'auto']],
-  ['my 23 songs, in gold, each tied to the artist it sounds most like; behind them, the eleven rooms from act iv. tap one to play it.', ['mine', 'alike']]
+  ['my 23 songs in gold, each beside the artist it sounds most like; behind them, the eleven rooms. tap one to play it.', ['mine', 'alike']]
 ];
 function whatFor(k) {
   var w = WHAT[k] || WHAT[0], el = $('#what-k'), b = $('#b-hear'); if (!el) return; text('#what-l', w[0]);
@@ -1559,7 +1581,7 @@ on('#cp-copy', function () { var b = $('#cp-copy'); try { navigator.clipboard.wr
 addEventListener('keydown', function (e) { if (e.key === 'Escape') cpop(false); });
 on('#b-hear', function () {
   var a = el(), alb = albumEl();
-  if (anyOn()) { if (S.playing && a && !a.paused) { S.user = true; try { a.pause(); } catch (x) { /* fine */ } S.playing = false; } if (alb && !alb.paused) { var M = window.__smMusic; if (M && M.toggle) M.toggle(); else try { alb.pause(); } catch (x2) { /* fine */ } } hushWall(); ppLabel(); return; }
+  if (anyOn()) { if (S.playing && a && !a.paused) { S.user = true; try { a.pause(); } catch (x) { /* fine */ } S.playing = false; } if (alb && !alb.paused) { var M = window.__smMusic; if (M && M.toggle) M.toggle(); else try { alb.pause(); } catch (x2) { /* fine */ } } hushWall(); clearTimeout(HT); HT = 0; setHear(false); ppLabel(); return; }
   try { localStorage.setItem('sm_sound', '1'); } catch (e2) { /* fine */ }
   if (html.classList.contains('sm-wall')) { var fr = $('#wr-f'); if (fr && fr.contentWindow) try { fr.contentWindow.postMessage({ sm: 'front', ev: 'start' }, location.origin); } catch (x3) { /* fine */ } return; }
   if (S.now >= 0) { sound(S.now); S.playing = true; ppLabel(); return; }
