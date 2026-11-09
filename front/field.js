@@ -1369,7 +1369,7 @@ function walkRing() {
   S.rt.push([bk, bo]); if (S.rt.length > 10) S.rt.shift();
   S.rim = bo; play(best, 'ringwalk');
 }
-function walkTimer(why) { clearTimeout(WT); WT = 0; if (why !== 'ringwalk') return; WT = setTimeout(function () { WT = 0; if (scene === C_HAND && !S.mode && !S.user && S.now >= 0 && !(S.game && S.game.on)) next(); }, 9000); }
+function walkTimer(why) { clearTimeout(WT); WT = 0; var walkish = why === 'ringwalk' || why === 'near' || why === 'rim' || why === 'log' || why === 'hood'; if (!walkish || !(scene === C_HAND || scene === C_HOODS)) return; var sc = scene, at = S.now; WT = setTimeout(function () { WT = 0; if (scene === sc && S.now === at && !S.user && S.now >= 0 && !(S.game && S.game.on) && !(S.wh && S.wh.pair)) next(); }, 9000); }
 /* the log walks: from here, the artist that most often followed or preceded it in the log, not yet played */
 function walkLog() {
   loadMaps().then(function () {
