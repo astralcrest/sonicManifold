@@ -1307,9 +1307,9 @@ function npSilent() { if (!phone) return; var e = $('#np'); if (!e || e.hidden) 
 function albumEl() { var M = window.__smMusic; return M && M.A && M.A.el; }
 function anyOn() { var a = albumEl(); return !!(S.playing || (a && !a.paused) || S.wallOn); }
 /* the one sound cue: "sound on" whenever anything plays (a preview, the album, a gold song), one string when nothing does */
-function ppLabel() { npSilent(); var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; } var on = anyOn(); if (on || S.pend >= 0) { clearTimeout(HT); HT = 0; setHear(true); } else if (!HT) HT = setTimeout(function () { HT = 0; if (!anyOn() && S.pend < 0) setHear(false); }, 2600); html.classList.toggle('sm-pv', !!S.playing); }
-var HT = 0;
-function setHear(on) { var lab = on ? 'sound on' : phone ? 'sound off' : 'sound off, tap to hear'; ['#b-hear', '#wr-hear'].forEach(function (q) { var h = $(q); if (h) { h.classList.toggle('on', on); h.textContent = lab; } }); }
+function ppLabel() { npSilent(); var b = $('#b-pp'); if (b) { b.textContent = S.playing ? 'pause' : 'play'; } if (anyOn() || S.pend >= 0) setHear(true); else if (S.hear === undefined) setHear(false); html.classList.toggle('sm-pv', !!S.playing); }
+var HT = 0, WT = 0;
+function setHear(on) { S.hear = !!on; var lab = on ? 'sound on' : phone ? 'sound off' : 'sound off, tap to hear'; ['#b-hear', '#wr-hear'].forEach(function (q) { var h = $(q); if (h) { h.classList.toggle('on', on); h.textContent = lab; } }); }
 function hushWall() { var fr = $('#wr-f'); if (html.classList.contains('sm-wall') && fr && fr.contentWindow) try { fr.contentWindow.postMessage({ sm: 'front', ev: 'hush' }, location.origin); } catch (x) { /* fine */ } S.wallOn = false; }
 (function () { var t = setInterval(function () { var a = albumEl(); if (!a || a.__hear) return; a.__hear = 1; clearInterval(t); ['play', 'pause', 'ended'].forEach(function (e) { a.addEventListener(e, ppLabel); }); ppLabel(); }, 700); })();
 function el() {
@@ -1342,7 +1342,7 @@ function sound(i, then) {
 function play(i, why) {
   html.classList.remove('sm-mine');
   S.user = false; S.mine = -1; S.now = i; S.played[i] = 1; S.playScene = scene; S.trail.push(i); S.tn.push(++S.sn); if (S.trail.length > 14) { S.trail.shift(); S.tn.shift(); }
-  room(i, why); sound(i); wake(); DEMO.on = false; if (isField(scene) || scene === C_HOODS) whatFor(scene);
+  room(i, why); sound(i); wake(); walkTimer(why); DEMO.on = false; if (isField(scene) || scene === C_HOODS) whatFor(scene);
 }
 function next() {
   if (S.game && S.game.on) { gameNext(); return; }
@@ -1369,6 +1369,7 @@ function walkRing() {
   S.rt.push([bk, bo]); if (S.rt.length > 10) S.rt.shift();
   S.rim = bo; play(best, 'ringwalk');
 }
+function walkTimer(why) { clearTimeout(WT); WT = 0; if (why !== 'ringwalk') return; WT = setTimeout(function () { WT = 0; if (scene === C_HAND && !S.mode && !S.user && S.now >= 0 && !(S.game && S.game.on)) next(); }, 9000); }
 /* the log walks: from here, the artist that most often followed or preceded it in the log, not yet played */
 function walkLog() {
   loadMaps().then(function () {
@@ -1609,9 +1610,15 @@ function acts() {
   if (!io) return;
   var obs = new IntersectionObserver(function (es) {
     var best = null; es.forEach(function (e) { if (e.isIntersecting && (!best || e.intersectionRatio > best.intersectionRatio)) best = e; });
-    if (best) { var k = secs.indexOf(best.target); if (k >= 0) { html.classList.toggle('sm-open', k === 0); setScene(Math.max(0, k - 1)); } }
+    if (best && !phone) { var k = secs.indexOf(best.target); if (k >= 0) { html.classList.toggle('sm-open', k === 0); setScene(Math.max(0, k - 1)); } }
   }, { rootMargin: phone ? '-62% 0px -18% 0px' : '-45% 0px -45% 0px', threshold: [0, 0.2, 0.5, 1] });
   secs.forEach(function (s) { obs.observe(s); });
+  if (phone) {
+    var SC = -1, SQ = 0;
+    var byScroll = function () { SQ = 0; var line = innerHeight * 0.62, k = 0, i; for (i = 0; i < secs.length; i++) if (secs[i].getBoundingClientRect().top <= line) k = i; if (k !== SC) { SC = k; if (k === 0) { if (scrollY < 80) html.classList.add('sm-open'); } else html.classList.remove('sm-open'); setScene(Math.max(0, k - 1)); } };
+    var ask = function () { if (!SQ) SQ = requestAnimationFrame(byScroll); };
+    addEventListener('scroll', ask, { passive: true }); addEventListener('resize', ask); setTimeout(byScroll, 50); setTimeout(byScroll, 900);
+  }
   /* the scroll itself also names the act (the one under the reading line), so a jump or a late observer never leaves a stale act */
   var dots = $$('.dots a'); dots.forEach(function (a, k) { a.addEventListener('click', function (e) { e.preventDefault(); secs[k].scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }); });
   secs.forEach(function (s, k) { new IntersectionObserver(function (es) { if (dots[k]) dots[k].classList.toggle('on', es[0].isIntersecting); }, { rootMargin: phone ? '-62% 0px -18% 0px' : '-45% 0px -45% 0px' }).observe(s); });
