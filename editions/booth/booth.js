@@ -4,7 +4,7 @@ var $ = function (id) { return document.getElementById(id); };
 var claims = [], order = [], pos = -1, shown = [], hist = [], timers = [], idle = 0, autoOn = false, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 var go = $('go'), back = $('back'), claimEl = $('claim'), refEl = $('ref'), reft = $('reft'), row = $('row'), cnt = $('cnt'), room = $('room'), sig = $('sig'), sg = sig.getContext('2d');
 var BED = new Audio('../../audio/bed/brain-rm-rf.mp3'); BED.loop = true; BED.volume = 0.14; BED.preload = 'none';
-var PAL = { amber: '#efe9ff', rose: '#ff5c7a', mute: '#9a90b8', line: '#2a2140' }, cur = { c: null, killed: false }, H = 160, FONT = '500 11px "IBM Plex Mono", monospace';
+var PAL = { hope: '#efe9ff', found: '#bcd3ff', mute: '#9a90b8', line: '#2a2140' }, cur = { c: null, killed: false }, H = 160, FONT = '500 11px "IBM Plex Mono", monospace';
 
 function shuffle() {
   order = claims.map(function (_, i) { return i; });
@@ -39,7 +39,7 @@ function soundLine() { return WK.sound() ? 'now playing: one of my songs, low, u
 function stillLine() { return (WK.sound() ? 'sound on: one of my songs plays low once a claim starts.' : 'sound off, tap to hear one of my songs under the words.') + ' arrow keys step through the claims; tap any dot to jump.'; }
 // which line #now holds, so the sound chip can rewrite it: 'still', 'play' or '' (a message the chip leaves alone)
 var nowIs = '';
-// pale: what i hoped. rose: what the check found, in the claim's own shape (claims.json "shape"), with the grave's numbers under it.
+// pale (ink, dashed once killed): what i hoped. solid ice (PAL.found holds ice): what the check found, in the claim's own shape (claims.json "shape"), with the grave's numbers under it.
 // a sketch, not to scale, except "swing", which is drawn from the grave's own rates (19 hoped, 11.8 then 22.7 found)
 function picture(c, killed, u) {
   cur = { c: c, killed: killed };
@@ -51,18 +51,18 @@ function picture(c, killed, u) {
   var fy = function (f) { return sh === 'swing' ? (f < 0.5 ? yv(11.8) : yv(22.7)) : sh === 'flip' ? y0 + 10 * Math.pow(f, 0.8) : sh === 'less' ? y0 - 0.12 * A * Math.pow(f, bend) : y0; };
   sg.save(); sg.strokeStyle = PAL.line; sg.lineWidth = 1; sg.beginPath(); sg.moveTo(x0, y0); sg.lineTo(x1, y0); sg.stroke(); sg.restore();
   var pts = []; for (k = 0; k <= 12; k++) { f = k / 12; x = x0 + (x1 - x0) * f; y = sh === 'swing' ? yv(19) - 2 * Math.sin(ph + f * 28) : y0 - A * Math.pow(f, bend) - 6 * Math.sin(ph + f * 28); pts.push([x, y]); }
-  P.ribbon(sg, pts, PAL.amber, PAL.amber, 3, killed ? 0.4 : 1, killed ? [5, 6] : null);
-  sg.save(); sg.fillStyle = PAL.amber; sg.font = FONT; sg.globalAlpha = killed ? 0.6 : 1;
+  P.ribbon(sg, pts, PAL.hope, PAL.hope, 3, killed ? 0.4 : 1, killed ? [5, 6] : null);
+  sg.save(); sg.fillStyle = PAL.hope; sg.font = FONT; sg.globalAlpha = killed ? 0.6 : 1;
   if (sh === 'swing') { sg.textAlign = 'left'; sg.fillText('what i hoped', x0, pts[0][1] - 10); } else { sg.textAlign = 'right'; sg.fillText('what i hoped', x1, pts[12][1] - 10); }
   sg.restore();
   if (!killed) return;
   var m = Math.min(1, u), r2 = rng(104729 * c.n), nn = Math.round(26 * m), jit = sh === 'gone' ? 16 : 10;
-  for (k = 0; k < nn; k++) { f = (k + 0.5) / 26; x = x0 + (x1 - x0) * f; y = fy(f) + (r2() - 0.5) * jit; P.peb(sg, 40 + k + c.n, x, y, 3 + 2 * r2(), PAL.rose); }
+  for (k = 0; k < nn; k++) { f = (k + 0.5) / 26; x = x0 + (x1 - x0) * f; y = fy(f) + (r2() - 0.5) * jit; P.peb(sg, 40 + k + c.n, x, y, 3 + 2 * r2(), PAL.found); }
   var rp = []; for (k = 0; k <= 12; k++) { f = m * k / 12; rp.push([x0 + (x1 - x0) * f, fy(f) - (sh === 'gone' ? 1.5 * Math.sin(Math.PI * k / 12) : 0)]); }
-  P.ribbon(sg, rp, PAL.rose, PAL.rose, 2.4, 0.9);
+  P.ribbon(sg, rp, PAL.found, PAL.found, 2.4, 0.9);
   if (m >= 1) {
-    sg.save(); sg.fillStyle = PAL.rose; sg.font = FONT; sg.textAlign = 'left'; sg.fillText('found: ' + c.found, x0, H - 4); sg.restore();
-    if (!BED.paused && WK.sound()) WK.pulse(sg, x1, fy(1), PAL.rose, 9);
+    sg.save(); sg.fillStyle = PAL.found; sg.font = FONT; sg.textAlign = 'left'; sg.fillText('found: ' + c.found, x0, H - 4); sg.restore();
+    if (!BED.paused && WK.sound()) WK.pulse(sg, x1, fy(1), PAL.found, 9);
   }
 }
 function bump() { clearTimeout(idle); idle = setTimeout(reset, 120000); }
@@ -76,7 +76,7 @@ function show(i, still, fromBack) {
   var at = order.indexOf(i); if (at >= 0) pos = at;
   draw(i);
   room.dataset.lit = String(Math.min(3, 1 + Math.floor(shown.length / 6)));
-  sig.setAttribute('aria-label', 'claim ' + c.n + ', a sketch: a pale line for what i hoped, a rose line for what the check found: ' + c.found + '.');
+  sig.setAttribute('aria-label', 'claim ' + c.n + ', a sketch: pale dashes for what i hoped, a solid line for what the check found: ' + c.found + '.');
   if (still) { claimEl.textContent = c.claim; reft.textContent = c.referee; refEl.classList.add('on'); picture(c, true, 1); return; }
   claimEl.textContent = ''; reft.textContent = ''; refEl.classList.remove('on');
   say(soundLine(), 'play');
@@ -122,6 +122,14 @@ document.addEventListener('click', function (e) {
   if (!e.target || !e.target.closest || !e.target.closest('#wk-snd, #wk-go')) return;
   setTimeout(function () { if (nowIs === 'still' && BED.paused) say(stillLine(), 'still'); else if (nowIs) say(soundLine(), 'play'); }, 0);
 }, true);
+// the front says hush: stop the music and the reading, and say so; start is handled by wallkit (sound on, then the primary button)
+addEventListener('message', function (e) {
+  if (e.origin !== location.origin || !e.data || e.data.sm !== 'front') return;
+  setTimeout(function () {
+    if (e.data.ev === 'hush') { setAuto(false); try { BED.pause(); } catch (x) {} }
+    if (nowIs === 'still' && BED.paused) say(stillLine(), 'still'); else if (nowIs) say(soundLine(), 'play');
+  }, 0);
+});
 function redraw() { if (cur.c) picture(cur.c, refEl.classList.contains('on'), 1); }
 addEventListener('resize', redraw);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);

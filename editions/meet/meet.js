@@ -135,16 +135,16 @@ function drawRoute(g) {
   if (n < 2) return;
   pts = MAP.pts(R);
   P.ribbon(g, pts, PAL.ice, PAL.ice, 1.6, cur >= 0 ? 0.28 : 0.55);
-  if (cur > 0) P.ribbon(g, pts.slice(0, cur + 1), PAL.ice, PAL.mint, 3, 0.95);
+  if (cur > 0) P.ribbon(g, pts.slice(0, cur + 1), PAL.ink, PAL.ink, 3, 0.95);
   for (k = 0; k < n; k++) {
     i = R[k]; x = pts[k][0]; y = pts[k][1]; r = 4 + 5 * Math.log(1 + D.pl[i]) / mx;
     P.peb(g, i, x, y, r, fcol(i));
     if (!PV[i]) { g.save(); g.globalAlpha = 0.5; g.fillStyle = PAL.night; g.fillRect(x - 1, y - 1, 2, 2); g.restore(); }
   }
   if (cur >= 0 && cur < n) {
-    P.rings(g, pts[cur][0], pts[cur][1], PAL.mint, 16);
-    if (WK.playing()) WK.pulse(g, pts[cur][0], pts[cur][1], PAL.mint, 15);
-  } else if (S.hear >= 0 && WK.playing() && S.hear === S.mid) WK.pulse(g, MAP.X(S.mid), MAP.Y(S.mid), PAL.mint, 16);
+    P.rings(g, pts[cur][0], pts[cur][1], PAL.ink, 16);
+    if (WK.playing()) WK.pulse(g, pts[cur][0], pts[cur][1], PAL.ink, 15);
+  } else if (S.hear >= 0 && WK.playing() && S.hear === S.mid) WK.pulse(g, MAP.X(S.mid), MAP.Y(S.mid), PAL.ink, 16);
 }
 // your spot: a crosshair with its number, a mark nothing else on the map uses
 function spot(g, x, y, n) {
@@ -177,7 +177,7 @@ function draw() {
   if (pb) spot(g, pb[0], pb[1], '2');
   // names last, so no mark ever sits on a name
   if (S.a && S.b && m >= 0) tagAt(g, MAP.X(m), MAP.Y(m), D.n[m], PAL.ink);
-  if (S.a && S.b && S.wk >= 0 && S.wk < S.route.length) MAP.tag(S.route[S.wk], (S.wk + 1) + '/' + S.route.length + ' ' + D.n[S.route[S.wk]], PAL.mint);
+  if (S.a && S.b && S.wk >= 0 && S.wk < S.route.length) MAP.tag(S.route[S.wk], (S.wk + 1) + '/' + S.route.length + ' ' + D.n[S.route[S.wk]], PAL.ink);
   if (!S.a || !S.b) {
     g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center';
     g.fillText(S.a ? 'now the second spot.' : 'tap two spots.', MAP.W / 2, MAP.H - 16); g.restore();

@@ -44,7 +44,7 @@
     P.field(g, D.xy, X, Y, { t: W, lo: 1.4 + s / 260, hi: 3.5 + s / 70, core: 0.85, lattice: o.lat == null ? (T.paper ? 0.2 : 0.14) : o.lat, latCol: T.lat, latW: T.paper ? 0.5 : 0.6, col: function (i) { return fc(i, T, o.dim); } });
     return { X: X, Y: Y };
   }
-  // a ribbon; on paper it gets a night casing so mint and amber hold on white
+  // a ribbon; on paper it gets a night casing so pale colors hold on white
   function rib(g, T, pts, a, b, w, dash) {
     if (pts.length < 2) return;
     if (T.paper) P.ribbon(g, pts, NIGHT, NIGHT, w + 2.6, 0.92, dash);
@@ -63,11 +63,20 @@
       var gx = x + 7;
       if (it[0] === 'peb') P.peb(g, 5, gx, y - 3, 5, it[1]);
       else if (it[0] === 'line') { g.strokeStyle = it[1]; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x, y - 3); g.lineTo(x + 14, y - 3); g.stroke(); gx = x + 7; }
+      else if (it[0] === 'you') { P.peb(g, 5, gx, y - 3, 3.4, T.paper ? '#b9b1cf' : '#5c5478'); g.save(); g.strokeStyle = T.ink; g.lineWidth = 1.4; g.beginPath(); g.arc(gx, y - 3, 6, 0, 6.2832); g.stroke(); g.restore(); }
       else if (it[0] === 'ringthin') { g.strokeStyle = it[1]; g.lineWidth = 1.6; g.beginPath(); g.arc(gx, y - 3, 5, 0, 6.2832); g.stroke(); }
       else P.glyph(g, it[0], gx, y - 3, 6, it[1]);
       tx(g, it[2], x + 20, y, '500 8.5px ' + MONO, T.mute); g.font = '500 8.5px ' + MONO;
       x += 20 + g.measureText(it[2]).width + (gap || 14);
     });
+  }
+  // the visitor's own mark on every sheet: the artist's family pebble inside an ink ring (mint and the star mean my press on every wall)
+  function you(g, T, i, x, y, r) {
+    P.peb(g, i, x, y, r, fc(i, T, 0));
+    var lw = Math.max(1.4, r * 0.32), rr = r + 2.6 + r * 0.15;
+    // a ground-colored band under the ring cuts it out of the crowd, crisp in both looks
+    g.save(); g.setLineDash([]); g.globalAlpha = 1; g.strokeStyle = T.bg; g.lineWidth = lw + 3; g.beginPath(); g.arc(x, y, rr, 0, 6.2832); g.stroke();
+    g.strokeStyle = T.ink; g.lineWidth = lw; g.beginPath(); g.arc(x, y, rr, 0, 6.2832); g.stroke(); g.restore();
   }
   // the mirror's meeting point: an ink ring with four ticks, its inside cleared to the ground, a crisp mark no family and no list uses
   function reticle(g, T, x, y, k) {
@@ -108,7 +117,7 @@
         g.strokeStyle = T.lat; g.lineWidth = 1.2; g.globalAlpha = 0.9; g.beginPath();
         near.forEach(function (j) { g.moveTo(f.X(a), f.Y(a)); g.lineTo(f.X(j), f.Y(j)); }); g.stroke(); g.globalAlpha = 1;
         near.forEach(function (j) { P.peb(g, j, f.X(j), f.Y(j), 4.6, fc(j, T, 0)); });
-        P.glyph(g, 'star', f.X(a), f.Y(a), 8, MINT);
+        you(g, T, a, f.X(a), f.Y(a), 5.6);
         g.restore();
         g.strokeStyle = T.line; g.lineWidth = 1; g.strokeRect(x0 + 0.5, y0 + 46.5, s - 1, s - 1);
       };
@@ -147,7 +156,7 @@
         g.strokeStyle = T.lat; g.lineWidth = 1.2; g.globalAlpha = 0.9; g.beginPath();
         near.forEach(function (j) { g.moveTo(f.X(a), f.Y(a)); g.lineTo(f.X(j), f.Y(j)); }); g.stroke(); g.globalAlpha = 1;
         near.forEach(function (j) { P.peb(g, j, f.X(j), f.Y(j), 5.2, fc(j, T, 0)); });
-        P.glyph(g, 'star', f.X(a), f.Y(a), 9, MINT);
+        you(g, T, a, f.X(a), f.Y(a), 6.2);
         g.restore();
         g.strokeStyle = T.line; g.lineWidth = 1; g.strokeRect(x0 + 0.5, 64.5, s - 1, s - 1);
       };
@@ -192,24 +201,24 @@
       }
       return { pts: pts };
     },
-    alt: function (st) { return 'the chorus poster: ' + st.pts.length + ' visitors tonight, each one a mint star on my sound map, joined by one ribbon in play order. nobody chose the whole path.'; },
+    alt: function (st) { return 'the chorus poster: ' + st.pts.length + ' visitors tonight, each one a ringed shape on my sound map, joined by one line in play order. nobody chose the whole path.'; },
     draw: function (g, T, st) {
       var w = 794, h = 1123, s = 660, fx = 67, fy = 340, n = st.pts.length;
       g.fillStyle = T.bg; g.fillRect(0, 0, w, h);
       tx(g, 'astralcrest · sonicManifold', 48, 62, '500 11px ' + MONO, T.mute);
       var num = String(n); g.font = '600 168px ' + SANS; var nw = g.measureText(num).width;
       tx(g, num, 44, 232, '600 168px ' + SANS, T.ink);
-      g.fillStyle = MINT; g.fillRect(48, 246, Math.min(nw, 300), 7);
+      g.fillStyle = T.ink; g.fillRect(48, 246, Math.min(nw, 300), 7);
       tx(g, n === 1 ? 'visitor' : 'visitors', 44 + nw + 18, 188, '600 38px ' + SANS, T.ink);
       tx(g, 'tonight', 44 + nw + 18, 232, '600 38px ' + SANS, T.ink);
       tx(g, 'nobody chose the whole path.', 48, 296, '500 28px ' + SANS, T.ink);
-      tx(g, 'each star is one visitor\'s point. the ribbon joins them in the order they came.', 48, 320, '500 11px ' + MONO, T.mute);
+      tx(g, 'each ring is one visitor\'s point. the line joins them in the order they came.', 48, 320, '500 11px ' + MONO, T.mute);
       var f = field(g, T, fx, fy, s, { dim: T.paper ? 0.4 : 0.5, lat: T.paper ? 0.1 : 0.07 });
       g.strokeStyle = T.line; g.lineWidth = 1; g.strokeRect(fx + 0.5, fy + 0.5, s - 1, s - 1);
       var pts = st.pts.map(function (i) { return [f.X(i), f.Y(i)]; });
-      rib(g, T, pts, MINT, MINT, 2.4);
-      pts.forEach(function (p) { if (T.paper) P.glyph(g, 'star', p[0], p[1], 8.6, NIGHT); P.glyph(g, 'star', p[0], p[1], 7.4, MINT); });
-      legend(g, T, 48, 1034, [['star', MINT, 'one visitor\'s point'], ['line', MINT, 'play order'], ['peb', '#9a90b8', 'artists on my map, by genre family']]);
+      rib(g, T, pts, T.ink, T.ink, 2.4);
+      st.pts.forEach(function (i, k) { you(g, T, i, pts[k][0], pts[k][1], 6.4); });
+      legend(g, T, 48, 1034, [['you', T.ink, 'one visitor\'s point'], ['line', T.ink, 'play order'], ['peb', '#9a90b8', 'artists on my map, by genre family']]);
       tx(g, 'no names. nothing was stored. one night.', 48, 1060, '500 10px ' + MONO, T.mute);
       if (st.toy) tx(g, 'a toy chain stands in for tonight\'s visitors.', 48, 1078, '500 10px ' + MONO, T.mute);
       var q = qrDraw(g, T, SITE + 'walls/', w - 48 - 70, 1018, 70);
@@ -240,7 +249,7 @@
       // changed = an ink line, never a family color (rose is the hip-hop · r&b pebbles)
       R.forEach(function (r) { rib(g, T, [[f.X(r.a), f.Y(r.a)], [f.X(r.b), f.Y(r.b)]], r.s ? T.ink : T.lat, r.s ? T.ink : T.lat, r.s ? 2.2 : 1.2); });
       R.forEach(function (r) { [r.a, r.b].forEach(function (i, k) {
-        if (k === r.p) P.glyph(g, 'star', f.X(i), f.Y(i), 7, MINT); else P.peb(g, i, f.X(i), f.Y(i), 4.6, fc(i, T, 0));
+        if (k === r.p) you(g, T, i, f.X(i), f.Y(i), 4.6); else P.peb(g, i, f.X(i), f.Y(i), 4.6, fc(i, T, 0));
       }); });
       var x = 384, cw = w - 24 - x;
       tx(g, 'the taste card', x, 36, '500 8.5px ' + MONO, T.mute);
@@ -252,14 +261,13 @@
       g.font = '600 16px ' + SANS; wrapT(g, head, cw).forEach(function (l, k) { tx(g, l, x, 140 + k * 19, '600 16px ' + SANS, T.ink); });
       var y = 196;
       R.forEach(function (r) {
-        P.peb(g, r.a, x + 8, y - 4, 6.5, fc(r.a, T, 0)); P.peb(g, r.b, x + 30, y - 4, 6.5, fc(r.b, T, 0));
-        P.glyph(g, 'star', x + (r.p ? 30 : 8), y - 4, 6, MINT);
+        [r.a, r.b].forEach(function (i, k) { if (k === r.p) you(g, T, i, x + (k ? 30 : 8), y - 4, 5); else P.peb(g, i, x + (k ? 30 : 8), y - 4, 5, fc(i, T, 0)); });
         if (r.s) { g.fillStyle = T.ink; g.fillRect(x + 48, y - 6, 28, 3); tx(g, 'changed', x + 84, y - 1, '500 8.5px ' + MONO, T.ink); }
         else { g.strokeStyle = T.lat; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x + 48, y - 4.5); g.lineTo(x + 76, y - 4.5); g.stroke(); tx(g, 'same', x + 84, y - 1, '500 8.5px ' + MONO, T.mute); }
         y += one ? 0 : 24;
         if (one) { g.font = '500 9px ' + MONO; tx(g, fit(g, 'a: ' + nm(r.a), cw), x, y + 20, '500 9px ' + MONO, T.ink); tx(g, fit(g, 'b: ' + nm(r.b), cw), x, y + 33, '500 9px ' + MONO, T.ink); y += 40; }
       });
-      legend(g, T, x, 340, [['star', MINT, 'your pick']], 8);
+      legend(g, T, x, 340, [['you', T.ink, 'your pick']], 8);
       g.font = '500 8px ' + MONO; wrapT(g, R.length + (one ? ' pair' : ' pairs') + ', a toy. it says nothing about taste. nothing was stored.', cw).forEach(function (l, k) { tx(g, l, x, 356 + k * 10, '500 8px ' + MONO, T.mute); });
     }
   };
@@ -366,11 +374,12 @@
       g.strokeStyle = T.line; g.lineWidth = 1; g.strokeRect(x + 0.5, 114.5, s - 1, s - 1);
       var pr = st.rule.map(function (j) { return [f.X(j), f.Y(j)]; }), py = st.path.map(function (j) { return [f.X(j), f.Y(j)]; });
       rib(g, T, pr, T.lat, T.lat, 2.2); pr.slice(1).forEach(function (p) { P.glyph(g, 'dot', p[0], p[1], 5, T.lat); });
-      rib(g, T, py, MINT, MINT, 2.4); py.slice(1).forEach(function (p) { P.glyph(g, 'star', p[0], p[1], 4.4, MINT); });
+      // your steps: an ink line with hollow ink rings, the rule's are filled dots (mint and the star mean my press, as in the log grid below)
+      rib(g, T, py, T.ink, T.ink, 2.4); py.slice(1).forEach(function (p) { g.save(); g.fillStyle = T.bg; g.strokeStyle = T.ink; g.lineWidth = 1.5; g.beginPath(); g.arc(p[0], p[1], 3.4, 0, 6.2832); g.fill(); g.stroke(); g.restore(); });
       var sx = py[0][0], sy = py[0][1]; g.save(); g.strokeStyle = T.paper ? NIGHT : '#efe9ff'; g.lineWidth = 1.5; [5, 9].forEach(function (rr) { g.beginPath(); g.arc(sx, sy, rr, 0, 6.2832); g.stroke(); }); g.restore();
       var N = String(st.matched); g.font = '600 66px ' + SANS; var nw = g.measureText(N).width;
       tx(g, N, x - 2, 462, '600 66px ' + SANS, T.ink);
-      g.fillStyle = MINT; g.fillRect(x, 470, Math.min(nw, 120), 5);
+      g.fillStyle = T.ink; g.fillRect(x, 470, Math.min(nw, 120), 5);
       tx(g, 'of ' + st.steps + ' steps went', x + nw + 12, 436, '600 14px ' + SANS, T.ink); tx(g, 'to the nearest sound', x + nw + 12, 454, '600 14px ' + SANS, T.ink);
       g.strokeStyle = T.line; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 490.5); g.lineTo(w - x, 490.5); g.stroke();
       var cols = 20, gap = s / cols, kinds = [['star', MINT, 19], ['diamond', AMBER, 17], ['ring', VIOLET, 64]], idx = 0;
@@ -390,11 +399,13 @@
   /* ---------- the strip, the chips, the two looks ---------- */
   // each sheet's strip uses its own sheet's words, so a glyph never means one thing above the sheet and another on it
   var STAR = '<path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/>', ALIKE = '<path d="M2 14L10 8L18 12" fill="none" stroke="#bcd3ff" stroke-width="1.2"/><circle cx="10" cy="8" r="2.4" fill="#bcd3ff"/>';
+  var YOU = '<circle cx="10" cy="10" r="4.2" fill="#5c5478"/><circle cx="10" cy="10" r="7.6" fill="none" stroke="#efe9ff" stroke-width="1.8"/>';
   var KEYS = {
-    press: ['a press', '#21f6bc', STAR],
-    point: ['the point you ended on', '#21f6bc', STAR],
-    visitor: ['one visitor\'s point', '#21f6bc', STAR],
-    pick: ['your pick', '#21f6bc', STAR],
+    press: ['my press', '#21f6bc', STAR],
+    point: ['the point you ended on', '#efe9ff', YOU],
+    visitor: ['one visitor\'s point', '#efe9ff', YOU],
+    pick: ['your pick', '#efe9ff', YOU],
+    step: ['your steps', '#efe9ff', '<path d="M1 15L19 5" stroke="#efe9ff" stroke-width="1.6"/><circle cx="10" cy="10" r="4.2" fill="#06010f" stroke="#efe9ff" stroke-width="1.6"/>'],
     auto: ['auto-play', '#8b6fd6', '<circle cx="10" cy="10" r="7" fill="none" stroke="#8b6fd6" stroke-width="2.4"/>'],
     shuffle: ['shuffle', '#f5a623', '<path d="M10 1.5L17 10L10 18.5L3 10Z" fill="#f5a623"/>'],
     alike: ['sounds alike', '#bcd3ff', ALIKE],
@@ -463,7 +474,7 @@
     var fonts = Promise.all(N0.map(function (f) { return document.fonts ? document.fonts.load(f) : null; })).catch(function () {});
     Promise.all([fetch('../loop/data/loop.json').then(function (r) { return r.json(); }), fonts]).then(function (a) {
       D = a[0]; W = P.weights(D.xy.length, D.pl); boot();
-    }).catch(function () { var p = document.createElement('p'); p.style.cssText = 'padding:24px 48px;font:13px "IBM Plex Mono",monospace;color:#ff5c7a'; p.textContent = 'the map did not load. check your connection and reload.'; document.body.insertBefore(p, document.body.firstChild); });
+    }).catch(function () { var p = document.createElement('p'); p.style.cssText = 'padding:24px 48px;font:13px "IBM Plex Mono",monospace;color:#efe9ff'; p.textContent = 'the map did not load. check your connection and reload.'; document.body.insertBefore(p, document.body.firstChild); });
   }
   PAGES.stub.n = 1; PAGES.chorus.n = 2; PAGES.taste.n = 3; PAGES.mirror.n = 4; PAGES.receipt2.n = 5;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

@@ -87,18 +87,19 @@ function draw() {
   var g = MAP.g, k, i, x, y, pts = MAP.pts(S.list), cur = Math.min(S.k, S.list.length - 1);
   if (pts.length > 1) {
     P.ribbon(g, pts, PAL.ice, PAL.ice, 1.2, 0.22, [3, 5]);
-    if (cur > 0) P.ribbon(g, pts.slice(0, cur + 1), PAL.ice, PAL.mint, 2.6, 0.9);
+    if (cur > 0) P.ribbon(g, pts.slice(0, cur + 1), PAL.ink, PAL.ink, 2.6, 0.9);
   }
   S.list.forEach(function (a, n) {
     x = MAP.X(a); y = MAP.Y(a);
-    if (S.st[n] === 1) { P.peb(g, a, x, y, 9, fcol(a)); P.glyph(g, 'star', x, y, 12, PAL.mint); }
+    // what you kept is yours, so ink: the family pebble inside a solid ink ring (mint and the star mean my press on every wall)
+    if (S.st[n] === 1) { P.peb(g, a, x, y, 9, fcol(a)); g.save(); g.strokeStyle = PAL.ink; g.lineWidth = 2.5; g.beginPath(); g.arc(x, y, 13, 0, 6.2832); g.stroke(); g.restore(); }
     else if (S.st[n] === 2) P.glyph(g, 'dot', x, y, 3, '#3a3052');
-    else if (n !== S.k) { P.peb(g, a, x, y, 3.5 + 3 * Math.log(1 + D.pl[a]) / Math.log(1 + D.pl[M.order[0]]), fcol(a)); P.glyph(g, 'ring', x, y, 9, '#6f6790'); }
+    else if (n !== S.k) { P.peb(g, a, x, y, 3.5 + 3 * Math.log(1 + D.pl[a]) / Math.log(1 + D.pl[M.order[0]]), fcol(a)); g.save(); g.globalAlpha = 0.35; P.glyph(g, 'ring', x, y, 9, PAL.ink); g.restore(); }
   });
   if (!S.done && S.list.length) {
     i = S.list[S.k]; x = MAP.X(i); y = MAP.Y(i);
     P.peb(g, i, x, y, 10, fcol(i)); P.rings(g, x, y, PAL.ink, 22);
-    if (S.phase === 'playing') WK.pulse(g, x, y, PAL.mint, 18);
+    if (S.phase === 'playing') WK.pulse(g, x, y, PAL.ink, 18);
   }
   // the name chips go on last, so no pebble, ring or pulse lands on their words; the current one on top
   k = S.k + 1;

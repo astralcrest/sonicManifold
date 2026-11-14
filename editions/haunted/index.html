@@ -15,7 +15,7 @@
 #side h2 { font: 500 11px/1.3 var(--mono); letter-spacing: .14em; color: var(--mute); margin: 0 0 10px; }
 #bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 0 16px; }
 #bar button { min-height: 52px; font-size: 15px; flex: 1 1 40%; }
-#skip { --acc: var(--rose); background: var(--rose); color: var(--night); font-weight: 600; font-size: 18px !important; }
+#skip { --acc: var(--ink); background: var(--ink); color: var(--night); font-weight: 600; font-size: 18px !important; }
 #cv { cursor: pointer; }
 #back { --acc: var(--ice); color: var(--ice); }
 #hear { --acc: var(--ice); }
@@ -36,13 +36,13 @@
 }
 </style>
 </head>
-<body data-wall="4" data-line="one real evening of my plays, in order. swap a song and watch the next few bend." data-do="press play to hear the evening, then swap a song to bend it." data-keys="press,auto,shuffle" style="--act: var(--rose); --acc: var(--ice)">
+<body data-wall="4" data-line="one real evening of my plays, in order. swap a song and watch the next few bend." data-do="press play to hear the evening, then swap a song to bend it." data-keys="press,auto,shuffle" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the haunted night</span><span class="tl">a toy</span></p>
     <h1>one swap, and the next few songs <em>bend</em>.</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map as dim dots, with one real evening drawn as a ribbon of glyphs; your swaps draw the bent songs in rose"></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map as dim dots, with one real evening drawn as a ribbon of glyphs; your swaps draw the bent songs as hollow ink squares on a dashed line"></canvas></div>
   <main id="side">
     <div id="bar" role="group" aria-label="play controls">
       <button type="button" id="hear" aria-pressed="false">play the evening</button>
@@ -51,7 +51,7 @@
       <button type="button" id="fwd">next song</button>
     </div>
     <div class="key" aria-live="polite">
-      <div class="big rose" id="bend"><span class="c">no swaps yet. press swap next song.</span></div>
+      <div class="big ink" id="bend"><span class="c">no swaps yet. press swap next song.</span></div>
       <span class="keylab">how far your swapped songs sit from the real ones, as a share of the map</span>
     </div>
     <p id="now" aria-live="polite"></p>
@@ -71,7 +71,7 @@
     <details class="how"><summary>how</summary>
       <p>press play: the evening is heard song by song to the end, with the next song named. on a laptop, the arrow keys step and s swaps.</p>
       <p>use next song, back one song, or tap a dot to jump. the bright line is the night so far.</p>
-      <p>press swap: the next song is replaced with a near one, and the rose line bends away from the real purple one. bigger number, farther bend.</p>
+      <p>press swap: the next song is replaced with a near one, and the dashed line bends away from the real one. bigger number, farther bend.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>from my log: auto-play's own streak of songs stays close in sound. when i broke the streak the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>

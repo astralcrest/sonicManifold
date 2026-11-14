@@ -4,7 +4,7 @@
   const body = document.body;
   const PK = window.WK && window.WK.P;
   const FAMC = (window.WK && window.WK.FAMC) || {};
-  const NIGHT = "#06010f", INK = "#efe9ff", MINT = "#21f6bc", AMBER = "#f5a623";
+  const NIGHT = "#06010f", INK = "#efe9ff", ICE = "#bcd3ff";
   const CAP0 = "color = genre family. each song you hear lands here and pulses with its clip.";
   let D = null, LD = null, S = null, R = 0, heard = [false, false], shown = [], cur = null;
   let tourTok = 0, tourOn = false, tourK = -1, mapTok = 0, hl = null, wait = null;
@@ -307,7 +307,7 @@
       const lx = x + r0 + 8 + tw > z.w - 2 ? x - r0 - 8 - tw : x + r0 + 8;
       g.fillText(t, lx, y);
     });
-    if (cur && window.WK) WK.pulse(g, L.X(cur.i), L.Y(cur.i), col(cur.i, cur.fam), r0 + 6);
+    if (cur && window.WK) WK.pulse(g, L.X(cur.i), L.Y(cur.i), INK, r0 + 6);
     cv.setAttribute("aria-label", "the sound map: " + (shown.length ? shown.length + " song" + (shown.length > 1 ? "s" : "") + " heard this round, each lit in its genre family color" : "your picks land here"));
   }
 
@@ -340,16 +340,18 @@
     const P = i => [L.X(i), L.Y(i)];
     const ln = (i, j, a, b, wd, al, dash) => { if (PK) PK.ribbon(g, [P(i), P(j)], a, b, wd, al, dash); else { g.strokeStyle = a; g.lineWidth = 1; g.setLineDash(dash || []); g.beginPath(); g.moveTo(L.X(i), L.Y(i)); g.lineTo(L.X(j), L.Y(j)); g.stroke(); g.setLineDash([]); } };
     S.forEach(s => { if (!s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, "#4a3f72", "#4a3f72", 1, 1); } });
-    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, AMBER, AMBER, 1, 0.8, [3, 4]); } });
-    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.pr[s.target].i, p.o[s.target].i, AMBER, "#ffd8a0", 2, 1); } });
+    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.o[s.pick].i, p.o[1 - s.pick].i, ICE, ICE, 1, 0.8, [3, 4]); } });
+    S.forEach(s => { if (s.primed) { const p = D.pairs[s.pi]; ln(p.pr[s.target].i, p.o[s.target].i, ICE, ICE, 2, 1); } });
     const glyph = (i, s, kind, c) => { if (PK) PK.glyph(g, kind, L.X(i), L.Y(i), s * 0.9, c); else { g.fillStyle = c; g.fillRect(L.X(i) - s / 2, L.Y(i) - s / 2, s, s); } };
     S.forEach(s => glyph(D.pairs[s.pi].o[1 - s.pick].i, 9, "dot", "#b9aedc"));
-    S.forEach(s => { if (s.primed) glyph(D.pairs[s.pi].pr[s.target].i, 8, "dot", AMBER); });
+    S.forEach(s => { if (s.primed) glyph(D.pairs[s.pi].pr[s.target].i, 8, "dot", ICE); });
     const cl = [];
     S.forEach((s, r) => {
       const i = D.pairs[s.pi].o[s.pick].i, on = tourOn && r === tourK, dim = tourOn && r > tourK, x = L.X(i), y = L.Y(i);
       g.globalAlpha = dim ? 0.45 : 1;
-      glyph(i, on ? 15 : 11, "star", MINT);
+      // your pick: its family pebble inside an ink ring (the star and mint mean my press on every wall)
+      if (PK) PK.peb(g, i, x, y, on ? 7 : 5, col(i)); else glyph(i, on ? 12 : 9, "dot", col(i));
+      g.strokeStyle = INK; g.lineWidth = on ? 2.5 : 1.6; g.beginPath(); g.arc(x, y, on ? 11 : 8.5, 0, 6.2832); g.stroke();
       g.globalAlpha = 1;
       const c = cl.find(q => (q.x - x) ** 2 + (q.y - y) ** 2 < 256);
       if (c) c.rs.push(r); else cl.push({ x, y, rs: [r] });
@@ -364,11 +366,11 @@
       const at = opts.find(free) || opts[0] || [Math.max(2, Math.min(z.w - 2 - w, c.x + 9)), c.y + 10];
       placed.push([at[0], at[1], w]);
       g.strokeStyle = NIGHT; g.lineWidth = 3; g.strokeText(t, at[0], at[1]);
-      g.fillStyle = tourOn && c.rs.includes(tourK) ? INK : tourOn && c.rs.every(r => r > tourK) ? "#6f6790" : "#cfc6e8";
+      g.fillStyle = tourOn && c.rs.includes(tourK) ? INK : tourOn && c.rs.every(r => r > tourK) ? "#6a6288" : "#cfc6e8";
       g.fillText(t, at[0], at[1]);
     });
-    if (hl && window.WK) WK.pulse(g, L.X(hl.i), L.Y(hl.i), hl.col, 14);
-    cv.setAttribute("aria-label", "the sound map with the twelve picks as mint stars numbered by round, the ones passed as dots, the first songs in amber");
+    if (hl && window.WK) WK.pulse(g, L.X(hl.i), L.Y(hl.i), INK, 14);
+    cv.setAttribute("aria-label", "the sound map with the twelve picks ringed and numbered by round, the ones passed as pale dots, the first songs as pale blue dots");
   }
 
   const tip = $("mtip");
@@ -469,6 +471,18 @@
       if (body.classList.contains("r") && s && s.pick === null && !$("primer").classList.contains("on")) ready();
     }, 0);
   }, true);
+
+  // the front says hush: stop the clip and the tour, then rewrite any sound line; start is handled by wallkit (sound on, then the primary button)
+  addEventListener("message", e => {
+    if (e.origin !== location.origin || !e.data || e.data.sm !== "front") return;
+    setTimeout(() => {
+      if (e.data.ev === "hush") { tourEnd(""); mapTok++; hl = null; stopClip(); if (/^playing/.test($("pvcap").textContent)) $("pvcap").textContent = CAP0; }
+      if (!S) return;
+      if (body.classList.contains("done")) { if (!tourOn) doneLine(); return; }
+      const s = S[R];
+      if (body.classList.contains("r") && s && s.pick === null && !$("primer").classList.contains("on")) ready();
+    }, 0);
+  });
 
   $("next").disabled = true;
   const ld = fetch("../loop/data/loop.json").then(r => r.json()).catch(() => null);

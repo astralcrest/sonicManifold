@@ -1,13 +1,14 @@
 (function () {
   'use strict';
-  var COL = { press: '#21f6bc', shuffle: '#f5a623', queue: '#8b6fd6' }, GLY = { press: 'star', shuffle: 'diamond', queue: 'ring' }, ROSE = '#ff5c7a', START = '#9a90b8', STEP = 2200, STEP_SOUND = 8000;
+  var COL = { press: '#21f6bc', shuffle: '#f5a623', queue: '#8b6fd6' }, GLY = { press: 'star', shuffle: 'diamond', queue: 'ring' }, INK = '#efe9ff', START = '#9a90b8', STEP = 2200, STEP_SOUND = 8000;
   var $ = function (id) { return document.getElementById(id); };
   var cv = $('cv'), ctx = cv.getContext('2d'), mapEl = $('map');
-  // the shared top key has no rose or start mark, so this wall adds its own two there, on the first screen
+  // the shared top key has no bent or start mark, so this wall adds its own two there, on the first screen
   var keyEl = document.querySelector('#wk-strip .wk-keys');
-  if (keyEl) [[ROSE, 'bent by you', 'a song your swap changed'], [START, 'first song', 'where the evening starts']].forEach(function (k) {
+  // bent: ink, hollow square on a dashed line (a visitor's own change is ink, never a key color)
+  if (keyEl) [[INK, 'bent by you', 'a song your swap changed', '<path d="M1 16L19 4" stroke="' + INK + '" stroke-width="1.6" stroke-dasharray="3 3"/><rect x="5.5" y="5.5" width="9" height="9" fill="#06010f" stroke="' + INK + '" stroke-width="2"/>'], [START, 'first song', 'where the evening starts', '<circle cx="10" cy="10" r="5.5" fill="' + START + '"/>']].forEach(function (k) {
     var li = document.createElement('li'); li.style.setProperty('--c', k[0]); li.title = k[2];
-    li.innerHTML = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="5.5" fill="' + k[0] + '"/></svg>' + k[1]; keyEl.appendChild(li);
+    li.innerHTML = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">' + k[3] + '</svg>' + k[1]; keyEl.appendChild(li);
   });
   var M, H, PV = null, adj = [], ev = 0, step = 0, presses = [], bent = [], playing = true, listening = false, timer = null, resumeT = null;
   var aud = new Audio(); aud.preload = 'none'; aud.volume = 0.25; aud.onerror = function () {}; var lastA = -1, rep = 0;
@@ -73,6 +74,8 @@ function sqr(c, x, y, s, fill, kind) {
     if (fill) { ctx.fillStyle = c; ctx.fillRect(Math.round(x - s / 2), Math.round(y - s / 2), s, s); return; }
     ctx.strokeStyle = c; ctx.lineWidth = 1; ctx.strokeRect(Math.round(x - s / 2) + .5, Math.round(y - s / 2) + .5, s - 1, s - 1);
   }
+  // a song your swap changed: a hollow ink square, a shape no logged play uses
+  function bentMark(x, y, s, lit) { var h = s * 0.62; ctx.save(); ctx.globalAlpha = lit ? 1 : 0.45; ctx.setLineDash([]); ctx.fillStyle = '#06010f'; ctx.fillRect(x - h, y - h, 2 * h, 2 * h); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.strokeRect(x - h, y - h, 2 * h, 2 * h); ctx.restore(); }
   function draw() {
     if (!M || !H) return;
     if (!dots) buildDots();
@@ -81,25 +84,25 @@ function sqr(c, x, y, s, fill, kind) {
     var r = real(), n = r.length, sq = W < 500 ? 8 : 11, i, p, q, pts = [], bp = [];
     var any = presses.length > 0 && bent.length === n;
     for (i = 0; i < n; i++) { pts.push(px(r[i][0])); if (any) bp.push(px(bent[i])); }
-    if (PK) { PK.ribbon(ctx, pts, '#8b6fd6', '#bcd3ff', 1.2, 0.22); PK.ribbon(ctx, pts.slice(0, step + 1), '#8b6fd6', '#bcd3ff', W < 500 ? 2 : 2.5, 0.95); }
+    if (PK) { PK.ribbon(ctx, pts, '#bcd3ff', '#bcd3ff', 1.2, 0.22); PK.ribbon(ctx, pts.slice(0, step + 1), '#bcd3ff', '#bcd3ff', W < 500 ? 2 : 2.5, 0.95); }
     else { ctx.lineWidth = 1; ctx.strokeStyle = '#4a3d72'; ctx.beginPath(); pts.forEach(function (p, k) { if (k) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.stroke(); }
-    // rose only where the bent path leaves the real one, plus the step out and the step back
+    // a dashed ink line only where the bent path leaves the real one, plus the step out and the step back
     if (any) for (i = 1; i < n; i++) {
       if (bent[i] === r[i][0] || bent[i - 1] !== r[i - 1][0]) continue;
       var e = i; while (e + 1 < n && bent[e + 1] !== r[e + 1][0]) e++;
       var seg = bp.slice(i - 1, Math.min(n, e + 2));
-      if (PK) PK.ribbon(ctx, seg, ROSE, '#ffb3c6', W < 500 ? 2 : 2.5, 0.95);
-      else { ctx.strokeStyle = ROSE; ctx.lineWidth = 1; ctx.beginPath(); seg.forEach(function (p, k) { if (k) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.stroke(); }
+      if (PK) PK.ribbon(ctx, seg, INK, INK, W < 500 ? 2 : 2.5, 0.95, [6, 5]);
+      else { ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); seg.forEach(function (p, k) { if (k) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.stroke(); }
     }
     for (i = 0; i < n; i++) {
       p = pts[i]; var lit = i <= step;
       if (i) sqr(COL[r[i][2]], p[0], p[1], sq * wsz(r[i][0]), lit, GLY[r[i][2]]);
-      if (any && bent[i] !== r[i][0]) { q = bp[i]; sqr(ROSE, q[0], q[1], sq, i <= step, 'dot'); }
+      if (any && bent[i] !== r[i][0]) { q = bp[i]; bentMark(q[0], q[1], sq, i <= step); }
     }
     // the first song has no step before it to bend, so it gets a neutral start mark (its logged arm is in the data); drawn last so a revisit cannot hide it
     sqr(START, pts[0][0], pts[0][1], sq * 0.8, true, 'dot');
     var cur = px(any ? bent[step] : r[step][0]);
-    if (listening && PV && PV[curArtist()] && !aud.paused) WK.pulse(ctx, cur[0], cur[1], any && bent[step] !== r[step][0] ? ROSE : step ? COL[r[step][2]] : START, sq + 6);
+    if (listening && PV && PV[curArtist()] && !aud.paused) WK.pulse(ctx, cur[0], cur[1], INK, sq + 6);
     if (PK) PK.rings(ctx, cur[0], cur[1], '#efe9ff', sq + 8);
     else { ctx.strokeStyle = '#efe9ff'; ctx.lineWidth = 2; ctx.strokeRect(cur[0] - sq, cur[1] - sq, sq * 2, sq * 2); }
   }

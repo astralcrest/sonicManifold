@@ -14,7 +14,7 @@ body.paper { background: var(--stagebg); }
 .bar .keys li svg { flex: none; }
 .bar .ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
 .bar .ctl a.btn, .bar .ctl button { --acc: var(--ice); }
-.bar .ctl button.go { --acc: var(--mint); }
+.bar .ctl button.go { --acc: var(--ink); }
 .bar .where { flex-basis: 100%; margin: 0; font: 500 12px var(--mono); color: var(--mute); }
 .bar .where a { color: var(--ice); display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 4px; }
 

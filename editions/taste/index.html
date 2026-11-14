@@ -11,14 +11,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--act:var(--amber);--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace}
+:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--act:var(--ice);--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--night);color-scheme:dark}
 body{font-size:17px;line-height:1.5;background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
 #head{padding:24px 48px 22px;border-bottom:1px solid var(--line)}
 .eyebrow{font:11px var(--mono);letter-spacing:.14em;color:var(--mute);margin:0 0 10px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
 .eyebrow a{color:var(--mute);text-decoration:none;border-bottom:1px solid var(--line)}
-.tl{display:inline-block;font:600 10px/1.6 var(--mono);letter-spacing:.14em;border:1px solid var(--amber);color:var(--amber);padding:1px 8px}
+.tl{display:inline-block;font:600 10px/1.6 var(--mono);letter-spacing:.14em;border:1px solid var(--ice);color:var(--ice);padding:1px 8px}
 h1{font:600 clamp(28px,3.6vw,48px)/1.08 var(--sans);letter-spacing:-.025em;text-wrap:balance}
 h1 em{font-style:normal;color:var(--act)}
 #lede{font-size:16px;line-height:1.4;color:var(--mute);margin:10px 0 0;max-width:60ch}#lede b{color:var(--ink);font-weight:500}
@@ -34,30 +34,30 @@ h2{font:600 clamp(22px,2.4vw,30px)/1.15 var(--sans);letter-spacing:-.015em}
 .how b{color:var(--ink);font-weight:500}
 .honest{font-size:15px;line-height:1.45;margin:16px 0 0;color:var(--ink)}
 #status{font:500 18px/1.35 var(--sans);min-height:50px;margin:0 0 16px}
-#status .a{color:var(--amber)}
-#primer{border:1px solid var(--amber);padding:14px;margin:0 0 16px;display:none}
+#status .a{color:var(--ice)}
+#primer{border:1px solid var(--ice);padding:14px;margin:0 0 16px;display:none}
 #primer.on{display:block}
-#primer .lab{font:11px/1 var(--mono);letter-spacing:.14em;color:var(--amber)}
+#primer .lab{font:11px/1 var(--mono);letter-spacing:.14em;color:var(--ice)}
 .meter{height:6px;background:var(--line);margin-top:10px;position:relative;overflow:hidden}
 .meter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ice);display:block}
-#primer .meter i{background:var(--amber)}
+#primer .meter i{background:var(--ice)}
 #cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .card{border:1px solid var(--line);background:#0d0720;padding:16px 14px;display:flex;flex-direction:column;gap:12px;min-height:250px}
-.card.won{border-color:var(--mint)}
+.card.won{border-color:var(--ink)}
 .card .L{font:600 clamp(64px,7vw,104px)/.85 var(--sans);letter-spacing:-.04em;color:var(--ink)}
-.card.won .L{color:var(--mint)}
+.card.won .L{color:var(--ink)}
 .card .nm{font-size:13px;line-height:1.3;color:var(--mute);min-height:34px}
 .card .nm b{color:var(--ink);font-weight:600;display:block;font-size:16px}
 button{appearance:none;background:transparent;color:var(--ink);border:1px solid var(--ice);border-radius:22px;padding:0 16px;font:500 13px/1 var(--mono);cursor:pointer;min-height:44px}
 #stage button{width:100%}
 button:hover:not(:disabled){background:rgba(188,211,255,.12)}
 button:disabled{color:#4a4066;border-color:var(--line);cursor:default}
-button.pick:not(:disabled){border-color:var(--mint);color:var(--night);background:var(--mint)}
+button.pick:not(:disabled){border-color:var(--ink);color:var(--night);background:var(--ink)}
 button.playing{border-color:var(--ice);background:var(--ice);color:var(--night)}
-button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
-#next{margin:20px 0 0;border-color:var(--amber);background:var(--amber);color:var(--night);max-width:560px}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+#next{margin:20px 0 0;border-color:var(--ink);background:var(--ink);color:var(--night);max-width:560px}
 #next:disabled{background:transparent;color:#4a4066;border-color:var(--line)}
-#slip{display:none;margin:18px 0 0;border-color:var(--mint);color:var(--mint)}body.done #slip{display:block}
+#slip{display:none;margin:18px 0 0;border-color:var(--ink);color:var(--ink)}body.done #slip{display:block}
 #round,#result{display:none}
 body.r #round{display:block}
 body.done #round{display:none}body.done #result{display:block}
@@ -68,8 +68,8 @@ body.done #pvbox{display:none}body.done #stage{grid-template-columns:minmax(0,64
 .track{height:22px;background:var(--line);position:relative}
 .track i{position:absolute;left:0;top:0;bottom:0;display:block}
 .track u{position:absolute;top:-4px;bottom:-4px;left:50%;border-left:1px dashed var(--mute)}
-.bar.p .track i{background:var(--amber)}
-.bar.u .track i{background:var(--ice)}
+.bar.p .track i{background:var(--ice)}
+.bar.u .track i{background:var(--mute)}
 .chance{font:11px/1.2 var(--mono);color:var(--mute);margin-top:6px}
 #mapbox{margin:26px 0 0;border-top:1px solid var(--line);padding-top:4px}
 #mapbox .k{margin-top:20px}
@@ -78,33 +78,33 @@ body.done #pvbox{display:none}body.done #stage{grid-template-columns:minmax(0,64
 .leg{display:flex;flex-wrap:wrap;gap:8px 16px;font:12px/1.2 var(--mono);color:var(--mute);margin-top:10px}
 .leg span{display:inline-flex;align-items:center;gap:6px}
 .leg i{width:9px;height:9px;display:inline-block}
-.leg .m{background:var(--mint)}.leg .o{border:1px solid var(--ice)}.leg .a{background:var(--amber)}
-.leg i.ln,.leg i.lp{width:16px;height:0;border-top:1px solid var(--amber)}.leg i.ln{border-top-style:dashed}.leg i.lp{border-top-color:#4a4066}
+.leg .m{background:var(--ink)}.leg .o{border:1px solid var(--ice)}.leg .a{background:var(--ice)}
+.leg i.ln,.leg i.lp{width:16px;height:0;border-top:1px solid var(--ice)}.leg i.ln{border-top-style:dashed}.leg i.lp{border-top-color:#4a4066}
 #pvbox{position:sticky;top:24px}
 #mw{position:relative}
 #mtip{position:absolute;z-index:3;pointer-events:none;font:500 11px/1.4 var(--mono);color:var(--ink);background:var(--night);border:1px solid var(--line);padding:4px 8px;border-radius:6px 9px 6px 8px;max-width:240px}
 #map{cursor:pointer;touch-action:manipulation}
 #hear1{margin-top:12px}
-#skip{margin-top:12px;border-color:var(--amber);color:var(--amber)}
+#skip{margin-top:12px;border-color:var(--ice);color:var(--ice)}
 #skip:disabled{color:#4a4066;border-color:var(--line)}
 #tourrow{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
 #tourrow button{width:auto;flex:1 1 180px}#tourrow #slip{margin:0}body.shared #slip{display:none}
 #stoptour[hidden]{display:none}
 ol#log li{cursor:pointer;min-height:44px;display:flex;align-items:center;flex-wrap:wrap;gap:0 4px;line-height:1.4}
-ol#log li.on{border-top-color:var(--mint);color:var(--ink)}
-ol#log li:focus-visible{outline:2px solid var(--mint);outline-offset:-2px}
+ol#log li.on{border-top-color:var(--ink);color:var(--ink)}
+ol#log li:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 .big .c{font:500 18px/1.3 var(--sans);letter-spacing:0;color:var(--mute)}
 #now{font:12px/1.5 var(--mono);color:var(--mute);margin:12px 0 0;min-height:36px}
 #pv{display:block;width:100%;aspect-ratio:1/1;border:1px solid var(--line);background:var(--night)}
 .pvcap{font:11px/1.3 var(--mono);letter-spacing:.08em;color:var(--mute);margin-top:8px}
 ol#log{list-style:none;margin:16px 0 0;font:12px/1.5 var(--mono);color:var(--mute)}
 ol#log li{padding:4px 0;border-top:1px solid var(--line)}
-ol#log b{color:var(--mint);font-weight:500}ol#log em{color:var(--amber);font-style:normal}
+ol#log b{color:var(--ink);font-weight:500}ol#log em{color:var(--ice);font-style:normal}
 .big{font:600 clamp(56px,min(10vw,25cqi),128px)/.9 var(--sans);letter-spacing:-.045em;color:var(--act);font-variant-numeric:tabular-nums}
 .keylab{display:block;font:11px var(--mono);letter-spacing:.14em;color:var(--mute);margin:8px 0 18px}
 .take,.ask{margin:0 0 12px;padding:2px 0 2px 14px;font:500 18px/1.3 var(--sans);letter-spacing:-.005em}
-.take{border-left:3px solid var(--mint);color:var(--mint)}
-.ask{border-left:3px solid var(--violet);color:#b7a3f2}
+.take{border-left:3px solid var(--ink);color:var(--ink)}
+.ask{border-left:3px solid var(--line);color:#cfc6e8}
 .take b,.ask b{display:block;font:500 10px/1.6 var(--mono);letter-spacing:.16em;color:var(--mute)}
 .note{font:11px/1.55 var(--mono);color:var(--mute);margin:12px 0 0}
 details.how{border-top:1px solid var(--line);margin:16px 0 0}
@@ -165,7 +165,7 @@ nav.walls a[aria-current]{color:var(--act);text-decoration:underline;text-underl
     <div class="k" id="mhead">your picks on my sound map</div>
     <p class="cap">each shape is an artist i have heard, colored by genre family. close together = sounds alike. hover for a name, tap to hear it.</p>
     <div id="mw"><div id="mtip" hidden aria-hidden="true"></div><canvas id="map" width="560" height="560" role="img" aria-label="the sound map with the twelve picks lit"></canvas></div>
-    <div class="leg"><span><svg viewBox="0 0 20 20" width="16" height="16"><path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/></svg>picked (number = round)</span><span><svg viewBox="0 0 20 20" width="16" height="16"><circle cx="10" cy="10" r="5" fill="#b9aedc"/></svg>passed</span><span><svg viewBox="0 0 20 20" width="16" height="16"><circle cx="10" cy="10" r="6" fill="#f5a623"/></svg>the first song</span><span><i class="ln"></i>a pair with a first song</span><span><i class="lp"></i>a pair</span></div>
+    <div class="leg"><span><svg viewBox="0 0 20 20" width="16" height="16"><circle cx="10" cy="10" r="4.5" fill="#5c5478"/><circle cx="10" cy="10" r="7.6" fill="none" stroke="#efe9ff" stroke-width="1.8"/></svg>picked (number = round)</span><span><svg viewBox="0 0 20 20" width="16" height="16"><circle cx="10" cy="10" r="5" fill="#b9aedc"/></svg>passed</span><span><svg viewBox="0 0 20 20" width="16" height="16"><circle cx="10" cy="10" r="6" fill="#bcd3ff"/></svg>the first song</span><span><i class="ln"></i>a pair with a first song</span><span><i class="lp"></i>a pair</span></div>
     <p class="fams" id="mapfams" aria-label="genre family colors"></p>
     <ol id="log"></ol>
   </div>

@@ -77,8 +77,8 @@ function draw() {
   SONGS.forEach(function (s, j) {
     var on = cur && cur.i === s.i, r = (on ? 8 : 6) + 3 * TW[s.i], x = at[j][0], y = at[j][1];
     P.peb(g, s.i, x, y, r + 1.6, PAL.ink); P.peb(g, s.i, x, y, r, fcol(s.i), false);
-    if (S.res[j] === 'ok') P.glyph(g, 'dot', x, y - r - 7, 4, PAL.mint);
-    else if (S.res[j] === 'lf') P.glyph(g, 'dot', x, y - r - 7, 4, PAL.rose);
+    if (S.res[j] === 'ok') P.glyph(g, 'dot', x, y - r - 7, 5, PAL.ink);
+    else if (S.res[j] === 'lf') P.glyph(g, 'ring', x, y - r - 7, 4.5, PAL.ink);
   });
   if (cur) {
     var cx = at[S.k][0], cy = at[S.k][1], nx = MAP.X(cur.near), ny = MAP.Y(cur.near);
@@ -135,7 +135,7 @@ function show() {
   $('play').setAttribute('aria-pressed', S.on ? 'true' : 'false');
   $('who').textContent = s ? name(s.i) : '';
   $('dline').innerHTML = s ? 'family <b>' + esc(fam(s.i)) + '</b>. the closest the 40 walks came: <b>' + esc(name(s.near)) + '</b>, the violet ring, <b>' + Math.round(s.d) + '</b> away on a map 1000 wide.' : '';
-  $('slot').textContent = s ? 'song ' + (S.k + 1) + ' of ' + SONGS.length + '. stay 30 s and the dot turns mint. tap a dot or a bright shape to jump.' : '';
+  $('slot').textContent = s ? 'song ' + (S.k + 1) + ' of ' + SONGS.length + '. stay 30 s and the dot fills in. tap a dot or a bright shape to jump.' : '';
   if (!s) $('bar').style.width = '0';
   drawStays(); draw();
 }
