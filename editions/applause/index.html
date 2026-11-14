@@ -18,7 +18,7 @@
 #play, #go { --acc: var(--violet); } #listen { --acc: var(--mint); } #clap { --acc: var(--rose); } #zero { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="17 of 18" data-line="clap and the violet walk moves to the next song. quiet keeps it." data-do="press play to hear the walk, then clap, or press clap for me." data-keys="auto,alike" style="--act: var(--rose); --acc: var(--rose)">
+<body data-wall="17 of 18" data-line="clap and the violet walk, a pretend auto-play built from my log, moves on. quiet keeps it." data-do="press play, then listen for claps and clap, or press clap for me." data-keys="auto,alike" style="--act: var(--rose); --acc: var(--rose)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>clap to skip</span><span class="tl">a toy</span></p>
@@ -28,8 +28,8 @@
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span class="r">0</span> <span class="c">/</span> <span class="g">0</span></div>
-      <span class="keylab">claps heard tonight (rose) / songs skipped by claps (mint)</span>
-      <p class="say" id="say">press play to hear the walk. then clap, or press clap for me.</p>
+      <span class="keylab">claps heard today (rose) / songs skipped by claps (mint)</span>
+      <p class="say" id="say"></p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>the room can press next, but it cannot tell which song it wanted gone.</p>
@@ -39,13 +39,12 @@
       <label class="k" for="thr">how loud counts as a clap</label>
       <input type="range" id="thr" min="10" max="90" step="1" value="50" aria-label="how loud a sound must be to count as a clap">
       <div class="row">
-        <button type="button" id="play">play the walk first</button>
+        <button type="button" id="play">play the walk</button>
         <button type="button" id="listen" aria-pressed="false">listen for claps</button>
         <button type="button" id="clap">clap for me, no mic needed</button>
         <button type="button" id="go">next song, no clap</button>
-        <button type="button" id="zero">zero the counts</button>
       </div>
-      <p class="note" id="now">press play: the songs play in order, and each ring on the map is one stop. tap a ring to jump there. sound must be on.</p>
+      <p class="note" id="now"></p>
     </section>
     <details class="how"><summary>how</summary>
       <p>press play. the walk plays song after song; tap any ring, or press next song, to jump ahead.</p>
@@ -55,7 +54,8 @@
     <details class="fine"><summary>the fine print</summary>
       <p>nothing is recorded; only a loudness number is read, never audio. the mic is read about 60 times a second as one number and the sound is thrown away at once.</p>
       <p>a loud room will skip itself. the threshold is high, a skip needs a sharp jump over the room's usual level, and there is a 3 s cooldown. test it in the room.</p>
-      <p>the songs are a toy auto-play walk through my map. the two counts are saved on this tablet only, under tonight's date, and nowhere else.</p>
+      <p>the songs are a toy auto-play walk through my map. the two counts stay in this browser only, for today, and nowhere else.</p>
+      <p><button type="button" id="zero">zero the counts</button></p>
       <p id="meta"></p>
     </details>
   </main>

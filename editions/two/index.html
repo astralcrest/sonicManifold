@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--bside:#efe9ff;--aside:#ff6fae;--act:var(--ice);--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--amber:#f5a623;--violet:#8b6fd6;--rose:#ff5c7a;--ice:#bcd3ff;--bside:#4aa8ff;--aside:#ff6fae;--act:var(--ice);--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--night);color-scheme:dark}
 body{background:var(--night);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.45}
@@ -46,7 +46,6 @@ h1 em{font-style:normal;color:var(--ice)}
 #sides{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:26px}
 .side{border:1px solid var(--line);background:var(--panel);padding:18px;display:grid;gap:12px;border-top:3px solid var(--aside)}
 .side[data-s="b"]{border-top-color:var(--bside)}
-.side.owner{border-top-color:var(--violet)}
 .side.over{border-color:var(--ice)}
 .side h2{font:600 28px/1 var(--sans);letter-spacing:-.02em;display:flex;justify-content:space-between;gap:12px;align-items:baseline}
 .side h2 small{font:12px var(--mono);color:var(--mute);font-weight:400;text-align:right;letter-spacing:.04em}
@@ -71,7 +70,6 @@ section.pic{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap
 .cv canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
 .tap{font:12px/1.45 var(--mono);color:var(--mute);margin-top:8px;min-height:1.45em}
 .tap b{color:var(--ink);font-weight:500}
-#hear{margin-top:14px}
 .room h3{font:600 clamp(26px,2.8vw,40px)/1.05 var(--sans);letter-spacing:-.02em}
 .room .n{font:11px var(--mono);color:var(--ice);letter-spacing:.14em;margin-bottom:10px}
 .room .find{font-size:clamp(16px,1.4vw,19px);line-height:1.4;font-weight:500;margin-top:14px;max-width:52ch}
@@ -88,7 +86,9 @@ section.pic{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap
 ul.names{list-style:none;margin-top:14px;display:grid;gap:5px;font-size:14px}
 ul.names li{display:flex;gap:8px;align-items:baseline;line-height:1.3}
 ul.names li.on{color:var(--ice);outline:1px solid var(--ice);outline-offset:3px}
-ul#l4 li{cursor:pointer;min-height:32px}
+ul#l4 li{cursor:pointer;min-height:44px;align-items:center}
+ul#l4 li .pr{min-width:0}
+ul#l4 li .nr{margin-left:auto;white-space:nowrap;padding-left:4px}
 ul.names li .m{font:11px var(--mono);color:var(--mute)}
 ul.names.cols{grid-template-columns:1fr 1fr;column-gap:16px}
 .split{display:inline-flex;width:10px;height:10px}.split i{flex:1;background:var(--aside)}.split i+i{background:var(--bside)}
@@ -108,16 +108,17 @@ button#again6,button#again{min-height:44px}
 .leg6{font:12px/1.5 var(--mono);color:var(--mute);margin-top:10px}
 .leg6 b{color:var(--ink);font-weight:500}
 #c6a,#c6b{cursor:pointer}
+.room .take{margin-top:18px}
+main{display:flex;flex-direction:column}
+main>*{order:3}
+main>header{order:0}
+main>#p1{order:1;margin-top:20px;border-top:0;padding-top:0}
+main>#sides{order:2}
 @media (max-width:900px){
   .duo{grid-template-columns:1fr}
   main{padding:18px 16px 48px}
   header{grid-template-columns:1fr}
   #qr{display:none}
-  main{display:flex;flex-direction:column}
-  main>*{order:3}
-  main>header{order:0}
-  main>#p1{order:1;margin-top:20px;border-top:0;padding-top:0}
-  main>#sides{order:2}
   #sides{grid-template-columns:1fr}
   section.pic{grid-template-columns:1fr;gap:16px;margin-top:28px;padding-top:20px}
   ul.names.cols{grid-template-columns:1fr}
@@ -135,14 +136,11 @@ button#again6,button#again{min-height:44px}
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the two of you</span><span class="tl">a toy</span></p>
     <h1>the <em>two</em> of you, on my sound map</h1>
     <p id="lead">two people, one sound map: where each of you sits, what you share, who ranges wider, and where auto-play would carry you. no score.</p>
-    <p class="how" id="showing"></p>
     <div id="qr"><img src="data/qr.svg" alt="QR code linking to this page"><span>scan to open this page on your phone</span></div>
   </div>
   <div class="hside">
     <div class="big" id="nshared"><span class="c">loading the map</span></div>
     <span class="keylab">artists you both have</span>
-    <p class="take"><b>takeaway:</b>two lists become places on one map; no score, no verdict.</p>
-    <p class="ask"><b>open question:</b>is closeness in sound the same thing as closeness between people?</p>
   </div>
 </header>
 
@@ -172,7 +170,7 @@ button#again6,button#again{min-height:44px}
 <details class="how"><summary>how</summary>
   <p>press try two made-up lists, or paste names for a and b.</p>
   <p>scroll the six pictures. tap a shape to name it.</p>
-  <p>in pictures four to six press hear: each stop plays 8 seconds and the path keeps going. next stop or a tap jumps ahead. pink = a, white = b, violet = auto-play, gray = others.</p>
+  <p>in pictures four to six press hear: each stop plays 8 seconds and the path keeps going. next stop or a tap jumps ahead. pink = a, blue = b, violet = auto-play, gray = everyone else i heard.</p>
 </details>
 
 <section class="pic" id="p1">
@@ -180,8 +178,11 @@ button#again6,button#again{min-height:44px}
   <div class="room">
     <p class="n">one · where you sit</p>
     <h3>both of you on my sound map</h3>
+    <p class="how" id="showing"></p>
     <p class="find" id="f1"></p>
-    <p class="cap"><span class="sw" style="background:var(--aside)"></span>a &nbsp; <span class="sw" style="background:var(--bside)"></span>b &nbsp; <span class="sw" style="background:#5a4a92"></span>everyone else i heard</p>
+    <p class="cap"><span class="sw" style="background:var(--aside)"></span>a &nbsp; <span class="sw" style="background:var(--bside)"></span>b &nbsp; <span class="sw" style="background:#5e5b70"></span>everyone else i heard</p>
+    <p class="take"><b>takeaway:</b>two lists become places on one map; no score, no verdict.</p>
+    <p class="ask"><b>open question:</b>is closeness in sound the same thing as closeness between people?</p>
     <details class="fine"><summary>the fine print</summary><p>shape size = plays over 30 seconds (an export) or list rank (a pasted list).</p></details>
   </div>
 </section>
@@ -212,12 +213,12 @@ button#again6,button#again{min-height:44px}
   <div class="cv"><canvas id="c4"></canvas></div>
   <div class="room">
     <p class="n">four · the bridge</p>
-    <h3>where your sounds nearly touch</h3>
+    <h3>the nearest crossings</h3>
     <p class="find" id="f4"></p>
     <ul class="names" id="l4"></ul>
-    <div class="row" style="margin-top:14px"><button type="button" id="hear">hear the crossings, pair by pair</button><button type="button" id="next4">next pair</button></div>
+    <div class="row" style="margin-top:14px"><button type="button" id="hear">hear the crossings</button><button type="button" id="next4">next pair</button></div>
     <p class="tap" id="t4" aria-live="polite"></p>
-    <details class="fine"><summary>the fine print</summary><p>for each artist only one of you has, the nearest artist only the other has, in the 3D sound map. each stop plays 8 seconds of a public preview, so you can judge a crossing by ear. tap a pair in the list to jump to it.</p></details>
+    <details class="fine"><summary>the fine print</summary><p>for each artist only one of you has, the nearest artist only the other has, in the 3D sound map. close = the second is among the first one's 10 nearest of all 1,871 artists; the rank says where it falls. each stop plays 8 seconds of a public preview, so you can judge a crossing by ear. tap a pair in the list to jump to it.</p></details>
   </div>
 </section>
 
@@ -232,10 +233,10 @@ button#again6,button#again{min-height:44px}
     <details class="fine"><summary>the fine print</summary><p>0 = every drawn pair equally likely; 4 = the pairs already played win.</p></details>
     <p class="find" id="spread"></p>
     <p class="cap" id="cap5"></p>
-    <p class="cap">faint lines: 8 walks per side. thick line: the first walk. dots: its stops.</p>
+    <p class="cap">faint lines: 8 walks per side, from the side's color into auto-play violet. thick line: the first walk. rings: its stops.</p>
     <div class="row" style="margin-top:12px"><button type="button" id="hear5">hear the thick walks</button><button type="button" id="next5">next stop</button></div>
     <p class="tap" id="n5" aria-live="polite">tap a stop on the map to hear the walk from there.</p>
-    <details class="fine"><summary>the fine print</summary><p>a 20-step walk from each side's top 10 placed artists, on 1,600 of auto-play’s 11,688 artist pairs (a random draw), either direction, each step chosen by how often that pair ran (log scale). numbers are the expected stops, averaged over the 10 starts.</p></details>
+    <details class="fine"><summary>the fine print</summary><p>a 20-step walk from each side's top 10 placed artists the other side lacks, on 1,600 of auto-play’s 11,688 artist pairs (a random draw), either direction, each step chosen by how often that pair ran (log scale). numbers are the expected stops at artists only the other side has, averaged over the 10 starts. shared artists are left out of both, since panel two already counts them.</p></details>
   </div>
 </section>
 
@@ -255,7 +256,7 @@ button#again6,button#again{min-height:44px}
     <div class="row" style="margin-top:12px"><button type="button" id="hear6">hear both walks</button><button type="button" id="next6">next stop</button></div>
     <p class="tap" id="n6" aria-live="polite"></p>
     <div class="knob"><label class="how" for="habit6">drag: the same habit dial as panel five</label><input type="range" id="habit6" min="0" max="4" step="0.5" value="1" aria-label="habit weight, mirror"> <button type="button" id="again6">walk both lists again</button></div>
-    <details class="fine"><summary>the fine print</summary><p>auto-play’s rule walks 40 steps twice. mine uses the settings matched to my own listening, started from your top artist. yours is matched to your list: an export uses the artists you played back to back; a pasted list uses neighbors in your ranking. the habit dial scales how hard each rule repeats a pair in both. one walk each, so another seed can differ.</p></details>
+    <details class="fine"><summary>the fine print</summary><p>one walk rule, run twice for 40 steps. the auto-play walk uses settings matched to auto-play’s own next picks in my log, started from your top artist. the habits walk uses settings matched to your list (an export uses the artists you played back to back; a pasted list uses neighbors in your ranking), started from my most played artist. the habit dial scales how hard each rule repeats a pair in both. one walk each, so another seed can differ.</p></details>
   </div>
 </section>
 

@@ -29,21 +29,34 @@ function draw() {
   if (tr.length > 1) {
     var cut = S.walk && S.walk.k >= 0 ? S.walk.k : tr.length - 1;
     MAP.line(tr, tr.length, PAL.ice, [3, 5], 1.2);
-    MAP.ribbon(tr.slice(0, cut + 1), null, PAL.violet, PAL.mint, small ? 2 : 2.6);
+    MAP.ribbon(tr.slice(0, cut + 1), null, PAL.ice, PAL.ink, small ? 2 : 2.6);
   }
   if (S.cur >= 0) {
-    P.glyph(g, 'dot', MAP.X(S.cur), MAP.Y(S.cur), 8, PAL.mint);
-    if (WK.playing()) WK.pulse(g, MAP.X(S.cur), MAP.Y(S.cur), PAL.mint, 12);
-    else { g.save(); g.strokeStyle = PAL.mint; g.lineWidth = 1.5; g.beginPath(); g.arc(MAP.X(S.cur), MAP.Y(S.cur), 13, 0, 6.2832); g.stroke(); g.restore(); }
-    MAP.tag(S.cur, S.silent[S.cur] ? D.n[S.cur] + ' (no clip)' : D.n[S.cur], PAL.ink, PAL.night);
+    P.glyph(g, 'dot', MAP.X(S.cur), MAP.Y(S.cur), 8, PAL.ink);
+    if (WK.playing()) WK.pulse(g, MAP.X(S.cur), MAP.Y(S.cur), PAL.ink, 12);
+    else { g.save(); g.strokeStyle = PAL.ink; g.lineWidth = 1.5; g.beginPath(); g.arc(MAP.X(S.cur), MAP.Y(S.cur), 13, 0, 6.2832); g.stroke(); g.restore(); }
+    tag(S.cur);
   }
 }
-function out() {
-  var nf = Object.keys(S.fams).length, c = S.all ? D.n.length : S.cnt;
-  $('num').innerHTML = c ? '<span class="a">' + c + '</span>' : '<span class="c">nothing heard yet</span>';
-  if (!S.walk) $('say').textContent = S.cur >= 0 ? 'heard ' + c + ' of ' + D.n.length.toLocaleString('en-US') + '. now at ' + D.n[S.cur] + ' (' + fam(S.cur) + ').' : 'turn sound on, then drag across the map. on a laptop you can also focus the map and use the arrow keys.';
-  $('keylab').textContent = 'artists heard of ' + D.n.length.toLocaleString('en-US') + ', ' + (S.all ? D.fam.length : nf) + ' of ' + D.fam.length + ' sound families touched';
+// the one name label on the map: the artist you are on, with its family color
+function tag(i) {
+  var g = MAP.g, text = S.silent[i] ? D.n[i] + ' (no clip)' : D.n[i], cx = MAP.X(i), cy = MAP.Y(i), w, x, y;
+  g.save(); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+  g.font = '600 12px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
+  w = g.measureText(text).width + 26; x = cx + 12; y = cy - 14;
+  if (x + w > MAP.W - 2) x = cx - 12 - w; if (y < 11) y = cy + 16; if (x < 2) x = 2;
+  x = Math.round(x); y = Math.round(y);
+  g.fillStyle = PAL.night; g.fillRect(x, y - 11, w, 22); g.strokeStyle = PAL.ink; g.lineWidth = 1; g.strokeRect(x + 0.5, y - 10.5, w - 1, 21);
+  g.fillStyle = WK.FAMC[fam(i)] || '#9a90b8'; g.beginPath(); g.arc(x + 11, y, 4, 0, 6.2832); g.fill();
+  g.fillStyle = PAL.ink; g.fillText(text, x + 20, y + 0.5); g.restore();
 }
+function out() {
+  var nf = Object.keys(S.fams).length, c = S.cnt, cs = c.toLocaleString('en-US'), N = D.n.length.toLocaleString('en-US'), at = S.cur >= 0 ? ' now at ' + D.n[S.cur] + ' (' + fam(S.cur) + ').' : '';
+  $('num').innerHTML = c ? '<span class="a">' + cs + '</span>' : '<span class="c">nothing heard yet</span>';
+  if (!S.walk) $('say').textContent = S.all ? 'all ' + N + ' lit, ' + cs + ' heard.' + at : S.cur >= 0 ? 'heard ' + cs + ' of ' + N + '.' + at : 'turn sound on, then drag across the map. on a laptop you can also focus the map and use the arrow keys.';
+  $('keylab').textContent = 'artists heard of ' + N + ', ' + nf + ' of ' + D.fam.length + ' genre families touched';
+}
+function topArtist() { var m = 0, j; for (j = 1; j < D.xy.length; j++) if ((D.pl[j] || 0) > (D.pl[m] || 0)) m = j; return m; }
 function hasClip(i) { return !!(WK.title(i)); }
 function say(info, i) {
   var f = fam(i), prev = S.trail.length > 1 ? fam(S.trail[S.trail.length - 2]) : null;
@@ -68,7 +81,7 @@ function hit(i, now) {
 }
 function walkFrom(k0) {
   var list = S.trail.slice(-12);
-  if (list.length < 2) { $('now').textContent = 'drag across the map first, then replay your path.'; return; }
+  if (list.length < 2) { $('say').textContent = 'drag across the map first, then replay your path.'; return; }
   clearTimeout(S.tm);
   S.walk = { list: list, k0: k0, k: -1 };
   var seq = list.slice(k0).map(function (i) { return { i: i, tag: 'a' }; });
@@ -86,7 +99,7 @@ function walkFrom(k0) {
 }
 function hop() {
   var from = S.cur >= 0 ? S.cur : S.last, best = -1, bd = 1e18, k, j, dx, dy, d;
-  if (from < 0) { $('now').textContent = 'drag across the map first, then hop to the next artist.'; return; }
+  if (from < 0) { if (D) { S.cur = -1; hit(topArtist(), true); } return; }
   for (k = 0; k < D.nn[from].length; k++) {
     j = D.nn[from][k]; if (j < 0 || S.heard[j]) continue;
     dx = D.xy[j][0] - D.xy[from][0]; dy = D.xy[j][1] - D.xy[from][1]; d = dx * dx + dy * dy;
@@ -102,7 +115,9 @@ function next() {
 function btns() {
   var w = !!S.walk && WK.playing();
   $('hear').textContent = w ? 'stop the replay' : 'replay my path'; $('hear').setAttribute('aria-pressed', w ? 'true' : 'false');
-  $('next').textContent = w ? 'next stop on the path' : 'next artist i have not heard';
+  $('next').textContent = w ? 'next stop on the path' : 'next unheard artist';
+  // the strip's play button: hop before there is a path to replay
+  WK.primary(S.trail.length > 1 ? '#hear' : '#next');
 }
 function at(e) { var r = cv.getBoundingClientRect(); return nearest(e.clientX - r.left, e.clientY - r.top); }
 cv.addEventListener('pointerdown', function (e) { S.down = true; try { cv.setPointerCapture(e.pointerId); } catch (x) {} S.cur = -1; hit(at(e), true); e.preventDefault(); });
@@ -110,17 +125,26 @@ cv.addEventListener('pointermove', function (e) { if (S.down) hit(at(e), false);
 function up() { S.down = false; }
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 cv.addEventListener('keydown', function (e) {
-  var v = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key], from, k, j, best = -1, bs = 0, dx, dy, c;
+  var v = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key], from, k, j, best = -1, bs = 0, dx, dy, c, d;
   if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); next(); return; }
   if (!v) return; e.preventDefault();
   from = S.cur >= 0 ? S.cur : S.last;
-  if (from < 0) { var m = 0; for (j = 1; j < D.xy.length; j++) if ((D.pl[j] || 0) > (D.pl[m] || 0)) m = j; S.cur = -1; hit(m, true); return; }
+  if (from < 0) { S.cur = -1; hit(topArtist(), true); return; }
   for (k = 0; k < D.nn[from].length; k++) {
     j = D.nn[from][k]; if (j < 0) continue;
     dx = D.xy[j][0] - D.xy[from][0]; dy = D.xy[j][1] - D.xy[from][1]; c = (dx * v[0] + dy * v[1]) / (Math.sqrt(dx * dx + dy * dy) || 1);
     if (c > bs) { bs = c; best = j; }
   }
-  if (best >= 0 && bs > 0.3) hit(best, true);
+  if (best < 0 || bs <= 0.3) {
+    // no sound neighbor that way: the nearest artist on the map that way
+    best = -1; bs = 1e18;
+    for (j = 0; j < D.xy.length; j++) {
+      dx = D.xy[j][0] - D.xy[from][0]; dy = D.xy[j][1] - D.xy[from][1]; d = Math.sqrt(dx * dx + dy * dy);
+      if (!d || (dx * v[0] + dy * v[1]) / d < 0.64) continue;
+      if (d < bs) { bs = d; best = j; }
+    }
+  }
+  if (best >= 0) hit(best, true); else $('say').textContent = 'no artist further that way.';
 });
 
 $('clear').addEventListener('click', function () { clearTimeout(S.tm); WK.stop(); WK.still(); S.heard = {}; S.fams = {}; S.cnt = 0; S.cur = -1; S.last = -1; S.all = false; S.silent = {}; S.trail = []; S.walk = null; $('now').textContent = IDLE; draw(); out(); btns(); });
@@ -132,8 +156,9 @@ var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); draw(); }, 80); });
 
 WK.boot().then(function (b) {
-  D = b.D; MAP = new WK.Map($('map'), cv, D, b.M, { dim: 0.18, lattice: false }); MAP.resize();
+  D = b.D; MAP = new WK.Map($('map'), cv, D, b.M, { dim: 0.18, lattice: false, hover: false }); MAP.resize();
   WK.pv(); draw(); out(); btns();
-  $('meta').textContent = 'data: ' + D.n.length + ' artists on my sound map.';
+  WK.famKey($('fams'), D, D.fam.map(function (_, f) { return D.f.indexOf(f); }));
+  $('meta').textContent = 'data: ' + D.n.length.toLocaleString('en-US') + ' artists on my sound map.';
 }).catch(function () { $('say').textContent = 'the data did not load. reload the page.'; });
 })();

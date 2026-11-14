@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>telephone &middot; sonic manifold</title>
-<meta name="description" content="a chain of songs on my sound map, one press per link. nobody chose the whole path. a toy.">
-<meta property="og:title" content="wall 11 of 25: telephone"><meta property="og:description" content="a chain of songs on my sound map, one press per link. nobody chose the whole path. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/telephone.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="a chain of songs on my sound map, one press per link. each press saw only the last song. a toy.">
+<meta property="og:title" content="wall 11 of 25: telephone"><meta property="og:description" content="a chain of songs on my sound map, one press per link. each press saw only the last song. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/telephone.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +21,7 @@
 #cands button.on .n { color: var(--night); }
 #after { display: none; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 #after.show { display: flex; }
+#fams { margin: 16px 0 6px; } #marks { margin: 0; color: var(--mute); }
 #nw { --acc: var(--line); color: var(--mute); }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
 .take-home { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; color: var(--ice); font: 500 15px var(--sans); }
@@ -33,7 +34,7 @@
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>telephone</span><span class="tl">a toy</span></p>
     <h1>pick the next song. who made <em>this</em> path?</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. a ribbon shows a chain of songs, one link per visitor. six pebbles around the last song are its nearest in sound; tap one to add the next link."></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. a ribbon shows a chain of songs, one link per press. up to six numbered pebbles around the last song are its nearest in sound not yet in the chain; tap one to hear it, tap again to add it."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big ice" id="num"><span class="c">add a link</span></div>
@@ -41,13 +42,15 @@
       <p class="say" id="say"></p>
     </div>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>nobody chose the whole path, and nobody can say whose it is.</p>
+      <p class="take"><b>takeaway:</b>you chose every link, but each press saw only the last song.</p>
       <p class="ask"><b>open question:</b>is a night of listening any different?</p>
     </div>
     <section>
       <p class="lastsong" id="last"></p>
       <p class="note" id="now">tap a numbered song to hear it first. tap it again to add it as the next link.</p>
-      <div id="cands" role="group" aria-label="six nearest in sound; press a number key or tap one"></div>
+      <div id="cands" role="group" aria-label="the nearest in sound not yet in the chain, up to six; press a number key or tap one"></div>
+      <p class="fams" id="fams" aria-label="pebble color is the sound family"></p>
+      <p class="fams" id="marks" aria-label="what the ring means"><span><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><circle cx="10" cy="10" r="4" fill="#9a90b8"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="#efe9ff" stroke-width="1.5"/></svg>ring: a new family</span></p>
       <div id="after"><button type="button" id="pc">hear every link in order</button><button type="button" id="kg">add more links</button></div>
       <div class="row"><button type="button" id="nw">start a new chain</button></div>
       <a class="take-home" id="home" href="../print/receipt2.html" hidden>take it home: your presses vs auto-play</a>
@@ -55,10 +58,10 @@
     <details class="how"><summary>how</summary>
       <p>tap a numbered song, or press 1 to 6, to hear it. tap it again, or press enter, to add it.</p>
       <p>the path grows and the ringed song pulses as it plays. press n or tap a numbered link to skip around when you replay.</p>
-      <p>read the number: hops from the first song to the last. pebble colors are families; a ring marks a new family.</p>
+      <p>read the number: hops from the first song to the last.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>a toy rule on this screen, not my data. the six are the nearest artists on my sound map, not what anyone would pick next.</p>
+      <p>a toy rule on this screen, not my data. the numbered ones are the six nearest artists on my sound map, minus any already in the chain. they are not what anyone would pick next.</p>
       <p>steps are counted in the neighbor graph: each artist joined to its six nearest. the toy rule alone always takes the nearest one it has not visited.</p>
       <p>the chain is kept in this browser until someone starts a new chain. previews are 30 s clips and only play with sound on.</p>
     </details>

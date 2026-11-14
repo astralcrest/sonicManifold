@@ -1,7 +1,7 @@
 (function () {
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, MAP, PV = null;
-var cv = $('cv'), HOLD_MS = 2000, COUNT = 12;
+var cv = $('cv'), HOLD_MS = 2000, COUNT = 12, HINT = $('now').textContent;
 // st: 0 upcoming, 1 kept, 2 skipped
 var S = { list: [], st: [], k: 0, t0: 0, held: false, kept: false, raf: 0, done: false, phase: 'idle', tok: 0, heard: false, ended: false };
 
@@ -9,7 +9,7 @@ function deal() {
   var pool = M.order.slice(0, 200).filter(function (i) { return PV && PV[i]; }), out = [], n;
   while (out.length < COUNT && pool.length) { n = Math.floor(Math.random() * pool.length); out.push(pool.splice(n, 1)[0]); }
   S.list = out; S.st = out.map(function () { return 0; }); S.k = 0; S.held = false; S.kept = false; S.done = false; S.phase = 'idle'; S.heard = false; S.tok++; $('home').hidden = true;
-  WK.stop(); WK.still(); $('hold').classList.remove('go'); setBar(0); $('now').textContent = ''; render();
+  WK.stop(); WK.still(); $('hold').classList.remove('go'); setBar(0); $('now').textContent = HINT; render();
 }
 function setBar(f) { $('bar').firstElementChild.style.width = Math.round(Math.max(0, Math.min(1, f)) * 100) + '%'; }
 function fam(i) { return D.fam[D.f[i]]; }
@@ -39,7 +39,7 @@ function startClip() {
     }
     S.heard = true;
     var pf = S.k > 0 ? S.list[S.k - 1] : null, fc = pf == null ? '' : (fam(pf) !== fam(i) ? ' family change from ' + fam(pf) + '.' : ' same family as the last song.');
-    $('now').textContent = 'song ' + (S.k + 1) + ' of 12, hearing ' + info.title + ' by ' + D.n[i] + '.' + fc + (nextName() ? ' next up: ' + nextName() + '.' : ' last song.');
+    $('now').textContent = 'song ' + (S.k + 1) + ' of 12.' + fc + (nextName() ? ' next up: ' + nextName() + '.' : ' last song.');
     WK.live(draw);
   });
 }
@@ -51,8 +51,8 @@ function tick() {
   S.raf = requestAnimationFrame(tick);
 }
 function press() {
-  if (S.held || S.done) return;
-  if (S.phase !== 'playing') { startClip(); return; }
+  if (!D || S.held || S.done) return;
+  if (S.phase !== 'playing') { WK.setSound(true); startClip(); return; }
   S.held = true; S.kept = false; S.t0 = performance.now();
   $('hold').classList.add('go'); $('hold').setAttribute('aria-pressed', 'true'); render();
   S.raf = requestAnimationFrame(tick);
@@ -70,11 +70,12 @@ function render() {
   var K = keptN(), i = S.list[S.k], n = S.k + 1, nm = S.done ? '' : D.n[i];
   WK.famKey($('fams'), D, S.list);
   $('num').innerHTML = decided() ? K : '<span class="c">none decided yet</span>';
-  $('song').innerHTML = S.done ? '&nbsp;' : WK.esc(nm);
+  var tt = S.done ? null : (PV[i] && PV[i][0]);
+  $('song').innerHTML = S.done ? '&nbsp;' : WK.esc(tt || nm); $('by').textContent = tt ? nm : '';
   $('hold').disabled = S.done; $('sk').disabled = S.done || S.held;
   if (S.done) { var kl = S.list.filter(function (a, n) { return S.st[n] === 1; }), hm = $('home'); hm.hidden = false; hm.setAttribute('href', '../print/stub.html#a=' + (kl.length ? kl[kl.length - 1] : S.list[S.list.length - 1]) + '&k=' + K); }
-  if (S.done) { $('say').textContent = 'you kept ' + K + ' of 12' + keptNames() + '. in my log, 42 of 100 songs i started myself stayed, and 16 of 100 of auto-play\'s. this one is a toy.'; setBtn('all 12 heard'); draw(); return; }
-  if (S.phase !== 'playing') { $('say').textContent = 'press play to hear song ' + n + ' of 12: ' + nm + ' (' + fam(i) + ', ' + D.pl[i] + ' plays in my log). then decide.' + snd(); setBtn('play song ' + n + ' of 12'); }
+  if (S.done) { $('say').textContent = 'you kept ' + K + ' of 12' + keptNames() + '. of new songs i pressed, 42 of 100 ended up in my library; of auto-play\'s, 16 (my numbers, in-sample). this one is a toy.'; setBtn('all 12 heard'); draw(); return; }
+  if (S.phase !== 'playing') { $('say').textContent = 'press play to hear song ' + n + ' of 12: ' + nm + ' (' + fam(i) + ', ' + D.pl[i] + ' plays in my log). then decide.'; setBtn('play song ' + n + ' of 12'); }
   else if (S.held && S.kept) { $('say').textContent = 'kept: song ' + n + ' of 12, ' + nm + '. let go for the next one.'; setBtn('kept. let go for next'); }
   else if (S.held) { $('say').textContent = 'keeping song ' + n + ' of 12: ' + nm + '. hold two seconds. let go = skip.'; setBtn('keeping... keep holding'); }
   else { $('say').textContent = 'song ' + n + ' of 12 is playing: ' + nm + '. like it? hold to keep. let go = skip.' + snd(); setBtn('hold to keep song ' + n); }
@@ -101,25 +102,39 @@ function draw() {
   }
 }
 
-function tap(i) {
-  var n = S.list.indexOf(i);
-  if (S.done || S.held || n <= S.k) return;
-  var t = S.list[S.k]; S.list[S.k] = i; S.list[n] = t; S.tok++; WK.stop(); startClip();
+// a tap takes the nearest upcoming song of the deal, not the nearest of all artists (too dense to hit on a phone)
+function tap(e) {
+  if (!MAP || S.done || S.held) return;
+  var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, n, best = -1, bd = 28 * 28, dx, dy, d;
+  for (n = S.k + 1; n < S.list.length; n++) { dx = MAP.X(S.list[n]) - x; dy = MAP.Y(S.list[n]) - y; d = dx * dx + dy * dy; if (d < bd) { bd = d; best = n; } }
+  if (best < 0) return;
+  var t = S.list[S.k]; S.list[S.k] = S.list[best]; S.list[best] = t; S.tok++; WK.stop(); startClip();
 }
+cv.addEventListener('pointerdown', tap);
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); draw(); }, 80); });
 var hb = $('hold');
 hb.addEventListener('pointerdown', function (e) { e.preventDefault(); try { hb.setPointerCapture(e.pointerId); } catch (x) {} press(); });
 hb.addEventListener('pointerup', release); hb.addEventListener('pointercancel', release);
 hb.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-addEventListener('keydown', function (e) { if (e.code === 'Space' && !e.repeat && !/BUTTON|INPUT/.test((e.target || {}).tagName || '')) { e.preventDefault(); press(); } });
-addEventListener('keyup', function (e) { if (e.code === 'Space') release(); });
+// the strip's play pill and the front's autostart arrive as a plain click; the pointer path is already 'playing' by then
+hb.addEventListener('click', function () { if (D && S.phase !== 'playing' && !S.done && !S.held) { WK.setSound(true); startClip(); } });
+// space is the hold on every target, so a focused button never fires on it
+function typing(t) { return t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName || '') || t.isContentEditable); }
+addEventListener('keydown', function (e) {
+  if (e.code !== 'Space' || typing(e.target)) return;
+  e.preventDefault(); var a = document.activeElement; if (a && a !== hb && a !== document.body && a.blur) a.blur();
+  if (!e.repeat) press();
+}, true);
+addEventListener('keyup', function (e) { if (e.code === 'Space' && !typing(e.target)) { e.preventDefault(); release(); } }, true);
+hb.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (!e.repeat) press(); } });
+hb.addEventListener('keyup', function (e) { if (e.key === 'Enter') release(); });
 $('again').addEventListener('click', deal);
 $('sk').addEventListener('click', skip);
 var sc = document.getElementById('wk-snd'); if (sc) sc.addEventListener('click', function () { setTimeout(function () { if (D) render(); }, 0); });
 
 Promise.all([WK.boot(), WK.pv()]).then(function (a) {
   D = a[0].D; M = a[0].M; PV = a[1];
-  MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5, tap: tap }); MAP.resize(); deal();
+  MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5 }); MAP.resize(); deal();
 }).catch(function () { $('say').textContent = 'the data did not load. reload the page.'; });
 })();

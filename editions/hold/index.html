@@ -20,12 +20,14 @@
 #bar { height: 8px; border: 1px solid var(--line); border-radius: 4px; margin: 10px 2px 0; overflow: hidden; }
 #bar i { display: block; height: 100%; width: 0; background: var(--ink); }
 #again, #sk { --acc: var(--line); color: var(--mute); }
-.song { font: 600 clamp(26px, 8cqi, 40px)/1.05 var(--sans); letter-spacing: -.02em; color: var(--ink); overflow-wrap: anywhere; margin: 0 0 6px; }
+.song { font: 600 clamp(24px, 7cqi, 34px)/1.1 var(--sans); letter-spacing: -.02em; color: var(--ink); overflow-wrap: anywhere; margin: 0 0 4px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.by { font: 500 16px/1.3 var(--sans); color: var(--dim); margin: 0 0 14px; min-height: 21px; overflow-wrap: anywhere; }
+#side > section { padding-bottom: 16px; }
 .take-home[hidden] { display: none; }
 .take-home { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; color: var(--ice); font: 500 15px var(--sans); }
 </style>
 </head>
-<body data-wall="14" data-line="listen to twelve songs. hold to keep one, let go to skip." data-do="press play, listen, then hold to keep or let go to skip. tap any shape to jump there." data-keys="press" style="--act: var(--ice); --acc: var(--ice)">
+<body data-wall="14" data-line="listen to twelve songs. hold to keep one, let go to skip." data-do="press play, listen, then hold to keep or let go to skip. tap any shape to jump there." style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>hold to keep</span><span class="tl">a toy</span></p>
@@ -36,21 +38,23 @@
     <div class="key" aria-live="polite">
       <div class="big mint" id="num"><span class="c">none decided yet</span></div>
       <span class="keylab" id="numlab">songs you kept so far, of 12</span>
-      <p class="say" id="say">press play to hear song 1 of 12.</p>
     </div>
+    <section>
+      <p class="song" id="song">&nbsp;</p>
+      <p class="by" id="by"></p>
+      <button type="button" id="hold" aria-pressed="false">play song 1 of 12</button>
+      <div id="bar" aria-hidden="true"><i></i></div>
+      <p class="say" id="say" aria-live="polite">press play to hear song 1 of 12.</p>
+      <div class="row"><button type="button" id="again">deal 12 new songs</button><button type="button" id="sk">skip this song</button></div>
+      <a class="take-home" id="home" href="../print/stub.html" hidden>take it home: the split stub</a>
+      <p class="note" id="now">on a laptop, hold the space bar instead of the button.</p>
+    </section>
     <p class="fams" id="fams" aria-label="the sound families on this deal"></p>
+    <p class="fams" id="marks" aria-label="what the marks mean"><span><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/></svg>you kept</span><span><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="#6f6790" stroke-width="2"/></svg>coming up</span><span><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><g fill="none" stroke="#efe9ff"><circle cx="10" cy="10" r="4" stroke-width="1.6"/><circle cx="10" cy="10" r="6.6" stroke-width="1.1" opacity=".55"/><circle cx="10" cy="10" r="9" stroke-width="1" opacity=".3"/></g></svg>playing now</span></p>
     <div class="lines">
       <p class="take"><b>takeaway:</b>keeping is a small act; the wall counts the small acts.</p>
       <p class="ask"><b>open question:</b>what would you keep, if keeping cost a held breath?</p>
     </div>
-    <section>
-      <p class="song" id="song">&nbsp;</p>
-      <button type="button" id="hold" aria-pressed="false">play song 1 of 12</button>
-      <div id="bar" aria-hidden="true"><i></i></div>
-      <div class="row"><button type="button" id="again">deal 12 new songs</button><button type="button" id="sk">skip this song</button></div>
-      <a class="take-home" id="home" href="../print/stub.html" hidden>take it home: the split stub</a>
-      <p class="note" id="now">turn the sound chip on first. on a laptop, hold the space bar instead of the button.</p>
-    </section>
     <details class="how"><summary>how</summary>
       <p>each song is a 30 s clip. you hear it before you decide.</p>
       <p>hold the button (or the space bar) 2 seconds to keep it. let go early to skip. skip this song or tap a shape on the map to move on faster.</p>
@@ -58,7 +62,7 @@
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>the twelve songs are drawn at random from my most played artists that have a clip. what you hold is a toy, not a measure of you.</p>
-      <p>in my log (my numbers, not yours): of songs i started myself (my press) 42 of 100 stayed, of auto-play songs 16 of 100 stayed.</p>
+      <p>my numbers, not yours: of songs not yet in my library, 42 of 100 that i pressed ended up in it, against 16 of 100 that auto-play chose. in-sample, awaiting replication.</p>
       <p>clips are 30 s public previews of the artist, not always the song that played, and only play with sound on.</p>
     </details>
   </main>

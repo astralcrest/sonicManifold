@@ -109,10 +109,11 @@ function prep(j) {
   GA = {}; for (k in gx) GA[k] = Math.atan2(gy[k], gx[k]);
   EDG = []; for (k = 0; k < MINE.length; k++) EDG.push([MINE[k].a, MINE[k].b, MINE[k].w, 1]);
   for (k = 0; k < Q.length; k++) EDG.push([Q[k][0], Q[k][1], Q[k][2], 0]);
-  var EP = {}, ET = [[], []], tq;
-  for (k = 0; k < EDG.length; k++) { var ee = EDG[k]; ee[5] = 0; ET[ee[3]].push(ee[2]); EP[(ee[0] < ee[1] ? ee[0] + ',' + ee[1] : ee[1] + ',' + ee[0]) + ':' + ee[3]] = 1; }
-  for (tq = 0; tq < 2; tq++) ET[tq] = cuts3(ET[tq]);
-  for (k = 0; k < EDG.length; k++) { var e3 = EDG[k], pk = e3[0] < e3[1] ? e3[0] + ',' + e3[1] : e3[1] + ',' + e3[0]; e3[4] = step3(e3[2], ET[e3[3]]); if (EP[pk + ':' + (1 - e3[3])]) e3[5] = 1; }
+  /* one width scale for both hands, so the picture keeps the real proportion (auto-play's pairs carry far more plays) */
+  var EP = {}, ET = [];
+  for (k = 0; k < EDG.length; k++) { var ee = EDG[k]; ee[5] = 0; ET.push(ee[2]); EP[(ee[0] < ee[1] ? ee[0] + ',' + ee[1] : ee[1] + ',' + ee[0]) + ':' + ee[3]] = 1; }
+  ET = cuts3(ET);
+  for (k = 0; k < EDG.length; k++) { var e3 = EDG[k], pk = e3[0] < e3[1] ? e3[0] + ',' + e3[1] : e3[1] + ',' + e3[0]; e3[4] = step3(e3[2], ET); if (EP[pk + ':' + (1 - e3[3])]) e3[5] = 1; }
   RPX = new Float32Array(RING.length); RPY = new Float32Array(RING.length);
   RLONE = 0; RZERO = 0; RNODOT = 0;
   for (k = 0; k < RING.length; k++) { var dg = RD[k][0] + RD[k][1]; if (dg === 0) RZERO++; else if (dg === 1) RLONE++; if (RING[k][0] < 0) RNODOT++; }
@@ -247,7 +248,7 @@ function chips() {
   var ms = $('#m-sound'), mg = $('#m-graph'); if (ms && mg) { ms.hidden = S.mt === 0; mg.hidden = S.mt === 1; }
   $$('.key button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-f') === S.fam); b.classList.toggle('off', S.fam >= 0 && +b.getAttribute('data-f') !== S.fam); });
   var k2 = $('#key2'); if (k2) k2.hidden = S.color !== 'family';
-  var k1 = $('#key'); if (k1 && k1.children.length) k1.hidden = !(scene === C_MAPS || scene === C_HAND || (scene === C_HOODS && S.color === 'family'));
+  var k1 = $('#key'); if (k1 && k1.children.length) k1.hidden = !(scene === C_MAPS || scene === C_HAND || (scene === C_HOODS && (S.color === 'family' || (phone && S.color === 'hood'))));
   var nc = $('#n-color'); if (nc) nc.textContent = NCOL[S.color] || NCOL.hood;
   $$('#hl-list button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-h') === S.hoodHi); });
   var hd = $('#hl-d'); if (hd) hd.textContent = S.hoodHi >= 0 && HD[S.hoodHi] ? HD[S.hoodHi] : '';
@@ -521,7 +522,7 @@ function keyLines() {
     L.push(SZK); L.push([sq(MINT), 'my press ', sq(AMBER), 'shuffle ', sq(VIOLET), 'auto-play']); L.push([gstar(), 'my songs']);
     if (w) L.push(w);
   } else if (scene === C_HAND) {
-    L.push(SZK); L.push([ln(MINT), 'my press ', ln(VIOLET), 'auto-play ', ln('#bcb6cc'), 'both']); L.push(THK);
+    L.push(SZK); L.push([ln(MINT), 'my press ', ln(VIOLET), 'auto-play']); L.push(THK);
     if (S.rim >= 0) L.push([cut(RING[S.rim][1].toLowerCase(), phone ? 18 : 26) + ': ' + RD[S.rim][0] + ' mint, ' + RD[S.rim][1] + ' violet']);
     else L.push([LOOKN[S.look]]);
     if (S.rt.length) L.push(['numbers = the walk, strongest line first']);
@@ -657,7 +658,7 @@ function paint(now) {
       e2 = EDG[k]; if (e2[3] !== pass || (pass === 0 && e2[5])) continue;
       var onE = hi >= 0 && (e2[0] === hi || e2[1] === hi), wE = e2[2] / 1000, tE = false, q4;
       for (q4 = 0; q4 < S.rt.length; q4++) if (S.rt[q4][0] === k) tE = true;
-      var alE = tE ? 1 : pass ? (hi < 0 ? 0.26 + 0.1 * e2[4] : onE ? 1 : 0.035) : (hi < 0 ? 0.18 + 0.1 * e2[4] : onE ? 0.95 : 0.03);
+      var alE = tE ? 1 : hi < 0 ? 0.24 + 0.1 * e2[4] : onE ? 1 : 0.035;
       if (!tE && S.rt.length) alE *= phone ? 0.3 : 0.45;
       g.strokeStyle = rgba(pass ? (e2[5] ? AMBER : MINT) : VIOLET, alE * la); g.lineWidth = LW3[e2[4]] + (onE ? 0.8 : 0) + (tE ? (phone ? 3 : 2) : 0);
       g.beginPath(); edge(g, k, lk); g.stroke();
@@ -827,7 +828,7 @@ function paint(now) {
     for (ci = 0; ci < nh; ci++) { cx.push(0); cy2.push(0); cn.push(0); }
     for (k = 0; k < N; k++) { ci = MAPS.c[k]; if (ci >= 0 && ci < nh && SA[k] > 0.01) { cx[ci] += SX[k]; cy2[ci] += SY[k]; cn[ci]++; } }
     var cm2 = S.color || 'hood';
-    for (ci = 0; ci < nh; ci++) if (cn[ci] && !(S.grow && !S.grow.done) && (S.hoodHi < 0 || S.hoodHi === ci) && (!phone || ci < 4 || S.hoodHi === ci)) {
+    for (ci = 0; ci < nh; ci++) if (cn[ci] && !(S.grow && !S.grow.done) && (S.hoodHi < 0 || S.hoodHi === ci) && (!phone || ci < 8 || S.hoodHi === ci)) {
       var lab = (ci + 1) + ' · mostly ' + F.fam[MAPS.cm[ci][1]], hx = cx[ci] / cn[ci] - (phone ? 10 : 34), hy = cy2[ci] / cn[ci], sub = MAPS.cm[ci][0] + ' artists · auto-play took ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps inside';
       /* a lit room on a phone: the two lines sit at the bottom left of the stage, clear of the dots and inside the screen */
       if (phone && S.hoodHi === ci) { sub = MAPS.cm[ci][0] + ' artists · auto-play ' + Math.round(MAPS.cm[ci][2] / 10) + ' of 100 steps'; hx = 12; hy = H - 96; }
@@ -1136,8 +1137,9 @@ function walkMode(m) { if (S.mode !== m) { S.trail = []; S.tn = []; S.sn = 0; } 
 function at(e) { var b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; }
 function near(x, y, maxd) {
   if (KB && x >= KB.x && x <= KB.x + KB.w && y >= KB.y && y <= KB.y + KB.h) return -1;
-  var best = -1, bd = (maxd || 14) * (maxd || 14), i;
-  for (i = 0; i < N; i++) { if (SA[i] < 0.3) continue; var dx = SX[i] - x, dy = SY[i] - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
+  var best = -1, lim = maxd || 14, bd = lim, i;
+  /* shapes closer than a finger can tell apart (1.5 px): the bigger one, the one the eye sees, answers */
+  for (i = 0; i < N; i++) { if (SA[i] < 0.3) continue; var dx = SX[i] - x, dy = SY[i] - y, d = Math.sqrt(dx * dx + dy * dy); if (d >= lim) continue; if (best < 0 || d < bd - 1.5 || (d < bd + 1.5 && PL[i] > PL[best])) { bd = d; best = i; } }
   return best;
 }
 function nearSong(x, y) { var sp = [0, 0, 0], best = -1, bd = 196, k; for (k = 0; k < SONG.length; k++) { var s = SONG[k].p; proj3(s[0] / 1000, s[1] / 1000, s[2] / 1000, sp); var dx = sp[0] - x, dy = sp[1] - y; if (dx * dx + dy * dy < bd) { bd = dx * dx + dy * dy; best = k; } } return best; }
@@ -1393,14 +1395,14 @@ function find(q) {
   animView(zt, W / 2 - (SX[i] - cam.cx) * ff, H / 2 - (SY[i] - cam.cy) * ff, 380);
   play(i, 'find');
 }
-/* be auto-play: the nearest in sound not yet played */
+/* a cartoon of auto-play: the nearest in sound not yet played (a rule, not the log) */
 function walk() {
   var nn = NN[S.now < 0 ? TOP[0] : S.now], c = -1, k;
   for (k = 0; k < nn.length; k++) if (!S.played[nn[k]] && (!PV || PV[names[nn[k]]])) { c = nn[k]; break; }
   if (c < 0) { S.played = {}; c = nn[0]; }
   play(c, 'near');
 }
-/* be my hand: break the run, a far artist of another family, among the ones i played most */
+/* a cartoon of my press: a far artist of another family, among the ones i played most (a rule, not the log) */
 function breakRun() {
   var cur = S.now < 0 ? TOP[0] : S.now, x = P3[cur * 3], y = P3[cur * 3 + 1], z = P3[cur * 3 + 2], cand = [], k;
   for (k = 0; k < Math.min(N, 400); k++) { var i = TOP[k]; if (i === cur || F.f[i] === F.f[cur] || S.played[i] || (PV && !PV[names[i]])) continue; var dx = P3[i * 3] - x, dy = P3[i * 3 + 1] - y, dz = P3[i * 3 + 2] - z; cand.push([i, dx * dx + dy * dy + dz * dz]); }
@@ -1409,10 +1411,10 @@ function breakRun() {
   play(cand[Math.floor(rnd() * Math.min(10, cand.length))][0], 'break');
 }
 function room(i, why) {
-  var h = F.h[i], p = h[0] + h[1] + h[2], hand = h[2] >= h[0] && h[2] >= h[1] ? 'auto-play' : h[1] >= h[0] ? 'shuffle' : 'my press';
-  var Ls = S.line, nx = Ls && Ls.stops[Ls.k + 1], lead = why === 'stop' && Ls ? 'stop ' + (Ls.k + 1) + ' of ' + Ls.stops.length + ': ' + cut(names[i], 22) + (nx >= 0 ? ', next: ' + cut(names[nx], 22) : ', last stop') : why === 'near' ? 'step ' + S.sn + ': auto-play walks to the nearest in sound' : why === 'break' ? 'step ' + S.sn + ': my press breaks the run, far in sound' : why === 'like' ? (S.like.k ? 'sounds like ' + S.like.k + ' of ' + (S.like.seq.length - 1) + ': ' + cut(names[i], 22) + (S.like.k + 1 < S.like.seq.length ? ', next: ' + cut(names[S.like.seq[S.like.k + 1]], 22) : ', the last') : 'sounds like: ' + cut(names[i], 22) + ' first, then its six nearest in sound') : why === 'ringwalk' ? 'step ' + S.sn + ' on the ring: who followed it most' : why === 'rim' ? 'who led to whom' : why === 'hood' ? 'the most played artist of that room' : why === 'log' ? 'step ' + S.sn + ': the log walks to who followed it most' : why === 'find' ? 'found: zoomed to it' : why === 'back' ? 'back one: ' + cut(names[i], 22) : why === 'game' ? '47 seconds: keep or let go' : 'now playing';
+  var h = F.h[i], p = h[0] + h[1] + h[2];
+  var Ls = S.line, nx = Ls && Ls.stops[Ls.k + 1], lead = why === 'stop' && Ls ? 'stop ' + (Ls.k + 1) + ' of ' + Ls.stops.length + ': ' + cut(names[i], 22) + (nx >= 0 ? ', next: ' + cut(names[nx], 22) : ', last stop') : why === 'near' ? 'step ' + S.sn + (S.mode === 'queue' ? ': a cartoon of auto-play, the nearest in sound' : ': the nearest in sound') : why === 'break' ? 'step ' + S.sn + ': a cartoon of my press, a far jump' : why === 'like' ? (S.like.k ? 'sounds like ' + S.like.k + ' of ' + (S.like.seq.length - 1) + ': ' + cut(names[i], 22) + (S.like.k + 1 < S.like.seq.length ? ', next: ' + cut(names[S.like.seq[S.like.k + 1]], 22) : ', the last') : 'sounds like: ' + cut(names[i], 22) + ' first, then its six nearest in sound') : why === 'ringwalk' ? 'step ' + S.sn + ' on the ring: who followed it most' : why === 'rim' ? 'who led to whom' : why === 'hood' ? 'the most played artist of that room' : why === 'log' ? 'step ' + S.sn + ': the log walks to who followed it most' : why === 'find' ? 'found: zoomed to it' : why === 'back' ? 'back one: ' + cut(names[i], 22) : why === 'game' ? '47 seconds: keep or let go' : 'now playing';
   text('#np-k', lead); text('#np-n', names[i]);
-  text('#np-h', p + ' plays · mostly ' + hand + ' · ' + F.fam[F.f[i]] + (apple(i) ? ' (Apple\u2019s label)' : '') + (scene === C_HOODS && MAPS && MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? ' · room ' + ROMAN[MAPS.c[i]] : ''));
+  text('#np-h', p + ' plays · ' + F.fam[F.f[i]] + (apple(i) ? ' (Apple\u2019s label)' : '') + (scene === C_HOODS && MAPS && MAPS.c[i] >= 0 && MAPS.c[i] < 8 ? ' · room ' + ROMAN[MAPS.c[i]] : ''));
   text('#np-x', why === 'ringwalk' ? 'the walk so far: ' + S.trail.map(function (n) { return names[n]; }).join(', then ') + '. each step takes the strongest line out of the last stop; mint = my press, violet = auto-play.' : why === 'like' ? 'lit in ice: the six artists nearest to it in sound, on whichever map is showing.' : scene === C_MAPS ? (S.mb < 0.5 ? 'the ice threads: its six nearest in sound. next walks there.' : 'mint lines: my press before or after it. violet: auto-play\u2019s run through it. faint gray: every other followed-by.') : scene === C_HOODS ? 'lit: its steps in the graph, in its room\u2019s color when both ends share the room.' : scene === C_HAND ? 'lit on the ring: who it followed and who followed it.' : 'the ice threads: its six nearest in sound. next walks there.');
   var a = $('#a-sp'); if (a) a.href = 'https://open.spotify.com/search/' + encodeURIComponent(names[i]);
   npShow();
@@ -1467,6 +1469,8 @@ function endGame(quiet) {
 function whose() {
   if (S.wh && S.wh.rows.length) { if (S.wh.max === 3 && S.wh.n >= 3) { S.wh.max = 10; text('#w-start', 'play: whose finger?'); whRound(); } return; }
   var go = function (rows) {
+    /* same-artist steps are left out, as the bridge index leaves them out */
+    rows = rows.filter(function (r) { return r.pa !== r.a; });
     var me = rows.filter(function (r) { return r.arm === 'me'; }), app = rows.filter(function (r) { return r.arm === 'app'; }), pick = [], k;
     for (k = 0; k < 5; k++) { pick.push(me.splice(Math.floor(rnd() * me.length), 1)[0]); pick.push(app.splice(Math.floor(rnd() * app.length), 1)[0]); }
     for (k = pick.length - 1; k > 0; k--) { var j = Math.floor(rnd() * (k + 1)), t = pick[k]; pick[k] = pick[j]; pick[j] = t; }
@@ -1481,7 +1485,7 @@ function whRound() {
   if (G.n >= G.max) { G.pair = null; var more = G.max === 3; text('#w-k', more ? 'three pairs done. seven more makes the full round of ten.' : 'whose finger? three pairs from the log, then seven more.'); text('#w-q', 'you got ' + G.right + ' of ' + G.n + '. chance is ' + (G.n / 2) + '. the log says i pressed play on 19 of every 100; the rest was shuffle and auto-play.'); text('#w-r', ''); show('#w-ans', false); show('#w-start', true); text('#w-start', more ? 'seven more?' : 'play: whose finger?'); if (!more) G.rows = []; return; }
   var r = G.rows[G.n], ia = names.indexOf(r.a), ip = r.pa && r.pa !== r.a ? names.indexOf(r.pa) : -1, same = r.pa === r.a;
   text('#w-k', 'pair ' + (G.n + 1) + ' of ' + G.max); text('#w-q', (same ? r.a + ' played, then ' + r.a + ' again: ' : r.pa ? r.pa + ' played. then ' : '') + (same ? '' : r.a + ', ') + r.t + '. who pressed play on it?');
-  show('#w-r', true); text('#w-r', 'close in sound = auto-play walking. a jump = more likely my press.');
+  show('#w-r', true); text('#w-r', 'a hint: near or far barely helps. 70 in 100 of my presses cross to another family; 66 of auto-play’s.');
   show('#w-hear', ip >= 0); if (ip >= 0) { text('#w-h1', '1: ' + cut(r.pa, 14)); text('#w-h2', '2: ' + cut(r.a, 14)); }
   show('#w-ans', true); show('#w-start', false);
   G.pair = [ip, ia];
@@ -1501,7 +1505,7 @@ function on(sel, f) { var e = $(sel); if (e) e.addEventListener('click', f); }
 on('#b-pp', function () { var a = el(); if (S.playing) { S.user = true; a.pause(); } else if (S.now >= 0) { S.user = false; sound(S.now); } else next(); });
 on('#b-next', function () { S.user = false; next(); });
 on('#b-prev', function () { var t = S.trail; if (t.length < 2) return; t.pop(); S.tn.pop(); var p = t.pop(); S.tn.pop(); S.user = false; if (S.line) S.line.k = Math.max(-1, S.line.k - 2); play(p, 'back'); });
-on('#b-queue', function () { walkMode('queue'); walk(); text('#h-mode', 'auto-play walks: each next song is the nearest in sound to the last. hear how close it stays.'); say('auto-play: each next song, the nearest in sound.', 'now'); });
+on('#b-queue', function () { walkMode('queue'); walk(); text('#h-mode', 'a cartoon of auto-play, not the log: each next song is the nearest in sound to the last.'); say('a cartoon of auto-play: the nearest in sound.', 'now'); });
 on('#b-look', function () {
   var nx = (S.look + 1) % 4;
   var go = function () { S.lookFrom = S.look; S.look = nx; S.lookT0 = performance.now(); S.lookB = 0; S.rim = -1; text('#h-look', LOOKT[nx]); say(LOOKS[nx], ['rim0', 'ctr', 'isl', 'ctr'][nx]); };
@@ -1511,7 +1515,7 @@ on('#m-like', function () {
   S.like.on = !S.like.on; if (!S.like.on) S.like.seq = null; chips();
   text('#m-mode', S.like.on ? 'sounds like: tap an artist. it and the six nearest to it in sound light up in ice and play in turn.' : 'sounds like is off: a tap plays one artist, and next walks to its nearest.'); if (S.like.on) say('tap an artist: it and its six nearest play.', 'dense'); else clStop(); wake();
 });
-on('#b-hand', function () { walkMode('hand'); breakRun(); text('#h-mode', 'my press breaks the run: the next song is far in sound, another family. hear the jump.'); say('my press: far in sound, another family.', 'now'); });
+on('#b-hand', function () { walkMode('hand'); breakRun(); text('#h-mode', 'a cartoon of my press, not the log: a far jump to another family. in the log the gap is small: 70 vs 66 of 100 steps cross a family.'); say('a cartoon of my press: a far jump.', 'now'); });
 document.addEventListener('click', function (e) { var m = e.target && e.target.closest ? e.target.closest('[data-more]') : null; if (!m) return; var act = m.closest('.act'); if (act) act.classList.add('more'); });
 var NCOL = { hood: 'color: rooms', family: 'color: families', first: 'color: first heard' };
 on('#n-color', function () { var ord = ['hood', 'family', 'first'], nx = ord[(ord.indexOf(S.color) + 1) % ord.length], b = $('#hoods .row .chip[data-c="' + nx + '"]'); if (b) b.click(); });
@@ -1559,9 +1563,9 @@ function hoodList() {
 var KG = { press: ['my press', '<path d="M6 .6Q6 6 11.4 6Q6 6 6 11.4Q6 6 .6 6Q6 6 6 .6Z" fill="#21f6bc"/>'], auto: ['auto-play', '<circle cx="6" cy="6" r="4.2" fill="none" stroke="#8b6fd6" stroke-width="1.6"/>'], shuffle: ['shuffle', '<path d="M6 .9L10.2 6L6 11.1L1.8 6Z" fill="#f5a623"/>'], alike: ['sounds alike', '<path d="M1.2 8.4L6 4.8L10.8 7.2" fill="none" stroke="#bcd3ff" stroke-width=".9"/><circle cx="6" cy="4.8" r="1.5" fill="#bcd3ff"/>'], mine: ['my songs', '<circle cx="6" cy="6" r="5" fill="none" stroke="#ffd36b" stroke-width=".9"/><path d="M6 2.1Q6 6 9.9 6Q6 6 6 9.9Q6 6 2.1 6Q6 6 6 2.1Z" fill="#ffd36b"/>'] }; /* the same marks as the walls kit's KEYS, scaled to 12 */
 var WHAT = [
   ['every shape is an artist i played, colored by who pressed play. close together = sounds alike.', ['press', 'shuffle', 'auto', 'mine']],
-  ['my 245 most played, on a ring. a line = one play followed another, colored by who started it. tap a name and only its lines stay.', ['press', 'shuffle', 'auto']],
+  ['my 245 most played on a ring. a line = two artists often back to back. tap a name for its lines.', ['press', 'auto']],
   ['the same artists twice, colored by family. ice line = nearest in sound. a line = two plays in a row.', ['alike', 'press', 'auto']],
-  ['eleven rooms the log built from what followed what. each outlined group is a room; its color is the family that fills it most.', []],
+  ['eleven rooms the log built from what followed what. color = the family that fills each room most.', []],
   ['did the song stay in my library? split by who picked it.', ['press', 'auto']],
   ['the export i froze, then the months after it. did the habit hold?', ['press', 'shuffle', 'auto']],
   ['my 23 songs in gold, each beside the artist it sounds most like; behind them, the eleven rooms. tap one to play it.', ['mine', 'alike']]
@@ -1573,7 +1577,9 @@ function whatFor(k) {
   var KC = { press: '#21f6bc', auto: '#8b6fd6', shuffle: '#f5a623', alike: '#bcd3ff', mine: '#ffd36b' };
   keys.forEach(function (key) { var c = doc.createElement('span'); c.className = 'kc'; c.style.setProperty('--kcb', KC[key] + '73'); c.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true">' + KG[key][1] + '</svg>' + KG[key][0]; if (b && b.parentNode === el) el.insertBefore(c, b); else el.appendChild(c); });
 }
-(function () { var e = $('#np'); if (!e) return; var sx = 0, sy = 0, id = -1; if ('MutationObserver' in window) { new MutationObserver(function () { doc.documentElement.classList.toggle('sm-np', !e.hidden); }).observe(e, { attributes: true, attributeFilter: ['hidden'] }); } e.addEventListener('pointerdown', function (ev) { if (ev.pointerType === 'mouse') return; sx = ev.clientX; sy = ev.clientY; id = ev.pointerId; }, { passive: true }); ['pointerup', 'pointercancel'].forEach(function (t) { e.addEventListener(t, function () { id = -1; }, { passive: true }); }); e.addEventListener('pointermove', function (ev) { if (ev.pointerId !== id || !phone) return; var dx = ev.clientX - sx, dy = ev.clientY - sy; if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.5) { id = -1; e.hidden = true; if (pv && !pv.paused) { S.user = true; try { pv.pause(); } catch (x) { /* fine */ } S.playing = false; ppLabel(); } } }, { passive: true }); })();
+(function () { var e = $('#np'); if (!e) return; var sx = 0, sy = 0, id = -1; if ('MutationObserver' in window) { new MutationObserver(function () { doc.documentElement.classList.toggle('sm-np', !e.hidden); }).observe(e, { attributes: true, attributeFilter: ['hidden'] }); }
+  /* a desk with the drawer open: the what strip sits under the card (template: html.drawer.sm-np #what) */
+  if ('ResizeObserver' in window) new ResizeObserver(function () { if (!phone && !e.hidden) doc.documentElement.style.setProperty('--npb', Math.round(e.getBoundingClientRect().bottom) + 'px'); }).observe(e); e.addEventListener('pointerdown', function (ev) { if (ev.pointerType === 'mouse') return; sx = ev.clientX; sy = ev.clientY; id = ev.pointerId; }, { passive: true }); ['pointerup', 'pointercancel'].forEach(function (t) { e.addEventListener(t, function () { id = -1; }, { passive: true }); }); e.addEventListener('pointermove', function (ev) { if (ev.pointerId !== id || !phone) return; var dx = ev.clientX - sx, dy = ev.clientY - sy; if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.5) { id = -1; e.hidden = true; if (pv && !pv.paused) { S.user = true; try { pv.pause(); } catch (x) { /* fine */ } S.playing = false; ppLabel(); } } }, { passive: true }); })();
 /* contact: a small sheet with the address, never a bare hash jump */
 function cpop(on) { var c = $('#cpop'); if (!c) return; c.hidden = !on; if (on) { c.setAttribute('role', 'dialog'); c.setAttribute('aria-modal', 'true'); var x = $('#cp-x'); if (x) x.focus(); } else { c.removeAttribute('role'); c.removeAttribute('aria-modal'); } }
 ['#b-contact', '#b-contact2', '#b-contact3'].forEach(function (s) { var a = $(s); if (a) a.addEventListener('click', function (e) { e.preventDefault(); cpop(true); }); });

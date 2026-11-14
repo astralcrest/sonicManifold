@@ -45,6 +45,8 @@ h1 { margin: 0; font-weight: 600; font-size: 21px; line-height: 1.16; letter-spa
 .key div { display: flex; align-items: center; gap: 7px; font-size: 11.5px; line-height: 1.25; color: #cfc8e6; }
 .key svg { flex: none; }
 #panel > * { flex-shrink: 0; }
+details.deeper > summary { font: 500 11px 'IBM Plex Mono', monospace; color: var(--ice); cursor: pointer; padding: 4px 0; }
+details.deeper[open] { display: flex; flex-direction: column; gap: 8px; }
 .foot { margin-top: auto; font: 400 11px 'IBM Plex Mono', monospace; color: #5d5478; }
 @media (max-width: 760px) {
   body { flex-direction: column; overflow: hidden; }
@@ -71,25 +73,27 @@ h1 { margin: 0; font-weight: 600; font-size: 21px; line-height: 1.16; letter-spa
 <div id="stage"><canvas id="cv" aria-label="the sound map as a moving field: squares are real sittings walking from artist to artist, colored by what started each play"></canvas></div>
 <aside id="panel">
   <div class="kick"><a href="../../" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">sonic manifold</a> &middot; <a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 07 · the room is the field</div>
-  <h1 id="hl">left alone, the queue keeps the next song in the same family. when i or shuffle break in, it strays more often.</h1>
+  <h1 id="hl">&nbsp;</h1>
   <p class="cap">each moving square is a song from a real sitting, replayed in order. stir the field with your pointer; it heals.</p>
   <div class="key" id="key"></div>
   <div class="st">
-    <div class="q" id="q">right after a queue song, the next song stayed in the same family, per 100, by who started it:</div>
+    <div class="q" id="q">right after an auto-play song, the next song stayed in the same family, per 100, by who started it:</div>
     <div id="rows"></div>
-    <div class="note" id="note"></div>
   </div>
   <div class="live" id="live">&nbsp;</div>
   <div class="ctl" id="ctl">
     <button id="bPlay" aria-pressed="true">pause</button>
     <button id="bSpd" aria-pressed="true">1x</button>
-    <button data-arm="0" aria-pressed="true"><i style="background:var(--violet)"></i>queue</button>
+    <button data-arm="0" aria-pressed="true"><i style="background:var(--violet)"></i>auto-play</button>
     <button data-arm="1" aria-pressed="true"><i style="background:var(--mint)"></i>pressed</button>
     <button data-arm="3" aria-pressed="true"><i style="background:var(--amber)"></i>shuffle</button>
     <button id="bCur" aria-pressed="true">currents</button>
   </div>
-  <p class="how" id="how"></p>
-  <p class="why" id="why"></p>
+  <details class="deeper"><summary>deeper</summary>
+    <div class="note" id="note"></div>
+    <p class="how" id="how"></p>
+    <p class="why" id="why"></p>
+  </details>
   <div class="foot">sonic manifold · by astralcrest · direction 07, private</div>
 </aside>
 <script>
@@ -97,7 +101,7 @@ h1 { margin: 0; font-weight: 600; font-size: 21px; line-height: 1.16; letter-spa
   'use strict';
   var NIGHT = '#06010f', ICE = '#bcd3ff';
   var ARMC = ['#8b6fd6', '#21f6bc', '#21f6bc', '#f5a623'];
-  var ARMN = ['the queue', 'i pressed', 'i pressed', 'shuffle'];
+  var ARMN = ['auto-play', 'i pressed', 'i pressed', 'shuffle'];
   var FAMC = { 'ambient/lofi': '#3d8bff', 'classical': '#7fd37f', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#38c2d6', 'world/desi': '#ea5a2a', 'untagged': '#6f6790' };
   var cv = document.getElementById('cv'), g = cv.getContext('2d');
   var D, N, FC, X0, Y0, RX, RY, OX, OY, VX, VY, SZ, LK, sitOrder, sitPtr = 0, CX = 500, CY = 500, ANG = 0;
@@ -165,14 +169,16 @@ h1 { margin: 0; font-weight: 600; font-size: 21px; line-height: 1.16; letter-spa
         '<span class="v">' + of100(r.stay) + ' <s>chance ' + of100(r.chance) + '</s></span></div>';
     });
     rows.innerHTML = html;
-    var sh = D.run.filter(function (r) { return r.arm === 3; })[0], q = D.run.filter(function (r) { return r.arm === 0; })[0];
+    var sh = D.run.filter(function (r) { return r.arm === 3; })[0], q = D.run.filter(function (r) { return r.arm === 0; })[0], me = D.run.filter(function (r) { return r.arm === 1; })[0];
+    var ch = Math.round(D.run.reduce(function (s, r) { return s + r.chance; }, 0) / D.run.length * 100);
+    document.getElementById('hl').textContent = 'after an auto-play song, auto-play stays in the family ' + of100(q.stay) + ' of 100 times, my press ' + of100(me.stay) + '; chance is about ' + ch + '.';
     document.getElementById('note').textContent = 'white tick = chance (the same songs dealt at random); pale line = 95 in 100 range. shuffle here is rare (' + fmt(sh.n) + ' hops) and its range (' + of100(sh.lo) + ' to ' + of100(sh.hi) + ') reaches chance: a direction, not a size. typical hop, map 1000 wide: ' + q.med + ' · ' + D.run[1].med + ' · ' + sh.med + '.';
     document.getElementById('how').innerHTML = '<b>how:</b> ' + fmt(k.hops) + ' hops between artists inside ' + fmt(k.sittings) + ' sittings; stayed = same family; ranges: ' + k.boot + ' resamples of ' + k.blocks + ' four-week blocks.';
-    document.getElementById('why').innerHTML = '<b>why:</b> measured right after a queue song because an earlier check found the gap is the run breaking, not my hand reaching farther.';
+    document.getElementById('why').innerHTML = '<b>why:</b> measured right after an auto-play song because an earlier check found the gap is the run breaking, not my hand reaching farther.';
     var key = [
-      ['<svg width="26" height="10"><path d="M1 7 Q13 0 25 7" stroke="#ff5c7a" stroke-width="1.6" fill="none" stroke-dasharray="2.5 4"/></svg>', 'a path the queue repeats in one family; thicker = more often'],
+      ['<svg width="26" height="10"><path d="M1 7 Q13 0 25 7" stroke="#ff5c7a" stroke-width="1.6" fill="none" stroke-dasharray="2.5 4"/></svg>', 'a path auto-play repeats in one family; thicker = more often'],
       ['<svg width="26" height="10"><rect x="1" y="2" width="6" height="6" fill="#8b6fd6"/><rect x="10" y="2" width="6" height="6" fill="#21f6bc"/><rect x="19" y="2" width="6" height="6" fill="#f5a623"/></svg>', 'a song, colored by who started it'],
-      ['<svg width="26" height="10"><path d="M1 9 Q13 -3 25 9" stroke="#21f6bc" stroke-width="1.3" fill="none"/></svg>', 'a song that left its family (fades)'],
+      ['<svg width="26" height="10"><path d="M1 9 Q4.5 1 8 9" stroke="#8b6fd6" stroke-width="1.3" fill="none"/><path d="M9.5 9 Q13 1 16.5 9" stroke="#21f6bc" stroke-width="1.3" fill="none"/><path d="M18 9 Q21.5 1 25 9" stroke="#f5a623" stroke-width="1.3" fill="none"/></svg>', 'a song that left its family (fades)'],
       ['<svg width="26" height="10"><rect x="4" y="3" width="3" height="3" fill="#3d8bff"/><rect x="14" y="1" width="7" height="7" fill="#ff4fa3"/></svg>', 'an artist, placed by sound; size = plays']
     ];
     document.getElementById('key').innerHTML = key.map(function (x) { return '<div>' + x[0] + '<span>' + x[1] + '</span></div>'; }).join('');

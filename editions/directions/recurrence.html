@@ -59,10 +59,12 @@ h1{font:600 27px/1.12 var(--sans);letter-spacing:-.015em}
 .anote em{font-style:normal;color:var(--ice)}
 .how,.why{font:400 11px/1.45 var(--mono);color:var(--mute)}
 .why{color:#b9b0d4}
+details.deeper>summary{font:500 11px/1.3 var(--mono);color:var(--ice);cursor:pointer;padding:3px 0}
+details.deeper[open]{display:flex;flex-direction:column;gap:8px}
 @media (max-width:860px){
  .wrap{grid-template-columns:1fr;gap:10px;padding:10px 16px 4px;height:auto}
  .side{max-width:none;gap:9px;display:contents}
- .hd{order:1}.plot{order:2}.tally{order:3}.ctl{order:4}.ans{order:5}.lagbox{order:6}.key{order:7}.how{order:8}.why{order:9}
+ .hd{order:1}.plot{order:2}.tally{order:3}.ctl{order:4}.ans{order:5}.lagbox{order:6}.key{order:7}.deeper{order:8}
  .ans{gap:6px;padding-top:7px}.ansq{font-size:12px}.ansq small{font-size:11px}.arow{grid-template-columns:84px 1fr auto;gap:7px}.arow .nm{font-size:11.5px}.arow .tr{height:10px}.arow .v{font-size:11px}.arow .v b{font-size:14px}.anote{font-size:10.5px}
  h1{font-size:19px}.cap{font-size:11.5px}.kick{display:none}.axis #axmid{display:none}
  .wrap{gap:5px}.hd{gap:3px}.lagbox{gap:3px!important}.key .lg{display:none}.key .sh{display:inline}.axis{font-size:11px}
@@ -88,8 +90,8 @@ h1{font:600 27px/1.12 var(--sans);letter-spacing:-.015em}
   </div>
   <div class="tally" aria-live="off">
    <div><b id="tP">0</b><span id="tPs">plays so far</span></div>
-   <div><b id="tN" style="color:var(--violet)">0</b><span id="tNs">near repeats</span></div>
-   <div><b id="tF" style="color:var(--mint)">0</b><span id="tFs">far returns</span></div>
+   <div><b id="tN">0</b><span id="tNs">near repeats</span></div>
+   <div><b id="tF">0</b><span id="tFs">far returns</span></div>
   </div>
   <div class="ctl">
    <button id="bPlay" type="button" aria-pressed="false">pause</button>
@@ -101,21 +103,25 @@ h1{font:600 27px/1.12 var(--sans);letter-spacing:-.015em}
    <button id="bRe" type="button">restart</button>
   </div>
   <div class="ans" id="ans"></div>
+  <div class="key" id="key"></div>
+  <details class="deeper"><summary>deeper</summary>
+  <div id="anote"></div>
   <div class="lagbox" style="display:flex;flex-direction:column;gap:7px">
    <div class="lagh" id="lagh"></div>
    <div class="lag" id="lag"></div>
   </div>
-  <div class="key" id="key"></div>
   <p class="how" id="how"></p>
   <p class="why" id="why"></p>
+  </details>
  </div>
 </div>
 <script>
 (function () {
 'use strict';
 var NIGHT = '#06010f', INK = '#efe9ff', MUTE = '#9a90b8', LINE = '#2a2140', ICE = '#bcd3ff';
-var ARMC = ['#8b6fd6', '#f5a623', '#21f6bc', '#159a78'];
-var ARMN = ['the queue', 'shuffle', 'i pressed play', 'i skipped to it'];
+// one key on every page: a next/back press is my press too, so it is the same mint
+var ARMC = ['#8b6fd6', '#f5a623', '#21f6bc', '#21f6bc'];
+var ARMN = ['auto-play', 'shuffle', 'i pressed play', 'i skipped to it'];
 var FAMC = { 'ambient/lofi': '#3d8bff', 'classical': '#7fd37f', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#38c2d6', 'world/desi': '#ea5a2a', 'untagged': '#6f6790' };
 var RATE = 6;
 var $ = function (s) { return document.getElementById(s); };
@@ -142,7 +148,7 @@ function prep(s) {
   var cum = { nn: [], nq: [], nf: [], nh: [], nfq: [], na: [] }, c = { nn: 0, nq: 0, nf: 0, nh: 0, nfq: 0, na: 0 };
   for (j = 0; j < n; j++) {
     if (prev[j] < 0) c.na++;
-    else if (j - prev[j] > D.far) { c.nf++; if (s.m[j] === 2) c.nh++; if (s.m[j] === 0) c.nfq++; }
+    else if (j - prev[j] > D.far) { c.nf++; if (s.m[j] === 2 || s.m[j] === 3) c.nh++; if (s.m[j] === 0) c.nfq++; }
     else { c.nn++; if (s.m[j] === 0) c.nq++; }
     for (var key in c) cum[key].push(c[key]);
   }
@@ -242,9 +248,9 @@ function tally(ti) {
   $('tP').textContent = ti + 1;
   $('tPs').textContent = 'plays, ' + c.na[ti] + ' artists';
   $('tN').textContent = c.nn[ti];
-  $('tNs').textContent = 'near repeats, the queue brought ' + c.nq[ti];
+  $('tNs').textContent = 'near repeats, auto-play brought ' + c.nq[ti];
   $('tF').textContent = c.nf[ti];
-  $('tFs').textContent = 'far returns, i pressed ' + c.nh[ti] + ', the queue ' + c.nfq[ti];
+  $('tFs').textContent = 'far returns, i pressed ' + c.nh[ti] + ', auto-play ' + c.nfq[ti];
 }
 
 function tick(now) {
@@ -279,12 +285,13 @@ function sideText() {
   var tot = B.reduce(function (x, y) { return x + y; }, 0);
   var farB = L.filter(function (r, b) { return D.bins[b][0] > D.far; }), nearB = L.filter(function (r, b) { return D.bins[b][1] <= D.far; });
   function sum(rows, col) { return rows.reduce(function (x, r) { return x + (col < 0 ? r.reduce(function (p, q) { return p + q; }, 0) : r[col]); }, 0); }
-  var farN = sum(farB, -1), farH = sum(farB, 2), farQ = sum(farB, 0), nearN = sum(nearB, -1), nearQ = sum(nearB, 0);
-  var handFar = farH / farN, handAll = B[2] / tot, qNear = nearQ / nearN, qAll = B[0] / tot;
+  var farN = sum(farB, -1), farH = sum(farB, 2) + sum(farB, 3), farQ = sum(farB, 0), nearN = sum(nearB, -1), nearQ = sum(nearB, 0);
+  var handFar = farH / farN, handAll = (B[2] + B[3]) / tot, qNear = nearQ / nearN, qAll = B[0] / tot;
   var qRep = qNear > qAll && farQ / farN > qAll;
+  var xq = per100(farQ, farN), uq = per100(B[0], tot), xh = per100(farH, farN), uh = per100(B[2] + B[3], tot);
   $('hl').textContent = handFar > handAll
-    ? (qRep ? 'the queue repeats itself; my hand returns later.' : 'my hand brings artists back later; the queue does not.')
-    : (qRep ? 'when an artist comes back, it is mostly the queue repeating itself, not my hand.' : 'repeats follow everyday shares; neither the queue nor my hand stands out.');
+    ? (qRep ? 'returns lean on auto-play (' + xq + ' of 100, usual ' + uq + ') and on my press (' + xh + ', usual ' + uh + ').' : 'returns lean on my press: ' + xh + ' of 100 against its usual ' + uh + '.')
+    : (qRep ? 'returns lean on auto-play: ' + xq + ' of 100 against its usual ' + uq + '.' : 'returns follow everyday shares: auto-play ' + xq + ' of 100, usual ' + uq + '.');
   var ans = $('ans'); ans.innerHTML = '';
   var q = document.createElement('div'); q.className = 'ansq';
   q.textContent = 'the whole log: an artist comes back after ' + (D.far + 1) + ' or more plays away. who brought it back?';
@@ -300,14 +307,13 @@ function sideText() {
     var bb = document.createElement('b'); bb.textContent = x; v.append(bb, document.createTextNode(' of 100 \u00b7 usual ' + u));
     r.append(nm, tr, v); ans.appendChild(r);
   }
-  var xq = per100(farQ, farN), uq = per100(B[0], tot), xh = per100(farH, farN), uh = per100(B[2], tot);
-  arow(0, 'the queue', xq, uq); arow(2, 'i pressed play', xh, uh);
+  arow(0, 'auto-play', xq, uq); arow(2, 'i pressed', xh, uh);
   function cmp(x, u) { return x === u ? 'right at its usual share' : Math.abs(x - u) + ' ' + (x > u ? 'above' : 'below') + ' its usual share'; }
   var nt = document.createElement('p'); nt.className = 'anote';
-  var n1 = document.createElement('span'); n1.textContent = 'why the headline: the queue sits ' + cmp(xq, uq) + '; my press sits ' + (xh === uh ? 'right at it' : Math.abs(xh - uh) + (xh > uh ? ' above' : ' below')) + '. ';
-  var n2 = document.createElement('em'); n2.textContent = xh > uh ? 'so my hand does bring artists back later.' : 'so later returns lean on the queue, not on me going back.';
-  nt.append(n1, n2); ans.appendChild(nt);
-  var hb = D.lag.map(function (r) { return per100(r[2], r.reduce(function (x, y) { return x + y; }, 0)); });
+  var n1 = document.createElement('span'); n1.textContent = 'why the headline: auto-play sits ' + cmp(xq, uq) + '; my press sits ' + (xh === uh ? 'right at it' : Math.abs(xh - uh) + (xh > uh ? ' above' : ' below')) + '. ';
+  var n2 = document.createElement('em'); n2.textContent = xh > uh ? 'so my hand does bring artists back later.' : 'so later returns lean on auto-play, not on me going back.';
+  nt.append(n1, n2); $('anote').innerHTML = ''; $('anote').appendChild(nt);
+  var hb = D.lag.map(function (r) { return per100(r[2] + r[3], r.reduce(function (x, y) { return x + y; }, 0)); });
   var bmax = hb.indexOf(Math.max.apply(null, hb)), bmin = hb.lastIndexOf(Math.min.apply(null, hb));
   $('lagh').innerHTML = '';
   var h = document.createElement('span');
@@ -321,14 +327,14 @@ function sideText() {
     var n = r.reduce(function (x, y) { return x + y; }, 0), l = document.createElement('span'); l.textContent = name; if (cls) l.className = cls;
     var bar = document.createElement('div'); bar.className = 'bar'; if (b >= 0) bar.setAttribute('data-b', b);
     order.forEach(function (c) { var s = document.createElement('i'); s.style.width = (100 * r[c] / n) + '%'; s.style.background = ARMC[c]; s.title = ARMN[c] + ': ' + r[c].toLocaleString('en-US'); bar.appendChild(s); });
-    var v = document.createElement('span'); v.textContent = per100(r[2], n) + ' · ' + n.toLocaleString('en-US'); if (cls) v.className = cls;
+    var v = document.createElement('span'); v.textContent = per100(r[2] + r[3], n) + ' · ' + n.toLocaleString('en-US'); if (cls) v.className = cls;
     lag.append(l, bar, v);
   }
   for (i = 0; i < nb; i++) row(lab(i), L[i], i, '');
   var sep = document.createElement('div'); sep.className = 'sep'; lag.appendChild(sep);
   row('all plays', B, -1, 'base');
   var key = $('key'); key.innerHTML = '';
-  [[ARMC[0], 'the queue brought it', 'queue'], [ARMC[1], 'shuffle brought it', 'shuffle'], [ARMC[2], 'i pressed play', 'i pressed'], [ARMC[3], 'i skipped to it (next or back)', 'i skipped to'], [ICE, 'the play itself (diagonal)', 'the play']].forEach(function (x) {
+  [[ARMC[0], 'auto-play brought it', 'auto-play'], [ARMC[1], 'shuffle brought it', 'shuffle'], [ARMC[2], 'i pressed (play, next or back)', 'i pressed'], [ICE, 'the play itself (diagonal)', 'the play']].forEach(function (x) {
     var s = document.createElement('span'), sw = document.createElement('i'), a = document.createElement('b'), b = document.createElement('b'); sw.style.background = x[0]; a.className = 'lg'; b.className = 'sh'; a.textContent = x[1]; b.textContent = x[2]; a.style.fontWeight = b.style.fontWeight = '400'; s.append(sw, a, b); key.appendChild(s);
   });
   var s2 = document.createElement('span'); s2.textContent = 'strips under the plot: who brought each play, then its family'; s2.style.color = MUTE; key.appendChild(s2);

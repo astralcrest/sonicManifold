@@ -16,7 +16,7 @@ body.paper { background: var(--stagebg); }
 .bar .ctl a.btn, .bar .ctl button { --acc: var(--ice); }
 .bar .ctl button.go { --acc: var(--mint); }
 .bar .where { flex-basis: 100%; margin: 0; font: 500 12px var(--mono); color: var(--mute); }
-.bar .where a { color: var(--ice); }
+.bar .where a { color: var(--ice); display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 4px; }
 
 .stage { display: flex; justify-content: center; padding: 40px 24px 64px; background: var(--stagebg); }
 .sheet { width: min(var(--w, 148mm), 100%); border: 1px solid var(--edge); background: var(--night); }
@@ -30,6 +30,6 @@ body.paper .sheet { background: #fff; }
   body:not(.paper) { background: var(--night) !important; }
   .bar, .sr { display: none !important; }
   .stage { display: block; padding: 0; background: transparent; }
-  .sheet { width: var(--w) !important; border: 0; margin: 0; page-break-inside: avoid; break-inside: avoid; }
+  .sheet { width: var(--w) !important; height: var(--h); overflow: hidden; border: 0; margin: 0; page-break-inside: avoid; break-inside: avoid; }
   .sheet canvas { width: 100%; height: auto; }
 }

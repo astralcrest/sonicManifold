@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="../wall.css">
 <style>
 @media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
-#map canvas { touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+#map canvas { touch-action: manipulation; cursor: crosshair; user-select: none; -webkit-user-select: none; }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
 .ins { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
 .ins legend { font: 500 12px var(--mono); color: var(--mute); padding: 0; margin-bottom: 8px; }
@@ -21,8 +21,10 @@
 .near li { min-width: 0; } button[hidden] { display: none; }
 #side .near .nb { justify-content: flex-start; gap: 6px; width: 100%; min-width: 0; min-height: 40px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; text-align: left; color: var(--ink); background: transparent; }
 #side .near .nb.on { border-color: var(--mint); background: #1a1236; color: var(--ink); }
-.near .q { flex: none; width: 1.4em; font: 600 12px var(--mono); color: var(--mute); } .near .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; } .near .fm { flex: none; font: 500 11px var(--mono); color: var(--mute); max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#side .near .sw { flex: none; width: 10px; height: 10px; margin: 0; border-radius: 50%; } @media (max-width: 520px) { .near { grid-template-columns: 1fr; } .near .fm { max-width: 9em; } }
+.near .q { flex: none; width: 1.4em; font: 600 12px var(--mono); color: var(--mute); } .near .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; } .near .nm, .near .fm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .near .fm { font: 500 11px var(--mono); color: var(--mute); }
+#side .near .sw { flex: none; width: 10px; height: 10px; margin: 0; border-radius: 50%; } @media (max-width: 520px) { .near { grid-template-columns: 1fr; } .near .tx { flex-direction: row; align-items: baseline; gap: 8px; } .near .nm { flex: 1; } .near .fm { flex: none; max-width: 9em; } }
+.ins input[aria-invalid="true"] { border-bottom-color: var(--rose, #ff5c7a); } .ins .mx { font: 500 12px var(--mono); color: var(--rose, #ff5c7a); margin: -4px 0 2px; } .ins .mx[hidden] { display: none; }
+@media (max-width: 900px) { .ins { scroll-margin-top: calc(var(--nh, 44px) + min(100vw, 46vh) + 12px); } }
 #go { --acc: var(--ice); } #clear { --acc: var(--mint); } #hear, #next { --acc: var(--ice); }
 </style>
 </head>
@@ -32,24 +34,30 @@
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>where you land</span><span class="tl">a toy</span></p>
     <h1>where do <em>you</em> stand on my map?</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. each artist you type lights as an ice dot with a name tag. a big white ring with a crosshair marks the average of their positions, and the ten nearest artists to the ring light up in their family colors."></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. each artist you type lights as an ice dot with a name tag. a white ring with a crosshair marks the average of their positions. the ten nearest sit around it as numbered chips in their genre family colors, each with a thin line to where that artist sits."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span class="c">not placed yet</span></div>
-      <span class="keylab">sound families (of 14) among the ten nearest to your ring</span>
+      <span class="keylab">genre families among the ten nearest to your ring</span>
+      <p class="fams" id="fams" aria-label="the genre families on my map"></p>
       <p class="say" id="say">type one to five artists you like, then press place me.</p>
     </div>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>artists you like can sit far apart. your floor mark lands between them.</p>
+      <p class="take"><b>takeaway:</b>artists you like can sit far apart. the white ring lands between them.</p>
       <p class="ask"><b>open question:</b>is the spot between your favorites a place you ever play from?</p>
     </div>
     <section>
-      <fieldset class="ins"><legend>up to five artists you like</legend>
-        <input type="text" id="a0" list="dl" autocomplete="off" aria-label="artist 1" placeholder="artist 1">
-        <input type="text" id="a1" list="dl" autocomplete="off" aria-label="artist 2" placeholder="artist 2">
-        <input type="text" id="a2" list="dl" autocomplete="off" aria-label="artist 3" placeholder="artist 3">
-        <input type="text" id="a3" list="dl" autocomplete="off" aria-label="artist 4" placeholder="artist 4">
-        <input type="text" id="a4" list="dl" autocomplete="off" aria-label="artist 5" placeholder="artist 5">
+      <fieldset class="ins"><legend>up to five artists you like. my map holds <span id="cnt">1,871</span> artists i played, so some will miss.</legend>
+        <input type="text" id="a0" list="dl" autocomplete="off" aria-label="artist 1" aria-describedby="m0" placeholder="artist 1">
+        <span class="mx" id="m0" hidden></span>
+        <input type="text" id="a1" list="dl" autocomplete="off" aria-label="artist 2" aria-describedby="m1" placeholder="artist 2">
+        <span class="mx" id="m1" hidden></span>
+        <input type="text" id="a2" list="dl" autocomplete="off" aria-label="artist 3" aria-describedby="m2" placeholder="artist 3">
+        <span class="mx" id="m2" hidden></span>
+        <input type="text" id="a3" list="dl" autocomplete="off" aria-label="artist 4" aria-describedby="m3" placeholder="artist 4">
+        <span class="mx" id="m3" hidden></span>
+        <input type="text" id="a4" list="dl" autocomplete="off" aria-label="artist 5" aria-describedby="m4" placeholder="artist 5">
+        <span class="mx" id="m4" hidden></span>
       </fieldset>
       <datalist id="dl"></datalist>
       <div class="row">
@@ -63,11 +71,12 @@
     </section>
     <details class="how"><summary>how</summary>
       <p>type artists you like, picking each from the list, then press place me and play.</p>
-      <p>a white ring lands at their middle and the ten nearest play in order, nearest first. press next stop, or tap a number, to skip ahead.</p>
-      <p>colors are sound families, size is how much i played an artist. tap any dot to hear it.</p>
+      <p>a white ring lands at their middle and the ten nearest play in order, nearest first. they sit too close to see apart, so each gets a numbered chip around the ring with a line to its spot. press next stop, or tap a number, to skip ahead.</p>
+      <p>colors are genre families, size is how much i played an artist. tap any dot to hear it.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>the mark is the plain mean of the positions you typed, on my sound map.</p>
+      <p>the map is flattened, so the ten nearest are measured in the 3D sound map. the exact middle between far-apart artists is rough.</p>
       <p>it is a map of me: the mark says where you sit in my listening, not in all music.</p>
       <p>nothing you type is stored or sent anywhere.</p>
       <p id="meta"></p>

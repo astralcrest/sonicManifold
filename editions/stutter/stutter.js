@@ -24,7 +24,8 @@ function draw() {
     else { g.globalAlpha = 0.5; P.peb(g, p.i, x, y, r0 * 0.85, '#3a3158'); g.globalAlpha = 1; }
     var fx = cx + Math.cos(a) * R * 0.84, fy = cy + Math.sin(a) * R * 0.84, fc = WK.FAMC[FAM[FI[p.i]]] || '#3a3158';
     g.globalAlpha = k < idx || on ? 1 : 0.35; g.fillStyle = fc; g.beginPath(); g.arc(fx, fy, on ? r0 * 0.7 : r0 * 0.42, 0, 6.2832); g.fill(); g.globalAlpha = 1;
-    if (k > 0 && k <= idx && FI[p.i] !== FI[plays[k - 1].i]) { var pa = -Math.PI / 2 + (k - 1) * 6.2832 / plays.length; g.save(); g.strokeStyle = fc; g.lineWidth = 1.2; g.globalAlpha = 0.8; g.beginPath(); g.moveTo(cx + Math.cos(pa) * R * 0.84, cy + Math.sin(pa) * R * 0.84); g.lineTo(fx, fy); g.stroke(); g.restore(); }
+    if (k > 0 && p.e !== plays[k - 1].e) { var sa = a - 3.1416 / plays.length; g.save(); g.strokeStyle = PAL.ink; g.lineWidth = 2; g.beginPath(); g.moveTo(cx + Math.cos(sa) * (R + r0 * 1.6), cy + Math.sin(sa) * (R + r0 * 1.6)); g.lineTo(cx + Math.cos(sa) * (R + r0 * 3), cy + Math.sin(sa) * (R + r0 * 3)); g.stroke(); g.restore(); }
+    if (k > 0 && k <= idx && p.e === plays[k - 1].e && FI[p.i] !== FI[plays[k - 1].i]) { var pa = -Math.PI / 2 + (k - 1) * 6.2832 / plays.length; g.save(); g.strokeStyle = fc; g.lineWidth = 1.2; g.globalAlpha = 0.8; g.beginPath(); g.moveTo(cx + Math.cos(pa) * R * 0.84, cy + Math.sin(pa) * R * 0.84); g.lineTo(fx, fy); g.stroke(); g.restore(); }
   }
   var cur = plays[Math.min(plays.length - 1, idx)];
   g.textAlign = 'center';
@@ -37,7 +38,7 @@ function draw() {
     WK.pulse(g, cx + Math.cos(-Math.PI / 2 + idx * 6.2832 / plays.length) * R, cy + Math.sin(-Math.PI / 2 + idx * 6.2832 / plays.length) * R, kd2.col, r0 * 2.5);
     g.fillStyle = PAL.mute || '#9a90b8'; g.fillText((idx + 1) + ' of ' + N, cx, cy + R * 0.2 + 42);
   } else {
-    g.fillStyle = PAL.ink; g.font = '500 ' + (W < 500 ? 15 : 18) + 'px "Instrument Sans", sans-serif'; g.fillText(fin ? 'that was the night' : 'tap play the night', cx, cy);
+    g.fillStyle = PAL.ink; g.font = '500 ' + (W < 500 ? 15 : 18) + 'px "Instrument Sans", sans-serif'; g.fillText(fin ? 'that was all 100' : 'tap play all 100', cx, cy);
     g.fillStyle = PAL.mute || '#9a90b8'; g.font = '500 12px "IBM Plex Mono", monospace'; g.fillText(fin ? 'tap play to hear it again' : 'or tap any shape to start there', cx, cy + 24);
   }
 }
@@ -59,24 +60,24 @@ function playAt() {
   if (!held) return;
   if (idx >= N) { held = false; end(); return; }
   var p = plays[idx], u = clipOf(p.i);
-  var rep = 0, q = idx; while (q > 0 && plays[q - 1].i === p.i) { rep++; q--; }
+  var rep = 0, q = idx; while (q > 0 && plays[q - 1].i === p.i && plays[q - 1].e === p.e) { rep++; q--; }
   if (u) { AU.src = u; var off = (rep * 4) % 24, seek = function () { AU.removeEventListener('loadedmetadata', seek); try { if (off) AU.currentTime = off; } catch (e) {} }; AU.addEventListener('loadedmetadata', seek); var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {}); }
   else AU.pause();
   $('now').textContent = 'play ' + (idx + 1) + ': ' + (p.t ? '\u201c' + p.t + '\u201d by ' : '') + (names[p.i] || '') + ', ' + KIND[p.src].lab + ', ' + (FAM[FI[p.i]] || '') + '.' + (rep ? ' same artist as the last ' + rep + ': one clip per artist here, so a later second of it.' : '') + (u ? '' : ' no clip for this one.');
-  var SAY = { press: 'i pressed play on this one myself (my press, mint star).', queue: 'auto-play picked this one on its own (violet ring).', shuffle: 'this one came from a random shuffle (amber diamond).' };
-  $('say').textContent = 'play ' + (idx + 1) + ' of ' + N + ': ' + SAY[p.src] + (idx > 0 && FI[p.i] !== FI[plays[idx - 1].i] ? ' a new family: ' + (FAM[FI[p.i]] || '') + '.' : '');
+  var SAY = { press: 'i pressed play on this one myself (mint).', queue: 'auto-play picked this one on its own (violet).', shuffle: 'this one came from a random shuffle (amber).' };
+  $('say').textContent = 'play ' + (idx + 1) + ' of ' + N + ': ' + SAY[p.src] + (idx > 0 && p.e !== plays[idx - 1].e ? ' a new sitting starts here.' : idx > 0 && FI[p.i] !== FI[plays[idx - 1].i] ? ' a new family: ' + (FAM[FI[p.i]] || '') + '.' : '');
   preload(idx + 1); draw(); counts();
   timer = setTimeout(function () { idx++; playAt(); }, CLIP); WK.live(draw);
 }
-function btn() { var b = $('hold'); b.classList.toggle('go', held); b.setAttribute('aria-pressed', held ? 'true' : 'false'); b.textContent = held ? 'pause' : (idx >= N ? 'play it again' : idx > 0 ? 'keep playing' : 'play the night'); }
+function btn() { var b = $('hold'); b.classList.toggle('go', held); b.setAttribute('aria-pressed', held ? 'true' : 'false'); b.textContent = held ? 'pause' : (idx >= N ? 'play it again' : idx > 0 ? 'keep playing' : 'play all 100'); }
 function end() {
   AU.pause(); WK.still(); btn();
-  $('now').textContent = 'that was a night: all ' + N + ' plays. tap play to hear it again, or tap a shape to start anywhere.'; draw();
+  $('now').textContent = 'that was all ' + N + ' plays. tap play to hear it again, or tap a shape to start anywhere.'; draw();
 }
 function press() {
   if (held || !plays.length) return;
   if (idx >= N) idx = 0;
-  held = true; btn(); playAt();
+  WK.setSound(true); held = true; btn(); playAt();
 }
 function release() {
   if (!held) return;
@@ -85,12 +86,12 @@ function release() {
 }
 function toggle() { if (held) release(); else press(); }
 function jump(k) {
-  k = Math.max(0, Math.min(N - 1, k)); clearTimeout(timer); idx = k;
+  k = Math.max(0, Math.min(N - 1, k)); clearTimeout(timer); idx = k; WK.setSound(true);
   if (held) playAt(); else { held = true; btn(); playAt(); }
 }
 function counts() {
   var c = { press: 0, queue: 0, shuffle: 0 }; plays.forEach(function (p) { c[p.src]++; });
-  $('c-press').textContent = c.press; $('c-auto').textContent = c.queue; $('c-shuf').textContent = c.shuffle;
+  $('c-press').textContent = c.press; $('c-auto').textContent = c.queue; $('c-shuf').textContent = c.shuffle; $('c-shuf').parentNode.hidden = !c.shuffle;
   $('numlab').textContent = 'of these ' + plays.length + ' plays';
 }
 
@@ -101,13 +102,14 @@ cv.addEventListener('click', function (e) {
   var r = cv.getBoundingClientRect(), k = nearest(e.clientX - r.left, e.clientY - r.top, 26);
   if (k >= 0) jump(k); else toggle();
 });
-var tip = document.createElement('div'); tip.className = 'wk-tip'; tip.hidden = true; tip.setAttribute('aria-hidden', 'true'); box.style.position = 'relative'; box.appendChild(tip);
+var tip = document.createElement('div'); tip.className = 'wk-tip'; tip.hidden = true; tip.setAttribute('aria-hidden', 'true'); box.appendChild(tip);
 cv.addEventListener('pointermove', function (e) {
   var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, k = nearest(x, y, 16);
   if (k < 0 || !plays.length) { tip.hidden = true; return; }
   var p = plays[k];
   tip.innerHTML = '<b>' + WK.esc(names[p.i] || '') + '</b> <i style="background:' + (WK.FAMC[FAM[FI[p.i]]] || '#6f6790') + '"></i>' + WK.esc(FAM[FI[p.i]] || '') + ' · ' + KIND[p.src].lab + ' · play ' + (k + 1);
-  tip.style.left = Math.max(0, Math.min(W - 220, x + 12)) + 'px'; tip.style.top = Math.max(0, y - 34) + 'px'; tip.hidden = false;
+  tip.hidden = false; var tw = tip.offsetWidth, lx = x + 12 + tw > W ? x - 12 - tw : x + 12;
+  tip.style.left = Math.max(0, Math.min(W - tw, lx)) + 'px'; tip.style.top = Math.max(0, y - 34) + 'px';
 });
 cv.addEventListener('pointerleave', function () { tip.hidden = true; });
 addEventListener('keydown', function (e) {
@@ -116,7 +118,7 @@ addEventListener('keydown', function (e) {
   else if (e.key === 'ArrowRight' || e.key === 'n') { e.preventDefault(); if (idx < N - 1) jump(idx + 1); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); if (idx > 0) jump(idx - 1); }
 });
-$('again').addEventListener('click', function () { release(); idx = 0; btn(); $('now').textContent = 'back at the start. tap play the night.'; $('say').textContent = 'tap play the night. each play is a 1.5 s clip, one after another, until the end or until you pause.'; draw(); });
+$('again').addEventListener('click', function () { release(); idx = 0; btn(); $('now').textContent = 'back at the start. tap play all 100.'; $('say').textContent = 'tap play all 100. each play is a 1.5 s clip, one after another, until the end or until you pause.'; draw(); });
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 80); });
 
@@ -125,11 +127,13 @@ Promise.all([WK.j('../haunted/data/haunted.json'), WK.j('../loop/data/loop.json'
   D0 = a[1]; PM = Math.max.apply(null, D0.pl) || 1; names = a[1].n; FAM = a[1].fam; FI = a[1].f; PV = a[2];
   for (k = 0; k < ev.length && plays.length < N; k++) {
     used++;
-    ev[k].p.forEach(function (p) { if (plays.length < N && KIND[p[2]]) plays.push({ i: p[0], src: p[2], t: p[1] }); });
+    ev[k].p.forEach(function (p) { if (plays.length < N && KIND[p[2]]) plays.push({ i: p[0], src: p[2], t: p[1], e: k }); });
   }
-  var rp = 0; plays.forEach(function (p, k) { if (k) { if (plays[k - 1].i === p.i) rp++; if (FI[plays[k - 1].i] !== FI[p.i]) fchg++; } });
-  $('fp1').textContent = 'this ring is ' + plays.length + ' plays from ' + used + ' evenings in my log, in the order they happened. ' + rp + ' of the steps stay on the same artist (an album, or auto-play repeating it); ' + fchg + ' steps cross into another family.';
-  if ($('fam')) $('fam').textContent = 'inner ring: the family of each play. ' + fchg + ' of 99 steps cross into another family.';
+  var rp = 0, st = 0, last = ev[used - 1].p.length, kept = plays.filter(function (p) { return p.e === used - 1; }).length;
+  plays.forEach(function (p, k) { if (k && plays[k - 1].e === p.e) { st++; if (plays[k - 1].i === p.i) rp++; if (FI[plays[k - 1].i] !== FI[p.i]) fchg++; } });
+  $('fp1').textContent = 'this ring is ' + plays.length + ' plays from ' + used + ' sittings in my log (a sitting = plays with no gap over 20 minutes), picked for long auto-play runs: at least half of each sitting is auto-play. each sitting is in the order it happened; the ' + used + ' are not in date order' + (kept < last ? ', and the last stops at play ' + N + ', ' + kept + ' of its ' + last + ' plays in' : '') + '. of the ' + st + ' steps inside a sitting, ' + rp + ' stay on the same artist (an album, or auto-play repeating it) and ' + fchg + ' cross into another family.';
+  if ($('fam')) $('fam').textContent = 'inner ring: the family of each play. ' + fchg + ' of ' + st + ' steps inside a sitting cross into another family.';
+  WK.famKey($('fams'), D0, plays.map(function (p) { return p.i; }));
   counts(); resize();
 }).catch(function () { $('say').textContent = 'the data did not load. reload the page.'; });
 })();

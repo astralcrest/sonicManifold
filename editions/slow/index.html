@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>the slow room &middot; sonic manifold</title>
-<meta name="description" content="twelve songs auto-play never reached in 40 walks. the wall counts how many people stay past thirty seconds, in this room, tonight.">
-<meta property="og:title" content="wall 9 of 25: the slow room"><meta property="og:description" content="twelve songs auto-play never reached in 40 walks. the wall counts how many people stay past thirty seconds, in this room, tonight."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/slow.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="twelve songs the auto-play rule did not reach in 40 walks. the wall counts how many people stay past thirty seconds, in this room, tonight.">
+<meta property="og:title" content="wall 9 of 25: the slow room"><meta property="og:description" content="twelve songs the auto-play rule did not reach in 40 walks. the wall counts how many people stay past thirty seconds, in this room, tonight."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/slow.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,23 +21,24 @@
 .prog { height: 6px; background: var(--line); }
 .prog i { display: block; height: 100%; width: 0; background: var(--ice); }
 .slot { font: 500 11px var(--mono); letter-spacing: .08em; color: var(--mute); margin: 8px 0 0; }
-.stays { display: flex; flex-wrap: wrap; gap: 5px; min-height: 18px; margin: 12px 0 0; }
-.stays i { display: block; width: 18px; height: 18px; background: var(--ink); border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%; }
-.stays i.cur { background: transparent; border: 1px solid var(--ice); }
+.stays { display: grid; grid-template-columns: repeat(6, 40px); margin: 1px 0 0 -11px; }
+.stays i { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; cursor: pointer; }
+.stays i::before { content: ''; box-sizing: border-box; width: 18px; height: 18px; background: #2a2140; border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%; }
 .hide { display: none !important; }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
 .big span.c { font: 500 15px/1.5 var(--mono); color: var(--mute); }
-.stays i { cursor: pointer; background: #2a2140; }
-.stays i.ok { background: var(--mint); } .stays i.lf { background: var(--rose); } .stays i.cur { background: transparent; border: 2px solid var(--ice); }
+.mapsay { position: absolute; left: 12px; bottom: 12px; z-index: 2; margin: 0; max-width: min(520px, calc(100% - 24px)); pointer-events: none; font: 500 12px/1.45 var(--mono); color: var(--ink); background: var(--night); border: 1px solid var(--line); padding: 6px 10px; border-radius: 6px 9px 6px 8px; }
+.mapsay:empty { padding: 0; border: 0; }
+.stays i.ok::before { background: var(--mint); } .stays i.lf::before { background: var(--rose); } .stays i.cur::before { background: transparent; border: 2px solid var(--ice); }
 </style>
 </head>
-<body data-wall="9" data-line="faint violet: where auto-play went in 40 walks. bright colors: twelve places it never went." data-do="press play, or tap a bright shape. stay 30 seconds, or skip." data-keys="auto,alike" style="--act: var(--ink); --acc: var(--ink)">
+<body data-wall="9" data-line="faint violet: where the auto-play rule went in 40 walks. bright colors: twelve songs it did not reach." data-do="press play, or tap a bright shape. stay 30 seconds, or skip." data-keys="auto,alike" style="--act: var(--ink); --acc: var(--ink)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the slow room</span><span class="tl">a toy</span></p>
-    <h1>songs auto-play <em>never</em> would have played.</h1>
+    <h1>songs the auto-play rule <em>did not reach</em> in 40 walks.</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map, dimmed. faint violet shapes are artists auto-play reached in 40 walks. bright shapes, colored by family, are the twelve it never reached. the one playing pulses."></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map, dimmed. faint violet shapes are artists the auto-play rule reached in 40 walks. bright shapes, colored by family, are twelve it did not reach. shapes that share a spot fan out, with a thin line back to it. the one playing pulses."></canvas><p class="mapsay" id="mapsay" aria-live="polite"></p></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big ice" id="n"><span class="c">no stays yet</span></div>
@@ -56,14 +57,14 @@
       <p class="note" id="now">sound is off until you tap the sound chip at the top. the stay clock counts only while you can hear it. on a keyboard: space plays or stops, n skips.</p>
     </section>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>auto-play never reached these twelve in 40 walks. here they play.</p>
+      <p class="take"><b>takeaway:</b>the auto-play rule did not reach these twelve in 40 walks. here they play.</p>
       <p class="ask"><b>open question:</b>what does it cost a song to never be reached?</p>
     </div>
-    <p class="store">nothing is stored. the count lives in this tab tonight and is gone after.</p>
+    <p class="store">the count is not stored. it lives in this tab tonight and is gone after.</p>
     <details class="how"><summary>how</summary>
-      <p>press play: a song auto-play never reached starts, and the map pulses on it with a line to the closest place auto-play did go.</p>
+      <p>press play: a song the 40 walks did not reach starts, and the map pulses on it with a line to the closest place they did go.</p>
       <p>stay 30 s and the dot turns mint. skip (or n) turns it rose and moves on. every song plays its full 30 s unless you skip it.</p>
-      <p>tap a dot or a bright shape on the map to jump to any of the twelve. the path so far is bright, the rest faint.</p>
+      <p>tap a dot or a bright shape on the map to jump to any of the twelve. shapes that share a spot fan out, with a thin line back to it. the path so far is bright, the rest faint.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p id="what">what plays: </p>

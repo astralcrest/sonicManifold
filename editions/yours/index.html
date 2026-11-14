@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--rose:#ff5c7a;--ice:#bcd3ff;--mine:#5a4a92;--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+:root{--night:#06010f;--panel:#0a0517;--ink:#efe9ff;--mute:#9a90b8;--line:#241b3a;--mint:#21f6bc;--rose:#ff5c7a;--ice:#bcd3ff;--sans:"Instrument Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--night);color-scheme:dark}
 body{background:var(--night);color:var(--ink);font:17px/1.45 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
@@ -52,13 +52,14 @@ details[open] summary{color:var(--ink);border-color:var(--ice)}
 .st{font:12px/1.45 var(--mono);color:var(--mute);min-height:1.45em;overflow-wrap:anywhere}
 .st.err{color:var(--rose)}
 #privacy{font:12px/1.5 var(--mono);color:var(--mute)}
-.pic{min-width:0}
+.pic{min-width:0;scroll-margin-top:12px}
 .cv{position:relative;width:100%;aspect-ratio:1/1;background:var(--night);border:1px solid var(--line)}
 .cv canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:manipulation}
 .keyrow{display:flex;flex-wrap:wrap;gap:6px 18px;font:12px var(--mono);color:var(--mute);margin-top:10px}
 .sw{display:inline-block;border-radius:50%;margin-right:6px;vertical-align:middle}
-.sw.m{width:6px;height:6px;background:var(--mine)}
-.sw.i{width:11px;height:11px;background:var(--ice)}
+.sw{width:8px;height:8px}
+.sw.i{width:9px;height:9px;background:var(--ice);box-shadow:0 0 0 2px var(--night),0 0 0 3.5px var(--ice);margin:0 10px 0 4px}
+#fams{margin-top:6px}
 .tap{font:12px/1.45 var(--mono);color:var(--ink);margin-top:8px;min-height:1.45em}
 #lists{margin-top:14px;display:grid;gap:8px;font:12px/1.55 var(--mono);color:var(--mute);overflow-wrap:anywhere}
 #lists b{display:block;font-weight:500;letter-spacing:.14em;color:var(--mute)}
@@ -73,13 +74,13 @@ details[open] summary{color:var(--ink);border-color:var(--ice)}
   <div>
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>your own data</span><span><a href="../../yourturn.html">have your whole export? your own log</a></span></p>
     <h1>where <em>your</em> artists land on my sound map</h1>
-    <p id="lead">paste the artists you play most. the ones i have heard light up in ice; the rest are counted, never guessed.</p>
-    <p class="how"><b>how:</b> each faint dot is an artist i have heard (<span id="nmine">1,871</span>), placed by how it sounds to a model (CLAP, flattened to two axes by UMAP). near = alike to the model, not to me. your names match mine by spelling only, ignoring case and accents. a name i never heard has no place to go.</p>
+    <p id="lead">paste the artists you play most. the ones on my map light up in ice; the rest are counted, never guessed.</p>
+    <p class="how"><b>how:</b> each dot is an artist i played five times or more that a model could place (<span id="nmine">1,871</span>), set by how it sounds to that model (CLAP, the first two of three UMAP axes; dots on the border lie farther out) and colored by family (Last.fm, else Apple&rsquo;s label). near = roughly alike to the model, not to me. your names match mine by spelling only, ignoring case and accents.</p>
   </div>
   <div class="hside">
     <div class="big" id="np">?</div>
     <span class="keylab" id="noff">loading the map</span>
-    <p class="take" id="line" hidden>my map only knows artists i have heard; far from my taste lands off the map, and that is the point.</p>
+    <p class="take" id="line" hidden>off my map means i barely played them, never did, or could not place them by sound; it says nothing about how far they sound from mine.</p>
   </div>
 </header>
 <section>
@@ -92,15 +93,16 @@ details[open] summary{color:var(--ink);border-color:var(--ice)}
       <summary>or drop your Spotify file</summary>
       <div id="drop">
         <label class="filebtn">choose or drop the file<input type="file" id="file" accept=".json,application/json" multiple></label>
-        <p class="how">only StreamingHistory_music_*.json or Streaming_History_Audio_*.json, any other file stays unread. kept per play: artist, ms played, time; everything else is dropped as it parses. plays over 30 s rank your artists, private-session plays are skipped, and your 50 most played are placed.</p>
+        <p class="how">only StreamingHistory0.json, StreamingHistory_music_0.json or Streaming_History_Audio_*.json (any number); any other file stays unread. kept per play: artist, ms played, time; everything else is dropped as it parses. plays over 30 s rank your artists, private-session plays are skipped, and your 50 most played are placed.</p>
       </div>
     </details>
     <p id="privacy">read in your browser, gone when the tab closes. no upload, nothing saved.</p>
     <div class="row"><button type="button" id="copy" disabled>copy my placement</button></div>
   </div>
   <div class="pic">
-    <div class="cv"><canvas id="map" role="img" aria-label="my sound map: faint dots are artists i have heard; ice marks are the artists from your list that i have heard too"></canvas></div>
-    <p class="keyrow"><span><i class="sw m"></i>an artist i have heard</span><span><i class="sw i"></i>yours, on my map (bigger = higher on your list)</span></p>
+    <div class="cv"><canvas id="map" role="img" aria-label="my sound map: dots are artists i played five times or more, colored by family; ringed ice marks are the artists from your list that are on my map"></canvas></div>
+    <p class="keyrow"><span><i class="sw i"></i>yours, on my map (bigger = higher on your list)</span></p>
+    <p class="keyrow" id="fams"></p>
     <p class="tap" id="tap" aria-live="polite"></p>
     <div id="lists" hidden><p><b>placed</b><span id="pl"></span></p><p><b>off my map</b><span id="of"></span></p></div>
   </div>

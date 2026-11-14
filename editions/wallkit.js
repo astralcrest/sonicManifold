@@ -161,7 +161,8 @@
         if (e.type === 'pointerdown' && opt.tap) { opt.tap(best, e); }
         var fam = D.fam && D.f ? D.fam[D.f[best]] : '';
         tip.innerHTML = '<b>' + esc(D.n ? D.n[best] : '') + '</b>' + (fam ? ' <i style="background:' + (FAMC[fam] || C.mute) + '"></i>' + esc(fam) : '') + (D.pl ? ' · ' + D.pl[best] + ' plays' : '');
-        tip.style.left = Math.max(0, Math.min(self.W - 200, x + 12)) + 'px'; tip.style.top = Math.max(0, y - 34) + 'px'; tip.hidden = false;
+        tip.hidden = false; var tw = tip.offsetWidth, lx = x + 12; if (lx + tw > self.W - 2) lx = x - 12 - tw;
+        tip.style.left = Math.max(0, Math.min(self.W - tw, lx)) + 'px'; tip.style.top = Math.max(0, y - 34) + 'px';
       };
       cv.addEventListener('pointermove', onMove); cv.addEventListener('pointerdown', onMove);
       cv.addEventListener('pointerleave', function () { tip.hidden = true; });
@@ -308,7 +309,7 @@
   /* ---------- sound: off until the chip is on; every preview and voice on every wall respects it ---------- */
   var SND = false, ELS = [], chip = null;
   try { SND = localStorage.getItem('sm_sound') === '1'; } catch (e) {}
-  function chipLabel() { if (!chip) return; chip.textContent = SND ? 'sound on' : 'sound off, tap to hear'; chip.setAttribute('aria-pressed', SND ? 'true' : 'false'); chip.classList.toggle('on', SND); }
+  function chipLabel() { if (!chip) return; chip.innerHTML = SND ? 'sound on' : 'sound off<span class="wk-tl">, tap to hear</span>'; chip.setAttribute('aria-pressed', SND ? 'true' : 'false'); chip.classList.toggle('on', SND); }
   function setSound(on) {
     SND = !!on; try { localStorage.setItem('sm_sound', SND ? '1' : '0'); } catch (e) {}
     ELS.forEach(function (a) { a.muted = !SND; }); chipLabel();
@@ -349,16 +350,19 @@
     '#wk-strip .wk-keys li svg{flex:none}' +
     '#wk-snd{font:500 14px/1.1 "IBM Plex Mono",ui-monospace,monospace;min-height:44px;min-width:44px;padding:0 18px;border-radius:22px;border:1.5px solid #efe9ff;background:transparent;color:#efe9ff;cursor:pointer}' +
     '#wk-snd.on{background:#efe9ff;border-color:#efe9ff;color:#06010f}' +
-    '@keyframes wkPulse{0%,100%{box-shadow:0 0 0 0 rgba(222,186,255,.34)}70%{box-shadow:0 0 0 7px rgba(222,186,255,0)}}#wk-strip #wk-go{font:600 15px/1 "IBM Plex Mono",ui-monospace,monospace;min-height:48px;padding:0 22px;border-radius:24px;border:0;background:#efe9ff;color:#06010f;cursor:pointer;display:inline-flex;align-items:center;gap:8px;animation:wkPulse 3.6s ease-in-out infinite}@media(prefers-reduced-motion:reduce){#wk-strip #wk-go{animation:none}}#wk-strip #wk-go[hidden]{display:none}#wk-strip #wk-go:hover{background:#fff}' +
+    '@keyframes wkPulse{0%,100%{box-shadow:0 0 0 0 rgba(222,186,255,.34)}70%{box-shadow:0 0 0 7px rgba(222,186,255,0)}}#wk-strip #wk-go{font:600 15px/1 "IBM Plex Mono",ui-monospace,monospace;min-height:48px;padding:0 22px;border-radius:24px;border:0;background:#efe9ff;color:#06010f;cursor:pointer;display:inline-flex;align-items:center;gap:8px;max-width:100%;text-align:left;line-height:1.25;animation:wkPulse 3.6s ease-in-out infinite}@media(prefers-reduced-motion:reduce){#wk-strip #wk-go{animation:none}}#wk-strip #wk-go[hidden]{display:none}#wk-strip #wk-go:hover{background:#fff}' +
     '#wk-snd.nudge{background:#efe9ff;border-color:#efe9ff;color:#06010f}' +
     '#wk-strip .wk-pos{margin:0;font:500 13px/1.2 "IBM Plex Mono",ui-monospace,monospace;color:#9a90b8;margin-left:auto;white-space:nowrap}' +
     '#wk-strip .wk-pos a{color:#efe9ff}' +
-    '#wk-nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:6px;padding:0 48px;border-bottom:1px solid #2a2140;overflow:hidden}' +
+    '#wk-nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:6px;padding:0 48px;border-bottom:1px solid #2a2140;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}#wk-nav::-webkit-scrollbar{display:none}' +
     '#wk-nav #wk-snd{flex:none;min-height:44px;padding:0 14px;font-size:12.5px;margin-right:4px}#wk-nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;color:#efe9ff;text-decoration:none;font:500 13px/1 "IBM Plex Mono",ui-monospace,monospace;white-space:nowrap;border-radius:22px}' +
     '.wk-tip{position:absolute;z-index:3;pointer-events:none;font:500 11px/1.4 "IBM Plex Mono",monospace;color:#f2eefa;background:#06010f;border:1px solid #2a2140;padding:4px 8px;border-radius:6px 9px 6px 8px;white-space:nowrap}.wk-tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0 2px;vertical-align:-1px}#wk-nav a:hover{background:#1a1230}#wk-nav a.sp{margin-left:auto}#wk-nav a[aria-disabled]{opacity:.35;pointer-events:none}' +
     '#wk-nav a:focus-visible,#wk-strip a:focus-visible,#wk-strip button:focus-visible{outline:2px solid #efe9ff;outline-offset:2px}' +
     'html.wk-framed #wk-strip .wk-pos,html.wk-framed .eyebrow,html.wk-framed #wk-nav a,html.wk-framed #wk-snd,html.wk-framed #wk-nav{display:none}' +
-    '@media(max-width:700px){#wk-strip{padding:10px 16px;gap:8px 16px}#wk-strip .wk-pos,.eyebrow{display:none}#wk-strip .wk-line{font-size:15px}#wk-strip .wk-do{font-size:12.5px;margin-top:4px}#wk-snd{white-space:nowrap;padding:0 12px;font-size:12.5px}#wk-nav{padding:0 12px}#wk-nav a{padding:0 10px}#wk-nav a .nm{display:none}}' +
+    '#wk-strip .wk-pos a,.eyebrow a{position:relative}#wk-strip .wk-pos a::after,.eyebrow a::after{content:"";position:absolute;left:-4px;right:-4px;top:-14px;bottom:-14px}' +
+    '@media(max-width:900px){#wk-nav a .nm{display:none}}' +
+    '@media(max-width:700px){#wk-strip{padding:10px 16px;gap:8px 16px}#wk-strip .wk-pos,.eyebrow{display:none}#wk-strip .wk-line{font-size:15px}#wk-strip .wk-do{font-size:12.5px;margin-top:4px}#wk-snd{white-space:nowrap;padding:0 12px;font-size:12.5px}#wk-nav{padding:0 12px}#wk-nav a{padding:0 10px}}' +
+    '@media(max-width:480px){#wk-snd .wk-tl{display:none}}@media(max-width:360px){#wk-nav{gap:2px;padding:0 8px}#wk-nav a{padding:0 7px}}' +
     'details.fine{border-top:1px solid #2a2140;margin:8px 0 0}details.fine summary{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.14em;color:#9a90b8;list-style:none}' +
     'details.fine summary::-webkit-details-marker{display:none}details.fine summary::before{content:"+";display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border:1px solid #2a2140;color:#efe9ff}details.fine[open] summary::before{content:"\\2212"}' +
     'details.fine p{font:13px/1.6 "IBM Plex Mono",monospace;color:#9a90b8;margin:0 0 10px;max-width:560px}';
@@ -368,12 +372,13 @@
   // walls whose first action is not named play/hear: the selectors to try in order, the first enabled visible one wins
   var PRIMS = { loop: ['#hear'], shake: ['#dl'], telephone: ['#cands button'], way: ['#wm', '#draw'], scrub: ['#hear'], radio: [] };
   function slug() { var n = parseInt(document.body.getAttribute('data-wall'), 10) || 0; return n ? WALLS[n - 1][0] : ''; }
-  function live(b) { return b && !b.disabled && !b.hidden && b.offsetParent; }
+  // not named live: a second function live in this scope would replace the redraw loop that WK.live exports
+  function shown(b) { return b && !b.disabled && !b.hidden && b.offsetParent; }
   function primary() {
     if (typeof PRIM === 'string') return document.querySelector(PRIM);
     if (PRIM) return PRIM;
     var ov = PRIMS[slug()];
-    if (ov) { for (var o = 0; o < ov.length; o++) { var e = document.querySelector(ov[o]); if (live(e)) return e; } return null; }
+    if (ov) { for (var o = 0; o < ov.length; o++) { var e = document.querySelector(ov[o]); if (shown(e)) return e; } return null; }
     var bs = document.querySelectorAll('main button, body > button, .wall button, section button, button'), i, b, t;
     for (i = 0; i < bs.length; i++) { b = bs[i]; if (b.closest('#wk-strip, #wk-nav') || b.disabled || b.hidden || !b.offsetParent) continue; t = (b.textContent || '').trim().toLowerCase(); if (/^(play|hear|listen|walk|place|pick|deal|start|hold at|read all)/.test(t) && !/^(play\/pause|stop)/.test(t)) return b; }
     return null;
@@ -383,7 +388,17 @@
   var autoN = 0;
   function pin(ms) { var until = Date.now() + ms, g = function () { if (Date.now() > until) { root.removeEventListener('scroll', g); return; } if (root.pageYOffset) try { root.scrollTo(0, 0); } catch (x) {} }; root.addEventListener('scroll', g, { passive: true }); g(); }
   function autostart() { var on = pk >= 0 || ELS.some(function (a) { return !a.paused && !a.ended; }); if (on || autoN++ > 20) return; var b = primary(); if (b) { try { b.click(); } catch (e) {} } setTimeout(autostart, 400); }
-  function goState() { if (!goBtn) return; var on = pk >= 0 || ELS.some(function (a) { return !a.paused && !a.ended; }); var pb = primary(); goBtn.hidden = on || !pb; if (pb) { var pt = (pb.textContent || '').trim().replace(/\s+/g, ' ').toLowerCase(); goBtn.textContent = '\u25B6 ' + (pt.length > 26 ? pt.slice(0, 25) + '\u2026' : pt); } }
+  function goState() { if (!goBtn) return; var on = pk >= 0 || ELS.some(function (a) { return !a.paused && !a.ended; }); var pb = primary(); goBtn.hidden = on || !pb; if (pb) goBtn.textContent = '\u25B6 ' + goLabel(pb); }
+  // the wall can name it (data-go on its button); else the button's words, child by child so a number badge keeps its space, cut at a word
+  function goLabel(pb) {
+    var d = pb.getAttribute('data-go'); if (d) return d;
+    var t = '';
+    Array.prototype.forEach.call(pb.childNodes, function (x) { var s = x.textContent || ''; if (/[\p{L}\p{N}]$/u.test(t) && /^[\p{L}\p{N}]/u.test(s)) t += ' '; t += s; });
+    t = t.trim().replace(/\s+/g, ' ').toLowerCase().replace(/^\u25B6\s*/, '');
+    if (t.length <= 32) return t;
+    var c = t.slice(0, 31), sp = c.lastIndexOf(' ');
+    return (sp > 8 ? c.slice(0, sp) : c).replace(/[\s,;:\u00B7]+$/, '') + '\u2026';
+  }
   function strip() {
     try { if (window.parent && window.parent !== window) { document.documentElement.classList.add('wk-framed'); Array.prototype.forEach.call(document.querySelectorAll('a[href]'), function (a) { var h = a.getAttribute('href') || ''; if (h.charAt(0) !== '#' && !/^javascript:/.test(h)) a.target = '_top'; }); } } catch (e) {}
     var b = document.body; if (!b || document.getElementById('wk-strip')) return;
@@ -407,6 +422,8 @@
     if (root.parent && root.parent !== root) { pin(2500); if (SND) autostart(); }
     var fit = function () { document.documentElement.style.setProperty('--sh', (s.offsetHeight + nav.offsetHeight) + 'px'); document.documentElement.style.setProperty('--nh', nav.offsetHeight + 'px'); };
     fit(); root.addEventListener('resize', fit); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    // the strip changes height after the first fit (web fonts wrap it, the play button appears), so measure again whenever it does
+    if (root.ResizeObserver) { var ro = new ResizeObserver(fit); ro.observe(s); ro.observe(nav); }
   }
   strip();
 

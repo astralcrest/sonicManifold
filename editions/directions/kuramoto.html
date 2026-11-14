@@ -56,6 +56,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--ice)
 .find .num{font-family:var(--mono);font-size:11px;color:#fff}
 .find .tag{font:500 11px/1 var(--mono);color:var(--night);background:var(--rose);padding:2px 5px;margin-right:6px;letter-spacing:.04em}
 .how,.why{font:400 11px/1.4 var(--mono);color:var(--dim)}
+details.deeper>summary{font:500 11px/1.3 var(--mono);color:var(--ice);cursor:pointer;padding:3px 0}
+details.deeper[open]{display:flex;flex-direction:column;gap:8px}
 .how sub,.why sub{font-size:11px;line-height:0}
 .how b,.why b{color:var(--ice);font-weight:500}
 @media (max-width:760px){
@@ -67,7 +69,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--ice)
   .meters{grid-template-columns:auto auto auto;justify-content:space-between;gap:6px}
   .m{display:flex;gap:5px;font-size:10.5px;white-space:nowrap}.m .n,.m .bar{display:none}.m b{font-size:11.5px}
   .meters .lbl{grid-column:1/-1}
-  .meters{order:1}.find{order:2}.ctrl{order:3}.r-tr{order:4}.r-sw{order:5}.how{order:6}.why{order:7}
+  .meters{order:1}.find{order:2}.ctrl{order:3}.r-tr{order:4}.r-sw{order:5}.deeper{order:6}
   .stage{height:auto}
   .rd{position:static;padding:6px 16px 4px;gap:6px;max-width:none}.rd b{font-size:16px}.rd p{font-size:12.5px;min-height:54px}.act span{min-width:0;flex:1;font-size:11px;letter-spacing:.02em}.foot{display:none}
   #ring{position:relative;inset:auto;height:min(calc(100vw - 20px),338px)}
@@ -100,12 +102,14 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--ice)
         <span class="seg" id="speed"><button data-v="1">1×</button><button data-v="3">3×</button><button data-v="10">10×</button></span>
         <label class="kk">pull K <input id="k" type="range" min="0" max="5" step="0.1"><b id="kv"></b></label>
         <button id="reset">back to the clock</button>
-        <span class="seg" id="hand"><button data-v="-1">all</button><button data-v="0">mine</button><button data-v="2">queue</button><button data-v="1">shuffle</button></span>
+        <span class="seg" id="hand"><button data-v="-1">all</button><button data-v="0">mine</button><button data-v="2">auto-play</button><button data-v="1">shuffle</button></span>
       </div>
       <div class="r-sw"><div class="lbl">after it settles: share locked to neighbors' tempo, by pull K</div><canvas class="ch" id="sweep"></canvas></div>
+      <details class="deeper"><summary>deeper</summary>
       <p class="find" id="find"></p>
       <p class="how" id="how"></p>
       <p class="why" id="why"></p>
+      </details>
     </div>
   </aside>
 </main>
@@ -113,7 +117,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--ice)
 (function(){
 'use strict';
 var COL=['#21f6bc','#f5a623','#8b6fd6'], DIMC='#2a2440', ICE='#bcd3ff', LINE='#1d1830', NIGHT='#06010f', MUTE='#7d7896';
-var NAME=['i pressed play','shuffle','the queue'], SHORT=['mine','shuffle','the queue'];
+var NAME=['i pressed','shuffle','auto-play'], SHORT=['mine','shuffle','auto-play'];
 var ORDER=[0,2,1];
 var D, N, th, om, deg, E, EW, adj, perm, cs, sn, Fx, Fy;
 var KVIEW=4, HOLD=5500, SETTLE=6500, REWIND=1500, CAP=1200;
@@ -180,19 +184,19 @@ function sample(){measure();for(var g=0;g<3;g++)tr[g].push(live[g]);}
 
 function text(){
   var c=D.clock, s=D.sim;
-  var clockPart = c.dR[2]<0 ? 'my sittings bunch tighter in the day' : (c.dR[1]>0 ? "the queue's sittings bunch tighter in the day" : "in the day, mine and the queue's bunch alike");
+  var clockPart = c.dR[2]<0 ? 'my sittings bunch tighter in the day' : (c.dR[1]>0 ? "auto-play's sittings bunch tighter in the day" : "in the day, mine and auto-play's bunch alike");
   var inside = s.dlock>=s.null95[0] && s.dlock<=s.null95[1];
-  var simPart = inside ? 'pulled together, every hand syncs alike' : (s.dlock>0 ? "pulled together, the queue's lock first" : 'pulled together, mine lock first');
+  var simPart = inside ? 'pulled together, every hand syncs alike' : (s.dlock>0 ? "pulled together, auto-play's lock first" : 'pulled together, mine lock first');
   document.getElementById('hl').textContent=clockPart+'; '+simPart;
   document.getElementById('foot').textContent='center = first sitting · edge = sitting '+nf(N);
   document.getElementById('cap').textContent=nf(N)+' sittings on a 24-hour ring. first the real clock; then each sitting is pulled toward the sittings whose artists are most like its own.';
   var R=c.R, lk=s.lock;
   var exp = (c.dR[1]>0 && !inside && s.dlock>0) ? '' : '<span class="tag">expected story not shown</span>';
-  var gapC = c.dR[2]<0 ? 'mine bunch tighter. why it holds: the whole bracket is below zero, so resampling luck does not explain it' : (c.dR[1]>0 ? "the queue's bunch tighter. why it holds: the whole bracket is above zero" : 'no clear gap. why: the bracket crosses zero');
+  var gapC = c.dR[2]<0 ? 'mine bunch tighter. why it holds: the whole bracket is below zero, so resampling luck does not explain it' : (c.dR[1]>0 ? "auto-play's bunch tighter. why it holds: the whole bracket is above zero" : 'no clear gap. why: the bracket crosses zero');
   document.getElementById('find').innerHTML =
-    '<span class="row">'+exp+'<b>what i expected:</b> the queue\'s sittings bunch at one time of day, mine spread out.</span>'+
-    '<span class="row"><b>1 · the clock shows</b> how bunched each hand is in the day (0 = spread over the day, 1 = all at one moment): mine '+ci(R[0])+', the queue '+ci(R[2])+', shuffle '+ci(R[1])+'. the queue minus mine '+ci(c.dR)+': '+gapC+'.</span>'+
-    '<span class="row"><b>3 · settled shows</b>, at pull K '+s.K+', how many of 100 sittings lock to their neighbors\' tempo: mine <span class="num">'+Math.round(lk[0]*100)+'</span>, the queue <span class="num">'+Math.round(lk[2]*100)+'</span>, shuffle <span class="num">'+Math.round(lk[1]*100)+'</span>. the queue minus mine <span class="num">'+f3(s.dlock)+'</span> is '+(inside?'inside':'outside')+' the gaps that shuffled hand labels give <span class="num">['+f3(s.null95[0])+', '+f3(s.null95[1])+']</span>'+(inside?'. why that means no difference: a random relabeling of who started each sitting does just as well':'')+'; other random tempos move it <span class="num">'+f3(s.dlock_seeds[0])+'</span> to <span class="num">'+f3(s.dlock_seeds[1])+'</span>.</span>'+
+    '<span class="row">'+exp+'<b>what i expected:</b> auto-play\'s sittings bunch at one time of day, mine spread out.</span>'+
+    '<span class="row"><b>1 · the clock shows</b> how bunched each hand is in the day (0 = spread over the day, 1 = all at one moment): mine '+ci(R[0])+', auto-play '+ci(R[2])+', shuffle '+ci(R[1])+'. auto-play minus mine '+ci(c.dR)+': '+gapC+'.</span>'+
+    '<span class="row"><b>3 · settled shows</b>, at pull K '+s.K+', how many of 100 sittings lock to their neighbors\' tempo: mine <span class="num">'+Math.round(lk[0]*100)+'</span>, auto-play <span class="num">'+Math.round(lk[2]*100)+'</span>, shuffle <span class="num">'+Math.round(lk[1]*100)+'</span>. auto-play minus mine <span class="num">'+f3(s.dlock)+'</span> is '+(inside?'inside':'outside')+' the gaps that shuffled hand labels give <span class="num">['+f3(s.null95[0])+', '+f3(s.null95[1])+']</span>'+(inside?'. why that means no difference: a random relabeling of who started each sitting does just as well':'')+'; other random tempos move it <span class="num">'+f3(s.dlock_seeds[0])+'</span> to <span class="num">'+f3(s.dlock_seeds[1])+'</span>.</span>'+
     '<span class="row lbl">[ ] = middle 95 of 100 resamples of 28-day blocks; K '+s.K+' = the steepest point of the curve below, where a gap between hands would show most.</span>';
   document.getElementById('how').innerHTML='<b>how:</b> angle starts at the hour each sitting began, radius = sitting order (first in the middle); each sitting links to its '+D.kNN+' most artist-alike sittings; each step dθ/dt = ω + K · mean sin(θ<sub>j</sub> − θ<sub>i</sub>); needles = each hand\'s average direction, length = how bunched.';
   document.getElementById('why').innerHTML='<b>why:</b> start hours and links are the real log; the random tempos ω come from one bell curve for every hand, so any gap between hands is the data, not the model.';

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>shake the shuffle &middot; sonic manifold</title>
-<meta name="description" content="shake your phone: a shuffle pick leaps across my sound map, a press hops one step. a toy.">
-<meta property="og:title" content="wall 15 of 25: shake the shuffle"><meta property="og:description" content="shake your phone: a shuffle pick leaps across my sound map, a press hops one step. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/shake.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="shake your phone: a shuffle pick leaps across my sound map, next to a real press of mine. a toy.">
+<meta property="og:title" content="wall 15 of 25: shake the shuffle"><meta property="og:description" content="shake your phone: a shuffle pick leaps across my sound map, next to a real press of mine. a toy."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/shake.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,47 +15,51 @@
 @media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
 #map canvas { touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
-#alw[hidden], #nophone[hidden] { display: none; }
+#alw[hidden], #nophone[hidden], #meter[hidden] { display: none; }
+#meter { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font: 500 13px var(--mono); color: var(--mute); }
+#meter b { display: inline-block; width: 48px; height: 6px; background: rgba(255,255,255,.2); border-radius: 3px; overflow: hidden; }
+#meter i { display: block; height: 100%; width: 0; background: #21f6bc; }
 #alw { --acc: var(--amber); } #dl { --acc: var(--amber); } #sr { --acc: var(--line); color: var(--mute); }
 </style>
 </head>
-<body data-wall="15" data-line="shuffle leaps far across my map. a press hops one step."
+<body data-wall="15" data-line="shuffle leaps across my map. my real presses land a little nearer, on average."
  data-do="shake the phone, tap shake, or press d. then tap any shape to hear it." data-keys="shuffle,press" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>shake the shuffle</span><span class="tl">a toy</span></p>
     <h1>how far does <em>shuffle</em> leap?</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. from one artist an amber ribbon leaps to a far artist, a shuffle pick. a short mint ribbon hops to a near neighbor, a press."></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map. from one artist an amber ribbon leaps to a far artist, a shuffle pick. a mint ribbon goes to an artist i once pressed right before or after it, my press."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big amber" id="num"><span class="c">shake to start</span></div>
       <span class="keylab" id="numlab">steps between the old artist and where shuffle landed</span>
       <p class="say" id="say">shake the phone, or tap shake.</p>
     </div>
+    <p class="fams" id="fams" aria-label="dot color is the sound family"></p>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>shuffle is the farthest starter in the room, the only one that does not care what you were doing.</p>
+      <p class="take"><b>takeaway:</b>the queue's own run stays close in sound. my press breaks it part way, shuffle farther still. a direction, not a size.</p>
       <p class="ask"><b>open question:</b>how far does your own night leap?</p>
     </div>
     <section>
-      <div class="row"><button type="button" id="alw" hidden>allow shake</button><button type="button" id="dl">shake</button><button type="button" id="nc">next clip</button><button type="button" id="ea">earlier shake</button><button type="button" id="sr">start over</button></div>
+      <div class="row"><button type="button" id="alw" hidden>allow shake</button><button type="button" id="dl">shake</button><span id="meter" hidden aria-hidden="true"><span id="mlab">motion</span><b><i id="mfill"></i></b></span><button type="button" id="nc">next clip</button><button type="button" id="ea">earlier shake</button><button type="button" id="sr">start over</button></div>
       <p class="note" id="nophone" hidden>no phone to shake? tap shake or press the d key.</p>
-      <p class="note" id="now">turn the sound chip on, then shake. you hear where shuffle landed, then where a press would hop.</p>
+      <p class="note" id="now">tap shake to hear where shuffle landed, then my press.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>turn sound on, then shake the phone. on a laptop tap shake or press d. two clips play in order: shuffle's landing, then a press's hop. next clip skips ahead.</p>
-      <p>amber (shuffle) leaps far. mint (my press) hops one step. tap any shape to hear it. earlier shake steps back through your shakes.</p>
+      <p>tap shake or press d and the sound comes on. a phone shake keeps the sound chip as it is. two clips play in order: shuffle's landing, then my press. next clip skips ahead.</p>
+      <p>amber (shuffle) leaps to a random artist. mint (my press) goes to an artist i once pressed right before or after the old one. tap any shape to hear it. earlier shake steps back through your shakes.</p>
       <p>read the big number as steps from the old artist to where shuffle landed. colors are sound families; bigger shapes are played more.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>a toy rule on this phone, not my data. shuffle here is a random artist with a clip; a press here is the nearest artist on the map. the press is one step by construction.</p>
-      <p>what it shows: shuffle jumps farther than a press does. the numbers are steps in the neighbor graph (each artist joined to its six nearest), not neighborhoods.</p>
+      <p>shuffle here is a toy rule on this page: a random artist with a clip, drawn from the artists my presses touch. the press is real: an artist i pressed right before or after the old one (two presses in a row in my log, from a sample of pairs).</p>
+      <p>what it shows: on average shuffle jumps a little farther than my presses do, a direction, not a size. the numbers are steps in the neighbor graph (each artist joined to its six nearest), not neighborhoods.</p>
       <p>clips are 30 s public previews and only play with sound on. motion is read only to detect a shake and is never stored.</p>
     </details>
   </main>
 </div>
 <script src="../kiosk.js"></script>
 <script src="../wallkit.js"></script>
-<script src="shake.js?v=4"></script>
+<script src="shake.js?v=6"></script>
 </body>
 </html>

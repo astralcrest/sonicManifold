@@ -13,45 +13,48 @@
 <link rel="stylesheet" href="../wall.css">
 <style>
 @media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
-#map canvas { touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
-.big span.a { color: #a48cf0; } .big span.b { color: var(--mint); } .big span.c { color: var(--mute); }
+#map canvas { touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+.big span.a { color: var(--ice); } .big span.b { color: var(--mint); } .big span.c { color: var(--mute); }
 .lab2 { display: flex; gap: 18px; font: 500 12px var(--mono); margin: 8px 0 0; }
-.lab2 .a { color: #a48cf0; } .lab2 .b { color: var(--mint); }
+.lab2 .a { color: var(--ice); } .lab2 .b { color: var(--mint); }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
 #reset { --acc: var(--ice); }
+.pulls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* two lines fit, so a label that wraps (hear the path, 12 stops) never shifts the hold buttons mid-hold */
+.pulls button { width: 100%; min-height: 52px; }
+#now { min-height: 34px; }
+@media (max-width: 900px) { .pulls { gap: 10px; } }
 </style>
 </head>
-<body data-wall="10 of 12" data-line="one point, two pulls: violet toward what sounds alike, mint toward my most played." data-do="hear the start, then hold a pull button or tap a target to jump." data-keys="auto,press,alike" style="--act: var(--rose); --acc: var(--ice)">
+<body data-wall="10 of 12" data-line="one point, two pulls: ice toward what sounds alike, mint toward what i played most." data-do="hear the start, then hold a button to pull, or tap a target to jump." data-keys="alike" style="--act: var(--rose); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>tug of two hands</span><span class="tl">a toy</span></p>
     <h1>two hands pull <em>one</em> point.</h1>
   </header>
-  <div id="map"><canvas id="cv" tabindex="0" role="img" aria-label="my sound map with a point on it. a violet ring handle on the left edge pulls the point toward what sounds alike. a mint star handle on the right edge pulls it toward the most played. the path draws as a ribbon colored by which handle was winning. keyboard: hold left arrow or right arrow."></canvas></div>
+  <div id="map"><canvas id="cv" tabindex="0" role="img" aria-label="my sound map with a point on it. an ice dot handle on the left edge pulls the point toward what sounds alike. a mint star handle on the right edge pulls it toward the most played. the path draws as a ribbon colored by which handle was winning. keyboard: hold left arrow or right arrow."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span class="c">pull to start</span></div>
-      <span class="keylab" id="numlab">who moved the point, out of 100</span>
-      <div class="lab2"><span class="a">auto-play's lean</span><span class="b">my press</span></div>
-      <p class="say" id="say">hear the start first, then pull. on a laptop hold the left or right arrow key.</p>
-    </div>
-    <div class="lines">
-      <p class="take"><b>takeaway:</b>if you pull together you go nowhere new. a loop is two pulls that rarely disagree.</p>
-      <p class="ask"><b>open question:</b>when the pulls agree, who is steering?</p>
+      <span class="keylab" id="numlab">how far each pull moved the point</span>
+      <div class="lab2"><span class="a">sounds alike</span><span class="b">most played</span></div>
+      <p class="note" id="now"></p>
+      <p class="say" id="say"></p>
     </div>
     <section>
-      <div class="row" style="margin-top:0"><button type="button" id="play" style="--acc:var(--ice)">hear the start</button></div>
-      <div class="row"><button type="button" id="pa" aria-pressed="false" style="--acc:var(--violet)">hold: pull to what sounds alike</button><button type="button" id="pb" aria-pressed="false" style="--acc:var(--mint)">hold: pull to what i played most</button></div>
-      <div class="row"><button type="button" id="ja" style="--acc:var(--violet)">jump one stop: sounds alike</button><button type="button" id="jb" style="--acc:var(--mint)">jump one stop: my plays</button><button type="button" id="reset">start over</button></div>
-      <p class="note" id="now">tap hear the start. then hold a pull button, or jump if you are impatient. each stop plays; the numbered pebbles are your path.</p>
+      <div class="pulls"><button type="button" id="play" style="--acc:var(--ice)">hear the start</button><button type="button" id="reset">start over</button><button type="button" id="pa" aria-pressed="false" style="--acc:var(--ice)">hold: sounds alike</button><button type="button" id="pb" aria-pressed="false" style="--acc:var(--mint)">hold: most played</button><button type="button" id="ja" style="--acc:var(--ice)">jump: sounds alike</button><button type="button" id="jb" style="--acc:var(--mint)">jump: most played</button></div>
     </section>
+    <div class="lines">
+      <p class="take"><b>takeaway:</b>hold both pulls at once and the point soon stalls between them.</p>
+      <p class="ask"><b>open question:</b>when the pulls agree, who is steering?</p>
+    </div>
     <details class="how"><summary>how</summary>
-      <p>tap hear the start, then hold a pull button or press the left or right arrow. tap a target on the map to jump to it.</p>
+      <p>on a laptop hold the left or right arrow. on the map, drag a handle inward: the farther, the harder it pulls. tap a target to jump to it.</p>
       <p>each stop plays seven seconds. hear the path replays every stop in order; press n or tap a numbered pebble to skip ahead.</p>
-      <p>read the path: violet where sound won, mint where my plays won. pebbles take their family color; a ring marks a new family.</p>
+      <p>read the path: ice where sound won, mint where my plays won. pebbles take their family color; a ring marks a new family.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>a toy rule on this screen, not my data. the ring pulls toward the nearest artist in sound; the star pulls toward the most played artist within reach.</p>
+      <p>a toy rule on this screen, not my data. the dot pulls toward the nearest artist in sound; the star pulls toward the most played artist within reach.</p>
       <p>the share is how far each handle moved the point. it is not a measurement of me.</p>
       <p id="meta"></p>
     </details>

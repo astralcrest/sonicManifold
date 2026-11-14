@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>family crossings &middot; sonic manifold</title>
-<meta name="description" content="one listening night as a ribbon across the families of my sound map, colored by the family of each play.">
-<meta property="og:title" content="wall 22 of 25: family crossings"><meta property="og:description" content="one listening night as a ribbon across the families of my sound map, colored by the family of each play."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/crossings.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="one sitting of my plays as a ribbon across the families of my sound map, colored by the family of each play.">
+<meta property="og:title" content="wall 22 of 25: family crossings"><meta property="og:description" content="one sitting of my plays as a ribbon across the families of my sound map, colored by the family of each play."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/crossings.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,6 @@
 #mapin { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
 #map canvas { touch-action: manipulation; cursor: pointer; user-select: none; -webkit-user-select: none; }
 #st { flex: 0 0 auto; height: 88px; width: 100%; border-top: 1px solid var(--line); }
-@media (max-width: 900px) { #mapin { min-height: 46vh; } }
 .big .c { font: 500 16px var(--mono); letter-spacing: 0; color: var(--mute); }
 .big2 { font: 500 15px var(--mono); color: var(--ice); margin: 10px 0 0; }
 .big2 b { font: 600 28px var(--sans); color: var(--ink); margin-right: 4px; }
@@ -28,44 +27,45 @@
 #stop { --acc: var(--line); color: var(--mute); }
 </style>
 </head>
-<body data-wall="22" data-line="one night, one ribbon, colored by the family of each play. a kink in color = a crossing." data-do="press play the night. tap any cell or shape to jump there." data-keys="press,auto,shuffle" style="--act: var(--mint); --acc: var(--ice)">
+<body data-wall="22" data-line="one sitting, one ribbon, colored by the family of each play. a kink in color = a crossing." data-do="press play the sitting. tap any cell or shape to jump there." data-keys="press,auto,shuffle" style="--act: var(--mint); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>family crossings</span><span class="tl">real plays</span></p>
-    <h1>how many genres does <em>one night</em> cross?</h1>
+    <h1>how many genres does <em>one sitting</em> cross?</h1>
   </header>
-  <div id="map"><div id="mapin"><canvas id="cv" role="img" aria-label="the sound map, dimmed, with one listening night drawn as a ribbon. the ribbon changes color where the night moves into another family. below it, a row of colored cells, one per play, with a tick where the family changes."></canvas></div><canvas id="st" role="img" aria-label="the night as a row of colored cells, one per play, in the color of its family. a tick marks each family change. tap a cell to jump to that play."></canvas></div>
+  <div id="map"><div id="mapin"><canvas id="cv" role="img" aria-label="the sound map, dimmed, with one sitting of plays drawn as a ribbon. the ribbon changes color where the sitting moves into another family. below it, a row of colored cells, one per play, with a tick where the family changes."></canvas></div><canvas id="st" role="img" aria-label="the sitting as a row of colored cells, one per play, in the color of its family. a tick marks each family change. tap a cell to jump to that play."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <p class="big ink" id="big"><span class="c">loading the night</span></p>
+      <p class="big ink" id="big"><span class="c">loading the sitting</span></p>
       <span class="keylab" id="numlab">family crossings: steps where the next play is a different family</span>
       <p class="big2" id="big2"></p>
-      <p class="say" id="say">press play the night. the ribbon lights up one play at a time.</p>
-      <ul class="leg" id="leg" aria-label="families in this night"></ul>
+      <p class="say" id="say">press play the sitting. the ribbon lights up one play at a time.</p>
+      <ul class="leg" id="leg" aria-label="families in this sitting"></ul>
     </div>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>one night is a path, not a point. most steps stay in a family, a few jump.</p>
-      <p class="ask"><b>open question:</b>does a night that crosses more families feel more like searching?</p>
+      <p class="take"><b>takeaway:</b>one sitting is a path, not a point. in these 40 picked sittings, just over half the steps change family.</p>
+      <p class="ask"><b>open question:</b>does a sitting that crosses more families feel more like searching?</p>
     </div>
     <section>
       <div class="row">
-        <button type="button" id="go">play the night</button>
+        <button type="button" id="go">play the sitting</button>
         <button type="button" id="nx">next stop</button>
-        <button type="button" id="ne">next evening</button>
-        <button type="button" id="re">random evening</button>
+        <button type="button" id="ne">next sitting</button>
+        <button type="button" id="re">random sitting</button>
         <button type="button" id="stop">stop</button>
       </div>
       <p class="note" id="ev"></p>
       <p class="note" id="now"></p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>press play the night and turn sound on at the top. each play gets a few seconds of clip, then it moves on by itself.</p>
-      <p>in a hurry: tap a cell, a shape on the map, or next stop. keys: space plays or stops, arrows step, n is next evening.</p>
+      <p>press play the sitting and turn sound on at the top. each play gets a few seconds of clip, then it moves on by itself.</p>
+      <p>in a hurry: tap a cell, a shape on the map, or next stop. keys: space plays or stops, arrows step, n is next sitting.</p>
       <p>read it: ribbon color = family. the marks follow the key above: my press, auto-play, shuffle. a tick above a cell = a crossing.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>each evening is a real stretch of plays from my log, in order. a crossing is a step where the artist's family differs from the last artist's. the family is the one the sound map gives that artist, not the song.</p>
-      <p>a clip is a short piece of a public preview of that artist, not always the song that played; the line under the buttons names the real one. when the same artist comes twice in a row, the next clip starts a few seconds later so it does not repeat.</p>
+      <p>each sitting is a real stretch of plays from my log, in order. a crossing is a step where the artist's family differs from the last artist's. the family is the one the sound map gives that artist, not the song.</p>
+      <p>the 40 sittings were picked to have 12 to 30 plays, at least 8 artists, mostly auto-play; not a random sample.</p>
+      <p>a clip is a short piece of a public preview of that artist, not always the song that played; the line under the buttons names both. when the same artist comes twice in a row, the next clip starts a few seconds later so it does not repeat.</p>
     </details>
   </main>
 </div>

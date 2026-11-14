@@ -1,8 +1,9 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var COL = { a: '#ff6fae', b: '#efe9ff', o: '#8b6fd6', base: '#5a4a92', line: '#2a2140', night: '#06010f', ink: '#efe9ff' };
-  var OWNER_TOP = 200, STEPS = 20, STARTS = 10;
+  // one meaning per color: a pink, b blue (white is the strip's "sounds alike"), violet only auto-play (the strip's ring), gray everyone else; ad/bd = the sides dimmed
+  var COL = { a: '#ff6fae', b: '#4aa8ff', o: '#8b6fd6', base: '#5e5b70', ad: '#833860', bd: '#285487', mine: '#8d8a9c', line: '#2a2140', night: '#06010f', ink: '#efe9ff' };
+  var OWNER_TOP = 200, STEPS = 20, STARTS = 10, NEAR = 10;
   var F = null, M = null, SAMPLES = null, IDX = new Map(), ADJ = null, STRENGTH = null;
   var HABIT = 1, SEED = 0, WALKS = 8;
   var S = { a: null, b: null }, HOT = -1, PV = null, C4S = null, C4C = null, LIST4 = [], C5S = null, W5 = [], MS = {};
@@ -111,7 +112,7 @@
       'placed: <b>' + fmt(placed) + '</b> artist' + (placed === 1 ? '' : 's') + '. off this map: <b>' + fmt(s.off) + '</b> artist' + (s.off === 1 ? '' : 's') + '.';
     draw();
   }
-  function col(side) { return S[side] && S[side].kind === 'owner' ? COL.o : COL[side]; }
+  function col(side) { return COL[side]; }
   function nm(side) { return S[side] && S[side].kind === 'owner' ? 'astralcrest' : side; }
 
   // ---- geometry ----
@@ -145,9 +146,11 @@
       STRENGTH[e[0]] += w; STRENGTH[e[1]] += w;
     });
   }
+  // shared artists are left out of starts and targets: panel two already counts them, and a walk that starts on one would score its own start
   function walkReach(from, to) {
-    var starts = from.order.filter(function (i) { return ADJ[i].length; }).slice(0, STARTS);
-    if (!starts.length) return { k: null, n: 0 };
+    var starts = from.order.filter(function (i) { return ADJ[i].length && !to.set.has(i); }).slice(0, STARTS);
+    var tgt = to.order.filter(function (i) { return !from.set.has(i); }), c = chance(tgt);
+    if (!starts.length || !c) return { k: null, n: 0, c: 0 };
     var tot = 0, N = F.n.length;
     starts.forEach(function (s) {
       var p = new Float64Array(N); p[s] = 1;
@@ -159,14 +162,15 @@
           for (var j = 0; j < nb.length; j++) q[nb[j][0]] += p[i] * nb[j][1] / st;
         }
         p = q;
-        to.set.forEach(function (i) { tot += p[i]; });
+        tgt.forEach(function (i) { tot += p[i]; });
       }
     });
-    return { k: tot / starts.length, n: starts.length };
+    return { k: tot / starts.length, n: starts.length, c: c };
   }
-  function chance(to) {
+  function chance(tgt) {
     var all = 0, inn = 0;
-    for (var i = 0; i < STRENGTH.length; i++) { all += STRENGTH[i]; if (to.set.has(i)) inn += STRENGTH[i]; }
+    for (var i = 0; i < STRENGTH.length; i++) all += STRENGTH[i];
+    tgt.forEach(function (i) { inn += STRENGTH[i]; });
     return STEPS * inn / all;
   }
   function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -229,6 +233,14 @@
   function dots(c, s, color, lo, hi) {
     for (var k = s.order.length - 1; k >= 0; k--) { var i = s.order[k]; sq(c, i, sizeOf(s, i, lo, hi), color); }
   }
+  // the strip key's auto-play ring
+  function ring(c, i, r, color) {
+    var g = c.g; g.save(); g.setLineDash([]); g.globalAlpha = 1; g.strokeStyle = color; g.lineWidth = 1.8 * c.d;
+    g.beginPath(); g.arc(c.X(F.xy[i][0]), c.Y(F.xy[i][1]), r * c.d, 0, 6.2832); g.stroke(); g.restore();
+  }
+  function ord(n) { var t = n % 100, u = n % 10; return n + (t > 10 && t < 14 ? 'th' : u === 1 ? 'st' : u === 2 ? 'nd' : u === 3 ? 'rd' : 'th'); }
+  // where j falls among every artist by 3D distance from i (1 = i's nearest)
+  function rankFrom(i, j) { var d = d3(i, j), n = 1; for (var t = 0; t < F.p.length; t++) if (t !== i && d3(i, t) < d) n++; return n; }
 
   function li(html) { return '<li>' + html + '</li>'; }
   function swatch(color) { return '<span class="sw" style="background:' + color + '"></span>'; }
@@ -251,7 +263,7 @@
 
     // two
     var c2 = ctxOf('c2'); base(c2);
-    dots(c2, A, '#5d6f94', 3, 5); dots(c2, B, '#8d8a9c', 3, 5);
+    dots(c2, A, COL.ad, 3, 5); dots(c2, B, COL.bd, 3, 5);
     both.forEach(function (i) { splitSq(c2, i, 12, ca, cb); });
     var shared = both.slice().sort(function (x, y) { return (B.w.get(y) / B.max + A.w.get(y) / A.max) - (B.w.get(x) / B.max + A.w.get(x) / A.max); });
     $('nshared').textContent = fmt(both.length);
@@ -280,54 +292,57 @@
     var ab = bridge(A, B, 5);
     var seenP = new Set(ab.map(function (p) { return p[0] + ':' + p[1]; }));
     var ba = bridge(B, A, 10).filter(function (p) { return !seenP.has(p[1] + ':' + p[0]); }).slice(0, 5);
-    dots(c4, A, '#4b5a78', 2, 4); dots(c4, B, '#6b6878', 2, 4);
+    dots(c4, A, COL.ad, 2, 4); dots(c4, B, COL.bd, 2, 4);
     ab.forEach(function (p) { line(c4, p[0], p[1], ca, 1.5); });
     ba.forEach(function (p) { line(c4, p[0], p[1], cb, 1.5); });
     ab.forEach(function (p) { sq(c4, p[0], 8, ca); sq(c4, p[1], 8, cb); });
     ba.forEach(function (p) { sq(c4, p[0], 8, cb); sq(c4, p[1], 8, ca); });
-    $('f4').innerHTML = ab.length ? 'the closest crossings between what only <span style="color:' + ca + '">' + na + '</span> has and what only <span style="color:' + cb + '">' + nb + '</span> has.' : 'there is nothing to bridge: one side has nothing the other lacks.';
     C4C = c4; C4S = document.createElement('canvas'); C4S.width = c4.g.canvas.width; C4S.height = c4.g.canvas.height; C4S.getContext('2d').drawImage(c4.g.canvas, 0, 0);
     LIST4 = [];
-    ab.forEach(function (p) { LIST4.push([p[0], p[1], 'a', 'b']); });
-    ba.forEach(function (p) { LIST4.push([p[0], p[1], 'b', 'a']); });
-    $('l4').innerHTML = LIST4.map(function (p, n) { return '<li data-p="' + n + '" tabindex="0" role="button">' + swatch(col(p[2])) + esc(F.n[p[0]]) + ' <span class="m">to</span> ' + swatch(col(p[3])) + esc(F.n[p[1]]) + '</li>'; }).join('');
+    ab.forEach(function (p) { LIST4.push([p[0], p[1], 'a', 'b', rankFrom(p[0], p[1])]); });
+    ba.forEach(function (p) { LIST4.push([p[0], p[1], 'b', 'a', rankFrom(p[0], p[1])]); });
+    var nClose = LIST4.filter(function (p) { return p[4] <= NEAR; }).length, n4 = LIST4.length;
+    $('f4').innerHTML = ab.length ? 'the closest crossings between what only <span style="color:' + ca + '">' + na + '</span> has and what only <span style="color:' + cb + '">' + nb + '</span> has. ' +
+      (!nClose ? 'none of these ' + n4 + ' is close: they are only the nearest on offer.' : nClose === n4 ? 'all ' + n4 + ' are close.' : '<b>' + nClose + '</b> of these ' + n4 + ' ' + (nClose === 1 ? 'is' : 'are') + ' close; the rest are far apart.') :
+      'there is nothing to bridge: one side has nothing the other lacks.';
+    $('l4').innerHTML = LIST4.map(function (p, n) { return '<li data-p="' + n + '" tabindex="0" role="button"><span class="pr">' + swatch(col(p[2])) + esc(F.n[p[0]]) + ' <span class="m">to</span> ' + swatch(col(p[3])) + esc(F.n[p[1]]) + '</span><span class="m nr">' + (p[4] <= NEAR ? 'close' : 'far') + ', ' + ord(p[4]) + ' nearest</span></li>'; }).join('');
 
     // five
     var c5 = ctxOf('c5'); base(c5);
     var g5 = c5.g; g5.strokeStyle = '#211a3d'; g5.lineWidth = Math.max(1, 0.6 * c5.d); g5.beginPath();
     M.lq.forEach(function (e) { g5.moveTo(c5.X(F.xy[e[0]][0]), c5.Y(F.xy[e[0]][1])); g5.lineTo(c5.X(F.xy[e[1]][0]), c5.Y(F.xy[e[1]][1])); });
     g5.stroke();
-    dots(c5, A, '#4b5a78', 2, 4); dots(c5, B, '#6b6878', 2, 4);
+    dots(c5, A, COL.ad, 2, 4); dots(c5, B, COL.bd, 2, 4);
+    // each walk leaves its side's color and turns auto-play violet; its stops are the key's violet ring
     var touched = new Set(); W5 = [];
     [[A, 20261105, ca], [B, 20261106, cb]].forEach(function (z) {
       for (var w = 1; w < WALKS; w++) {
         var q = oneWalk(z[0], z[1] + SEED + 1000 * w);
         q.forEach(function (i) { touched.add(i); });
-        PK.ribbon(c5.g, q.map(function (i) { return [c5.X(F.xy[i][0]), c5.Y(F.xy[i][1])]; }), z[2], z[2], 1 * c5.d, 0.6);
+        PK.ribbon(c5.g, q.map(function (i) { return [c5.X(F.xy[i][0]), c5.Y(F.xy[i][1])]; }), z[2], COL.o, 1 * c5.d, 0.6);
       }
     });
     [[oneWalk(A, 20261105 + SEED), ca, 'a'], [oneWalk(B, 20261106 + SEED), cb, 'b']].forEach(function (z) {
       var p = z[0]; W5.push({ path: p, col: z[1], side: z[2] }); p.forEach(function (i) { touched.add(i); });
-      if (PK) PK.ribbon(c5.g, p.map(function (i) { return [c5.X(F.xy[i][0]), c5.Y(F.xy[i][1])]; }), z[1], z[1] === COL.b ? '#9a90b8' : '#7f9cff', 2.5 * c5.d, 0.95);
-      else for (var k = 1; k < p.length; k++) line(c5, p[k - 1], p[k], z[1], 2.5);
-      p.forEach(function (i, k) { sq(c5, i, k === 0 ? 11 : 6, z[1]); });
+      if (PK) PK.ribbon(c5.g, p.map(function (i) { return [c5.X(F.xy[i][0]), c5.Y(F.xy[i][1])]; }), z[1], COL.o, 2.5 * c5.d, 0.95);
+      else for (var k = 1; k < p.length; k++) line(c5, p[k - 1], p[k], COL.o, 2.5);
+      p.forEach(function (i, k) { if (k) ring(c5, i, 4, COL.o); });
+      if (p.length) sq(c5, p[0], 11, z[1]);
     });
     C5S = snap(c5.g.canvas);
     var rAB = walkReach(A, B), rBA = walkReach(B, A);
     var r1 = function (v) { return v == null ? 'never' : v < 0.05 ? 'under 0.1 times' : v.toFixed(1) + ' times'; };
-    var xAB = rAB.n ? rAB.k / chance(B) : 0, xBA = rBA.n ? rBA.k / chance(A) : 0;
+    var xAB = rAB.n ? rAB.k / rAB.c : 0, xBA = rBA.n ? rBA.k / rBA.c : 0;
     var vs = function (x) { return x < 0.95 ? ', less often than chance would (' + x.toFixed(1) + ' times chance)' : x < 1.05 ? ', about what chance gives' : ', ' + x.toFixed(1) + ' times chance'; };
     $('f5').innerHTML = (rAB.n && rBA.n) ?
-      'from <span style="color:' + ca + '">' + na + '</span>\u2019s artists, auto-play reaches <span style="color:' + cb + '">' + nb + '</span>\u2019s <b>' + r1(rAB.k) + '</b> in 20' + vs(xAB) + '. from <span style="color:' + cb + '">' + nb + '</span>\u2019s, <span style="color:' + ca + '">' + na + '</span>\u2019s <b>' + r1(rBA.k) + '</b>' + vs(xBA) + '.' :
-      'one side has no artist on auto-play\u2019s drawn pairs, so there is no walk to take.';
+      'from artists only <span style="color:' + ca + '">' + na + '</span> has, auto-play reaches ones only <span style="color:' + cb + '">' + nb + '</span> has <b>' + r1(rAB.k) + '</b> in 20' + vs(xAB) + '. the other way, <b>' + r1(rBA.k) + '</b>' + vs(xBA) + '.' :
+      'one side has no artist of its own on auto-play\u2019s drawn pairs, so there is no reach to measure.';
     var sp = function (x) { return '<span style="color:' + col(x) + '">' + nm(x) + '</span>'; };
-    $('lead').innerHTML = (both.length ? sp('a') + ' and ' + sp('b') + ' share <b>' + fmt(both.length) + '</b> artist' + (both.length > 1 ? 's' : '') + '. ' : sp('a') + ' and ' + sp('b') + ' share no artist. ') +
-      (CA && CB ? sp(CA.r >= CB.r ? 'a' : 'b') + ' ranges wider. ' : '') +
-      ((rAB.n && rBA.n) ? 'auto-play carries ' + sp('a') + ' toward ' + sp('b') + ' ' + (xAB < 0.95 ? 'less often than chance would, ' + xAB.toFixed(1) + ' times chance' : xAB < 1.05 ? 'about as often as chance would' : xAB.toFixed(1) + ' times as often as chance') + ' (a toy).' : '');
+    $('lead').innerHTML = sp('a') + ' and ' + sp('b') + (both.length ? ' share <b>' + fmt(both.length) + '</b> artist' + (both.length > 1 ? 's' : '') + ' on this map.' : ' share no artist on this map.');
     $('showing').innerHTML = '<b>showing:</b> a = ' + esc(A.label) + ', b = ' + esc(B.label) + '.';
     var c1f = function (v) { return v < 0.05 ? 'under 0.1' : v.toFixed(1); };
-    $('cap5').textContent = (rAB.n && rBA.n) ? 'chance, by where auto-play spends its time: ' + c1f(chance(B)) + ' and ' + c1f(chance(A)) + ' in 20.' : '';
-    $('spread').innerHTML = (rAB.n && rBA.n) ? 'at this setting the ' + (2 * WALKS) + ' walks touch <b>' + fmt(touched.size) + '</b> different artists.' : '';
+    $('cap5').textContent = (rAB.n && rBA.n) ? 'chance, by where auto-play spends its time: ' + c1f(rAB.c) + ' and ' + c1f(rBA.c) + ' in 20.' : '';
+    $('spread').innerHTML = (W5[0].path.length && W5[1].path.length) ? 'at this setting the ' + (2 * WALKS) + ' walks touch <b>' + fmt(touched.size) + '</b> different artists.' : '';
     mirror();
   }
 
@@ -407,35 +422,38 @@
     var dist = new Set(w.path).size;
     el.innerHTML = who + ': ' + (w.loopAt ? 'loops at step <b>' + w.loopAt + '</b>' : 'no loop in <b>40</b> steps') + ', visits <b>' + dist + '</b> distinct artists, <b>' + t.size + '</b> on ' + whose + ' list.';
   }
+  // the mirror reads one visitor: side a, or side b when a holds my own log (never me against myself)
+  function mside() { return S.a && S.a.kind === 'owner' ? 'b' : 'a'; }
   function mirror() {
-    var A = S.a; if (!F || !A || !$('c6a')) return;
+    var ms = mside(), A = S[ms]; if (!F || !A || !$('c6a')) return;
     if (SQ.view && SQ.view.id === 6) sqStop();
     var f = $('f6'), note = $('m6note');
     if (MR.st === 0) { return; }
     if (MR.st < 0) { f.textContent = 'the walk rule did not load. reload to try again.'; return; }
     if (MR.st === 1) { f.textContent = 'loading the walk rule.'; return; }
-    var L = MR.L, m = MR.M, mine = MR.FIT.queue.K.slice(), tok = MR.tok;
+    var L = MR.L, m = MR.M, mine = MR.FIT.queue.K.slice(), tok = MR.tok, cs = COL[ms];
     mine[4] = Math.min(1, 0.5 * HABIT);
     var topA = A.order[0], topMe = MR.OWN.order[0];
-    if (topA === undefined) { f.textContent = 'a has no placed artist, so there is nothing to start from.'; return; }
+    if (topA === undefined) { f.textContent = ms + ' has no placed artist, so there is nothing to start from.'; return; }
     var go = function (fit) {
-      if (A !== S.a) return;
+      if (A !== S[mside()]) return;
       var w1 = L.walk(m, topA, mine, 20261105 + SEED);
-      mrCanvas('c6a', A, w1.path, COL.o, '#4b5a78');
+      mrCanvas('c6a', A, w1.path, COL.o, COL[ms + 'd']);
       mrLine($('l6a'), 'auto-play on your list', w1, A, 'your');
-      if (!fit) { $('l6b').textContent = 'matching your habits from your list.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
-      if (!fit.K) { $('l6b').textContent = 'your list is too short to match your habits.'; mrCanvas('c6b', MR.OWN, [topMe], COL.a, '#4b5a78'); return; }
+      if (!fit) { $('l6b').textContent = 'matching your habits from your list.'; mrCanvas('c6b', MR.OWN, [topMe], cs, COL.mine); return; }
+      if (!fit.K) { $('l6b').textContent = 'your list is too short to match your habits.'; mrCanvas('c6b', MR.OWN, [topMe], cs, COL.mine); return; }
       var K = fit.K.slice(); K[4] = Math.min(1, K[4] * HABIT);
       var w2 = L.walk(m, topMe, K, 20261106 + SEED);
-      mrCanvas('c6b', MR.OWN, w2.path, COL.a, '#4b5a78');
+      mrCanvas('c6b', MR.OWN, w2.path, cs, COL.mine);
       mrLine($('l6b'), 'your habits on my list', w2, MR.OWN, 'my top 200');
       if (fit.gap > 0.5 || fit.n < 20) $('l6b').innerHTML += ' <b>weak fit</b> (' + fit.n + ' pairs, gap ' + fit.gap.toFixed(2) + ').';
     };
     f.textContent = 'the dial scales how hard each rule repeats pairs that already played. higher: tighter loops, fewer distinct artists. lower: wider drift.';
-    $('g6').innerHTML = '<span style="color:' + COL.o + '">violet</span> = auto-play\'s dials on side a\'s list. <span style="color:' + COL.a + '">pink</span> = habits learned from side a, walking my list. white star = the start.';
+    $('g6').innerHTML = '<span style="color:' + COL.o + '">violet</span> = auto-play, from ' + ms + '\'s top artist. <span style="color:' + cs + '">' + (ms === 'a' ? 'pink' : 'blue') + '</span> = habits learned from ' + ms + '\'s list, walking my list. white star = the start.' +
+      (ms === 'b' ? ' a holds my own log, so this mirrors b.' : '');
     var sig = mrSig(A);
     if (MR.fits[sig]) go(MR.fits[sig]);
-    else { go(null); mrFit(A, function (fit) { if (A === S.a) go(fit); }); }
+    else { go(null); mrFit(A, function (fit) { if (A === S[mside()]) go(fit); }); }
   }
 
   // ---- tap to name (panel one) ----
@@ -513,7 +531,7 @@
   }
 
   var V4 = {
-    id: 4, btn: $('hear'), now: $('t4'), idle: 'hear the crossings, pair by pair',
+    id: 4, btn: $('hear'), now: $('t4'), idle: 'hear the crossings',
     head: function (k, it, n, title) { var p = LIST4[it.pair]; return 'pair ' + (it.pair + 1) + ' of ' + LIST4.length + ', stop ' + it.pos + ' of 2: <span style="color:' + col(it.side) + '">' + esc(F.n[it.i]) + '</span> (' + it.side + '), “' + esc(title) + '”'; },
     frame0: function () { if (!C4S) return; var g = C4C.g; g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(C4S, 0, 0); },
     frame: function (k, it) {
@@ -616,7 +634,14 @@
     $('try').addEventListener('click', samples);
     $('c1').addEventListener('click', tap);
     $('c6a').addEventListener('click', mrTap('c6a')); $('c6b').addEventListener('click', mrTap('c6b'));
-    $('hear').addEventListener('click', function () { if (SQ.view === V4) sqStop(); else seq4(0); });
+    $('hear').addEventListener('click', function () {
+      if (SQ.view === V4) { sqStop(); return; }
+      seq4(0);
+      // started from off screen (the strip's play button): bring the picture it plays to the screen; inside the front the kit pins the top, so leave it
+      var r = $('hear').getBoundingClientRect();
+      if ((r.bottom < 0 || r.top > window.innerHeight) && !document.documentElement.classList.contains('wk-framed'))
+        $('c4').scrollIntoView({ behavior: window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    });
     $('next4').addEventListener('click', next4);
     $('l4').addEventListener('click', function (e) { var li = e.target.closest('li[data-p]'); if (li) seq4(+li.getAttribute('data-p')); });
     $('l4').addEventListener('keydown', function (e) { var li = e.target.closest('li[data-p]'); if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); seq4(+li.getAttribute('data-p')); } });

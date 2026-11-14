@@ -78,7 +78,7 @@
 
   // 1. the split stub
   PAGES.stub = {
-    mm: [148, 105], px: [559, 397],
+    mm: [148, 105], px: [559, 396],
     init: function (H) {
       var a = int1(H.a, D.n.length); if (a < 0) a = Math.floor(Math.random() * 100);
       var k = H.k == null ? null : Math.max(0, Math.min(12, parseInt(H.k, 10) || 0));
@@ -87,8 +87,8 @@
     },
     // the 62 mm continuous tape (DK-2205): the same two halves stacked, tear line across
     mmOf: function (st) { return st.tape ? [62, 190] : [148, 105]; },
-    pxOf: function (st) { return st.tape ? [234, 718] : [559, 397]; },
-    toggle: { key: 'tape', on: 'A6 slip', off: '62 mm tape' },
+    pxOf: function (st) { return st.tape ? [234, 718] : [559, 396]; },
+    toggle: { key: 'tape', label: '62 mm tape' },
     alt: function (st) { return 'the split stub' + (st.tape ? ' on 62 mm tape. top half' : '. left half') + ': the point you ended on, ' + nm(st.a) + ', and its six nearest in sound. ' + (st.tape ? 'bottom' : 'right') + ' half: the wall copy, stub ' + pad3(st.n) + '.'; },
     drawTape: function (g, T, st) {
       var w = 234, h = 718, hh = h / 2, s = 200, x0 = 17, a = st.a, near = D.nn[a].slice(0, 6);
@@ -130,7 +130,7 @@
     },
     draw: function (g, T, st) {
       if (st.tape) return PAGES.stub.drawTape(g, T, st);
-      var w = 559, h = 397, hw = w / 2, s = 240, a = st.a, near = D.nn[a].slice(0, 6), i;
+      var w = 559, h = 396, hw = w / 2, s = 240, a = st.a, near = D.nn[a].slice(0, 6), i;
       g.fillStyle = T.bg; g.fillRect(0, 0, w, h);
       var half = function (x0, flip) {
         g.save();
@@ -282,12 +282,20 @@
       rib(g, T, [pa, pb], ROSE, ROSE, 1.6, [5, 4]);
       st.A.forEach(function (i) { P.peb(g, i, f.X(i), f.Y(i), 6, ICE); P.peb(g, i, f.X(i), f.Y(i), 2.2, T.paper ? NIGHT : '#06010f', false); });
       st.B.forEach(function (i) { g.save(); g.strokeStyle = T.paper ? NIGHT : '#efe9ff'; g.lineWidth = 2.2; g.beginPath(); g.arc(f.X(i), f.Y(i), 6, 0, 6.2832); g.stroke(); g.restore(); });
-      // names, on small chips so they never sit on the dots
+      // names on small chips: the closest pair first, each chip in the first spot that covers no other chip, list dot or the meeting ring; a name with no free spot stays off
       g.font = '500 7.5px ' + MONO;
-      st.A.concat(st.B).forEach(function (i) {
-        var t = fit(g, nm(i), 84), tw = g.measureText(t).width + 6, x = f.X(i) + 9, y = f.Y(i) - 9;
-        if (x + tw > 24 + s - 2) x = f.X(i) - 9 - tw; if (y < 34) y = f.Y(i) + 16;
-        g.fillStyle = T.bg; g.fillRect(Math.round(x), Math.round(y - 8), Math.round(tw), 11); tx(g, t, Math.round(x) + 3, Math.round(y), '500 7.5px ' + MONO, T.ink);
+      var lo = 26, hi = 24 + s - 2, placed = [], dots = st.A.concat(st.B).map(function (i) { return [f.X(i), f.Y(i), 7.5]; }).concat([[pm[0], pm[1], 10]]);
+      var hitR = function (a, b) { return a[0] < b[0] + b[2] && b[0] < a[0] + a[2] && a[1] < b[1] + b[3] && b[1] < a[1] + a[3]; };
+      var hitC = function (r, c) { var nx = Math.max(r[0], Math.min(c[0], r[0] + r[2])), ny = Math.max(r[1], Math.min(c[1], r[1] + r[3])); return (nx - c[0]) * (nx - c[0]) + (ny - c[1]) * (ny - c[1]) < c[2] * c[2]; };
+      [st.pa, st.pb].concat(st.A, st.B).filter(function (i, k, L) { return L.indexOf(i) === k; }).forEach(function (i) {
+        var t = fit(g, nm(i), 84), tw = Math.round(g.measureText(t).width + 6), cx = f.X(i), cy = f.Y(i);
+        var C = [[9, -17], [-9 - tw, -17], [9, 6], [-9 - tw, 6], [10, -6], [-10 - tw, -6], [-tw / 2, -20], [-tw / 2, 9], [15, -24], [-15 - tw, -24], [15, 13], [-15 - tw, 13], [-tw / 2, -27], [-tw / 2, 16]];
+        for (var k = 0; k < C.length; k++) {
+          var r = [Math.round(cx + C[k][0]), Math.round(cy + C[k][1]), tw, 11];
+          if (r[0] < lo || r[0] + tw > hi || r[1] < lo || r[1] + 11 > hi) continue;
+          if (placed.some(function (q) { return hitR(r, q); }) || dots.some(function (c) { return hitC(r, c); })) continue;
+          placed.push(r); g.fillStyle = T.bg; g.fillRect(r[0], r[1], tw, 11); tx(g, t, r[0] + 3, r[1] + 8, '500 7.5px ' + MONO, T.ink); return;
+        }
       });
       g.save(); g.strokeStyle = ROSE; g.lineWidth = 2.4; g.beginPath(); g.arc(pm[0], pm[1], 8, 0, 6.2832); g.stroke(); g.fillStyle = ROSE; g.beginPath(); g.arc(pm[0], pm[1], 2.4, 0, 6.2832); g.fill(); g.restore();
       var x = 384, cw = w - 24 - x;
@@ -311,12 +319,17 @@
   };
 
   // 5. the receipt, round two
-  function pack(p) { return p.map(function (i) { return ('00' + i.toString(36)).slice(-3); }).join(''); }
+  // the QR link packs two base64url chars a point (#w=); older slips used three base36 chars (#q=) and still open
+  var B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  var QMAX = 29; // 75-char address + 2 chars a point fits QR version 6, the largest receipt.js draws
+  function pack2(p) { return p.map(function (i) { return B64[i >> 6] + B64[i & 63]; }).join(''); }
+  function unpack2(s) { var o = []; for (var i = 0; i + 2 <= s.length; i += 2) { var a = B64.indexOf(s[i]), b = B64.indexOf(s[i + 1]); if (a >= 0 && b >= 0) o.push(a * 64 + b); } return o; }
   function unpack(s) { var o = []; for (var i = 0; i + 3 <= s.length; i += 3) { var v = parseInt(s.slice(i, i + 3), 36); if (isFinite(v)) o.push(v); } return o; }
   PAGES.receipt2 = {
-    mm: [80, 201], px: [302, 760],
+    mm: [80, 201], px: [302, 758],
     init: function (H) {
-      var N = D.n.length, path = H.q ? unpack(H.q).filter(function (i) { return i < N; }) : ints(H.p, N), toy = false;
+      var N = D.n.length, path = H.w ? unpack2(H.w) : H.q ? unpack(H.q) : ints(H.p, N), toy = false;
+      path = path.filter(function (i) { return i < N; });
       if (path.length < 2) {
         toy = true; var r = rng(1108), cur = Math.floor(r() * 100), seen = {}; path = [cur]; seen[cur] = 1;
         while (path.length < 21) {
@@ -329,49 +342,60 @@
       for (k = 0; k + 1 < path.length; k++) { seenA[path[k]] = 1; if (topNN(path[k], seenA) === path[k + 1]) matched++; }
       var rule = [path[0]], vis = {}; vis[path[0]] = 1;
       for (k = 0; k + 1 < path.length; k++) { var nx = topNN(rule[rule.length - 1], vis); if (nx < 0) break; vis[nx] = 1; rule.push(nx); }
-      var url = SITE + 'print/receipt2.html#q=' + pack(path);
-      return { path: path, rule: rule, steps: path.length - 1, matched: matched, url: url, toy: toy };
+      // the toy is seeded, so the bare page reopens the same toy walk
+      var url = SITE + 'print/receipt2.html' + (toy ? '' : '#w=' + pack2(path.slice(0, QMAX)));
+      return { path: path, rule: rule, steps: path.length - 1, kept: Math.min(path.length, QMAX) - 1, matched: matched, url: url, toy: toy };
     },
-    alt: function (st) { return 'your presses vs auto-play: ' + st.matched + ' of ' + st.steps + ' steps were auto-play\'s.'; },
+    alt: function (st) { return 'your presses vs the nearest sound: ' + st.matched + ' of ' + st.steps + ' steps went to the nearest sound.'; },
     draw: function (g, T, st) {
-      var w = 302, h = 760, x = 16, s = 270, i;
+      var w = 302, h = 758, x = 16, s = 270, i;
       g.fillStyle = T.bg; g.fillRect(0, 0, w, h);
       tx(g, 'astralcrest · sonicManifold', x, 24, '500 9px ' + MONO, T.mute);
-      tx(g, 'your presses', x, 56, '600 25px ' + SANS, T.ink); tx(g, 'vs auto-play', x, 82, '600 25px ' + SANS, T.ink);
+      tx(g, 'your presses', x, 56, '600 25px ' + SANS, T.ink); tx(g, 'vs the nearest sound', x, 82, '600 25px ' + SANS, T.ink);
       tx(g, st.steps + ' steps · nothing was stored · a toy', x, 102, '500 9px ' + MONO, T.mute);
       var f = field(g, T, x, 114, s, { dim: T.paper ? 0.3 : 0.4, lat: 0.08 });
       g.strokeStyle = T.line; g.lineWidth = 1; g.strokeRect(x + 0.5, 114.5, s - 1, s - 1);
       var pr = st.rule.map(function (j) { return [f.X(j), f.Y(j)]; }), py = st.path.map(function (j) { return [f.X(j), f.Y(j)]; });
-      rib(g, T, pr, VIOLET, VIOLET, 2.2); pr.slice(1).forEach(function (p) { P.glyph(g, 'ring', p[0], p[1], 5, VIOLET); });
+      rib(g, T, pr, T.lat, T.lat, 2.2); pr.slice(1).forEach(function (p) { P.glyph(g, 'dot', p[0], p[1], 5, T.lat); });
       rib(g, T, py, MINT, MINT, 2.4); py.slice(1).forEach(function (p) { P.glyph(g, 'star', p[0], p[1], 4.4, MINT); });
       var sx = py[0][0], sy = py[0][1]; g.save(); g.strokeStyle = T.paper ? NIGHT : '#efe9ff'; g.lineWidth = 1.5; [5, 9].forEach(function (rr) { g.beginPath(); g.arc(sx, sy, rr, 0, 6.2832); g.stroke(); }); g.restore();
       var N = String(st.matched); g.font = '600 66px ' + SANS; var nw = g.measureText(N).width;
       tx(g, N, x - 2, 462, '600 66px ' + SANS, T.ink);
       g.fillStyle = MINT; g.fillRect(x, 470, Math.min(nw, 120), 5);
-      tx(g, 'of ' + st.steps + ' steps', x + nw + 12, 436, '600 14px ' + SANS, T.ink); tx(g, 'were auto-play\'s', x + nw + 12, 454, '600 14px ' + SANS, T.ink);
+      tx(g, 'of ' + st.steps + ' steps went', x + nw + 12, 436, '600 14px ' + SANS, T.ink); tx(g, 'to the nearest sound', x + nw + 12, 454, '600 14px ' + SANS, T.ink);
       g.strokeStyle = T.line; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 490.5); g.lineTo(w - x, 490.5); g.stroke();
       var cols = 20, gap = s / cols, kinds = [['star', MINT, 19], ['diamond', AMBER, 17], ['ring', VIOLET, 64]], idx = 0;
       kinds.forEach(function (kd) { for (var q = 0; q < kd[2]; q++, idx++) { var cx = x + gap / 2 + (idx % cols) * gap, cy = 508 + Math.floor(idx / cols) * 14; P.glyph(g, kd[0], cx, cy, 4.4, kd[1]); } });
       tx(g, 'in my log, of every 100 plays:', x, 592, '500 9.5px ' + MONO, T.ink);
       tx(g, 'i pressed 19, shuffle dealt 17,', x, 605, '500 9.5px ' + MONO, T.ink);
       tx(g, 'auto-play served 64.', x, 618, '500 9.5px ' + MONO, T.ink);
-      g.font = '500 8px ' + MONO; wrapT(g, 'a step is auto-play\'s when you pressed the nearest artist in sound you had not visited yet. a toy rule, not a finding.', s).forEach(function (l, k) { tx(g, l, x, 637 + k * 10, '500 8px ' + MONO, T.mute); });
-      var qs = 84, q = qrDraw(g, T, st.url, w - x - qs, 668, qs), reopen = !!q;
-      if (!q) q = qrDraw(g, T, SITE + 'print/receipt2.html', w - x - qs, 668, qs);
-      var lines = reopen ? ['scan to reopen', 'your ' + st.steps + ' steps', 'on your phone'] : ['scan to take', 'your own steps', 'on your phone'];
+      g.font = '500 8px ' + MONO; wrapT(g, 'a step counts when you pressed the nearest artist in sound you had not visited yet. a toy rule, not a finding.', s).forEach(function (l, k) { tx(g, l, x, 637 + k * 10, '500 8px ' + MONO, T.mute); });
+      var qs = 84; qrDraw(g, T, st.url, w - x - qs, 668, qs);
+      var lines = st.toy ? ['scan to reopen', 'this toy walk', 'on your phone'] : st.kept < st.steps ? ['scan to reopen', 'your first ' + st.kept, 'of ' + st.steps + ' steps'] : ['scan to reopen', 'your ' + st.steps + ' steps', 'on your phone'];
       lines.forEach(function (l, k) { tx(g, l, x, 690 + k * 12, '500 9px ' + MONO, T.mute); });
-      tx(g, 'astralcrest.github.io/sonicManifold', w / 2, 750, '500 8px ' + MONO, T.mute, 'center');
+      // left column only: the address never reaches the QR or its quiet zone
+      tx(g, 'astralcrest.github.io/sonicManifold', x, 736, '500 8px ' + MONO, T.mute);
     }
   };
 
   /* ---------- the strip, the chips, the two looks ---------- */
+  // each sheet's strip uses its own sheet's words, so a glyph never means one thing above the sheet and another on it
+  var STAR = '<path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/>', ALIKE = '<path d="M2 14L10 8L18 12" fill="none" stroke="#bcd3ff" stroke-width="1.2"/><circle cx="10" cy="8" r="2.4" fill="#bcd3ff"/>';
   var KEYS = {
-    press: ['my press', '#21f6bc', '<path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="#21f6bc"/>'],
+    press: ['a press', '#21f6bc', STAR],
+    point: ['the point you ended on', '#21f6bc', STAR],
+    visitor: ['one visitor\'s point', '#21f6bc', STAR],
+    pick: ['your pick', '#21f6bc', STAR],
     auto: ['auto-play', '#8b6fd6', '<circle cx="10" cy="10" r="7" fill="none" stroke="#8b6fd6" stroke-width="2.4"/>'],
     shuffle: ['shuffle', '#f5a623', '<path d="M10 1.5L17 10L10 18.5L3 10Z" fill="#f5a623"/>'],
-    alike: ['sounds alike', '#bcd3ff', '<path d="M2 14L10 8L18 12" fill="none" stroke="#bcd3ff" stroke-width="1.2"/><circle cx="10" cy="8" r="2.4" fill="#bcd3ff"/>'],
+    alike: ['sounds alike', '#bcd3ff', ALIKE],
+    rule: ['the nearest-sound rule', '#bcd3ff', ALIKE],
     own: ['my own songs', '#ffd36b', '<circle cx="10" cy="10" r="8.4" fill="none" stroke="#ffd36b" stroke-width="1.3"/><path d="M10 3.5Q10 10 16.5 10Q10 10 10 16.5Q10 10 3.5 10Q10 10 10 3.5Z" fill="#ffd36b"/>'],
-    changed: ['changed by the names', '#ff5c7a', '<circle cx="10" cy="10" r="7" fill="none" stroke="#ff5c7a" stroke-width="2.4"/><circle cx="10" cy="10" r="2" fill="#ff5c7a"/>']
+    changed: ['changed by the names', '#ff5c7a', '<path d="M2 10H18" stroke="#ff5c7a" stroke-width="3"/>'],
+    same: ['same', '#bcd3ff', '<path d="M2 10H18" stroke="#bcd3ff" stroke-width="1.4"/>'],
+    one: ['one of you', '#bcd3ff', '<circle cx="10" cy="10" r="6" fill="#bcd3ff"/><circle cx="10" cy="10" r="2.2" fill="#06010f"/>'],
+    other: ['the other', '#efe9ff', '<circle cx="10" cy="10" r="6" fill="none" stroke="#efe9ff" stroke-width="2.2"/>'],
+    meet: ['meeting point', '#ff5c7a', '<circle cx="10" cy="10" r="7" fill="none" stroke="#ff5c7a" stroke-width="2.4"/><circle cx="10" cy="10" r="2" fill="#ff5c7a"/>']
   };
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
 
@@ -385,8 +409,9 @@
     var bar = document.createElement('header'); bar.className = 'bar';
     bar.innerHTML = '<p class="line">' + esc(b.getAttribute('data-line') || '') + '</p>' +
       (keys.length ? '<ul class="keys" aria-label="key">' + keys.map(function (k) { var d = KEYS[k]; return d ? '<li style="--c:' + d[1] + '"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">' + d[2] + '</svg>' + d[0] + '</li>' : ''; }).join('') + '</ul>' : '') +
-      '<div class="ctl"><button type="button" class="go" id="pr-print">print</button><button type="button" id="pr-look" aria-pressed="false"></button>' + (spec.toggle ? '<button type="button" id="pr-alt" aria-pressed="false"></button>' : '') + '<a class="btn" href="../walls/">back to the walls</a></div>' +
-      '<p class="where">take-home ' + (spec.n || '') + ' of 5 &middot; <a href="./">all five</a> &middot; <a href="../walls/">the walls</a> &middot; <a href="../../">sonic manifold</a></p>';
+      // each toggle keeps one label and aria-pressed says whether that look or size is on
+      '<div class="ctl"><button type="button" class="go" id="pr-print">print</button><button type="button" id="pr-look" aria-pressed="false">paper look</button>' + (spec.toggle ? '<button type="button" id="pr-alt" aria-pressed="false">' + spec.toggle.label + '</button>' : '') + '<a class="btn" href="../walls/">back to the walls</a></div>' +
+      '<p class="where">take it home, ' + (spec.n || '') + ' of 5 &middot; <a href="./">all five</a> &middot; <a href="../../">sonic manifold</a></p>';
     b.insertBefore(bar, b.firstChild);
     cv.setAttribute('role', 'img');
     var st = spec.init(H), look = paper ? 'paper' : 'dark';
@@ -394,7 +419,7 @@
     document.head.appendChild(pageCss);
     function size() {
       var MM = spec.mmOf ? spec.mmOf(st) : spec.mm;
-      sheet.style.setProperty('--w', MM[0] + 'mm');
+      sheet.style.setProperty('--w', MM[0] + 'mm'); sheet.style.setProperty('--h', MM[1] + 'mm');
       pageCss.textContent = '@page { size: ' + MM[0] + 'mm ' + MM[1] + 'mm; margin: 0; }';
       return spec.pxOf ? spec.pxOf(st) : spec.px;
     }
@@ -404,10 +429,9 @@
       g.setTransform(SC, 0, 0, SC, 0, 0); g.lineJoin = 'round'; g.lineCap = 'round';
       spec.draw(g, T, st);
       b.classList.toggle('paper', look === 'paper');
-      lookBtn.textContent = look === 'paper' ? 'dark look' : 'paper look';
       lookBtn.setAttribute('aria-pressed', look === 'paper' ? 'true' : 'false');
       cv.setAttribute('aria-label', spec.alt(st));
-      if (altBtn) { var on = !!st[spec.toggle.key]; altBtn.textContent = on ? spec.toggle.on : spec.toggle.off; altBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+      if (altBtn) altBtn.setAttribute('aria-pressed', st[spec.toggle.key] ? 'true' : 'false');
     }
     if (altBtn) altBtn.addEventListener('click', function () {
       var k = spec.toggle.key; st[k] = !st[k];

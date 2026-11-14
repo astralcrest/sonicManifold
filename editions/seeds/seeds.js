@@ -1,7 +1,16 @@
 (function () {
 'use strict';
 var $ = WK.$, C = WK.C, D, M, FIT, LOOP, MAP, K, R;
-var S = { a: -1, b: -1, seed: 1, pa: null, pb: null, hit: null, ran: '', cur: null };
+var S = { a: -1, b: -1, seed: 1, pa: null, pb: null, hit: null, ran: '', cur: null, dirty: true };
+// seed two's yellow is in no family color and no shared key color, so it never sinks into a cluster
+var VIO = '#8b6fd6', YEL = '#f5e642', INK = '#efe9ff', NIGHT = '#06010f';
+var keyEl = document.querySelector('#wk-strip .wk-keys');
+if (keyEl) [[INK, 'where they meet', 'the first stops of the two walks that sit in one neighborhood', '<path d="M4.5 4.5L15.5 15.5M15.5 4.5L4.5 15.5" stroke="' + INK + '" stroke-width="2.6" stroke-linecap="round"/>'],
+  [YEL, 'seed two', 'the auto-play walk from seed two', '<circle cx="10" cy="10" r="5.5" fill="' + YEL + '"/>'],
+  [VIO, 'seed one', 'the auto-play walk from seed one', '<circle cx="10" cy="10" r="6.5" fill="none" stroke="' + VIO + '" stroke-width="2.4"/>']].forEach(function (k) {
+  var li = document.createElement('li'); li.style.setProperty('--c', k[0]); li.title = k[2];
+  li.innerHTML = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">' + k[3] + '</svg>' + k[1]; keyEl.insertBefore(li, keyEl.firstChild);
+});
 
 function norm(s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
 function bigrams(s) { var o = {}, n = 0; s = ' ' + s + ' '; for (var i = 0; i < s.length - 1; i++) { o[s.substr(i, 2)] = (o[s.substr(i, 2)] || 0) + 1; n++; } return { o: o, n: n }; }
@@ -47,7 +56,7 @@ function setMsg(id, r, input) {
 ['ma', 'mb'].forEach(function (id) {
   $(id).addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    $(b.getAttribute('data-t')).value = D.n[+b.getAttribute('data-i')]; run(false);
+    $(b.getAttribute('data-t')).value = D.n[+b.getAttribute('data-i')]; run();
   });
 });
 
@@ -62,23 +71,38 @@ function touchOf(a, b) {
   return { never: true, gap: best / M.RH, a: bp.a, b: bp.b };
 }
 
-function run(again) {
+// the rule nearly always takes its top pick, so the same two seeds walk the same way every time: after a walk, the button draws a new pair instead
+var TOP = [];
+function newPair() {
+  var g = LOOP.rng((Math.random() * 1e9) | 0), x = TOP[(g() * TOP.length) | 0], y = TOP[(g() * TOP.length) | 0];
+  if (y === x) y = TOP[(TOP.indexOf(x) + 37) % TOP.length];
+  $('sa').value = D.n[x]; $('sb').value = D.n[y]; run();
+}
+function setWalk(on) { ['hear', 'step', 'sn'].forEach(function (id) { $(id).disabled = !on; }); }
+function run() {
   var ra = resolve($('sa').value), rb = resolve($('sb').value);
   setMsg('ma', ra, 'sa'); setMsg('mb', rb, 'sb');
-  if (ra.none || rb.none) { $('say').textContent = 'one of the seeds is not in my field, so there is nothing to walk yet.'; return; }
+  if (ra.none || rb.none) {
+    WK.stop(); S.a = S.b = -1; S.pa = S.pb = S.hit = S.cur = null; S.ran = ''; S.dirty = true;
+    var big = $('big'); big.textContent = 'no walk'; big.className = 'big ink';
+    $('say').textContent = 'one of the seeds is not in my field, so there is nothing to walk yet.';
+    $('now').textContent = ''; $('fams').innerHTML = ''; $('run').textContent = 'walk both seeds';
+    setWalk(false); hearLabel(); draw(); return;
+  }
   var key = ra.i + '|' + rb.i;
-  if (again) S.seed = (Math.random() * 1e9) | 0;
-  S.ran = key; S.a = ra.i; S.b = rb.i;
+  S.ran = key; S.a = ra.i; S.b = rb.i; S.dirty = false; setWalk(true);
   S.pa = LOOP.walk(M, S.a, K, S.seed).path; S.pb = LOOP.walk(M, S.b, K, S.seed + 7).path;
   S.hit = touchOf(S.pa, S.pb);
   var h = S.hit, big = $('big');
   if (h.never) { big.textContent = 'never'; big.className = 'big ink'; $('say').textContent = 'in 40 steps the two paths never share a neighborhood. the closest they get is ' + h.gap.toFixed(2) + ' of one random hop in sound, seed one step ' + h.a + ' to seed two step ' + h.b + '.'; $('sn').value = Math.max(h.a, h.b); }
   else {
-    big.textContent = h.step === 0 && h.a === 0 && h.b === 0 ? 'step 0' : 'step ' + h.step; big.className = 'big mint';
-    $('say').textContent = h.step === 0 ? 'the two seeds already sit in one neighborhood.' : 'the paths first share a neighborhood at step ' + h.step + ': seed one step ' + h.a + ' and seed two step ' + h.b + ' are close in sound.';
+    big.textContent = h.step === 0 && h.a === 0 && h.b === 0 ? 'step 0' : 'step ' + h.step; big.className = 'big ink';
+    var A = S.pa[h.a], B = S.pb[h.b], t1 = M.order[0];
+    $('say').textContent = (h.step === 0 ? 'the two seeds already sit in one neighborhood.' : 'the walks first meet at step ' + h.step + ': ' + (A === B ? 'both at ' + D.n[A] + (h.a !== h.b ? ' (seed one step ' + h.a + ', seed two step ' + h.b + ')' : '') : 'seed one at ' + D.n[A] + ' (step ' + h.a + '), seed two at ' + D.n[B] + ' (step ' + h.b + ')') + '.') + ((A === t1 || B === t1) && D.n[t1] ? ' ' + D.n[t1] + ' is my most played artist.' : '');
     $('sn').value = h.step;
   }
-  $('run').textContent = 'walk again, new seed'; WK.stop(); $('step').disabled = false; hearLabel(); where(); draw();
+  WK.famKey($('fams'), D, S.pa.concat(S.pb));
+  $('run').textContent = 'two new seeds'; WK.stop(); $('step').disabled = false; hearLabel(); where(); draw();
 }
 
 var AUX = null, lastI = -1, rep = 0, L = [], MAXPL = 1;
@@ -98,7 +122,7 @@ function onst(k, info) {
   var s = +$('sn').value, last = S.pa ? S.pa.length - 1 : 40;
   if (info) {
     var tap = info.tag === 'tap';
-    S.cur = { i: info.i, col: tap ? WK.C.mint : info.tag === 'seed one' ? WK.C.violet : WK.C.rose };
+    S.cur = { i: info.i, col: tap ? INK : info.tag === 'seed one' ? VIO : YEL };
     if (tap) $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[info.i] + ' (' + fam(info.i) + ').';
     else {
       var m = L[k], rp = false, p = m.w ? S.pb : S.pa, nx = L[k + 1];
@@ -113,34 +137,65 @@ function onst(k, info) {
 
 function draw() {
   if (!MAP) return;
-  MAP.begin(); var g = MAP.g;
-  if (S.a >= 0) drawWalks();
-  if (S.cur) { WK.pulse(g, MAP.X(S.cur.i), MAP.Y(S.cur.i), S.cur.col, 14); MAP.tag(S.cur.i, D.n[S.cur.i], S.cur.col); }
+  MAP.begin(); var g = MAP.g, T = [];
+  if (S.cur) { WK.pulse(g, MAP.X(S.cur.i), MAP.Y(S.cur.i), S.cur.col, 14); T.push([S.cur.i, D.n[S.cur.i], S.cur.col]); }
+  if (S.a >= 0) drawWalks(T);
+  tags(T);
 }
-function walkDraw(g, p, a, b, kind, k) {
-  var P = WK.P, n = p.length;
-  P.ribbon(g, MAP.pts(p), a, b, 1.2, 0.22);
-  MAP.ribbon(p, k + 1, a, b);
+// the name chips, each moved off the ones placed before it, so close stops never stack their words
+function tags(T) {
+  var g = MAP.g, W = MAP.W, H = MAP.H, put = [];
+  g.save(); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.setLineDash([]);
+  g.font = '600 12px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
+  T.forEach(function (t) {
+    var w = Math.ceil(g.measureText(t[1]).width) + 12, X = MAP.X(t[0]), Y = MAP.Y(t[0]), c = [], s, k, x, y, ok;
+    for (s = 0; s < 6; s++) c.push([X + 12, Y - 14 - 24 * s], [X - 12 - w, Y - 14 - 24 * s], [X + 12, Y + 16 + 24 * s], [X - 12 - w, Y + 16 + 24 * s]);
+    for (k = 0; k < c.length; k++) {
+      x = Math.round(Math.max(2, Math.min(W - w - 2, c[k][0]))); y = Math.round(Math.max(12, Math.min(H - 12, c[k][1])));
+      ok = put.every(function (r) { return x + w + 2 <= r[0] || r[0] + r[2] + 2 <= x || y + 13 <= r[1] - 11 || r[1] + 13 <= y - 11; });
+      if (ok) break;
+    }
+    put.push([x, y, w]);
+    g.fillStyle = NIGHT; g.fillRect(x, y - 11, w, 22); g.strokeStyle = t[2]; g.lineWidth = 1; g.strokeRect(x + 0.5, y - 10.5, w - 1, 21);
+    g.fillStyle = t[2]; g.fillText(t[1], x + 6, y + 0.5);
+  });
+  g.restore();
+}
+// where the walks meet: a crisp ink cross on a night outline (the star is the key's mark for my press)
+function cross(g, x, y, r) {
+  g.save(); g.setLineDash([]); g.lineCap = 'round';
+  [[NIGHT, 5], [INK, 2.4]].forEach(function (s) { g.strokeStyle = s[0]; g.lineWidth = s[1]; g.beginPath(); g.moveTo(x - r, y - r); g.lineTo(x + r, y + r); g.moveTo(x + r, y - r); g.lineTo(x - r, y + r); g.stroke(); });
+  g.restore();
+}
+// a new family: a small triangle in that family's color just under the stop
+function famTick(g, x, y, col) {
+  g.save(); g.setLineDash([]); g.fillStyle = col; g.strokeStyle = NIGHT; g.lineWidth = 1; g.lineJoin = 'round';
+  g.beginPath(); g.moveTo(x, y + 6); g.lineTo(x + 5, y + 14); g.lineTo(x - 5, y + 14); g.closePath(); g.fill(); g.stroke(); g.restore();
+}
+function walkDraw(g, p, col, kind, k) {
+  WK.P.ribbon(g, MAP.pts(p), col, col, 1.2, 0.22);
+  MAP.ribbon(p, k + 1, col, col);
   for (var j = 0; j <= k; j++) {
     var x = MAP.X(p[j]), y = MAP.Y(p[j]);
-    if (j > 0 && D.f[p[j]] !== D.f[p[j - 1]]) { g.save(); g.strokeStyle = WK.FAMC[fam(p[j])] || C.mute; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 9, 0, 6.2832); g.stroke(); g.restore(); }
-    P.glyph(g, kind, x, y, 3 + 3.5 * wt(p[j]), P.mix(a, b, j / (n - 1)));
+    if (j > 0 && D.f[p[j]] !== D.f[p[j - 1]]) famTick(g, x, y, WK.FAMC[fam(p[j])] || C.mute);
+    WK.P.glyph(g, kind, x, y, 3 + 3.5 * wt(p[j]), col);
   }
 }
-function drawWalks() {
-  var g = MAP.g, h = S.hit, P = WK.P.PAL, s = +$('sn').value;
-  walkDraw(g, S.pa, P.violet, P.ink, 'ring', s); walkDraw(g, S.pb, P.rose, P.ink, 'dot', s);
+function drawWalks(T) {
+  var g = MAP.g, h = S.hit, s = +$('sn').value;
+  walkDraw(g, S.pa, VIO, 'ring', s); walkDraw(g, S.pb, YEL, 'dot', s);
   if (h) {
     var xa = MAP.X(S.pa[h.a]), ya = MAP.Y(S.pa[h.a]), xb = MAP.X(S.pb[h.b]), yb = MAP.Y(S.pb[h.b]);
-    g.save(); g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.setLineDash(h.never ? [4, 4] : []); g.beginPath(); g.moveTo(xa, ya); g.lineTo(xb, yb); g.stroke(); g.restore();
-    var gr = h.never ? 6 : 9; WK.P.glyph(g, 'star', xa, ya, gr, '#fff'); WK.P.glyph(g, 'star', xb, yb, gr, '#fff');
+    g.save(); g.strokeStyle = INK; g.lineWidth = 1.5; g.setLineDash(h.never ? [4, 4] : []); g.beginPath(); g.moveTo(xa, ya); g.lineTo(xb, yb); g.stroke(); g.restore();
+    var gr = h.never ? 5 : 7; cross(g, xa, ya, gr); cross(g, xb, yb, gr);
   }
-  MAP.stop(S.pa[s], P.violet, 14); MAP.stop(S.pb[s], P.rose, 14);
-  if (h) { if (h.never) MAP.tag(S.pa[h.a], 'closest', '#fff'); else MAP.tag(h.step === h.a ? S.pa[h.a] : S.pb[h.b], 'step ' + h.step, '#fff'); }
-  MAP.tag(S.pa[0], 'one', P.violet); MAP.tag(S.pb[0], 'two', P.rose);
+  MAP.stop(S.pa[s], VIO, 14); MAP.stop(S.pb[s], YEL, 14);
+  if (h && h.step === 0 && !h.never) { T.push([S.pa[0], 'start together', INK]); return; }
+  if (h) { if (h.never) T.push([S.pa[h.a], 'closest', INK]); else T.push([h.step === h.a ? S.pa[h.a] : S.pb[h.b], 'step ' + h.step, INK]); }
+  T.push([S.pa[0], 'one', VIO], [S.pb[0], 'two', YEL]);
 }
 
-function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop the sound' : S.a < 0 ? 'play the walks' : 'play from step ' + $('sn').value + ', both walks'; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); }
+function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop the sound' : S.a < 0 ? 'play the walks' : 'play from step ' + $('sn').value; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); WK.primary(null); }
 function playFrom(s) {
   if (S.a < 0) return;
   var list = [], j, n = S.pa.length; L = []; lastI = -1; rep = 0;
@@ -152,6 +207,7 @@ function playFrom(s) {
   WK.play(list, onst).then(function () { if (!WK.playing()) { $('now').textContent = 'no preview for these stops.'; hearLabel(); } });
 }
 function jump(s) {
+  if (!S.pa) return;
   var was = WK.playing(); if (was) WK.stop();
   $('sn').value = Math.max(0, Math.min(S.pa.length - 1, s)); where(); hearLabel(); draw(); if (was) playFrom(+$('sn').value);
 }
@@ -162,8 +218,8 @@ document.addEventListener('keydown', function (e) {
   if (/INPUT|TEXTAREA/.test((e.target.tagName || '')) && e.target.type !== 'range') return;
   if (e.key === 'ArrowRight') { jump(+$('sn').value + 1); e.preventDefault(); } else if (e.key === 'ArrowLeft') { jump(+$('sn').value - 1); e.preventDefault(); }
 });
-$('run').addEventListener('click', function () { run(true); });
-['sa', 'sb'].forEach(function (id) { $(id).addEventListener('keydown', function (e) { if (e.key === 'Enter') run(true); }); $(id).addEventListener('input', function () { $('run').textContent = 'walk both seeds'; }); });
+$('run').addEventListener('click', function () { if (S.dirty || S.a < 0) run(); else newPair(); });
+['sa', 'sb'].forEach(function (id) { $(id).addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); }); $(id).addEventListener('input', function () { S.dirty = true; $('run').textContent = 'walk both seeds'; }); });
 $('back').addEventListener('click', function (e) { if (history.length > 1 && document.referrer && !/kiosk=1/.test(location.search)) { e.preventDefault(); history.back(); } });
 
 function sizeUp() { MAP.resize(); draw(); }
@@ -180,9 +236,7 @@ WK.boot([]).then(function (b) {
   } }); MAP.resize();
   window.addEventListener('resize', sizeUp);
   WK.pv().catch(function () {});
-  var top = []; for (i = 0; i < 150; i++) if (D.n[M.order ? M.order[i] : i]) top.push(M.order[i]);
-  var g = LOOP.rng((Math.random() * 1e9) | 0), x = top[(g() * top.length) | 0], y = top[(g() * top.length) | 0];
-  if (y === x) y = top[(top.indexOf(x) + 37) % top.length];
-  $('sa').value = D.n[x]; $('sb').value = D.n[y]; run(false);
+  for (i = 0; i < 150; i++) if (D.n[M.order ? M.order[i] : i]) TOP.push(M.order[i]);
+  newPair();
 });
 })();

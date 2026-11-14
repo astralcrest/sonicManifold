@@ -50,6 +50,8 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--night);border-colo
 button:focus-visible{outline:1px solid var(--mint);outline-offset:2px}
 .method{font:400 11px/1.5 var(--mono);color:var(--mute)}
 .method span{color:var(--ice)}
+details.deeper>summary{font:500 11px/1.3 var(--mono);color:var(--ice);cursor:pointer;padding:3px 0}
+details.deeper[open]{display:flex;flex-direction:column;gap:8px}
 .err{font:400 13px/1.4 var(--mono);color:var(--rose)}
 @media (max-width:900px){
   .wrap{display:flex;flex-direction:column;height:auto;min-height:100vh;padding:12px 16px 14px;gap:8px}
@@ -99,10 +101,12 @@ button:focus-visible{outline:1px solid var(--mint);outline-offset:2px}
       <button id="bSpeed">speed 1&times;</button>
       <button id="bCurve" aria-pressed="false" title="draw each cell as a piece of the line, so you can follow time through the square">curve</button>
       <button id="bScatter" aria-pressed="false" title="deal the same colors onto the curve at random: if the clumps vanish, they were real">scatter</button>
-      <button id="bStrict" aria-pressed="false" title="count only play, row and remote presses as mint; skip and back presses turn ice">strict only</button>
+      <button id="bStrict" aria-pressed="false" title="count only play, row and remote presses as mint; next and back presses turn dark mint">strict only</button>
     </div>
+    <details class="deeper"><summary>deeper</summary>
     <p class="method" id="how"></p>
     <p class="method" id="why"></p>
+    </details>
   </div>
 </div>
 <script>
@@ -110,15 +114,15 @@ button:focus-visible{outline:1px solid var(--mint);outline-offset:2px}
 const $=id=>document.getElementById(id);
 const fmt=n=>n.toLocaleString('en-US');
 const of100=x=>Math.round(x*100);
-const C={night:'#06010f',mint:'#21f6bc',amber:'#f5a623',violet:'#8b6fd6',ice:'#bcd3ff'};
+const C={night:'#06010f',mint:'#21f6bc',mint2:'#159a78',amber:'#f5a623',violet:'#8b6fd6',ice:'#bcd3ff'};
 function hex(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
 function mix(a,b,t){const A=hex(a),B=hex(b);return A.map((v,i)=>Math.round(v*(1-t)+B[i]*t))}
 function u32(rgb){return ((255<<24)|(rgb[2]<<16)|(rgb[1]<<8)|rgb[0])>>>0}
 const NIGHT=u32(hex(C.night)), ICE=u32(hex(C.ice)), ICEDIM=u32(mix(C.ice,C.night,.42));
 // the focus beat: the queue and shuffle fold into one dark machine tone, loose presses dim, only my presses stay bright
-const FL=10, MACH=mix(C.violet,C.night,.80), ICED=mix(C.ice,C.night,.62);
+const FL=10, MACH=mix(C.violet,C.night,.80), M2D=mix(C.mint2,C.night,.62);
 function lerp(a,b,t){return a.map((v,i)=>Math.round(v*(1-t)+b[i]*t))}
-const PAL=[]; for(let l=0;l<=FL;l++){const t=l/FL; PAL.push([lerp(hex(C.violet),MACH,t),lerp(hex(C.amber),MACH,t),hex(C.mint),hex(C.mint),lerp(hex(C.ice),ICED,t)].map(u32))}
+const PAL=[]; for(let l=0;l<=FL;l++){const t=l/FL; PAL.push([lerp(hex(C.violet),MACH,t),lerp(hex(C.amber),MACH,t),hex(C.mint),hex(C.mint),lerp(hex(C.mint2),M2D,t)].map(u32))}
 
 let D;
 try{ D=await (await fetch('data/hilbert.json')).json(); }
@@ -173,7 +177,7 @@ const handScat=new Uint8Array(N); for(let i=0;i<N;i++) handScat[i]=hand[perm[i]]
 const st={curve:false, scatter:false, strict:false, playing:true, speed:1, t:0, done:false};
 const SPEEDS=[.5,1,2,4];
 function shown(){return st.scatter?handScat:hand}
-function cls(h){return h===3?(st.strict?4:2):h}  // 0 queue, 1 shuffle, 2 pressed, 4 loose press shown neutral in strict mode
+function cls(h){return h===3?(st.strict?4:2):h}  // 0 queue, 1 shuffle, 2 pressed, 4 next/back press shown dark mint in strict mode
 function grp(h){return h===3?2:h}
 
 // numbers, all from the sidecar
@@ -196,7 +200,7 @@ const base=(()=>{const o=st.strict; st.strict=false; const r=stats(hand); st.str
 const queue=of100(cnt[0]/N), shuf=of100(cnt[1]/N), press=of100((cnt[2]+cnt[3])/N);
 const clumps=base.nb>base.rnd*1.2;
 
-$('hl').textContent=`the queue wrote ${queue} of every 100 plays. my presses ${clumps?'cluster':'scatter'}.`;
+$('hl').textContent=`auto-play wrote ${queue} of every 100 plays. my presses ${clumps?'cluster':'scatter'}.`;
 $('how').innerHTML=`<span>how:</span> ${fmt(N)} plays of 30 s or more, 2019 to 2026, in time order along a generalized hilbert curve, ${W} by ${H} cells, one per play, colored by what started it.`;
 const within=D.check.nb_within_sitting_null;
 $('why').innerHTML=`<span>why:</span> the curve never jumps, so cells that touch are plays close in time; the random deal puts the same colors on the same curve, so any difference between the two squares is the order alone.`;
@@ -204,8 +208,8 @@ $('why').innerHTML=`<span>why:</span> the curve never jumps, so cells that touch
 function legend(){
   const sCnt=st.strict?cnt[2]:cnt[2]+cnt[3];
   let rows=[[C.mint, st.strict?'i pressed (play, a track in a list, remote)':'i pressed', sCnt]];
-  if(st.strict) rows.push([C.ice,'i pressed (loose: skip or back)',cnt[3]]);
-  rows.push([C.amber,'shuffle',cnt[1]],[C.violet,'the queue',cnt[0]]);
+  if(st.strict) rows.push([C.mint2,'i pressed next or back (left out)',cnt[3]]);
+  rows.push([C.amber,'shuffle',cnt[1]],[C.violet,'auto-play',cnt[0]]);
   $('legend').innerHTML=rows.map(r=>`<i style="background:${r[0]}"></i><span>${r[1]}</span><span class="n">${of100(r[2]/N)} of 100 &middot; ${fmt(r[2])}</span>`).join('');
 }
 function clumpText(){
@@ -334,12 +338,12 @@ function step(){
 function nowText(){
   const t=st.t;
   if(t<T_WALK){ const k=walkK(t); return `<b>folding time onto the square.</b> play ${fmt(Math.max(1,k))} of ${fmt(N)}, sitting ${fmt(sitOf(Math.max(0,k-1))+1)} of ${fmt(D.n_sit)}. the line never jumps, so what is close in time stays close.` }
-  if(t<WASH[1][0]) return `<b>the queue wrote ${queue} of every 100 cells.</b> violet = the next track arrived on its own.`;
+  if(t<WASH[1][0]) return `<b>auto-play wrote ${queue} of every 100 cells.</b> violet = the next track arrived on its own.`;
   if(t<WASH[2][0]) return `<b>shuffle wrote ${shuf} more.</b> amber = a shuffled list picked the track.`;
   if(t<FOCUS[0]) return `<b>i pressed ${press}.</b> mint = i chose the track by hand. watch where they land.`;
-  if(t<T_END) return `<b>the machine steps back.</b> the queue and shuffle fold into one dark tone, so only my presses stay bright.`;
+  if(t<T_END) return `<b>the machine steps back.</b> auto-play and shuffle fold into one dark tone, so only my presses stay bright.`;
   const act=matchMedia('(hover:hover)').matches?'hover':'tap';
-  return st.scatter?`<b>this is the random deal: no big clumps.</b> dark = the queue and shuffle. my real order is the small square below. ${act} a cell to read its run.`:`<b>mint is my hand, and it lands in clumps (outlined).</b> dark = the queue and shuffle. the small square deals the same colors at random: no clumps. ${act} a cell to read its run.`;
+  return st.scatter?`<b>this is the random deal: no big clumps.</b> dark = auto-play and shuffle. my real order is the small square below. ${act} a cell to read its run.`:`<b>mint is my hand, and it lands in clumps (outlined).</b> dark = auto-play and shuffle. the small square deals the same colors at random: no clumps. ${act} a cell to read its run.`;
 }
 let prev=performance.now(), lastNow='';
 function frame(now){
@@ -382,7 +386,7 @@ function hoverAt(cx,cy){
     if(d&1)octx.fillRect(px+o+pw,py+o,s-o-pw,pw); if(d&2)octx.fillRect(px,py+o,o,pw);
     if(d&4)octx.fillRect(px+o,py+o+pw,pw,s-o-pw); if(d&8)octx.fillRect(px+o,py,pw,o);
   }
-  const name=['the queue','shuffle','i pressed','',"i pressed (loose)"][c];
+  const name=['auto-play','shuffle','i pressed','',"i pressed (loose)"][c];
     let tx=`play <b>${fmt(i+1)}</b> of ${fmt(N)} &middot; sitting ${fmt(sitOf(i)+1)} &middot; <b>${name}</b>, ${L===1?'alone':fmt(L)+' in a row'} (lit).`;
   if(blk){ let k=0; for(let j=blk[0];j<Math.min(blk[1],N);j++) if(cls(hs[j])===2)k++;
     const n=Math.min(blk[1],N)-blk[0];

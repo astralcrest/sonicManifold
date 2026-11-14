@@ -161,7 +161,8 @@ if (typeof document === 'undefined') return;
 /* ---------- the wall ---------- */
 var NIGHT = [6, 1, 15], WARM = [26, 18, 6], INK = '#efe9ff', MUTE = '#9a90b8', MINT = '#21f6bc', AMBER = '#f5a623', VIOLET = '#8b6fd6', ICE = '#bcd3ff';
 var FAMC = { 'ambient/lofi': '#3d8bff', 'classical': '#7fd37f', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#38c2d6', 'world/desi': '#ea5a2a', 'untagged': '#6f6790' };
-var PCOL = { queue: VIOLET, hand: MINT, feed: INK, siren: '#ff5c7a' };
+// the pull's color is in no family's palette and no key's
+var PCOL = { queue: VIOLET, hand: MINT, feed: INK, siren: '#e040ff' };
 var PGLY = { queue: 'ring', hand: 'star', feed: 'dot', siren: 'dot' };
 var PDESC = { queue: 'auto-play: dials set to match auto-play\'s own next picks in my log.', hand: 'my press: dials set to match the plays i pressed myself.', feed: 'a feed: a rule that leans on popular, familiar artists.', siren: 'the pull: a rule that drags every walk to one corner, to show what a feed can do.' };
 var DIALN = ['sounds alike', 'come back', 'popular', 'new ground', 'follow my habit', 'random hop'];
@@ -245,15 +246,22 @@ function buildUI() {
     var s = document.createElement('span'); s.innerHTML = '<i></i>' + nm; s.firstChild.style.background = FAMC[nm] || MUTE; lg.appendChild(s);
   });
   $('fitnote').textContent = 'auto-play and my press: dials matched to ' + D.q.length.toLocaleString('en-US') + ' sampled pairs each of my log.\na feed is hand-set, not matched. the pull is a toy, hand-set, not matched.';
-  $('fixed').innerHTML = 'fixed by this rule: ' + FIXED.map(function (k) { return DIALN[k] + ' <output id="o' + k + '"></output>'; }).join(' · ');
+  // names only: a matched preset's weights are one good match among many, not the real weights
+  $('fixed').textContent = 'fixed by this rule: ' + FIXED.map(function (k) { return DIALN[k]; }).join(' · ');
+  var hb = function (nm, v, c) { return '<span style="color:' + c + '">' + nm + '</span><b><i style="width:' + Math.round(100 * Math.min(1, v)) + '%;background:' + c + '"></i></b><output>' + fmt(v, 2) + '</output>'; };
+  $('m-hop').textContent = fmt(S.real.queue.hop, 2);
+  $('hopbar').innerHTML = hb('auto-play', S.real.queue.hop, VIOLET) + hb('my press', S.real.hand.hop, MINT);
   $('nart').textContent = M.N.toLocaleString('en-US');
-  cv.addEventListener('pointerdown', tap);
+  // click, not pointerdown: a swipe that starts on the map scrolls the page and must not restart the walk
+  cv.addEventListener('click', tap);
   cv.addEventListener('pointermove', hoverTip); cv.addEventListener('pointerleave', function () { $('tip').hidden = true; });
   $('hear').addEventListener('click', hear);
-  $('skip').addEventListener('click', nextStop);
-  $('path').addEventListener('click', function (e) { var sp = e.target.closest('span[data-k]'); if (sp) withPV(function () { playStop(+sp.getAttribute('data-k')); }); });
-  $('path').addEventListener('keydown', function (e) { var sp = e.target.closest('span[data-k]'); if (sp && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); withPV(function () { playStop(+sp.getAttribute('data-k')); }); } });
+  $('skip').addEventListener('click', function () { soundOn(); nextStop(); });
+  $('path').addEventListener('click', function (e) { var sp = e.target.closest('span[data-k]'); if (sp) { soundOn(); withPV(function () { playStop(+sp.getAttribute('data-k')); }); } });
+  $('path').addEventListener('keydown', function (e) { var sp = e.target.closest('span[data-k]'); if (sp && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); soundOn(); withPV(function () { playStop(+sp.getAttribute('data-k')); }); } });
 }
+// a press on a stop is a request to hear it; the shared hook only catches buttons labeled play / hear
+function soundOn() { if (root.WK && root.WK.setSound && !root.WK.sound()) root.WK.setSound(true); }
 
 var GLOSS = ['higher: it hops to artists that sound near the last one.', 'higher: it goes back to artists it already visited.',
   'higher: it picks the artists i play most.', 'higher: it heads for artists far from every stop so far.',
@@ -287,7 +295,7 @@ function syncChips() {
   var pc = PCOL[S.preset] || ICE; document.body.style.setProperty('--act', pc); document.body.style.setProperty('--acc', pc);
   [].forEach.call($('chips').children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-p') === S.preset ? 'true' : 'false'); });
   if ($('pdesc')) $('pdesc').textContent = PDESC[S.preset] || 'your own dial settings.';
-  for (var k = 0; k < 6; k++) $('o' + k).textContent = fmt(S.K[k], 2);
+  LIVE.forEach(function (k) { $('o' + k).textContent = fmt(S.K[k], 2); });
   if (S.siren != null) { $('os').textContent = nice(S.siren); document.documentElement.style.setProperty('--night', mix(S.siren)); }
 }
 
@@ -304,7 +312,7 @@ window.addEventListener('popstate', function () {
 });
 function saveHash() {
   if (KIOSK || !S.start && S.start !== 0) return;
-  var h = '#p=' + (S.preset || 'free') + '&k=' + S.K.map(function (x) { return nice(x); }).join(',') + (S.siren != null ? '&s=' + nice(S.siren) : '') + '&start=' + S.start + '&seed=' + S.seed;
+  var h = '#p=' + (S.preset || 'free') + (S.preset ? '' : '&k=' + S.K.map(function (x) { return nice(x); }).join(',')) + (S.siren != null ? '&s=' + nice(S.siren) : '') + '&start=' + S.start + '&seed=' + S.seed;
   try { history.replaceState(null, '', location.pathname + location.search + h); } catch (e) {}
 }
 
@@ -326,6 +334,7 @@ function newPath(animate) {
   S.anim = animate && !reduce ? 0 : S.path.length;
   if (animate) S.ghost = null;
   metrics(); pathList(); stubLink();
+  if (root.WK && root.WK.famKey) root.WK.famKey($('fams'), D, S.path);
   if (S.anim < S.path.length) tick(); else draw();
   clearTimeout(S.t); S.t = setTimeout(slow, 140);
   saveHash();
@@ -348,7 +357,8 @@ function metrics() {
     $('say').textContent = 'one walk at ' + nice(S.siren) + ': ' + (s.loop > STEPS ? 'never repeats in 40 steps' : 'starts repeating at step ' + s.loop) + '. a toy rule.';
     return;
   }
-  $('say').textContent = s.loop > STEPS ? 'this rule never repeats in 40 steps; ' + pct(s.top) + ' of its picks are artists i play most.' : 'this rule starts repeating at step ' + s.loop + '; ' + pct(s.top) + ' of its picks are artists i play most.';
+  // same start, same seed: auto-play's walk is the longer one about a third of the time
+  $('say').textContent = 'one walk, and walks vary: either rule can walk farther. the real picks are the two bars above.';
 }
 
 /* the split stub for this walk: the last stop, numbered from the walk itself so the same walk prints the same stub */
@@ -482,14 +492,16 @@ function hoverTip(e) {
   if (best < 0) { tip.hidden = true; return; }
   var k = S.path ? S.path.indexOf(best) : -1, fam = D.fam[D.f[best]] || '';
   tip.innerHTML = '<b>' + name(best) + '</b>' + (fam ? ' <i style="background:' + (FAMC[fam] || MUTE) + '"></i>' + fam : '') + (k >= 0 ? ' · stop ' + k + ', tap to hear it' : ' · tap to start a walk here');
-  tip.style.left = Math.min(r.width - 220, x + 12) + 'px'; tip.style.top = Math.max(0, y - 34) + 'px'; tip.hidden = false;
+  // measure the tip at the left edge, then clamp it inside the map, which hides overflow
+  tip.style.left = '0px'; tip.style.top = Math.max(0, y - 34) + 'px'; tip.hidden = false;
+  tip.style.left = Math.max(4, Math.min($('map').clientWidth - tip.offsetWidth - 4, x + 12)) + 'px';
 }
 function tap(e) {
   var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, best = -1, bd = 22 * 22;
   for (var i = 0; i < M.N; i++) { var dx = X(i) - x, dy = Y(i) - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
   if (best < 0) return;
   var on = S.path ? S.path.indexOf(best) : -1;
-  if (on >= 0 && on < Math.min(S.anim, S.path.length)) { withPV(function () { playStop(on); }); return; }
+  if (on >= 0 && on < Math.min(S.anim, S.path.length)) { soundOn(); withPV(function () { playStop(on); }); return; }
   S.start = best; S.seed = (Math.random() * 1e9) | 0; newPath(true);
 }
 
@@ -523,7 +535,12 @@ function playStop(k) {
   var chg = prev >= 0 && pf !== fam ? ' the family changes from ' + pf + '.' : prev >= 0 ? ' same family as the stop before.' : '';
   $('hear').textContent = 'stop'; $('hear').setAttribute('aria-pressed', 'true');
   $('now').textContent = 'stop ' + k + ' of ' + (S.path.length - 1) + ': \u201c' + t[0] + '\u201d by ' + name(ai) + ', ' + fam + '.' + chg + same + (miss.length ? ' (stop' + (miss.length > 1 ? 's ' : ' ') + miss.join(', ') + ' had no clip.)' : '') + (k < S.path.length - 1 ? ' next stop in 10 s, or press next stop.' : '') + (root.WK && !root.WK.sound() ? ' sound is off: tap the sound chip at the top.' : '');
-  [].forEach.call($('path').children, function (sp) { var on = +sp.getAttribute('data-k') === k; sp.classList.toggle('on', on); if (on && sp.scrollIntoView && !reduce) sp.scrollIntoView({ block: 'nearest' }); });
+  // scroll only the stop list, never the page, so the map stays in view on a phone
+  [].forEach.call($('path').children, function (sp) {
+    var on = +sp.getAttribute('data-k') === k; sp.classList.toggle('on', on); if (!on) return;
+    var o = $('path'), a = o.getBoundingClientRect(), r = sp.getBoundingClientRect();
+    if (r.top < a.top) o.scrollTop += r.top - a.top; else if (r.bottom > a.bottom) o.scrollTop += r.bottom - a.bottom;
+  });
   if (root.WK) root.WK.live(draw); else draw();
 }
 function stopHear(msg) {

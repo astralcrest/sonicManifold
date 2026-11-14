@@ -1,7 +1,7 @@
 (function () {
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, MAP, cv = $('cv'), ADJ = [];
-var S = { line: [], drag: false, id: null, fx: 0, fy: 0, short: null, goal: null, seed: 20261106, walk: null, wk: -1, moved: false, prev: null };
+var S = { line: [], drag: false, id: null, fx: 0, fy: 0, short: null, mach: false, goal: null, seed: 20261106, walk: null, wk: -1, moved: false, prev: null };
 
 function buildAdj() {
   var N = D.n.length, i, k, j;
@@ -38,10 +38,10 @@ function local(e) { var b = cv.getBoundingClientRect(); return [e.clientX - b.le
 cv.addEventListener('pointerdown', function (e) {
   if (S.drag) return;
   var l = local(e), i = nearest(l[0], l[1], e.pointerType === 'touch' ? 34 : 22);
-  S.prev = S.line.length >= 2 ? { line: S.line, short: S.short } : null;
+  S.prev = S.line.length >= 2 ? { line: S.line, short: S.short, mach: S.mach } : null;
   if (i < 0) { $('say').textContent = 'start on a star: press close to one.'; return; }
   S.drag = true; S.id = e.pointerId; try { cv.setPointerCapture(e.pointerId); } catch (x) {}
-  S.line = [i]; S.short = null; S.walk = null; S.wk = -1; S.moved = false; S.fx = l[0]; S.fy = l[1]; WK.stop(); WK.still(); hearLabel(); out(); draw(); e.preventDefault();
+  S.line = [i]; S.short = null; S.mach = false; S.walk = null; S.wk = -1; S.moved = false; S.fx = l[0]; S.fy = l[1]; WK.stop(); WK.still(); hearLabel(); out(); draw(); e.preventDefault();
 });
 cv.addEventListener('pointermove', function (e) {
   if (!S.drag || e.pointerId !== S.id) return;
@@ -56,31 +56,38 @@ function up(e) {
   if (S.line.length >= 2) S.short = bfs(S.line[0], S.line[S.line.length - 1]);
   else if (S.line.length === 1 && !S.moved) {
     var one = S.line[0], pv = S.prev, at;
-    if (pv) { S.line = pv.line; S.short = pv.short; }
+    if (pv) { S.line = pv.line; S.short = pv.short; S.mach = pv.mach; }
     else S.line = [];
     at = pv ? pv.line.indexOf(one) : -1;
     if (at >= 0) { hearLabel(); out(); draw(); walk('mine', at); return; }
     at = pv && pv.short ? pv.short.indexOf(one) : -1;
     if (at >= 0) { hearLabel(); out(); draw(); walk('short', at); return; }
-    S.walk = null; S.wk = -1;
+    S.walk = null; S.wk = -1; WK.setSound(true);
     WK.play([{ i: one, tag: 'tap' }], function (k, info) { $('now').textContent = info ? 'hearing ' + info.title + ' by ' + D.n[one] + ', ' + D.fam[D.f[one]] + '. drag from it to draw a way.' : ''; });
   }
   hearLabel(); out(); draw();
 }
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
+function fams() {
+  var on = S.line.length > 1 ? S.line.concat(S.short || []) : D.fam.map(function (_, f) { return D.f.indexOf(f); });
+  WK.famKey($('fams'), D, on);
+}
 function out() {
   var n = S.line.length - 1;
+  fams();
   if (S.drag || n < 1) {
     $('num').innerHTML = '<span class="c">draw a line first</span>';
     $('say').textContent = S.drag ? 'crossing stars: ' + Math.max(0, n) + ' so far.' : S.goal ? 'drag a line from ' + D.n[S.goal[0]] + ' to ' + D.n[S.goal[1]] + '. or press any star to hear it.' : 'drag from one star to another.';
     return;
   }
   if (!S.short) { $('num').innerHTML = '<span class="m">' + n + '</span>'; $('say').textContent = 'your line crossed ' + n + ' stars. these two have no path through the links.'; return; }
-  var s = S.short.length - 1;
-  $('num').innerHTML = '<span class="m">' + n + '</span><span class="c"> / </span><span class="i">' + s + '</span>';
-  $('say').textContent = 'yours took ' + n + ' steps, the shortest took ' + s + '. ' + (n === s ? 'you found it.' : n < s ? 'your line crossed ' + n + ' stars because the hops are not always links.' : 'that is ' + Math.round(100 * (n - s) / s) + ' percent longer.') + ' press a walk below and hear every stop, or tap any star on a line to start there.';
+  // both lines in one unit: length on the map (data units, the map is 100 wide), so the screen size never changes the score
+  var a = mlen(S.line), s = mlen(S.short), p = Math.round(100 * (a - s) / s), same = S.line.join() === S.short.join();
+  $('num').innerHTML = '<span class="m">' + Math.round(a) + '</span><span class="c"> / </span><span class="i">' + Math.round(s) + '</span>';
+  $('say').textContent = (S.mach ? 'the machine\'s line is ' : 'your line is ') + Math.round(a) + ' long on the map, the short way ' + Math.round(s) + '. ' + (p === 0 ? (same && !S.mach ? 'you found it.' : 'the same length.') : 'that is ' + Math.abs(p) + ' percent ' + (p > 0 ? 'longer.' : 'shorter: the fewest hops do not run straight.')) + ' press a walk below and hear every stop, or tap any star on a line to start there.';
 }
+function mlen(p) { var L = 0, k; for (k = 1; k < p.length; k++) L += Math.hypot(D.xy[p[k]][0] - D.xy[p[k - 1]][0], D.xy[p[k]][1] - D.xy[p[k - 1]][1]); return L / 10; }
 
 function pt(i) { return [MAP.X(i), MAP.Y(i)]; }
 function famCol(i) { return WK.FAMC[D.fam[D.f[i]]] || PAL.ice; }
@@ -90,10 +97,11 @@ function fam(g, i, p, small) {
 }
 function draw() {
   MAP.begin();
-  var g = MAP.g, small = MAP.W < 500, k, pts;
+  var g = MAP.g, small = MAP.W < 500, k, pts, wat = S.walk && S.wk >= 0 ? (S.walk === 'mine' ? S.line : S.short)[S.wk] : -1;
+  // one chip per star: the goal chips give way to the line's end chips, and an end chip gives way to the walk's chip
   if (S.goal) {
-    P.glyph(g, 'ring', pt(S.goal[0])[0], pt(S.goal[0])[1], 11, PAL.ink); MAP.tag(S.goal[0], 'from ' + D.n[S.goal[0]], PAL.ink, PAL.night);
-    P.glyph(g, 'ring', pt(S.goal[1])[0], pt(S.goal[1])[1], 11, PAL.ink); MAP.tag(S.goal[1], 'to ' + D.n[S.goal[1]], PAL.ink, PAL.night);
+    P.glyph(g, 'ring', pt(S.goal[0])[0], pt(S.goal[0])[1], 11, PAL.ink); if (!S.short) MAP.tag(S.goal[0], 'from ' + D.n[S.goal[0]], PAL.ink, PAL.night);
+    P.glyph(g, 'ring', pt(S.goal[1])[0], pt(S.goal[1])[1], 11, PAL.ink); if (!S.short) MAP.tag(S.goal[1], 'to ' + D.n[S.goal[1]], PAL.ink, PAL.night);
   }
   if (S.line.length > 1) {
     pts = S.line.map(pt);
@@ -106,7 +114,7 @@ function draw() {
     P.ribbon(g, pts, PAL.ice, PAL.ice, small ? 1.6 : 2.2, S.walk && S.wk >= 0 ? 0.4 : 0.95);
     for (k = 0; k < pts.length; k++) { fam(g, S.short[k], pts[k], small); P.glyph(g, 'dot', pts[k][0], pts[k][1], small ? 5 : 6.5, PAL.ice); }
     var a = S.line[0], b = S.line[S.line.length - 1];
-    MAP.tag(a, D.n[a], PAL.mint, PAL.night); MAP.tag(b, D.n[b], PAL.mint, PAL.night);
+    if (a !== wat) MAP.tag(a, D.n[a], PAL.mint, PAL.night); if (b !== wat) MAP.tag(b, D.n[b], PAL.mint, PAL.night);
   }
   if (S.walk && S.wk >= 0) {
     var path = S.walk === 'mine' ? S.line : S.short, col = S.walk === 'mine' ? PAL.mint : PAL.ice, w = pt(path[S.wk]);
@@ -138,11 +146,13 @@ function hearLabel() {
   $('wm').textContent = on && S.walk === 'mine' ? 'stop' : 'walk my way, stop by stop' + (can ? ' (' + (S.line.length - 1) + ')' : '');
   $('ws').textContent = on && S.walk === 'short' ? 'stop' : 'walk the short way' + (can && S.short ? ' (' + (S.short.length - 1) + ')' : '');
   $('draw').disabled = !S.goal;
+  // the strip's play button names what it will do now: the short walk once a line exists
+  WK.primary(can ? (S.short ? $('ws') : $('wm')) : S.goal ? $('draw') : null);
 }
 function walk(which, from) {
   if (from == null && WK.playing() && S.walk === which) { WK.stop(); return; }
   var path = which === 'mine' ? S.line : S.short; if (!path || path.length < 2) { $('now').textContent = 'draw a line between two stars first.'; return; }
-  from = Math.max(0, Math.min(path.length - 1, from || 0)); S.walk = which; S.wk = from;
+  from = Math.max(0, Math.min(path.length - 1, from || 0)); S.walk = which; S.wk = from; WK.setSound(true);
   WK.play(path.slice(from).map(function (i) { return { i: i, tag: which }; }), function (k, info) {
     if (info) {
       var at = from + k, pi = path[at], pr = at > 0 ? path[at - 1] : -1, m;
@@ -165,10 +175,14 @@ function nextStop() {
 function drawForMe() {
   if (!S.goal) return;
   var a = pt(S.goal[0]), b = pt(S.goal[1]), n = 80, k, i, line = [S.goal[0]], x, y;
-  for (k = 1; k <= n; k++) { x = a[0] + (b[0] - a[0]) * k / n; y = a[1] + (b[1] - a[1]) * k / n; i = nearest(x, y, 16); if (i >= 0 && i !== line[line.length - 1]) line.push(i); }
+  // the catch radius is in map units, so the machine crosses the same stars on every screen
+  for (k = 1; k <= n; k++) { x = a[0] + (b[0] - a[0]) * k / n; y = a[1] + (b[1] - a[1]) * k / n; i = nearest(x, y, 30 * MAP.scl); if (i >= 0 && i !== line[line.length - 1]) line.push(i); }
   if (line[line.length - 1] !== S.goal[1]) line.push(S.goal[1]);
-  WK.stop(); WK.still(); S.line = line; S.short = bfs(line[0], line[line.length - 1]); S.walk = null; S.wk = -1; S.prev = null; hearLabel(); out(); draw();
+  WK.stop(); WK.still(); S.line = line; S.short = bfs(line[0], line[line.length - 1]); S.mach = true; S.walk = null; S.wk = -1; S.prev = null; hearLabel(); out(); draw();
 }
+// the strip's ▶ promises sound: when its press drew the line, walk the short way straight after
+var goB = document.getElementById('wk-go');
+if (goB) goB.addEventListener('click', function () { if (S.line.length >= 2 && S.short && !S.walk) walk('short'); });
 $('wm').addEventListener('click', function () { walk('mine'); });
 $('ws').addEventListener('click', function () { walk('short'); });
 $('go').addEventListener('click', nextStop);

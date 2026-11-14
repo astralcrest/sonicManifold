@@ -59,6 +59,8 @@ h1 { font: 600 25px/1.12 var(--sans); letter-spacing: -.01em; margin: 6px 0 6px;
 .foot { grid-area: foot; margin-top: 6px; font: 400 11px/1.5 var(--mono); color: var(--mute); max-width: 72ch; }
 .foot p + p { margin-top: 4px; }
 .foot b { font-weight: 500; color: #b8b1d4; }
+details.deeper > summary { font: 500 11px/1.3 var(--mono); color: var(--ice); cursor: pointer; padding: 3px 0; }
+details.deeper[open] { display: flex; flex-direction: column; gap: 8px; }
 @media (max-width: 899px) {
   .wrap { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; height: auto; padding: 14px 16px 28px;
     grid-template-areas: "head" "art" "tbl" "live" "ctrl" "chart" "end" "foot"; }
@@ -86,7 +88,7 @@ h1 { font: 600 25px/1.12 var(--sans); letter-spacing: -.01em; margin: 6px 0 6px;
   <section class="live">
     <div class="big">largest piece <b id="gN">0</b> of <span id="nA"></span> artists · <span id="gP">0%</span></div>
     <div class="sub">link <span id="kN">0</span> of <span id="kT"></span> · sitting <span id="sN">0</span> of <span id="sT"></span></div>
-    <div class="key"><i style="background:#21f6bc;width:18px;height:3px"></i>my press &nbsp;<i style="background:#8b6fd6;width:18px;height:3px"></i>the queue &nbsp;<i style="background:#f5a623;width:18px;height:3px"></i>shuffle &nbsp;<i style="background:#bcd3ff"></i>in the largest piece &nbsp;<i style="background:#4a4366"></i>a smaller piece &nbsp;<i style="background:#221c36"></i>no link</div>
+    <div class="key"><i style="background:#21f6bc;width:18px;height:3px"></i>my press &nbsp;<i style="background:#8b6fd6;width:18px;height:3px"></i>auto-play &nbsp;(shuffle left out) &nbsp;<i style="background:#bcd3ff"></i>in the largest piece &nbsp;<i style="background:#4a4366"></i>a smaller piece &nbsp;<i style="background:#221c36"></i>no link</div>
     <div class="evt" id="evt">&nbsp;</div>
   </section>
   <nav class="ctrl" aria-label="controls">
@@ -96,7 +98,7 @@ h1 { font: 600 25px/1.12 var(--sans); letter-spacing: -.01em; margin: 6px 0 6px;
       <button type="button" data-m="0" aria-pressed="true">every link</button><button type="button" data-m="1" aria-pressed="false">between rooms</button>
     </span>
     <span class="seg" role="group" aria-label="which hands draw">
-      <button type="button" data-h="all" aria-pressed="true">all hands</button><button type="button" data-h="q" aria-pressed="false">queue only</button><button type="button" data-h="me" aria-pressed="false">mine only</button>
+      <button type="button" data-h="all" aria-pressed="true">all hands</button><button type="button" data-h="q" aria-pressed="false">auto-play only</button><button type="button" data-h="me" aria-pressed="false">mine only</button>
     </span>
   </nav>
   <section class="chart">
@@ -109,16 +111,19 @@ h1 { font: 600 25px/1.12 var(--sans); letter-spacing: -.01em; margin: 6px 0 6px;
     <div class="br"><div class="bl">between rooms</div><div class="bb" data-r="1"><i></i><i></i><i></i></div></div>
     <div class="br"><div class="bl">first links</div><div class="bb" data-r="2"><i></i><i></i><i></i></div></div>
   </section>
-  <p class="end" id="end">&nbsp;</p>
   <footer class="foot">
+    <details class="deeper"><summary>deeper</summary>
+    <p class="end" id="end">&nbsp;</p>
     <p id="how"><b>how:</b> </p>
     <p id="why"><b>why:</b> </p>
+    </details>
   </footer>
 </main>
 <script>
 (function () {
 'use strict';
-var HC = ['#21f6bc', '#f5a623', '#8b6fd6'];
+// one key on every page: play and next/back presses are both my press, so both are mint
+var HC = ['#21f6bc', '#21f6bc', '#8b6fd6'];
 // one line = one link whatever its hue: violet is much darker than mint or ice on night, so it is drawn stronger
 // and they fainter, until a press line and a queue line weigh about the same
 var HW = [1.1, 1.1, 1.3];
@@ -176,10 +181,10 @@ function start(D) {
   var brTot = T.br[0] + T.br[1] + T.br[2], xTot = T.x[0] + T.x[1] + T.x[2];
   var claimA = T.br[2] / brTot > 0.5 && xr(0) > xr(2) && xr(1) > xr(2);
   var claimB = T.x[2] / xTot > 0.5;
-  $('hl').textContent = claimA ? 'the queue pulls artists in; my presses cross rooms more often' : 'who drew the links that hold my listening together';
+  $('hl').textContent = claimA ? 'auto-play pulls artists in; my presses cross rooms more often' : 'who drew the links that hold my listening together';
   var sh = T.x[2] / xTot < T.n[2] / NL, gr = T.br[2] / brTot > T.n[2] / NL;
-  $('end').innerHTML = 'by the last link the queue drew ' + pct(T.n[2], NL) + ' of every link but ' + pct(T.x[2], xTot) + ' of links between rooms (<em>' + fmt(T.x[2]) + '</em> of <em>' + fmt(xTot) +
-    '</em>): per link, ' + pct(T.x[0], T.r[0]) + ' of my play presses cross a room wall, ' + pct(T.x[2], T.r[2]) + ' of the queue\u2019s. it drew the first link for ' + pct(T.br[2], brTot) +
+  $('end').innerHTML = 'by the last link auto-play drew ' + pct(T.n[2], NL) + ' of every link but ' + pct(T.x[2], xTot) + ' of links between rooms (<em>' + fmt(T.x[2]) + '</em> of <em>' + fmt(xTot) +
+    '</em>): per link, ' + pct(T.x[0], T.r[0]) + ' of my play presses cross a room wall, ' + pct(T.x[2], T.r[2]) + ' of auto-play\u2019s. it drew the first link for ' + pct(T.br[2], brTot) +
     ' of artists (<em>' + fmt(T.br[2]) + '</em> of <em>' + fmt(brTot) + '</em>)' + (sh && gr ? ', so in the bars its violet shrinks where rooms meet and grows where artists come in.' : '.');
   $('nA').textContent = fmt(N); $('sT').textContent = fmt(D.nsit);
   $('how').innerHTML = '<b>how:</b> ' + fmt(NL) + ' artist pairs heard back to back inside a sitting (shuffle arrivals left out, as in the followed-by map), each added at its first time in log order; a union-find keeps the largest connected piece; the ' +
@@ -322,22 +327,22 @@ function start(D) {
     g.strokeStyle = '#e9e6f5'; g.globalAlpha = 0.35; g.lineWidth = 1; g.beginPath(); g.moveTo(Math.round(cxp) + 0.5, t); g.lineTo(Math.round(cxp) + 0.5, t + hh); g.stroke(); g.globalAlpha = 1;
     g.fillStyle = hset === 'all' ? ICE : HC[hset === 'q' ? 2 : 0]; g.fillRect(cxp - 3, cyp - 3, 6, 6);
     g.textAlign = 'right'; g.textBaseline = 'top'; g.font = "400 11px 'IBM Plex Mono', monospace";
-    var lab = [['all hands', ICE], ['queue only', HC[2]], ['mine only', HC[0]]], yy = t + hh - 40;
+    var lab = [['all hands', ICE], ['auto-play only', HC[2]], ['mine only', HC[0]]], yy = t + hh - 40;
     lab.forEach(function (p, q) { g.fillStyle = p[1]; g.fillText(p[0], l + w, yy + q * 12); });
   }
 
   function milestones() {
     var arr = CURVE[hset], marks = [[0.1, 'a tenth'], [0.5, 'half'], [0.9, 'nine tenths']], out = [];
     marks.forEach(function (m) { for (var j = 0; j < arr.length; j++) if (arr[j] >= m[0] * N) { out.push(m[1] + ' by link ' + fmt(j)); return; } out.push(m[1] + ' never'); });
-    var who = hset === 'all' ? 'with every hand' : hset === 'q' ? 'with the queue’s links alone' : 'with my presses alone';
+    var who = hset === 'all' ? 'with every hand' : hset === 'q' ? 'with auto-play’s links alone' : 'with my presses alone';
     var eq = Math.floor(Math.min(SETS.q.length, SETS.me.length) / 1000) * 1000;
-    $('mile').textContent = who + ', the largest piece holds ' + out.join(', ') + '. at ' + fmt(eq) + ' links each, the queue alone joins ' + fmt(CURVE.q[eq]) + ' artists, my presses alone ' + fmt(CURVE.me[eq]) + '.';
+    $('mile').textContent = who + ', the largest piece holds ' + out.join(', ') + '. at ' + fmt(eq) + ' links each, auto-play alone joins ' + fmt(CURVE.q[eq]) + ' artists, my presses alone ' + fmt(CURVE.me[eq]) + '.';
   }
 
-  $('hk').innerHTML = D.hand.map(function (t, h) { return '<span><i style="background:' + HC[h] + '"></i>' + t + '</span>'; }).join('');
+  $('hk').innerHTML = [[HC[0], 'my press (play, next or back)'], [HC[2], D.hand[2]]].map(function (x) { return '<span><i style="background:' + x[0] + '"></i>' + x[1] + '</span>'; }).join('');
   var bars = Array.prototype.map.call(document.querySelectorAll('.bb'), function (b) { return b.children; });
-  function setBar(seg, v) {
-    var tot = v[0] + v[1] + v[2];
+  function setBar(seg, w) {
+    var v = [w[0] + w[1], 0, w[2]], tot = v[0] + v[2];
     for (var h = 0; h < 3; h++) {
       var f = tot ? v[h] / tot : 0; seg[h].style.width = (100 * f).toFixed(2) + '%'; seg[h].style.background = HC[h];
       seg[h].style.paddingLeft = f > 0.004 ? '11px' : '0'; seg[h].textContent = f >= 0.09 ? Math.round(100 * f) + '%' : '';
@@ -351,7 +356,7 @@ function start(D) {
     setBar(bars[0], tn); setBar(bars[1], tx); setBar(bars[2], tb);
 
     var e = $('evt');
-    if (ev) e.innerHTML = 'link ' + fmt(ev.j + 1) + ': <span style="color:' + HC[ev.h] + '">' + (ev.h === 2 ? 'the queue' : ev.h === 0 ? 'my play press' : 'my next/back press') + '</span> joined ' + fmt(ev.small) + ' artists ' + (ev.g ? 'to the largest (now ' + fmt(ev.small + ev.big) + ')' : 'to a piece of ' + fmt(ev.big));
+    if (ev) e.innerHTML = 'link ' + fmt(ev.j + 1) + ': <span style="color:' + HC[ev.h] + '">' + (ev.h === 2 ? 'auto-play' : ev.h === 0 ? 'my play press' : 'my next/back press') + '</span> joined ' + fmt(ev.small) + ' artists ' + (ev.g ? 'to the largest (now ' + fmt(ev.small + ev.big) + ')' : 'to a piece of ' + fmt(ev.big));
     else e.innerHTML = '&nbsp;';
   }
 

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>draw the long way &middot; sonic manifold</title>
-<meta name="description" content="drag one finger from one star to another. your line lands on real artists; the shortest way draws beside it.">
-<meta property="og:title" content="wall 18 of 25: draw the long way"><meta property="og:description" content="drag one finger from one star to another. your line lands on real artists; the shortest way draws beside it."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/way.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="drag one finger from one star to another. your line lands on real artists; the fewest hops through sound draw beside it.">
+<meta property="og:title" content="wall 18 of 25: draw the long way"><meta property="og:description" content="drag one finger from one star to another. your line lands on real artists; the fewest hops through sound draw beside it."><meta property="og:image" content="https://astralcrest.github.io/sonicManifold/editions/walls/way.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="540"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,25 +16,28 @@
 #map canvas { touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
 .big span.m { color: var(--mint); } .big span.i { color: var(--ice); } .big span.c { color: var(--mute); }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
-#pair, #go, #draw { --acc: var(--ice); } #clear { --acc: var(--mint); } #hear { --acc: var(--ice); }
+#pair, #go, #draw { --acc: var(--ice); }
+#marks { margin: 14px 0 6px; } #marks svg { flex: none; } #clear { --acc: var(--mint); } #hear { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="18 of 18" data-line="drag a line between two artists. your way in mint; the shortest way through sound in ice." data-do="drag from star to star, or press draw it for me. then walk either way." data-keys="press,alike" style="--act: var(--mint); --acc: var(--mint)">
+<body data-wall="18 of 18" data-line="drag a line between two artists. your way in mint; the fewest hops through sound in ice." data-do="drag from star to star, or press draw it for me. then walk either way." data-keys="alike" style="--act: var(--mint); --acc: var(--mint)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>draw the long way</span><span class="tl">a toy</span></p>
-    <h1>nobody takes the <em>short</em> way.</h1>
+    <h1>can you take the <em>short</em> way?</h1>
   </header>
-  <div id="map"><canvas id="cv" tabindex="0" role="img" aria-label="my sound map. drag a finger from one artist to another and the line lands on the artists you cross, drawn as a mint ribbon with stars. the shortest path through the nearest-neighbor links draws beside it in ice blue."></canvas></div>
+  <div id="map"><canvas id="cv" tabindex="0" role="img" aria-label="my sound map. drag a finger from one artist to another and the line lands on the artists you cross, drawn as a mint ribbon with stars. the path with the fewest nearest-neighbor links draws beside it in ice blue."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span class="c">draw a line first</span></div>
-      <span class="keylab">stars your line crossed (mint) / fewest hops through what sounds alike (ice)</span>
+      <span class="keylab">length on the map: your line (mint) / the fewest hops through what sounds alike (ice)</span>
       <p class="say" id="say">press any star to hear it, then drag to another star. pebble color is the sound family.</p>
+      <p class="fams" id="marks" aria-label="what the lines mean"><span><svg viewBox="0 0 28 14" width="28" height="14" aria-hidden="true"><path d="M1 7H27" stroke="#21f6bc" stroke-width="2.4" stroke-linecap="round"/><path d="M14 1.5Q14 7 19.5 7Q14 7 14 12.5Q14 7 8.5 7Q14 7 14 1.5Z" fill="#21f6bc" stroke="#06010f" stroke-width=".8"/></svg>your line</span><span><svg viewBox="0 0 28 14" width="28" height="14" aria-hidden="true"><path d="M1 7H27" stroke="#bcd3ff" stroke-width="1.8" stroke-linecap="round"/><circle cx="14" cy="7" r="3.4" fill="#bcd3ff" stroke="#06010f" stroke-width=".8"/></svg>fewest hops</span></p>
+      <p class="fams" id="fams" aria-label="the sound families, the pebble colors"></p>
     </div>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>a line drawn by hand wanders. the shortest way is usually a few hops.</p>
-      <p class="ask"><b>open question:</b>why does nobody take the short way to a song they care about?</p>
+      <p class="take"><b>takeaway:</b>the fewest hops through sound bend on the map, so a straight line is often shorter. each pair is picked 7 to 10 hops apart.</p>
+      <p class="ask"><b>open question:</b>when you go looking for a song you care about, do you take the short way?</p>
     </div>
     <section>
       <div class="row" style="margin-top:0">
@@ -45,7 +48,7 @@
         <button type="button" id="draw" disabled>draw it for me</button>
         <button type="button" id="clear">clear</button>
       </div>
-      <p class="note" id="now">press any star to hear it. after a line, each walk plays its stops in order, 30 s each, and the pulse shows where you are. sound must be on.</p>
+      <p class="note" id="now">press any star to hear it. after a line, each walk plays its stops in order, 30 s each, and the pulse shows where you are.</p>
     </section>
     <details class="how"><summary>how</summary>
       <p>press a star to hear it. drag from one star to another and let go. on a laptop, two new stars then draw it for me does the same.</p>
@@ -53,8 +56,8 @@
       <p>walk either one. every stop plays to the end of the line; next stop (or n) and a tap on any star on the line jump ahead.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>a toy on the sound map. a step is one hop from one artist to the next you crossed; a link joins each artist to the six that sound nearest.</p>
-      <p>the shortest way counts links in that graph, one hop each, not distance. nothing is stored.</p>
+      <p>a toy on the sound map. a link joins each artist to the six that sound nearest; the short way is the fewest links, one hop each.</p>
+      <p>the score measures both lines the same way: length on the map, which is 100 wide. nothing is stored.</p>
       <p id="meta"></p>
     </details>
   </main>

@@ -4,7 +4,7 @@
 (function () {
 'use strict';
 var KEEP = { master_metadata_album_artist_name: 1, artistName: 1, ms_played: 1, msPlayed: 1, ts: 1, endTime: 1, incognito_mode: 1 };
-var FILE_RE = /^(StreamingHistory_music_\d+|Streaming_History_Audio_[\w-]+)\.json$/i;
+var FILE_RE = /^(StreamingHistory\d+|StreamingHistory_music_\d+|Streaming_History_Audio_[\w-]+)\.json$/i;
 var TOP_FILE = 50;
 var FOLD = { 'ø': 'o', 'æ': 'ae', 'œ': 'oe', 'ß': 'ss', 'ł': 'l', 'đ': 'd', 'ð': 'd', 'þ': 'th', 'ı': 'i' };
 
@@ -53,16 +53,17 @@ function splitNames(text, find) {
   });
   return out;
 }
-/* names in rank order -> placed [{name, i, rank}] and off [name], one entry per distinct name */
+/* names in rank order -> placed [{name, i, rank}] and off [name], one entry per map artist or off-map spelling; dup = repeats dropped */
 function placeNames(names, find) {
-  var seen = new Set(), taken = new Set(), placed = [], off = [];
+  var seen = new Set(), placed = [], off = [], dup = 0;
   names.forEach(function (raw) {
-    var r = lookup(find, raw), k = norm(r[0]); if (!k || seen.has(k)) return; seen.add(k);
+    var r = lookup(find, raw), k = norm(r[0]); if (!k) return;
+    var key = r[1] > -1 ? 'i' + r[1] : 'o' + noThe(k);
+    if (seen.has(key)) { dup++; return; } seen.add(key);
     if (r[1] < 0) { off.push(r[0]); return; }
-    if (taken.has(r[1])) return; taken.add(r[1]);
     placed.push({ name: r[0], i: r[1], rank: placed.length + off.length + 1 });
   });
-  return { placed: placed, off: off, n: placed.length + off.length };
+  return { placed: placed, off: off, n: placed.length + off.length, dup: dup };
 }
 
 /* the file: only five keys survive the parse; username, ip, platform, country, user agent never reach a variable */
@@ -91,12 +92,16 @@ if (typeof module !== 'undefined' && module.exports) { module.exports = api; ret
 
 /* ---- the page ---- */
 var $ = function (id) { return document.getElementById(id); };
-var NIGHT = '#06010f', ICE = '#bcd3ff', MINE = '#5a4a92', INK = '#efe9ff';
-var F = null, find = null, R = null, TOT = null, MAXT = 1, cv = $('map'), cx = cv.getContext('2d'), W = 0, D = 1, HOT = -1;
+var NIGHT = '#06010f', ICE = '#bcd3ff', MUTE = '#9a90b8', INK = '#efe9ff';
+/* the site's fixed family key (front/field.js FAMC) */
+var FAMC = { 'ambient/lofi': '#3d8bff', 'classical': '#7fd37f', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#38c2d6', 'world/desi': '#ea5a2a', 'untagged': '#6f6790' };
+var F = null, find = null, R = null, TOT = null, FC = null, FL = null, MAXT = 1, cv = $('map'), cx = cv.getContext('2d'), W = 0, D = 1, HOT = -1;
 var EXAMPLE = 'Frank Ocean\nSZA\nRadiohead\nBonobo\nTaylor Swift\nKendrick Lamar\nBurial\nolafur arnalds\nFour Tet\nBillie Eilish\nNils Frahm\nA.R. Rahman\nThe Beatles\nKhruangbin\nArijit Singh';
 var URL_PUB = 'https://astralcrest.github.io/sonicManifold/editions/yours/';
 
 function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
+function pl(n, w) { return fmt(n) + ' ' + w + (n === 1 ? '' : 's'); }
+function dupNote(res) { return res.dup ? ' ' + pl(res.dup, 'duplicate') + ' dropped.' : ''; }
 function st(msg, err) { var e = $('st'); e.textContent = msg; e.className = 'st' + (err ? ' err' : ''); }
 
 function size() {
@@ -112,20 +117,21 @@ function draw() {
   if (!F || !W) return;
   cx.setTransform(1, 0, 0, 1, 0, 0); cx.fillStyle = NIGHT; cx.fillRect(0, 0, cv.width, cv.height);
   var i, p, on = R ? new Set(R.placed.map(function (e) { return e.i; })) : null;
-  cx.fillStyle = MINE; cx.globalAlpha = R && R.placed.length ? 0.45 : 0.7;
-  for (i = 0; i < F.n.length; i++) { if (on && on.has(i)) continue; p = pos(i); dot(p[0], p[1], 0.9 + 1.5 * Math.sqrt(TOT[i] / MAXT)); cx.fill(); }
+  cx.globalAlpha = 0.75;
+  for (i = 0; i < F.n.length; i++) { if (on && on.has(i)) continue; p = pos(i); cx.fillStyle = FC[i]; dot(p[0], p[1], 0.9 + 1.5 * Math.sqrt(TOT[i] / MAXT)); cx.fill(); }
   cx.globalAlpha = 1;
   if (!R) return;
-  var L = R.placed, n = L.length;
-  cx.lineWidth = 1.5 * D; cx.strokeStyle = NIGHT; cx.fillStyle = ICE;
-  for (i = n - 1; i >= 0; i--) { p = pos(L[i].i); dot(p[0], p[1], rOf(i, n)); cx.stroke(); cx.fill(); }
+  var L = R.placed, n = L.length, r;
+  /* yours = an ice disc inside an ice ring, so it never reads as a rock/metal dot */
+  cx.lineWidth = 1.5 * D; cx.strokeStyle = ICE;
+  for (i = n - 1; i >= 0; i--) { p = pos(L[i].i); r = rOf(i, n); cx.fillStyle = NIGHT; dot(p[0], p[1], r + 4); cx.fill(); dot(p[0], p[1], r + 2.5); cx.stroke(); cx.fillStyle = ICE; dot(p[0], p[1], r); cx.fill(); }
   var lab = Math.min(n, W < 500 ? 3 : 6);
   cx.font = '500 ' + 12 * D + 'px "IBM Plex Mono", monospace'; cx.textBaseline = 'middle'; cx.lineJoin = 'round';
   for (i = 0; i < lab; i++) label(L[i], i, n, false);
-  if (HOT > -1) { var h = L.filter(function (e) { return e.i === HOT; })[0]; if (h) { p = pos(HOT); cx.strokeStyle = INK; cx.lineWidth = 1.5 * D; dot(p[0], p[1], rOf(L.indexOf(h), n) + 4); cx.stroke(); label(h, L.indexOf(h), n, true); } }
+  if (HOT > -1) { var h = L.filter(function (e) { return e.i === HOT; })[0]; if (h) { p = pos(HOT); cx.strokeStyle = INK; cx.lineWidth = 1.5 * D; dot(p[0], p[1], rOf(L.indexOf(h), n) + 6.5); cx.stroke(); label(h, L.indexOf(h), n, true); } }
 }
 function label(e, k, n, force) {
-  var p = pos(e.i), t = e.rank + ' ' + e.name, w = cx.measureText(t).width / D, r = rOf(k, n) + 5;
+  var p = pos(e.i), t = e.rank + ' ' + e.name, w = cx.measureText(t).width / D, r = rOf(k, n) + 8;
   var x = p[0] + r + w > W - 4 ? p[0] - r - w : p[0] + r, y = Math.max(10, Math.min(W - 10, p[1]));
   cx.lineWidth = 4 * D; cx.strokeStyle = NIGHT; cx.textAlign = 'left';
   cx.strokeText(t, x * D, y * D); cx.fillStyle = force ? INK : ICE; cx.fillText(t, x * D, y * D);
@@ -144,18 +150,23 @@ function show(res, how) {
   $('tap').textContent = res.placed.length ? 'tap an ice mark to name it.' : '';
   if (how) st(how);
   draw();
+  /* one column (phone): the map sits under the list, so bring it into view or the press shows nothing */
+  var pic = cv.parentNode.parentNode, b = pic.getBoundingClientRect(), calm = false;
+  try { calm = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { /* no hint */ }
+  if (window.matchMedia && matchMedia('(max-width:900px)').matches && (b.top < 0 || b.top > innerHeight * 0.4)) pic.scrollIntoView({ block: 'start', behavior: calm ? 'auto' : 'smooth' });
 }
 function fromPaste() {
   if (!F) return;
   var names = splitNames($('names').value, find);
-  if (!names.length) { st('paste a few artist names first, one per line.', true); return; }
-  show(placeNames(names, find), 'placed your list of ' + fmt(names.length) + ' names.');
+  var res = names.length ? placeNames(names, find) : null;
+  if (!res || !res.n) { st('paste a few artist names first, one per line.', true); return; }
+  show(res, 'placed your list of ' + pl(res.n, 'name') + '.' + dupNote(res));
 }
 
 function readFiles(files) {
   if (!F) return;
   var all = Array.prototype.slice.call(files || []), ok = all.filter(function (f) { return FILE_RE.test(f.name); }), skip = all.length - ok.length;
-  if (!ok.length) { st('no streaming history files there. only StreamingHistory_music_*.json or Streaming_History_Audio_*.json are read.', true); return; }
+  if (!ok.length) { st('no streaming history files there. only StreamingHistory0.json, StreamingHistory_music_0.json or Streaming_History_Audio_*.json (any number) are read.', true); return; }
   st('reading ' + ok.length + ' file' + (ok.length > 1 ? 's' : '') + ' in this tab');
   var rows = [], bad = 0;
   Promise.all(ok.map(function (f) {
@@ -165,13 +176,14 @@ function readFiles(files) {
     if (!r.plays) { st('no plays over 30 seconds with an artist name in ' + (ok.length > 1 ? 'those files.' : 'that file.'), true); return; }
     $('names').value = '';
     var yrs = r.y0 ? (r.y0 === r.y1 ? ', ' + r.y0 : ', ' + r.y0 + ' to ' + r.y1) : '';
-    show(placeNames(r.names, find), fmt(r.plays) + ' plays over 30 s, ' + fmt(r.artists) + ' artists' + yrs + '. placing your ' + Math.min(TOP_FILE, r.artists) + ' most played.' + (skip ? ' skipped ' + skip + ' other file' + (skip > 1 ? 's' : '') + ' unread.' : '') + (bad ? ' ' + bad + ' file' + (bad > 1 ? 's' : '') + ' did not parse.' : ''));
+    var res = placeNames(r.names, find), k = Math.min(TOP_FILE, r.artists);
+    show(res, pl(r.plays, 'play') + ' over 30 s, ' + pl(r.artists, 'artist') + yrs + '. ' + (k === 1 ? 'placing it.' : 'placing your ' + k + ' most played.') + dupNote(res) + (skip ? ' skipped ' + skip + ' other file' + (skip > 1 ? 's' : '') + ' unread.' : '') + (bad ? ' ' + bad + ' file' + (bad > 1 ? 's' : '') + ' did not parse.' : ''));
   });
 }
 
 function copy() {
   if (!R || !R.n) return;
-  var t = R.placed.length + ' placed, ' + R.off.length + ' off the map: my top ' + R.n + ' artists on astralcrest’s sound map. ' + URL_PUB, b = $('copy');
+  var t = R.placed.length + ' placed, ' + R.off.length + ' off the map: ' + (R.n === 1 ? 'my top artist' : 'my top ' + R.n + ' artists') + ' on astralcrest’s sound map. ' + URL_PUB, b = $('copy');
   var done = function () { b.textContent = 'copied'; setTimeout(function () { b.textContent = 'copy my placement'; }, 1800); };
   var old = function () { var a = document.createElement('textarea'); a.value = t; a.setAttribute('readonly', ''); a.style.position = 'fixed'; a.style.opacity = '0'; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); done(); } catch (e) {} a.remove(); };
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, old); else old();
@@ -185,8 +197,8 @@ function tap(ev) {
   HOT = mine ? -1 : best;
   var e = $('tap');
   if (best < 0) e.textContent = R && R.placed.length ? 'tap an ice mark to name it.' : '';
-  else if (!mine) { var h = R.placed.filter(function (q) { return q.i === best; })[0]; e.textContent = h.name + ': your number ' + h.rank + ', and on my map.'; }
-  else e.textContent = F.n[best] + ': on my map only.';
+  else if (!mine) { var h = R.placed.filter(function (q) { return q.i === best; })[0]; e.textContent = h.name + ' (' + FL[best] + '): your number ' + h.rank + ', and on my map.'; }
+  else e.textContent = F.n[best] + ' (' + FL[best] + '): on my map only.';
   draw();
 }
 
@@ -206,6 +218,9 @@ if (window.ResizeObserver) new ResizeObserver(size).observe(cv.parentNode); else
 fetch('../../front/data/field.json').then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (j) {
   F = j; find = makeIndex(F.n);
   TOT = F.h.map(function (h) { return h[0] + h[1] + h[2]; }); MAXT = Math.max.apply(null, TOT) || 1;
+  var fa = F.fa && F.fa.length === F.n.length ? F.fa : F.f, has = {};
+  FC = fa.map(function (k) { has[k] = 1; return FAMC[F.fam[k]] || MUTE; }); FL = fa.map(function (k) { return F.fam[k] || 'untagged'; });
+  F.fam.forEach(function (nm, k) { if (!has[k]) return; var s = document.createElement('span'), i = document.createElement('i'); i.className = 'sw'; i.style.background = FAMC[nm] || MUTE; s.appendChild(i); s.appendChild(document.createTextNode(nm)); $('fams').appendChild(s); });
   $('nmine').textContent = fmt(F.n.length);
   $('noff').textContent = 'paste your list below';
   $('place').disabled = false; size(); draw();

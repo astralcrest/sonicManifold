@@ -1,8 +1,8 @@
 (function () {
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, KEY = 'sm_chorus', MAXM = 5;
-var cv = $('cv'), box = $('map'), D = null, map = null, mine = [], store = [], cur = -1, dx = 0, dy = 0, tx = 0, ty = 0, raf = 0, sc = null;
-var FAINT = P.mix(PAL.mint, PAL.night, 0.65);
+var cv = $('cv'), box = $('map'), D = null, map = null, mine = [], store = [], cur = -1, nowI = null;
+var ROOM = PAL.ink;
 
 function today() { var d = new Date(), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
 function load() {
@@ -20,24 +20,15 @@ function hands() {
 }
 function allPts() { return store.map(function (p) { return p[0]; }).concat(mine); }
 
-function target() {
-  var a = allPts(), W = map.W;
-  if (!a.length) { tx = 0; ty = 0; return; }
-  var mx = 0, my = 0;
-  a.forEach(function (i) { mx += map.X(i); my += map.Y(i); });
-  mx /= a.length; my /= a.length;
-  var lim = 0.15 * W;
-  tx = Math.max(-lim, Math.min(lim, (W / 2 - mx) * 0.35));
-  ty = Math.max(-lim, Math.min(lim, (map.H / 2 - my) * 0.35));
-}
-function X(i) { return map.X(i) + dx; }
-function Y(i) { return map.Y(i) + dy; }
+function X(i) { return map.X(i); }
+function Y(i) { return map.Y(i); }
 
 function chip(i, text, col) {
-  var g = map.g, x = X(i) + 12, y = Y(i) - 14;
+  // below the star, so the hover name tip (drawn above the pointer) never sits on it
+  var g = map.g, x = X(i) + 12, y = Y(i) + 16;
   g.save(); g.font = '600 12px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
   var w = g.measureText(text).width + 12;
-  if (x + w > map.W - 2) x = X(i) - 12 - w; if (y < 11) y = Y(i) + 16; if (x < 2) x = 2;
+  if (x + w > map.W - 2) x = X(i) - 12 - w; if (y > map.H - 11) y = Y(i) - 14; if (x < 2) x = 2;
   x = Math.round(x); y = Math.round(y);
   g.fillStyle = PAL.night; g.fillRect(x, y - 11, w, 22); g.strokeStyle = col; g.lineWidth = 1; g.strokeRect(x + 0.5, y - 10.5, w - 1, 21);
   g.fillStyle = col; g.fillText(text, x + 6, y + 0.5); g.restore();
@@ -48,32 +39,15 @@ function draw() {
   if (!map) return;
   map.begin();
   var g = map.g;
-  if (dx > 0.5 || dx < -0.5 || dy > 0.5 || dy < -0.5) {
-    if (!sc) sc = document.createElement('canvas');
-    sc.width = cv.width; sc.height = cv.height;
-    sc.getContext('2d').drawImage(cv, 0, 0);
-    g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = PAL.night; g.fillRect(0, 0, cv.width, cv.height);
-    g.drawImage(sc, Math.round(dx * map.dpr), Math.round(dy * map.dpr));
-    g.setTransform(map.dpr, 0, 0, map.dpr, 0, 0);
-  }
-  var small = map.W < 500, r = small ? 6 : 8, k;
-  hands().forEach(function (h) { if (h.length > 1) P.ribbon(g, pts(h), PAL.mint, PAL.mint, 1.5, 0.15); });
-  hands().forEach(function (h) { h.forEach(function (i) { P.glyph(g, 'star', X(i), Y(i), r * 0.8, FAINT); }); });
+  var small = map.W < 500, r = small ? 6 : 8, hs = hands();
+  // the room's picks are the question here, so the map steps back under them
+  if (hs.length) { g.save(); g.globalAlpha = 0.4; g.fillStyle = PAL.night; g.fillRect(0, 0, map.W, map.H); g.restore(); }
+  hs.forEach(function (h) { if (h.length > 1) P.ribbon(g, pts(h), ROOM, ROOM, 1.25, 0.5); });
+  hs.forEach(function (h) { h.forEach(function (i) { P.glyph(g, 'star', X(i), Y(i), r, ROOM); }); });
   if (mine.length > 1) P.ribbon(g, pts(mine), PAL.mint, PAL.mint, 2, 0.95);
   mine.forEach(function (i) { P.glyph(g, 'star', X(i), Y(i), r * 1.15, PAL.mint); });
   if (cur >= 0) WK.pulse(g, X(cur), Y(cur), PAL.mint, r * 1.8);
   if (mine.length) { var l = mine[mine.length - 1]; chip(l, D.n[l].length > 24 ? D.n[l].slice(0, 23) + '…' : D.n[l], PAL.mint); }
-}
-
-function drift() {
-  cancelAnimationFrame(raf);
-  var rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (rm) { dx = tx; dy = ty; draw(); return; }
-  (function step() {
-    dx += (tx - dx) * 0.04; dy += (ty - dy) * 0.04;
-    if (Math.abs(tx - dx) < 0.3 && Math.abs(ty - dy) < 0.3) { dx = tx; dy = ty; draw(); return; }
-    draw(); raf = requestAnimationFrame(step);
-  })();
 }
 
 function ui() {
@@ -82,19 +56,23 @@ function ui() {
   var m = Object.keys(seen).length;
   $('big').textContent = mine.length;
   $('add').disabled = !mine.length; $('redo').disabled = !mine.length;
-  $('count').textContent = hs.length ? hs.length + (hs.length === 1 ? ' visitor' : ' visitors') + ' tonight, ' + m + (m === 1 ? ' artist' : ' artists') : 'you are the first one here tonight.';
-  $('say').textContent = mine.length ? (mine.length < MAXM ? 'tap up to ' + (MAXM - mine.length) + ' more, or add your marks to the room.' : 'five marks. a sixth tap replaces your oldest.') : (hs.length ? 'the faint stars are the room so far. tap an artist to add yours.' : 'you are the first one here tonight.');
+  $('count').textContent = hs.length ? hs.length + (hs.length === 1 ? ' set' : ' sets') + ' on this screen tonight, ' + m + (m === 1 ? ' artist' : ' artists') : '';
+  $('say').textContent = mine.length ? (mine.length < MAXM ? 'tap up to ' + (MAXM - mine.length) + ' more, or add your marks.' : 'five marks. a sixth tap replaces your oldest.') : (hs.length ? 'the white stars are earlier sets on this screen. tap an artist to add yours.' : 'no sets on this screen yet tonight.');
   var all = allPts(), a = $('home');
   a.setAttribute('href', all.length ? '../print/chorus.html#pts=' + all.join(',') : '../print/chorus.html');
 }
 
+function nowText() {
+  var s = nowI.title + ' by ' + D.n[nowI.i];
+  $('now').textContent = WK.sound() ? 'hearing ' + s + WK.again(nowI) + '.' : 'sound is off: ' + s + '. turn sound on at the top.';
+}
 function onst(k, info) {
-  if (info) { cur = info.i; $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[info.i] + WK.again(info) + '.'; WK.live(draw); }
-  else { cur = -1; WK.still(); draw(); }
+  if (info) { cur = info.i; nowI = info; nowText(); WK.live(draw); }
+  else { cur = -1; nowI = null; WK.still(); draw(); }
 }
 function tap(i) {
   if (mine.indexOf(i) < 0) { mine.push(i); if (mine.length > MAXM) mine.shift(); }
-  target(); ui(); drift();
+  ui(); draw();
   WK.play([{ i: i, tag: 'tap' }], onst);
 }
 function pick(e) {
@@ -107,20 +85,32 @@ $('add').addEventListener('click', function () {
   if (!mine.length) return;
   var t = Date.now(), o = { day: today(), picks: store.concat(mine.map(function (i) { return [i, t]; })) };
   save(o); store = o.picks; mine = []; cur = -1; WK.stop(); WK.still();
-  $('now').textContent = 'your marks are in the room. the next person can tap.';
-  target(); ui(); drift();
+  $('now').textContent = 'your marks are saved on this screen for tonight. tap an artist to start a new set.';
+  ui(); draw();
 });
 $('redo').addEventListener('click', function () {
   mine = []; cur = -1; WK.stop(); WK.still();
   $('now').textContent = 'your marks are cleared. tap an artist to start again.';
-  target(); ui(); drift();
+  ui(); draw();
 });
 cv.addEventListener('pointerdown', pick);
+$('nm').addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' || !D) return;
+  e.preventDefault();
+  var v = this.value.trim().toLowerCase(), i;
+  for (i = 0; i < D.n.length; i++) if (D.n[i].toLowerCase() === v) { this.value = ''; tap(i); return; }
+  $('now').textContent = v ? 'that name is not on my map. pick one from the list.' : 'type an artist, then press enter.';
+});
+// no play button here: a tap on the map plays, so the strip's play button must never pick up "start over"
+WK.primary('#none');
+$('wk-snd').addEventListener('click', function () { if (nowI) nowText(); });
 var rt = null;
-addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (map) { map.resize(); target(); dx = tx; dy = ty; draw(); } }, 80); });
+addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (map) { map.resize(); draw(); } }, 80); });
 
 WK.boot().then(function (b) {
-  D = b.D; map = new WK.Map(box, cv, D, b.M, { dim: 0.5, hover: false }); map.resize();
-  store = load(); WK.pv(); target(); dx = tx; dy = ty; ui(); draw();
+  D = b.D; map = new WK.Map(box, cv, D, b.M, { dim: 0.5 }); map.resize();
+  WK.famKey($('fams'), D, D.fam.map(function (_, f) { return D.f.indexOf(f); }));
+  $('dl').innerHTML = D.n.map(function (n) { return '<option value="' + WK.esc(n) + '">'; }).join('');
+  store = load(); WK.pv(); ui(); draw();
 }).catch(function () { $('say').textContent = 'the data did not load. reload the page to try again.'; });
 })();

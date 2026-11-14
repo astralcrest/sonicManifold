@@ -74,21 +74,26 @@ function update() {
     S.route = r1.length && r2.length ? r1.concat(r2.slice(1)) : [];
     S.mi = S.route.indexOf(m);
     if (m !== S.mid) {
-      if (S.wk >= 0) { S.tok++; WK.stop(); }
+      if (S.wk >= 0) { S.tok++; WK.stop(); S.hear = -1; }
       S.mid = m; S.wk = -1;
       var now = Date.now();
       if (now - S.lastPlay > 2500) { S.lastPlay = now; playList([{ i: m, tag: 'mid' }], false); }
+      // the throttle above can skip the last pick of a drag: once the pick holds still, play it if it is not the one heard
+      clearTimeout(S.mt); S.mt = setTimeout(settle, 300);
     }
     var mxs = Math.max(sa, sb);
     setNum(sa < 0 || sb < 0 ? '?' : mxs);
-    $('say').textContent = sa < 0 || sb < 0 ? 'out of reach in the graph.' : D.n[m] + ' is ' + sa + (sa === 1 ? ' step' : ' steps') + ' from your first spot and ' + sb + (sb === 1 ? ' step' : ' steps') + ' from your second. nearest in sound to the point halfway between your spots. the route has ' + S.route.length + ' stops.' + soundHint();
+    $('say').textContent = sa < 0 || sb < 0 ? 'out of reach in the graph.' : D.n[m] + ' is ' + sa + (sa === 1 ? ' step' : ' steps') + ' from your first spot and ' + sb + (sb === 1 ? ' step' : ' steps') + ' from your second. nearest on the map to the point halfway between your spots. the route has ' + S.route.length + ' stops.' + soundHint();
   } else {
     setNum(null); S.route = [];
     $('say').textContent = S.a ? 'one spot down. tap a second spot on the map.' : 'tap two spots on the map, then drag either one.';
   }
+  var rk = S.route.join(',');
+  if (rk !== S.rk) { S.rk = rk; WK.famKey($('fams'), D, S.route); }
   draw();
 }
 
+function settle() { if (S.a && S.b && S.mid >= 0 && S.wk < 0 && S.hear !== S.mid) { S.lastPlay = Date.now(); playList([{ i: S.mid, tag: 'mid' }], false); } }
 function playList(list, walking) {
   var my = ++S.tok;
   WK.play(list, function (k, info) {
@@ -108,6 +113,7 @@ function playList(list, walking) {
 }
 function walkFrom(from) {
   var list = [], r;
+  clearTimeout(S.mt);
   if (!S.route.length) { $('now').textContent = 'place two spots first, or tap pick two spots for me.'; return; }
   for (r = from; r < S.route.length; r++) if (PV[S.route[r]]) list.push({ i: S.route[r], tag: 'r' + r });
   if (!list.length) { $('now').textContent = 'no more clips on this route. tap walk the route to start over.'; S.wk = -1; draw(); return; }
@@ -130,14 +136,22 @@ function drawRoute(g) {
   for (k = 0; k < n; k++) {
     i = R[k]; x = pts[k][0]; y = pts[k][1]; r = 4 + 5 * Math.log(1 + D.pl[i]) / mx;
     P.peb(g, i, x, y, r, fcol(i));
-    if (k > 0 && fam(R[k - 1]) !== fam(i)) P.glyph(g, 'ring', x, y, r + 4, PAL.ink);
     if (!PV[i]) { g.save(); g.globalAlpha = 0.5; g.fillStyle = PAL.night; g.fillRect(x - 1, y - 1, 2, 2); g.restore(); }
   }
   if (cur >= 0 && cur < n) {
     P.rings(g, pts[cur][0], pts[cur][1], PAL.mint, 16);
     if (WK.playing()) WK.pulse(g, pts[cur][0], pts[cur][1], PAL.mint, 15);
-    MAP.tag(R[cur], (cur + 1) + '/' + n + ' ' + D.n[R[cur]], PAL.mint);
-  } else if (S.hear >= 0 && WK.playing() && S.hear === S.mid) WK.pulse(g, MAP.X(S.mid), MAP.Y(S.mid), PAL.ice, 16);
+  } else if (S.hear >= 0 && WK.playing() && S.hear === S.mid) WK.pulse(g, MAP.X(S.mid), MAP.Y(S.mid), PAL.mint, 16);
+}
+// your spot: a crosshair with its number, a mark nothing else on the map uses
+function spot(g, x, y, n) {
+  g.save(); g.setLineDash([]); g.globalAlpha = 1; g.strokeStyle = g.fillStyle = PAL.ink; g.lineWidth = 2; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(x, y - 16); g.lineTo(x, y - 6); g.moveTo(x, y + 6); g.lineTo(x, y + 16); g.moveTo(x - 16, y); g.lineTo(x - 6, y); g.moveTo(x + 6, y); g.lineTo(x + 16, y); g.stroke();
+  g.beginPath(); g.arc(x, y, 2.5, 0, 6.2832); g.fill();
+  g.font = '600 11px "IBM Plex Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'center';
+  var tx = x + 19 > MAP.W ? x - 19 : x + 7, ty = y - 21 < 0 ? y + 7 : y - 21;
+  g.fillStyle = PAL.night; g.fillRect(tx, ty, 12, 14); g.fillStyle = PAL.ink; g.fillText(n, tx + 6, ty + 7.5);
+  g.restore();
 }
 function draw() {
   MAP.begin();
@@ -153,12 +167,14 @@ function draw() {
       P.ribbon(g, [mp, [MAP.X(m), MAP.Y(m)]], PAL.ink, PAL.ink, 1, 0.6, [3, 4]);
       P.peb(g, m, MAP.X(m), MAP.Y(m), 7 + 6 * Math.log(1 + D.pl[m]) / Math.log(1 + D.pl[M.order[0]]), fcol(m));
       P.glyph(g, 'ring', MAP.X(m), MAP.Y(m), 16, PAL.ink);
-      tagAt(g, MAP.X(m), MAP.Y(m), D.n[m], PAL.ink);
     }
     P.glyph(g, 'dot', mp[0], mp[1], 5, PAL.ice);
   }
-  if (pa) { P.glyph(g, 'ring', pa[0], pa[1], 18, PAL.ink); P.glyph(g, 'dot', pa[0], pa[1], 4, PAL.ink); }
-  if (pb) { P.glyph(g, 'ring', pb[0], pb[1], 18, PAL.ink); P.glyph(g, 'dot', pb[0], pb[1], 4, PAL.ink); }
+  if (pa) spot(g, pa[0], pa[1], '1');
+  if (pb) spot(g, pb[0], pb[1], '2');
+  // names last, so no mark ever sits on a name
+  if (S.a && S.b && m >= 0) tagAt(g, MAP.X(m), MAP.Y(m), D.n[m], PAL.ink);
+  if (S.a && S.b && S.wk >= 0 && S.wk < S.route.length) MAP.tag(S.route[S.wk], (S.wk + 1) + '/' + S.route.length + ' ' + D.n[S.route[S.wk]], PAL.mint);
   if (!S.a || !S.b) {
     g.save(); g.font = '500 13px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center';
     g.fillText(S.a ? 'now the second spot.' : 'tap two spots.', MAP.W / 2, MAP.H - 16); g.restore();

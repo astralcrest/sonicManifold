@@ -14,55 +14,55 @@
 <style>
 @media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
 .big span.a { color: #a48cf0; } .big span.c { color: var(--mute); }
-.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
+.say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 21px; }
 .ends { display: flex; justify-content: space-between; font: 500 12px var(--mono); margin: 0; }
-.ends .m { color: var(--mint); } .ends .a { color: #a48cf0; }
+.ends .m { color: var(--ink); } .ends .a { color: #a48cf0; }
 .tickrow { position: relative; height: 18px; margin: -6px 11px 4px; font: 500 11px var(--mono); color: var(--ice); }
 .tickrow i { position: absolute; top: 0; width: 1px; height: 8px; background: var(--ice); }
 .tickrow span { position: absolute; top: 8px; transform: translateX(-50%); white-space: nowrap; }
+#tilt[hidden] { display: none; }
 #tilt, #pl { --acc: var(--violet); } #mylog { --acc: var(--mint); } #hear, #again { --acc: var(--ice); }
 </style>
 </head>
-<body data-wall="16 of 18" data-line="a hundred-step night: how many steps are mine, how many auto-play's."
- data-do="press hear to play the night, then slide the line or tilt the phone." data-keys="press,auto,alike" style="--act: var(--violet); --acc: var(--violet)">
+<body data-wall="16 of 18" data-line="a made-up hundred-step night: each step picked by auto-play, my press, or shuffle."
+ data-do="press hear, then slide or tilt to change who picks." data-keys="press,auto,shuffle,alike" style="--act: var(--violet); --acc: var(--violet)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the pour</span><span class="tl">a toy</span></p>
-    <h1>how much of a night is <em>mine</em>?</h1>
+    <h1>how much of a night is <em>auto-play's</em>?</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map with a hundred-step path. a column on the left shows each step: wide mint bars are my presses, narrow violet bars are auto-play picks. the path draws as a ribbon with a mint star for each hand pick and a violet ring for each auto-play pick."></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map with a made-up hundred-step path. a column on the left shows each step by color: mint bars are my presses, violet bars auto-play picks, amber bars shuffle picks. the path draws as a ribbon with a mint star for each press, a violet ring for each auto-play pick and an amber diamond for each shuffle pick."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span class="a">64</span> <span class="c">of 100</span></div>
-      <span class="keylab">of 100 steps are auto-play's, the rest are mine</span>
-      <p class="say" id="say">press hear below to play the night in order, then slide to change who picks.</p>
+      <span class="keylab" id="kl">64 auto-play, 19 my press, 17 shuffle</span>
+      <p class="say" id="say">loading the night.</p>
     </div>
     <p class="fams" id="fams" aria-label="the sound families on this night"></p>
     <div class="lines">
-      <p class="take"><b>takeaway:</b>pour more auto-play and each step stays near the last. pour more of mine and it jumps.</p>
+      <p class="take"><b>takeaway:</b>in my log, the queue's own run of songs stays close in sound. when i broke the run the next song sat farther away, and when shuffle broke it, farther still. a direction, not a size.</p>
       <p class="ask"><b>open question:</b>how much of your night do you let pour in?</p>
     </div>
     <section>
-      <div class="ends"><span class="m">mine</span><span class="a">auto-play</span></div>
-      <input type="range" id="pl" min="0" max="100" step="1" value="64" aria-label="how much of the hundred steps auto-play pours, from none (all mine) to all">
+      <div class="ends"><span class="m">no auto-play</span><span class="a">all auto-play</span></div>
+      <input type="range" id="pl" min="0" max="100" step="1" value="64" aria-label="how much of the hundred steps auto-play pours, from none to all">
       <div class="tickrow" aria-hidden="true"><i style="left:64%"></i><span style="left:64%">64 = my log</span></div>
       <div class="row" style="margin-top:0">
         <button type="button" id="tilt" hidden>allow tilt</button>
         <button type="button" id="mylog">set to 64, my log</button>
         <button type="button" id="again">pour again, new picks</button>
-        <button type="button" id="hear" aria-pressed="false">hear the night, step 1 on</button>
-        <button type="button" id="next">next step, and play it</button>
+        <button type="button" id="hear" aria-pressed="false">hear the night</button>
+        <button type="button" id="next">play the next step</button>
       </div>
-      <p class="note" id="now">press hear to listen in step order, or tap any shape or step. sound must be on.</p>
+      <p class="note" id="now">tap a step or a shape to hear it.</p>
     </section>
     <details class="how"><summary>how</summary>
-      <p>press hear. the clips play in step order and keep going until you stop. next step skips ahead; so does a tap on any pebble or on the column.</p>
-      <p>slide the line, or tilt the phone, to set auto-play's share. on a laptop use the slider, the left and right arrow keys, and n for next step.</p>
-      <p>wide bar = my press. narrow bar = auto-play. the small dot beside each bar is the sound family; a bigger dot marks a change.</p>
+      <p>slide the line, or tilt the phone, to set auto-play's share. on a laptop: the slider, the left and right arrow keys, and n for the next step.</p>
+      <p>bar color = who picked the step: mint my press, violet auto-play, amber shuffle. the small dot beside each bar is the sound family; a bigger dot marks a change. pebble color is the family; a bigger pebble, more plays.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>a toy rule on this screen. a pick of mine is a jump to one of my 60 most played artists; an auto-play pick is the nearest artist in sound that the path has not just visited.</p>
-      <p>64 of 100 is the setting that matches my log: the other 36 split 19 my press, 17 shuffle. any other setting is a toy, not a measurement of you.</p>
+      <p>a toy rule on this screen. a press of mine is a jump to one of my 60 most played artists, weighted by plays; a shuffle pick is any of those 60, evenly; an auto-play pick is the nearest artist in sound that the path has not just visited.</p>
+      <p>64 of 100 is the setting that matches my log: the other 36 split 19 my press, 17 shuffle, and the slider keeps that ratio at every setting. any other setting is a toy, not a measurement of you.</p>
       <p>nothing is stored. the tilt reading stays on the phone and is never sent anywhere.</p>
       <p id="meta"></p>
     </details>

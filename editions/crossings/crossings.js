@@ -20,13 +20,13 @@ function stats() {
   var seen = {}, nf = 0; plays.forEach(function (p) { if (!seen[D.f[p.i]]) { seen[D.f[p.i]] = 1; nf++; } });
   $('big').innerHTML = cross() + '<span class="c"> of ' + Math.max(0, plays.length - 1) + ' steps</span>';
   $('big2').innerHTML = '<b>' + nf + '</b>families touched of ' + D.fam.length;
-  $('ev').textContent = 'evening ' + (e + 1) + ' of ' + EV.length + ', ' + plays.length + ' plays.';
+  $('ev').textContent = 'sitting ' + (e + 1) + ' of ' + EV.length + ', ' + plays.length + ' plays.';
   $('leg').innerHTML = Object.keys(seen).map(function (f) { var n = D.fam[f]; return '<li><i style="background:' + (WK.FAMC[n] || PAL.ink) + '"></i>' + esc(n) + '</li>'; }).join('');
 }
 function say() {
-  if (!plays.length) { $('say').textContent = 'no plays in this evening. try the next one.'; return; }
+  if (!plays.length) { $('say').textContent = 'no plays in this sitting. try the next one.'; return; }
   var p = plays[k], nx = plays[k + 1];
-  $('say').textContent = 'step ' + (k + 1) + ' of ' + plays.length + ': ' + (D.n[p.i] || '') + ', ' + fname(p.i) + ', ' + hand(p) + ', then ' + (nx ? (D.n[nx.i] || '') + (D.f[nx.i] !== D.f[p.i] ? ' (a crossing into ' + fname(nx.i) + ')' : '') : 'the night ends') + '.';
+  $('say').textContent = 'step ' + (k + 1) + ' of ' + plays.length + ': ' + (D.n[p.i] || '') + ', ' + fname(p.i) + ', ' + (k === 0 ? 'the start' : hand(p)) + ', then ' + (nx ? (D.n[nx.i] || '') + (D.f[nx.i] !== D.f[p.i] ? ' (a crossing into ' + fname(nx.i) + ')' : '') : 'the sitting ends') + '.';
 }
 
 function segs(a, b, alpha) {
@@ -87,18 +87,19 @@ function resize() {
 }
 
 function stopPlay() { go = false; clearTimeout(timer); AU.pause(); WK.still(); btn(); }
-function btn() { var b = $('go'); b.textContent = go ? 'pause' : (k > 0 && k < plays.length - 1 ? 'play on' : 'play the night'); b.setAttribute('aria-pressed', go ? 'true' : 'false'); }
+function btn() { var b = $('go'); b.textContent = go ? 'pause' : (k > 0 && k < plays.length - 1 ? 'play on' : 'play the sitting'); b.setAttribute('aria-pressed', go ? 'true' : 'false'); }
 function playAt() {
   clearTimeout(timer);
   if (!go) return;
-  if (k >= plays.length) { k = plays.length - 1; stopPlay(); $('now').textContent = 'the night ended. press play the night to hear it again.'; draw(); return; }
+  if (k >= plays.length) { k = plays.length - 1; stopPlay(); $('now').textContent = 'the sitting ended. press play the sitting to hear it again.'; draw(); return; }
   var p = plays[k], rep = 0, q = k, u = PV && PV[p.i] ? PV[p.i][1] : null;
   while (q > 0 && plays[q - 1].i === p.i) { rep++; q--; }
   if (u) {
     AU.src = u; var off = (rep * 6) % 24, seek = function () { AU.removeEventListener('loadedmetadata', seek); try { if (off) AU.currentTime = off; } catch (x) {} };
     AU.addEventListener('loadedmetadata', seek); var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {});
   } else AU.pause();
-  $('now').textContent = 'now playing: ' + (p.t ? '“' + p.t + '” by ' : '') + (D.n[p.i] || '') + ', ' + fname(p.i) + '.' + (rep ? ' same artist as the last ' + (rep === 1 ? 'play' : rep + ' plays') + ', so the clip starts a few seconds later.' : '') + (u ? '' : ' no clip for this one.') + (WK.sound() ? '' : ' sound is off, turn it on at the top.');
+  var ct = u ? PV[p.i][0] : null, same = ct && p.t && ct.trim().toLowerCase() === p.t.trim().toLowerCase();
+  $('now').textContent = 'in my log: ' + (p.t ? '“' + p.t + '” by ' : '') + (D.n[p.i] || '') + ', ' + fname(p.i) + '.' + (u ? (same ? ' the clip is this song.' : ct ? ' the clip: “' + ct + '”.' : ' the clip is another song by this artist.') : '') + (rep ?' same artist as the last ' + (rep === 1 ? 'play' : rep + ' plays') + ', so the clip starts a few seconds later.' : '') + (u ? '' : ' no clip for this one.') + (WK.sound() ? '' : ' sound is off, turn it on at the top.');
   say(); draw(); btn();
   timer = setTimeout(function () { k++; playAt(); }, u ? STEP : STEP_NOCLIP);
 }

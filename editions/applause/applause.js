@@ -2,17 +2,20 @@
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, LOOP, FIT, MAP, cv = $('cv');
 var COOL = 3000, REFRACT = 280, SCALE = 0.2, LEN = 70;
-var S = { L: [], idx: 0, active: false, level: 0, base: 0.02, lastClap: 0, lastAdv: 0, flash: 0, c: 0, s: 0, token: 0, dirty: true, tapI: -1 };
+var S = { L: [], idx: 0, active: false, level: 0, base: 0.02, lastClap: 0, lastAdv: -COOL, flash: 0, c: 0, s: 0, token: 0, dirty: true, tapI: -1 };
 var A = { ctx: null, an: null, st: null, buf: null };
 
 function key() { var d = new Date(); return 'sm_applause_' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 function load() { try { var v = JSON.parse(localStorage.getItem(key()) || 'null'); if (v) { S.c = v.c | 0; S.s = v.s | 0; } } catch (e) {} }
 function save() { try { localStorage.setItem(key(), JSON.stringify({ c: S.c, s: S.s })); } catch (e) {} }
 
+// the walk loops: after the last stop comes step 1 again, for an ended song and for a skip alike
+function nxt() { return (S.idx + 1) % S.L.length; }
+function nextName() { return S.idx + 1 < S.L.length ? D.n[S.L[S.idx + 1]] : 'back to ' + D.n[S.L[0]]; }
 function out(msg) {
   $('num').innerHTML = '<span class="r">' + S.c + '</span> <span class="c">/</span> <span class="g">' + S.s + '</span>';
-  var step = S.active ? 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + D.n[S.L[S.idx]] + (S.L[S.idx + 1] != null ? ', then ' + D.n[S.L[S.idx + 1]] : ', the last one') + '.' : '';
-  $('say').textContent = msg ? msg + (step ? ' ' + step : '') : (step || 'tap listen for claps, allow the mic, then clap. no mic? tap clap for me.');
+  var step = S.active ? 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + D.n[S.L[S.idx]] + ', then ' + nextName() + '.' : '';
+  $('say').textContent = msg ? msg + (step ? ' ' + step : '') : step;
 }
 function thr() { return +$('thr').value / 100; }
 
@@ -30,13 +33,13 @@ function playCur() {
   WK.play([{ i: S.L[S.idx], tag: 'a' }], function (k, info) {
     if (my !== S.token) return;
     if (k < 0) { WK.still(); setTimeout(function () { if (my === S.token && S.active) ended(); }, 400); return; }
-    $('now').textContent = 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + info.title + ' by ' + D.n[info.i] + ', ' + describe(info.i) + WK.again(info) + (S.L[S.idx + 1] != null ? '. next: ' + D.n[S.L[S.idx + 1]] : '') + (WK.sound() ? '' : '. sound is off; tap the sound chip to hear it.');
+    $('now').textContent = 'step ' + (S.idx + 1) + ' of ' + S.L.length + ': ' + info.title + ' by ' + D.n[info.i] + ', ' + describe(info.i) + WK.again(info) + '. next: ' + nextName() + (WK.sound() ? '' : '. sound is off; tap the sound chip to hear it.');
     WK.live(function () { S.dirty = true; });
   });
 }
-function ended() { S.idx = (S.idx + 1) % S.L.length; S.dirty = true; playCur(); out('the song ended, so auto-play moved on by itself. that does not count as a skip.'); }
+function ended() { S.idx = nxt(); S.dirty = true; playCur(); out('the song ended, so auto-play moved on by itself. that does not count as a skip.'); }
 function step(count) {
-  S.idx = Math.max(0, Math.min(S.L.length - 1, S.idx + 1)); S.lastAdv = performance.now();
+  S.idx = nxt(); S.lastAdv = performance.now();
   if (count) { S.s++; save(); }
   S.dirty = true; playCur(); out();
 }
@@ -78,17 +81,26 @@ function draw(now) {
   }
   a = pt(S.L[S.idx]); P.peb(g, S.L[S.idx], a[0], a[1], rad(S.L[S.idx], small) + 2, famCol(S.L[S.idx])); P.glyph(g, 'ring', a[0], a[1], small ? 8 : 10, PAL.violet); P.rings(g, a[0], a[1], PAL.ink, 16);
   if (WK.playing()) { if (S.tapI >= 0) { b = pt(S.tapI); P.peb(g, S.tapI, b[0], b[1], 8, famCol(S.tapI)); WK.pulse(g, b[0], b[1], PAL.mint, 14); } else WK.pulse(g, a[0], a[1], PAL.violet, 16); }
-  MAP.tag(S.L[S.idx], 'step ' + (S.idx + 1) + ': ' + D.n[S.L[S.idx]], PAL.ink, PAL.night);
   var age = now - S.flash;
   if (age < 700) { g.save(); g.strokeStyle = PAL.rose; g.globalAlpha = 1 - age / 700; g.lineWidth = 3; g.beginPath(); g.arc(a[0], a[1], 20 + age / 700 * Math.min(W, H) * 0.35, 0, 6.2832); g.stroke(); g.restore(); }
-  // the level meter: round capsules, ice under the bar, rose over it
-  var x0 = 28, x1 = W - 28, y = H - 26, th = thr();
-  g.save(); g.lineCap = 'round'; g.lineWidth = 10;
+  MAP.tag(S.L[S.idx], 'step ' + (S.idx + 1) + ': ' + D.n[S.L[S.idx]], PAL.ink, PAL.night);
+  // the level meter, in the strip fit() keeps free under the map: round capsules, ice under the bar, rose over it
+  var x0 = 28, x1 = W - 28, y = H - (small ? 18 : 24), th = thr(), mx = x0 + (x1 - x0) * th, my = small ? 9 : 12, ly = y - (small ? 14 : 18);
+  g.save(); g.lineCap = 'round'; g.lineWidth = small ? 8 : 10;
   g.strokeStyle = '#241b3a'; g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke();
   if (S.level > 0.01) { g.strokeStyle = S.level > th ? PAL.rose : PAL.ice; g.beginPath(); g.moveTo(x0, y); g.lineTo(x0 + (x1 - x0) * Math.min(1, S.level), y); g.stroke(); }
-  g.lineCap = 'butt'; g.lineWidth = 2; g.strokeStyle = PAL.amber; g.beginPath(); g.moveTo(x0 + (x1 - x0) * th, y - 12); g.lineTo(x0 + (x1 - x0) * th, y + 12); g.stroke();
-  g.font = '500 11px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.globalAlpha = 0.75; g.textAlign = 'left'; g.fillText('room level', x0, y - 18);
-  g.textAlign = 'right'; g.fillText('clap line', x1, y - 18); g.restore();
+  g.lineCap = 'butt'; g.lineWidth = 2; g.strokeStyle = PAL.amber; g.beginPath(); g.moveTo(mx, y - my); g.lineTo(mx, y + my); g.stroke();
+  // "clap line" sits over its mark, nudged right only when the mark is low enough to collide with "room level"
+  g.font = '500 11px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.globalAlpha = 0.75;
+  var lw = g.measureText('room level').width, cw = g.measureText('clap line').width / 2;
+  g.textAlign = 'left'; g.fillText('room level', x0, ly);
+  g.textAlign = 'center'; g.fillText('clap line', Math.max(x0 + lw + 12 + cw, Math.min(x1 - cw, mx)), ly); g.restore();
+}
+// the map shrinks to leave that strip free, so no artist sits under the meter
+function fit() {
+  var pad = MAP.W < 500 ? 14 : 28, low = MAP.W < 500 ? 52 : 66;
+  MAP.scl = Math.min(MAP.W - 2 * pad, MAP.H - pad - low) / 1000;
+  MAP.ox = (MAP.W - 1000 * MAP.scl) / 2; MAP.oy = pad + (MAP.H - pad - low - 1000 * MAP.scl) / 2;
 }
 
 function listen() {
@@ -105,16 +117,18 @@ function listen() {
 function stopMic() {
   if (A.st) A.st.getTracks().forEach(function (t) { t.stop(); });
   if (A.ctx) try { A.ctx.close(); } catch (e) {}
-  A.st = null; A.an = null; A.ctx = null; S.active = false; S.token++; WK.stop(); WK.still(); S.tapI = -1; $('play').textContent = 'play the walk first';
+  A.st = null; A.an = null; A.ctx = null; S.active = false; S.token++; WK.stop(); WK.still(); S.tapI = -1; $('play').textContent = 'play the walk';
   $('listen').setAttribute('aria-pressed', 'false'); $('listen').textContent = 'listen for claps'; out(); S.dirty = true;
 }
 $('listen').addEventListener('click', listen);
 $('clap').addEventListener('click', function () {
-  if (!S.active) { S.active = true; $('play').textContent = 'stop the walk'; playCur(); }
-  clap(performance.now());
+  var now = performance.now();
+  // from idle the press only starts the walk, with sound, so song 1 is heard before any clap can skip it
+  if (!S.active) { WK.setSound(true); S.active = true; S.lastAdv = now; $('play').textContent = 'stop the walk'; out('playing. nothing skips until the room claps.'); playCur(); return; }
+  clap(now);
 });
 function startWalk() {
-  if (S.active && !A.st) { S.active = false; S.token++; WK.stop(); WK.still(); S.tapI = -1; $('play').textContent = 'play the walk first'; out(); S.dirty = true; return; }
+  if (S.active && !A.st) { S.active = false; S.token++; WK.stop(); WK.still(); S.tapI = -1; $('play').textContent = 'play the walk'; out(); S.dirty = true; return; }
   S.active = true; $('play').textContent = 'stop the walk'; out('playing. nothing skips until the room claps.'); playCur();
 }
 $('play').addEventListener('click', startWalk);
@@ -126,9 +140,13 @@ document.addEventListener('keydown', function (e) {
 $('zero').addEventListener('click', function () { S.c = 0; S.s = 0; save(); out(); });
 $('thr').addEventListener('input', function () { S.dirty = true; });
 window.addEventListener('pagehide', function () { if (A.st) stopMic(); });
-function tap(i) {
-  var at = S.L.indexOf(i);
-  if (at >= 0 && at !== S.idx) { S.idx = at; S.active = true; S.dirty = true; playCur(); out('jumped to step ' + (at + 1) + '.'); return; }
+function tap(i, e) {
+  // a ring is a small target under a finger: the nearest drawn ring within 22 px wins over any off-walk artist closer to the tap
+  var r = cv.getBoundingClientRect(), x = e ? e.clientX - r.left : MAP.X(i), y = e ? e.clientY - r.top : MAP.Y(i), at = -1, bd = 22 * 22, k, d;
+  for (k = Math.max(0, S.idx - 30); k <= Math.min(S.L.length - 1, S.idx + 8); k++) { d = Math.pow(MAP.X(S.L[k]) - x, 2) + Math.pow(MAP.Y(S.L[k]) - y, 2); if (d <= bd) { bd = d; at = k; } }
+  if (at < 0) at = S.L.indexOf(i);
+  if (at === S.idx && S.active && S.tapI < 0 && WK.playing()) return;
+  if (at >= 0) { var moved = at !== S.idx; S.idx = at; S.active = true; S.dirty = true; $('play').textContent = 'stop the walk'; playCur(); out(moved ? 'jumped to step ' + (at + 1) + '.' : null); return; }
   var my = ++S.token; S.tapI = i;
   WK.play([{ i: i, tag: 'tap' }], function (k, info) {
     if (my !== S.token) return;
@@ -138,7 +156,7 @@ function tap(i) {
   });
 }
 var rt;
-addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); S.dirty = true; }, 80); });
+addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); fit(); S.dirty = true; }, 80); });
 
 WK.boot().then(function (b) {
   D = b.D; M = b.M; LOOP = b.LOOP; FIT = b.FIT;
@@ -146,9 +164,9 @@ WK.boot().then(function (b) {
     var path = LOOP.walk(M, M.order[5], FIT.queue.K, 20261106, 160).path;
     S.L = path.filter(function (i, n, a) { return WK.title(i) && (n === 0 || a[n - 1] !== i); }).slice(0, LEN);
     if (S.L.length < 3) throw new Error('no previews');
-    MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5, tap: tap }); MAP.resize();
+    MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5, tap: tap }); MAP.resize(); fit();
     load(); out();
-    $('meta').textContent = 'data: ' + S.L.length + ' songs with previews along one auto-play walk through ' + D.n.length + ' artists.';
+    $('meta').textContent = 'data: ' + S.L.length + ' stops on one pretend auto-play walk across my map of ' + D.n.length.toLocaleString('en-US') + ' artists.';
     requestAnimationFrame(tick);
   });
 }).catch(function () { $('say').textContent = 'the data did not load. reload the page.'; });

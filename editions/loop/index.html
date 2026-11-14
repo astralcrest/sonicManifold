@@ -18,7 +18,7 @@
 #chips button[data-p="queue"] { --acc: var(--violet); }
 #chips button[data-p="hand"] { --acc: var(--mint); }
 #chips button[data-p="feed"] { --acc: var(--ink); }
-#chips button[data-p="siren"] { --acc: var(--rose); }
+#chips button[data-p="siren"] { --acc: #e040ff; }
 #reset { margin-top: 8px; --acc: var(--line); color: var(--mute); }
 #tabd summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--mute); font: 12px var(--mono); }
 @media (min-width: 700px) { #tabd summary { display: none; } }
@@ -37,19 +37,23 @@ output { font-size: 12px; color: var(--mute); }
 .kb i.hot { background: var(--act); }
 #hotline { font: 11px var(--mono); color: var(--act); margin-top: 6px; }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; }
-.met { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 14px; margin: 0; }
+.met { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 14px; margin: 0; }
 .met div { min-width: 0; }
 .met dt { font: 11px var(--mono); letter-spacing: .08em; color: var(--mute); }
 .met dd { margin: 2px 0 0; font: 600 26px/1.05 var(--sans); letter-spacing: -.02em; white-space: nowrap; }
 .met small { display: block; font: 11px var(--mono); color: var(--mute); }
 #qfit b { color: var(--mint); font-weight: 500; }
 #hear { --acc: var(--ice); }
-#map { position: relative; }
+#hopbar { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; gap: 6px 10px; align-items: center; margin: 12px 0 0; max-width: 420px; font: 11px var(--mono); color: var(--mute); }
+#hopbar b { display: block; height: 8px; background: var(--line); }
+#hopbar i { display: block; height: 8px; }
+#hopbar output { color: var(--ink); }
 #tip { position: absolute; z-index: 3; pointer-events: none; font: 500 11px/1.4 var(--mono); color: var(--ink); background: var(--night, #06010f); border: 1px solid var(--line); padding: 4px 8px; border-radius: 6px 9px 6px 8px; white-space: nowrap; }
 #tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 4px 0 2px; vertical-align: -1px; }
-#path { font: 11px/1.7 var(--mono); color: #cfc6e8; max-height: 7.4em; overflow-y: auto; margin-top: 10px; }
+#path { font: 11px/1.7 var(--mono); color: #cfc6e8; max-height: 124px; overflow-y: auto; margin-top: 10px; }
 #path span { white-space: nowrap; margin-right: 10px; }
-#path span { cursor: pointer; display: inline-block; padding: 6px 0; }
+#path span { cursor: pointer; display: inline-block; padding: 11px 0; }
+#stub { display: inline-flex; align-items: center; min-height: 40px; }
 #path span i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; }
 #path span b { color: var(--mute); font-weight: 400; }
 #path span:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
@@ -76,11 +80,12 @@ output { font-size: 12px; color: var(--mute); }
   </header>
   <div id="map"><div id="tip" hidden aria-hidden="true"></div><canvas id="cv" role="img" aria-label="my sound map: every artist as a shape colored by genre family, with a rule's 40-step walk drawn as a numbered ribbon"></canvas></div>
   <main id="side">
-    <div class="key" aria-live="polite">
-      <div class="big" id="m-loop"><span class="c">drawing the walk</span></div>
-      <span class="keylab">the stop where the walk starts repeating</span>
-      <p id="say" class="say"></p>
+    <div class="key">
+      <div class="big violet" id="m-hop"><span class="c">drawing the walk</span></div>
+      <span class="keylab">auto-play's step in sound, real picks from my log. 1 = a random hop</span>
+      <div id="hopbar"></div>
     </div>
+    <p class="fams" id="fams" aria-label="the genre families on this walk"></p>
     <div class="lines">
       <p class="take"><b>takeaway:</b>auto-play stays closer in sound than my own presses do.</p>
       <p class="ask"><b>open question:</b>if auto-play follows sound more than i do, who taught whom?</p>
@@ -102,15 +107,17 @@ output { font-size: 12px; color: var(--mute); }
       <p id="now"></p>
       <div id="path" tabindex="0" aria-label="the walk so far, scrolls"></div>
       <p class="note" id="what">each stop plays 10 seconds of a public preview and the walk keeps going to its end. tap a stop here or on the map to jump to it. it is the rule's walk, not my history.</p>
-      <p class="note" id="take">take the last stop home: <a id="stub" href="../print/stub.html">print the stub</a>, the artist the walk ended on and its six nearest in sound, sized for a label printer or half a sheet.</p>
+      <p class="note" id="take">take the last stop home: the artist the walk ended on and its six nearest in sound, sized for a label printer or half a sheet. <a id="stub" href="../print/stub.html">print the stub</a></p>
     </section>
     <section>
       <h2>what this walk did</h2>
-      <dl class="met">
+      <dl class="met" aria-live="polite">
         <div><dt>distance walked</dt><dd><span id="m-len">...</span><small>in random-hop units</small></dd></div>
         <div><dt>genre families</dt><dd><span id="m-fam">...</span><small>colors visited</small></dd></div>
         <div><dt>my top 50</dt><dd><span id="m-top">...</span><small>share of picks</small></dd></div>
+        <div><dt>starts repeating</dt><dd><span id="m-loop">...</span><small>this rule's walk</small></dd></div>
       </dl>
+      <p id="say" class="say" aria-live="polite"></p>
     </section>
     <section>
       <h2 id="kh2">three dials: the ones that change the walk most</h2>
@@ -126,7 +133,7 @@ output { font-size: 12px; color: var(--mute); }
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>from my log: auto-play's own stretch of songs stays close in sound. when i interrupted it the next song sat farther away, and when shuffle interrupted it, farther still. a direction, not a size.</p>
-      <p id="qfit"><b>matched to my log, auto-play leans on closeness in sound more than my presses do. a direction, not a size.</b> "auto-play" here includes my own playlists in order, not only Spotify's own picks.</p>
+      <p id="qfit"><b>fitted on my log, auto-play leans on closeness in sound more than my presses do. a direction, not a size.</b> "auto-play" here is whatever played next when a song ended: radio and autoplay, and also my own playlists in order. it counts songs i kept past 30 seconds; part of the gap is which sittings auto-play ran, and a second sound model shrinks it.</p>
       <p id="fitnote" style="white-space:pre-line"></p>
       <p id="mapnote"><span id="nart"></span> artists placed by how they sound. pebbles are sized by plays; faint ice lines join each artist to its three nearest.</p>
       <p><b>per step: real picks vs this rule, a rough comparison</b></p>

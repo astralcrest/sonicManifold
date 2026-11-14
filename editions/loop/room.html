@@ -73,7 +73,7 @@ h1 { font: 600 calc(var(--u) * 42) / 1.08 var(--sans); letter-spacing: -.02em; m
       <li data-p="queue" style="--c: var(--violet)"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" stroke="#8b6fd6" stroke-width="2"/></svg>auto-play</li>
       <li data-p="hand" style="--c: var(--mint)"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 0l1.6 5.4L14 7l-5.4 1.6L7 14l-1.6-5.4L0 7l5.4-1.6z" fill="#21f6bc"/></svg>my press</li>
       <li data-p="feed" style="--c: var(--ink)"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="4" fill="#efe9ff"/></svg>a feed</li>
-      <li data-p="siren" style="--c: var(--rose)"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="4" fill="#ff5c7a"/></svg>the pull</li>
+      <li data-p="siren" style="--c: #e040ff"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="4" fill="#e040ff"/></svg>the pull</li>
     </ul>
     <p id="live" aria-live="off">loading my map</p>
     <p class="note">gray line: the rule before, from the same start. a toy: read each rule as one good match, not the real weights.</p>
@@ -97,7 +97,7 @@ h1 { font: 600 calc(var(--u) * 42) / 1.08 var(--sans); letter-spacing: -.02em; m
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var ORDER = ['queue', 'hand', 'feed', 'siren'];
   var NAME = { queue: 'auto-play', hand: 'my press', feed: 'a feed', siren: 'the pull' };
-  var COL = { queue: '#8b6fd6', hand: '#21f6bc', feed: '#efe9ff', siren: '#ff5c7a' };
+  var COL = { queue: '#8b6fd6', hand: '#21f6bc', feed: '#efe9ff', siren: '#e040ff' };
   var GLY = { queue: 'ring', hand: 'star', feed: 'dot', siren: 'dot' };
   var CAP = {
     queue: 'a rule matched to auto-play’s own next picks. it stays close in sound.',

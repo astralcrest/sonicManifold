@@ -15,24 +15,25 @@
 #room { min-height: calc(100vh - var(--sh, 0px)); min-height: calc(100dvh - var(--sh, 0px)); border: 6px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) clamp(400px, 34vw, 520px); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "head head" "stage side"; transition: border-color .4s; }
 #room[data-lit="1"] { border-color: #3a2a22; } #room[data-lit="2"] { border-color: #6b4a1c; } #room[data-lit="3"] { border-color: var(--amber); }
 #room > #head { grid-area: head; }
-#stagebox { grid-area: stage; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 30px; padding: 48px 48px 48px; min-width: 0; }
+#stagebox { grid-area: stage; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 22px; padding: 40px 48px 48px; min-width: 0; }
 #room > #side { grid-area: side; }
-#stage { width: 100%; min-height: 230px; max-width: 900px; }
+#pic, #stage { width: 100%; max-width: 900px; }
 #claim { font: 600 clamp(26px, 3.6vw, 52px)/1.12 var(--sans); letter-spacing: -.02em; margin: 0; }
 #claim::before { content: "\201C"; color: var(--amber); } #claim::after { content: "\201D"; color: var(--amber); }
 #claim:empty, #claim:empty::before, #claim:empty::after { content: ""; }
 #ref { font: 400 clamp(14px, 1.5vw, 18px)/1.55 var(--mono); color: var(--rose); margin: 22px 0 0; display: flex; gap: 14px; max-width: 70ch; }
 #ref i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--rose); margin-top: .5em; visibility: hidden; }
 #ref.on i { visibility: visible; }
-.goline { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+.goline { display: flex; align-items: center; gap: 10px 28px; flex-wrap: wrap; }
 button#go { min-height: 48px; padding: 0 22px; font: 600 15px/1 var(--mono); color: var(--night); background: var(--ink); border: 0; border-radius: 24px; flex: none; }
 button#go:hover { background: #fff; }
-#row { display: flex; gap: 6px; flex-wrap: wrap; max-width: 220px; }
-#row i { width: 16px; height: 16px; background: var(--line); display: block; border-radius: 52% 48% 55% 45% / 50% 55% 45% 50%; }
-#row i.dead { background: #5a2a3a; } #row i.now { background: var(--rose); }
+#row { display: flex; flex-wrap: wrap; max-width: 640px; }
+#row button { width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; border: 0; border-radius: 50%; background: transparent; }
+#row button::before { content: ""; display: block; width: 16px; height: 16px; background: var(--line); border-radius: 52% 48% 55% 45% / 50% 55% 45% 50%; }
+#row button:hover::before { box-shadow: 0 0 0 2px var(--mute); }
+#row button.dead::before { background: #5a2a3a; } #row button.now::before { background: var(--rose); }
 .toy { font: 11px/1.5 var(--mono); color: var(--mute); margin: 14px 0 0; }
 .chip[hidden] { display: none; }
-#row i { cursor: pointer; }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
 .big span.c { font: 500 15px/1.5 var(--mono); color: var(--mute); }
 .cap { font: 500 12px/1.4 var(--mono); color: var(--mute); margin: 0 0 6px; }
@@ -41,31 +42,31 @@ button#go { max-width: 100%; }
 @media (max-width: 900px) {
   #room { display: block; border-width: 4px; }
   #stagebox { padding: 24px 24px 32px; gap: 22px; }
-  #stage { min-height: 250px; }
   button#go { min-height: 44px; }
   #room > #side { padding-top: 22px; border-top: 1px solid var(--line); }
 }
 @media (prefers-reduced-motion: reduce) { #room { transition: none; } }
 </style>
 </head>
-<body data-wall="8" data-line="sixteen things i wanted true about my listening. each was tested. each died." data-do="press next claim. read it, then the check that killed it. a track of mine plays." data-keys="" style="--act: var(--rose); --acc: var(--amber)">
+<body data-wall="8" data-line="sixteen things i wanted true about my listening. each was tested. each died as i wrote it." data-do="press next claim. read it, then the check that killed it. a track of mine plays." data-keys="" style="--act: var(--rose); --acc: var(--amber)">
 <div id="room" data-lit="0">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>the confession booth</span><span class="tl">a toy</span></p>
     <h1>a claim i wanted true, and what <em>killed</em> it.</h1>
   </header>
   <main id="stagebox">
-    <div id="stage" aria-live="polite"><p class="cap" id="cap"><b>the pale line</b>: the lift i hoped for. <em>rose</em>: what the check found.</p><canvas id="sig" width="600" height="150" role="img" aria-label="a sketch of one claim: an amber curve rising for the lift i wanted, then a rose line flat on zero for what the check found" style="display:block;width:100%;height:150px;max-width:900px;margin:0 0 18px"></canvas><p id="claim"></p><p id="ref"><i></i><span id="reft"></span></p></div>
+    <div id="pic"><p class="cap" id="cap"><b>pale</b>: what i hoped. <em>rose</em>: what the check found. a sketch, not to scale.</p><canvas id="sig" width="600" height="160" role="img" aria-label="a sketch of one claim: a pale line for what i hoped, a rose line for what the check found" style="display:block;width:100%;height:160px;max-width:900px"></canvas></div>
     <div class="goline">
       <button type="button" id="go">next claim</button>
       <div id="row" role="group" aria-label="sixteen claims, tap one to jump to it"></div>
     </div>
+    <div id="stage" aria-live="polite"><p id="claim"></p><p id="ref"><i></i><span id="reft"></span></p></div>
   </main>
   <aside id="side">
     <div class="key">
       <div class="big rose" id="cnt"><span class="c">none read yet</span></div>
       <span class="keylab">claims read so far, each one killed by a check (16 in all)</span>
-      <p class="say" id="say">pick a claim, or press next claim. the sketch shows the lift i hoped for as a pale line, then the check in rose.</p>
+      <p class="say" id="say">pick a claim, or press next claim. pale: what i hoped. rose: what the check found, with its numbers.</p>
     </div>
     <div class="lines">
       <p class="take"><b>takeaway:</b>each claim here is one i wanted true; a referee killed it.</p>
@@ -74,12 +75,12 @@ button#go { max-width: 100%; }
     <div class="row bar"><button type="button" id="back">back</button><button type="button" id="auto" aria-pressed="false">read all sixteen</button><button type="button" class="chip" id="reset">start over</button></div>
     <p class="note" id="now">sound is off: tap the sound chip at the top to hear one of my songs under the words. arrow keys step through the claims; tap any dot to jump.</p>
     <details class="how"><summary>how</summary>
-      <p>press next claim. a claim types out, and the pale curve is the lift i hoped for.</p>
-      <p>then the check that killed it: the rose line lands flat on zero. step with back and next, tap a dot to jump, or press read all sixteen to watch all of them go by on their own.</p>
+      <p>press next claim. a claim types out, and the pale line is what i hoped.</p>
+      <p>then the check that killed it, in rose, with its own numbers under the line. step with back and next, tap a dot to jump, or press read all sixteen to watch all of them go by on their own.</p>
       <p>turn sound on for the music: one of my own songs, low, beating under the rose dot. the point: a claim that no one tried to kill is not a finding.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
-      <p>a booth. data: the graveyard of claims the referee killed, public since 2026. the picture is a sketch of the shape, not the numbers. the music is my own track, never a preview. nothing is stored.</p>
+      <p>a booth. data: the graveyard of claims the referee killed, public since 2026. the picture is a sketch, not to scale; the numbers under it are each check's own. the music is my own track, never a preview. nothing is stored.</p>
     </details>
   </aside>
 </div>

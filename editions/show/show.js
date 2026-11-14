@@ -14,9 +14,13 @@
     }, { rootMargin: '120px', threshold: 0.15 });
     vs.forEach(function (v) { io.observe(v); });
   } else if (!rm) { vs.forEach(go); }
-  function label() { if (pb) { pb.textContent = userPaused ? 'play' : 'pause'; pb.setAttribute('aria-pressed', String(!userPaused)); } }
+  // the button names what a tap will do to the video as it is now, so a refused autoplay still reads "play"
+  function label() { if (pb && wl) { var on = !wl.paused && !userPaused; pb.textContent = on ? 'pause' : 'play'; pb.setAttribute('aria-pressed', String(on)); } }
   label();
-  if (pb && wl) pb.addEventListener('click', function () { userPaused = !userPaused; if (userPaused) wl.pause(); else go(wl); label(); });
+  if (pb && wl) {
+    pb.addEventListener('click', function () { if (wl.paused) { userPaused = false; go(wl); } else { userPaused = true; wl.pause(); } label(); });
+    ['play', 'playing', 'pause', 'ended'].forEach(function (ev) { wl.addEventListener(ev, label); });
+  }
   if (fs && wl) {
     var can = wl.requestFullscreen || wl.webkitRequestFullscreen || wl.webkitEnterFullscreen;
     if (!can) fs.hidden = true;
@@ -28,24 +32,44 @@
 
   /* wall loop: scene captions + scene picker */
   var SCENES = [
-    ['1 the count, by who pressed play', 'every dot is an artist, placed by how they sound. a line is one play, then the next. color is who pressed play: mint is my press, violet is auto-play, amber is shuffle. a bigger dot is an artist i played more times.'],
-    ['2 the sound map, by family', 'every dot is an artist, placed by how they sound. a line is one play, then the next. color is the genre family. a bigger dot is an artist i played more times.'],
-    ['3 the followed-by map, by neighborhood', 'every dot is an artist, placed by what followed what, so artists that follow each other sit close. a line is one play, then the next. color is the neighborhood. a bigger dot is an artist i played more times.'],
-    ['4 the ring', 'my most played artists in a circle. every dot is an artist, every line is one play, then the next. color is who pressed play, as in the first scene. a bigger dot is an artist i played more times.'],
-    ['5 the record', 'the gold marks are my own songs. each one is tied by a line to the artists it sounds like. every other dot is an artist, and a bigger dot is an artist i played more times.']
+    ['1 the count, by who pressed play', 'every dot is an artist, placed by how they sound. a line joins an artist to its three nearest in sound. a dot\'s color is how most of its plays began. a bigger dot is an artist i played more times.'],
+    ['2 the sound map, by family', 'every dot is an artist, placed by how they sound. a line joins an artist to its three nearest in sound. color is the genre family. a bigger dot is an artist i played more times.'],
+    ['3 the followed-by map, by neighborhood', 'every dot is an artist, placed by what followed what, so artists that follow each other sit close. a line is two artists played back to back. color is the neighborhood: the eight biggest, i to viii by size. a bigger dot is an artist i played more times.'],
+    ['4 the ring', 'my most played artists in a circle. every dot is an artist, colored by its family. a line is one play, then the next. mint lines across the inside: my press, the long jumps. thin violet arcs on the rim: auto-play. 19 of every 100 plays were my press; the ring draws about as many lines of each. a bigger dot is an artist i played more times.'],
+    ['5 the record', 'the gold squares are my own songs. one at a time, a song lights up the 40 artists nearest it in sound. every other dot is an artist, and a bigger dot is an artist i played more times.']
   ];
+  // per-scene keys: colors as the loop draws them (make_wall_loop.py palette); 'more' is a plain note
+  var MINT = '#21f6bc', VIO = '#8b6fd6', AMB = '#f5a623', GOLD = '#ffd36b', ICE = '#bcd3ff', MUTE = '#9a90b8';
+  var SKEYS = [
+    [['dot', MINT, 'my press'], ['dot', VIO, 'auto-play'], ['dot', AMB, 'shuffle']],
+    [['dot', '#ff5c7a', 'hip-hop · r&b'], ['dot', '#ff4fa3', 'electronic'], ['dot', '#5fb8ff', 'ambient/lofi'], ['dot', AMB, 'world/desi'], ['dot', '#ff8fd6', 'pop'], ['dot', MUTE, 'other'], ['dot', '#c9c2ff', 'rock/metal'], ['more', '', 'and 7 smaller families']],
+    [['line', ICE, 'back to back'], ['dot', '#5fb8ff', 'i'], ['dot', '#ff5c7a', 'ii'], ['dot', GOLD, 'iii'], ['dot', '#b8ec4a', 'iv'], ['dot', '#ff8fd6', 'v'], ['dot', AMB, 'vi'], ['dot', '#c9c2ff', 'vii'], ['dot', '#8fd3b6', 'viii'], ['dot', MUTE, 'the rest']],
+    [['line', MINT, 'my press'], ['line', VIO, 'auto-play'], ['dot', '#ff5c7a', 'hip-hop · r&b'], ['dot', '#ff4fa3', 'electronic'], ['dot', '#ffb3c6', 'funk/disco'], ['dot', '#5fb8ff', 'ambient/lofi'], ['more', '', 'and 4 more families']],
+    [['sq', GOLD, 'my songs'], ['line', GOLD, 'nearest in sound'], ['more', '', 'other dots: artists, by family']]
+  ];
+  function glyph(k, c) {
+    if (k === 'line') return '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h12" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/></svg>';
+    if (k === 'sq') return '<svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="2" width="10" height="10" fill="' + c + '"/></svg>';
+    return '<svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="' + c + '"/></svg>';
+  }
+  var keyEl = document.getElementById('wl-keys');
+  function sceneKey(i) {
+    if (!keyEl) return;
+    keyEl.innerHTML = SKEYS[i].map(function (d) { return '<li>' + (d[0] === 'more' ? '' : glyph(d[0], d[1])) + d[2] + '</li>'; }).join('');
+  }
   var IDLE = 'five scenes, 18 seconds each: the count, the sound map, the followed-by map, the ring, the record. press play.';
   var capEl = document.getElementById('wl-line'), scBtns = [].slice.call(document.querySelectorAll('#wl-scenes button'));
   var lastKey = '';
   function sceneOf(t) { return Math.max(0, Math.min(4, Math.floor(t / 18))); }
   function showCap() {
     if (!wl || !capEl) return;
-    var playing = !wl.paused && !wl.ended && wl.currentTime > 0;
-    var i = playing ? sceneOf(wl.currentTime) : -1;
+    // a paused frame keeps its own scene's caption and key; only the untouched poster gets the overview
+    var i = wl.currentTime > 0 ? sceneOf(wl.currentTime) : -1;
     var key = String(i);
     if (key === lastKey) return;
     lastKey = key;
     capEl.innerHTML = '';
+    sceneKey(i < 0 ? 0 : i);
     if (i < 0) { capEl.textContent = IDLE; }
     else {
       var b = document.createElement('b'); b.textContent = SCENES[i][0];
@@ -68,7 +92,10 @@
     });
   }
   var keysSrc = document.querySelector('#strip .keys');
-  [].slice.call(document.querySelectorAll('[data-keys-copy]')).forEach(function (el) { if (keysSrc) el.innerHTML = keysSrc.innerHTML; });
+  function stripKeys(list) {
+    if (!keysSrc) return '';
+    return list.map(function (k) { var li = keysSrc.querySelector('li[data-k="' + k + '"]'); return li ? li.outerHTML : ''; }).join('');
+  }
 
   /* picture viewer */
   var figs = [].slice.call(document.querySelectorAll('.page figure')).filter(function (f) { return f.querySelector('img'); });
@@ -125,8 +152,9 @@
     vimg.src = srcOf(f); vimg.alt = im.alt || '';
     var c = f.querySelector('figcaption'); vcap.textContent = c ? c.textContent : (im.alt || '');
     vcount.textContent = (idx + 1) + ' of ' + figs.length;
-    var sec = f.closest('section'), maps = sec && (sec.id === 'loop' || sec.id === 'walls' || sec.id === 'nebula');
-    vkeys.hidden = !maps; if (maps && keysSrc) vkeys.innerHTML = keysSrc.innerHTML;
+    // a key only where the picture is drawn in those colors; pictures with their own key or labels get none
+    var vk = (f.getAttribute('data-vkey') || '').split(',').filter(Boolean), kh = stripKeys(vk);
+    vkeys.hidden = !kh; vkeys.innerHTML = kh;
     [-1, 1].forEach(function (d) { var n = figs[(idx + d + figs.length) % figs.length]; new Image().src = srcOf(n); });
   }
   function step(d) { show(idx + d); }

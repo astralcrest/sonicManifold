@@ -2,6 +2,11 @@
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, M, MAP, LOOP, PV = null, ADJ = null;
 var KEY = 'sm_tel_v1', LIMIT = 10;
+// only a kiosk tablet passes one browser's chain from visitor to visitor; on the web one person makes every link
+if (new URLSearchParams(location.search).get('kiosk') === '1') {
+  document.querySelector('.lines .take').lastChild.textContent = 'nobody chose the whole path, and nobody can say whose it is.';
+  $('cv').setAttribute('aria-label', $('cv').getAttribute('aria-label').replace('one link per press', 'one link per visitor'));
+}
 var S = { hear: -1, chain: [], more: false, cands: [], sel: -1 };
 var CLIP = 7000, AU = new Audio(), R = { on: false, k: -1, list: [], t: 0 };
 AU.volume = 0.25;
@@ -70,9 +75,10 @@ function choose(i) {
   if (R.on) stopReplay();
   if (S.chain.length - 1 >= LIMIT && !S.more) return;
   if (S.sel === i) { pick(i); return; }
+  if (!WK.sound()) WK.setSound(true);
   S.sel = i;
   var k = S.cands.indexOf(i), t = hear(i, 0, 12000, function () { if (!R.on) $('now').textContent = idleSel(); });
-  $('now').textContent = (k + 1) + ' of 6: ' + (t ? 'hearing ' + t + ' by ' : 'no clip for ') + D.n[i] + ' (' + fam(i) + '). tap it again to add it as link ' + (S.chain.length + 1) + ', or tap another to hear that.';
+  $('now').textContent = (k + 1) + ' of ' + S.cands.length + ': ' + (t ? 'hearing ' + t + ' by ' : 'no clip for ') + D.n[i] + ' (' + fam(i) + '). tap it again to add it as link ' + (S.chain.length + 1) + ', or tap another to hear that.';
   render();
 }
 function idleSel() { return S.sel >= 0 ? 'tap ' + D.n[S.sel] + ' again to add it, or pick another to hear.' : idle(); }
@@ -80,31 +86,37 @@ function pick(i) {
   S.chain.push(i); S.sel = -1; save();
   var st = S.chain.length, prev = S.chain[st - 2], chg = fam(i) !== fam(prev);
   if (!AU.paused) { S.hear = i; WK.live(draw); }
-  $('now').textContent = 'link ' + st + total() + ' added: ' + D.n[i] + ' (' + fam(i) + (chg ? ', a new family' : '') + '), ' + (PV && PV[i] ? 'still playing it' : 'no clip for this one') + '. now pick the next song.';
   render();
+  if (!AU.paused) $('now').textContent = 'link ' + st + total() + ' added: ' + D.n[i] + ' (' + fam(i) + (chg ? ', a new family' : '') + '), ' + (PV && PV[i] ? 'still playing it' : 'no clip for this one') + tail().replace(/^, /, '. ');
 }
 
 function total() { return S.more ? '' : ' of ' + (LIMIT + 1); }
-function idle() {
-  var n = S.chain.length, cur = S.chain[n - 1];
-  return 'step ' + n + total() + ': ' + D.n[cur] + (n - 1 >= LIMIT && !S.more ? ', the chain is full.' : ', now pick the next song.');
+function tail() {
+  if (S.chain.length - 1 >= LIMIT && !S.more) return ', the chain is full.';
+  if (!S.cands.length) return '. every neighbor is already in the chain, so it ends here.';
+  return ', now pick the next song.';
 }
+function idle() { var n = S.chain.length; return 'step ' + n + total() + ': ' + D.n[S.chain[n - 1]] + tail(); }
 function render() {
-  var cur = S.chain[S.chain.length - 1], n = S.chain.length - 1;
-  S.cands = cands();
+  var cur = S.chain[S.chain.length - 1], n = S.chain.length - 1, done = n >= LIMIT && !S.more;
+  S.cands = done ? [] : cands();
   $('last').textContent = D.n[cur];
-  var done = n >= LIMIT && !S.more;
+  var stuck = !done && !S.cands.length;
   var box = $('cands'); box.innerHTML = '';
-  box.style.display = done ? 'none' : '';
+  box.style.display = done || stuck ? 'none' : '';
   S.cands.forEach(function (i, k) {
     var b = document.createElement('button'); b.type = 'button';
     b.style.setProperty('--acc', WK.FAMC[D.fam[D.f[i]]] || PAL.ice);
-    b.innerHTML = '<span class="n">' + (k + 1) + '</span>' + WK.esc(D.n[i]);
+    b.innerHTML = '<span class="n">' + (k + 1) + '</span> ' + WK.esc(D.n[i]);
+    b.setAttribute('data-go', (S.sel === i ? 'add ' : 'hear ') + D.n[i]);
     b.setAttribute('aria-pressed', S.sel === i ? 'true' : 'false'); if (S.sel === i) b.classList.add('on');
     b.addEventListener('click', function () { choose(i); });
     box.appendChild(b);
   });
-  $('after').classList.toggle('show', done);
+  $('after').classList.toggle('show', done || stuck);
+  $('kg').style.display = stuck ? 'none' : '';
+  WK.famKey($('fams'), D, S.chain.concat(S.cands));
+  WK.primary(null); // keeps the default play target; the call re-reads its data-go words
   var hm = $('home'); hm.hidden = n < 1; if (n >= 1) hm.setAttribute('href', '../print/receipt2.html#p=' + S.chain.slice(0, 41).join(','));
   if (!R.on && S.sel < 0 && AU.paused) $('now').textContent = idle();
   if (n < 1) { $('num').innerHTML = '<span class="c">add a link</span>'; $('say').textContent = 'no presses yet. the chain starts at one song. tap a numbered song to hear it, then tap again to add it.'; }

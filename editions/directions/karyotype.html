@@ -43,6 +43,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 input[type=range]::-moz-range-thumb{width:10px;height:16px;background:var(--ice);border:0;border-radius:0}
 .lines{grid-column:1/-1;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mute);line-height:1.45}
 .lines span{color:var(--ink)}
+details.deeper>summary{font:500 11px/1.3 'IBM Plex Mono',monospace;color:var(--ice);cursor:pointer;padding:2px 0}
+details.deeper .dp{display:flex;flex-direction:column;gap:6px;margin-top:6px;max-height:38vh;overflow-y:auto}
+details.deeper .read{font-family:'Instrument Sans',system-ui,sans-serif}
 @media (max-width:700px){
   body{padding:12px 16px 10px}
   h1{font-size:21px}
@@ -74,25 +77,24 @@ input[type=range]::-moz-range-thumb{width:10px;height:16px;background:var(--ice)
 <div id="stage"><canvas id="cv"></canvas><div id="tip"></div></div>
 <footer>
   <div class="key" id="key"></div>
-  <div class="read" id="read"></div>
   <div class="ctl">
     <button id="play" class="on" aria-label="play or pause">pause</button>
     <button id="spd" aria-label="speed">speed 1×</button>
-    <button id="skip" title="a skip is my thumb on the button, but the next song is the queue's pick">skips: their own</button>
+    <button id="skip" class="on" title="a skip is my thumb on the button, but the next song is auto-play's pick">skips: my hand</button>
     <button id="foc">see: every hand</button>
     <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="block">
   </div>
-  <div class="lines"><div id="how"></div><div id="why"></div></div>
+  <details class="deeper lines"><summary>deeper</summary><div class="dp"><div class="read" id="read"></div><div id="how"></div><div id="why"></div></div></details>
 </footer>
 <script>
 (function(){
 var BG='#06010f',INK='#efe9ff',MUTE='#9a90b8',LINE='#2a2140',ICE='#bcd3ff';
-var HC=['#21f6bc','#bcd3ff','#f5a623','#8b6fd6'];
-var HN=['i pressed play','a skip landed','shuffle','the queue'];
+var HC=['#21f6bc','#159a78','#f5a623','#8b6fd6'];// next/back split out = dark mint, the same 4th swatch as the hilbert fold
+var HN=['i pressed play','next or back','shuffle','auto-play'];
 function mix(a,b,t){var p=function(h,i){return parseInt(h.substr(1+2*i,2),16)};var o='#';for(var i=0;i<3;i++){var v=Math.round(p(a,i)*t+p(b,i)*(1-t));o+=(v<16?'0':'')+v.toString(16)}return o}
 var HD=HC.map(function(c){return mix(c,BG,.2)});
 var cv=document.getElementById('cv'),g=cv.getContext('2d'),stage=document.getElementById('stage'),tip=document.getElementById('tip');
-var D,A=[],N,NB,loose=false,focus=-1,userFocus=false,playing=true,speeds=[1,2,.5,.25],si=0,t=0,last=0,hold=0,W=0,H=0,dpr=1,L={},hover=-1,ST;
+var D,A=[],N,NB,loose=true,focus=-1,userFocus=false,playing=true,speeds=[1,2,.5,.25],si=0,t=0,last=0,hold=0,W=0,H=0,dpr=1,L={},hover=-1,ST;
 var SEC=0.065;
 function fmt(x){return x>=1000?x.toLocaleString('en-US'):String(x)}
 function r1(x){return Math.round(x*10)/10}
@@ -112,20 +114,21 @@ function stats(){
 function ratioWord(r){var h=Math.round(r*2)/2;if(Math.abs(r-h)<.15){if(h===2)return 'twice';if(h===3)return 'three times';}return nr(r)+'×'}
 function render(){
   var S=stats(),Z=D.null[loose?'loose':'strict'],w=S.wins,q=w[3],T=S.T,mn=Z.wins.m[0],ok=w[0]>Z.wins.hi[0],low=w[0]<Z.wins.lo[0];
-  var h1=(q>T/2?'the queue plays most of my favorites. ':(w.indexOf(Math.max.apply(null,w))===3?'the queue plays more of my favorites than any hand. ':'the queue does not run my favorites. '))+
-    (ok?'my hand takes '+ratioWord(w[0]/mn)+' the blocks chance would give it.':(low?'my hand takes fewer blocks than chance would give it.':'my hand takes about what chance would give it.'));
+  var qc=Math.round(Z.wins.m[3]);
+  var h1='on my favorites my hand wins '+(ok?ratioWord(w[0]/mn)+' the blocks chance gives it':(low?'fewer blocks than chance gives it':'about what chance gives it'))+
+    (q<Z.wins.lo[3]?'; auto-play wins fewer than chance ('+fmt(q)+' vs '+fmt(qc)+').':(q>Z.wins.hi[3]?'; auto-play wins more than chance ('+fmt(q)+' vs '+fmt(qc)+').':'; auto-play wins about its chance share.'));
   document.getElementById('hl').textContent=h1;
   document.getElementById('cap').textContent='each pair of bars is one of my '+N+' most-played artists, in the order i first heard them, growing down one '+D.blkdays+'-day block at a time. left bar: the hand that played that block most. right bar: how its plays split.';
   var keyOrder=loose?[0,2,3]:[0,2,3,1];
-  document.getElementById('key').innerHTML=keyOrder.map(function(j){return '<div><span class="sw" style="background:'+HC[j]+'"></span><span class="lab">'+(j===0&&loose?'i pressed (or skipped)':HN[j])+'</span><span class="n">'+fmt(w[j])+'<span class="bw"> bands</span></span><span class="c">chance '+fmt(Math.round(Z.wins.m[j]))+'<span class="rng"> ('+fmt(Math.round(Z.wins.lo[j]))+' to '+fmt(Math.round(Z.wins.hi[j]))+')</span></span></div>'}).join('');
+  document.getElementById('key').innerHTML=keyOrder.map(function(j){return '<div><span class="sw" style="background:'+HC[j]+'"></span><span class="lab">'+(j===0&&loose?'i pressed':HN[j])+'</span><span class="n">'+fmt(w[j])+'<span class="bw"> bands</span></span><span class="c">chance '+fmt(Math.round(Z.wins.m[j]))+'<span class="rng"> ('+fmt(Math.round(Z.wins.lo[j]))+' to '+fmt(Math.round(Z.wins.hi[j]))+')</span></span></div>'}).join('');
   var sh=w[2]/Z.wins.m[2],qr=q/Z.wins.m[3];
   var R=[];
-  R.push('<div><b>mostly violet:</b> the queue won '+fmt(q)+' of '+fmt(T)+' blocks. <span class="w">why it is still a surprise: it plays so much of everything that chance would hand it '+fmt(Math.round(Z.wins.m[3]))+'; my hand and shuffle took the difference ('+ratioWord(w[0]/mn)+' and '+ratioWord(sh)+' their chance share).</span></div>');
+  R.push('<div><b>mostly violet:</b> auto-play won '+fmt(q)+' of '+fmt(T)+' blocks. <span class="w">why it is still a surprise: it plays so much of everything that chance would hand it '+fmt(Math.round(Z.wins.m[3]))+'; my hand and shuffle took the difference ('+ratioWord(w[0]/mn)+' and '+ratioWord(sh)+' their chance share).</span></div>');
   R.push('<div><b>mixed stripes:</b> only '+S.one+' of '+N+' artists has one color all the way down (chance '+nr(Z.one.m)+'). <span class="w">why: '+(S.one>Z.one.hi?'more than chance, so some artists really belong to one hand.':'that is what chance gives, so no artist belongs to one hand; every one is shared.')+'</span></div>');
   R.push('<div><b>mint in pairs:</b> my blocks sit back to back '+S.adj+' times (chance '+nr(Z.adj.m)+', at most '+nr(Z.adj.hi)+'). <span class="w">why: '+(S.adj>Z.adj.hi?'just past chance, so when my hand takes an artist it tends to keep it the next block.':'no more than chance, so my blocks do not cluster.')+'</span></div>');
   R.push('<div><b>white notches:</b> my first press. '+S.first+' of '+N+' i pressed on their very first play; '+S.later+' reached me another way first, then i pressed after a median of '+nr(S.med)+' plays'+(S.never?'; '+S.never+' never':'')+'. <span class="w">why: it shows whether i went looking or was handed them.</span></div>');
   document.getElementById('read').innerHTML=R.join('');
-  document.getElementById('how').innerHTML='<span>how:</span> plays of '+D.minsec+' s or more, 2019 to 2026, '+fmt(D.top_plays)+' of them on these '+N+'; the hand = how the play started; band = one '+D.blkdays+'-day block, height by plays; length grows with the square root of plays; ties go to the queue; the right twin splits the vote; chance = hands reshuffled inside each block, '+D.B+' times.';
+  document.getElementById('how').innerHTML='<span>how:</span> plays of '+D.minsec+' s or more, 2019 to 2026, '+fmt(D.top_plays)+' of them on these '+N+'; the hand = how the play started; band = one '+D.blkdays+'-day block, height by plays; length grows with the square root of plays; ties go to auto-play; the right twin splits the vote; chance = hands reshuffled inside each block, '+D.B+' times.';
   document.getElementById('why').innerHTML='<span>why:</span> every color is a count of plays and how they started, and chance keeps each block\'s mix and each artist\'s plays, so a hand only stands out where it truly gathered.';
   return h1;
 }
@@ -201,7 +204,7 @@ function tick(now){
   }
   draw();requestAnimationFrame(tick);
 }
-function setFocus(f,user){if(f===focus)return;focus=f;var lab=f<0?'every hand':(f===0?'my hand':f===2?'shuffle':f===3?'the queue':'a skip');document.getElementById('foc').textContent='see: '+lab;document.getElementById('foc').classList.toggle('on',f>=0);if(user)userFocus=f>=0}
+function setFocus(f,user){if(f===focus)return;focus=f;var lab=f<0?'every hand':(f===0?'my hand':f===2?'shuffle':f===3?'auto-play':'next or back');document.getElementById('foc').textContent='see: '+lab;document.getElementById('foc').classList.toggle('on',f>=0);if(user)userFocus=f>=0}
 
 function hit(ev){var r=cv.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top,best=-1;
   for(var i=0;i<N;i++){var p=pos(i);if(Math.abs(x-p.x)<L.pitch/2&&y>=p.y-6&&y<=p.y+L.rowH+L.lab)best=i}
@@ -219,7 +222,7 @@ fetch('data/karyotype.json').then(function(r){return r.json()}).then(function(d)
   document.getElementById('skip').onclick=function(){loose=!loose;this.textContent=loose?'skips: my hand':'skips: their own';this.classList.toggle('on',loose);if(loose&&focus===1)setFocus(-1,true);ST=render();window.__k.headline=ST};
   document.getElementById('foc').onclick=function(){var seq=loose?[-1,0,2,3]:[-1,0,2,3,1],k=(seq.indexOf(focus)+1)%seq.length;setFocus(seq[k],true)};
   var sc=document.getElementById('scrub');sc.oninput=function(){t=Math.min(NB-1+.999,sc.value/1000*(NB-.001));hold=0;if(playing){playing=false;var b=document.getElementById('play');b.textContent='play';b.classList.remove('on')}};
-  cv.addEventListener('pointermove',hit);cv.addEventListener('pointerdown',hit);cv.addEventListener('pointerleave',function(){hover=-1;tip.style.display='none'});
+  cv.addEventListener('pointermove',hit);cv.addEventListener('pointerdown',hit);cv.addEventListener('pointerleave',function(e){if(e.pointerType!=='mouse')return;hover=-1;tip.style.display='none'});
   window.addEventListener('resize',layout);
   (document.fonts?document.fonts.ready:Promise.resolve()).then(function(){layout();requestAnimationFrame(tick)});
 });

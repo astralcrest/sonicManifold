@@ -1,7 +1,7 @@
 (function () {
 'use strict';
 var $ = WK.$, C = WK.C, D, M, FIT, LOOP, F, MP, MAP, K, ROOMS = 11;
-var S = { cut: 4, start: 0, seed: 1, A: null, B: null, diff: -1, pk: -1 };
+var S = { cut: 0, start: 0, seed: 1, A: null, B: null, diff: -1, pk: -1 };
 var YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 
 function weighted(u0) {
@@ -20,33 +20,37 @@ function pair(start, seed, skip) {
   M.skip = skip; var b = LOOP.walk(M, start, K, seed).path; M.skip = null;
   return [a, b];
 }
-function lost(a, b) { var ra = rooms(a), rb = rooms(b), n = 0; for (var c in ra.set) if (!rb.set[c]) n++; return { n: n, ra: ra.n, rb: rb.n }; }
+function lost(a, b) { var ra = rooms(a), rb = rooms(b), n = 0, g = 0, c; for (c in ra.set) if (!rb.set[c]) n++; for (c in rb.set) if (!ra.set[c]) g++; return { n: n, g: g, ra: ra.n, rb: rb.n }; }
+function med(x) { x.sort(function (a, b) { return a - b; }); return x[9] === x[10] ? '' + x[9] : x[9] + ' to ' + x[10]; }
 
 function compute() {
   var skip = skipFor(S.cut, S.start), p = pair(S.start, S.seed, skip);
   S.A = p[0]; S.B = p[1]; S.skip = skip;
   S.diff = -1; for (var k = 0; k < S.A.length; k++) if (S.A[k] !== S.B[k]) { S.diff = k; break; }
   S.l = lost(S.A, S.B);
-  // 20 more weighted starts, same cut, for the median: one path can be luck
-  var g = LOOP.rng(777 + S.cut), ls = [];
-  for (var t = 0; t < 20; t++) { var st = weighted(g()), sk = skipFor(S.cut, st), q = pair(st, 1000 + t, sk); ls.push(lost(q[0], q[1]).n); }
-  ls.sort(function (a, b) { return a - b; }); S.med = (ls[9] + ls[10]) / 2; S.max = ls[19];
+  // 20 more weighted starts, same cut, for the median; the baseline is the same start rerun with a new seed and nothing removed
+  var g = LOOP.rng(777 + S.cut), ls = [], ns = [];
+  for (var t = 0; t < 20; t++) {
+    var st = weighted(g()), sk = skipFor(S.cut, st), q = pair(st, 1000 + t, sk);
+    ls.push(lost(q[0], q[1]).n); ns.push(lost(q[0], LOOP.walk(M, st, K, 5000 + t).path).n);
+  }
+  S.med = med(ls); S.nul = med(ns);
 }
 
 var AUX = null, lastI = -1, rep = 0, L = [], MAXPL = 1;
 (function () { var p = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function () { AUX = this; return p.apply(this, arguments); }; })();
 function seek(t) { if (!AUX) return; var go = function () { try { AUX.currentTime = Math.min(t, Math.max(0, (AUX.duration || 30) - 8)); } catch (e) {} }; if (AUX.readyState > 0) go(); else AUX.addEventListener('loadedmetadata', go, { once: true }); }
 function fam(i) { return D.fam[D.f[i]] || 'untagged'; }
-function famLine(p, k) { return fam(p[k]) + (k > 0 && D.f[p[k]] !== D.f[p[k - 1]] ? ' (a new family, after ' + fam(p[k - 1]) + ')' : ''); }
+function who(i) { return D.n[i] + ', ' + fam(i); }
 
 function render() {
   var yr = YEARS[S.cut], l = S.l;
   S.k = S.diff > 0 ? S.diff : 0;
-  $('big').textContent = l.n + ' of ' + ROOMS;
+  $('big').textContent = l.n + ' of ' + l.ra;
   $('say').textContent = S.diff < 0
     ? 'with ' + yr + ' removed this start and seed grow the same path. the rule never reached for those artists here. try another start or year.'
-    : 'with ' + yr + ' removed the path first goes elsewhere at step ' + S.diff + '. ' + (l.n ? 'it enters ' + l.rb + ' neighborhoods, not ' + l.ra + ', so it loses ' + l.n + '.' : 'it still enters every one of the ' + l.ra + ' neighborhoods the first path did, so it loses none.');
-  $('more').textContent = S.skip.n + ' of ' + M.N.toLocaleString('en-US') + ' artists taken out. across 20 other starts: a median of ' + (Math.round(S.med * 2) / 2) + ' neighborhoods lost, at most ' + S.max + '. one path is luck; read the median.';
+    : 'with ' + yr + ' removed the path first goes elsewhere at step ' + S.diff + '. ' + (l.n ? 'it loses ' + l.n + ' of the ' + l.ra + ' neighborhoods the first path entered' : 'it still enters every one of the ' + l.ra + ' neighborhoods the first path did, so it loses none') + (l.g ? ' and finds ' + l.g + ' new.' : ' and finds no new one.');
+  $('more').textContent = S.skip.n + ' of ' + M.N.toLocaleString('en-US') + ' artists taken out. neighborhoods lost across 20 other starts, median with the year removed: ' + S.med + '; a rerun with a new seed and nothing removed: ' + S.nul + '. one path is luck; compare the two.';
   [].forEach.call($('years').children, function (b) { b.setAttribute('aria-checked', +b.getAttribute('data-c') === S.cut ? 'true' : 'false'); });
   stopHear(); where();
   draw();
@@ -56,28 +60,28 @@ function where() {
   if (WK.playing()) return;
   var k = S.k, yr = YEARS[S.cut], n = S.A.length - 1;
   $('step').disabled = k >= n; $('prev').disabled = k <= 0;
-  $('now').textContent = 'step ' + k + ' of ' + n + (k < S.diff || S.diff < 0 ? ': both walks are at ' + D.n[S.A[k]] + ' (' + fam(S.A[k]) + ').' : ': as it grew, ' + D.n[S.A[k]] + ' (' + famLine(S.A, k) + '); with ' + yr + ' removed, ' + D.n[S.B[k]] + ' (' + famLine(S.B, k) + ').') + (S.diff > 0 && k < S.diff ? ' the walks part at step ' + S.diff + '.' : '');
+  $('now').textContent = 'step ' + k + ' of ' + n + (k < S.diff || S.diff < 0 ? '. both walks: ' + who(S.A[k]) + '.' : '. as it grew: ' + who(S.A[k]) + '. with ' + yr + ' removed: ' + who(S.B[k]) + '.') + (S.diff > 0 && k < S.diff ? ' they part at step ' + S.diff + '.' : '');
 }
 
 function wt(i) { return Math.log(1 + (D.pl ? D.pl[i] : 1)) / MAXPL; }
-function walkDraw(g, p, a, b, kind, dash, k, cur) {
-  var P = WK.P, n = p.length;
-  P.ribbon(g, MAP.pts(p), a, b, 1.2, 0.22, dash);
-  MAP.ribbon(p, k + 1, a, b, null, dash);
-  for (var j = 0; j <= k; j++) {
-    var x = MAP.X(p[j]), y = MAP.Y(p[j]), c = P.mix(a, b, j / (n - 1));
-    if (j > 0 && D.f[p[j]] !== D.f[p[j - 1]]) { g.save(); g.strokeStyle = WK.FAMC[fam(p[j])] || C.mute; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 9, 0, 6.2832); g.stroke(); g.restore(); }
-    P.glyph(g, kind, x, y, 3 + 3.5 * wt(p[j]), c);
-  }
+// one flat color per walk, so the two never blend; the current stop is marked by size (MAP.stop), not by a fade
+function walkDraw(g, p, col, kind, dash, k) {
+  WK.P.ribbon(g, MAP.pts(p), col, col, 1.2, 0.22, dash);
+  MAP.ribbon(p, k + 1, col, col, null, dash);
+  for (var j = 0; j <= k; j++) WK.P.glyph(g, kind, MAP.X(p[j]), MAP.Y(p[j]), 3 + 3.5 * wt(p[j]), col);
 }
 function draw() {
   if (!MAP || !S.A) return;
-  MAP.begin(); var g = MAP.g, i, P = WK.P.PAL, k = S.k;
-  g.save(); g.strokeStyle = P.rose; g.lineWidth = 1.2; g.globalAlpha = 0.75;
-  for (i = 0; i < M.N; i++) if (S.skip[i]) { g.beginPath(); g.arc(MAP.X(i), MAP.Y(i), 4, 0, 6.2832); g.stroke(); }
+  MAP.begin(); var g = MAP.g, i, P = WK.P.PAL, k = S.k, sm = MAP.W < 500, lo = sm ? 1.6 : 2.4, hi = sm ? 5 : 8, r;
+  // an artist taken out is emptied: its dot goes dark with a thin ink rim, a mark no family color uses
+  g.save(); g.lineWidth = 1; g.strokeStyle = P.ink;
+  for (i = 0; i < M.N; i++) if (S.skip[i]) {
+    r = (lo + (hi - lo) * wt(i)) * 0.62 + 0.9;
+    g.beginPath(); g.arc(MAP.X(i), MAP.Y(i), r, 0, 6.2832); g.globalAlpha = 1; g.fillStyle = P.night; g.fill(); g.globalAlpha = 0.5; g.stroke();
+  }
   g.restore();
-  walkDraw(g, S.A, P.violet, P.ink, 'ring', null, k);
-  walkDraw(g, S.B, P.rose, P.ink, 'dot', [7, 5], k);
+  walkDraw(g, S.A, P.violet, 'ring', null, k);
+  walkDraw(g, S.B, P.rose, 'dot', [7, 5], k);
   WK.P.glyph(g, 'star', MAP.X(S.A[0]), MAP.Y(S.A[0]), 8, C.ink);
   var pa = S.pk === 0, pb = S.pk === 1;
   if (S.A[k] === S.B[k]) { MAP.stop(S.A[k], P.ink, 14); MAP.tag(S.A[k], 'step ' + k + ', both', P.ink); }
@@ -89,7 +93,7 @@ function draw() {
 }
 
 function stopHear() { WK.stop(); S.pk = -1; WK.still(); hearLabel(); }
-function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop the sound' : 'play from step ' + S.k + ', both ways'; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); }
+function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop the sound' : 'play from step ' + S.k + (S.diff < 0 ? '' : ', both ways'); $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); }
 function playFrom(k) {
   var n = S.A.length, list = [], j;
   L = [];
@@ -104,8 +108,8 @@ function playFrom(k) {
       var m = L[q], rp = false;
       if (info.i === lastI) { rep++; seek(6 * rep); rp = true; } else rep = 0;
       lastI = info.i; S.k = m.step; S.pk = m.w;
-      var pth = m.w ? S.B : S.A, nx = L[q + 1];
-      $('now').textContent = 'step ' + m.step + ' of ' + (n - 1) + ', playing ' + info.tag + ': ' + info.title + ', by ' + D.n[info.i] + ' (' + famLine(pth, m.step) + ').' + (rp ? ' same artist as the clip before, so it starts ' + 6 * rep + ' seconds in.' : '') + (nx ? ' next: ' + (nx.step !== m.step ? 'step ' + nx.step + ', ' : '') + (nx.w ? 'year removed' : 'as it grew') + '.' : ' last stop.');
+      var nx = L[q + 1];
+      $('now').textContent = 'step ' + m.step + ' of ' + (n - 1) + ', ' + info.tag + ': ' + info.title + ' by ' + who(info.i) + '.' + (rp ? ' same artist as the clip before, so it starts ' + 6 * rep + ' seconds in.' : '') + (nx ? ' next: ' + (nx.step !== m.step ? 'step ' + nx.step + ', ' : '') + (nx.w ? 'year removed' : 'as it grew') + '.' : ' last stop.');
       WK.live(draw);
     } else { S.pk = -1; WK.still(); where(); }
     hearLabel(); draw();
@@ -138,7 +142,7 @@ WK.boot([WK.j('../../front/data/field.json'), WK.j('../../front/data/maps.json')
   });
   $('how').textContent = 'method: the auto-play rule matched to my log on the first wall, rerun from the same start and seed with every artist first heard in that slice taken out of its choices. the log is cut into eight slices, labeled 2019 to 2026; a slice is near a calendar year, not exact. the shipped data has no per-year presses, so this drops artists by when i first heard them, not presses one by one. a toy about the rule, never a finding about me. rooms: the eleven neighborhoods of who follows whom.';
   MAXPL = Math.log(1 + Math.max.apply(null, D.pl));
-  MAP = new WK.Map($('map'), $('cv'), D, M, { tap: function (i) {
+  MAP = new WK.Map($('map'), $('cv'), D, M, { dim: 0.5, tap: function (i) {
     var k = S.A.indexOf(i), k2 = S.B.indexOf(i), t = k >= 0 && k2 >= 0 ? Math.min(k, k2) : k >= 0 ? k : k2;
     if (t < 0) return;
     var was = WK.playing(); if (was) stopHear(); S.k = t; where(); hearLabel(); draw(); if (was) playFrom(t);
