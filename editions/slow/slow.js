@@ -170,7 +170,7 @@ function step() {
   var now = performance.now(), dt = (now - S.last) / 1000; S.last = now;
   if (!S.on) return;
   var snd = WK.sound();
-  if (snd !== S.sound) { S.sound = snd; if (snd) say(nowLine(S.k)); }
+  if (snd !== S.sound) { S.sound = snd; say(nowLine(S.k) + (snd ? '' : ' sound is off, so the clock waits: tap the sound chip at the top.')); }
   if (!snd) { if (!AU.paused) AU.pause(); return; }
   if (AU.paused && !AU.ended) { var pr = AU.play(); if (pr && pr.catch) pr.catch(function () {}); }
   S.el += dt;
@@ -223,6 +223,8 @@ function bump() { clearTimeout(S.idle); S.idle = setTimeout(function () { if (S.
 ['pointerdown', 'keydown'].forEach(function (e) { document.addEventListener(e, bump, true); });
 
 $('play').addEventListener('click', function () { if (S.on) stop(); else start(); });
+// idle, the first-screen hint names the sound state, so a press on the chip rewrites it
+document.addEventListener('click', function () { setTimeout(function () { if (!S.on && SONGS.length && /the stay clock counts only/.test($('now').textContent)) say(hint()); }, 0); }, true);
 $('leave').addEventListener('click', leave);
 $('reset').addEventListener('click', reset);
 $('stays').addEventListener('click', function (e) { var k = e.target && e.target.getAttribute && e.target.getAttribute('data-k'); if (k != null) jumpK(+k); });

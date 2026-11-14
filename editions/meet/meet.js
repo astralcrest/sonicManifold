@@ -27,8 +27,11 @@ function path(a, b) {
 }
 function fam(i) { return D.fam[D.f[i]]; }
 function fcol(i) { return WK.FAMC[fam(i)] || PAL.ice; }
-function setNum(t) { $('num').innerHTML = t == null ? '<span class="c">tap two spots</span>' : String(t); }
+// before two spots there is no number and no label: the strip's you: line and the map caption say what to do
+function setNum(t) { $('num').textContent = t == null ? '' : String(t); $('numlab').hidden = t == null; }
 function soundHint() { return WK.sound() ? '' : ' sound is off: tap the sound chip at the top.'; }
+// #say is its words plus the sound hint, so a press that turns sound on rewrites it
+function setSay(t) { S.say = t; $('say').textContent = t ? t + soundHint() : ''; }
 function nearest(x, y, needClip) {
   var best = -1, bd = 1e18, i, d;
   for (i = 0; i < M.N; i++) {
@@ -83,10 +86,10 @@ function update() {
     }
     var mxs = Math.max(sa, sb);
     setNum(sa < 0 || sb < 0 ? '?' : mxs);
-    $('say').textContent = sa < 0 || sb < 0 ? 'out of reach in the graph.' : D.n[m] + ' is ' + sa + (sa === 1 ? ' step' : ' steps') + ' from your first spot and ' + sb + (sb === 1 ? ' step' : ' steps') + ' from your second. nearest on the map to the point halfway between your spots. the route has ' + S.route.length + ' stops.' + soundHint();
+    setSay(sa < 0 || sb < 0 ? 'out of reach in the graph.' : D.n[m] + ' is ' + sa + (sa === 1 ? ' step' : ' steps') + ' from your first spot and ' + sb + (sb === 1 ? ' step' : ' steps') + ' from your second. nearest on the map to the point halfway between your spots. the route has ' + S.route.length + ' stops.');
   } else {
     setNum(null); S.route = [];
-    $('say').textContent = S.a ? 'one spot down. tap a second spot on the map.' : 'tap two spots on the map, then drag either one.';
+    setSay('');
   }
   var rk = S.route.join(',');
   if (rk !== S.rk) { S.rk = rk; WK.famKey($('fams'), D, S.route); }
@@ -101,10 +104,10 @@ function playList(list, walking) {
     if (info) {
       var ri = walking ? parseInt(info.tag.slice(1), 10) : -1, line;
       S.wk = ri; S.hear = info.i;
-      line = (walking ? 'stop ' + (ri + 1) + ' of ' + S.route.length + ': ' : 'halfway: ') + info.title + ' by ' + D.n[info.i] + ' (' + fam(info.i) + ')';
+      line = (walking ? 'stop ' + (ri + 1) + ' of ' + S.route.length + ': ' : 'halfway: ') + info.title + ' by ' + D.n[info.i] + ' (' + fam(info.i) + ').';
       if (walking && ri > 0) {
         var pr = S.route[ri - 1];
-        line += fam(pr) !== fam(info.i) ? '. family change from ' + fam(pr) + '.' : '. same family as the last stop.';
+        line += fam(pr) !== fam(info.i) ? ' family change from ' + fam(pr) + '.' : ' same family as the last stop.';
       }
       $('now').textContent = line + (walking && ri < S.route.length - 1 ? ' next stop: ' + D.n[S.route[ri + 1]] + '.' : '');
       WK.live(draw);
@@ -197,5 +200,8 @@ addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(funct
 Promise.all([WK.boot(), WK.pv()]).then(function (a) {
   D = a[0].D; M = a[0].M; LOOP = a[0].LOOP; PV = a[1];
   MAP = new WK.Map($('map'), cv, D, M, { dim: 0.6 }); MAP.resize(); update();
-}).catch(function () { $('say').textContent = 'the data did not load. reload the page.'; });
+}).catch(function () { S.say = ''; $('say').textContent = 'the data did not load. reload the page.'; });
+// the chip, the strip's play button, or any play-shaped button can turn sound on: rewrite the hint after the press lands
+document.addEventListener('click', function () { setTimeout(function () { if (S.say) setSay(S.say); }, 0); }, true);
+addEventListener('message', function (e) { if (e.data && e.data.sm === 'front') setTimeout(function () { if (S.say) setSay(S.say); }, 0); });
 })();

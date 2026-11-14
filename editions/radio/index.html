@@ -19,7 +19,7 @@
 #fams { margin: 12px 0 0; }
 </style>
 </head>
-<body data-wall="23" data-line="a line across my sound map becomes a radio: up to 9 stops, in the order you drew." data-do="drag across the map and let go." data-keys="alike" style="--act: var(--mint); --acc: var(--ice)">
+<body data-wall="23" data-line="a line across my sound map becomes a radio: up to 9 stops, in the order you drew." data-do="drag across the map and let go." data-keys="alike" style="--act: var(--ice); --acc: var(--ice)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>draw a radio</span><span class="tl">a toy</span></p>
@@ -28,7 +28,7 @@
   <div id="map"><canvas id="cv" role="img" aria-label="my sound map, artists placed by how they sound, colored by family. drag a finger or mouse across it to draw a curve. when you let go, the curve becomes numbered stops, one artist each, and they play in drawn order, 30 seconds each. tap a numbered stop to jump to it."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
-      <div class="big mint" id="num"><span class="c">no radio yet</span></div>
+      <div class="big ice" id="num"><span class="c">no radio yet</span></div>
       <span class="keylab">stops, 30 s each</span>
       <p class="fams" id="fams" aria-label="the sound families, the colors on the map"></p>
       <p class="say" id="say">a longer curve makes more stops, up to 9.</p>
@@ -39,7 +39,7 @@
     </div>
     <section>
       <div class="row" style="margin-top:0">
-        <button type="button" id="nx" style="--acc:var(--mint)" disabled>next stop</button>
+        <button type="button" id="nx" disabled>next stop</button>
         <button type="button" id="st" disabled>stop</button>
         <button type="button" id="clr">clear</button>
       </div>

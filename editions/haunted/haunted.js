@@ -96,7 +96,7 @@ function sqr(c, x, y, s, fill, kind) {
       if (i) sqr(COL[r[i][2]], p[0], p[1], sq * wsz(r[i][0]), lit, GLY[r[i][2]]);
       if (any && bent[i] !== r[i][0]) { q = bp[i]; sqr(ROSE, q[0], q[1], sq, i <= step, 'dot'); }
     }
-    // the cut forces every first song to 'press', so it gets a neutral start mark; drawn last so a revisit cannot hide it
+    // the first song has no step before it to bend, so it gets a neutral start mark (its logged arm is in the data); drawn last so a revisit cannot hide it
     sqr(START, pts[0][0], pts[0][1], sq * 0.8, true, 'dot');
     var cur = px(any ? bent[step] : r[step][0]);
     if (listening && PV && PV[curArtist()] && !aud.paused) WK.pulse(ctx, cur[0], cur[1], any && bent[step] !== r[step][0] ? ROSE : step ? COL[r[step][2]] : START, sq + 6);

@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var WK = window.WK, P = WK.P, FAMC = WK.FAMC;
-  var NIGHT = '#06010f', MINT = '#21f6bc', VIOLET = '#8b6fd6', AMBER = '#f5a623', ICE = '#bcd3ff', ROSE = '#ff5c7a', GOLD = '#ffd36b';
+  var NIGHT = '#06010f', MINT = '#21f6bc', VIOLET = '#8b6fd6', AMBER = '#f5a623', ICE = '#bcd3ff', GOLD = '#ffd36b';
   var MONO = '"IBM Plex Mono", ui-monospace, Menlo, monospace', SANS = '"Instrument Sans", system-ui, sans-serif';
   var SC = 3; // print resolution: always 3 device pixels per css pixel
   var SITE = 'https://astralcrest.github.io/sonicManifold/editions/';
@@ -68,6 +68,14 @@
       tx(g, it[2], x + 20, y, '500 8.5px ' + MONO, T.mute); g.font = '500 8.5px ' + MONO;
       x += 20 + g.measureText(it[2]).width + (gap || 14);
     });
+  }
+  // the mirror's meeting point: an ink ring with four ticks, its inside cleared to the ground, a crisp mark no family and no list uses
+  function reticle(g, T, x, y, k) {
+    g.save(); g.fillStyle = T.bg; g.beginPath(); g.arc(x, y, 7 * k, 0, 6.2832); g.fill();
+    g.strokeStyle = T.ink; g.fillStyle = T.ink; g.lineWidth = 2.2 * Math.max(k, 0.8); g.lineCap = 'butt';
+    g.beginPath(); g.arc(x, y, 7 * k, 0, 6.2832); g.stroke();
+    g.beginPath(); [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(function (d) { g.moveTo(x + d[0] * 9.5 * k, y + d[1] * 9.5 * k); g.lineTo(x + d[0] * 13.5 * k, y + d[1] * 13.5 * k); }); g.stroke();
+    g.beginPath(); g.arc(x, y, 2.2 * Math.max(k, 0.75), 0, 6.2832); g.fill(); g.restore();
   }
   function topNN(cur, visited, rule) { // nearest unvisited of the six nearest in sound
     var l = D.nn[cur]; for (var k = 0; k < l.length; k++) if (!visited[l[k]]) return l[k]; return -1;
@@ -229,14 +237,15 @@
       g.fillStyle = T.bg; g.fillRect(0, 0, w, h);
       var f = field(g, T, 24, 24, s, { dim: T.paper ? 0.25 : 0.35, lat: 0.08 });
       g.strokeStyle = T.line; g.lineWidth = 1; g.strokeRect(24.5, 24.5, s - 1, s - 1);
-      R.forEach(function (r) { rib(g, T, [[f.X(r.a), f.Y(r.a)], [f.X(r.b), f.Y(r.b)]], r.s ? ROSE : T.lat, r.s ? ROSE : T.lat, r.s ? 1.9 : 1.2); });
+      // changed = an ink line, never a family color (rose is the hip-hop · r&b pebbles)
+      R.forEach(function (r) { rib(g, T, [[f.X(r.a), f.Y(r.a)], [f.X(r.b), f.Y(r.b)]], r.s ? T.ink : T.lat, r.s ? T.ink : T.lat, r.s ? 2.2 : 1.2); });
       R.forEach(function (r) { [r.a, r.b].forEach(function (i, k) {
         if (k === r.p) P.glyph(g, 'star', f.X(i), f.Y(i), 7, MINT); else P.peb(g, i, f.X(i), f.Y(i), 4.6, fc(i, T, 0));
       }); });
       var x = 384, cw = w - 24 - x;
       tx(g, 'the taste card', x, 36, '500 8.5px ' + MONO, T.mute);
       var big = one ? (c ? 'yes' : 'no') : String(c);
-      tx(g, big, x - 2, 112, '600 76px ' + SANS, c ? ROSE : T.ink);
+      tx(g, big, x - 2, 112, '600 76px ' + SANS, T.ink);
       g.font = '600 76px ' + SANS; var bw = g.measureText(big).width;
       if (!one) tx(g, 'of ' + R.length, x + bw + 10, 112, '600 24px ' + SANS, T.ink);
       var head = one ? (c ? 'the names changed your pick' : 'the names did not change your pick') : (c === 0 ? 'the names never changed your pick' : c === 1 ? 'time the names changed your pick' : 'times the names changed your pick');
@@ -245,7 +254,7 @@
       R.forEach(function (r) {
         P.peb(g, r.a, x + 8, y - 4, 6.5, fc(r.a, T, 0)); P.peb(g, r.b, x + 30, y - 4, 6.5, fc(r.b, T, 0));
         P.glyph(g, 'star', x + (r.p ? 30 : 8), y - 4, 6, MINT);
-        if (r.s) { g.fillStyle = ROSE; g.fillRect(x + 48, y - 6, 28, 3); tx(g, 'changed', x + 84, y - 1, '500 8.5px ' + MONO, T.ink); }
+        if (r.s) { g.fillStyle = T.ink; g.fillRect(x + 48, y - 6, 28, 3); tx(g, 'changed', x + 84, y - 1, '500 8.5px ' + MONO, T.ink); }
         else { g.strokeStyle = T.lat; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x + 48, y - 4.5); g.lineTo(x + 76, y - 4.5); g.stroke(); tx(g, 'same', x + 84, y - 1, '500 8.5px ' + MONO, T.mute); }
         y += one ? 0 : 24;
         if (one) { g.font = '500 9px ' + MONO; tx(g, fit(g, 'a: ' + nm(r.a), cw), x, y + 20, '500 9px ' + MONO, T.ink); tx(g, fit(g, 'b: ' + nm(r.b), cw), x, y + 33, '500 9px ' + MONO, T.ink); y += 40; }
@@ -279,12 +288,12 @@
       g.strokeStyle = T.line; g.lineWidth = 1; g.strokeRect(24.5, 24.5, s - 1, s - 1);
       var sc = s / 1000, px = function (p) { return [24 + p[0] * sc, 24 + p[1] * sc]; };
       var pa = px(st.ca), pb = px(st.cb), pm = px(st.m);
-      rib(g, T, [pa, pb], ROSE, ROSE, 1.6, [5, 4]);
+      rib(g, T, [pa, pb], T.ink, T.ink, 1.2, [5, 4]);
       st.A.forEach(function (i) { P.peb(g, i, f.X(i), f.Y(i), 6, ICE); P.peb(g, i, f.X(i), f.Y(i), 2.2, T.paper ? NIGHT : '#06010f', false); });
       st.B.forEach(function (i) { g.save(); g.strokeStyle = T.paper ? NIGHT : '#efe9ff'; g.lineWidth = 2.2; g.beginPath(); g.arc(f.X(i), f.Y(i), 6, 0, 6.2832); g.stroke(); g.restore(); });
       // names on small chips: the closest pair first, each chip in the first spot that covers no other chip, list dot or the meeting ring; a name with no free spot stays off
       g.font = '500 7.5px ' + MONO;
-      var lo = 26, hi = 24 + s - 2, placed = [], dots = st.A.concat(st.B).map(function (i) { return [f.X(i), f.Y(i), 7.5]; }).concat([[pm[0], pm[1], 10]]);
+      var lo = 26, hi = 24 + s - 2, placed = [], dots = st.A.concat(st.B).map(function (i) { return [f.X(i), f.Y(i), 7.5]; }).concat([[pm[0], pm[1], 14]]);
       var hitR = function (a, b) { return a[0] < b[0] + b[2] && b[0] < a[0] + a[2] && a[1] < b[1] + b[3] && b[1] < a[1] + a[3]; };
       var hitC = function (r, c) { var nx = Math.max(r[0], Math.min(c[0], r[0] + r[2])), ny = Math.max(r[1], Math.min(c[1], r[1] + r[3])); return (nx - c[0]) * (nx - c[0]) + (ny - c[1]) * (ny - c[1]) < c[2] * c[2]; };
       [st.pa, st.pb].concat(st.A, st.B).filter(function (i, k, L) { return L.indexOf(i) === k; }).forEach(function (i) {
@@ -297,12 +306,12 @@
           placed.push(r); g.fillStyle = T.bg; g.fillRect(r[0], r[1], tw, 11); tx(g, t, r[0] + 3, r[1] + 8, '500 7.5px ' + MONO, T.ink); return;
         }
       });
-      g.save(); g.strokeStyle = ROSE; g.lineWidth = 2.4; g.beginPath(); g.arc(pm[0], pm[1], 8, 0, 6.2832); g.stroke(); g.fillStyle = ROSE; g.beginPath(); g.arc(pm[0], pm[1], 2.4, 0, 6.2832); g.fill(); g.restore();
+      reticle(g, T, pm[0], pm[1], 1);
       var x = 384, cw = w - 24 - x;
       tx(g, 'the mirror card', x, 36, '500 8.5px ' + MONO, T.mute);
       tx(g, 'the two of you meet near', x, 70, '500 9px ' + MONO, T.mute);
       g.font = '600 25px ' + SANS; wrapT(g, nm(st.near), cw).slice(0, 3).forEach(function (l, k) { tx(g, l, x, 98 + k * 28, '600 25px ' + SANS, T.ink); });
-      g.fillStyle = ROSE; g.fillRect(x, 160, 40, 3);
+      g.fillStyle = T.ink; g.fillRect(x, 160, 40, 3);
       tx(g, 'closest across your two lists', x, 188, '500 8.5px ' + MONO, T.mute);
       g.font = '600 12.5px ' + SANS; tx(g, fit(g, nm(st.pa), cw), x, 205, '600 12.5px ' + SANS, T.ink); tx(g, fit(g, 'and ' + nm(st.pb), cw), x, 221, '600 12.5px ' + SANS, T.ink);
       g.font = '500 8.5px ' + MONO;
@@ -312,7 +321,7 @@
       legend(g, T, x, 316, [['peb', ICE, 'one of you']], 8);
       g.save(); g.strokeStyle = T.paper ? NIGHT : '#efe9ff'; g.lineWidth = 2; g.beginPath(); g.arc(x + 7 + 80, 313, 4.6, 0, 6.2832); g.stroke(); g.restore();
       tx(g, 'the other', x + 98, 316, '500 8.5px ' + MONO, T.mute);
-      g.save(); g.strokeStyle = ROSE; g.lineWidth = 2; g.beginPath(); g.arc(x + 7, 331, 4.6, 0, 6.2832); g.stroke(); g.fillStyle = ROSE; g.beginPath(); g.arc(x + 7, 331, 1.6, 0, 6.2832); g.fill(); g.restore();
+      reticle(g, T, x + 7, 331, 0.62);
       tx(g, 'meeting point', x + 20, 334, '500 8.5px ' + MONO, T.mute);
       g.font = '500 8px ' + MONO; wrapT(g, 'distances in sound only. no score, no reading of you.' + (st.toy ? ' two toy lists stand in.' : ''), cw).forEach(function (l, k) { tx(g, l, x, 356 + k * 10, '500 8px ' + MONO, T.mute); });
     }
@@ -391,11 +400,11 @@
     alike: ['sounds alike', '#bcd3ff', ALIKE],
     rule: ['the nearest-sound rule', '#bcd3ff', ALIKE],
     own: ['my own songs', '#ffd36b', '<circle cx="10" cy="10" r="8.4" fill="none" stroke="#ffd36b" stroke-width="1.3"/><path d="M10 3.5Q10 10 16.5 10Q10 10 10 16.5Q10 10 3.5 10Q10 10 10 3.5Z" fill="#ffd36b"/>'],
-    changed: ['changed by the names', '#ff5c7a', '<path d="M2 10H18" stroke="#ff5c7a" stroke-width="3"/>'],
+    changed: ['changed by the names', '#efe9ff', '<path d="M2 10H18" stroke="#efe9ff" stroke-width="3"/>'],
     same: ['same', '#bcd3ff', '<path d="M2 10H18" stroke="#bcd3ff" stroke-width="1.4"/>'],
     one: ['one of you', '#bcd3ff', '<circle cx="10" cy="10" r="6" fill="#bcd3ff"/><circle cx="10" cy="10" r="2.2" fill="#06010f"/>'],
     other: ['the other', '#efe9ff', '<circle cx="10" cy="10" r="6" fill="none" stroke="#efe9ff" stroke-width="2.2"/>'],
-    meet: ['meeting point', '#ff5c7a', '<circle cx="10" cy="10" r="7" fill="none" stroke="#ff5c7a" stroke-width="2.4"/><circle cx="10" cy="10" r="2" fill="#ff5c7a"/>']
+    meet: ['meeting point', '#efe9ff', '<circle cx="10" cy="10" r="5" fill="none" stroke="#efe9ff" stroke-width="2"/><path d="M10 .5V3.5M10 16.5V19.5M.5 10H3.5M16.5 10H19.5" stroke="#efe9ff" stroke-width="2"/><circle cx="10" cy="10" r="1.6" fill="#efe9ff"/>']
   };
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
 

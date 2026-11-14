@@ -49,14 +49,16 @@ function draw() {
     var sub = function (a, b) { return c.slice(a, b).filter(function (_, q, A) { return q % 3 === 0 || q === A.length - 1; }); };
     P.ribbon(g, sub(0, c.length), PAL.ice, PAL.ice, 2, 0.35);
     var upto = cur >= 0 ? S.stops[cur].j + 1 : 0;
-    if (upto > 1) P.ribbon(g, sub(0, upto), PAL.ice, PAL.mint, 3.5, 0.95);
+    // the visitor's stops are neutral: an ink ring around the artist's family pebble, an ink number, ink progress (mint and the star mean my press on every wall)
+    if (upto > 1) P.ribbon(g, sub(0, upto), PAL.ink, PAL.ink, 3.5, 0.95);
     for (k = 0; k < S.stops.length; k++) {
       var s = S.stops[k], x = MAP.X(s.i), y = MAP.Y(s.i), on = k === cur;
-      g.save(); g.globalAlpha = k <= cur || cur < 0 ? 1 : 0.55; g.strokeStyle = fcol(s.i); g.lineWidth = 2; g.beginPath(); g.arc(x, y, on ? 11 : 8, 0, 6.2832); g.stroke(); g.restore();
-      P.glyph(g, 'star', x, y, on ? 7 : 5, on ? PAL.mint : PAL.ink);
-      if (on) WK.pulse(g, x, y, PAL.mint, 15);
+      g.save(); g.globalAlpha = k <= cur || cur < 0 ? 1 : 0.55;
+      P.peb(g, s.i, x, y, on ? 6.5 : 5, fcol(s.i));
+      g.strokeStyle = PAL.ink; g.lineWidth = on ? 2.5 : 1.5; g.beginPath(); g.arc(x, y, on ? 12 : 9, 0, 6.2832); g.stroke(); g.restore();
+      if (on) WK.pulse(g, x, y, PAL.ink, 16);
     }
-    for (k = 0; k < S.stops.length; k++) MAP.tag(S.stops[k].i, String(k + 1), k === cur ? PAL.night : PAL.mint, k === cur ? PAL.mint : PAL.night);
+    for (k = 0; k < S.stops.length; k++) MAP.tag(S.stops[k].i, String(k + 1), k === cur ? PAL.night : PAL.ink, k === cur ? PAL.ink : PAL.night);
   }
 }
 
@@ -103,7 +105,7 @@ function clear() {
 }
 
 function pos(e) { var r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
-// the number chip sits beside its star (the same box wallkit's MAP.tag draws), so a tap on the chip counts too; top chip first
+// the number chip sits beside its ring (the same box wallkit's MAP.tag draws), so a tap on the chip counts too; top chip first
 function badgeAt(p) {
   var g = MAP.g, k, i, w, x, y, hit = -1;
   g.save(); g.font = '600 12px "IBM Plex Mono", monospace';

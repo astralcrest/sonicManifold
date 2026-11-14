@@ -80,16 +80,16 @@ function draw(now) {
     g.save(); g.globalAlpha = ft; P.glyph(g, 'ring', pts[k - from][0], pts[k - from][1], small ? 4 : 5, PAL.violet); g.restore();
   }
   a = pt(S.L[S.idx]); P.peb(g, S.L[S.idx], a[0], a[1], rad(S.L[S.idx], small) + 2, famCol(S.L[S.idx])); P.glyph(g, 'ring', a[0], a[1], small ? 8 : 10, PAL.violet); P.rings(g, a[0], a[1], PAL.ink, 16);
-  if (WK.playing()) { if (S.tapI >= 0) { b = pt(S.tapI); P.peb(g, S.tapI, b[0], b[1], 8, famCol(S.tapI)); WK.pulse(g, b[0], b[1], PAL.mint, 14); } else WK.pulse(g, a[0], a[1], PAL.violet, 16); }
+  if (WK.playing()) { if (S.tapI >= 0) { b = pt(S.tapI); P.peb(g, S.tapI, b[0], b[1], 8, famCol(S.tapI)); WK.pulse(g, b[0], b[1], PAL.ink, 14); } else WK.pulse(g, a[0], a[1], PAL.violet, 16); }
   var age = now - S.flash;
-  if (age < 700) { g.save(); g.strokeStyle = PAL.rose; g.globalAlpha = 1 - age / 700; g.lineWidth = 3; g.beginPath(); g.arc(a[0], a[1], 20 + age / 700 * Math.min(W, H) * 0.35, 0, 6.2832); g.stroke(); g.restore(); }
+  if (age < 700) { g.save(); g.strokeStyle = PAL.ink; g.globalAlpha = 1 - age / 700; g.lineWidth = 3; g.beginPath(); g.arc(a[0], a[1], 20 + age / 700 * Math.min(W, H) * 0.35, 0, 6.2832); g.stroke(); g.restore(); }
   MAP.tag(S.L[S.idx], 'step ' + (S.idx + 1) + ': ' + D.n[S.L[S.idx]], PAL.ink, PAL.night);
-  // the level meter, in the strip fit() keeps free under the map: round capsules, ice under the bar, rose over it
+  // the level meter, in the strip fit() keeps free under the map: round capsules, dim under the clap line, ink over it; no key color, no family color
   var x0 = 28, x1 = W - 28, y = H - (small ? 18 : 24), th = thr(), mx = x0 + (x1 - x0) * th, my = small ? 9 : 12, ly = y - (small ? 14 : 18);
   g.save(); g.lineCap = 'round'; g.lineWidth = small ? 8 : 10;
   g.strokeStyle = '#241b3a'; g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke();
-  if (S.level > 0.01) { g.strokeStyle = S.level > th ? PAL.rose : PAL.ice; g.beginPath(); g.moveTo(x0, y); g.lineTo(x0 + (x1 - x0) * Math.min(1, S.level), y); g.stroke(); }
-  g.lineCap = 'butt'; g.lineWidth = 2; g.strokeStyle = PAL.amber; g.beginPath(); g.moveTo(mx, y - my); g.lineTo(mx, y + my); g.stroke();
+  if (S.level > 0.01) { g.strokeStyle = S.level > th ? PAL.ink : '#4d4466'; g.beginPath(); g.moveTo(x0, y); g.lineTo(x0 + (x1 - x0) * Math.min(1, S.level), y); g.stroke(); }
+  g.lineCap = 'butt'; g.lineWidth = 2; g.strokeStyle = PAL.ink; g.beginPath(); g.moveTo(mx, y - my); g.lineTo(mx, y + my); g.stroke();
   // "clap line" sits over its mark, nudged right only when the mark is low enough to collide with "room level"
   g.font = '500 11px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.globalAlpha = 0.75;
   var lw = g.measureText('room level').width, cw = g.measureText('clap line').width / 2;
@@ -165,7 +165,7 @@ WK.boot().then(function (b) {
     S.L = path.filter(function (i, n, a) { return WK.title(i) && (n === 0 || a[n - 1] !== i); }).slice(0, LEN);
     if (S.L.length < 3) throw new Error('no previews');
     MAP = new WK.Map($('map'), cv, D, M, { dim: 0.5, tap: tap }); MAP.resize(); fit();
-    load(); out();
+    load(); out(); WK.famKey($('fams'), D, S.L);
     $('meta').textContent = 'data: ' + S.L.length + ' stops on one pretend auto-play walk across my map of ' + D.n.length.toLocaleString('en-US') + ' artists.';
     requestAnimationFrame(tick);
   });

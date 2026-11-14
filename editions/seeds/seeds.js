@@ -1,7 +1,7 @@
 (function () {
 'use strict';
 var $ = WK.$, C = WK.C, D, M, FIT, LOOP, MAP, K, R;
-var S = { a: -1, b: -1, seed: 1, pa: null, pb: null, hit: null, ran: '', cur: null, dirty: true };
+var S = { a: -1, b: -1, seed: 1, pa: null, pb: null, hit: null, ran: '', cur: null, dirty: true, fresh: false, done: false, lastG: -1 };
 // seed two's yellow is in no family color and no shared key color, so it never sinks into a cluster
 var VIO = '#8b6fd6', YEL = '#f5e642', INK = '#efe9ff', NIGHT = '#06010f';
 var keyEl = document.querySelector('#wk-strip .wk-keys');
@@ -102,36 +102,49 @@ function run() {
     $('sn').value = h.step;
   }
   WK.famKey($('fams'), D, S.pa.concat(S.pb));
+  // the picture shows the walks up to the meeting; the first press still plays from the two seeds
+  S.fresh = true; S.done = false; END = -1;
   $('run').textContent = 'two new seeds'; WK.stop(); $('step').disabled = false; hearLabel(); where(); draw();
 }
 
-var AUX = null, lastI = -1, rep = 0, L = [], MAXPL = 1;
+var AUX = null, lastI = -1, rep = 0, L = [], LIST = [], OFF = 0, END = -1, PT = 0, MAXPL = 1;
+// a fixed pace like the front's walks: each stop gets about 9 s, not its whole 30 s preview
+var PACE = 9000;
 (function () { var p = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function () { AUX = this; return p.apply(this, arguments); }; })();
 function seek(t) { if (!AUX) return; var go = function () { try { AUX.currentTime = Math.min(t, Math.max(0, (AUX.duration || 30) - 8)); } catch (e) {} }; if (AUX.readyState > 0) go(); else AUX.addEventListener('loadedmetadata', go, { once: true }); }
 function fam(i) { return D.fam[D.f[i]] || 'untagged'; }
 function famLine(p, k) { return fam(p[k]) + (k > 0 && D.f[p[k]] !== D.f[p[k - 1]] ? ', a new family after ' + fam(p[k - 1]) : ''); }
 function wt(i) { return Math.log(1 + (D.pl ? D.pl[i] : 1)) / MAXPL; }
 
+// a name that already ends in a period (Bobby V.) gets no second one
+function dot(t) { return /[.!?]$/.test(t) ? t : t + '.'; }
 function where() {
   if (S.a < 0 || WK.playing()) return;
   var s = +$('sn').value, last = S.pa.length - 1;
   $('step').disabled = s >= last;
-  $('now').textContent = 'step ' + s + ' of ' + last + ': seed one is at ' + D.n[S.pa[s]] + ' (' + famLine(S.pa, s) + ')' + (s < last ? ', then ' + D.n[S.pa[s + 1]] : '') + '. seed two is at ' + D.n[S.pb[s]] + ' (' + famLine(S.pb, s) + ')' + (s < last ? ', then ' + D.n[S.pb[s + 1]] : '') + '.';
+  $('now').textContent = 'step ' + s + ' of ' + last + ': seed one is at ' + D.n[S.pa[s]] + ' (' + famLine(S.pa, s) + ')' + dot(s < last ? ', then ' + D.n[S.pa[s + 1]] : '') + ' seed two is at ' + D.n[S.pb[s]] + ' (' + famLine(S.pb, s) + ')' + dot(s < last ? ', then ' + D.n[S.pb[s + 1]] : '');
 }
 function onst(k, info) {
+  clearTimeout(PT);
   var s = +$('sn').value, last = S.pa ? S.pa.length - 1 : 40;
   if (info) {
     var tap = info.tag === 'tap';
     S.cur = { i: info.i, col: tap ? INK : info.tag === 'seed one' ? VIO : YEL };
-    if (tap) $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[info.i] + ' (' + fam(info.i) + ').';
+    if (tap) { S.lastG = -1; $('now').textContent = 'hearing ' + info.title + ' by ' + D.n[info.i] + ' (' + fam(info.i) + ').'; }
     else {
-      var m = L[k], rp = false, p = m.w ? S.pb : S.pa, nx = L[k + 1];
+      var gk = OFF + k, m = L[gk], rp = false, p = m.w ? S.pb : S.pa, nx = L[gk + 1];
       if (info.i === lastI) { rep++; seek(6 * rep); rp = true; } else rep = 0;
-      lastI = info.i; $('sn').value = m.step; s = m.step;
-      $('now').textContent = 'step ' + s + ' of ' + last + ', playing ' + info.tag + ': ' + info.title + ', by ' + D.n[info.i] + ' (' + famLine(p, s) + ').' + (rp ? ' same artist as the clip before, so it starts ' + 6 * rep + ' seconds in.' : '') + (nx ? ' next: ' + (nx.step !== s ? 'step ' + nx.step + ', ' : '') + (nx.w ? 'seed two' : 'seed one') + '.' : ' last stop.');
+      lastI = info.i; S.lastG = gk; $('sn').value = m.step; s = m.step;
+      $('now').textContent = 'step ' + s + ' of ' + last + ', playing ' + info.tag + ': ' + info.title + ', by ' + D.n[info.i] + ' (' + famLine(p, s) + ').' + (rp ? ' same artist as the clip before, so it starts ' + 6 * rep + ' seconds in.' : '') + (nx ? ' next: ' + (nx.step !== s ? 'step ' + nx.step + ', ' : '') + (nx.w ? 'seed two' : 'seed one') + '.' : END < last ? ' last stop for now.' : ' last stop.');
+      PT = setTimeout(function () { if (gk + 1 < LIST.length) go(gk + 1); else WK.stop(); }, PACE);
     }
     WK.live(draw);
-  } else { S.cur = null; WK.still(); where(); draw(); }
+  } else {
+    S.done = S.lastG >= 0 && S.lastG === LIST.length - 1 && END < last; S.lastG = -1;
+    if (S.done) $('sn').value = END;
+    S.cur = null; WK.still(); where(); draw();
+    if (S.done) $('now').textContent = 'stopped two steps after the walks ' + (S.hit && S.hit.never ? 'come closest' : 'meet') + '. keep going plays the rest.';
+  }
   hearLabel();
 }
 
@@ -195,24 +208,43 @@ function drawWalks(T) {
   T.push([S.pa[0], 'one', VIO], [S.pb[0], 'two', YEL]);
 }
 
-function hearLabel() { var p = WK.playing(); $('hear').textContent = p ? 'stop the sound' : S.a < 0 ? 'play the walks' : 'play from step ' + $('sn').value; $('hear').setAttribute('aria-pressed', p ? 'true' : 'false'); WK.primary(null); }
+function keepGoing() { return S.done && END >= 0 && END < S.pa.length - 1 && +$('sn').value === END; }
+function hearLabel() {
+  var p = WK.playing();
+  $('hear').textContent = p ? 'stop the sound' : S.a < 0 || S.fresh ? 'play the walks' : keepGoing() ? 'keep going' : 'play from step ' + $('sn').value;
+  $('hear').setAttribute('aria-pressed', p ? 'true' : 'false');
+  WK.primary($('hear').disabled ? null : '#hear');
+}
+// the meeting is the point: a press plays to two steps past it (or past the closest pass), and keep going plays the rest
+function stopAt() { var h = S.hit, last = S.pa.length - 1; return h ? Math.min(last, (h.never ? Math.max(h.a, h.b) : h.step) + 2) : last; }
+function go(o) { clearTimeout(PT); OFF = o; WK.play(LIST.slice(o), onst); }
 function playFrom(s) {
   if (S.a < 0) return;
-  var list = [], j, n = S.pa.length; L = []; lastI = -1; rep = 0;
-  for (j = s; j < n; j++) {
-    list.push({ i: S.pa[j], tag: 'seed one' }); L.push({ step: j, w: 0 });
-    if (S.pb[j] !== S.pa[j]) { list.push({ i: S.pb[j], tag: 'seed two' }); L.push({ step: j, w: 1 }); }
-  }
+  var last = S.pa.length - 1, e = s <= stopAt() ? stopAt() : last;
+  S.fresh = false; S.done = false; S.lastG = -1; clearTimeout(PT);
   $('now').textContent = 'loading previews';
-  WK.play(list, onst).then(function () { if (!WK.playing()) { $('now').textContent = 'no preview for these stops.'; hearLabel(); } });
+  WK.pv().then(function () {
+    var j; LIST = []; L = []; lastI = -1; rep = 0; END = e;
+    for (j = s; j <= e; j++) {
+      if (WK.title(S.pa[j])) { LIST.push({ i: S.pa[j], tag: 'seed one' }); L.push({ step: j, w: 0 }); }
+      if (S.pb[j] !== S.pa[j] && WK.title(S.pb[j])) { LIST.push({ i: S.pb[j], tag: 'seed two' }); L.push({ step: j, w: 1 }); }
+    }
+    if (!LIST.length) { $('now').textContent = 'no preview for these stops.'; hearLabel(); return; }
+    go(0);
+  }, function () { $('now').textContent = 'the previews did not load. reload the page.'; });
 }
 function jump(s) {
   if (!S.pa) return;
   var was = WK.playing(); if (was) WK.stop();
+  S.fresh = false; S.done = false;
   $('sn').value = Math.max(0, Math.min(S.pa.length - 1, s)); where(); hearLabel(); draw(); if (was) playFrom(+$('sn').value);
 }
 $('sn').addEventListener('input', function () { jump(+$('sn').value); });
-$('hear').addEventListener('click', function () { if (WK.playing()) { WK.stop(); return; } playFrom(+$('sn').value); });
+$('hear').addEventListener('click', function () {
+  if (WK.playing()) { WK.stop(); return; }
+  if (S.fresh) { $('sn').value = 0; where(); draw(); playFrom(0); return; }
+  playFrom(keepGoing() ? END + 1 : +$('sn').value);
+});
 $('step').addEventListener('click', function () { jump(+$('sn').value + 1); });
 document.addEventListener('keydown', function (e) {
   if (/INPUT|TEXTAREA/.test((e.target.tagName || '')) && e.target.type !== 'range') return;

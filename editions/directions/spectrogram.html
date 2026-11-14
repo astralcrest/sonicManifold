@@ -91,7 +91,7 @@ details.deeper[open]{display:flex;flex-direction:column;gap:6px}
 </head>
 <body>
 <div class="wrap">
-  <div class="kick mono"><a href="../../" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">sonic manifold</a> &middot; <a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 35 · THE SPECTROGRAM OF THE WEEK</div>
+  <div class="kick mono"><a href="../../" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">sonic manifold</a> &middot; <a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 8 · THE SPECTROGRAM OF THE WEEK</div>
   <h1 id="hl">&nbsp;</h1>
   <p class="cap" id="cap">&nbsp;</p>
   <div class="main">
@@ -274,18 +274,18 @@ function draw(){
   g.setTransform(r,0,0,r,0,0);
   g.font=(L.ph?'11px':'11px')+" 'IBM Plex Mono',monospace";g.textBaseline='alphabetic';
   // window line + hover readout
-  var rr=next.r,info=S.whole?'whole log · '+fmt(next.tot)+' plays':'blocks '+(rr[0]+1)+' to '+rr[1]+' of '+NB+' · '+fmt(next.tot)+' plays';
+  var rr=next.r,info=S.whole?'whole log · '+fmt(next.tot)+' plays with a known starter':'blocks '+(rr[0]+1)+' to '+rr[1]+' of '+NB+' · '+fmt(next.tot)+' plays';
   g.fillStyle='rgba(188,211,255,.8)';g.textAlign='left';
   g.fillText(L.ph?(S.whole?'whole log':'blocks '+(rr[0]+1)+' to '+rr[1]+' of '+NB):'who started each hour\'s plays',L.ph?2:13,sy+sh+L.bot-4);
   g.textAlign='right';g.fillStyle='rgba(188,211,255,.8)';
-  var ro=S.hov?hover(S.hov):(L.ph?fmt(next.tot)+' plays':info);
+  var ro=S.hov?hover(S.hov):(L.ph?fmt(next.tot)+' plays'+(S.whole?' with a known starter':''):info);
   g.fillText(ro,x0+L.gw,sy+sh+L.bot-4);
   {g.textAlign='left';g.fillStyle=VIOLET;g.font=(L.ph?'11px':'11px')+" 'IBM Plex Mono',monospace";g.fillText('\u2191 auto-play',13,sy+10);g.fillStyle=AMBER;g.fillText('shuffle',13,sy+sh/2+4);g.fillStyle=MINT;g.fillText('\u2193 i pressed',13,sy+sh-2);}
 }
 function bandSum(r,fn){var lo=r[0]*CELL,hi=r[1]*CELL,a=[0,0,0,0];for(var h=0;h<168;h++)if(fn(h))for(var f=0;f<NF;f++)for(var k=0;k<4;k++){var i=idx(h,f,k);a[k]+=P[hi+i]-P[lo+i];}return a;}
 function nowPanel(){
   var r=windowRange(),rows=[[BANDS[0][0],BANDS[0][1],bandSum(r,BANDS[0][2])],[BANDS[2][0],BANDS[2][1],bandSum(r,BANDS[2][2])]],h='',q=[];
-  var head=(S.whole?'whole log':'blocks '+(r[0]+1)+' to '+r[1]+' of '+NB)+' · '+fmt(next.tot)+' plays';
+  var head=(S.whole?'whole log':'blocks '+(r[0]+1)+' to '+r[1]+' of '+NB)+' · '+fmt(next.tot)+' plays'+(S.whole?' with a known starter':'');
   rows.forEach(function(o){var a=o[2],n=a[0]+a[1]+a[2]+a[3];q.push(n?a[3]/n:0);
     h+='<div class="lb">'+o[0]+' <span style="color:var(--ice3);font-family:IBM Plex Mono,monospace;font-size:11px">'+o[1]+'</span></div><div class="nu">'+(n?'<span class="q">auto-play '+pc(a[3]/n)+'</span> · <span class="m">mine '+pc((a[0]+a[1])/n)+'</span> · '+fmt(n):'no plays')+'</div><div class="br">'+(n?a.map(function(v,k){return '<span style="width:'+(v/n*100)+'%;background:'+ARMC[k]+'"></span>'}).join(''):'')+'</div>';});
   var nn=rows[0][2].reduce(function(x,y){return x+y},0),d=pc(q[0]-q[1]),v;

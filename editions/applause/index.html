@@ -13,22 +13,22 @@
 <link rel="stylesheet" href="../wall.css">
 <style>
 @media (min-width: 901px) { .wrap { grid-template-columns: minmax(0, 1fr) 520px; } }
-.big span.r { color: var(--rose); } .big span.g { color: var(--mint); } .big span.c { color: var(--mute); }
+.big span.r, .big span.g { color: var(--ink); } .big span.c { color: var(--mute); }
 .say { font: 500 15px/1.4 var(--sans); color: #d8d0ee; margin: 14px 0 0; min-height: 42px; }
-#play, #go { --acc: var(--violet); } #listen { --acc: var(--mint); } #clap { --acc: var(--rose); } #zero { --acc: var(--ice); }
+#play, #go { --acc: var(--violet); } #listen, #clap, #zero { --acc: var(--ink); }
 </style>
 </head>
-<body data-wall="17 of 18" data-line="clap and the violet walk, a pretend auto-play built from my log, moves on. quiet keeps it." data-do="press play, then listen for claps and clap, or press clap for me." data-keys="auto,alike" style="--act: var(--rose); --acc: var(--rose)">
+<body data-wall="17 of 18" data-line="clap and the violet walk, a pretend auto-play built from my log, moves on. quiet keeps it." data-do="press play, then listen for claps and clap, or press clap for me." data-keys="auto,alike" style="--act: var(--ice); --acc: var(--ink)">
 <div class="wrap">
   <header id="head">
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>clap to skip</span><span class="tl">a toy</span></p>
     <h1>can a room full of claps <em>skip</em> for you?</h1>
   </header>
-  <div id="map"><canvas id="cv" role="img" aria-label="my sound map with the songs played so far as a violet ribbon with a ring on the current one. a level meter along the bottom fills with the loudness of the room; a mark shows the clap threshold. a clap above the mark flashes a rose ring and moves to the next song."></canvas></div>
+  <div id="map"><canvas id="cv" role="img" aria-label="my sound map with the songs played so far as a violet ribbon with a ring on the current one. a level meter along the bottom fills with the loudness of the room; a mark shows the clap threshold. a clap above the mark flashes a white ring and moves to the next song."></canvas></div>
   <main id="side">
     <div class="key" aria-live="polite">
       <div class="big" id="num"><span class="r">0</span> <span class="c">/</span> <span class="g">0</span></div>
-      <span class="keylab">claps heard today (rose) / songs skipped by claps (mint)</span>
+      <span class="keylab">claps heard today / songs skipped by claps</span>
       <p class="say" id="say"></p>
     </div>
     <div class="lines">
@@ -46,10 +46,11 @@
       </div>
       <p class="note" id="now"></p>
     </section>
+    <p class="fams" id="fams" aria-label="the sound families on this walk"></p>
     <details class="how"><summary>how</summary>
       <p>press play. the walk plays song after song; tap any ring, or press next song, to jump ahead.</p>
       <p>tap listen and allow the mic, then clap once, sharply. no mic or on a laptop: press clap for me, or the c key. n is next song.</p>
-      <p>read the bar as room loudness: past the amber line = clap, and a clap skips. a skip waits 3 s. a song that ends on its own does not count.</p>
+      <p>read the bar as room loudness: past the white line = clap, and a clap skips. a skip waits 3 s. a song that ends on its own does not count.</p>
     </details>
     <details class="fine"><summary>the fine print</summary>
       <p>nothing is recorded; only a loudness number is read, never audio. the mic is read about 60 times a second as one number and the sound is thrown away at once.</p>

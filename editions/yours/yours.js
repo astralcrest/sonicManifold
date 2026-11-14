@@ -95,7 +95,7 @@ var $ = function (id) { return document.getElementById(id); };
 var NIGHT = '#06010f', ICE = '#bcd3ff', MUTE = '#9a90b8', INK = '#efe9ff';
 /* the site's fixed family key (front/field.js FAMC) */
 var FAMC = { 'ambient/lofi': '#3d8bff', 'classical': '#7fd37f', 'electronic': '#ff4fa3', 'experimental': '#b8ec4a', 'folk/country': '#d9a066', 'funk/disco': '#ffb3c6', 'hip-hop · r&b': '#ff5c7a', 'jazz': '#d9b8ff', 'other': '#9a90b8', 'pop': '#ff8fd6', 'rock/metal': '#c9c2ff', 'soundtrack': '#38c2d6', 'world/desi': '#ea5a2a', 'untagged': '#6f6790' };
-var F = null, find = null, R = null, TOT = null, FC = null, FL = null, MAXT = 1, cv = $('map'), cx = cv.getContext('2d'), W = 0, D = 1, HOT = -1;
+var F = null, find = null, R = null, TOT = null, FC = null, FL = null, EDGE = null, MAXT = 1, cv = $('map'), cx = cv.getContext('2d'), W = 0, D = 1, HOT = -1;
 var EXAMPLE = 'Frank Ocean\nSZA\nRadiohead\nBonobo\nTaylor Swift\nKendrick Lamar\nBurial\nolafur arnalds\nFour Tet\nBillie Eilish\nNils Frahm\nA.R. Rahman\nThe Beatles\nKhruangbin\nArijit Singh';
 var URL_PUB = 'https://astralcrest.github.io/sonicManifold/editions/yours/';
 
@@ -118,7 +118,13 @@ function draw() {
   cx.setTransform(1, 0, 0, 1, 0, 0); cx.fillStyle = NIGHT; cx.fillRect(0, 0, cv.width, cv.height);
   var i, p, on = R ? new Set(R.placed.map(function (e) { return e.i; })) : null;
   cx.globalAlpha = 0.75;
-  for (i = 0; i < F.n.length; i++) { if (on && on.has(i)) continue; p = pos(i); cx.fillStyle = FC[i]; dot(p[0], p[1], 0.9 + 1.5 * Math.sqrt(TOT[i] / MAXT)); cx.fill(); }
+  /* the map clamps its outliers to the frame (a coordinate of exactly 0 or 1000): those are drawn hollow, since the spot is not their real one */
+  cx.lineWidth = 1.2 * D;
+  for (i = 0; i < F.n.length; i++) {
+    if (on && on.has(i)) continue; p = pos(i);
+    if (EDGE[i]) { cx.strokeStyle = FC[i]; dot(p[0], p[1], Math.max(2.4, 0.9 + 1.5 * Math.sqrt(TOT[i] / MAXT))); cx.stroke(); }
+    else { cx.fillStyle = FC[i]; dot(p[0], p[1], 0.9 + 1.5 * Math.sqrt(TOT[i] / MAXT)); cx.fill(); }
+  }
   cx.globalAlpha = 1;
   if (!R) return;
   var L = R.placed, n = L.length, r;
@@ -218,6 +224,7 @@ if (window.ResizeObserver) new ResizeObserver(size).observe(cv.parentNode); else
 fetch('../../front/data/field.json').then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (j) {
   F = j; find = makeIndex(F.n);
   TOT = F.h.map(function (h) { return h[0] + h[1] + h[2]; }); MAXT = Math.max.apply(null, TOT) || 1;
+  EDGE = F.xy.map(function (q) { return q[0] === 0 || q[0] === 1000 || q[1] === 0 || q[1] === 1000; });
   var fa = F.fa && F.fa.length === F.n.length ? F.fa : F.f, has = {};
   FC = fa.map(function (k) { has[k] = 1; return FAMC[F.fam[k]] || MUTE; }); FL = fa.map(function (k) { return F.fam[k] || 'untagged'; });
   F.fam.forEach(function (nm, k) { if (!has[k]) return; var s = document.createElement('span'), i = document.createElement('i'); i.className = 'sw'; i.style.background = FAMC[nm] || MUTE; s.appendChild(i); s.appendChild(document.createTextNode(nm)); $('fams').appendChild(s); });

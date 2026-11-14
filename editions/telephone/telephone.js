@@ -129,25 +129,46 @@ function render() {
   draw();
 }
 
-var BOX = [];
-function tag(i, text, col) {
-  var g = MAP.g, w, h = 20, x, y, t, k, hit;
-  g.save(); g.font = '600 12px "IBM Plex Mono", monospace'; g.textBaseline = 'middle';
-  w = g.measureText(text).width + 10; x = Math.round(MAP.X(i) + 12); y = Math.round(MAP.Y(i) - 12);
-  if (x + w > MAP.W - 2) x = Math.round(MAP.X(i) - 12 - w); if (y < h / 2 + 1) y = Math.round(MAP.Y(i) + 14);
-  for (t = 0; t < 3; t++) {
-    hit = BOX.some(function (b) { return x < b[0] + b[2] && x + w > b[0] && y - h / 2 < b[1] + h / 2 && y + h / 2 > b[1] - h / 2; });
-    if (!hit) break; y += h;
+// labels go on last, after every mark. each tries spots around its own pebble, nearest first, and takes the first that
+// covers no other label, pebble, ring or link number; one pushed away keeps a thin lead back to its pebble
+var BOX = [], OBS = [], LF = '600 12px "IBM Plex Mono", monospace';
+function cost(x, y, w, h) {
+  var n = 0;
+  BOX.forEach(function (b) { if (x < b.x + b.w + 2 && x + w + 2 > b.x && y < b.y + b.h + 2 && y + h + 2 > b.y) n += 4; });
+  OBS.forEach(function (o) {
+    if (o.r) { var qx = Math.max(x, Math.min(o.x, x + w)), qy = Math.max(y, Math.min(o.y, y + h)); if ((qx - o.x) * (qx - o.x) + (qy - o.y) * (qy - o.y) < o.r * o.r) n++; }
+    else if (x < o.x + o.w && x + w > o.x && y < o.y + o.h && y + h > o.y) n++;
+  });
+  return n;
+}
+// up-right, up-left, down-right, down-left, right, left, up, down
+var AROUND = [-0.6, -2.54, 0.6, 2.54, 0, 3.1416, -1.5708, 1.5708];
+function place(i, text, col, rr, cand) {
+  var g = MAP.g, h = 20, ax = MAP.X(i), ay = MAP.Y(i), w, best = null, bs = 1e9, d, k, a, r, c, sn, x, y, n;
+  g.save(); g.font = LF; w = Math.ceil(g.measureText(text).width) + 10; g.restore();
+  for (d = 0; d < 5 && bs > 0; d++) for (k = 0; k < AROUND.length; k++) {
+    a = AROUND[k]; r = rr + 5 + d * 13; c = Math.cos(a); sn = Math.sin(a);
+    x = ax + c * r; y = ay + sn * r;
+    x = c > 0.3 ? x : c < -0.3 ? x - w : x - w / 2; y = sn > 0.3 ? y : sn < -0.3 ? y - h : y - h / 2;
+    x = Math.round(Math.max(2, Math.min(MAP.W - w - 2, x))); y = Math.round(Math.max(2, Math.min(MAP.H - h - 2, y)));
+    n = cost(x, y, w, h); if (n < bs) { bs = n; best = [x, y]; if (!n) break; }
   }
-  BOX.push([x, y, w]);
-  g.fillStyle = PAL.night; g.fillRect(x, y - h / 2, w, h); g.strokeStyle = col; g.lineWidth = 1; g.strokeRect(x + 0.5, y - h / 2 + 0.5, w - 1, h - 1);
-  g.fillStyle = col; g.fillText(text, x + 5, y + 0.5); g.restore();
+  var b = { x: best[0], y: best[1], w: w, h: h, ax: ax, ay: ay, rr: rr, text: text, col: col, cand: cand };
+  BOX.push(b); return b;
+}
+function paint(b) {
+  var g = MAP.g, cx = Math.max(b.x, Math.min(b.ax, b.x + b.w)), cy = Math.max(b.y, Math.min(b.ay, b.y + b.h)), dd = Math.hypot(cx - b.ax, cy - b.ay);
+  g.save(); g.globalAlpha = 1; g.setLineDash([]);
+  if (dd > b.rr + 14) { g.strokeStyle = b.col; g.lineWidth = 1; g.beginPath(); g.moveTo(b.ax + (cx - b.ax) * (b.rr + 2) / dd, b.ay + (cy - b.ay) * (b.rr + 2) / dd); g.lineTo(cx, cy); g.stroke(); }
+  g.font = LF; g.textBaseline = 'middle';
+  g.fillStyle = PAL.night; g.fillRect(b.x, b.y, b.w, b.h); g.strokeStyle = b.col; g.lineWidth = 1; g.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
+  g.fillStyle = b.col; g.fillText(b.text, b.x + 5, b.y + b.h / 2 + 0.5); g.restore();
 }
 function draw() {
-  MAP.begin(); BOX = [];
+  MAP.begin(); BOX = []; OBS = [];
   if (!S.chain.length) return;
   var g = MAP.g, ch = S.chain, cur = ch[ch.length - 1], X = function (i) { return MAP.X(i); }, Y = function (i) { return MAP.Y(i); };
-  var k0 = R.on ? R.k : ch.length - 1, pm = 1;
+  var k0 = R.on ? R.k : ch.length - 1, pm = 1, RR = {};
   ch.forEach(function (i) { if (D.pl[i] > pm) pm = D.pl[i]; });
   S.cands.forEach(function (i) { P.ribbon(g, [[X(cur), Y(cur)], [X(i), Y(i)]], PAL.ice, PAL.ice, S.sel === i ? 2 : 1, S.sel === i ? 0.9 : 0.5); });
   if (ch.length > 1) {
@@ -155,24 +176,28 @@ function draw() {
     if (k0 > 0) MAP.ribbon(ch.slice(0, k0 + 1), k0 + 1, PAL.ice, PAL.ink, MAP.W < 500 ? 2.6 : 3.4);
     else if (!R.on) MAP.ribbon(ch, ch.length, PAL.ice, PAL.ink, MAP.W < 500 ? 2.6 : 3.4);
   }
-  S.cands.forEach(function (i, k) {
+  S.cands.forEach(function (i) {
     var rr = 6 + 6 * Math.sqrt(D.pl[i] / pm);
-    P.peb(g, i, X(i), Y(i), rr, famCol(i));
+    P.peb(g, i, X(i), Y(i), rr, famCol(i)); RR[i] = rr; OBS.push({ x: X(i), y: Y(i), r: rr + (S.sel === i ? 7 : 2) });
     if (S.sel === i) { g.save(); g.strokeStyle = PAL.ink; g.lineWidth = 2; g.beginPath(); g.arc(X(i), Y(i), rr + 5, 0, 6.2832); g.stroke(); g.restore(); }
-    tag(i, String(k + 1), S.sel === i ? PAL.ink : PAL.ice);
   });
   ch.forEach(function (i, k) {
-    var rr = 4 + 6 * Math.sqrt(D.pl[i] / pm), x = X(i), y = Y(i);
+    var rr = 4 + 6 * Math.sqrt(D.pl[i] / pm), x = X(i), y = Y(i), ring = k > 0 && fam(i) !== fam(ch[k - 1]);
     g.save(); g.globalAlpha = R.on && k > k0 ? 0.35 : 1;
-    if (k > 0 && fam(i) !== fam(ch[k - 1])) { g.strokeStyle = famCol(i); g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, rr + 4, 0, 6.2832); g.stroke(); }
+    if (ring) { g.strokeStyle = famCol(i); g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, rr + 4, 0, 6.2832); g.stroke(); }
     P.peb(g, i, x, y, rr, k === 0 || k === ch.length - 1 ? PAL.ink : famCol(i));
-    if (ch.length <= 30) { g.font = '600 10px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText(String(k + 1), x, y - rr - 3); }
+    RR[i] = rr; OBS.push({ x: x, y: y, r: rr + (ring ? 5 : 1) });
+    if (ch.length <= 30) { g.font = '600 10px "IBM Plex Mono", monospace'; g.fillStyle = PAL.ink; g.textAlign = 'center'; g.fillText(String(k + 1), x, y - rr - 3); var tw = g.measureText(String(k + 1)).width; OBS.push({ x: x - tw / 2 - 1, y: y - rr - 12, w: tw + 2, h: 11 }); }
     g.restore();
   });
-  if (ch.length) tag(ch[0], 'start', '#9a90b8');
-  P.rings(g, X(cur), Y(cur), PAL.ink, 20);
-  if (R.on && R.k >= 0) tag(ch[R.k], (R.k + 1) + ' of ' + ch.length + ': ' + D.n[ch[R.k]], famCol(ch[R.k]));
+  P.rings(g, X(cur), Y(cur), PAL.ink, 20); OBS.push({ x: X(cur), y: Y(cur), r: 24 });
   if (S.hear >= 0) WK.pulse(g, X(S.hear), Y(S.hear), PAL.ice, 18);
+  // most important first: the link being replayed, then the numbered songs you can tap, then where the chain began
+  var L = [];
+  if (R.on && R.k >= 0) L.push(place(ch[R.k], (R.k + 1) + ' of ' + ch.length + ': ' + D.n[ch[R.k]], famCol(ch[R.k]), RR[ch[R.k]]));
+  S.cands.forEach(function (i, k) { L.push(place(i, String(k + 1), S.sel === i ? PAL.ink : PAL.ice, RR[i], i)); });
+  L.push(place(ch[0], 'start', '#9a90b8', RR[ch[0]]));
+  L.forEach(paint);
 }
 
 function fresh() { stopReplay(); S.chain = [newStart()]; S.more = false; S.sel = -1; save(); render(); }
@@ -189,7 +214,10 @@ addEventListener('keydown', function (e) {
 });
 $('cv').addEventListener('click', function (e) {
   var b = this.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top, best = -1, bd = 32, link = -1, ld = 14;
-  if ($('cands').style.display !== 'none') S.cands.forEach(function (i) { var d = Math.hypot(MAP.X(i) - x, MAP.Y(i) - y); if (d < bd) { bd = d; best = i; } });
+  if ($('cands').style.display !== 'none') {
+    BOX.forEach(function (q) { if (best < 0 && q.cand != null && x >= q.x - 4 && x <= q.x + q.w + 4 && y >= q.y - 4 && y <= q.y + q.h + 4) best = q.cand; });
+    if (best < 0) S.cands.forEach(function (i) { var d = Math.hypot(MAP.X(i) - x, MAP.Y(i) - y); if (d < bd) { bd = d; best = i; } });
+  }
   if (best >= 0) { choose(best); return; }
   S.chain.forEach(function (i, k) { var d = Math.hypot(MAP.X(i) - x, MAP.Y(i) - y); if (d < ld) { ld = d; link = k; } });
   if (link >= 0) { if (R.on) { clearTimeout(R.t); replayAt(link); } else startReplay(link); }

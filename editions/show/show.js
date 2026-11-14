@@ -32,24 +32,28 @@
 
   /* wall loop: scene captions + scene picker */
   var SCENES = [
-    ['1 the count, by who pressed play', 'every dot is an artist, placed by how they sound. a line joins an artist to its three nearest in sound. a dot\'s color is how most of its plays began. a bigger dot is an artist i played more times.'],
-    ['2 the sound map, by family', 'every dot is an artist, placed by how they sound. a line joins an artist to its three nearest in sound. color is the genre family. a bigger dot is an artist i played more times.'],
-    ['3 the followed-by map, by neighborhood', 'every dot is an artist, placed by what followed what, so artists that follow each other sit close. a line is two artists played back to back. color is the neighborhood: the eight biggest, i to viii by size. a bigger dot is an artist i played more times.'],
-    ['4 the ring', 'my most played artists in a circle. every dot is an artist, colored by its family. a line is one play, then the next. mint lines across the inside: my press, the long jumps. thin violet arcs on the rim: auto-play. 19 of every 100 plays were my press; the ring draws about as many lines of each. a bigger dot is an artist i played more times.'],
-    ['5 the record', 'the gold squares are my own songs. one at a time, a song lights up the 40 artists nearest it in sound. every other dot is an artist, and a bigger dot is an artist i played more times.']
+    ['1 the count', 'of every 100 plays, 19 were my press, 17 shuffle, 64 auto-play. the same count as the north wall.'],
+    ['2 the sound map, by family', 'every dot is an artist, placed by how it sounds. a line joins it to its three nearest in sound. color is the family; a bigger dot, more plays.'],
+    ['3 the followed-by map, by neighborhood', 'every dot is an artist, placed by what followed what. a line is two artists played back to back. color is the neighborhood: 11 in all, the eight biggest in color, i to viii, the rest gray.'],
+    ['4 the ring', 'my most played artists in a circle, colored by family. a line is one play, then the next: mint is my press, violet is auto-play. the ring draws about as many of each, though only 19 of every 100 plays were my press.'],
+    ['5 the record', 'the gold squares are my own songs. one at a time, a song lights up the 40 artists nearest it in sound.']
   ];
   // per-scene keys: colors as the loop draws them (make_wall_loop.py palette); 'more' is a plain note
   var MINT = '#21f6bc', VIO = '#8b6fd6', AMB = '#f5a623', GOLD = '#ffd36b', ICE = '#bcd3ff', MUTE = '#9a90b8';
   var SKEYS = [
-    [['dot', MINT, 'my press'], ['dot', VIO, 'auto-play'], ['dot', AMB, 'shuffle']],
+    [['star', MINT, 'my press'], ['dia', AMB, 'shuffle'], ['ring', VIO, 'auto-play']],
     [['dot', '#ff5c7a', 'hip-hop · r&b'], ['dot', '#ff4fa3', 'electronic'], ['dot', '#5fb8ff', 'ambient/lofi'], ['dot', AMB, 'world/desi'], ['dot', '#ff8fd6', 'pop'], ['dot', MUTE, 'other'], ['dot', '#c9c2ff', 'rock/metal'], ['more', '', 'and 7 smaller families']],
-    [['line', ICE, 'back to back'], ['dot', '#5fb8ff', 'i'], ['dot', '#ff5c7a', 'ii'], ['dot', GOLD, 'iii'], ['dot', '#b8ec4a', 'iv'], ['dot', '#ff8fd6', 'v'], ['dot', AMB, 'vi'], ['dot', '#c9c2ff', 'vii'], ['dot', '#8fd3b6', 'viii'], ['dot', MUTE, 'the rest']],
+    [['line', ICE, 'back to back'], ['dot', '#5fb8ff', 'i'], ['dot', '#ff5c7a', 'ii'], ['dot', GOLD, 'iii'], ['dot', '#b8ec4a', 'iv'], ['dot', '#ff8fd6', 'v'], ['dot', AMB, 'vi'], ['dot', '#c9c2ff', 'vii'], ['dot', '#8fd3b6', 'viii'], ['dot', MUTE, 'ix to xi, the rest']],
     [['line', MINT, 'my press'], ['line', VIO, 'auto-play'], ['dot', '#ff5c7a', 'hip-hop · r&b'], ['dot', '#ff4fa3', 'electronic'], ['dot', '#ffb3c6', 'funk/disco'], ['dot', '#5fb8ff', 'ambient/lofi'], ['more', '', 'and 4 more families']],
     [['sq', GOLD, 'my songs'], ['line', GOLD, 'nearest in sound'], ['more', '', 'other dots: artists, by family']]
   ];
   function glyph(k, c) {
     if (k === 'line') return '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h12" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/></svg>';
     if (k === 'sq') return '<svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="2" width="10" height="10" fill="' + c + '"/></svg>';
+    // the count's glyphs, as wallkit KEYS draws them
+    if (k === 'star') return '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1Q10 10 19 10Q10 10 10 19Q10 10 1 10Q10 10 10 1Z" fill="' + c + '"/></svg>';
+    if (k === 'dia') return '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5L17 10L10 18.5L3 10Z" fill="' + c + '"/></svg>';
+    if (k === 'ring') return '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="' + c + '" stroke-width="2.4"/></svg>';
     return '<svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="' + c + '"/></svg>';
   }
   var keyEl = document.getElementById('wl-keys');
@@ -57,7 +61,7 @@
     if (!keyEl) return;
     keyEl.innerHTML = SKEYS[i].map(function (d) { return '<li>' + (d[0] === 'more' ? '' : glyph(d[0], d[1])) + d[2] + '</li>'; }).join('');
   }
-  var IDLE = 'five scenes, 18 seconds each: the count, the sound map, the followed-by map, the ring, the record. press play.';
+  var IDLE = 'five scenes, 18 seconds each. press play.';
   var capEl = document.getElementById('wl-line'), scBtns = [].slice.call(document.querySelectorAll('#wl-scenes button'));
   var lastKey = '';
   function sceneOf(t) { return Math.max(0, Math.min(4, Math.floor(t / 18))); }
@@ -261,7 +265,13 @@
     var cube = room.querySelector('.cube'), W = 0, H = 0, yaw = 0, pitch = 0, small = null;
     var rbtns = [].slice.call(document.querySelectorAll('#room-btns button'));
     var imgs = [].slice.call(room.querySelectorAll('img[data-l]'));
-    var lastTouch = -1e9, dragging = false, anim = null, vis = true, curK = -1, last = 0;
+    // the idle turn waits 8 s from load, so the first view is the north wall square on, heading whole
+    var lastTouch = performance.now(), dragging = false, anim = null, vis = true, curK = -1, last = 0;
+    var rline = document.getElementById('room-line');
+    var RL = ['of every 100 plays, 19 were my press, 17 shuffle, 64 auto-play.',
+      'every dot is an artist, placed by how it sounds, colored by family.',
+      'my songs in gold, each tied to the artists it sounds like.',
+      'my most played artists in a circle. a line is one play, then the next.'];
     function setSrc() {
       var s = window.innerWidth < 700;
       if (s === small) return; small = s;
@@ -272,6 +282,7 @@
       var k = ((Math.round(yaw / 90) % 4) + 4) % 4;
       if (k === curK) return; curK = k;
       rbtns.forEach(function (b, i) { b.setAttribute('aria-pressed', String(i === k)); });
+      if (rline) rline.textContent = RL[k];
     }
     function size() {
       W = room.clientWidth; H = W * 9 / 16;

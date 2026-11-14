@@ -478,7 +478,6 @@ function peb(g, i, x, y, r, fill, a) {
   if (r >= 3.2) { g.lineWidth = 0.9 / r; g.strokeStyle = 'rgba(6,1,15,.5)'; g.stroke(p); if (a === undefined) a = 1; g.fillStyle = 'rgba(255,255,255,' + (0.26 * a).toFixed(3) + ')'; g.beginPath(); g.ellipse(-0.28, -0.34, 0.34, 0.22, -0.7, 0, 6.2832); g.fill(); }
   g.scale(1 / r, 1 / r); g.translate(-x, -y);
 }
-function halo(g, x, y, r, col, a) { g.fillStyle = col; g.globalAlpha = (phone ? 0.16 : 0.13) * a; g.beginPath(); g.arc(x, y, r * (phone ? 2.1 : 2.4) + 1, 0, 6.2832); g.fill(); }
 function cuts3(a) { var b = a.slice().sort(function (p, q) { return p - q; }), n = b.length; return n ? [b[Math.floor(n * 0.6)], b[Math.floor(n * 0.88)]] : [0, 0]; }
 function step3(w, T) { return w >= T[1] ? 2 : w >= T[0] ? 1 : 0; }
 var LW3 = [0.8, 1.9, 3.4];
@@ -714,20 +713,15 @@ function paint(now) {
   if (LKs) { for (k = 0; k < LKs.length; k++) LKo[LKs[k]] = 1; g.strokeStyle = rgba(ICE, 0.85); g.lineWidth = 1; g.beginPath(); for (k = 1; k < LKs.length; k++) { g.moveTo(SX[LKs[0]], SY[LKs[0]]); g.lineTo(SX[LKs[k]], SY[LKs[k]]); } g.stroke(); }
   /* the artists */
   var tint = scene === 0 || (from === 0 && blend < 1 && scene !== 1), cmap = (scene === C_MAPS || scene === C_HOODS) ? (S.color || (scene === C_HOODS ? 'hood' : 'family')) : '';
-  var pass2, inR = scene === 1 && blend >= 1;
-  for (pass2 = 0; pass2 < 2; pass2++) {
-    if (pass2 === 0) { if (inR) continue; g.globalCompositeOperation = 'lighter'; }
-    for (k = 0; k < N; k++) {
-      i = TOP[N - 1 - k]; var a = SA[i]; if (a <= 0.01 || SX[i] < -24 || SX[i] > W + 24 || SY[i] < -24 || SY[i] > H + 24) continue;
-      var col = cmap ? colorOf(i, cmap) : inR ? FC[i] : tint ? HC[i] : FC[i];
-      if (LKs && !LKo[i]) a *= 0.4;
-      if (scene === C_RECORD && !isNb(i)) a *= 0.7;
-      if (cmap && S.fam >= 0 && F.f[i] !== S.fam) a *= 0.18;
-      if (cmap && S.hoodHi >= 0 && MAPS && MAPS.c[i] !== S.hoodHi) a *= 0.22;
-      if (pass2 === 0) halo(g, SX[i], SY[i], SR[i] * (phone ? 1.25 : 1), col, a);
-      else peb(g, i, SX[i], SY[i], SR[i] * (phone ? 1.25 : 1), a >= 0.99 ? col : dim(col, a), a);
-    }
-    if (pass2 === 0) { g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
+  var inR = scene === 1 && blend >= 1;
+  for (k = 0; k < N; k++) {
+    i = TOP[N - 1 - k]; var a = SA[i]; if (a <= 0.01 || SX[i] < -24 || SX[i] > W + 24 || SY[i] < -24 || SY[i] > H + 24) continue;
+    var col = cmap ? colorOf(i, cmap) : inR ? FC[i] : tint ? HC[i] : FC[i];
+    if (LKs && !LKo[i]) a *= 0.4;
+    if (scene === C_RECORD && !isNb(i)) a *= 0.7;
+    if (cmap && S.fam >= 0 && F.f[i] !== S.fam) a *= 0.18;
+    if (cmap && S.hoodHi >= 0 && MAPS && MAPS.c[i] !== S.hoodHi) a *= 0.22;
+    peb(g, i, SX[i], SY[i], SR[i] * (phone ? 1.25 : 1), a >= 0.99 ? col : dim(col, a), a);
   }
   /* the songs: gold in the field */
   if (field && (scene === C_COUNT || scene === C_RECORD)) {

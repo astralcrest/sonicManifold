@@ -1,7 +1,7 @@
 (function () {
 'use strict';
 var $ = WK.$, P = WK.P, PAL = P.PAL, D, MAP, cv = $('cv');
-var S = { heard: {}, fams: {}, cnt: 0, last: -1, cur: -1, down: false, all: false, silent: {}, trail: [], walk: null, tm: 0 };
+var S = { heard: {}, fams: {}, cnt: 0, last: -1, cur: -1, down: false, all: false, silent: {}, trail: [], walk: null, tm: 0, np: null };
 var IDLE = 'sound: clips play only when sound is on.';
 
 function fam(i) { return D.fam[D.f[i]]; }
@@ -60,15 +60,19 @@ function topArtist() { var m = 0, j; for (j = 1; j < D.xy.length; j++) if ((D.pl
 function hasClip(i) { return !!(WK.title(i)); }
 function say(info, i) {
   var f = fam(i), prev = S.trail.length > 1 ? fam(S.trail[S.trail.length - 2]) : null;
-  return 'hearing ' + info.title + ' by ' + D.n[i] + ' (' + f + (prev && prev !== f && !S.walk ? ', a new family' : '') + ').';
+  return info.title + ' by ' + D.n[i] + ' (' + f + (prev && prev !== f && !S.walk ? ', a new family' : '') + ')';
 }
+// the clip line has two wordings: 'hearing' only while sound is on, so a muted visitor is never told they hear it
+function heard(core) { S.np = core; showNow(); }
+function showNow() { if (S.np) $('now').textContent = WK.sound() ? 'hearing ' + S.np + '.' : 'sound is off: ' + S.np + '. turn sound on at the top.'; }
+function nowText(t) { S.np = null; $('now').textContent = t; }
 function playOne(i) {
   S.walk = null;
   WK.pv().then(function () {
     if (S.cur !== i) return;
-    if (!hasClip(i)) { S.silent[i] = 1; WK.stop(); WK.still(); $('now').textContent = D.n[i] + ': no clip, so it lights silent.'; draw(); return; }
+    if (!hasClip(i)) { S.silent[i] = 1; WK.stop(); WK.still(); nowText(D.n[i] + ': no clip, so it lights silent.'); draw(); return; }
     S.last = i;
-    WK.play([{ i: i, tag: 'a' }], function (k, info) { if (info && S.cur === i) { $('now').textContent = say(info, i); WK.live(draw); } else if (!info) { WK.still(); draw(); } });
+    WK.play([{ i: i, tag: 'a' }], function (k, info) { if (info && S.cur === i) { heard(say(info, i)); WK.live(draw); } else if (!info) { WK.still(); draw(); } });
   });
 }
 function hit(i, now) {
@@ -91,11 +95,11 @@ function walkFrom(k0) {
       var kk = S.walk.k0 + k, prev = kk > 0 ? fam(list[kk - 1]) : null, f = fam(info.i);
       S.walk.k = kk; S.cur = info.i;
       $('say').textContent = 'step ' + (kk + 1) + ' of ' + list.length + ' on your path: ' + D.n[info.i] + ' (' + f + (prev && prev !== f ? ', a new family' : '') + ')' + (kk + 1 < list.length ? ', then ' + D.n[list[kk + 1]] : ', the last stop') + '.';
-      $('now').textContent = 'hearing ' + info.title + WK.again(info) + '.';
+      heard(info.title + WK.again(info));
       WK.live(draw);
-    } else { WK.still(); S.walk = null; draw(); out(); $('now').textContent = IDLE; }
+    } else { WK.still(); S.walk = null; draw(); out(); nowText(IDLE); }
     btns();
-  }).then(function () { if (!WK.playing() && S.walk) { S.walk = null; $('now').textContent = 'no clips along this path.'; draw(); } btns(); });
+  }).then(function () { if (!WK.playing() && S.walk) { S.walk = null; nowText('no clips along this path.'); draw(); } btns(); });
 }
 function hop() {
   var from = S.cur >= 0 ? S.cur : S.last, best = -1, bd = 1e18, k, j, dx, dy, d;
@@ -147,10 +151,13 @@ cv.addEventListener('keydown', function (e) {
   if (best >= 0) hit(best, true); else $('say').textContent = 'no artist further that way.';
 });
 
-$('clear').addEventListener('click', function () { clearTimeout(S.tm); WK.stop(); WK.still(); S.heard = {}; S.fams = {}; S.cnt = 0; S.cur = -1; S.last = -1; S.all = false; S.silent = {}; S.trail = []; S.walk = null; $('now').textContent = IDLE; draw(); out(); btns(); });
+$('clear').addEventListener('click', function () { clearTimeout(S.tm); WK.stop(); WK.still(); S.heard = {}; S.fams = {}; S.cnt = 0; S.cur = -1; S.last = -1; S.all = false; S.silent = {}; S.trail = []; S.walk = null; nowText(IDLE); draw(); out(); btns(); });
 $('all').addEventListener('click', function () { S.all = true; draw(); out(); });
 $('hear').addEventListener('click', function () { if (S.walk && WK.playing()) { WK.stop(); return; } walkFrom(0); });
 $('next').addEventListener('click', next);
+// the sound chip (or the strip's play button) can flip sound mid-clip: reword the clip line once the press lands
+document.addEventListener('click', function () { setTimeout(showNow, 0); }, true);
+addEventListener('message', function (e) { if (e.data && e.data.sm === 'front') setTimeout(showNow, 0); });
 
 var rt;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { MAP.resize(); draw(); }, 80); });

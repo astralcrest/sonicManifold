@@ -93,13 +93,17 @@ function draw() {
     x = MAP.X(a); y = MAP.Y(a);
     if (S.st[n] === 1) { P.peb(g, a, x, y, 9, fcol(a)); P.glyph(g, 'star', x, y, 12, PAL.mint); }
     else if (S.st[n] === 2) P.glyph(g, 'dot', x, y, 3, '#3a3052');
-    else if (n !== S.k) { P.peb(g, a, x, y, 3.5 + 3 * Math.log(1 + D.pl[a]) / Math.log(1 + D.pl[M.order[0]]), fcol(a)); P.glyph(g, 'ring', x, y, 9, '#6f6790'); if (n === S.k + 1) MAP.tag(a, 'next ' + D.n[a], '#9a90b8'); }
+    else if (n !== S.k) { P.peb(g, a, x, y, 3.5 + 3 * Math.log(1 + D.pl[a]) / Math.log(1 + D.pl[M.order[0]]), fcol(a)); P.glyph(g, 'ring', x, y, 9, '#6f6790'); }
   });
   if (!S.done && S.list.length) {
     i = S.list[S.k]; x = MAP.X(i); y = MAP.Y(i);
-    P.peb(g, i, x, y, 10, fcol(i)); P.rings(g, x, y, PAL.ink, 22); MAP.tag(i, (S.k + 1) + '/12 ' + D.n[i], PAL.ink);
+    P.peb(g, i, x, y, 10, fcol(i)); P.rings(g, x, y, PAL.ink, 22);
     if (S.phase === 'playing') WK.pulse(g, x, y, PAL.mint, 18);
   }
+  // the name chips go on last, so no pebble, ring or pulse lands on their words; the current one on top
+  k = S.k + 1;
+  if (!S.done && k < S.list.length && S.st[k] !== 1 && S.st[k] !== 2) MAP.tag(S.list[k], 'next ' + D.n[S.list[k]], '#9a90b8');
+  if (!S.done && S.list.length) MAP.tag(S.list[S.k], (S.k + 1) + '/12 ' + D.n[S.list[S.k]], PAL.ink);
 }
 
 // a tap takes the nearest upcoming song of the deal, not the nearest of all artists (too dense to hit on a phone)

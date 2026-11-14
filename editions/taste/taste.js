@@ -120,6 +120,7 @@
     $("rk").textContent = `round ${R + 1} of ${ROUNDS}`;
     $("tk").textContent = R + 1; $("tkl").textContent = `of ${ROUNDS} rounds: play both, then pick`;
     heard = [false, false]; shown = []; cur = null;
+    if (window.WK && WK.primary) WK.primary(null);
     ["A", "B"].forEach((L) => {
       $("c" + L).classList.remove("won");
       $("n" + L).textContent = "the name shows after you pick";
@@ -186,12 +187,16 @@
       $("status").append(a, (s.pick === s.target ? " you went with it." : " you went against it.") + end);
     } else $("status").textContent = (R === ROUNDS - 1 ? "picked." : "picked. next round when you are ready.") + end;
     $("next").disabled = false;
+    if (window.WK && WK.primary) WK.primary($("next"));
     $("pvcap").textContent = "your pick is saved. the next round starts when you press next round.";
     pvFrame();
   }
 
+  function doneLine() { $("now").textContent = snd() ? `press ${tourLab()}, tap a shape on the map, or tap a row.` : "sound is off: tap the sound chip at the top, then tap a shape or a row."; }
+
   function showResult() {
     stopClip(); clearWait(); tourEnd("");
+    if (window.WK && WK.primary) WK.primary(null);
     body.className = "done" + (SHARED ? " shared" : "");
     let k = 0, m = 0;
     S.forEach(s => { if (s.pick === s.target) s.primed ? k++ : m++; });
@@ -216,7 +221,7 @@
       else if (s.skipped) { const e = document.createElement("em"); e.textContent = " · first song skipped, counted as none"; li.append(e); }
       log.append(li);
     });
-    $("now").textContent = snd() ? `press ${tourLab()}, tap a shape on the map, or tap a row.` : "sound is off: tap the sound chip at the top, then tap a shape or a row.";
+    doneLine();
     $("next").disabled = false; $("next").textContent = SHARED ? "play your own" : "again";
     mapBase = null; mapFrame();
     try { history.replaceState(null, "", "#r=" + encodeS()); } catch (e) {}
@@ -453,6 +458,17 @@
     else if (k === "n" && !$("next").disabled) $("next").click();
   });
   window.addEventListener("resize", () => { pvBase = null; mapBase = null; redraw(); });
+
+  // the strip's chip (or its play button) flips sound; any line that told the visitor about sound follows it. capture, since the chip rewrites its label and detaches the tapped span; the timeout lets its handler run first
+  document.addEventListener("click", e => {
+    if (!e.target || !e.target.closest || !e.target.closest("#wk-snd, #wk-go")) return;
+    setTimeout(() => {
+      if (!S) return;
+      if (body.classList.contains("done")) { if (!tourOn && /^sound is off|^press /.test($("now").textContent)) doneLine(); return; }
+      const s = S[R];
+      if (body.classList.contains("r") && s && s.pick === null && !$("primer").classList.contains("on")) ready();
+    }, 0);
+  }, true);
 
   $("next").disabled = true;
   const ld = fetch("../loop/data/loop.json").then(r => r.json()).catch(() => null);

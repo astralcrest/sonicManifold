@@ -26,33 +26,58 @@ function stats() {
 function say() {
   if (!plays.length) { $('say').textContent = 'no plays in this sitting. try the next one.'; return; }
   var p = plays[k], nx = plays[k + 1];
-  $('say').textContent = 'step ' + (k + 1) + ' of ' + plays.length + ': ' + (D.n[p.i] || '') + ', ' + fname(p.i) + ', ' + (k === 0 ? 'the start' : hand(p)) + ', then ' + (nx ? (D.n[nx.i] || '') + (D.f[nx.i] !== D.f[p.i] ? ' (a crossing into ' + fname(nx.i) + ')' : '') : 'the sitting ends') + '.';
+  $('say').textContent = 'step ' + (k + 1) + ' of ' + plays.length + ': ' + (D.n[p.i] || '') + ', ' + fname(p.i) + ', ' + hand(p) + (k === 0 ? ' (the start)' : '') + ', then ' + (nx ? (D.n[nx.i] || '') + (D.f[nx.i] !== D.f[p.i] ? ' (a crossing into ' + fname(nx.i) + ')' : '') : 'the sitting ends') + '.';
 }
 
 function segs(a, b, alpha) {
-  if (b <= a) return;
+  if (b <= a) return [];
   var runs = [], q, cur = null, prev = null, pt;
   for (q = a; q <= b; q++) {
     pt = [m.X(plays[q].i), m.Y(plays[q].i)];
     if (!cur || D.f[plays[q].i] !== cur.f) {
-      cur = { f: D.f[plays[q].i], pts: prev ? [prev] : [] }; runs.push(cur);
+      cur = { f: D.f[plays[q].i], q: q, pts: prev ? [prev] : [] }; runs.push(cur);
     }
     if (!cur.pts.length || cur.pts[cur.pts.length - 1][0] !== pt[0] || cur.pts[cur.pts.length - 1][1] !== pt[1]) cur.pts.push(pt);
     prev = pt;
   }
   runs.forEach(function (r) { var c = WK.FAMC[D.fam[r.f]] || PAL.ink; P.ribbon(m.g, r.pts, c, c, m.W < 500 ? 3 : 4, alpha); });
+  return runs;
+}
+// an ink tick across the ribbon at each crossing, so a change reads without telling two close hues apart.
+// it sits on the first curve P.ribbon draws for the new run (with its bow for a two-point run), at the point nearest the middle of the step
+function ticks(runs, on) {
+  var g = m.g, h = m.W < 500 ? 6 : 7;
+  g.save(); g.globalCompositeOperation = 'source-over'; g.setLineDash([]); g.strokeStyle = PAL.ink; g.lineWidth = 2; g.lineCap = 'butt';
+  runs.forEach(function (r) {
+    if (!r.q || r.pts.length < 2) return;
+    var p = r.pts, a = p[0], b = p[1], c = b, e, mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, t, u, x = 0, y = 0, bd = 1e9, bt = 0.5, d;
+    if (p.length === 2) { c = [mx - (b[1] - a[1]) * 0.14, my + (b[0] - a[0]) * 0.14]; e = [(c[0] + b[0]) / 2, (c[1] + b[1]) / 2]; }
+    else e = [(b[0] + p[2][0]) / 2, (b[1] + p[2][1]) / 2];
+    for (t = 0.1; t < 0.96; t += 0.05) {
+      u = 1 - t; var qx = u * u * a[0] + 2 * u * t * c[0] + t * t * e[0], qy = u * u * a[1] + 2 * u * t * c[1] + t * t * e[1];
+      d = (qx - mx) * (qx - mx) + (qy - my) * (qy - my); if (d < bd) { bd = d; bt = t; x = qx; y = qy; }
+    }
+    var tx = 2 * (1 - bt) * (c[0] - a[0]) + 2 * bt * (e[0] - c[0]), ty = 2 * (1 - bt) * (c[1] - a[1]) + 2 * bt * (e[1] - c[1]);
+    d = Math.hypot(tx, ty);
+    if (!(d > 0)) return;
+    tx /= d; ty /= d;
+    g.globalAlpha = !on || r.q <= k ? 1 : 0.45;
+    g.beginPath(); g.moveTo(x - ty * h, y + tx * h); g.lineTo(x + ty * h, y - tx * h); g.stroke();
+  });
+  g.restore();
 }
 function draw() {
   if (!m) return;
   m.begin();
   var g = m.g, q, p, n = plays.length, on = go || k > 0;
   if (n) {
-    segs(0, n - 1, on ? 0.32 : 0.85);
+    var runs = segs(0, n - 1, on ? 0.32 : 0.85);
     if (on) segs(0, k, 0.95);
     for (q = 0; q < n; q++) {
       p = plays[q]; var past = !on || q <= k;
       g.globalAlpha = past ? 1 : 0.45; P.glyph(g, KIND[p.src].gly, m.X(p.i), m.Y(p.i), m.W < 500 ? 4.5 : 5.5, fcol(p.i)); g.globalAlpha = 1;
     }
+    ticks(runs, on);
     if (on) {
       p = plays[k]; var x = m.X(p.i), y = m.Y(p.i);
       P.glyph(g, KIND[p.src].gly, x, y, 10, fcol(p.i));

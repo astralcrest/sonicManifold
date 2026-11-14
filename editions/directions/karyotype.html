@@ -70,7 +70,7 @@ details.deeper .read{font-family:'Instrument Sans',system-ui,sans-serif}
 </head>
 <body>
 <header>
-  <div class="eye mono"><a href="../../" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">sonic manifold</a> &middot; <a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 30 · the karyotype</div>
+  <div class="eye mono"><a href="../../" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">sonic manifold</a> &middot; <a href="./" style="color:inherit;text-decoration:none;border-bottom:1px solid currentColor">eight ways</a> &middot; 7 · the karyotype</div>
   <h1 id="hl">reading the play log</h1>
   <p class="cap" id="cap"></p>
 </header>
@@ -170,7 +170,7 @@ function draw(){
     g.setTransform(dpr,0,0,dpr,0,0);g.textAlign='center';g.textBaseline='top';
     var arrived=cum>0,lbY=p.y+L.rowH+5;
     g.fillStyle=arrived?(hover===i?INK:MUTE):LINE;g.font='500 '+11+'px "IBM Plex Mono",monospace';g.fillText(String(i+1),p.x,lbY);
-    if(!L.phone){g.fillStyle=arrived?(hover===i?INK:'#cfc6ea'):LINE;g.font='500 11px "Instrument Sans",sans-serif';var nm=a.n,mw=L.pitch-4;while(g.measureText(nm).width>mw&&nm.length>2)nm=nm.slice(0,-2)+'…';if(nm!==a.n&&nm.slice(-1)!=='…')nm+='…';g.fillText(nm,p.x,lbY+14)}
+    if(!L.phone){g.fillStyle=arrived?(hover===i?INK:'#cfc6ea'):LINE;g.font='500 11px "Instrument Sans",sans-serif';var nm=a.n,mw=L.pitch-4;if(g.measureText(nm).width>mw)nm=nm.split(/ · |\//)[0];while(g.measureText(nm).width>mw&&nm.length>2)nm=nm.slice(0,-2)+'…';g.fillText(nm,p.x,lbY+14)}
     g.setTransform(1,0,0,1,0,0);
     if(!arrived)return;
     var r=Math.min(px(cw/2),px(4));
@@ -210,7 +210,7 @@ function hit(ev){var r=cv.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clien
   for(var i=0;i<N;i++){var p=pos(i);if(Math.abs(x-p.x)<L.pitch/2&&y>=p.y-6&&y<=p.y+L.rowH+L.lab)best=i}
   hover=best;if(best<0){tip.style.display='none';return}
   var a=A[best],fam=D.fam[a.f]||'untagged',pr=a.pre[loose?1:0];
-  tip.innerHTML='<b>'+a.n+'</b><div class="mono">'+fam+'</div><div class="mono">'+fmt(a.tot)+' plays in '+a.b.length+' blocks</div><div class="mono">arrived '+(best+1)+' of '+N+'</div><div class="mono">'+(pr===null?'never pressed by my hand':pr===0?'my press on the first play':'my first press after '+pr+' plays')+'</div>';
+  tip.innerHTML='<b>'+fam+'</b><div class="mono">'+fmt(a.tot)+' plays in '+a.b.length+' blocks</div><div class="mono">bar '+(best+1)+' of '+N+', in order of arrival</div><div class="mono">'+(pr===null?'never pressed by my hand':pr===0?'my press on the first play':'my first press after '+pr+' plays')+'</div>';
   tip.style.display='block';var tw=tip.offsetWidth,p=pos(best);tip.style.left=Math.max(0,Math.min(W-tw,p.x-tw/2))+'px';tip.style.top=Math.min(H-tip.offsetHeight,p.y+L.rowH*.35)+'px'}
 
 fetch('data/karyotype.json').then(function(r){return r.json()}).then(function(d){

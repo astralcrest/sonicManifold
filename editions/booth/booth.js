@@ -12,7 +12,7 @@ function shuffle() {
   pos = -1; shown = []; hist = [];
 }
 function clear() { timers.forEach(clearTimeout); timers = []; WK.still(); }
-function say(t) { $('now').textContent = t; }
+function say(t, kind) { $('now').textContent = t; nowIs = kind || ''; }
 function draw(c) {
   if (row.children.length !== claims.length) {
     row.innerHTML = '';
@@ -35,6 +35,10 @@ function type(el, text, speed, done) {
 }
 function rng(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 function soundLine() { return WK.sound() ? 'now playing: one of my songs, low, under the words.' : 'sound off, tap to hear one of my songs under the words.'; }
+// the first screen's line: nothing plays yet, so it never says now playing
+function stillLine() { return (WK.sound() ? 'sound on: one of my songs plays low once a claim starts.' : 'sound off, tap to hear one of my songs under the words.') + ' arrow keys step through the claims; tap any dot to jump.'; }
+// which line #now holds, so the sound chip can rewrite it: 'still', 'play' or '' (a message the chip leaves alone)
+var nowIs = '';
 // pale: what i hoped. rose: what the check found, in the claim's own shape (claims.json "shape"), with the grave's numbers under it.
 // a sketch, not to scale, except "swing", which is drawn from the grave's own rates (19 hoped, 11.8 then 22.7 found)
 function picture(c, killed, u) {
@@ -75,7 +79,7 @@ function show(i, still, fromBack) {
   sig.setAttribute('aria-label', 'claim ' + c.n + ', a sketch: a pale line for what i hoped, a rose line for what the check found: ' + c.found + '.');
   if (still) { claimEl.textContent = c.claim; reft.textContent = c.referee; refEl.classList.add('on'); picture(c, true, 1); return; }
   claimEl.textContent = ''; reft.textContent = ''; refEl.classList.remove('on');
-  say(soundLine());
+  say(soundLine(), 'play');
   picture(c, false, 0);
   type(claimEl, c.claim, reduce ? 0 : 24, function () {
     timers.push(setTimeout(function () {
@@ -102,7 +106,7 @@ function setAuto(on) { autoOn = on; $('auto').setAttribute('aria-pressed', on ? 
 function reset() {
   clear(); setAuto(false); shuffle();
   go.textContent = 'next claim'; clearTimeout(idle); show(order[0], true);
-  say((WK.sound() ? 'sound on: one of my songs, low, under the words.' : 'sound off, tap to hear one of my songs under the words.') + ' arrow keys step through the claims; tap any dot to jump.');
+  say(stillLine(), 'still');
   try { BED.pause(); BED.currentTime = 0; } catch (e) {}
 }
 go.addEventListener('click', function () { setAuto(false); step(); });
@@ -113,6 +117,11 @@ document.addEventListener('keydown', function (e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'ArrowRight') { setAuto(false); step(); } else if (e.key === 'ArrowLeft') goBack();
 });
+// the chip flips sound on or off from the strip; the status line follows it. capture: the chip rewrites its own label, which detaches the tapped span before a bubble would reach here
+document.addEventListener('click', function (e) {
+  if (!e.target || !e.target.closest || !e.target.closest('#wk-snd, #wk-go')) return;
+  setTimeout(function () { if (nowIs === 'still' && BED.paused) say(stillLine(), 'still'); else if (nowIs) say(soundLine(), 'play'); }, 0);
+}, true);
 function redraw() { if (cur.c) picture(cur.c, refEl.classList.contains('on'), 1); }
 addEventListener('resize', redraw);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);

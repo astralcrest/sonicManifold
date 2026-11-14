@@ -19,13 +19,13 @@ function draw() {
   for (k = 0; k < plays.length; k++) {
     p = plays[k]; kd = KIND[p.src]; a = -Math.PI / 2 + k * 6.2832 / plays.length; x = cx + Math.cos(a) * R; y = cy + Math.sin(a) * R;
     on = !fin && (held || idx > 0) && k === idx;
-    if (k < idx) { g.globalAlpha = 0.82; P.peb(g, p.i, x, y, r0 * sz(p), kd.col); g.globalAlpha = 1; }
-    else if (on) { P.peb(g, p.i, x, y, r0 * 1.7 * sz(p), kd.col); P.glyph(g, kd.gly, x, y, r0 * 2.2, PAL.night); g.save(); g.strokeStyle = kd.col; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, r0 * 2.5, 0, 6.2832); g.stroke(); g.restore(); }
-    else { g.globalAlpha = 0.5; P.peb(g, p.i, x, y, r0 * 0.85, '#3a3158'); g.globalAlpha = 1; }
+    // the whole ring sits in its colors from the first second; the playhead walks it
+    if (on) { P.peb(g, p.i, x, y, r0 * 1.7 * sz(p), kd.col); P.glyph(g, kd.gly, x, y, r0 * 2.2, PAL.night); g.save(); g.strokeStyle = kd.col; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, r0 * 2.5, 0, 6.2832); g.stroke(); g.restore(); }
+    else P.peb(g, p.i, x, y, r0 * sz(p), kd.col);
     var fx = cx + Math.cos(a) * R * 0.84, fy = cy + Math.sin(a) * R * 0.84, fc = WK.FAMC[FAM[FI[p.i]]] || '#3a3158';
-    g.globalAlpha = k < idx || on ? 1 : 0.35; g.fillStyle = fc; g.beginPath(); g.arc(fx, fy, on ? r0 * 0.7 : r0 * 0.42, 0, 6.2832); g.fill(); g.globalAlpha = 1;
+    g.fillStyle = fc; g.beginPath(); g.arc(fx, fy, on ? r0 * 0.7 : r0 * 0.42, 0, 6.2832); g.fill();
     if (k > 0 && p.e !== plays[k - 1].e) { var sa = a - 3.1416 / plays.length; g.save(); g.strokeStyle = PAL.ink; g.lineWidth = 2; g.beginPath(); g.moveTo(cx + Math.cos(sa) * (R + r0 * 1.6), cy + Math.sin(sa) * (R + r0 * 1.6)); g.lineTo(cx + Math.cos(sa) * (R + r0 * 3), cy + Math.sin(sa) * (R + r0 * 3)); g.stroke(); g.restore(); }
-    if (k > 0 && k <= idx && p.e === plays[k - 1].e && FI[p.i] !== FI[plays[k - 1].i]) { var pa = -Math.PI / 2 + (k - 1) * 6.2832 / plays.length; g.save(); g.strokeStyle = fc; g.lineWidth = 1.2; g.globalAlpha = 0.8; g.beginPath(); g.moveTo(cx + Math.cos(pa) * R * 0.84, cy + Math.sin(pa) * R * 0.84); g.lineTo(fx, fy); g.stroke(); g.restore(); }
+    if (k > 0 && p.e === plays[k - 1].e && FI[p.i] !== FI[plays[k - 1].i]) { var pa = -Math.PI / 2 + (k - 1) * 6.2832 / plays.length; g.save(); g.strokeStyle = fc; g.lineWidth = 1.2; g.globalAlpha = 0.8; g.beginPath(); g.moveTo(cx + Math.cos(pa) * R * 0.84, cy + Math.sin(pa) * R * 0.84); g.lineTo(fx, fy); g.stroke(); g.restore(); }
   }
   var cur = plays[Math.min(plays.length - 1, idx)];
   g.textAlign = 'center';

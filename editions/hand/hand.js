@@ -71,21 +71,23 @@ function hearBoth() {
   $('gp').disabled = $('ga').disabled = true; $('hear').classList.add('go');
   var step = function (n) {
     if (my !== token) return;
-    if (n === 2) { cur = -1; $('hear').classList.remove('go'); $('hear').textContent = 'hear both again'; $('now').textContent = 'both clips done. who pressed play on the second?'; return; }
+    if (n === 2) { cur = -1; pace(); $('hear').classList.remove('go'); $('hear').textContent = 'hear both again'; $('now').textContent = 'both clips done. who pressed play on the second?'; return; }
     var i = n === 0 ? pr.a : pr.b, t = n === 0 ? pr.at : pr.bt, name = D.n[i];
-    cur = n; if (n === 1) { started2 = true; enable(); }
+    cur = n; pace(); if (n === 1) { started2 = true; enable(); }
     $('now').textContent = n === 0 ? 'clip 1 of 2: ' + name + '. in my log the song was “' + t + '”.' : 'clip 2 of 2' + (pr.a === pr.b ? ', the same preview again' : '') + '. its name shows when you guess.';
     WK.play([{ i: i, tag: n }], function () {});
     timer = setTimeout(function () { if (my !== token) return; WK.stop(); step(n + 1); }, CLIP);
   };
   step(0);
 }
+// the 30 a second redraw runs only while a clip pulses on the map, and never in a hidden tab
+function pace() { if (cur >= 0 && !document.hidden) WK.live(draw); else { WK.still(); draw(); } }
 function enable() { if (phase === 'ready') { $('gp').disabled = $('ga').disabled = false; } }
 
 function answer(h) {
   if (phase !== 'ready' || !started2) return;
   var pr = pairs[r], ok = h === pr.hand;
-  token++; clearTimeout(timer); WK.stop(); cur = -1;
+  token++; clearTimeout(timer); WK.stop(); cur = -1; WK.still();
   phase = 'revealed'; tally[pr.hand][1]++; if (ok) tally[pr.hand][0]++;
   $('gp').disabled = $('ga').disabled = true; $('hear').classList.remove('go'); $('hear').disabled = true;
   var d = dist(pr.a, pr.b);
@@ -115,7 +117,7 @@ function setPair() {
   draw();
 }
 function next() { if (phase !== 'revealed') return; r++; setPair(); $('hear').focus(); }
-function again() { token++; clearTimeout(timer); WK.stop(); tally = { press: [0, 0], queue: [0, 0] }; r = 0; build(); score(); $('again').hidden = true; setPair(); }
+function again() { token++; clearTimeout(timer); WK.stop(); cur = -1; WK.still(); tally = { press: [0, 0], queue: [0, 0] }; r = 0; build(); score(); $('again').hidden = true; setPair(); }
 
 $('hear').addEventListener('click', hearBoth);
 $('gp').addEventListener('click', function () { answer('press'); });
@@ -127,12 +129,13 @@ addEventListener('keydown', function (e) {
   var k = e.key.toLowerCase();
   if (k === 'h') { if (phase === 'ready' && !WK.sound()) WK.setSound(true); hearBoth(); } else if (k === '1') answer('press'); else if (k === '2') answer('queue'); else if (k === 'n') { if (!$('again').hidden) again(); else next(); }
 });
+document.addEventListener('visibilitychange', pace);
 var rt = null;
 addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (map) { map.resize(); draw(); } }, 80); });
 
 Promise.all([WK.boot([WK.j('../haunted/data/haunted.json')]), WK.pv()]).then(function (a) {
   D = a[0].D; evs = a[0].extra[0].ev;
   map = new WK.Map(box, cv, D, a[0].M, { dim: 0.5 }); map.resize();
-  build(); score(); setPair(); WK.live(draw);
+  build(); score(); setPair();
 }, function () { $('say').textContent = 'the data did not load. reload the page to try again.'; });
 })();

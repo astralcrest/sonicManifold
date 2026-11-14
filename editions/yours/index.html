@@ -58,6 +58,7 @@ details[open] summary{color:var(--ink);border-color:var(--ice)}
 .keyrow{display:flex;flex-wrap:wrap;gap:6px 18px;font:12px var(--mono);color:var(--mute);margin-top:10px}
 .sw{display:inline-block;border-radius:50%;margin-right:6px;vertical-align:middle}
 .sw{width:8px;height:8px}
+.sw.o{width:7px;height:7px;border:1.3px solid var(--mute);background:transparent}
 .sw.i{width:9px;height:9px;background:var(--ice);box-shadow:0 0 0 2px var(--night),0 0 0 3.5px var(--ice);margin:0 10px 0 4px}
 #fams{margin-top:6px}
 .tap{font:12px/1.45 var(--mono);color:var(--ink);margin-top:8px;min-height:1.45em}
@@ -75,7 +76,7 @@ details[open] summary{color:var(--ink);border-color:var(--ice)}
     <p class="eyebrow"><a href="../../">sonic manifold</a><span>your own data</span><span><a href="../../yourturn.html">have your whole export? your own log</a></span></p>
     <h1>where <em>your</em> artists land on my sound map</h1>
     <p id="lead">paste the artists you play most. the ones on my map light up in ice; the rest are counted, never guessed.</p>
-    <p class="how"><b>how:</b> each dot is an artist i played five times or more that a model could place (<span id="nmine">1,871</span>), set by how it sounds to that model (CLAP, the first two of three UMAP axes; dots on the border lie farther out) and colored by family (Last.fm, else Apple&rsquo;s label). near = roughly alike to the model, not to me. your names match mine by spelling only, ignoring case and accents.</p>
+    <p class="how"><b>how:</b> each dot is an artist i played five times or more that a model could place (<span id="nmine">1,871</span>), set by how it sounds to that model (CLAP, the first two of three UMAP axes; hollow dots on the border lie farther out) and colored by family (Last.fm, else Apple&rsquo;s label). near = roughly alike to the model, not to me. your names match mine by spelling only, ignoring case and accents.</p>
   </div>
   <div class="hside">
     <div class="big" id="np">?</div>
@@ -101,7 +102,7 @@ details[open] summary{color:var(--ink);border-color:var(--ice)}
   </div>
   <div class="pic">
     <div class="cv"><canvas id="map" role="img" aria-label="my sound map: dots are artists i played five times or more, colored by family; ringed ice marks are the artists from your list that are on my map"></canvas></div>
-    <p class="keyrow"><span><i class="sw i"></i>yours, on my map (bigger = higher on your list)</span></p>
+    <p class="keyrow"><span><i class="sw i"></i>yours, on my map (bigger = higher on your list)</span><span><i class="sw o"></i>hollow = off the edge of the map</span></p>
     <p class="keyrow" id="fams"></p>
     <p class="tap" id="tap" aria-live="polite"></p>
     <div id="lists" hidden><p><b>placed</b><span id="pl"></span></p><p><b>off my map</b><span id="of"></span></p></div>
