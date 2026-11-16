@@ -1,6 +1,6 @@
 @import url("../front/shared.css?v=44");
 /* the walls, as gallery pieces: a dark room, one confident sentence, one huge number, crisp flat color. no blur, no shadow. */
-:root {  --ice: #bcd3ff; --act: var(--mint); --acc: var(--ice);
+:root {  --ice: #bcd3ff; --act: var(--ink); --acc: var(--ice);
   --sans: 'Instrument Sans', system-ui, sans-serif; --mono: 'IBM Plex Mono', ui-monospace, monospace; }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--night); color: var(--ink); }

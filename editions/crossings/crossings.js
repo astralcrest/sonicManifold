@@ -83,7 +83,7 @@ function draw() {
       P.glyph(g, KIND[p.src].gly, x, y, 10, fcol(p.i));
       P.rings(g, x, y, fcol(p.i), 14);
       if (go) WK.pulse(g, x, y, fcol(p.i), 16);
-      m.tag(p.i, (k + 1) + '/' + n, fcol(p.i));
+      m.tag(p.i, (k + 1) + '/' + n, PAL.ink);
     }
   }
   drawStrip();
